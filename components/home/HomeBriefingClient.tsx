@@ -183,6 +183,8 @@ function parseMarketFromInitial(raw: HomeBriefingInitialData["market"]): MarketS
 
 type HomeBriefingClientProps = {
   initial: HomeBriefingInitialData;
+  /** Re-housed Germany view: drop the marketing hero and the methodology accordion. */
+  rehoused?: boolean;
 };
 
 /**
@@ -227,7 +229,7 @@ function GermanyFlowStoryBridge({
   return <>{children({ briefingStoryWindow: storyWindow, briefingStoryRefreshNonce: storyRefreshNonce, onBriefingStoryWindowChange })}</>;
 }
 
-export function HomeBriefingClient({ initial }: HomeBriefingClientProps) {
+export function HomeBriefingClient({ initial, rehoused = false }: HomeBriefingClientProps) {
   const { language } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
@@ -410,11 +412,25 @@ export function HomeBriefingClient({ initial }: HomeBriefingClientProps) {
         </div>
       ) : null}
 
-      <section id="hero" className="scroll-mt-20">
-        <HeroValueProp language={language} />
-      </section>
+      {rehoused ? (
+        <header className="max-w-[68ch]">
+          <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Live · Deutschland</p>
+          <h1 className="mt-2 text-[28px] font-medium md:text-[36px]">
+            {language === "de" ? "Erzeugung, Last und Speicherflotte" : "Generation, load, and the storage fleet"}
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            {language === "de"
+              ? "Beobachtete Werte von Energy-Charts. Der Flotten-SoC ist eine Schätzung, keine Telemetrie."
+              : "Observed values from Energy-Charts. Fleet state of charge is an estimate, not telemetry."}
+          </p>
+        </header>
+      ) : (
+        <section id="hero" className="scroll-mt-20">
+          <HeroValueProp language={language} />
+        </section>
+      )}
 
-      <BriefingSectionNav language={language} />
+      {rehoused ? null : <BriefingSectionNav language={language} />}
 
       <section id="briefing-live">
       <LiveSnapshotHeader
@@ -430,6 +446,13 @@ export function HomeBriefingClient({ initial }: HomeBriefingClientProps) {
         updatedAtIso={market?.realtimeSystem.timestampIso ?? null}
       />
       </section>
+
+      {rehoused ? (
+        <SystemContradictionCallout
+          language={language}
+          slots={initial.initialEnergyFlow?.slots ?? null}
+        />
+      ) : null}
 
       <section id="overview" className="border-t border-border/50 pt-8 md:pt-10">
         <GermanyFlowStoryBridge
@@ -464,9 +487,9 @@ export function HomeBriefingClient({ initial }: HomeBriefingClientProps) {
         </GermanyFlowStoryBridge>
       </section>
 
-      <MethodologySection language={language} />
+      {rehoused ? null : <MethodologySection language={language} />}
 
-      <section id="fleet-map" className="border-t border-border/50 pt-8 md:pt-10">
+      <section id="fleet-map" className="fleet-map-muted border-t border-border/50 pt-8 md:pt-10">
         <details
           open
           className="group rounded-xl border border-border/60 bg-card/40 p-3 backdrop-blur-sm dark:bg-card/25"
@@ -498,6 +521,61 @@ export function HomeBriefingClient({ initial }: HomeBriefingClientProps) {
       </section>
 
     </div>
+  );
+}
+
+function SystemContradictionCallout({
+  language,
+  slots,
+}: {
+  language: "de" | "en";
+  slots:
+    | {
+        loadMw: number;
+        totalGenerationMw: number;
+        crossBorderElectricityTradingMw: number | null;
+        curtailmentMw?: number | null;
+      }[]
+    | null;
+}) {
+  if (!slots || slots.length === 0) {
+    return null;
+  }
+  let surplusMwh = 0;
+  let importMwh = 0;
+  let curtailMwh = 0;
+  for (const slot of slots) {
+    surplusMwh += Math.max(0, slot.totalGenerationMw - slot.loadMw) * 0.25;
+    importMwh += Math.max(0, slot.crossBorderElectricityTradingMw ?? 0) * 0.25;
+    curtailMwh += Math.max(0, slot.curtailmentMw ?? 0) * 0.25;
+  }
+  const format = new Intl.NumberFormat(language === "de" ? "de-DE" : "en-GB", { maximumFractionDigits: 1 });
+  const unit = (mwh: number) => `${format.format(mwh / 1000)}\u202FGWh`;
+  return (
+    <aside className="border-l-[3px] border-warning bg-card px-4 py-4">
+      <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
+        {language === "de" ? "System-Widerspruch" : "System contradiction"}
+      </p>
+      <p className="mt-2 max-w-[68ch] text-sm text-muted-foreground">
+        {language === "de"
+          ? "Überschuss, Import und Abregelung können am selben Tag zusammen auftreten. Die drei Werte sind Energien im Fenster, nicht gleichzeitig."
+          : "Surplus, imports, and curtailment can show up on the same day. The three values are energy in the window, not simultaneous."}
+      </p>
+      <dl className="num mt-3 grid gap-2 text-sm sm:grid-cols-3">
+        <div>
+          <dt className="text-muted-foreground">{language === "de" ? "Überschuss" : "Surplus"}</dt>
+          <dd>{unit(surplusMwh)}</dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">{language === "de" ? "Import" : "Imports"}</dt>
+          <dd>{unit(importMwh)}</dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">{language === "de" ? "Abregelung" : "Curtailment"}</dt>
+          <dd>{unit(curtailMwh)}</dd>
+        </div>
+      </dl>
+    </aside>
   );
 }
 

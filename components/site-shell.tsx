@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Menu, Monitor, Moon, Sun, X } from "lucide-react";
+
 import BessAiChatOverlay from "@/components/BessAiChatOverlay";
-import { SpeicherPilotLogo } from "@/components/SpeicherPilotLogo";
-import { XLogo } from "@/components/XLogo";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
+import { XLogo } from "@/components/XLogo";
 
 type SiteShellProps = {
   children: React.ReactNode;
@@ -14,10 +15,17 @@ type SiteShellProps = {
 
 type ThemePreference = "light" | "dark" | "system";
 
+const NAV = [
+  { href: "/", de: "Start", en: "Start" },
+  { href: "/site", de: "Standort", en: "Site" },
+  { href: "/live", de: "Live", en: "Live" },
+  { href: "/methodik", de: "Methodik", en: "Method" },
+] as const;
+
 function resolveTheme(pref: ThemePreference): "light" | "dark" {
   if (pref === "system") {
     if (typeof window === "undefined") {
-      return "dark";
+      return "light";
     }
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
@@ -26,19 +34,23 @@ function resolveTheme(pref: ThemePreference): "light" | "dark" {
 
 function readThemePreferenceFromStorage(): ThemePreference {
   if (typeof window === "undefined") {
-    return "light";
+    return "system";
   }
   const stored =
     window.localStorage.getItem("speicherpilot-theme") ?? window.localStorage.getItem("bessforge-theme");
   if (stored === "light" || stored === "dark" || stored === "system") {
     return stored;
   }
-  return "light";
+  return "system";
 }
 
 function readLanguageFromStorage(): AppLanguage {
   if (typeof window === "undefined") {
     return "de";
+  }
+  const fromQuery = new URLSearchParams(window.location.search).get("lang");
+  if (fromQuery === "en" || fromQuery === "de") {
+    return fromQuery;
   }
   const stored =
     window.localStorage.getItem("speicherpilot-language") ?? window.localStorage.getItem("bessforge-language");
@@ -48,13 +60,24 @@ function readLanguageFromStorage(): AppLanguage {
   return "de";
 }
 
+function themeLabel(pref: ThemePreference, language: AppLanguage) {
+  if (pref === "system") {
+    return language === "de" ? "System" : "System";
+  }
+  if (pref === "dark") {
+    return language === "de" ? "Dunkel" : "Dark";
+  }
+  return language === "de" ? "Hell" : "Light";
+}
+
 export function SiteShell({ children }: SiteShellProps) {
-  /** Must match SSR defaults; sync from storage after mount. */
-  const [themePref, setThemePref] = useState<ThemePreference>("light");
+  const pathname = usePathname();
+  const [themePref, setThemePref] = useState<ThemePreference>("system");
   const [mounted, setMounted] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatSeedPrompt, setChatSeedPrompt] = useState<string | null>(null);
   const [language, setLanguage] = useState<AppLanguage>("de");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -66,12 +89,15 @@ export function SiteShell({ children }: SiteShellProps) {
   }, []);
 
   useEffect(() => {
+    if (!mounted) {
+      return;
+    }
     const root = document.documentElement;
     const resolved = resolveTheme(themePref);
     root.classList.toggle("dark", resolved === "dark");
     root.style.colorScheme = resolved === "dark" ? "dark" : "light";
     window.localStorage.setItem("speicherpilot-theme", themePref);
-  }, [themePref]);
+  }, [themePref, mounted]);
 
   useEffect(() => {
     if (themePref !== "system") {
@@ -80,9 +106,9 @@ export function SiteShell({ children }: SiteShellProps) {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const sync = () => {
       const root = document.documentElement;
-      const r = mq.matches ? "dark" : "light";
-      root.classList.toggle("dark", r === "dark");
-      root.style.colorScheme = r;
+      const resolved = mq.matches ? "dark" : "light";
+      root.classList.toggle("dark", resolved === "dark");
+      root.style.colorScheme = resolved;
     };
     sync();
     mq.addEventListener("change", sync);
@@ -90,9 +116,19 @@ export function SiteShell({ children }: SiteShellProps) {
   }, [themePref]);
 
   useEffect(() => {
+    if (!mounted) {
+      return;
+    }
     document.documentElement.lang = language;
     window.localStorage.setItem("speicherpilot-language", language);
-  }, [language]);
+    const url = new URL(window.location.href);
+    if (language === "en") {
+      url.searchParams.set("lang", "en");
+    } else {
+      url.searchParams.delete("lang");
+    }
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [language, mounted]);
 
   useEffect(() => {
     const openFromHash = () => {
@@ -116,120 +152,116 @@ export function SiteShell({ children }: SiteShellProps) {
     };
   }, []);
 
-  const resolved = mounted ? resolveTheme(themePref) : "light";
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
-      <div className="relative min-h-screen overflow-x-hidden bg-background dark:bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(16,185,129,0.14),transparent_52%),radial-gradient(ellipse_100%_60%_at_50%_120%,rgba(244,63,94,0.08),transparent_48%),var(--background)]">
-        {/*
-          Header — premium glass surface.
-          - Ultra-thin border + soft shadow + 1px inset highlight create separation
-            from the canvas without any hard line.
-          - Tight, single-row balance: brand · language/theme controls.
-        */}
-        <header
-          className="fixed inset-x-0 top-0 z-[1200] border-b border-border/45 bg-background/85 pt-[env(safe-area-inset-top,0px)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/65 shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset,0_10px_30px_-18px_rgba(2,6,23,0.55)] dark:border-white/[0.06] dark:bg-[rgba(7,11,20,0.72)] dark:supports-[backdrop-filter]:bg-[rgba(7,11,20,0.55)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_14px_36px_-20px_rgba(0,0,0,0.85)]"
+      <div className="relative min-h-screen bg-background text-foreground">
+        <a
+          href="#inhalt"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[80] focus:bg-card focus:px-3 focus:py-2"
         >
-          <nav className="relative mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-2 px-4 sm:h-16 sm:gap-4 sm:px-5 lg:h-[68px] lg:px-12">
-            {/* Brand — logo + wordmark + tagline, baseline-aligned */}
-            <Link
-              href="/"
-              className="group flex min-w-0 items-center gap-2 sm:gap-3"
-              aria-label="SpeicherPilot home"
-            >
-              <SpeicherPilotLogo
-                size={34}
-                className="shrink-0 transition-transform duration-300 ease-out group-hover:scale-[1.04] shadow-[0_10px_28px_-8px_rgba(16,185,129,0.45)]"
-              />
-              <div className="flex min-w-0 items-baseline gap-2.5">
-                <span className="truncate text-[15px] font-medium leading-none tracking-[0.16em] text-foreground sm:text-[17px] sm:tracking-[0.18em] [font-family:var(--font-heading)]">
-                  SpeicherPilot
-                </span>
-                <span
-                  className="hidden h-3.5 w-px bg-border/70 dark:bg-white/10 sm:inline-block"
-                  aria-hidden
-                />
-                <span className="hidden max-w-[16rem] truncate text-[11px] font-medium leading-none tracking-normal text-muted-foreground/80 sm:inline md:max-w-none">
-                  battery storage & grid connection planner
-                </span>
-              </div>
+          {tx("Zum Inhalt", "Skip to content")}
+        </a>
+        <header className="sticky top-0 z-40 h-14 border-b border-border bg-background/85 backdrop-blur">
+          <div className="mx-auto flex h-14 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
+            <Link href="/" className="flex min-w-0 items-center gap-2.5">
+              <span className="text-[16px] font-semibold leading-none">SpeicherPilot</span>
+              <span className="num rounded-[4px] border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                v0.9
+              </span>
             </Link>
-
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-              <div
-                className="inline-flex items-center rounded-full border border-border/60 bg-card/40 p-0.5 dark:border-white/[0.08] dark:bg-white/[0.03]"
-                role="group"
-                aria-label={language === "de" ? "Sprache" : "Language"}
-              >
-                {(["en", "de"] as const).map((code) => {
-                  const active = language === code;
-                  return (
-                    <button
-                      key={code}
-                      type="button"
-                      onClick={() => setLanguage(code)}
-                      className={`rounded-full px-2 py-1 text-[10px] font-semibold tracking-[0.08em] uppercase transition-colors sm:px-2.5 ${
-                        active
-                          ? "bg-foreground text-background shadow-[0_1px_0_0_rgba(255,255,255,0.35)_inset]"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      aria-label={
-                        code === "en"
-                          ? "Switch website language to English"
-                          : "Switch website language to German"
-                      }
-                      aria-pressed={active}
-                    >
-                      {code}
-                    </button>
-                  );
-                })}
+            <nav className="hidden items-center gap-7 text-sm font-medium md:flex" aria-label={tx("Hauptnavigation", "Primary")}>
+              {NAV.map((item) => {
+                const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={active ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    {language === "de" ? item.de : item.en}
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="flex items-center gap-2">
+              <div className="num inline-flex overflow-hidden rounded-md border border-border-strong text-[12px]" role="group" aria-label={tx("Sprache", "Language")}>
+                {(["de", "en"] as const).map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    className={`h-8 px-2.5 focus-visible:ring-2 focus-visible:ring-ring ${language === code ? "bg-foreground text-background" : "text-foreground"}`}
+                    aria-pressed={language === code}
+                    onClick={() => setLanguage(code)}
+                  >
+                    {code.toUpperCase()}
+                  </button>
+                ))}
               </div>
-
-              <span
-                className="hidden h-5 w-px bg-border/60 dark:bg-white/[0.08] md:inline-block"
-                aria-hidden
-              />
-
-              <div
-                className="inline-flex items-center rounded-full border border-border/60 bg-card/40 p-0.5 dark:border-white/[0.08] dark:bg-white/[0.03]"
-                role="group"
-                aria-label={language === "de" ? "Farbschema" : "Color theme"}
+              <a
+                href="https://github.com/cophi-dev/speicherpilot"
+                className="hidden h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring md:inline-flex"
+                aria-label="GitHub"
+                target="_blank"
+                rel="noreferrer"
               >
+                <svg viewBox="0 0 16 16" className="size-4" aria-hidden><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.2 1.87.86 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.7 7.7 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>
+              </a>
+              <a
+                href="https://x.com/pphhiillliipppp"
+                className="hidden h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring md:inline-flex"
+                aria-label="@pphhiillliipppp"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <XLogo className="size-4" />
+              </a>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                aria-expanded={menuOpen}
+                aria-label={tx("Menü", "Menu")}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                {menuOpen ? <X className="size-4" strokeWidth={1.5} /> : <Menu className="size-4" strokeWidth={1.5} />}
+              </button>
+            </div>
+          </div>
+          {menuOpen ? (
+            <div className="border-t border-border bg-card px-5 py-4 md:px-8">
+              <nav className="flex flex-col gap-3 text-sm font-medium md:hidden" aria-label={tx("Hauptnavigation", "Primary")}>
+                {NAV.map((item) => (
+                  <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+                    {language === "de" ? item.de : item.en}
+                  </Link>
+                ))}
+              </nav>
+              <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={tx("Erscheinungsbild", "Appearance")}>
                 {(
                   [
-                    { key: "system" as const, icon: Monitor, label: language === "de" ? "System" : "System" },
-                    { key: "light" as const, icon: Sun, label: language === "de" ? "Hell" : "Light" },
-                    { key: "dark" as const, icon: Moon, label: language === "de" ? "Dunkel" : "Dark" },
+                    { key: "system" as const, icon: Monitor },
+                    { key: "light" as const, icon: Sun },
+                    { key: "dark" as const, icon: Moon },
                   ] as const
-                ).map(({ key, icon: Icon, label }) => {
-                  const active = themePref === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setThemePref(key)}
-                      className={`inline-flex size-7 items-center justify-center rounded-full transition-colors ${
-                        active
-                          ? "bg-foreground/[0.08] text-foreground dark:bg-white/[0.08] dark:text-white"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      title={label}
-                      aria-pressed={active}
-                    >
-                      <Icon className="size-3.5" aria-hidden />
-                      <span className="sr-only">{label}</span>
-                    </button>
-                  );
-                })}
+                ).map(({ key, icon: Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setThemePref(key)}
+                    aria-pressed={themePref === key}
+                    className={`inline-flex h-8 items-center gap-2 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                  >
+                    <Icon className="size-4" strokeWidth={1.5} aria-hidden />
+                    {themeLabel(key, language)}
+                  </button>
+                ))}
               </div>
             </div>
-          </nav>
+          ) : null}
         </header>
-
-        <main className="pt-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(4rem+env(safe-area-inset-top,0px))] lg:pt-[calc(68px+env(safe-area-inset-top,0px))]">
-          {children}
-        </main>
+        <main id="inhalt">{children}</main>
         <BessAiChatOverlay
           open={chatOpen}
           onClose={() => {
@@ -241,95 +273,57 @@ export function SiteShell({ children }: SiteShellProps) {
           }}
           seedPrompt={chatSeedPrompt}
         />
-
-        <footer className="border-t border-border/40 bg-card/40 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-sm">
-          <div className="mx-auto grid max-w-7xl gap-6 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:gap-8 md:px-8 lg:px-12">
+        <footer className="border-t border-border">
+          <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8">
             <div>
-              <p className="text-xs font-semibold tracking-[0.2em] text-foreground uppercase">
-                {language === "de" ? "Quellen" : "Sources"}
-              </p>
-              <ul className="mt-2 space-y-1.5">
+              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Quellen", "Sources")}</p>
+              <ul className="mt-3 space-y-1.5">
                 <li>
-                  <a
-                    href="https://energy-charts.info/"
-                    className="font-medium text-emerald-700 hover:underline dark:text-emerald-300"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Energy-Charts.info
-                  </a>{" "}
-                  (API)
+                  <a className="text-primary underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
+                    Energy-Charts
+                  </a>
                 </li>
                 <li>
-                  <a
-                    href="https://www.ise.fraunhofer.de/"
-                    className="hover:underline"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
+                  <a className="text-primary underline underline-offset-[3px]" href="https://www.ise.fraunhofer.de/" target="_blank" rel="noreferrer">
                     Fraunhofer ISE
                   </a>
                 </li>
                 <li>
-                  <a
-                    href={language === "de" ? "https://www.netztransparenz.de/de-de/WebAPI" : "https://www.netztransparenz.de/en/WebAPI"}
-                    className="hover:underline"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Netztransparenz.de
-                  </a>{" "}
-                  {language === "de" ? "(Abregelung / Redispatch)" : "(Curtailment / redispatch)"}
+                  <a className="text-primary underline underline-offset-[3px]" href="https://www.netztransparenz.de/" target="_blank" rel="noreferrer">
+                    Netztransparenz
+                  </a>
+                </li>
+                <li>
+                  <a className="text-primary underline underline-offset-[3px]" href="https://www.marktstammdatenregister.de/" target="_blank" rel="noreferrer">
+                    MaStR
+                  </a>
                 </li>
               </ul>
             </div>
+            <p>
+              {tx(
+                "Illustratives Modell, keine Beschaffungs- oder Anlagenberatung.",
+                "Illustrative model, not procurement or plant advice."
+              )}
+            </p>
             <div>
-              <p className="text-xs font-semibold tracking-[0.2em] text-foreground uppercase">
-                {language === "de" ? "Hinweis" : "Notice"}
-              </p>
-              <p className="mt-2 leading-relaxed">
-                {language === "de"
-                  ? "Illustrative Modelle — keine Beschaffungs- oder Anlagenberatung."
-                  : "Illustrative models — not procurement or plant advice."}
-              </p>
-            </div>
-            <div className="md:text-right">
-              <p className="text-xs font-semibold tracking-[0.2em] text-foreground uppercase">SpeicherPilot</p>
-              <p className="mt-2">
-                {language === "de"
-                  ? "BESS-Planung & Einsatzsimulation"
-                  : "BESS Planning & Dispatch Simulator"}
-              </p>
-              <div className="mt-4 flex flex-col items-start gap-3 md:items-end">
-                {process.env.NEXT_PUBLIC_X_SITE_HANDLE ? (
-                  <a
-                    href={`https://x.com/${process.env.NEXT_PUBLIC_X_SITE_HANDLE.replace(/^@/, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-foreground/90 transition hover:text-emerald-400 md:justify-end"
+              <div className="flex flex-wrap gap-2" role="group" aria-label={tx("Erscheinungsbild", "Appearance")}>
+                {(["system", "light", "dark"] as const).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={mounted && themePref === key}
+                    onClick={() => setThemePref(key)}
+                    className={`h-8 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
                   >
-                    <XLogo className="size-4 shrink-0" />
-                    {language === "de" ? "SpeicherPilot auf X" : "SpeicherPilot on X"}
-                  </a>
-                ) : null}
-                <a
-                  href="https://x.com/pphhiillliipppp"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-foreground/90 transition hover:text-emerald-400 md:justify-end"
-                  aria-label={language === "de" ? "@pphhiillliipppp auf X" : "@pphhiillliipppp on X"}
-                >
-                  <XLogo className="size-4 shrink-0" />
-                  <span>@pphhiillliipppp</span>
-                </a>
+                    {themeLabel(key, language)}
+                  </button>
+                ))}
               </div>
-              <p className="mt-4 text-xs opacity-80">
-                {mounted
-                  ? language === "de"
-                    ? `Erscheinungsbild: ${resolved === "dark" ? "Dunkel" : "Hell"}`
-                    : `Theme: ${resolved}`
-                  : ""}
-              </p>
+              <a className="mt-4 inline-flex items-center gap-2 text-foreground" href="https://x.com/pphhiillliipppp" target="_blank" rel="noreferrer">
+                <XLogo className="size-4" />
+                @pphhiillliipppp
+              </a>
             </div>
           </div>
         </footer>
@@ -337,4 +331,3 @@ export function SiteShell({ children }: SiteShellProps) {
     </LanguageContext.Provider>
   );
 }
-

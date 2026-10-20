@@ -2262,7 +2262,7 @@ export default function GermanyDayEnergyFlow(props: GermanyDayEnergyFlowProps) {
               <Tooltip
                 contentStyle={{
                   background: "var(--popover)",
-                  border: "1px solid var(--border)",
+                  border: "1px solid hsl(var(--border))",
                   borderRadius: 12,
                   fontSize: 12,
                   color: "var(--popover-foreground)",

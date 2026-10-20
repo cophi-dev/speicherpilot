@@ -15,7 +15,9 @@ const SCRIPT = `
           ? prefersDark
             ? "dark"
             : "light"
-          : "light";
+          : prefersDark
+            ? "dark"
+            : "light";
     root.classList.toggle("dark", resolved === "dark");
     root.style.colorScheme = resolved === "dark" ? "dark" : "light";
   } catch {
@@ -24,5 +26,5 @@ const SCRIPT = `
 })();`;
 
 export function ThemeInitScript() {
-  return <Script id="speicherpilot-theme-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: SCRIPT }} />;
+  return <Script id="speicherpilot-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: SCRIPT }} />;
 }
