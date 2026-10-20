@@ -1,8 +1,11 @@
 import { paybackDomainMax, paybackLabelX } from "@/lib/chart-theme";
 import {
+  GRID_CONNECTION_CONFIG,
   GRID_SUPPORT_CONFIG,
   assessGridSupport,
   classifyGridSupport,
+  connectionRequestKw,
+  exceedsFairGrid,
   exampleProfile,
   illustrativeCommercialDay,
   loadBandsFor,
@@ -308,6 +311,18 @@ describe("sitePlanner", () => {
     });
     expect(raised.createsNewPeak).toBe(true);
     expect(raised.status).toBe("new-peak");
+  });
+
+  it("flags connection requests above the Fair Grid threshold and keeps the cap share in config", () => {
+    expect(GRID_CONNECTION_CONFIG.fairGridAboveMva).toBe(1.5);
+    expect(GRID_CONNECTION_CONFIG.flexibleCapFraction).toBeGreaterThan(0);
+    expect(GRID_CONNECTION_CONFIG.flexibleCapFraction).toBeLessThan(1);
+    expect(connectionRequestKw(1200, 1000)).toBe(1200);
+    expect(connectionRequestKw(900, 1600)).toBe(1600);
+    expect(exceedsFairGrid(1500)).toBe(false);
+    expect(exceedsFairGrid(1500.1)).toBe(true);
+    expect(exceedsFairGrid(connectionRequestKw(400, 1500))).toBe(false);
+    expect(exceedsFairGrid(connectionRequestKw(400, 1501))).toBe(true);
   });
 
   it("splits charge and discharge into load bands and ranks the top quarter-hours", () => {

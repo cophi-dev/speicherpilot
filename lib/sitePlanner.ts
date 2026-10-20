@@ -348,6 +348,33 @@ export function assessGridSupport(args: {
   };
 }
 
+/**
+ * Public connection-check thresholds.
+ * `fairGridAboveMva` matches Hamburger Energienetze ("größer 1,5 MVA").
+ * This model compares kilowatts at cos φ = 1. It does not measure apparent power.
+ * `flexibleCapFraction` is a scenario assumption for § 17 Abs. 2b EnWG.
+ * The statute lets the operator cap withdrawal and feed-in; it does not set this share.
+ */
+export const GRID_CONNECTION_CONFIG = {
+  fairGridAboveMva: 1.5,
+  fairGridFrom: "2026-H2",
+  flexibleCapFraction: 0.8,
+} as const;
+
+export type GridConnectionConfig = typeof GRID_CONNECTION_CONFIG;
+
+/** Higher of the uncontrolled site peak and the connection capacity entered by the user. */
+export function connectionRequestKw(requestedPeakKw: number, enteredLimitKw: number) {
+  const requested = Number.isFinite(requestedPeakKw) ? requestedPeakKw : 0;
+  const entered = Number.isFinite(enteredLimitKw) ? enteredLimitKw : 0;
+  return Math.max(0, requested, entered);
+}
+
+/** True when a connection request is above the Fair Grid apparent-power threshold. */
+export function exceedsFairGrid(requestedKw: number, config: GridConnectionConfig = GRID_CONNECTION_CONFIG) {
+  return requestedKw > config.fairGridAboveMva * 1000;
+}
+
 export function classifyGridSupport(
   dischargeShareInPeaks: number,
   createsNewPeak: boolean,

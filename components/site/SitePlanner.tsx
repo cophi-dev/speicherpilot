@@ -22,8 +22,11 @@ import {
 } from "recharts";
 import { axis, common, cssVar, grid, limitLine, paybackDomainMax, paybackLabelX, series, tooltip } from "@/lib/chart-theme";
 import {
+  GRID_CONNECTION_CONFIG,
+  connectionRequestKw,
   defaultPlannerEconomics,
   exampleProfile,
+  exceedsFairGrid,
   manualAnnualProfile,
   parseLoadProfileCsv,
   planSite,
@@ -65,8 +68,6 @@ type Draft = {
   discountPct: number;
   transformerKw: number;
   flexible: boolean;
-  importCapPct: number;
-  exportCapPct: number;
   advanced: boolean;
 };
 
@@ -98,8 +99,6 @@ function defaultDraft(): Draft {
     discountPct: 0,
     transformerKw: 0,
     flexible: false,
-    importCapPct: 80,
-    exportCapPct: 80,
     advanced: false,
   };
 }
@@ -150,9 +149,10 @@ function run(
 }
 
 function flexibleCaps(draft: Draft) {
+  const fraction = GRID_CONNECTION_CONFIG.flexibleCapFraction;
   return {
-    importCapKw: (draft.limitKw * draft.importCapPct) / 100,
-    exportCapKw: (draft.limitKw * draft.exportCapPct) / 100,
+    importCapKw: draft.limitKw * fraction,
+    exportCapKw: draft.limitKw * fraction,
   };
 }
 
@@ -625,14 +625,19 @@ export function SitePlanner() {
                 </div>
               </article>
 
-              <article className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3">
-                <p className="text-sm">
-                  {formatQuantity(draft.limitKw, language, 0)} kW · {draft.voltage}
-                  {plan.connection === "over"
-                    ? tx(` · ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW fehlen`, ` · ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW short`)
-                    : tx(` · ${formatQuantity(plan.reserveFraction * 100, language, 0)} % Reserve`, ` · ${formatQuantity(plan.reserveFraction * 100, language, 0)}% reserve`)}
-                </p>
-                <span className="num text-[12px]">{statusLabel[plan.connection]}</span>
+              <article className="rounded-md border border-border bg-card px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm">
+                    {formatQuantity(draft.limitKw, language, 0)} kW · {draft.voltage}
+                    {plan.connection === "over"
+                      ? tx(` · ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW fehlen`, ` · ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW short`)
+                      : tx(` · ${formatQuantity(plan.reserveFraction * 100, language, 0)} % Reserve`, ` · ${formatQuantity(plan.reserveFraction * 100, language, 0)}% reserve`)}
+                  </p>
+                  <span className="num text-[12px]">{statusLabel[plan.connection]}</span>
+                </div>
+                {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, draft.limitKw)) ? (
+                  <p className="mt-2 text-sm text-warning">{tx("Über 1,5 MVA · Fair Grid. Hinweis im Netzbetreiber-Check, keine Zuteilung.", "Above 1.5 MVA · Fair Grid. See the grid-operator check. Not an allocation.")}</p>
+                ) : null}
               </article>
               </div>
               {seenNetz && marketPlan && servingPlan ? (
@@ -809,26 +814,31 @@ function SupportTile({ plan, language, tx }: { plan: SitePlan; language: "de" | 
   const status = plan.gridSupport.status;
   const label =
     status === "supportive"
-      ? tx("NETZDIENLICH", "GRID-SUPPORTIVE")
+      ? tx("Einschätzung netzdienlich", "Estimate: grid-supportive")
       : status === "mixed"
-        ? tx("GEMISCHT", "MIXED")
+        ? tx("Einschätzung gemischt", "Estimate: mixed")
         : status === "new-peak"
-          ? tx("ERZEUGT NEUE SPITZE", "CREATES A NEW PEAK")
-          : tx("MARKTGETRIEBEN", "MARKET-DRIVEN");
+          ? tx("Einschätzung: neue Spitze", "Estimate: new peak")
+          : tx("Einschätzung marktgetrieben", "Estimate: market-driven");
   const tone = status === "supportive" ? "text-success" : status === "mixed" ? "text-warning" : status === "new-peak" ? "text-destructive" : "text-muted-foreground";
   const share = Math.max(0, Math.min(1, plan.gridSupport.dischargeShareInPeaks));
+  const tooltip = tx(
+    "Einschätzung, kein Befund. Nach dem Beschluss des Bundesgerichtshofs vom 15. Juli 2025 (EnVR 1/24) kann nur der Netzbetreiber beurteilen, ob Speicher das örtliche Netz entlasten. Schwellen 90 %, 60 % und 30 % sind vorläufig.",
+    "An estimate, not a finding. Under the Federal Court of Justice decision of 15 July 2025 (EnVR 1/24), only the grid operator can assess whether storage relieves the local grid. The 90%, 60% and 30% thresholds are provisional."
+  );
   return (
-    <div className="h-full min-w-0 border border-border bg-card p-3 md:px-4 md:py-4">
-      <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Netzdienlichkeit", "Grid support")}</p>
-      <p className={`num mt-2 text-[24px] leading-none md:text-[28px] ${tone}`}>{label}</p>
+    <div className="h-full min-w-0 border border-border bg-card p-3 md:px-4 md:py-4" title={tooltip}>
+      <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Einschätzung", "Estimate")}</p>
+      <p className={`mt-2 text-[18px] leading-tight font-medium md:text-[20px] ${tone}`}>{label}</p>
       <p className="num mt-2 text-[12px] text-muted-foreground">{formatQuantity(share * 100, language, 0)} % {tx("Entladung in Spitzenfenstern", "discharge in peak windows")}</p>
       <div className="relative mt-2 h-1.5 bg-secondary" aria-hidden>
         <div className="h-full bg-foreground" style={{ width: `${share * 100}%` }} />
         <i className="absolute top-0 h-1.5 border-l border-border-strong" style={{ left: "30%" }} />
         <i className="absolute top-0 h-1.5 border-l border-border-strong" style={{ left: "60%" }} />
       </div>
-      <a className="mt-2 inline-block text-[12px] underline underline-offset-[3px]" href="/methodik#netzdienlichkeit" title={tx("Vorläufig: 90 % Auslastung, 60 % und 30 %. Noch nicht fachlich bestätigt.", "Provisional: 90% utilisation, 60% and 30%. Not yet confirmed.")}>
-        {tx("Definition", "Definition")}
+      <p className="mt-2 text-[12px] text-muted-foreground">{tx("Kein Befund des Netzbetreibers.", "Not a grid-operator finding.")}</p>
+      <a className="mt-1 inline-block text-[12px] underline underline-offset-[3px]" href="/methodik#netzdienlichkeit" title={tooltip}>
+        {tx("Methodik", "Method")}
       </a>
     </div>
   );
@@ -962,9 +972,38 @@ function DsoView({
         <p className="mt-4 text-sm text-muted-foreground">
           {tx("Trafo-Planungswert", "Transformer planning rating")} {formatQuantity(plan.transformerLoadBeforePct * 100, language, 0)} % → {formatQuantity(plan.transformerLoadAfterPct * 100, language, 0)} % {tx("von", "of")} {formatQuantity(plan.transformerRatingKw, language, 0)} kW. {tx("Kein gemessener Transformator.", "Not a measured transformer.")}
         </p>
+        {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, draft.limitKw)) ? (
+          <div className="mt-4 border border-warning p-3">
+            <p className="num text-[12px] tracking-[0.08em] text-warning uppercase">{tx("Über 1,5 MVA · Fair Grid", "Above 1.5 MVA · Fair Grid")}</p>
+            <p className="mt-1 text-sm">
+              {tx(
+                "Hamburger Energienetze vergeben neue Hoch- und Mittelspannungsanschlüsse über 1,5 MVA im Fair-Grid-Verfahren in Runden, angekündigt für das zweite Halbjahr 2026. Hinweis, keine Zuteilung. Vergleich in kW bei cos φ = 1, nicht als gemessene Scheinleistung.",
+                "Hamburger Energienetze allocates new high- and medium-voltage connections above 1.5 MVA in Fair Grid rounds, announced for the second half of 2026. A hint, not an allocation. Compared in kW at cos φ = 1, not as measured apparent power."
+              )}
+            </p>
+            <a className="mt-2 inline-block text-sm underline underline-offset-[3px]" href="/methodik#anschluss">{tx("Quellen", "Sources")}</a>
+          </div>
+        ) : null}
+        <div className="mt-4 border border-border p-3">
+          <label className="flex items-center justify-between gap-3 text-sm font-medium">
+            {tx("Flexible Anschlussvereinbarung, Szenario", "Flexible connection agreement, scenario")}
+            <input type="checkbox" checked={draft.flexible} onChange={(event) => setDraft({ ...draft, flexible: event.target.checked })} />
+          </label>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {tx(
+              `§ 17 Abs. 2b EnWG: der Netzbetreiber kann eine Kappung von Bezug und Einspeisung anbieten. Dieses Szenario setzt beide Seiten auf ${formatQuantity(GRID_CONNECTION_CONFIG.flexibleCapFraction * 100, language, 0)} % der eingegebenen Anschlussleistung. Kein Anspruch, kein Vertrag, kein SCADA. Die Prozentzahl steht in GRID_CONNECTION_CONFIG und ist keine gesetzliche Höhe.`,
+              `Section 17 (2b) EnWG: the grid operator may offer a cap on withdrawal and feed-in. This scenario sets both sides to ${formatQuantity(GRID_CONNECTION_CONFIG.flexibleCapFraction * 100, language, 0)}% of the entered connection capacity. No entitlement, no contract, no SCADA. The percentage lives in GRID_CONNECTION_CONFIG and is not a statutory level.`
+            )}
+          </p>
+          {draft.flexible && flexible ? (
+            <p className="num mt-2 text-sm">
+              {formatQuantity(caps.importCapKw, language, 0)} / {formatQuantity(caps.exportCapKw, language, 0)} kW · {tx("Abregelung", "Curtailment")} {formatQuantity(flexible.curtailmentKwh, language, 0)} kWh
+            </p>
+          ) : null}
+        </div>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[280px] text-sm">
-            <caption className="sr-only">{tx("Marktgetrieben und netzdienlicher Betrieb", "Market-driven and grid-serving operation")}</caption>
+            <caption className="sr-only">{tx("Markt und netzorientierter Betrieb", "Market and grid-oriented operation")}</caption>
             <thead className="bg-secondary text-left">
               <tr className="num text-[12px] uppercase text-muted-foreground">
                 <th className="px-2 py-2">{tx("Betrieb", "Operation")}</th>
@@ -986,15 +1025,6 @@ function DsoView({
             </tbody>
           </table>
         </div>
-        <label className="mt-4 flex items-center justify-between gap-3 text-sm">
-          {tx("Flexibles Anschlussverhältnis", "Flexible connection agreement")}
-          <input type="checkbox" checked={draft.flexible} onChange={(event) => setDraft({ ...draft, flexible: event.target.checked })} />
-        </label>
-        {draft.flexible && flexible ? (
-          <p className="num mt-2 text-sm text-muted-foreground">
-            {formatQuantity(caps.importCapKw, language, 0)} / {formatQuantity(caps.exportCapKw, language, 0)} kW · {tx("Abregelung", "Curtailment")} {formatQuantity(flexible.curtailmentKwh, language, 0)} kWh · {tx("Szenario, kein SCADA", "Scenario, not SCADA")}
-          </p>
-        ) : null}
       </article>
 
       <article className="rounded-md border border-border bg-card p-4 md:p-6">
