@@ -22,11 +22,12 @@ import {
   serializeBriefingStoryWindow,
 } from "@/lib/briefingStoryWindow";
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { liveNetPositionMw } from "@/lib/realtimeSystemSnapshot";
 import { estimateFleetSocAtMoment, computeSlotSurplusFraction } from "@/lib/socEstimator";
 
 const log = createLogger("home-briefing");
 
-const MegapackMap = dynamic(() => import("@/components/MegapackMap"), {
+const BessProjectMap = dynamic(() => import("@/components/BessProjectMap"), {
   ssr: false,
   loading: () => <Skeleton className="h-[460px] w-full rounded-xl" />,
 });
@@ -54,10 +55,11 @@ const marketSnapshotSchema = z.object({
     unit: z.literal("MW"),
     timestampIso: z.string(),
     loadMw: z.number(),
-    domesticGenerationMw: z.number(),
+    domesticGenerationMw: z.number().nullable(),
     batteryStorageMw: z.number().nullable().optional(),
     residualLoadMw: z.number().optional(),
     renewableShareOfLoadPct: z.number().optional(),
+    renewableShareOfGenerationPct: z.number().nullable().optional(),
   }),
   eveningWindow: z
     .object({
@@ -359,28 +361,19 @@ export function HomeBriefingClient({ initial }: HomeBriefingClientProps) {
     [pathname, router, searchParams]
   );
 
-  const renewableGenerationValue = market
-    ? market.realtimeSystem.residualLoadMw !== undefined
-      ? Math.max(0, market.realtimeSystem.loadMw - market.realtimeSystem.residualLoadMw)
-      : market.realtimeSystem.renewableShareOfLoadPct !== undefined
-        ? (market.realtimeSystem.loadMw * market.realtimeSystem.renewableShareOfLoadPct) / 100
-        : null
-    : null;
-  const netPositionMw = market ? market.realtimeSystem.domesticGenerationMw - market.realtimeSystem.loadMw : null;
+  const generationMw =
+    market === null ? null : market.realtimeSystem.domesticGenerationMw;
+  const netPositionMw =
+    market === null ? null : liveNetPositionMw(generationMw, market.realtimeSystem.loadMw);
   const inferredFleetMode = inferFleetMode({
     netPositionMw,
     residualLoadMw: market?.realtimeSystem.residualLoadMw ?? null,
   });
-  const generationGw = market !== null ? market.realtimeSystem.domesticGenerationMw / 1000 : null;
+  const generationGw = generationMw === null ? null : generationMw / 1000;
   const demandGw = market !== null ? market.realtimeSystem.loadMw / 1000 : null;
   const netPositionGw = netPositionMw !== null ? netPositionMw / 1000 : null;
 
-  const renewableSharePct =
-    market &&
-    renewableGenerationValue !== null &&
-    market.realtimeSystem.domesticGenerationMw > 0
-      ? (renewableGenerationValue / market.realtimeSystem.domesticGenerationMw) * 100
-      : null;
+  const renewableSharePct = market?.realtimeSystem.renewableShareOfGenerationPct ?? null;
   const fleetSocMoment =
     market !== null
       ? estimateFleetSocAtMoment({
@@ -499,7 +492,7 @@ export function HomeBriefingClient({ initial }: HomeBriefingClientProps) {
                 isLoading={false}
               />
             </div>
-            <MegapackMap compact />
+            <BessProjectMap compact />
           </div>
         </details>
       </section>

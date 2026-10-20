@@ -3,6 +3,7 @@
 import { format, isWithinInterval, parseISO } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { useMemo, useState } from "react";
+import { de, enUS } from "react-day-picker/locale";
 
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -106,6 +107,7 @@ export function BerlinWeekCalendarButton({
           </p>
         </div>
         <Calendar
+          locale={language === "de" ? de : enUS}
           mode="single"
           selected={weekStart}
           defaultMonth={weekStart}

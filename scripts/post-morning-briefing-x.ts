@@ -6,8 +6,11 @@
  * AI keys (`AI_PROVIDER` / `XAI_API_KEY` or `OPENAI_API_KEY`), and X OAuth 1.0a write tokens
  * (`TWITTER_*` or `X_*`).
  *
- * Example (manual): `pnpm morning:x`
- * Cron (Berlin 07:00): `0 7 * * * TZ=Europe/Berlin cd /path/to/speicherpilot && pnpm morning:x >> /tmp/speicherpilot-morning-x.log 2>&1`
+ * Manual only. This script is not referenced by GitHub Actions, Vercel cron, or CI.
+ * Posting stays off unless the process environment sets MORNING_X_POST_ENABLED=1.
+ *
+ * Preview without posting: `npm run morning:x -- --dry-run`
+ * Manual post: `MORNING_X_POST_ENABLED=1 npm run morning:x`
  *
  * First-time Playwright: `pnpm exec playwright install chromium`
  */
@@ -91,6 +94,12 @@ const main = async () => {
   tryLoadEnvFromFile(path.join(process.cwd(), ".env"));
 
   const { dryRun, dateBerlin: dateOverride } = parseArgs(process.argv.slice(2));
+  const postingEnabled = process.env.MORNING_X_POST_ENABLED === "1";
+  if (!dryRun && !postingEnabled) {
+    throw new Error(
+      "morning:x will not post. No CI, Vercel cron, or GitHub Action runs this script. Set MORNING_X_POST_ENABLED=1 for a manual post, or pass --dry-run."
+    );
+  }
   const baseUrlRaw = process.env.MORNING_BRIEFING_BASE_URL?.replace(/\/$/, "").trim();
   if (!baseUrlRaw) {
     throw new Error("Set MORNING_BRIEFING_BASE_URL (e.g. https://your-site.example or http://127.0.0.1:3000)");

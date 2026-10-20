@@ -1,16 +1,16 @@
-# Product intent — Tesla BESS Sales Engineer (Hamburg)
+# Product intent — SpeicherPilot
 
-This app is a **portfolio / interview demo** aligned with the Hamburg **Sales Engineer / Electrical Engineer, BESS** role: technical Megapack sizing, indicative DE-market economics, site context on a Germany-centric map, and a **PDF proposal** that mirrors the live financial model.
+SpeicherPilot is a public battery storage and grid connection planner for Germany. It shows a live generation/load snapshot, a quarter-hour energy-flow profile, an indicative BESS sizing model, and a map of storage projects. Brand name stays SpeicherPilot. Tagline: battery storage & grid connection planner.
 
-## Job mapping
+## Surfaces
 
-| Responsibility (posting) | Feature |
-|--------------------------|---------|
-| Technical BESS expert; customer fit | [MegapackConfigurator.tsx](../components/MegapackConfigurator.tsx) — power, energy, footprint, weight, RTE |
-| Translate requirements; documentation | [GenerateProposalButton.tsx](../components/GenerateProposalButton.tsx) — PDF with configuration, assumptions, exclusions |
-| Financial / market models; tariffs & regulation (awareness) | [FinancialDashboard.tsx](../components/FinancialDashboard.tsx) + [lib/bessEconomics.ts](../lib/bessEconomics.ts) — illustrative scenarios, not legal/tariff data |
-| Preliminary design / site | [MegapackMap.tsx](../components/MegapackMap.tsx) — WGS84 markers; appendix in PDF |
-| Sales cycle consistency | Shared [`computeEconomics`](lib/bessEconomics.ts) + [`useProjectStore`](lib/projectStore.ts) so UI and PDF stay aligned |
+| Surface | Feature |
+|---------|---------|
+| Live snapshot and day profile | [LiveSnapshotHeader.tsx](../components/LiveSnapshotHeader.tsx), [GermanyDayEnergyFlow.tsx](../components/GermanyDayEnergyFlow.tsx) |
+| Example-pack sizing | [BessConfigurator.tsx](../components/BessConfigurator.tsx) — power, energy, footprint, weight, RTE. Presets in [bessExamplePresets.ts](../lib/bessExamplePresets.ts) are illustrative, not a vendor catalog |
+| Indicative economics | [FinancialDashboard.tsx](../components/FinancialDashboard.tsx) + [lib/bessEconomics.ts](../lib/bessEconomics.ts) — labelled model estimates, not tariffs or quotes |
+| Site context | [BessProjectMap.tsx](../components/BessProjectMap.tsx) — WGS84 markers; appendix in the PDF |
+| Shared model | [`computeEconomics`](../lib/bessEconomics.ts) + [`useProjectStore`](../lib/projectStore.ts) so UI and PDF stay aligned |
 
 ## Model disclaimer
 

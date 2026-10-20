@@ -143,7 +143,7 @@ function MapSizeInvalidator({ resizeSignal }: { resizeSignal: number }) {
   return null;
 }
 
-export default function MegapackMap({ compact = false }: { compact?: boolean }) {
+export default function BessProjectMap({ compact = false }: { compact?: boolean }) {
   const [showCommercialProjects, setShowCommercialProjects] = useState(true);
   const [showResidentialDensity, setShowResidentialDensity] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);

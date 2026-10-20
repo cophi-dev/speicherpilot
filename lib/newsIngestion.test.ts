@@ -20,7 +20,7 @@ describe("getCuratedNewsFeed", () => {
 
     const rssBody = makeRss([
       makeItem({
-        title: "Tesla Megapack project in Germany reaches milestone",
+        title: "Grid battery storage project in Germany reaches milestone",
         link: "https://example.com/a",
         pubDate: "Wed, 08 May 2026 10:00:00 GMT",
         description: "New utility-scale battery deployment milestone in Hamburg.",
@@ -34,7 +34,7 @@ describe("getCuratedNewsFeed", () => {
 
     const result = await getCuratedNewsFeed(5);
     expect(result.items.length).toBeGreaterThan(0);
-    expect(result.items[0].categories).toContain("tesla_megapack");
+    expect(result.items[0].categories).toContain("storage_projects");
     expect(result.items[0].categories).toContain("germany");
     expect(result.items[0].categories).toContain("industry_milestone");
   });

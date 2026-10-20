@@ -34,16 +34,16 @@ const RSS_SOURCES = rssSourcesSchema.parse([
     url: "https://news.google.com/rss/search?q=Germany+battery+energy+storage+milestone&hl=en-US&gl=DE&ceid=DE:en",
   },
   {
-    name: "Google News Tesla Megapack",
-    url: "https://news.google.com/rss/search?q=Tesla+Megapack+Europe&hl=en-US&gl=DE&ceid=DE:en",
+    name: "Google News Germany grid battery",
+    url: "https://news.google.com/rss/search?q=Germany+grid+battery+storage&hl=en-US&gl=DE&ceid=DE:en",
   },
   {
     name: "Google News Germany BESS regulation",
     url: "https://news.google.com/rss/search?q=Germany+battery+storage+regulation&hl=en-US&gl=DE&ceid=DE:en",
   },
   {
-    name: "Tesla Newsroom",
-    url: "https://www.tesla.com/news/rss.xml",
+    name: "Google News BESS projects",
+    url: "https://news.google.com/rss/search?q=battery+energy+storage+project+Germany&hl=en-US&gl=DE&ceid=DE:en",
   },
 ]);
 
@@ -126,8 +126,8 @@ const detectCategories = (title: string, description: string): NewsCategory[] =>
   if (/(germany|deutschland|berlin|hamburg|nrw|bayern|bundesnetzagentur|bmwk|eeg)/i.test(text)) {
     categories.add("germany");
   }
-  if (/(tesla|megapack)/i.test(text)) {
-    categories.add("tesla_megapack");
+  if (/(battery|bess|storage|speicher|grid connection|netzanschluss)/i.test(text)) {
+    categories.add("storage_projects");
   }
   if (/(regulation|policy|law|tariff|grid code|subsid|auction|permit|compliance|legislation)/i.test(text)) {
     categories.add("regulation");
@@ -207,7 +207,7 @@ const getNewsCurationFromAi = async (candidates: RawNewsCandidate[], limit: numb
       {
         role: "system",
         content:
-          "You are a BESS market analyst. Curate only items relevant to battery energy storage, especially Germany, Tesla Megapack, and regulation. Return strict JSON only.",
+          "You are a BESS market analyst. Curate only items relevant to battery energy storage, especially Germany, grid connection, and regulation. Return strict JSON only.",
       },
       {
         role: "user",
@@ -218,7 +218,7 @@ const getNewsCurationFromAi = async (candidates: RawNewsCandidate[], limit: numb
             "Use neutral factual summaries (max 2 sentences).",
             "Set relevanceScore 0..100.",
             "Always include at least one category.",
-            "Prefer Germany, Tesla Megapack, and regulation content.",
+            "Prefer Germany, grid-scale storage projects, and regulation content.",
             `Return at most ${limit} items.`,
           ],
           items: candidates,

@@ -19,8 +19,8 @@ export default function NewsPage() {
         </h1>
         <p className="max-w-3xl text-sm text-slate-600 dark:text-slate-300">
           {language === "de"
-            ? "Kuratiertes Live-Briefing mit Fokus auf Branchen-Meilensteine, Deutschland, Tesla Megapacks und regulatorische Entwicklungen."
-            : "Curated live briefing focused on industry milestones, Germany, Tesla Megapacks, and regulatory developments."}
+            ? "Kuratiertes Live-Briefing mit Fokus auf Branchen-Meilensteine, Deutschland, Netzspeicher und regulatorische Entwicklungen."
+            : "Curated live briefing focused on industry milestones, Germany, grid storage, and regulatory developments."}
         </p>
         <Link href="/" className="inline-block text-sm font-semibold text-primary hover:underline dark:text-emerald-200">
           {language === "de" ? "Zurück zum Briefing" : "Back to briefing"}

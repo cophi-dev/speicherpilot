@@ -16,7 +16,7 @@ import {
   computeEconomics,
   regulatoryScenarioDescription,
   type EconomicsAssumptions,
-  type ProjectMegapackConfig,
+  type ProjectBessConfig,
 } from "@/lib/bessEconomics";
 import { getFinancePhysicalConfig, useProjectStore } from "@/lib/projectStore";
 
@@ -128,9 +128,9 @@ function ProposalDocument({
   selectedConfigurations,
 }: {
   projectName: string;
-  physical: ProjectMegapackConfig;
+  physical: ProjectBessConfig;
   assumptions: EconomicsAssumptions;
-  selectedConfigurations: ProjectMegapackConfig[];
+  selectedConfigurations: ProjectBessConfig[];
 }) {
   const financial = computeEconomics(physical, assumptions);
   const layoutDescription = `The concept layout places ${physical.count} ${physical.label} units in ${Math.ceil(
@@ -143,14 +143,14 @@ function ProposalDocument({
     <Document>
       <Page size="A4" style={proposalStyles.page}>
         <View style={proposalStyles.topAccent} />
-        <Text style={proposalStyles.headerLabel}>Tesla Energy Proposal</Text>
+        <Text style={proposalStyles.headerLabel}>SpeicherPilot BESS proposal</Text>
         <Text style={proposalStyles.title}>{projectName}</Text>
         <Text style={proposalStyles.subtitle}>
           Pre-sales technical sizing and indicative economics (aligned with live dashboard inputs).
         </Text>
 
         <View style={proposalStyles.section}>
-          <Text style={proposalStyles.sectionTitle}>Megapack configuration</Text>
+          <Text style={proposalStyles.sectionTitle}>BESS configuration</Text>
           <View style={proposalStyles.row}>
             <Text style={proposalStyles.key}>Model / stack</Text>
             <Text style={proposalStyles.value}>{physical.label}</Text>
@@ -260,7 +260,7 @@ function ProposalDocument({
           </Text>
         ))}
 
-        <Text style={proposalStyles.footer}>Prepared for Tesla Energy — confidential</Text>
+        <Text style={proposalStyles.footer}>SpeicherPilot — indicative model, not a quote</Text>
       </Page>
 
       {selectedConfigurations.length > 1 ? (
@@ -300,7 +300,7 @@ function ProposalDocument({
             </>
           ) : null}
 
-          <Text style={proposalStyles.footer}>Prepared for Tesla Energy — confidential</Text>
+          <Text style={proposalStyles.footer}>SpeicherPilot — indicative model, not a quote</Text>
         </Page>
       ) : null}
     </Document>
@@ -345,7 +345,7 @@ export default function GenerateProposalButton({ projectName }: GenerateProposal
       const blob = await pdf(document).toBlob();
       const url = URL.createObjectURL(blob);
       const link = window.document.createElement("a");
-      const filename = sanitizeFilename(trimmedProjectName) || "tesla-proposal";
+      const filename = sanitizeFilename(trimmedProjectName) || "speicherpilot-proposal";
       link.href = url;
       link.download = `${filename}-proposal.pdf`;
       link.click();

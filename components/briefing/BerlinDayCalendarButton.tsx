@@ -3,8 +3,10 @@
 import { format, parseISO } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { useState } from "react";
+import { de, enUS } from "react-day-picker/locale";
 
 import { Calendar } from "@/components/ui/calendar";
+import { formatBerlinDayButtonLabel } from "@/lib/displayLocale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -31,9 +33,7 @@ export function BerlinDayCalendarButton({
   const selected = parseISO(`${value}T12:00:00.000Z`);
   const end = parseISO(`${max}T12:00:00.000Z`);
 
-  const label = prominent
-    ? format(selected, language === "de" ? "EEEE, d. MMMM yyyy" : "EEEE, MMMM d, yyyy")
-    : format(selected, language === "de" ? "dd.MM.yyyy" : "MMM d, yyyy");
+  const label = formatBerlinDayButtonLabel(selected, language, prominent);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -60,6 +60,7 @@ export function BerlinDayCalendarButton({
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="end" sideOffset={8}>
         <Calendar
+          locale={language === "de" ? de : enUS}
           mode="single"
           selected={selected}
           defaultMonth={selected}

@@ -225,7 +225,7 @@ export default function FinancialDashboard() {
           Revenue and project outlook
         </CardTitle>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Explore indicative Germany-focused economics based on your current Megapack sizing.
+          Explore indicative Germany-focused economics based on your current BESS sizing.
           We use your added configurations when available, otherwise your live preview.
         </p>
         <p className="rounded-lg border border-blue-400/45 bg-blue-500/10 px-3 py-2 text-xs text-blue-700 dark:text-blue-200">

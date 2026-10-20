@@ -5,9 +5,9 @@ import {
   aggregateProjectConfigurations,
   defaultEconomicsAssumptions,
   parseEconomicsAssumptions,
-  projectMegapackConfigSchema,
+  projectBessConfigSchema,
   type EconomicsAssumptions,
-  type ProjectMegapackConfig,
+  type ProjectBessConfig,
 } from "@/lib/bessEconomics";
 
 export const sitePlacementSchema = z.object({
@@ -21,12 +21,12 @@ export const sitePlacementSchema = z.object({
 export type SitePlacement = z.infer<typeof sitePlacementSchema>;
 
 export type ProjectStoreState = {
-  liveConfiguration: ProjectMegapackConfig | undefined;
-  selectedConfigurations: ProjectMegapackConfig[];
+  liveConfiguration: ProjectBessConfig | undefined;
+  selectedConfigurations: ProjectBessConfig[];
   economicsAssumptions: EconomicsAssumptions;
   sitePlacements: SitePlacement[];
-  setLiveConfiguration: (config: ProjectMegapackConfig | undefined) => void;
-  addConfiguration: (config: ProjectMegapackConfig) => void;
+  setLiveConfiguration: (config: ProjectBessConfig | undefined) => void;
+  addConfiguration: (config: ProjectBessConfig) => void;
   setEconomicsAssumptions: (patch: Partial<EconomicsAssumptions>) => void;
   setSitePlacements: (placements: SitePlacement[]) => void;
   addSitePlacement: (placement: Omit<SitePlacement, "id"> & { id?: string }) => void;
@@ -34,9 +34,9 @@ export type ProjectStoreState = {
 };
 
 export function getFinancePhysicalConfig(state: {
-  selectedConfigurations: ProjectMegapackConfig[];
-  liveConfiguration: ProjectMegapackConfig | undefined;
-}): ProjectMegapackConfig | null {
+  selectedConfigurations: ProjectBessConfig[];
+  liveConfiguration: ProjectBessConfig | undefined;
+}): ProjectBessConfig | null {
   if (state.selectedConfigurations.length > 0) {
     return aggregateProjectConfigurations(state.selectedConfigurations);
   }
@@ -50,13 +50,13 @@ export const useProjectStore = create<ProjectStoreState>((set) => ({
   sitePlacements: [],
   setLiveConfiguration: (config) =>
     set({
-      liveConfiguration: config ? projectMegapackConfigSchema.parse(config) : undefined,
+      liveConfiguration: config ? projectBessConfigSchema.parse(config) : undefined,
     }),
   addConfiguration: (config) =>
     set((state) => ({
       selectedConfigurations: [
         ...state.selectedConfigurations,
-        projectMegapackConfigSchema.parse(config),
+        projectBessConfigSchema.parse(config),
       ],
     })),
   setEconomicsAssumptions: (patch) =>

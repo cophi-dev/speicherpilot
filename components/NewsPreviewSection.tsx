@@ -33,7 +33,7 @@ type NewsPreviewSectionProps = {
 const categoryLabels: Record<string, { en: string; de: string }> = {
   industry_milestone: { en: "Milestone", de: "Meilenstein" },
   germany: { en: "Germany", de: "Deutschland" },
-  tesla_megapack: { en: "Tesla Megapack", de: "Tesla Megapack" },
+  storage_projects: { en: "Storage projects", de: "Speicherprojekte" },
   regulation: { en: "Regulation", de: "Regulierung" },
 };
 
@@ -75,8 +75,8 @@ export default function NewsPreviewSection({
   const title = language === "de" ? "SpeicherPilot-Newsfeed" : "SpeicherPilot Newsfeed";
   const subtitle =
     language === "de"
-      ? "Meilensteine · DE · Megapacks · Regulierung."
-      : "Milestones · DE · Megapacks · regulation.";
+      ? "Meilensteine · DE · Speicher · Regulierung."
+      : "Milestones · DE · storage · regulation.";
 
   const renderedItems = useMemo(() => state.items.slice(0, limit), [state.items, limit]);
 
