@@ -52,11 +52,13 @@ export function SiteProposalDocument({
   profile,
   language,
   enteredVoltage,
+  kind = "offer",
 }: {
   plan: SitePlan;
   profile: LoadProfile;
   language: AppLanguage;
   enteredVoltage: VoltageLevel;
+  kind?: "offer" | "connection";
 }) {
   const de = language === "de";
   const tx = (german: string, english: string) => (de ? german : english);
@@ -71,8 +73,8 @@ export function SiteProposalDocument({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.kicker}>SpeicherPilot · {tx("Standortvorschlag", "Site proposal")}</Text>
-        <Text style={styles.title}>{tx("Speicher und Netzanschluss", "Storage and grid connection")}</Text>
+        <Text style={styles.kicker}>SpeicherPilot · {kind === "connection" ? tx("Anschlussprüfung", "Connection check") : tx("Angebot", "Offer")}</Text>
+        <Text style={styles.title}>{kind === "connection" ? tx("Netzanschluss", "Grid connection") : tx("Speicher und Netzanschluss", "Storage and grid connection")}</Text>
         <Text style={styles.p}>
           {tx(
             "Herstellerneutraler Modellvorschlag. Keine Angebotsbinde, keine Anschlusszusage, keine Rechtsberatung.",
@@ -98,7 +100,30 @@ export function SiteProposalDocument({
             <Text style={styles.p}>{impact}</Text>
           </View>
         </View>
-        <Text style={styles.h2}>{tx("Wirtschaft, Modell", "Economics, model")}</Text>
+        {kind === "connection" ? (
+          <>
+            <Text style={styles.h2}>{tx("Netzlast", "Grid load")}</Text>
+            <View style={styles.line}>
+              <Text>{tx("Überschreitung ohne / mit Speicher", "Hours above the limit, without / with storage")}</Text>
+              <Text>
+                {qty(plan.exceedanceHoursBefore, 0)} h → {qty(plan.exceedanceHoursAfter, 0)} h
+              </Text>
+            </View>
+            <View style={styles.line}>
+              <Text>{tx("Netzdienlichkeit, vorläufig", "Grid support, provisional")}</Text>
+              <Text>
+                {plan.gridSupport.status} · {qty(plan.gridSupport.dischargeShareInPeaks * 100, 0)} %
+              </Text>
+            </View>
+            <Text style={styles.p}>
+              {tx(
+                "Schwellen 90 %, 60 % und 30 % stehen in der Methodik und sind noch nicht fachlich bestätigt.",
+                "The 90%, 60% and 30% thresholds are in the method page and are not yet confirmed."
+              )}
+            </Text>
+          </>
+        ) : null}
+        {kind === "offer" ? <Text style={styles.h2}>{tx("Wirtschaft, Modell", "Economics, model")}</Text> : <Text style={styles.h2}>{tx("Modellhinweis", "Model note")}</Text>}
         <View style={styles.line}>
           <Text>CAPEX</Text>
           <Text>{qty(plan.capexEur)} €</Text>

@@ -87,6 +87,7 @@ export function DispatchChart({
   language,
   height,
   capKw,
+  bessOpacity = 1,
 }: {
   points: DispatchPoint[];
   limitKw: number;
@@ -94,6 +95,7 @@ export function DispatchChart({
   height?: number;
   /** Optional flexible-connection cap. The firm limit stays the red dashed line. */
   capKw?: number | null;
+  bessOpacity?: number;
 }) {
   const narrow = useNarrowScreen();
   const chartHeight = height ?? (narrow ? 240 : 320);
@@ -114,7 +116,7 @@ export function DispatchChart({
             {...tooltip}
             formatter={(value, name) => [fmtPower(Number(value), language), String(name)]}
           />
-          <Bar dataKey="bess" name={language === "de" ? "Speicher" : "Storage"} barSize={narrow ? 2 : 3} {...common.bar}>
+          <Bar dataKey="bess" name={language === "de" ? "Speicher" : "Storage"} barSize={narrow ? 2 : 3} {...common.bar} fillOpacity={bessOpacity}>
             {points.map((point, index) => (
               <Cell key={`${point.label}-${index}`} fill={point.bess >= 0 ? series.discharge.fill : series.charge.fill} />
             ))}

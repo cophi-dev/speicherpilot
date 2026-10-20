@@ -11,7 +11,7 @@ SpeicherPilot is a public battery storage and grid connection planner for German
 | Indicative economics | [FinancialDashboard.tsx](../components/FinancialDashboard.tsx) + [lib/bessEconomics.ts](../lib/bessEconomics.ts) — labelled model estimates, not tariffs or quotes |
 | Site context | [BessProjectMap.tsx](../components/BessProjectMap.tsx) — WGS84 markers; appendix in the PDF |
 | Shared model | [`computeEconomics`](../lib/bessEconomics.ts) + [`useProjectStore`](../lib/projectStore.ts) so UI and PDF stay aligned |
-| Site planner | [`lib/sitePlanner.ts`](../lib/sitePlanner.ts) on `/site`. One deterministic core, two views: developer (size, peak shaving, 15-minute arbitrage, CAPEX, payback, NPV, vendor-neutral PDF) and grid operator (requested vs available capacity, voltage hint, grid-serving vs market dispatch, connection loading, flexible-connection scenario). Example series stay labelled. VDE-AR-N 4105/4110/4120 are references, not legal advice. DSOs assess and connect third-party storage; the model does not assume they own or operate it |
+| Site planner | [`lib/sitePlanner.ts`](../lib/sitePlanner.ts) on `/site`. One deterministic core, two views: developer (size, peak shaving, 15-minute arbitrage, CAPEX, payback, NPV, vendor-neutral PDF) and grid operator (requested vs available capacity, voltage hint, grid-serving vs market dispatch, connection loading, flexible-connection scenario). Example series stay labelled. The grid-support badge uses provisional thresholds in `GRID_SUPPORT_CONFIG` (90% utilisation, 60% / 30% discharge share); they are not a final domain rule. VDE-AR-N 4105/4110/4120 are references, not legal advice. DSOs assess and connect third-party storage; the model does not assume they own or operate it |
 
 ## Model disclaimer
 

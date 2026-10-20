@@ -11,6 +11,7 @@ const SECTIONS = [
   { id: "dispatch", de: "Dispatch", en: "Dispatch" },
   { id: "wirtschaft", de: "Wirtschaftlichkeit", en: "Economics" },
   { id: "anschluss", de: "Netzanschluss", en: "Connection" },
+  { id: "netzdienlichkeit", de: "Netzdienlichkeit", en: "Grid support" },
   { id: "live", de: "Live Deutschland", en: "Live Germany" },
   { id: "quellen", de: "Quellen", en: "Sources" },
   { id: "grenzen", de: "Grenzen", en: "Limits" },
@@ -130,11 +131,16 @@ grid-serving, same battery and same limit:
           <p className="mt-3">{tx("Die Trafolast ist die Spitze am Netzanschlusspunkt geteilt durch einen Planungswert. Ohne eigenen Wert ist das die Anschlussleistung. Es ist kein gemessener Transformator.", "Transformer loading is the peak at the connection point divided by a planning rating. Without a separate value that rating is the connection capacity. It is not a measured transformer.")}</p>
           <p className="mt-3">{tx("Das flexible Anschlussverhältnis ist ein zweites Szenario desselben Kerns: Bezug und Einspeisung werden auf einen Anteil der festen Leistung gekappt. Was der Speicher nicht aufnimmt, gilt im Szenario als abgeregelt. Das ist kein SCADA-Messwert.", "The flexible connection agreement is a second scenario of the same core: import and export are capped at a share of firm capacity. What the battery does not absorb is treated as curtailed in the scenario. That is not a SCADA measurement.")}</p>
         </Section>
-        <Section id="live" n="§7" title={tx("Live-Ansicht Deutschland", "Live view, Germany")}>
+        <Section id="netzdienlichkeit" n="§7" title={tx("Netzdienlichkeit", "Grid support")}>
+          <p>{tx("Die Marke vergleicht die Entladeenergie mit der Auslastung des Anschlusses. Ein Intervall zählt als Spitzenfenster, wenn die Standortlast mindestens 90 % der Anschlussleistung erreicht. Der Anteil ist die Entladeenergie in diesen Fenstern geteilt durch die gesamte Entladeenergie.", "The badge compares discharge energy with connection utilisation. An interval counts as a peak window when site load is at least 90% of the connection capacity. The share is discharge energy in those windows divided by all discharge energy.")}</p>
+          <p className="mt-3">{tx("NETZDIENLICH ab 60 % und ohne neue Bezugsspitze. GEMISCHT von 30 % bis unter 60 %. MARKTGETRIEBEN unter 30 %. ERZEUGT NEUE SPITZE, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt.", "GRID-SUPPORTIVE from 60% and only if charging creates no new import peak. MIXED from 30% up to 60%. MARKET-DRIVEN below 30%. CREATES A NEW PEAK as soon as a charging interval lifts the import above the peak without storage.")}</p>
+          <p className="mt-3">{tx("Die Schwellen 90 %, 60 % und 30 % stehen an einer Stelle im Rechenkern (GRID_SUPPORT_CONFIG). Sie sind vorläufig und noch nicht fachlich bestätigt.", "The 90%, 60% and 30% thresholds live in one place in the calculation core (GRID_SUPPORT_CONFIG). They are provisional and not yet confirmed.")}</p>
+        </Section>
+        <Section id="live" n="§8" title={tx("Live-Ansicht Deutschland", "Live view, Germany")}>
           <p>{tx("Erzeugung und Last kommen von Energy-Charts. Die Bilanz nutzt nur einen Zeitpunkt, an dem Last und mindestens eine Erzeugungsserie veröffentlicht sind. Fehlt die Erzeugung, steht dort n. v. und kein Defizit aus 0 GW.", "Generation and load come from Energy-Charts. The balance uses only a timestamp where load and at least one generation series are published. If generation is missing, the page shows n/a and does not invent a deficit from 0 GW.")}</p>
           <p className="mt-3">{tx("Der Flotten-SoC ist eine Schätzung, keine Telemetrie. Überschuss, Import und Abregelung können am selben Tag zusammen stehen, ohne gleichzeitig zu sein.", "Fleet state of charge is an estimate, not telemetry. Surplus, imports, and curtailment can appear on the same day without being simultaneous.")}</p>
         </Section>
-        <Section id="quellen" n="§8" title={tx("Datenquellen", "Sources")}>
+        <Section id="quellen" n="§9" title={tx("Datenquellen", "Sources")}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-secondary"><tr className="num text-[12px] uppercase"><th className="px-2 py-2 text-left">{tx("Quelle", "Source")}</th><th className="px-2 py-2 text-left">{tx("Inhalt", "Content")}</th></tr></thead>
@@ -150,7 +156,7 @@ grid-serving, same battery and same limit:
             </table>
           </div>
         </Section>
-        <Section id="grenzen" n="§9" title={tx("Grenzen und Haftung", "Limits and liability")}>
+        <Section id="grenzen" n="§10" title={tx("Grenzen und Haftung", "Limits and liability")}>
           <ul className="list-disc pl-5">
             <li>{tx("Beispielprofile und das Day-Ahead-Band sind synthetisch und als BEISPIELDATEN markiert.", "Example profiles and the day-ahead band are synthetic and marked as example data.")}</li>
             <li>{tx("Keine Netzentgelte, keine Steuern, keine Finanzierung, keine Degradation.", "No grid tariffs beyond the inputs, no tax, no financing, no degradation.")}</li>
@@ -158,7 +164,7 @@ grid-serving, same battery and same limit:
             <li>{tx("VDE-AR-N 4105, 4110 und 4120 sind Quellenverweise. Die Spannungsschwellen 135 kW und 20 MW sind Planungshinweise in diesem Rechner, keine Rechtsauskunft.", "VDE-AR-N 4105, 4110 and 4120 are source references. The 135 kW and 20 MW voltage thresholds are planning hints in this calculator, not legal advice.")}</li>
           </ul>
         </Section>
-        <Section id="changelog" n="§10" title={tx("Changelog", "Changelog")}>
+        <Section id="changelog" n="§11" title={tx("Changelog", "Changelog")}>
           <p className="num">2026-10-20 — {tx("Control-Room-Oberfläche, Standort-Rechner, Live unter /live.", "Control-room interface, site calculator, live view at /live.")}</p>
           <p className="num mt-2">2026-10-20 — {tx("Zwei Sichten auf /site: Projektierer und Netzbetreiber, ein Rechenkern. NPV, Spannungshinweis, netzdienlicher Betrieb, flexibles Anschluss-Szenario.", "Two views on /site: developer and grid operator, one calculation core. NPV, voltage hint, grid-serving operation, flexible-connection scenario.")}</p>
         </Section>

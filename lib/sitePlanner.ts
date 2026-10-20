@@ -175,6 +175,9 @@ export type SitePlan = {
   curtailmentKwh: number;
   capImportRespected: boolean;
   capExportRespected: boolean;
+  gridSupport: GridSupportAssessment;
+  loadBands: LoadBand[];
+  topQuarterHours: TopQuarterHour[];
   fullCycles: number;
   connection: ConnectionStatus;
   reserveFraction: number;
@@ -253,6 +256,164 @@ function optionalCap(value: number | null | undefined): number | null {
     return null;
   }
   return value;
+}
+
+/**
+ * Provisional grid-support rule. Thresholds are not final and wait on domain
+ * confirmation. Change them only here; /methodik quotes the same numbers.
+ */
+export const GRID_SUPPORT_CONFIG = {
+  provisional: true,
+  /** Site load at or above this share of the connection limit counts as a peak window. */
+  peakUtilisation: 0.9,
+  /** Discharge energy in those windows required for `supportive`. */
+  supportiveMinShare: 0.6,
+  /** Lower bound of the mixed band. Below this, without a new peak, the result is market-driven. */
+  mixedMinShare: 0.3,
+} as const;
+
+export type GridSupportConfig = typeof GRID_SUPPORT_CONFIG;
+export type GridSupportStatus = "supportive" | "mixed" | "market" | "new-peak";
+
+export type GridSupportAssessment = {
+  status: GridSupportStatus;
+  /** Share of discharge energy in peak windows. 0–1. */
+  dischargeShareInPeaks: number;
+  createsNewPeak: boolean;
+  dischargeKwh: number;
+  dischargeInPeakKwh: number;
+  config: GridSupportConfig;
+};
+
+export type LoadBandId = "below50" | "50to75" | "75to90" | "above90";
+
+export type LoadBand = {
+  id: LoadBandId;
+  chargeKwh: number;
+  dischargeKwh: number;
+};
+
+export type TopQuarterHour = {
+  index: number;
+  dayIndex: number;
+  hour: number;
+  loadKw: number;
+  gridAfterKw: number;
+  bessKw: number;
+};
+
+export function assessGridSupport(args: {
+  loadKw: number[];
+  chargeKw: number[];
+  dischargeKw: number[];
+  gridKw: number[];
+  /** Grid connection point before storage. Positive is import. */
+  netKw: number[];
+  limitKw: number;
+  intervalHours: number;
+  config?: GridSupportConfig;
+}): GridSupportAssessment {
+  const config = args.config ?? GRID_SUPPORT_CONFIG;
+  const threshold = args.limitKw * config.peakUtilisation;
+  let peakBefore = 0;
+  for (const net of args.netKw) {
+    if (net > peakBefore) {
+      peakBefore = net;
+    }
+  }
+  let dischargeKwh = 0;
+  let dischargeInPeakKwh = 0;
+  let createsNewPeak = false;
+  const n = args.loadKw.length;
+  for (let i = 0; i < n; i += 1) {
+    const discharge = Math.max(0, args.dischargeKw[i] ?? 0) * args.intervalHours;
+    dischargeKwh += discharge;
+    if ((args.loadKw[i] ?? 0) >= threshold) {
+      dischargeInPeakKwh += discharge;
+    }
+    const charge = args.chargeKw[i] ?? 0;
+    const grid = args.gridKw[i] ?? 0;
+    if (charge > 1e-6 && grid > peakBefore + 0.05) {
+      createsNewPeak = true;
+    }
+  }
+  const dischargeShareInPeaks = dischargeKwh > 0 ? dischargeInPeakKwh / dischargeKwh : 0;
+  return {
+    status: classifyGridSupport(dischargeShareInPeaks, createsNewPeak, config),
+    dischargeShareInPeaks,
+    createsNewPeak,
+    dischargeKwh,
+    dischargeInPeakKwh,
+    config,
+  };
+}
+
+export function classifyGridSupport(
+  dischargeShareInPeaks: number,
+  createsNewPeak: boolean,
+  config: GridSupportConfig = GRID_SUPPORT_CONFIG
+): GridSupportStatus {
+  if (createsNewPeak) {
+    return "new-peak";
+  }
+  if (dischargeShareInPeaks >= config.supportiveMinShare) {
+    return "supportive";
+  }
+  if (dischargeShareInPeaks >= config.mixedMinShare) {
+    return "mixed";
+  }
+  return "market";
+}
+
+export function loadBandsFor(args: {
+  loadKw: number[];
+  chargeKw: number[];
+  dischargeKw: number[];
+  limitKw: number;
+  intervalHours: number;
+}): LoadBand[] {
+  const bands: LoadBand[] = [
+    { id: "below50", chargeKwh: 0, dischargeKwh: 0 },
+    { id: "50to75", chargeKwh: 0, dischargeKwh: 0 },
+    { id: "75to90", chargeKwh: 0, dischargeKwh: 0 },
+    { id: "above90", chargeKwh: 0, dischargeKwh: 0 },
+  ];
+  const limit = args.limitKw > 0 ? args.limitKw : 0;
+  for (let i = 0; i < args.loadKw.length; i += 1) {
+    const ratio = limit > 0 ? (args.loadKw[i] ?? 0) / limit : 0;
+    const band = ratio >= 0.9 ? bands[3] : ratio >= 0.75 ? bands[2] : ratio >= 0.5 ? bands[1] : bands[0];
+    if (!band) {
+      continue;
+    }
+    band.chargeKwh += Math.max(0, args.chargeKw[i] ?? 0) * args.intervalHours;
+    band.dischargeKwh += Math.max(0, args.dischargeKw[i] ?? 0) * args.intervalHours;
+  }
+  return bands;
+}
+
+export function topQuarterHours(args: {
+  loadKw: number[];
+  chargeKw: number[];
+  dischargeKw: number[];
+  gridKw: number[];
+  intervalMinutes: number;
+  count?: number;
+}): TopQuarterHour[] {
+  const ranked = args.loadKw.map((loadKw, index) => ({ loadKw, index }));
+  ranked.sort((a, b) => b.loadKw - a.loadKw || a.index - b.index);
+  const count = args.count ?? 10;
+  return ranked.slice(0, count).map(({ loadKw, index }) => {
+    const stepsPerDay = args.intervalMinutes === 60 ? 24 : 96;
+    const step = index % stepsPerDay;
+    return {
+      index,
+      dayIndex: Math.floor(index / stepsPerDay),
+      hour: (step * args.intervalMinutes) / 60,
+      loadKw,
+      gridAfterKw: args.gridKw[index] ?? 0,
+      bessKw: (args.dischargeKw[index] ?? 0) - (args.chargeKw[index] ?? 0),
+    };
+  });
 }
 
 function impactOf(before: number, after: number): GridImpact {
@@ -1016,6 +1177,30 @@ export function planSite(input: SitePlannerInput): SitePlan {
   const pricesAreSupplied = Array.isArray(input.priceEurPerMwh) && input.priceEurPerMwh.length > 0;
   const pvIsSupplied = Array.isArray(input.pvSeriesKw) && input.pvSeriesKw.length > 0;
 
+  const gridSupport = assessGridSupport({
+    loadKw: profile.samplesKw,
+    chargeKw: dispatched.chargeKw,
+    dischargeKw: dispatched.dischargeKw,
+    gridKw: dispatched.gridKw,
+    netKw,
+    limitKw: input.limitKw,
+    intervalHours: dt,
+  });
+  const loadBandRows = loadBandsFor({
+    loadKw: profile.samplesKw,
+    chargeKw: dispatched.chargeKw,
+    dischargeKw: dispatched.dischargeKw,
+    limitKw: input.limitKw,
+    intervalHours: dt,
+  });
+  const topSlots = topQuarterHours({
+    loadKw: profile.samplesKw,
+    chargeKw: dispatched.chargeKw,
+    dischargeKw: dispatched.dischargeKw,
+    gridKw: dispatched.gridKw,
+    intervalMinutes: profile.intervalMinutes,
+  });
+
   const toDay = (start: number): DaySeries => ({
     dayIndex: Math.floor(start / perDay),
     loadKw: sliceDay(start, perDay, profile.samplesKw),
@@ -1064,6 +1249,9 @@ export function planSite(input: SitePlannerInput): SitePlan {
     curtailmentKwh: dispatched.curtailmentKwh,
     capImportRespected: importCapKw == null || peakImportAfter <= importCapKw + 1e-3,
     capExportRespected: exportCapKw == null || peakExportAfter <= exportCapKw + 1e-3,
+    gridSupport,
+    loadBands: loadBandRows,
+    topQuarterHours: topSlots,
     fullCycles: dispatched.fullCycles,
     connection,
     reserveFraction,

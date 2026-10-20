@@ -2,23 +2,25 @@
 
 import { toPng } from "html-to-image";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChartLegend, DispatchChart, type DispatchPoint, useNarrowScreen } from "@/components/charts/DispatchChart";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
 import {
   Bar,
+  BarChart,
   CartesianGrid,
   ComposedChart,
   Line,
+  ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { axis, common, cssVar, grid, series, tooltip } from "@/lib/chart-theme";
+import { axis, common, cssVar, grid, limitLine, paybackDomainMax, paybackLabelX, series, tooltip } from "@/lib/chart-theme";
 import {
   defaultPlannerEconomics,
   exampleProfile,
@@ -156,12 +158,26 @@ function flexibleCaps(draft: Draft) {
 
 export function SitePlanner() {
   const { language } = useLanguage();
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const narrow = useNarrowScreen();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const view = searchParams.get("view") === "netz" ? "netz" : "projekt";
+  const [seenNetz, setSeenNetz] = useState(() => searchParams.get("view") === "netz");
+  const narrow = useNarrowScreen();
+
+  function selectView(next: "projekt" | "netz") {
+    if (next === "netz") {
+      setSeenNetz(true);
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", next);
+    const scrollY = window.scrollY;
+    router.replace(`/site?${params.toString()}`, { scroll: false });
+    window.requestAnimationFrame(() => window.scrollTo(0, scrollY));
+  }
   const [draft, setDraft] = useState<Draft>(() => draftFromParams(searchParams));
   const [operation, setOperation] = useState<OperationMode>("market");
-  const [perspective, setPerspective] = useState<"developer" | "dso">("developer");
+  const [netzTab, setNetzTab] = useState<"duration" | "peak">("duration");
   const [marketPlan, setMarketPlan] = useState<SitePlan | null>(() => run(draftFromParams(searchParams), "market"));
   const [servingPlan, setServingPlan] = useState<SitePlan | null>(() => run(draftFromParams(searchParams), "grid-serving"));
   const [flexiblePlan, setFlexiblePlan] = useState<SitePlan | null>(null);
@@ -253,6 +269,7 @@ export function SitePlanner() {
     params.set("energy", String(draft.energyCt));
     params.set("dynamic", draft.dynamic ? "1" : "0");
     params.set("auto", draft.autoSize ? "1" : "0");
+    params.set("view", view);
     if (language === "en") {
       params.set("lang", "en");
     }
@@ -260,7 +277,7 @@ export function SitePlanner() {
     await navigator.clipboard.writeText(url);
   }
 
-  async function exportPdf() {
+  async function exportPdf(kind: "offer" | "connection" = view === "netz" ? "connection" : "offer") {
     if (!plan || !profile || pdfBusy) {
       return;
     }
@@ -269,12 +286,12 @@ export function SitePlanner() {
       const { pdf } = await import("@react-pdf/renderer");
       const { SiteProposalDocument } = await import("@/components/site/SiteProposalDocument");
       const blob = await pdf(
-        <SiteProposalDocument plan={plan} profile={profile} language={language} enteredVoltage={draft.voltage} />
+        <SiteProposalDocument plan={plan} profile={profile} language={language} enteredVoltage={draft.voltage} kind={kind} />
       ).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "speicherpilot-standortvorschlag.pdf";
+      link.download = kind === "connection" ? "speicherpilot-anschlusspruefung.pdf" : "speicherpilot-angebot.pdf";
       link.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -283,10 +300,9 @@ export function SitePlanner() {
   }
 
   return (
-    <div className="mx-auto max-w-[1360px] px-5 py-8 md:px-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="num text-[12px] text-muted-foreground">Start / {tx("Standort", "Site")}</p>
+    <div className="relative mx-auto max-w-[1360px] px-5 py-8 md:px-8">
+      <div className="md:max-w-[calc(100%-300px)]">
+        <p className="num text-[12px] text-muted-foreground">Start / {tx("Standort", "Site")}</p>
           <h1 className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">{tx("Standort rechnen", "Size a site")}</h1>
           <p className="mt-1 max-w-[68ch] text-muted-foreground">
             {tx(
@@ -294,8 +310,9 @@ export function SitePlanner() {
               "The same calculation for a developer and a grid operator: storage size, economics, and the effect at the connection point."
             )}
           </p>
-        </div>
-        <div className="no-print flex flex-wrap items-center gap-2">
+      </div>
+      <ViewSwitch view={view} onSelect={selectView} tx={tx} />
+      <div className="no-print mt-4 flex flex-wrap items-center gap-2 md:absolute md:top-8 md:right-8 md:mt-0">
           {profile?.synthetic ? <span className="num rounded-[4px] border border-border px-2 py-0.5 text-[12px]">BEISPIELDATEN</span> : null}
           <button type="button" className="h-10 rounded-md px-3 text-sm" onClick={() => setDraft(defaultDraft())}>
             {tx("Beispiel laden", "Load example")}
@@ -303,7 +320,6 @@ export function SitePlanner() {
           <button type="button" className="h-10 rounded-md border border-border-strong px-3 text-sm" onClick={() => setDraft({ ...defaultDraft(), mode: "csv", csv: null })}>
             {tx("Zurücksetzen", "Reset")}
           </button>
-        </div>
       </div>
 
       <div className="mt-7 grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
@@ -392,18 +408,13 @@ export function SitePlanner() {
           </Section>
 
           <Section label={`03 ${tx("Netzanschluss", "Connection")}`}>
-            <Field label={tx("Anschlussleistung", "Connection capacity")} unit="kW" value={draft.limitKw} onChange={(limitKw) => setDraft({ ...draft, limitKw })} />
+            {view === "netz" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} required /> : null}
+            <Field id="limit" label={tx("Anschlussleistung", "Connection capacity")} unit="kW" value={draft.limitKw} onChange={(limitKw) => setDraft({ ...draft, limitKw })} required={view === "netz"} />
             <p className="mt-1 text-[12px] text-muted-foreground">
               {tx("Profilspitze", "Profile peak")}: {formatQuantity(peakKw, language, 0)} kW
               {peakKw > draft.limitKw ? <span className="text-warning"> · {tx("über Limit", "above the limit")}</span> : null}
             </p>
-            <label className="mt-3 block text-sm font-medium" htmlFor="voltage">{tx("Spannungsebene", "Voltage")}</label>
-            <select id="voltage" className="mt-1.5 h-10 w-full rounded-md border border-input bg-card px-2 dark:bg-secondary" value={draft.voltage} onChange={(event) => setDraft({ ...draft, voltage: event.target.value as VoltageLevel })}>
-              <option value="NS">NS</option>
-              <option value="MS">MS</option>
-              <option value="HS">HS</option>
-            </select>
-            <p className="mt-2 text-[12px] text-muted-foreground">{tx("Gewählte Ebene. Der Hinweis aus der angefragten Leistung steht in der Netzbetreiber-Sicht.", "Entered level. The hint from requested power is in the grid-operator view.")}</p>
+            {view === "projekt" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} /> : null}
           </Section>
 
           <Section label={`04 ${tx("Tarif", "Tariff")}`}>
@@ -431,6 +442,20 @@ export function SitePlanner() {
               <Field label={tx("Wirkungsgrad", "Round trip")} unit="%" value={draft.rtePct} onChange={(rtePct) => setDraft({ ...draft, rtePct })} />
               <Field label="CAPEX" unit="€/kWh" value={draft.capex} onChange={(capex) => setDraft({ ...draft, capex })} />
               <Field label={tx("Zyklen/Jahr max", "Max cycles/year")} unit="/a" value={draft.cycles} onChange={(cycles) => setDraft({ ...draft, cycles })} />
+              <p className="mt-3 text-sm font-medium">{tx("Betriebsart", "Operation")}</p>
+              <div className="mt-1.5 flex gap-2">
+                {(["market", "grid-serving"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    aria-pressed={operation === mode}
+                    className={`h-8 flex-1 rounded-md border px-2 text-sm ${operation === mode ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                    onClick={() => setOperation(mode)}
+                  >
+                    {mode === "market" ? tx("Markt", "Market") : tx("Netz", "Grid")}
+                  </button>
+                ))}
+              </div>
               <Field label={tx("Lebensdauer", "Lifetime")} unit="a" value={draft.life} onChange={(life) => setDraft({ ...draft, life })} />
               <Field label={tx("Diskont", "Discount")} unit="%" value={draft.discountPct} onChange={(discountPct) => setDraft({ ...draft, discountPct })} />
               <Field label={tx("Trafo / Anschluss, Plan", "Transformer / connection, plan")} unit="kW" value={draft.transformerKw} onChange={(transformerKw) => setDraft({ ...draft, transformerKw })} />
@@ -440,19 +465,28 @@ export function SitePlanner() {
 
           <button
             type="button"
-            className="no-print mt-5 inline-flex h-10 w-full items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground disabled:opacity-60"
+            className="no-print mt-5 hidden h-10 w-full items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground disabled:opacity-60 lg:inline-flex"
             disabled={!plan || pdfBusy}
-            onClick={() => void exportPdf()}
+            onClick={() => void exportPdf(view === "netz" ? "connection" : "offer")}
           >
-            {pdfBusy ? tx("PDF wird gebaut", "Building PDF") : tx("Proposal-PDF", "Proposal PDF")}
+            {pdfBusy ? tx("PDF wird gebaut", "Building PDF") : view === "netz" ? tx("Anschlussprüfung als PDF", "Connection check as PDF") : tx("Angebot als PDF", "Offer as PDF")}
           </button>
           <p className="mt-2 text-center text-[12px] text-muted-foreground">{tx("Daten bleiben im Browser", "Data stays in the browser")}</p>
         </form>
 
         <div className="flex min-w-0 flex-col gap-6 pb-24 lg:pb-0">
           {!plan || !profile ? (
-            <div className="rounded-md border border-dashed border-border-strong p-8">
-              <p>{tx("Noch kein Lastprofil. CSV hochladen oder Beispielprofil laden.", "No load profile yet. Upload a CSV or load an example.")}</p>
+            <div className="rounded-md border border-dashed border-border-strong p-8" role="tabpanel" id="results-panel">
+              <p>
+                {view === "netz"
+                  ? tx("Lastprofil und Anschlussleistung angeben, um die Netzlast zu prüfen.", "Add a load profile and a connection capacity to check the grid load.")
+                  : tx("Lastprofil laden, um Größe und Amortisation zu sehen.", "Load a profile to see size and payback.")}
+              </p>
+              {view === "netz" && draft.limitKw <= 0 ? (
+                <button type="button" className="num mt-3 rounded-[4px] border border-warning px-2 py-0.5 text-[12px] text-warning" onClick={() => document.getElementById("limit")?.focus()}>
+                  {tx("ANSCHLUSSLEISTUNG FEHLT", "CONNECTION CAPACITY MISSING")}
+                </button>
+              ) : null}
               <button type="button" className="mt-4 h-10 rounded-md border border-border px-3 text-sm" onClick={() => setDraft(defaultDraft())}>
                 {tx("Beispiel laden", "Load example")}
               </button>
@@ -460,49 +494,25 @@ export function SitePlanner() {
           ) : (
             <>
               <div>
-                <div className="flex items-center justify-between">
-                  <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Empfehlung", "Recommendation")}</p>
-                  <span className={`num rounded-[4px] border bg-card px-2 py-0.5 text-[12px] ${plan.connection === "ok" ? "border-success text-success" : plan.connection === "near" ? "border-warning text-warning" : "border-limit text-destructive"}`}>
-                    {statusLabel[plan.connection]}
-                  </span>
-                </div>
-                <div className="mt-2.5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <Tile className="md:col-span-2" tone="bess" label={tx("Speicher", "Storage")} value={`${formatQuantity(plan.energyKwh, language, 0)} / ${formatQuantity(plan.powerKw, language, 0)}`} unit="kWh / kW" hint={`C-Rate ${formatQuantity(plan.cRate, language, 2)} · ${formatQuantity(plan.durationHours, language, 1)} h`} hero />
-                  <Tile tone="limit" label={tx("Spitze", "Peak")} value={formatQuantity(plan.peakImportAfterKw, language, 0)} unit="kW" hint={`${tx("von", "from")} ${formatQuantity(plan.peakImportBeforeKw, language, 0)} kW`} />
-                  <Tile label={tx("Amortisation", "Payback")} value={formatYears(plan.paybackYears, language)} unit={plan.paybackYears ? "a" : ""} hint={`${tx("Nutzen", "Benefit")} ${formatQuantity(plan.annualBenefitEur, language, 0)} €/a · NPV ${formatQuantity(plan.npvEur, language, 0)} €`} />
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {(["market", "grid-serving"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      aria-pressed={operation === mode}
-                      className={`h-8 rounded-md border px-3 text-sm ${operation === mode ? "border-foreground bg-foreground text-background" : "border-border"}`}
-                      onClick={() => setOperation(mode)}
-                    >
-                      {mode === "market" ? tx("Marktgetrieben", "Market-driven") : tx("Netzdienlich", "Grid-serving")}
-                    </button>
-                  ))}
-                  <p className="text-sm text-muted-foreground">{impactSentence(plan.gridImpact, tx)}</p>
-                </div>
-                <div className="mt-4 flex border border-border" role="tablist" aria-label={tx("Sicht", "Perspective")}>
-                  {(["developer", "dso"] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      role="tab"
-                      aria-selected={perspective === key}
-                      className={`h-10 flex-1 text-sm ${perspective === key ? "bg-foreground text-background" : "bg-card"}`}
-                      onClick={() => setPerspective(key)}
-                    >
-                      {key === "developer" ? tx("Projektierer", "Developer") : tx("Netzbetreiber", "Grid operator")}
-                    </button>
-                  ))}
+                <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Ergebnis", "Result")}</p>
+                {profile.synthetic ? <p className="num mt-1 text-[12px] text-muted-foreground">BEISPIELDATEN</p> : null}
+                <div className="mt-2.5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+                  <Tile key="speicher" tone="bess" label={tx("Speicher", "Storage")} value={`${formatQuantity(plan.energyKwh, language, 0)}/${formatQuantity(plan.powerKw, language, 0)}`} unit="kWh/kW" hint={`C ${formatQuantity(plan.cRate, language, 2)}`} />
+                  <Tile key="spitze" tone="limit" label={tx("Spitze", "Peak")} value={formatQuantity(plan.peakImportAfterKw, language, 0)} unit="kW" hint={`${tx("von", "from")} ${formatQuantity(plan.peakImportBeforeKw, language, 0)} kW`} />
+                  <Tile key="anschluss" label={tx("Anschluss", "Connection")} value={statusLabel[plan.connection]} unit="" hint={`${formatQuantity(draft.limitKw, language, 0)} kW · ${draft.voltage}`} chip={plan.connection} />
+                  <div className="relative min-w-0">
+                    <div className={`${view === "projekt" ? "opacity-100" : "pointer-events-none absolute inset-0 opacity-0"} transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none`}>
+                      <Tile label={tx("Amortisation", "Payback")} value={formatYears(plan.paybackYears, language)} unit={plan.paybackYears ? "a" : ""} hint={`${formatQuantity(plan.annualBenefitEur, language, 0)} €/a`} />
+                    </div>
+                    <div className={`${view === "netz" ? "opacity-100" : "pointer-events-none absolute inset-0 opacity-0"} transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none`}>
+                      <SupportTile plan={plan} language={language} tx={tx} />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {perspective === "developer" ? (
-              <>
+              <div className="relative" role="tabpanel" id="results-panel">
+              <div className={`${view === "projekt" ? "opacity-100" : "pointer-events-none absolute inset-x-0 opacity-0"} flex flex-col gap-6 transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none`} aria-hidden={view !== "projekt"} inert={view !== "projekt"}>
               <article className="rounded-md border border-border bg-card p-4 md:p-6">
                 <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Peak Shaving · {profile.intervalMinutes} min</p>
                 <h2 className="mt-1.5 text-lg font-semibold">
@@ -577,7 +587,7 @@ export function SitePlanner() {
                     ? tx(`Investition nach ${formatYears(plan.paybackYears, language)} Jahren zurück`, `Investment back after ${formatYears(plan.paybackYears, language)} years`)
                     : tx("Innerhalb der Lebensdauer nicht zurück", "Not recovered inside the lifetime")}
                 </h2>
-                <PaybackChart plan={plan} narrow={narrow} />
+                <PaybackChart plan={plan} narrow={narrow} language={language} />
                 <p className="num mt-2 text-[12px] text-muted-foreground">
                   CAPEX {formatQuantity(plan.capexEur, language, 0)} € · OPEX {formatQuantity(plan.assumptions.opexFractionOfCapex * 100, language, 1)} % · {tx("Diskont", "Discount")} {formatQuantity(draft.discountPct, language, 1)} % · NPV {formatQuantity(plan.npvEur, language, 0)} €
                 </p>
@@ -615,32 +625,18 @@ export function SitePlanner() {
                 </div>
               </article>
 
-              <article className="rounded-md border border-border bg-card p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Netzanschluss", "Connection")}</p>
-                  <span className="num text-[12px]">{statusLabel[plan.connection]}</span>
-                </div>
-                <h2 className="mt-1.5 text-lg font-semibold">
+              <article className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3">
+                <p className="text-sm">
+                  {formatQuantity(draft.limitKw, language, 0)} kW · {draft.voltage}
                   {plan.connection === "over"
-                    ? tx(
-                        `${formatQuantity(draft.limitKw, language, 0)} kW reichen nicht: ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW fehlen`,
-                        `${formatQuantity(draft.limitKw, language, 0)} kW is not enough: ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW short`
-                      )
-                    : tx(
-                        `${formatQuantity(draft.limitKw, language, 0)} kW reichen mit Speicher, ${formatQuantity(plan.reserveFraction * 100, language, 0)} % Reserve`,
-                        `${formatQuantity(draft.limitKw, language, 0)} kW holds with storage, ${formatQuantity(plan.reserveFraction * 100, language, 0)}% reserve`
-                      )}
-                </h2>
-                <Gauge limitKw={draft.limitKw} beforeKw={plan.peakImportBeforeKw} afterKw={plan.peakImportAfterKw} />
-                <ul className="num mt-4 grid gap-1 text-[13px] md:grid-cols-2">
-                  <Check ok={plan.checks.importWithinLimit} label={tx("Bezugsspitze ≤ Limit", "Import peak ≤ limit")} />
-                  <Check ok={plan.checks.exportWithinLimit} label={tx("Rückspeisung ≤ Limit", "Export ≤ limit")} />
-                  <Check ok={plan.checks.exceedanceHoursZero} label={tx("Überschreitungsstunden = 0", "Hours above the limit = 0")} />
-                  <Check ok={plan.checks.reserveAtLeast10Pct} label={tx(`Reserve ${formatQuantity(plan.reserveFraction * 100, language, 0)} % ≥ 10 %`, `Reserve ${formatQuantity(plan.reserveFraction * 100, language, 0)}% ≥ 10%`)} />
-                </ul>
+                    ? tx(` · ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW fehlen`, ` · ${formatQuantity(Math.max(0, plan.peakImportAfterKw - draft.limitKw), language, 0)} kW short`)
+                    : tx(` · ${formatQuantity(plan.reserveFraction * 100, language, 0)} % Reserve`, ` · ${formatQuantity(plan.reserveFraction * 100, language, 0)}% reserve`)}
+                </p>
+                <span className="num text-[12px]">{statusLabel[plan.connection]}</span>
               </article>
-              </>
-              ) : marketPlan && servingPlan ? (
+              </div>
+              {seenNetz && marketPlan && servingPlan ? (
+                <div className={`${view === "netz" ? "opacity-100" : "pointer-events-none absolute inset-x-0 top-0 opacity-0"} flex flex-col gap-6 transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none`} aria-hidden={view !== "netz"} inert={view !== "netz"}>
                 <DsoView
                   draft={draft}
                   setDraft={setDraft}
@@ -649,10 +645,19 @@ export function SitePlanner() {
                   serving={servingPlan}
                   flexible={flexiblePlan}
                   points={dsoPoints}
+                  narrow={narrow}
+                  netzTab={netzTab}
+                  setNetzTab={setNetzTab}
+                  dayPick={dayPick}
+                  setDayPick={setDayPick}
+                  totalHours={(profile.samplesKw.length * profile.intervalMinutes) / 60}
                   language={language}
                   tx={tx}
+                  statusLabel={statusLabel}
                 />
+                </div>
               ) : null}
+              </div>
 
               <details className="rounded-md border border-border bg-card p-4">
                 <summary className="cursor-pointer text-sm font-medium">{tx("Annahmen", "Assumptions")}</summary>
@@ -661,6 +666,7 @@ export function SitePlanner() {
                   <div className="flex justify-between gap-4"><dt>{tx("Preise", "Prices")}</dt><dd className="text-right">{plan.assumptions.priceNote}</dd></div>
                   <div className="flex justify-between gap-4"><dt>RTE</dt><dd>{formatQuantity(plan.assumptions.roundTripEfficiency * 100, language, 0)} %</dd></div>
                   <div className="flex justify-between gap-4"><dt>{tx("Nicht enthalten", "Excluded")}</dt><dd className="text-right">{plan.assumptions.excluded.join(", ")}</dd></div>
+                  {view === "netz" ? <div className="flex justify-between gap-4"><dt>{tx("Amortisation", "Payback")}</dt><dd>{formatYears(plan.paybackYears, language)} · {formatQuantity(plan.annualBenefitEur, language, 0)} €/a</dd></div> : null}
                 </dl>
                 <p className="mt-3 text-sm text-muted-foreground">{tx("Illustratives Modell, keine Beschaffungs- oder Anlagenberatung.", "Illustrative model, not procurement or plant advice.")}</p>
               </details>
@@ -669,6 +675,9 @@ export function SitePlanner() {
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={exportCsv}>CSV</button>
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => void shareLink()}>{tx("Link teilen", "Share link")}</button>
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => window.print()}>{tx("Drucken", "Print")}</button>
+                <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => void exportPdf(view === "netz" ? "offer" : "connection")}>
+                  {view === "netz" ? tx("Angebot als PDF", "Offer as PDF") : tx("Anschlussprüfung als PDF", "Connection check as PDF")}
+                </button>
               </div>
             </>
           )}
@@ -678,9 +687,11 @@ export function SitePlanner() {
       {plan && profile ? (
         <div className="no-print fixed inset-x-0 bottom-0 z-30 flex h-14 items-center justify-between border-t border-border bg-background px-4 lg:hidden">
           <p className="num text-sm">
-            {formatQuantity(plan.energyKwh, language, 0)} kWh · {formatYears(plan.paybackYears, language)} a
+            {formatQuantity(plan.energyKwh, language, 0)} kWh
           </p>
-          <a href="#inhalt" className="text-sm text-primary underline underline-offset-[3px]">{tx("Ergebnis", "Result")}</a>
+          <button type="button" className="h-10 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground disabled:opacity-60" disabled={pdfBusy} onClick={() => void exportPdf(view === "netz" ? "connection" : "offer")}>
+            {view === "netz" ? tx("Anschlussprüfung als PDF", "Connection PDF") : tx("Angebot als PDF", "Offer as PDF")}
+          </button>
         </div>
       ) : null}
 
@@ -709,14 +720,118 @@ export function SitePlanner() {
   );
 }
 
-function impactSentence(impact: GridImpact, tx: (de: string, en: string) => string) {
-  if (impact === "reduces") {
-    return tx("Der Betrieb senkt die Spitze am Netzanschlusspunkt.", "This operation lowers the peak at the connection point.");
+function voltageLong(level: VoltageLevel, language: "de" | "en") {
+  if (level === "NS") {
+    return language === "de" ? "Niederspannung" : "Low voltage";
   }
-  if (impact === "increases") {
-    return tx("Der Betrieb hebt die Spitze am Netzanschlusspunkt.", "This operation raises the peak at the connection point.");
+  if (level === "HS") {
+    return language === "de" ? "Hochspannung" : "High voltage";
   }
-  return tx("Der Betrieb lässt die Spitze am Netzanschlusspunkt unverändert.", "This operation leaves the peak at the connection point unchanged.");
+  return language === "de" ? "Mittelspannung" : "Medium voltage";
+}
+
+function clockLabel(hour: number) {
+  const whole = Math.floor(hour);
+  const minutes = Math.round((hour - whole) * 60);
+  return `${String(whole).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function ViewSwitch({ view, onSelect, tx }: { view: "projekt" | "netz"; onSelect: (next: "projekt" | "netz") => void; tx: (de: string, en: string) => string }) {
+  const order = ["projekt", "netz"] as const;
+  return (
+    <div className="sticky top-14 z-30 -mx-5 mt-4 border-b border-border bg-background/90 px-5 py-2.5 backdrop-blur md:static md:z-auto md:mx-0 md:mt-5 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
+      <div
+        role="tablist"
+        aria-label={tx("Perspektive", "Perspective")}
+        className="flex h-9 w-full border border-border-strong min-[481px]:w-fit"
+        onKeyDown={(event) => {
+          const index = order.indexOf(view);
+          let next: "projekt" | "netz" | null = null;
+          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            event.preventDefault();
+            const delta = event.key === "ArrowRight" ? 1 : -1;
+            next = order[(index + delta + 2) % 2] ?? "projekt";
+          }
+          if (event.key === "Home") {
+            event.preventDefault();
+            next = "projekt";
+          }
+          if (event.key === "End") {
+            event.preventDefault();
+            next = "netz";
+          }
+          if (next) {
+            onSelect(next);
+            event.currentTarget.querySelector<HTMLButtonElement>(`[data-view="${next}"]`)?.focus();
+          }
+        }}
+      >
+        {order.map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            data-view={key}
+            aria-selected={view === key}
+            aria-controls="results-panel"
+            tabIndex={view === key ? 0 : -1}
+            className={`flex h-full flex-1 items-center justify-center px-3 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-[481px]:flex-none min-[481px]:px-4 ${view === key ? "bg-foreground text-background" : "bg-card"}`}
+            onClick={() => onSelect(key)}
+          >
+            {key === "projekt" ? tx("Projektierung", "Project") : tx("Netzbetreiber", "Grid operator")}
+            <span className="num ml-2 hidden text-[12px] font-normal md:inline">
+              {key === "projekt" ? tx("Größe · Erlös", "Size · revenue") : tx("Anschluss · Netzlast", "Connection · grid load")}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VoltageField({ draft, setDraft, tx, required }: { draft: Draft; setDraft: (next: Draft) => void; tx: (de: string, en: string) => string; required?: boolean }) {
+  return (
+    <>
+      <label className="mt-3 block text-sm font-medium" htmlFor="voltage">
+        {tx("Spannungsebene", "Voltage")}
+        {required ? <span className="num ml-2 text-[12px] tracking-[0.08em] text-muted-foreground">PFLICHT</span> : null}
+      </label>
+      <select id="voltage" className="mt-1.5 h-10 w-full rounded-md border border-input bg-card px-2 dark:bg-secondary" value={draft.voltage} onChange={(event) => setDraft({ ...draft, voltage: event.target.value as VoltageLevel })}>
+        <option value="NS">NS</option>
+        <option value="MS">MS</option>
+        <option value="HS">HS</option>
+      </select>
+    </>
+  );
+}
+
+function SupportTile({ plan, language, tx }: { plan: SitePlan; language: "de" | "en"; tx: (de: string, en: string) => string }) {
+  const status = plan.gridSupport.status;
+  const label =
+    status === "supportive"
+      ? tx("NETZDIENLICH", "GRID-SUPPORTIVE")
+      : status === "mixed"
+        ? tx("GEMISCHT", "MIXED")
+        : status === "new-peak"
+          ? tx("ERZEUGT NEUE SPITZE", "CREATES A NEW PEAK")
+          : tx("MARKTGETRIEBEN", "MARKET-DRIVEN");
+  const tone = status === "supportive" ? "text-success" : status === "mixed" ? "text-warning" : status === "new-peak" ? "text-destructive" : "text-muted-foreground";
+  const share = Math.max(0, Math.min(1, plan.gridSupport.dischargeShareInPeaks));
+  return (
+    <div className="h-full min-w-0 border border-border bg-card p-3 md:px-4 md:py-4">
+      <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Netzdienlichkeit", "Grid support")}</p>
+      <p className={`num mt-2 text-[24px] leading-none md:text-[28px] ${tone}`}>{label}</p>
+      <p className="num mt-2 text-[12px] text-muted-foreground">{formatQuantity(share * 100, language, 0)} % {tx("Entladung in Spitzenfenstern", "discharge in peak windows")}</p>
+      <div className="relative mt-2 h-1.5 bg-secondary" aria-hidden>
+        <div className="h-full bg-foreground" style={{ width: `${share * 100}%` }} />
+        <i className="absolute top-0 h-1.5 border-l border-border-strong" style={{ left: "30%" }} />
+        <i className="absolute top-0 h-1.5 border-l border-border-strong" style={{ left: "60%" }} />
+      </div>
+      <a className="mt-2 inline-block text-[12px] underline underline-offset-[3px]" href="/methodik#netzdienlichkeit" title={tx("Vorläufig: 90 % Auslastung, 60 % und 30 %. Noch nicht fachlich bestätigt.", "Provisional: 90% utilisation, 60% and 30%. Not yet confirmed.")}>
+        {tx("Definition", "Definition")}
+      </a>
+    </div>
+  );
 }
 
 function impactWord(impact: GridImpact, tx: (de: string, en: string) => string) {
@@ -737,8 +852,15 @@ function DsoView({
   serving,
   flexible,
   points,
+  narrow,
+  netzTab,
+  setNetzTab,
+  dayPick,
+  setDayPick,
+  totalHours,
   language,
   tx,
+  statusLabel,
 }: {
   draft: Draft;
   setDraft: (next: Draft) => void;
@@ -747,65 +869,110 @@ function DsoView({
   serving: SitePlan;
   flexible: SitePlan | null;
   points: DispatchPoint[];
+  narrow: boolean;
+  netzTab: "duration" | "peak";
+  setNetzTab: (next: "duration" | "peak") => void;
+  dayPick: "peak" | "median";
+  setDayPick: (next: "peak" | "median") => void;
+  totalHours: number;
   language: "de" | "en";
   tx: (de: string, en: string) => string;
+  statusLabel: Record<ConnectionStatus, string>;
 }) {
   const caps = flexibleCaps(draft);
+  const voltage = voltageLong(draft.voltage, language);
+  const limitText = `Netzanschluss ${formatQuantity(draft.limitKw, language, 0)} kW · ${draft.voltage}`;
+  const bands = [
+    { id: "below50", de: "<50 %", en: "<50%" },
+    { id: "50to75", de: "50–75 %", en: "50–75%" },
+    { id: "75to90", de: "75–90 %", en: "75–90%" },
+    { id: "above90", de: "≥90 %", en: "≥90%" },
+  ] as const;
+  const bandData = bands.map((band) => {
+    const row = plan.loadBands.find((item) => item.id === band.id);
+    return {
+      band: language === "de" ? band.de : band.en,
+      discharge: row?.dischargeKwh ?? 0,
+      charge: row?.chargeKwh ?? 0,
+    };
+  });
   return (
     <>
+      <p className="text-sm text-muted-foreground">
+        {tx(
+          "Verteilnetzbetreiber prüfen und schließen Speicher Dritter an. Sie besitzen ihn hier nicht. Keine Anschlusszusage, keine Rechtsberatung.",
+          "Distribution operators assess and connect third-party storage. They do not own it here. Not a connection offer and not legal advice."
+        )}
+      </p>
       <article className="rounded-md border border-border bg-card p-4 md:p-6">
-        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Netzbetreiber", "Grid operator")}</p>
-        <h2 className="mt-1.5 text-lg font-semibold">{tx("Anschluss prüfen, Speicher nicht betreiben", "Assess the connection, do not operate the storage")}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {tx(
-            "Verteilnetzbetreiber besitzen und betreiben diesen Speicher in der Regel nicht. Sie prüfen und schließen Speicher Dritter an. Die Regeln unten sind Verweise, keine Rechtsberatung und keine Anschlusszusage.",
-            "Distribution operators usually do not own or operate this storage. They assess and connect third-party storage. The rules below are references, not legal advice and not a connection offer."
-          )}
+        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
+          {tx("Netzlast", "Grid load")} · {voltage} · {plan.peakDay.loadKw.length > 24 ? "15 MIN" : "60 MIN"}
         </p>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <Mini label={tx("Angefragt, ohne Speicher", "Requested, without storage")} value={`${formatQuantity(plan.requestedConnectionKw, language, 0)} kW`} />
-          <Mini label={tx("Verfügbar, eingegeben", "Available, as entered")} value={`${formatQuantity(plan.availableConnectionKw, language, 0)} kW`} />
+        <h2 className="mt-1.5 text-lg font-semibold">
+          {formatQuantity(plan.exceedanceHoursBefore, language, 0)} h {tx("über", "above")} {formatQuantity(draft.limitKw, language, 0)} kW {tx("ohne Speicher", "without storage")}, {formatQuantity(plan.exceedanceHoursAfter, language, 0)} h {tx("mit", "with")}
+        </h2>
+        <div className="mt-3 flex gap-6 overflow-x-auto border-b border-border text-sm font-medium">
+          <button type="button" className={netzTab === "duration" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setNetzTab("duration")}>{tx("Jahresdauerlinie", "Duration curve")}</button>
+          <button type="button" className={netzTab === "peak" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setNetzTab("peak")}>{tx("Tagesprofil", "Day profile")}</button>
         </div>
-        <p className="mt-4 text-sm">
-          {tx("Planungshinweis", "Planning hint")}: <span className="num">{plan.voltageSuggestion.level}</span> · {plan.voltageSuggestion.rule}
-          {" · "}
-          {tx("gewählt", "entered")} <span className="num">{draft.voltage}</span>
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {tx(
-            "Bis 135 kW NS, darüber bis 20 MW MS, darüber HS. Schwellen sind Planungshinweise, nicht der Wortlaut der TAR.",
-            "Up to 135 kW LV, above that up to 20 MW MV, above that HV. The thresholds are planning hints, not the wording of the connection rules."
-          )}
-        </p>
-        <a className="mt-2 inline-block text-sm text-primary underline underline-offset-[3px]" href={plan.voltageSuggestion.href} target="_blank" rel="noreferrer">
-          {plan.voltageSuggestion.rule} · VDE FNN
-        </a>
+        {netzTab === "duration" ? (
+          <DurationChart
+            before={plan.durationBeforeKw}
+            after={plan.durationAfterKw}
+            limitKw={draft.limitKw}
+            narrow={narrow}
+            totalHours={totalHours}
+            exceedBefore={plan.exceedanceHoursBefore}
+            exceedAfter={plan.exceedanceHoursAfter}
+            limitText={limitText}
+          />
+        ) : (
+          <>
+            <div className="mt-3 flex gap-2">
+              {(["peak", "median"] as const).map((key) => (
+                <button key={key} type="button" className={`h-8 rounded-md border px-3 text-sm ${dayPick === key ? "border-foreground bg-foreground text-background" : "border-border"}`} onClick={() => setDayPick(key)}>
+                  {key === "peak" ? tx("Spitzentag", "Peak day") : tx("Median", "Median")}
+                </button>
+              ))}
+            </div>
+            <DispatchChart points={points} limitKw={draft.limitKw} language={language} bessOpacity={0.5} />
+          </>
+        )}
       </article>
 
       <article className="rounded-md border border-border bg-card p-4 md:p-6">
-        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Betrieb", "Operation")}</p>
-        <h2 className="mt-1.5 text-lg font-semibold">{tx("Marktgetrieben neben netzdienlich", "Market-driven beside grid-serving")}</h2>
-        <div className="mt-3 overflow-x-auto">
+        <div className="flex items-center justify-between">
+          <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Netzanschluss", "Connection")}</p>
+          <span className="num text-[12px]">{statusLabel[plan.connection]}</span>
+        </div>
+        <h2 className="mt-1.5 text-lg font-semibold">
+          {formatQuantity(draft.limitKw, language, 0)} kW · {draft.voltage} {tx("reichen", "holds")} {plan.connection === "over" ? tx("nicht", "not") : ""} {tx("mit Speicher", "with storage")}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {tx("Angefragt", "Requested")} {formatQuantity(plan.requestedConnectionKw, language, 0)} kW · {tx("Hinweis", "Hint")} {plan.voltageSuggestion.level} · {plan.voltageSuggestion.rule}
+        </p>
+        <a className="mt-1 inline-block text-sm underline underline-offset-[3px]" href={plan.voltageSuggestion.href} target="_blank" rel="noreferrer">{plan.voltageSuggestion.rule}</a>
+        <Gauge limitKw={draft.limitKw} beforeKw={plan.peakImportBeforeKw} afterKw={plan.peakImportAfterKw} />
+        <ul className="num mt-4 grid gap-1 text-[13px] md:grid-cols-2">
+          <Check ok={plan.checks.importWithinLimit} label={tx("Bezugsspitze ≤ Limit", "Import peak ≤ limit")} />
+          <Check ok={plan.checks.exportWithinLimit} label={tx("Rückspeisung ≤ Limit", "Export ≤ limit")} />
+          <Check ok={plan.checks.exceedanceHoursZero} label={tx("Überschreitungsstunden = 0", "Hours above the limit = 0")} />
+          <Check ok={plan.checks.reserveAtLeast10Pct} label={tx(`Reserve ${formatQuantity(plan.reserveFraction * 100, language, 0)} % ≥ 10 %`, `Reserve ${formatQuantity(plan.reserveFraction * 100, language, 0)}% ≥ 10%`)} />
+        </ul>
+        <p className="mt-4 text-sm text-muted-foreground">
+          {tx("Trafo-Planungswert", "Transformer planning rating")} {formatQuantity(plan.transformerLoadBeforePct * 100, language, 0)} % → {formatQuantity(plan.transformerLoadAfterPct * 100, language, 0)} % {tx("von", "of")} {formatQuantity(plan.transformerRatingKw, language, 0)} kW. {tx("Kein gemessener Transformator.", "Not a measured transformer.")}
+        </p>
+        <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[280px] text-sm">
-            <caption className="sr-only">{tx("Vergleich der beiden Betriebsarten", "Comparison of the two operating modes")}</caption>
+            <caption className="sr-only">{tx("Marktgetrieben und netzdienlicher Betrieb", "Market-driven and grid-serving operation")}</caption>
             <thead className="bg-secondary text-left">
-              <tr className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
-                <th className="px-2 py-2">{tx("Größe", "Quantity")}</th>
-                <th className={`px-2 py-2 ${plan.operation === "market" ? "border border-primary" : ""}`}>{tx("Markt", "Market")}</th>
-                <th className={`px-2 py-2 ${plan.operation === "grid-serving" ? "border border-primary" : ""}`}>{tx("Netzdienlich", "Grid-serving")}</th>
+              <tr className="num text-[12px] uppercase text-muted-foreground">
+                <th className="px-2 py-2">{tx("Betrieb", "Operation")}</th>
+                <th className="px-2 py-2">{tx("Markt", "Market")}</th>
+                <th className="px-2 py-2">{tx("Netz", "Grid")}</th>
               </tr>
             </thead>
             <tbody className="num">
-              <tr className="border-t border-border">
-                <th className="px-2 py-2 text-left font-normal">{tx("Bezugsspitze", "Import peak")}</th>
-                <td className="px-2 py-2">{formatQuantity(market.peakImportAfterKw, language, 0)} kW</td>
-                <td className="px-2 py-2">{formatQuantity(serving.peakImportAfterKw, language, 0)} kW</td>
-              </tr>
-              <tr className="border-t border-border">
-                <th className="px-2 py-2 text-left font-normal">{tx("Rückspeisespitze", "Export peak")}</th>
-                <td className="px-2 py-2">{formatQuantity(market.peakExportAfterKw, language, 0)} kW</td>
-                <td className="px-2 py-2">{formatQuantity(serving.peakExportAfterKw, language, 0)} kW</td>
-              </tr>
               <tr className="border-t border-border">
                 <th className="px-2 py-2 text-left font-normal">{tx("Spitze am NAP", "Peak at the GCP")}</th>
                 <td className="px-2 py-2">{formatQuantity(market.gcpPeakBeforeKw, language, 0)} → {formatQuantity(market.gcpPeakAfterKw, language, 0)}</td>
@@ -819,69 +986,61 @@ function DsoView({
             </tbody>
           </table>
         </div>
-      </article>
-
-      <article className="rounded-md border border-border bg-card p-4 md:p-6">
-        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Netzrückwirkung", "Grid impact")}</p>
-        <h2 className="mt-1.5 text-lg font-semibold">{impactSentence(plan.gridImpact, tx)}</h2>
-        <ChartLegend items={[
-          { label: tx("Last ohne BESS", "Load without BESS"), swatch: "line" },
-          { label: tx("Netz ohne Speicher", "Grid without storage"), swatch: "line" },
-          { label: tx("Netz mit Speicher", "Grid with storage"), swatch: "line-bold" },
-          { label: tx("Anschluss", "Connection"), swatch: "dashed" },
-        ]} />
-        <DispatchChart points={points} limitKw={draft.limitKw} language={language} />
-        <p className="num mt-2 text-[12px] text-muted-foreground">
-          {tx("Rote Linie: eingegebene Anschlussleistung. Kein Messwert vom Transformator.", "Red line: the connection capacity you entered. Not a measurement from the transformer.")}
-        </p>
-      </article>
-
-      <article className="rounded-md border border-border bg-card p-4 md:p-6">
-        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Trafo / Anschluss", "Transformer / connection")}</p>
-        <h2 className="mt-1.5 text-lg font-semibold">
-          {formatQuantity(plan.transformerLoadBeforePct * 100, language, 0)} % → {formatQuantity(plan.transformerLoadAfterPct * 100, language, 0)} % {tx("von", "of")} {formatQuantity(plan.transformerRatingKw, language, 0)} kW
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {tx(
-            "Die Bezugsgröße ist die Anschlussleistung, solange oben kein eigener Planungswert steht. Kein gemessener Transformator.",
-            "The rating is the connection capacity unless you enter a planning value above. Not a measured transformer."
-          )}
-        </p>
-      </article>
-
-      <article className="rounded-md border border-border bg-card p-4 md:p-6">
-        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Szenario", "Scenario")}</p>
-        <h2 className="mt-1.5 text-lg font-semibold">{tx("Flexibles Anschlussverhältnis", "Flexible connection agreement")}</h2>
-        <label className="mt-3 flex items-center justify-between gap-3 text-sm">
-          {tx("Kappen für Bezug und Einspeisung rechnen", "Run caps on import and export")}
+        <label className="mt-4 flex items-center justify-between gap-3 text-sm">
+          {tx("Flexibles Anschlussverhältnis", "Flexible connection agreement")}
           <input type="checkbox" checked={draft.flexible} onChange={(event) => setDraft({ ...draft, flexible: event.target.checked })} />
         </label>
-        {draft.flexible ? (
-          <div className="mt-3">
-            <Field label={tx("Bezugskappe", "Import cap")} unit="%" value={draft.importCapPct} onChange={(importCapPct) => setDraft({ ...draft, importCapPct })} />
-            <Field label={tx("Einspeisekappe", "Export cap")} unit="%" value={draft.exportCapPct} onChange={(exportCapPct) => setDraft({ ...draft, exportCapPct })} />
-            <p className="num mt-3 text-sm">
-              {formatQuantity(caps.importCapKw, language, 0)} kW {tx("Bezug", "import")} · {formatQuantity(caps.exportCapKw, language, 0)} kW {tx("Einspeisung", "export")}
-            </p>
-            {flexible ? (
-              <div className="mt-3 grid gap-3 md:grid-cols-3">
-                <Mini label={tx("Bezug nach Kappe", "Import after the cap")} value={`${formatQuantity(flexible.peakImportAfterKw, language, 0)} kW`} />
-                <Mini label={tx("Einspeisung nach Kappe", "Export after the cap")} value={`${formatQuantity(flexible.peakExportAfterKw, language, 0)} kW`} />
-                <Mini label={tx("Abregelung, Szenario", "Curtailment, scenario")} value={`${formatQuantity(flexible.curtailmentKwh, language, 0)} kWh`} />
-              </div>
-            ) : null}
-            <p className="mt-3 text-sm text-muted-foreground">
-              {tx(
-                "Szenario auf demselben Rechenkern, netzdienlich. Die Abregelung ist keine Messung und kein SCADA.",
-                "A scenario on the same calculation core, grid-serving. The curtailment is not a measurement and not SCADA."
-              )}
-            </p>
-          </div>
-        ) : (
-          <p className="mt-3 text-sm text-muted-foreground">
-            {tx("Ausgeschaltet bleibt die feste Anschlussleistung die einzige Grenze.", "While this is off, the firm connection capacity is the only limit.")}
+        {draft.flexible && flexible ? (
+          <p className="num mt-2 text-sm text-muted-foreground">
+            {formatQuantity(caps.importCapKw, language, 0)} / {formatQuantity(caps.exportCapKw, language, 0)} kW · {tx("Abregelung", "Curtailment")} {formatQuantity(flexible.curtailmentKwh, language, 0)} kWh · {tx("Szenario, kein SCADA", "Scenario, not SCADA")}
           </p>
-        )}
+        ) : null}
+      </article>
+
+      <article className="rounded-md border border-border bg-card p-4 md:p-6">
+        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Lastbänder", "Load bands")}</p>
+        <h2 className="mt-1.5 text-lg font-semibold">{tx("Laden und Entladen nach Auslastung", "Charge and discharge by connection load")}</h2>
+        <div className="mt-3 h-[220px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={bandData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid {...grid} />
+              <XAxis dataKey="band" {...axis} />
+              <YAxis {...axis} width={56} />
+              <Tooltip {...tooltip} />
+              <Bar dataKey="discharge" stackId="band" fill={series.discharge.fill} name={tx("Entladen", "Discharge")} />
+              <Bar dataKey="charge" stackId="band" fill={series.charge.fill} name={tx("Laden", "Charge")} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">{tx("Bänder der Standortlast gegen die Anschlussleistung. Dieselbe Farbe wie der Speicher, kein zweiter Akzent.", "Bands of site load against the connection capacity. The same storage colour, no second accent.")}</p>
+      </article>
+
+      <article className="rounded-md border border-border bg-card p-4 md:p-6">
+        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Speicher-Fahrplan", "Storage schedule")}</p>
+        <h2 className="mt-1.5 text-lg font-semibold">{tx("Zehn höchste Viertelstunden", "Ten highest quarter-hours")}</h2>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[320px] text-sm">
+            <caption className="sr-only">{tx("Höchste Lastintervalle", "Highest load intervals")}</caption>
+            <thead className="bg-secondary text-left">
+              <tr className="num text-[12px] uppercase text-muted-foreground">
+                <th className="px-2 py-2">{tx("Zeit", "Time")}</th>
+                <th className="px-2 py-2">{tx("Last", "Load")}</th>
+                <th className="px-2 py-2">{tx("Netz danach", "Grid after")}</th>
+                <th className="px-2 py-2">{tx("Speicher", "Storage")}</th>
+              </tr>
+            </thead>
+            <tbody className="num">
+              {plan.topQuarterHours.map((slot) => (
+                <tr key={slot.index} className="border-t border-border">
+                  <td className="px-2 py-2">{tx("Tag", "Day")} {slot.dayIndex + 1} · {clockLabel(slot.hour)}</td>
+                  <td className="px-2 py-2">{formatQuantity(slot.loadKw, language, 0)}</td>
+                  <td className="px-2 py-2">{formatQuantity(slot.gridAfterKw, language, 0)}</td>
+                  <td className="px-2 py-2">{formatQuantity(slot.bessKw, language, 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </article>
     </>
   );
@@ -922,25 +1081,29 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function Field({ label, unit, value, onChange }: { label: string; unit: string; value: number; onChange: (value: number) => void }) {
+function Field({ label, unit, value, onChange, id, required }: { label: string; unit: string; value: number; onChange: (value: number) => void; id?: string; required?: boolean }) {
   return (
     <label className="mt-3 block">
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-sm font-medium">
+        {label}
+        {required ? <span className="num ml-2 text-[12px] tracking-[0.08em] text-muted-foreground">PFLICHT</span> : null}
+      </span>
       <span className="mt-1.5 flex h-10 items-center rounded-md border border-input bg-card px-3 dark:bg-secondary">
-        <input inputMode="decimal" className="num w-full bg-transparent text-right outline-none" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value))} />
+        <input id={id} inputMode="decimal" className="num w-full bg-transparent text-right outline-none" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value))} />
         <span className="num ml-2 shrink-0 text-[13px] text-muted-foreground">{unit}</span>
       </span>
     </label>
   );
 }
 
-function Tile({ label, value, unit, hint, tone, hero, className }: { label: string; value: string; unit: string; hint?: string; tone?: "bess" | "limit"; hero?: boolean; className?: string }) {
+function Tile({ label, value, unit, hint, tone, chip }: { label: string; value: string; unit: string; hint?: string; tone?: "bess" | "limit"; chip?: ConnectionStatus }) {
   const border = tone === "bess" ? "border-bess" : tone === "limit" ? "border-limit" : "border-border";
+  const chipClass = chip === "ok" ? "text-success" : chip === "near" ? "text-warning" : chip === "over" ? "text-destructive" : "";
   return (
-    <div className={`border border-border border-l-[3px] ${border} bg-card px-4 py-4 ${className ?? ""}`}>
+    <div className={`min-w-0 border border-border border-l-[3px] ${border} bg-card p-3 md:px-4 md:py-4`}>
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{label}</p>
-      <p className={`num mt-2 leading-none ${hero ? "text-[32px] md:text-[40px]" : "text-[28px] md:text-[32px]"}`}>
-        {value} <span className="text-base text-muted-foreground">{unit}</span>
+      <p className={`num mt-2 leading-none text-[24px] md:text-[32px] ${chipClass}`}>
+        {value} {unit ? <span className="text-[12px] text-muted-foreground">{unit}</span> : null}
       </p>
       {hint ? <p className="mt-2 text-sm text-muted-foreground">{hint}</p> : null}
     </div>
@@ -986,44 +1149,140 @@ function Mark({ left, label, color }: { left: string; label: string; color: stri
   );
 }
 
-function DurationChart({ before, after, limitKw, narrow }: { before: number[]; after: number[]; limitKw: number; narrow: boolean }) {
-  const data = before.map((value, index) => ({ hour: index, before: value, after: after[index] ?? 0 }));
+function DurationChart({
+  before,
+  after,
+  limitKw,
+  narrow,
+  totalHours = 8760,
+  exceedBefore = 0,
+  exceedAfter = 0,
+  limitText,
+}: {
+  before: number[];
+  after: number[];
+  limitKw: number;
+  narrow: boolean;
+  totalHours?: number;
+  exceedBefore?: number;
+  exceedAfter?: number;
+  limitText?: string;
+}) {
+  const span = totalHours > 0 ? totalHours : 1;
+  const data = before.map((value, index) => ({
+    hour: before.length <= 1 ? 0 : (index / (before.length - 1)) * span,
+    before: value,
+    after: after[index] ?? 0,
+  }));
+  const ticks = [0, span * 0.25, span * 0.5, span * 0.75, span];
   return (
     <div className="mt-3 h-[240px] w-full md:h-[320px]">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid {...grid} />
-          <XAxis dataKey="hour" {...axis} hide={narrow} />
+          <XAxis
+            dataKey="hour"
+            {...axis}
+            type="number"
+            domain={[0, span]}
+            ticks={narrow ? [0, span / 2, span] : ticks}
+            tickFormatter={(value: number) => `${formatQuantity(value, "de", 0)} h`}
+          />
           <YAxis {...axis} width={56} />
           <Tooltip {...tooltip} />
+          {exceedBefore > 0 ? <ReferenceArea x1={0} x2={Math.min(exceedBefore, span)} fill={cssVar("c-limit", 0.08)} /> : null}
           <Line dataKey="before" type="monotone" {...common.line} stroke={cssVar("subtle")} strokeWidth={1.5} name="ohne BESS" />
           <Line dataKey="after" type="monotone" {...common.line} {...series.netLoad} name="mit BESS" />
-          <ReferenceLine y={limitKw} stroke={cssVar("c-limit")} strokeDasharray="6 4" />
+          {limitKw > 0 ? (
+            <ReferenceLine
+              y={limitKw * 0.9}
+              stroke={cssVar("warning")}
+              strokeDasharray="2 3"
+              label={{ value: "90 %", position: "insideTopRight", fill: cssVar("warning"), fontSize: 12, fontFamily: "var(--font-plex-mono)" }}
+            />
+          ) : null}
+          {limitKw > 0 ? (
+            <ReferenceLine
+              {...limitLine(limitKw, limitText ?? "Netzanschluss")}
+              label={{
+                value: limitText ?? "Netzanschluss",
+                position: narrow ? "insideTopLeft" : "insideTopRight",
+                fill: cssVar("c-limit"),
+                fontFamily: "var(--font-plex-mono)",
+                fontSize: 12,
+              }}
+            />
+          ) : null}
         </ComposedChart>
       </ResponsiveContainer>
+      <p className="num mt-1 text-[12px] text-muted-foreground">
+        {formatQuantity(exceedBefore, "de", 0)} h → {formatQuantity(exceedAfter, "de", 0)} h
+      </p>
     </div>
   );
 }
 
-function PaybackChart({ plan, narrow }: { plan: SitePlan; narrow: boolean }) {
-  const data = (narrow ? plan.cashflow.filter((row) => row.year <= 10) : plan.cashflow).map((row) => ({
-    year: row.year,
-    annual: row.year === 0 ? row.annualEur : Math.max(row.annualEur, 0),
-    capex: row.year === 0 ? row.annualEur : 0,
-    cumulative: row.cumulativeEur,
-  }));
+function PaybackLabel({ viewBox, value, plotWidth }: { viewBox?: { x?: number; y?: number; height?: number }; value?: string; plotWidth: number }) {
+  const lineX = viewBox?.x ?? 0;
+  const plotLeft = 64;
+  const labelWidth = (value?.length ?? 0) * 7.2 + 8;
+  const plotRight = plotWidth > 0 ? plotWidth - 8 : undefined;
+  const x = paybackLabelX(lineX, plotLeft, 8, plotRight, labelWidth);
+  const y = (viewBox?.y ?? 0) + Math.max(16, (viewBox?.height ?? 0) * 0.42);
   return (
-    <div className="mt-3 h-[220px] w-full">
+    <text x={x} y={y} fill={cssVar("foreground")} fontSize={12} fontFamily="var(--font-plex-mono)">
+      {value}
+    </text>
+  );
+}
+
+function PaybackChart({ plan, narrow, language }: { plan: SitePlan; narrow: boolean; language: "de" | "en" }) {
+  const horizon = narrow ? Math.max(10, Math.ceil(plan.paybackYears ?? 0)) : Number.POSITIVE_INFINITY;
+  const data = plan.cashflow
+    .filter((row) => row.year <= horizon)
+    .map((row) => ({
+      year: row.year,
+      annual: row.year === 0 ? row.annualEur : Math.max(row.annualEur, 0),
+      capex: row.year === 0 ? row.annualEur : 0,
+      cumulative: row.cumulativeEur,
+    }));
+  const maxYear = data[data.length - 1]?.year ?? 0;
+  const payback = plan.paybackYears;
+  const label = `${language === "de" ? "Amortisation" : "Payback"} ${formatYears(payback, language)} a`;
+  const plotRef = useRef<HTMLDivElement>(null);
+  const [plotWidth, setPlotWidth] = useState(0);
+  const labelWidthPx = label.length * 7.2 + 16;
+  const domainMax = paybackDomainMax(maxYear, payback, Math.max(plotWidth - 64 - 8, 0), labelWidthPx);
+  useEffect(() => {
+    const node = plotRef.current;
+    if (!node) {
+      return;
+    }
+    const measure = () => setPlotWidth(node.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <div ref={plotRef} className="mt-3 h-[220px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid {...grid} />
-          <XAxis dataKey="year" {...axis} />
+          <XAxis dataKey="year" type="number" domain={[0, domainMax]} allowDecimals={false} {...axis} />
           <YAxis {...axis} width={64} />
           <Tooltip {...tooltip} />
           <Bar dataKey="capex" fill={cssVar("muted-foreground", 0.5)} {...common.bar} />
           <Bar dataKey="annual" fill={series.discharge.fill} {...common.bar} />
           <Line dataKey="cumulative" {...common.line} stroke={cssVar("foreground")} strokeWidth={2} dot={false} />
-          {plan.paybackYears ? <ReferenceLine x={Math.round(plan.paybackYears)} stroke={cssVar("foreground")} strokeDasharray="3 3" /> : null}
+          {payback != null && payback >= 0 && payback <= maxYear ? (
+            <ReferenceLine
+              x={payback}
+              stroke={cssVar("foreground")}
+              strokeDasharray="3 3"
+              label={(props: { viewBox?: { x?: number; y?: number; height?: number } }) => <PaybackLabel viewBox={props.viewBox} value={label} plotWidth={plotWidth} />}
+            />
+          ) : null}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
