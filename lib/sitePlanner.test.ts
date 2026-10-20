@@ -7,7 +7,10 @@ import {
   planSite,
   pvPowerKw,
   sizeStorage,
+  suggestVoltage,
   defaultPlannerEconomics,
+  type LoadProfile,
+  type SitePlannerInput,
 } from "@/lib/sitePlanner";
 
 function planExample(kind: "gewerbe" | "kuehlhaus" | "ladepark" = "gewerbe") {
@@ -162,4 +165,144 @@ describe("sitePlanner", () => {
   it("computes an interpolated percentile", () => {
     expect(percentile([1, 2, 3, 4], 0.5)).toBeCloseTo(2.5, 5);
   });
+
+  it("suggests a voltage band from requested power without treating it as a connection offer", () => {
+    expect(suggestVoltage(135)).toMatchObject({ level: "NS", rule: "VDE-AR-N 4105" });
+    expect(suggestVoltage(135.1)).toMatchObject({ level: "MS", rule: "VDE-AR-N 4110" });
+    expect(suggestVoltage(20_000)).toMatchObject({ level: "MS", rule: "VDE-AR-N 4110" });
+    expect(suggestVoltage(20_000.1)).toMatchObject({ level: "HS", rule: "VDE-AR-N 4120" });
+    expect(suggestVoltage(20_000.1).href).toContain("vde.com");
+  });
+
+  it("keeps both operation modes on the same size and the same synthetic flag", () => {
+    const market = planExample("gewerbe");
+    const serving = planSite({ ...planExampleInput("gewerbe"), operation: "grid-serving" });
+    expect(serving.powerKw).toBe(market.powerKw);
+    expect(serving.energyKwh).toBe(market.energyKwh);
+    expect(serving.assumptions.syntheticProfile).toBe(true);
+    expect(serving.revenueStackingEur).toBeNull();
+    expect(market.revenueStackingEur).toBeNull();
+    expect(serving.transformerMeasured).toBe(false);
+    expect(market.durationHours).toBeCloseTo(market.energyKwh / market.powerKw, 5);
+  });
+
+  it("lets market dispatch raise a flat site peak and keeps grid-serving from doing so", () => {
+    const prices = [...new Array<number>(32).fill(10), ...new Array<number>(64).fill(280)];
+    const shared = {
+      ...planExampleInput("gewerbe"),
+      profile: quarterHourProfile(new Array<number>(96).fill(300)),
+      pvEnabled: false,
+      pvKwp: 0,
+      limitKw: 1000,
+      dynamicTariff: true,
+      priceEurPerMwh: prices,
+      autoSize: false,
+      manualPowerKw: 800,
+      manualEnergyKwh: 2000,
+    };
+    const market = planSite({ ...shared, operation: "market" });
+    const serving = planSite({ ...shared, operation: "grid-serving" });
+    expect(market.importImpact).toBe("increases");
+    expect(market.peakImportAfterKw).toBeGreaterThan(market.peakImportBeforeKw);
+    expect(market.arbitrageEur).not.toBe(0);
+    expect(serving.arbitrageEur).toBe(0);
+    expect(serving.peakImportAfterKw).toBeLessThanOrEqual(serving.peakImportBeforeKw + 1e-6);
+    expect(serving.importImpact).not.toBe("increases");
+    expect(serving.revenueStackingEur).toBeNull();
+  });
+
+  it("reduces a peak in grid-serving mode and respects an import cap", () => {
+    const samples = new Array<number>(96).fill(200);
+    samples[40] = 1600;
+    const serving = planSite({
+      ...planExampleInput("gewerbe"),
+      profile: quarterHourProfile(samples),
+      pvEnabled: false,
+      pvKwp: 0,
+      limitKw: 1000,
+      dynamicTariff: true,
+      autoSize: false,
+      manualPowerKw: 1500,
+      manualEnergyKwh: 4000,
+      operation: "grid-serving",
+      importCapKw: 400,
+    });
+    expect(serving.peakImportAfterKw).toBeLessThan(serving.peakImportBeforeKw);
+    expect(serving.gridImpact).toBe("reduces");
+    expect(serving.peakImportAfterKw).toBeLessThanOrEqual(400 + 1e-3);
+    expect(serving.capImportRespected).toBe(true);
+    expect(serving.arbitrageEur).toBe(0);
+  });
+
+  it("caps export in the flexible-connection scenario and records curtailment", () => {
+    const plan = planSite({
+      ...planExampleInput("gewerbe"),
+      profile: quarterHourProfile(new Array<number>(96).fill(0)),
+      pvEnabled: true,
+      pvKwp: 1,
+      pvSeriesKw: new Array<number>(96).fill(400),
+      limitKw: 1000,
+      dynamicTariff: false,
+      autoSize: false,
+      manualPowerKw: 100,
+      manualEnergyKwh: 500,
+      operation: "grid-serving",
+      exportCapKw: 50,
+    });
+    expect(plan.peakExportBeforeKw).toBeGreaterThan(50);
+    expect(plan.peakExportAfterKw).toBeLessThanOrEqual(50 + 1e-3);
+    expect(plan.capExportRespected).toBe(true);
+    expect(plan.curtailmentKwh).toBeGreaterThan(0);
+    expect(plan.assumptions.syntheticProfile).toBe(true);
+  });
+
+  it("discounts NPV with the same annual benefit and leaves stacking unpriced", () => {
+    const base = planSite({ ...planExampleInput("gewerbe"), discountRate: 0 });
+    const discounted = planSite({ ...planExampleInput("gewerbe"), discountRate: 0.08 });
+    expect(base.revenueStackingEur).toBeNull();
+    expect(base.npvEur).toBeCloseTo(-base.capexEur + base.annualBenefitEur * 15, 4);
+    expect(discounted.npvEur).toBeLessThan(base.npvEur);
+    expect(discounted.annualBenefitEur).toBeCloseTo(base.annualBenefitEur, 4);
+    const rated = planSite({ ...planExampleInput("gewerbe"), transformerRatingKw: 2000 });
+    expect(rated.transformerMeasured).toBe(false);
+    expect(rated.transformerLoadBeforePct).toBeCloseTo(rated.gcpPeakBeforeKw / 2000, 5);
+  });
 });
+
+function quarterHourProfile(samplesKw: number[]): LoadProfile {
+  return {
+    samplesKw,
+    intervalMinutes: 15,
+    synthetic: true,
+    label: "Testprofil",
+    sourceNote: "BEISPIELDATEN · Test, nicht gemessen",
+    rowCount: samplesKw.length,
+    gapCount: 0,
+    interpolatedGaps: 0,
+    warnings: [],
+  };
+}
+
+function planExampleInput(kind: "gewerbe" | "kuehlhaus" | "ladepark"): SitePlannerInput {
+  const economics = defaultPlannerEconomics();
+  return {
+    profile: exampleProfile(kind),
+    pvEnabled: true,
+    pvKwp: economics.pvKwp,
+    pvOrientation: "south",
+    limitKw: economics.limitKw,
+    voltage: economics.voltage,
+    demandChargeEurPerKwYear: economics.demandChargeEurPerKwYear,
+    energyPriceCtPerKwh: economics.energyPriceCtPerKwh,
+    feedInCtPerKwh: economics.feedInCtPerKwh,
+    dynamicTariff: true,
+    autoSize: true,
+    manualPowerKw: 0,
+    manualEnergyKwh: 0,
+    roundTripEfficiency: economics.roundTripEfficiency,
+    capexEurPerKwh: economics.capexEurPerKwh,
+    maxCyclesPerYear: economics.maxCyclesPerYear,
+    lifetimeYears: economics.lifetimeYears,
+    discountRate: 0,
+  };
+}

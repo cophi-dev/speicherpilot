@@ -14,24 +14,50 @@
  * - Autosize: P is the 95th percentile of daily import peaks above the connection
  *   limit (kW). E is the 95th percentile of daily excess energy (kWh) divided by
  *   η_dis and by the usable SoC window (0.85).
- * - Dispatch, per day: discharge to hold import at the limit; charge earlier the
- *   same day when later excess exceeds stored energy; then arbitrage on the
- *   remaining headroom if a dynamic tariff is on.
- * - Day-ahead prices, when not supplied, are a synthetic seasonal shape in €/MWh,
- *   not a SMARD or Energy-Charts print.
+ * - Dispatch, per day, market mode: discharge to hold import at the limit; charge
+ *   earlier the same day when later excess exceeds stored energy; then arbitrage
+ *   on the remaining headroom if a dynamic tariff is on.
+ * - Grid-serving mode uses the same limits and the same battery, but it does not
+ *   arbitrage. It discharges to cut import above the shave target, absorbs
+ *   on-site surplus without creating grid import, and precharges only up to the
+ *   uncontrolled daily import peak or the cap, whichever is lower. It therefore
+ *   does not raise the site's import peak.
+ * - An optional import cap (flexible connection) lowers the shave target. An
+ *   optional export cap absorbs what the battery can and treats the rest as
+ *   scenario curtailment. That is not a SCADA measurement.
+ * - Day-ahead prices, when not supplied, are a synthetic 15-minute seasonal shape
+ *   in €/MWh, not an intraday order book and not a SMARD or Energy-Charts print.
  * - Demand-charge saving uses the annual maximum import before and after storage.
  * - Retail energy value applies only to peak-shaving charge/discharge. Charging
  *   while the site would otherwise export costs the feed-in tariff (lost export).
- * - Arbitrage cashflow is wholesale discharge minus wholesale charge.
+ * - Arbitrage cashflow is wholesale discharge minus wholesale charge on that
+ *   15-minute price. Revenue stacking is not priced.
  * - OPEX is 1.5 % of CAPEX per year. Payback is undiscounted unless a discount
- *   rate is set. No degradation, no §19 StromNEV, no balancing energy.
+ *   rate is set. NPV discounts the same annual benefit. No degradation, no
+ *   §19 StromNEV, no balancing energy.
+ * - Voltage band is a planning hint from requested connection power, not a
+ *   connection offer and not legal advice: ≤135 kW NS (VDE-AR-N 4105), above
+ *   that up to 20 MW MS (VDE-AR-N 4110), above that HS (VDE-AR-N 4120).
  */
 
 export type ExampleProfileId = "gewerbe" | "kuehlhaus" | "ladepark";
 export type ManualShapeId = "G0" | "G1" | "L0";
-export type VoltageLevel = "NS" | "MS";
+export type VoltageLevel = "NS" | "MS" | "HS";
+export type OperationMode = "market" | "grid-serving";
+export type GridImpact = "reduces" | "increases" | "unchanged";
 export type PvOrientation = "south" | "east-west";
 export type ConnectionStatus = "ok" | "near" | "over";
+
+/** Planning hints, not the legal scope of the technical connection rules. */
+export const VOLTAGE_NS_MAX_KW = 135;
+export const VOLTAGE_MS_MAX_KW = 20_000;
+
+export type VoltageSuggestion = {
+  level: VoltageLevel;
+  rule: "VDE-AR-N 4105" | "VDE-AR-N 4110" | "VDE-AR-N 4120";
+  href: string;
+  basisKw: number;
+};
 
 export type LoadProfile = {
   samplesKw: number[];
@@ -53,6 +79,17 @@ export type SitePlannerInput = {
   pvSeriesKw?: number[] | null;
   limitKw: number;
   voltage: VoltageLevel;
+  /** Market dispatch, or grid-serving dispatch with no arbitrage. Default market. */
+  operation?: OperationMode;
+  /** Flexible-connection import cap in kW. Omit to use the firm limit only. */
+  importCapKw?: number | null;
+  /** Flexible-connection export cap in kW. Omit to use the firm limit only. */
+  exportCapKw?: number | null;
+  /**
+   * Planning rating for the connection load ratio. Omit to use the firm limit.
+   * This is not a measured transformer.
+   */
+  transformerRatingKw?: number | null;
   demandChargeEurPerKwYear: number;
   energyPriceCtPerKwh: number;
   feedInCtPerKwh: number;
@@ -99,6 +136,8 @@ export type SitePlan = {
   powerKw: number;
   energyKwh: number;
   cRate: number;
+  /** Energy / power. Zero when either side is zero. */
+  durationHours: number;
   peakImportBeforeKw: number;
   peakImportAfterKw: number;
   peakExportBeforeKw: number;
@@ -113,6 +152,29 @@ export type SitePlan = {
   annualBenefitEur: number;
   capexEur: number;
   paybackYears: number | null;
+  /** −CAPEX plus the discounted annual benefit over the lifetime. */
+  npvEur: number;
+  /** Always null. Stacking is a placeholder and is not added to the benefit. */
+  revenueStackingEur: null;
+  operation: OperationMode;
+  requestedConnectionKw: number;
+  availableConnectionKw: number;
+  voltageSuggestion: VoltageSuggestion;
+  /** max(import, export) at the grid connection point, before and after storage. */
+  gcpPeakBeforeKw: number;
+  gcpPeakAfterKw: number;
+  gridImpact: GridImpact;
+  importImpact: GridImpact;
+  /** Firm limit, unless the caller passed a planning rating. Not a measured transformer. */
+  transformerRatingKw: number;
+  transformerMeasured: false;
+  transformerLoadBeforePct: number;
+  transformerLoadAfterPct: number;
+  importCapKw: number | null;
+  exportCapKw: number | null;
+  curtailmentKwh: number;
+  capImportRespected: boolean;
+  capExportRespected: boolean;
   fullCycles: number;
   connection: ConnectionStatus;
   reserveFraction: number;
@@ -166,6 +228,50 @@ export function defaultPlannerEconomics() {
     pvKwp: 250,
     voltage: "MS" as const,
   };
+}
+
+const VDE_HREFS = {
+  NS: "https://www.vde.com/de/fnn/themen/tar/tar-niederspannung",
+  MS: "https://www.vde.com/de/fnn/arbeitsgebiete/tar/tar-mittelspannung-vde-ar-n-4110",
+  HS: "https://www.vde.com/de/fnn/arbeitsgebiete/tar/tar-hochspannung-vde-ar-n-4120",
+} as const;
+
+/** Planning hint from requested connection power. Not a connection offer or legal advice. */
+export function suggestVoltage(requestedKw: number): VoltageSuggestion {
+  const basisKw = Math.max(0, requestedKw);
+  if (basisKw <= VOLTAGE_NS_MAX_KW) {
+    return { level: "NS", rule: "VDE-AR-N 4105", href: VDE_HREFS.NS, basisKw };
+  }
+  if (basisKw <= VOLTAGE_MS_MAX_KW) {
+    return { level: "MS", rule: "VDE-AR-N 4110", href: VDE_HREFS.MS, basisKw };
+  }
+  return { level: "HS", rule: "VDE-AR-N 4120", href: VDE_HREFS.HS, basisKw };
+}
+
+function optionalCap(value: number | null | undefined): number | null {
+  if (value == null || !Number.isFinite(value) || value < 0) {
+    return null;
+  }
+  return value;
+}
+
+function impactOf(before: number, after: number): GridImpact {
+  if (after < before - 0.05) {
+    return "reduces";
+  }
+  if (after > before + 0.05) {
+    return "increases";
+  }
+  return "unchanged";
+}
+
+function netPresentValue(capex: number, annual: number, lifetime: number, discountRate: number): number {
+  let total = -capex;
+  const years = Math.max(0, Math.floor(lifetime));
+  for (let year = 1; year <= years; year += 1) {
+    total += discountRate > 0 ? annual / Math.pow(1 + discountRate, year) : annual;
+  }
+  return total;
 }
 
 function mulberry32(seed: number) {
@@ -551,6 +657,7 @@ type DispatchResult = {
   peakDischargeKwh: number;
   retailNetEur: number;
   arbitrageEur: number;
+  curtailmentKwh: number;
   fullCycles: number;
 };
 
@@ -566,6 +673,9 @@ function dispatchProfile(args: {
   maxCyclesPerYear: number;
   retailEurPerKwh: number;
   feedInEurPerKwh: number;
+  operation: OperationMode;
+  importCapKw: number | null;
+  exportCapKw: number | null;
 }): DispatchResult {
   const n = args.netKw.length;
   const dt = dtHours(args.intervalMinutes);
@@ -581,16 +691,24 @@ function dispatchProfile(args: {
   let peakDischargeKwh = 0;
   let retailNetEur = 0;
   let arbitrageEur = 0;
+  let curtailmentKwh = 0;
   const socMin = args.energyKwh * SOC_MIN;
   const socMax = args.energyKwh * SOC_MAX;
   const cycleCapKwh = Math.max(0, args.maxCyclesPerYear) * args.energyKwh;
+  const shaveTo = Math.min(args.limitKw, args.importCapKw ?? args.limitKw);
+  const market = args.operation === "market";
 
   for (let dayStart = 0; dayStart < n; dayStart += perDay) {
     const dayEnd = Math.min(n, dayStart + perDay);
+    let dayPeakImport = 0;
+    for (let i = dayStart; i < dayEnd; i += 1) {
+      dayPeakImport = Math.max(dayPeakImport, args.netKw[i] ?? 0);
+    }
+    const chargeCeiling = market ? shaveTo : Math.min(shaveTo, Math.max(0, dayPeakImport));
     const futureExcess = new Array<number>(dayEnd - dayStart).fill(0);
     let running = 0;
     for (let i = dayEnd - 1; i >= dayStart; i -= 1) {
-      running += Math.max(0, (args.netKw[i] ?? 0) - args.limitKw) * dt;
+      running += Math.max(0, (args.netKw[i] ?? 0) - shaveTo) * dt;
       futureExcess[i - dayStart] = running;
     }
     const dayPrices = args.prices.slice(dayStart, dayEnd);
@@ -602,31 +720,35 @@ function dispatchProfile(args: {
       let discharge = 0;
       let charge = 0;
       let mode: "peak" | "arb" | "none" = "none";
-      if (net > args.limitKw && soc > socMin && args.powerKw > 0) {
+      if (net > shaveTo && soc > socMin && args.powerKw > 0) {
         const socLimit = ((soc - socMin) * eta) / dt;
-        discharge = Math.min(net - args.limitKw, args.powerKw, Math.max(0, socLimit));
+        discharge = Math.min(net - shaveTo, args.powerKw, Math.max(0, socLimit));
         mode = "peak";
       } else if (args.powerKw > 0 && args.energyKwh > 0) {
         const future = futureExcess[i - dayStart] ?? 0;
         const stored = Math.max(0, (soc - socMin) * eta);
-        if (future > stored + 0.25 && net < args.limitKw) {
-          const room = Math.max(0, args.limitKw - Math.max(net, 0));
+        const socRoom = Math.max(0, (socMax - soc) / (eta * dt));
+        if (!market && net < -1e-6) {
+          charge = Math.min(args.powerKw, -net, socRoom);
+          mode = charge > 0 ? "peak" : "none";
+        } else if (future > stored + 0.25 && net < chargeCeiling) {
+          const room = Math.max(0, chargeCeiling - Math.max(net, 0));
           const needKw = (future - stored) / (eta * dt);
-          const socRoom = Math.max(0, (socMax - soc) / (eta * dt));
           charge = Math.min(args.powerKw, room, Math.max(0, needKw), socRoom);
           mode = "peak";
         } else if (
+          market &&
           args.dynamicTariff &&
           arbDischargeKwh < cycleCapKwh &&
           price <= p20 &&
           soc < socMax - args.energyKwh * 0.05 &&
-          net < args.limitKw * 0.9
+          net < shaveTo * 0.9
         ) {
-          const room = Math.max(0, args.limitKw * 0.9 - Math.max(net, 0));
-          const socRoom = Math.max(0, (socMax - soc) / (eta * dt));
+          const room = Math.max(0, shaveTo * 0.9 - Math.max(net, 0));
           charge = Math.min(args.powerKw * 0.8, room, socRoom);
           mode = charge > 0 ? "arb" : "none";
         } else if (
+          market &&
           args.dynamicTariff &&
           arbDischargeKwh < cycleCapKwh &&
           price >= p80 &&
@@ -645,21 +767,49 @@ function dispatchProfile(args: {
         soc += charge * dt * eta;
       }
       soc = Math.min(socMax, Math.max(socMin, soc));
+      let extraCharge = 0;
+      let grid = net + charge - discharge;
+      if (args.exportCapKw != null && grid < -args.exportCapKw) {
+        const needKw = -args.exportCapKw - grid;
+        const powerLeft = Math.max(0, args.powerKw - charge);
+        const socRoom = Math.max(0, (socMax - soc) / (eta * dt));
+        extraCharge = Math.min(Math.max(0, needKw), powerLeft, socRoom);
+        if (extraCharge > 0) {
+          charge += extraCharge;
+          soc += extraCharge * dt * eta;
+          soc = Math.min(socMax, Math.max(socMin, soc));
+          grid = net + charge - discharge;
+        }
+        if (grid < -args.exportCapKw - 1e-6) {
+          curtailmentKwh += (-grid - args.exportCapKw) * dt;
+          grid = -args.exportCapKw;
+        }
+      }
       chargeKw[i] = charge;
       dischargeKw[i] = discharge;
-      gridKw[i] = net + charge - discharge;
-      const chargeKwh = charge * dt;
+      gridKw[i] = grid;
       const dischargeKwh = discharge * dt;
+      const pricedCharge = (charge - extraCharge) * dt;
+      const extraKwh = extraCharge * dt;
       if (mode === "peak") {
-        peakChargeKwh += chargeKwh;
+        peakChargeKwh += pricedCharge + extraKwh;
         peakDischargeKwh += dischargeKwh;
         const chargePrice = net < 0 ? args.feedInEurPerKwh : args.retailEurPerKwh;
-        retailNetEur += dischargeKwh * args.retailEurPerKwh - chargeKwh * chargePrice;
+        retailNetEur += dischargeKwh * args.retailEurPerKwh - (pricedCharge + extraKwh) * chargePrice;
       } else if (mode === "arb") {
-        arbChargeKwh += chargeKwh;
+        arbChargeKwh += pricedCharge;
         arbDischargeKwh += dischargeKwh;
         const wholesale = price / 1000;
-        arbitrageEur += dischargeKwh * wholesale - chargeKwh * wholesale;
+        arbitrageEur += dischargeKwh * wholesale - pricedCharge * wholesale;
+        if (extraKwh > 0) {
+          peakChargeKwh += extraKwh;
+          const chargePrice = net < 0 ? args.feedInEurPerKwh : args.retailEurPerKwh;
+          retailNetEur -= extraKwh * chargePrice;
+        }
+      } else if (extraKwh > 0) {
+        peakChargeKwh += extraKwh;
+        const chargePrice = net < 0 ? args.feedInEurPerKwh : args.retailEurPerKwh;
+        retailNetEur -= extraKwh * chargePrice;
       }
     }
   }
@@ -673,7 +823,8 @@ function dispatchProfile(args: {
     peakChargeKwh,
     peakDischargeKwh,
     retailNetEur,
-    arbitrageEur,
+    arbitrageEur: market ? arbitrageEur : 0,
+    curtailmentKwh,
     fullCycles: args.energyKwh > 0 ? (peakDischargeKwh + arbDischargeKwh) / args.energyKwh : 0,
   };
 }
@@ -716,6 +867,9 @@ function sliceDay(start: number, perDay: number, series: number[]): number[] {
 
 export function planSite(input: SitePlannerInput): SitePlan {
   const profile = input.profile;
+  const operation = input.operation ?? "market";
+  const importCapKw = optionalCap(input.importCapKw);
+  const exportCapKw = optionalCap(input.exportCapKw);
   const { dt, perDay, pvKw, priceEurPerMwh, netKw } = buildAlignedSeries(profile, input);
   const sized = input.autoSize
     ? sizeStorage({
@@ -742,6 +896,9 @@ export function planSite(input: SitePlannerInput): SitePlan {
     maxCyclesPerYear: input.maxCyclesPerYear,
     retailEurPerKwh,
     feedInEurPerKwh,
+    operation,
+    importCapKw,
+    exportCapKw,
   });
 
   let peakImportBefore = 0;
@@ -789,6 +946,7 @@ export function planSite(input: SitePlannerInput): SitePlan {
     exportDeltaEur -
     opexEur;
   const payback = paybackYears(capexEur, annualBenefitEur, input.lifetimeYears, input.discountRate);
+  const npvEur = netPresentValue(capexEur, annualBenefitEur, input.lifetimeYears, input.discountRate);
 
   const dailyPeaks = [];
   for (let start = 0; start < netKw.length; start += perDay) {
@@ -842,6 +1000,10 @@ export function planSite(input: SitePlannerInput): SitePlan {
     }
   }
 
+  const gcpPeakBeforeKw = Math.max(peakImportBefore, peakExportBefore);
+  const gcpPeakAfterKw = Math.max(peakImportAfter, peakExportAfter);
+  const transformerRatingKw =
+    input.transformerRatingKw != null && input.transformerRatingKw > 0 ? input.transformerRatingKw : input.limitKw;
   const reserveFraction = input.limitKw > 0 ? (input.limitKw - peakImportAfter) / input.limitKw : 0;
   const importWithinLimit = peakImportAfter <= input.limitKw + 1e-3;
   const exportWithinLimit = peakExportAfter <= input.limitKw + 1e-3;
@@ -868,6 +1030,7 @@ export function planSite(input: SitePlannerInput): SitePlan {
     powerKw: sized.powerKw,
     energyKwh: sized.energyKwh,
     cRate: sized.energyKwh > 0 ? sized.powerKw / sized.energyKwh : 0,
+    durationHours: sized.powerKw > 0 ? sized.energyKwh / sized.powerKw : 0,
     peakImportBeforeKw: peakImportBefore,
     peakImportAfterKw: peakImportAfter,
     peakExportBeforeKw: peakExportBefore,
@@ -882,6 +1045,25 @@ export function planSite(input: SitePlannerInput): SitePlan {
     annualBenefitEur,
     capexEur,
     paybackYears: payback,
+    npvEur,
+    revenueStackingEur: null,
+    operation,
+    requestedConnectionKw: gcpPeakBeforeKw,
+    availableConnectionKw: input.limitKw,
+    voltageSuggestion: suggestVoltage(gcpPeakBeforeKw),
+    gcpPeakBeforeKw,
+    gcpPeakAfterKw,
+    gridImpact: impactOf(gcpPeakBeforeKw, gcpPeakAfterKw),
+    importImpact: impactOf(peakImportBefore, peakImportAfter),
+    transformerRatingKw,
+    transformerMeasured: false,
+    transformerLoadBeforePct: transformerRatingKw > 0 ? gcpPeakBeforeKw / transformerRatingKw : 0,
+    transformerLoadAfterPct: transformerRatingKw > 0 ? gcpPeakAfterKw / transformerRatingKw : 0,
+    importCapKw,
+    exportCapKw,
+    curtailmentKwh: dispatched.curtailmentKwh,
+    capImportRespected: importCapKw == null || peakImportAfter <= importCapKw + 1e-3,
+    capExportRespected: exportCapKw == null || peakExportAfter <= exportCapKw + 1e-3,
     fullCycles: dispatched.fullCycles,
     connection,
     reserveFraction,
@@ -909,8 +1091,8 @@ export function planSite(input: SitePlannerInput): SitePlan {
         ? "P = P95 der täglichen Importspitze über dem Anschluss. E = P95 der täglichen Überschussenergie / (η_dis · 0,85)."
         : "Leistung und Kapazität sind manuell gesetzt.",
       priceNote: pricesAreSupplied
-        ? "Preise aus der übergebenen Zeitreihe."
-        : "Synthetisches Day-Ahead-Profil (Saison + Abendspitze + Solar-Dip). Kein Börsenfeed.",
+        ? "Preise aus der übergebenen 15-Minuten-Reihe. Kein separates Intraday-Orderbuch."
+        : "Synthetisches 15-Minuten-Preisband in Day-Ahead-Form (Saison, Abendspitze, Solar-Dip). Kein Intraday-Orderbuch und kein Börsenfeed.",
       excluded: [
         "Regelenergie",
         "§19 StromNEV",

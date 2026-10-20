@@ -78,8 +78,8 @@ export function MethodikDocs() {
           </p>
         </header>
         <Section id="ueberblick" n="§1" title={tx("Überblick", "Overview")}>
-          <p>{tx("Der Rechner legt einen Batteriespeicher auf ein Lastprofil, eine PV-Anlage und eine Anschlussleistung aus. Er schätzt Peak-Shaving, eine einfache Arbitrage und eine undiskontierte Amortisation.", "The calculator sizes a battery against a load profile, a PV array, and a connection capacity. It estimates peak shaving, a simple arbitrage, and an undiscounted payback.")}</p>
-          <p className="mt-3">{tx("Er ist kein Gutachten und keine Handelsempfehlung.", "It is not an engineering opinion and not trading advice.")}</p>
+          <p>{tx("Der Rechner legt einen Batteriespeicher auf ein Lastprofil, eine PV-Anlage und eine Anschlussleistung aus. Dieselbe Rechnung speist zwei Sichten: Projektierer (Größe, Peak-Shaving, 15-Minuten-Arbitrage, CAPEX, Amortisation, NPV) und Netzbetreiber (angefragte gegen verfügbare Leistung, Spannungshinweis, netzdienlich gegen marktgetrieben).", "The calculator sizes a battery against a load profile, a PV array, and a connection capacity. The same result feeds two views: a developer view (size, peak shaving, 15-minute arbitrage, CAPEX, payback, NPV) and a grid-operator view (requested versus available capacity, a voltage hint, grid-serving versus market-driven operation).")}</p>
+          <p className="mt-3">{tx("Er ist kein Gutachten, keine Handelsempfehlung und keine Anschlusszusage. Verteilnetzbetreiber prüfen und schließen Speicher Dritter an; das Modell unterstellt nicht, dass sie den Speicher besitzen oder betreiben.", "It is not an engineering opinion, not trading advice, and not a connection offer. Distribution operators assess and connect third-party storage; the model does not assume that they own or operate it.")}</p>
           <Callout title={tx("Nicht enthalten", "Not included")}>{tx("SCADA, Handelsempfehlung, Netzbetreiber-Interna, Regelenergie, Netzentgelt §19 StromNEV.", "SCADA, a trading recommendation, DSO internals, balancing energy, §19 StromNEV grid charges.")}</Callout>
         </Section>
         <Section id="daten" n="§2" title={tx("Daten und Auflösung", "Data and resolution")}>
@@ -106,18 +106,29 @@ export function MethodikDocs() {
         </Section>
         <Section id="dispatch" n="§4" title="Dispatch">
           <p>{tx("Zuerst Peak Shaving, dann Arbitrage auf dem Rest.", "Peak shaving first, then arbitrage on what is left.")}</p>
-          <pre className="num mt-4 overflow-x-auto bg-secondary p-4 text-[13px] text-muted-foreground">{`for each day:
+          <pre className="num mt-4 overflow-x-auto bg-secondary p-4 text-[13px] text-muted-foreground">{`market, for each day:
   if import > limit: discharge
   else if later excess > stored energy: charge
   else if dynamic tariff and price in the day's outer quintile:
-    charge low / discharge high, inside the limit`}</pre>
+    charge low / discharge high, inside the limit
+
+grid-serving, same battery and same limit:
+  discharge above the shave target
+  charge from on-site surplus only, or precharge up to
+  min(limit, that day's uncontrolled import peak)
+  no arbitrage`}</pre>
+          <p className="text-sm text-muted-foreground">{tx("Die Netzbetreiber-Sicht zeigt, ob die gewählte Betriebsart die Spitze am Netzanschlusspunkt senkt oder hebt. Die rote Linie in der Grafik ist die eingegebene Anschlussleistung.", "The grid-operator view shows whether the selected operation lowers or raises the peak at the connection point. The red line on the chart is the connection capacity you entered.")}</p>
         </Section>
         <Section id="wirtschaft" n="§5" title={tx("Wirtschaftlichkeit", "Economics")}>
           <p>{tx("Nutzen = Leistungspreis-Ersparnis + Arbeitspreis auf der Peak-Shaving-Energie + Arbitrage zum synthetischen oder übergebenen Preis + Änderung der Einspeisung − 1,5 % CAPEX als OPEX.", "Benefit = demand-charge saving + retail energy on the peak-shaving throughput + arbitrage at the synthetic or supplied price + the change in export − 1.5% of CAPEX as OPEX.")}</p>
-          <p className="mt-3">{tx("Amortisation = CAPEX / Jahresnutzen, ohne Diskontierung und ohne Degradation. Standard-CAPEX 500 €/kWh ist eine Annahme, kein Angebot.", "Payback = CAPEX / annual benefit, with no discounting and no degradation. The default CAPEX of 500 €/kWh is an assumption, not a quote.")}</p>
+          <p className="mt-3">{tx("Amortisation = CAPEX / Jahresnutzen, solange der Diskont 0 ist. NPV = −CAPEX + Summe der diskontierten Jahresnutzen über die Lebensdauer. Derselbe Jahresnutzen, kein zweites Preisszenario. Standard-CAPEX 500 €/kWh ist eine Annahme, kein Angebot.", "Payback = CAPEX / annual benefit while the discount rate is 0. NPV = −CAPEX + the sum of discounted annual benefits over the lifetime. The same annual benefit, not a second price scenario. The default CAPEX of 500 €/kWh is an assumption, not a quote.")}</p>
+          <p className="mt-3">{tx("Die Arbitrage nutzt 15-Minuten-Preise. Ohne übergebene Reihe ist das ein synthetisches Band in Day-Ahead-Form, kein Intraday-Orderbuch. Erlösstapelung (Regelenergie, Kapazitätsmärkte) wird nicht bepreist und steht als Platzhalter ohne Euro-Betrag.", "Arbitrage uses 15-minute prices. Without a supplied series that band is synthetic and shaped like day-ahead, not an intraday order book. Revenue stacking (balancing, capacity markets) is not priced and is shown as a placeholder with no euro amount.")}</p>
         </Section>
         <Section id="anschluss" n="§6" title={tx("Netzanschluss-Check", "Connection check")}>
-          <p>{tx("OK unter 90 % der Anschlussleistung, nahe am Limit ab 90 %, über dem Limit wenn Bezug oder Rückspeisung die Leistung überschreitet. Die Checkliste verlangt zusätzlich 10 % Reserve und null Überschreitungsstunden.", "OK below 90% of the connection, near the limit from 90%, over the limit when import or export exceeds capacity. The checklist also asks for 10% reserve and zero hours above the limit.")}</p>
+          <p>{tx("OK unter 90 % der Anschlussleistung, nahe am Limit ab 90 %, über dem Limit wenn Bezug oder Rückspeisung die Leistung überschreitet. Die Checkliste verlangt zusätzlich 10 % Reserve und null Überschreitungsstunden. Angefragt ist die höhere der beiden Spitzen ohne Speicher, verfügbar ist die eingegebene Anschlussleistung.", "OK below 90% of the connection, near the limit from 90%, over the limit when import or export exceeds capacity. The checklist also asks for 10% reserve and zero hours above the limit. Requested power is the higher of the two peaks without storage. Available power is the connection capacity you entered.")}</p>
+          <p className="mt-3">{tx("Spannungshinweis aus der angefragten Leistung: bis 135 kW NS und VDE-AR-N 4105, darüber bis 20 MW MS und VDE-AR-N 4110, darüber HS und VDE-AR-N 4120. Das sind Planungshinweise mit Verweis auf die FNN-Seiten, nicht der Anwendungsbereich im Rechtssinn und keine Netzanschlusszusage.", "Voltage hint from requested power: up to 135 kW LV and VDE-AR-N 4105, above that up to 20 MW MV and VDE-AR-N 4110, above that HV and VDE-AR-N 4120. These are planning hints that point at the FNN pages, not the legal scope of the rules and not a connection offer.")}</p>
+          <p className="mt-3">{tx("Die Trafolast ist die Spitze am Netzanschlusspunkt geteilt durch einen Planungswert. Ohne eigenen Wert ist das die Anschlussleistung. Es ist kein gemessener Transformator.", "Transformer loading is the peak at the connection point divided by a planning rating. Without a separate value that rating is the connection capacity. It is not a measured transformer.")}</p>
+          <p className="mt-3">{tx("Das flexible Anschlussverhältnis ist ein zweites Szenario desselben Kerns: Bezug und Einspeisung werden auf einen Anteil der festen Leistung gekappt. Was der Speicher nicht aufnimmt, gilt im Szenario als abgeregelt. Das ist kein SCADA-Messwert.", "The flexible connection agreement is a second scenario of the same core: import and export are capped at a share of firm capacity. What the battery does not absorb is treated as curtailed in the scenario. That is not a SCADA measurement.")}</p>
         </Section>
         <Section id="live" n="§7" title={tx("Live-Ansicht Deutschland", "Live view, Germany")}>
           <p>{tx("Erzeugung und Last kommen von Energy-Charts. Die Bilanz nutzt nur einen Zeitpunkt, an dem Last und mindestens eine Erzeugungsserie veröffentlicht sind. Fehlt die Erzeugung, steht dort n. v. und kein Defizit aus 0 GW.", "Generation and load come from Energy-Charts. The balance uses only a timestamp where load and at least one generation series are published. If generation is missing, the page shows n/a and does not invent a deficit from 0 GW.")}</p>
@@ -132,6 +143,9 @@ export function MethodikDocs() {
                 <tr className="border-t border-border"><td className="px-2 py-2">Netztransparenz</td><td>{tx("Abregelung / Redispatch", "Curtailment / redispatch")}</td></tr>
                 <tr className="border-t border-border"><td className="px-2 py-2">MaStR</td><td>{tx("Speicherkarte", "Storage map")}</td></tr>
                 <tr className="border-t border-border"><td className="px-2 py-2">OSM / CARTO</td><td>{tx("Kartenkacheln", "Map tiles")}</td></tr>
+                <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.vde.com/de/fnn/themen/tar/tar-niederspannung">VDE FNN · TAR Niederspannung</a></td><td>VDE-AR-N 4105</td></tr>
+                <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.vde.com/de/fnn/arbeitsgebiete/tar/tar-mittelspannung-vde-ar-n-4110">VDE FNN · VDE-AR-N 4110</a></td><td>{tx("Mittelspannung, Verweis", "Medium voltage, reference")}</td></tr>
+                <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.vde.com/de/fnn/arbeitsgebiete/tar/tar-hochspannung-vde-ar-n-4120">VDE FNN · VDE-AR-N 4120</a></td><td>{tx("Hochspannung, Verweis", "High voltage, reference")}</td></tr>
               </tbody>
             </table>
           </div>
@@ -141,10 +155,12 @@ export function MethodikDocs() {
             <li>{tx("Beispielprofile und das Day-Ahead-Band sind synthetisch und als BEISPIELDATEN markiert.", "Example profiles and the day-ahead band are synthetic and marked as example data.")}</li>
             <li>{tx("Keine Netzentgelte, keine Steuern, keine Finanzierung, keine Degradation.", "No grid tariffs beyond the inputs, no tax, no financing, no degradation.")}</li>
             <li>{tx("Keine Beschaffungs- oder Anlagenberatung.", "Not procurement or plant advice.")}</li>
+            <li>{tx("VDE-AR-N 4105, 4110 und 4120 sind Quellenverweise. Die Spannungsschwellen 135 kW und 20 MW sind Planungshinweise in diesem Rechner, keine Rechtsauskunft.", "VDE-AR-N 4105, 4110 and 4120 are source references. The 135 kW and 20 MW voltage thresholds are planning hints in this calculator, not legal advice.")}</li>
           </ul>
         </Section>
         <Section id="changelog" n="§10" title={tx("Changelog", "Changelog")}>
           <p className="num">2026-10-20 — {tx("Control-Room-Oberfläche, Standort-Rechner, Live unter /live.", "Control-room interface, site calculator, live view at /live.")}</p>
+          <p className="num mt-2">2026-10-20 — {tx("Zwei Sichten auf /site: Projektierer und Netzbetreiber, ein Rechenkern. NPV, Spannungshinweis, netzdienlicher Betrieb, flexibles Anschluss-Szenario.", "Two views on /site: developer and grid operator, one calculation core. NPV, voltage hint, grid-serving operation, flexible-connection scenario.")}</p>
         </Section>
       </article>
     </div>
