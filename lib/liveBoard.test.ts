@@ -1,4 +1,4 @@
-import { LIVE_PRICE_CONFIG, alignLatest, assessDayAheadPrices, buildLiveBoard, currentSignal } from "@/lib/liveBoard";
+import { LIVE_PRICE_CONFIG, alignLatest, assessDayAheadPrices, buildLiveBoard, currentSignal, zoneShareSeries } from "@/lib/liveBoard";
 
 const nine = Date.parse("2026-10-21T09:00:00+02:00");
 const nineFifteen = Date.parse("2026-10-21T09:15:00+02:00");
@@ -64,6 +64,11 @@ describe("live board geography and readings", () => {
     expect(zones?.level.de).toContain("TransnetBW");
     expect(zones?.sentence.de).toContain("mehr Wind");
     expect(zones?.sentence.de).not.toMatch(/Engpass/);
+    expect(board.zoneChart).toHaveLength(1);
+    expect(board.zoneChart[0]?.northPct).toBeCloseTo(((488.12 + 260.82 + 218.92) / 3247.15) * 100, 5);
+    expect(board.zoneChart[0]?.southPct).toBeCloseTo(((27.83 + 49.17) / 2142.75) * 100, 5);
+    expect(board.zoneChart[0]?.northPct).toBeGreaterThan(0);
+    expect(board.zoneChart[0]?.southPct).toBeGreaterThan(0);
     expect(board.priceLight).toBe("yellow");
     expect(board.lead.de).toContain("Gebotszone DE-LU");
     expect(board.sentences).toHaveLength(2);
@@ -142,5 +147,45 @@ describe("live board geography and readings", () => {
     );
     expect(reading?.signal).toBe(0);
     expect(reading?.sharePct).toBe(33);
+  });
+
+  it("drops a zone quarter-hour when TransnetBW has no number", () => {
+    const series = zoneShareSeries(
+      {
+        windOn: [
+          { unixMs: nine, value: 100 },
+          { unixMs: nineFifteen, value: 100 },
+        ],
+        windOff: [
+          { unixMs: nine, value: 10 },
+          { unixMs: nineFifteen, value: 10 },
+        ],
+        pv: [
+          { unixMs: nine, value: 10 },
+          { unixMs: nineFifteen, value: 10 },
+        ],
+        load: [
+          { unixMs: nine, value: 1000 },
+          { unixMs: nineFifteen, value: 1000 },
+        ],
+      },
+      {
+        windOn: [
+          { unixMs: nine, value: 20 },
+          { unixMs: nineFifteen, value: null },
+        ],
+        pv: [
+          { unixMs: nine, value: 20 },
+          { unixMs: nineFifteen, value: 20 },
+        ],
+        load: [
+          { unixMs: nine, value: 800 },
+          { unixMs: nineFifteen, value: 800 },
+        ],
+      },
+      "2026-10-21"
+    );
+    expect(series).toHaveLength(1);
+    expect(series[0]?.southPct).toBeCloseTo(5, 5);
   });
 });

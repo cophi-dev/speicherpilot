@@ -25,6 +25,7 @@ const REQUIRED = [
   "abregelung",
   "deutschland-live",
   "residuallast",
+  "modellschaetzung",
   "quartier",
   "ortsnetzstation",
   "behind-the-meter",

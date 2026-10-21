@@ -331,6 +331,34 @@ describe("getGermanyMarketSnapshot evening + daily aggregates", () => {
     );
   });
 
+  it("omits a quarter-hour from the day flow when generation is still unpublished", async () => {
+    const anchorUnixSeconds = 1_718_402_400;
+    const totalPower = {
+      unix_seconds: Array.from({ length: 5 }, (_, index) => anchorUnixSeconds + index * 900),
+      production_types: [
+        { name: "Load (incl. self-consumption)", data: [50_000, 50_000, 50_000, 50_000, 70_000] },
+        { name: "Residual load", data: [20_000, 20_000, 20_000, 20_000, 70_000] },
+        { name: "Solar", data: [10_000, 10_000, 10_000, 10_000, null] },
+        { name: "Fossil gas", data: [20_000, 20_000, 20_000, 20_000, null] },
+      ],
+    };
+
+    (globalThis as { fetch: typeof fetch }).fetch = jest.fn(async (input: string | URL | Request) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.includes("/installed_power?country=de")) {
+        return makeJsonResponse(installedPowerPayload);
+      }
+      if (url.includes("/total_power?country=de")) {
+        return makeJsonResponse(totalPower);
+      }
+      return makeJsonResponse({ message: "not found" }, 404);
+    }) as unknown as typeof fetch;
+
+    const snapshot = await getGermanyMarketSnapshot();
+    expect(snapshot.dayEnergyFlow?.samplePoints).toBe(4);
+    expect(snapshot.dayEnergyFlow?.slots.every((slot) => slot.totalGenerationMw > 0)).toBe(true);
+  });
+
   it("recognizes alternate Energy-Charts labeling for residual load series", async () => {
     const anchorUnixSeconds = 1_718_402_400;
     const points = 24;

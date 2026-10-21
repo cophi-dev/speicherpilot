@@ -1,15 +1,18 @@
 "use client";
 
-import { toPng } from "html-to-image";
-import { useRef, useState } from "react";
-
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { DayClock } from "@/components/live/DayClock";
 import { LiveLineChart } from "@/components/live/LiveCharts";
+import { NorthSouthChart } from "@/components/live/NorthSouthChart";
+import { StorageWhatIf } from "@/components/live/StorageWhatIf";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { DayClockView } from "@/lib/dayClock";
 import { LIVE_SOURCE_TABLE, type LiveBoard, type LiveModule, type PriceLight } from "@/lib/liveBoard";
+import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
+import type { ResidualDay } from "@/lib/windSolarResidual";
+
+const KPI_ORDER = ["hertz", "price", "germany", "signal", "offshore"] as const;
 
 function copy(language: "de" | "en", text: { de: string; en: string }) {
   return language === "de" ? text.de : text.en;
@@ -27,35 +30,31 @@ function lightMark(light: PriceLight) {
   return "▲";
 }
 
-export function LiveView({ board, clock }: { board: LiveBoard; clock: DayClockView | null }) {
+export function LiveView({
+  board,
+  clock,
+  fleet,
+  days,
+  todayKey,
+  initialDate,
+  initialFallback,
+}: {
+  board: LiveBoard;
+  clock: DayClockView | null;
+  fleet: LargeBatteryFleet | null;
+  days: ResidualDay[];
+  todayKey: string;
+  initialDate: string | null;
+  initialFallback: boolean;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const posterRef = useRef<HTMLDivElement>(null);
-  const [busy, setBusy] = useState(false);
   const lead = copy(language, board.lead);
-
-  async function savePng() {
-    const node = posterRef.current;
-    if (!node || busy) return;
-    setBusy(true);
-    const previousLeft = node.style.left;
-    const previousZ = node.style.zIndex;
-    // Chrome does not paint a fixed node parked off the left edge, so the
-    // share image comes out empty. Park it on the canvas, behind the page.
-    node.style.left = "0px";
-    node.style.zIndex = "-1";
-    try {
-      const url = await toPng(node, { cacheBust: true, pixelRatio: 1, backgroundColor: "#F4F1EA", width: 1600, height: 900 });
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `speicherpilot-live-${board.berlinDateKey}.png`;
-      link.click();
-    } finally {
-      node.style.left = previousLeft;
-      node.style.zIndex = previousZ;
-      setBusy(false);
-    }
-  }
+  const kpis = KPI_ORDER.map((id) => board.modules.find((entry) => entry.id === id && entry.figure !== null)).filter(
+    (entry): entry is LiveModule => entry !== undefined
+  ).slice(0, 4);
+  const kpiIds = new Set(kpis.map((entry) => entry.id));
+  const cards = board.modules.filter((entry) => !kpiIds.has(entry.id) || entry.id === "hertz" || entry.id === "price" || entry.id === "zones");
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-8">
@@ -70,18 +69,39 @@ export function LiveView({ board, clock }: { board: LiveBoard; clock: DayClockVi
           <span className="text-muted-foreground"> · {tx("Keine Handelsempfehlung", "Not trading advice")}</span>
         </p>
       ) : null}
-      <button
-        type="button"
-        className="mt-5 inline-flex h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
-        onClick={() => void savePng()}
-        disabled={busy}
-      >
-        {busy ? tx("Bild wird gebaut", "Building image") : tx("Bild für einen Post", "Image for a post")}
-      </button>
 
-      <div className="mt-8 flex flex-col gap-6">
-        {board.modules.map((item) => (
-          <ModuleCard key={item.id} item={item} board={board} language={language} />
+      <div className="mt-8">
+        <StorageWhatIf
+          fleet={fleet}
+          days={days}
+          todayKey={todayKey}
+          initialDate={initialDate}
+          initialFallback={initialFallback}
+          language={language}
+        />
+      </div>
+
+      {kpis.length > 0 ? (
+        <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {kpis.map((item) => {
+            const figure = item.figure === null ? item.value : formatQuantity(item.figure, language, item.digits);
+            return (
+              <li key={item.id} className="rounded-md border border-border bg-card px-3 py-3 md:px-4">
+                <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{copy(language, item.level)}</p>
+                <p className="num mt-2 text-[28px] leading-none">
+                  {figure}
+                  {item.unit ? <span className="text-sm text-muted-foreground"> {item.unit}</span> : null}
+                </p>
+                {item.figureLabel ? <p className="mt-2 text-sm leading-snug">{copy(language, item.figureLabel)}</p> : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+        {cards.map((item) => (
+          <ModuleCard key={item.id} item={item} board={board} language={language} hideFigure={kpiIds.has(item.id)} wide={item.id === "zones"} />
         ))}
       </div>
 
@@ -98,28 +118,31 @@ export function LiveView({ board, clock }: { board: LiveBoard; clock: DayClockVi
           ))}
         </ul>
       </section>
-
-      <div ref={posterRef} inert aria-hidden className="pointer-events-none fixed top-0 -left-[2200px] h-[900px] w-[1600px] bg-[#F4F1EA] text-[#1A1C1E]">
-        <div className="px-16 pt-16">
-          <p className="text-[22px] tracking-[0.08em] text-[#5C6166] uppercase">SpeicherPilot · {board.berlinDateKey}</p>
-          <p className="mt-6 max-w-[1400px] text-[40px] leading-[1.2] font-medium">{copy("de", board.lead)}</p>
-          <PosterBars board={board} />
-          <p className="mt-8 text-[22px] text-[#5C6166]">speicherpilot.app/live · SMARD · energy-charts.info</p>
-        </div>
-      </div>
     </div>
   );
 }
 
-function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBoard; language: "de" | "en" }) {
+function ModuleCard({
+  item,
+  board,
+  language,
+  hideFigure,
+  wide,
+}: {
+  item: LiveModule;
+  board: LiveBoard;
+  language: "de" | "en";
+  hideFigure: boolean;
+  wide: boolean;
+}) {
   const sentenceId = `live-${item.id}-sentence`;
   const figure = item.figure === null ? item.value : formatQuantity(item.figure, language, item.digits);
   const figureName = item.figureLabel ? copy(language, item.figureLabel) : null;
   return (
-    <article className="rounded-md border border-border bg-card p-4 md:p-5">
+    <article className={`rounded-md border border-border bg-card p-4 md:p-5 ${wide ? "md:col-span-2" : ""}`}>
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{copy(language, item.level)}</p>
-      <h2 className="mt-1 flex flex-wrap items-center gap-2 text-xl font-medium">
-        {copy(language, item.title)}
+      <h2 id={sentenceId} className="mt-1 flex flex-wrap items-center gap-2 text-lg leading-snug font-medium">
+        <span>{copy(language, item.sentence)}</span>
         {item.id === "hertz" || item.id === "zones" ? <GlossaryTip id="regelzone" language={language} /> : null}
         {item.id === "offshore" ? <GlossaryTip id="wind-auf-see" language={language} /> : null}
         {item.id === "price" ? <GlossaryTip id="day-ahead-price" language={language} /> : null}
@@ -127,7 +150,7 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
         {item.id === "curtailment" ? <GlossaryTip id="abregelung" language={language} /> : null}
         {item.id === "germany" || item.id === "signal" ? <GlossaryTip id="deutschland-live" language={language} /> : null}
       </h2>
-      {figure ? (
+      {!hideFigure && figure ? (
         <div className="mt-3">
           {figureName ? <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{figureName}</p> : null}
           <p className="num mt-1 text-[32px] leading-none">
@@ -141,7 +164,6 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
           {copy(language, board.priceLightLabel)}
         </p>
       ) : null}
-      <p id={sentenceId} className="mt-3 max-w-[68ch] text-sm text-muted-foreground">{copy(language, item.sentence)}</p>
       {item.id === "hertz" && board.hertzChart.length > 0 ? (
         <div className="mt-4">
           <LiveLineChart
@@ -150,6 +172,7 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
             secondaryLabel={language === "de" ? "Wind und Photovoltaik" : "Wind and solar"}
             unit="MW"
             describedBy={sentenceId}
+            language={language}
             label={language === "de" ? "Regelzone 50Hertz, Last sowie Wind und Photovoltaik in Megawatt" : "50Hertz control area, load and wind plus solar in megawatts"}
           />
         </div>
@@ -161,48 +184,12 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
             primaryLabel={language === "de" ? "Day-Ahead-Preis" : "Day-ahead price"}
             unit="€/MWh"
             describedBy={sentenceId}
+            language={language}
             label={language === "de" ? "Gebotszone DE-LU, Day-Ahead-Preis in Euro pro Megawattstunde" : "DE-LU bidding zone, day-ahead price in euro per megawatt-hour"}
           />
         </div>
       ) : null}
+      {item.id === "zones" && board.zoneChart.length > 0 ? <NorthSouthChart points={board.zoneChart} language={language} /> : null}
     </article>
-  );
-}
-
-function PosterBars({ board }: { board: LiveBoard }) {
-  const price = board.priceChart.length > 0;
-  const points = price ? board.priceChart : board.hertzChart;
-  if (points.length === 0) return null;
-  const values = points.map((point) => point.primary);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = Math.max(1, max - min);
-  const byHour = new Map<string, (typeof points)[number]>();
-  for (const point of points) {
-    const hour = point.label.slice(0, 2);
-    const prev = byHour.get(hour);
-    const replace = price ? !prev || point.primary < prev.primary : point.label.endsWith(":00");
-    if (replace) {
-      byHour.set(hour, { ...point, label: `${hour}:00` });
-    }
-  }
-  const hours = Array.from({ length: 24 }, (_, hour) => byHour.get(String(hour).padStart(2, "0")) ?? null);
-  return (
-    <div className="mt-10">
-      <p className="text-[22px] text-[#5C6166]">
-        {price ? "Gebotszone DE-LU · Day-Ahead · €/MWh · keine Handelsempfehlung" : "Regelzone 50Hertz · Last · MW"}
-      </p>
-      <div className="relative mt-4 h-[220px] w-[1470px]">
-        {hours.map((point, hour) => {
-          const height = point ? Math.max(8, ((point.primary - min) / span) * 176) : 0;
-          return (
-            <div key={hour} className="absolute bottom-0" style={{ left: hour * 61, width: 52 }}>
-              <div className="bg-[#0F6E6E]" style={{ height }} />
-              <p className="mt-2 text-center text-[14px] text-[#5C6166]">{String(hour).padStart(2, "0")}</p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }

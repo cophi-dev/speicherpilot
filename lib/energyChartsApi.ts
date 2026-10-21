@@ -1123,6 +1123,18 @@ const buildGermanyDispatchSlotsForIndices = (
     if (loadMw === null || !Number.isFinite(loadMw)) {
       continue;
     }
+    // A published 0 stays 0. A quarter-hour whose generation series are all still
+    // null must not become a deficit of the whole load.
+    const generationPublished = totalPower.production_types.some((series) => {
+      if (EXCLUDED_FROM_DOMESTIC_GENERATION.has(series.name) || isResidualLoadProductionSeriesName(series.name)) {
+        return false;
+      }
+      const value = series.data[index];
+      return value !== null && Number.isFinite(value);
+    });
+    if (!generationPublished) {
+      continue;
+    }
 
     const renewableMw = sumSeriesAtIndex(
       totalPower.production_types,
