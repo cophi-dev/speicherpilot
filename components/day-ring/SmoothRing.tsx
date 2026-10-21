@@ -165,7 +165,7 @@ function RingPaint({
         </clipPath>
       </defs>
       <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
-        <div xmlns="http://www.w3.org/1999/xhtml" style={{ width: "100%", height: "100%", background: gradient }} />
+        <div style={{ width: "100%", height: "100%", background: gradient }} />
       </foreignObject>
       <path className={mark ? "day-ring-area" : undefined} d={area} fill="none" />
       {showFlow
