@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Monitor, Moon, Sun, X } from "lucide-react";
@@ -157,13 +157,13 @@ export function SiteShell({ children }: SiteShellProps) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!nightHero) {
-      return;
-    }
+  useLayoutEffect(() => {
     const update = () => {
       const hero = document.querySelector(".day-hero");
       if (!hero) {
+        if (!nightHero) {
+          setOverHero(false);
+        }
         return;
       }
       const rect = hero.getBoundingClientRect();

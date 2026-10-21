@@ -1310,6 +1310,46 @@
   margin-inline: auto;
 }
 
+.day-missing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-missing-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: min(100%, 24rem);
+  text-align: center;
+}
+
+.day-missing h1 {
+  max-width: 16ch;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.day-missing-ring {
+  width: min(72vw, 280px);
+  height: auto;
+}
+
+.day-missing a {
+  color: #1e9cb0;
+  font-size: 16px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day-missing a:focus-visible {
+  outline: 2px solid #7dfce6;
+  outline-offset: 3px;
+}
+
 .day-kicker {
   font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 12px;
@@ -1793,6 +1833,186 @@
 @keyframes day-callout-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.day-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.day-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #7dfce6;
+  color: #0a0f14;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.day-textlink {
+  color: #1e9cb0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day-movements {
+  margin-top: 56px;
+}
+
+.day-movements h2,
+.day-paper h2 {
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.day-movements ol,
+.day-factor-grid {
+  display: grid;
+  gap: 28px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-movements li h3,
+.day-factor-grid h3 {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.day-movements li p,
+.day-factor-grid li p {
+  margin-top: 6px;
+  max-width: 36ch;
+  color: #c5ced6;
+  line-height: 1.5;
+}
+
+.day-movement-n,
+.day-factor-grid .num {
+  color: #c5ced6;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.day-factor-peak {
+  color: #14181c;
+  font-size: 28px;
+}
+
+.day-paper {
+  background-color: #f4f3ee;
+  background-image:
+    linear-gradient(rgb(20 24 28 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(20 24 28 / 5%) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: #14181c;
+  padding: 48px 20px 64px;
+}
+
+.dark .day-paper {
+  background-color: #121a22;
+  background-image:
+    linear-gradient(rgb(233 238 242 / 6%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(233 238 242 / 6%) 1px, transparent 1px);
+  color: #e9eef2;
+}
+
+.day-paper-lead {
+  max-width: 46ch;
+  margin-top: 12px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.day-paper .day-factor-grid li p,
+.day-paper .day-movement-n {
+  color: #3c444c;
+}
+
+.dark .day-paper .day-factor-grid li p {
+  color: #c5ced6;
+}
+
+.dark .day-factor-peak {
+  color: #e9eef2;
+}
+
+.day-doors {
+  display: grid;
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.day-door {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 160px;
+  padding: 24px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #0e151c, #1a2420);
+  color: #e9eef2;
+  text-decoration: none;
+}
+
+.day-door-title {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.day-door-go {
+  color: #e9eef2;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day-paper .day-ticks,
+.day-paper .day-ticks text {
+  fill: #14181c;
+}
+
+.day-paper .day-ticks line,
+.day-paper .day-zero {
+  stroke: rgb(20 24 28 / 55%);
+}
+
+.day-paper .day-shift {
+  stroke: #14181c;
+}
+
+.dark .day-paper .day-ticks,
+.dark .day-paper .day-ticks text {
+  fill: #e9eef2;
+}
+
+.dark .day-paper .day-ticks line,
+.dark .day-paper .day-zero,
+.dark .day-paper .day-shift {
+  stroke: rgb(233 238 242 / 70%);
+}
+
+@media (min-width: 768px) {
+  .day-movements h2,
+  .day-paper h2 { font-size: 44px; }
+}
+
+@media (min-width: 960px) {
+  .day-movements ol { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .day-doors { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 1100px) {
+  .day-factor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media print {
