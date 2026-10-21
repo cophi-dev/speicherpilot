@@ -9,6 +9,7 @@ import { useLanguage } from "@/components/language-context";
 import { connectionLight } from "@/lib/connectionLight";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { supermarketTeachingDay, type PeakQuarter, type PeakShavingExplain } from "@/lib/peakShavingExplain";
+import { sitePath } from "@/lib/perspective";
 
 function clockLabel(hour: number) {
   const whole = Math.floor(hour);
@@ -34,8 +35,17 @@ export function ConnectionStory() {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const story = useMemo(() => supermarketTeachingDay(), []);
   const [step, setStep] = useState(0);
+  const [narrow, setNarrow] = useState(false);
   const stepsRef = useRef<Array<HTMLLIElement | null>>([]);
   const titleId = useId();
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 1023px)");
+    const apply = () => setNarrow(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     const ratios = new Map<number, number>();
@@ -58,13 +68,14 @@ export function ConnectionStory() {
           setStep(best);
         }
       },
-      { rootMargin: "-38% 0px -42% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
+      // On a phone the sticky chart covers the top of the viewport, so the active band sits in the text card.
+      { rootMargin: narrow ? "-62% 0px -12% 0px" : "-38% 0px -42% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
     );
     for (const node of nodes) {
       observer.observe(node);
     }
     return () => observer.disconnect();
-  }, []);
+  }, [narrow]);
 
   const shownPeak = step >= 2 ? story.peakAfterKw : story.peakBeforeKw;
   const light = connectionLight(shownPeak, story.limitKw);
@@ -74,12 +85,7 @@ export function ConnectionStory() {
   return (
     <section id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-16 md:py-24">
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Supermarkt", "Example · supermarket")}</p>
-          <p className="num border border-warning px-2 py-1 text-[12px] font-medium tracking-[0.08em] text-warning uppercase">
-            {tx("Beispieldaten", "Example data")}
-          </p>
-        </div>
+        <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Supermarkt", "Example · supermarket")}</p>
         <h2 id={titleId} className="mt-4 flex flex-wrap items-center gap-3 text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
           {tx("Was ist Peak Shaving?", "What is peak shaving?")}
           <GlossaryTip id="peak-shaving" language={language} />
@@ -93,51 +99,72 @@ export function ConnectionStory() {
 
         <div className="connection-story mt-10">
           <div className="connection-story-pin">
-          <div className="connection-story-stage">
-            <div className="flex gap-1" aria-hidden="true">
-              {steps.map((item, index) => (
-                <span key={item.n} className={`h-[3px] flex-1 ${index <= step ? "bg-foreground" : "bg-border"}`} />
-              ))}
+            <div className="connection-story-stage">
+              <div className="flex gap-1" aria-hidden="true">
+                {steps.map((item, index) => (
+                  <span key={item.n} className={`h-1 flex-1 ${index <= step ? "bg-foreground" : "bg-border"}`} />
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="num text-[12px] tracking-[0.14em] text-muted-foreground uppercase">{tx("Ein Tag am Netzanschluss", "One day at the connection")}</p>
+                <p className="num border border-warning px-2 py-1 text-[12px] font-medium tracking-[0.08em] text-warning uppercase">
+                  {tx("Beispieldaten", "Example data")}
+                </p>
+              </div>
+              <div className="connection-story-chart flex h-[240px] min-h-[240px] overflow-hidden rounded-md border border-border bg-card lg:h-auto lg:min-h-0 lg:flex-1 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent">
+                <StoryChart story={story} step={step} language={language} stacked={narrow} />
+              </div>
+              <ConnectionLight light={light} language={language} neutral={step === 0} />
             </div>
-            <ConnectionLight light={light} language={language} />
-            <StoryChart story={story} step={step} language={language} />
-          </div>
           </div>
           <ol>
-            {steps.map((item, index) => (
-              <li
-                key={item.n}
-                ref={(node) => {
-                  stepsRef.current[index] = node;
-                }}
-                data-step={index}
-                aria-current={step === index ? "step" : undefined}
-                className={`flex flex-col justify-center border-l-2 py-8 pl-5 md:pl-6 ${
-                  index === steps.length - 1 ? "min-h-[120vh]" : "min-h-[70vh]"
-                } ${step === index ? "border-foreground" : "border-border"}`}
-              >
-                <p className="num text-[13px] tracking-[0.14em] text-muted-foreground">{item.n}</p>
-                <h3 className={`mt-3 max-w-[16ch] font-medium tracking-[-0.02em] ${step === index ? "text-[28px] leading-tight text-foreground md:text-[34px]" : "text-[22px] leading-snug text-muted-foreground"}`}>
-                  {item.title}
-                </h3>
-                <p className={`mt-4 max-w-[36ch] text-[17px] leading-relaxed ${step === index ? "text-foreground" : "text-muted-foreground"}`}>{item.body}</p>
-                {item.figure ? (
-                  <p className="num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
-                    {item.figure}
-                    <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
-                  </p>
-                ) : null}
-                {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}
-                {index === steps.length - 1 ? (
-                  <Link
-                    href="/site?view=projekt&preset=supermarkt"
-                    className="mt-8 inline-flex h-12 w-fit items-center rounded-md bg-primary px-5 text-[15px] font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    {tx("Eigenen Markt rechnen →", "Calculate your own store →")}
-                  </Link>
-                ) : null}
-              </li>
-            ))}
+            {steps.map((item, index) => {
+              const active = step === index;
+              const last = index === steps.length - 1;
+              return (
+                <li
+                  key={item.n}
+                  ref={(node) => {
+                    stepsRef.current[index] = node;
+                  }}
+                  data-step={index}
+                  aria-current={active ? "step" : undefined}
+                  className={`flex min-h-[40vh] flex-col justify-center border-t border-border bg-card p-6 text-foreground lg:min-h-[60vh] lg:border-0 lg:bg-transparent lg:p-0 ${
+                    active ? "lg:text-foreground lg:opacity-100" : "lg:text-muted-foreground lg:opacity-50 lg:focus-within:opacity-100"
+                  }`}
+                >
+                  <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>
+                  <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
+                  <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
+                  {item.figure ? (
+                    <p className="num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
+                      {item.figure}
+                      <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
+                    </p>
+                  ) : null}
+                  {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}
+                  {last ? (
+                    <div className="mt-8 flex flex-wrap items-center gap-3">
+                      <Link
+                        href={sitePath("projekt", "supermarkt")}
+                        className="inline-flex h-12 w-fit items-center rounded-md bg-primary px-5 text-[15px] font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        {tx("Eigenen Markt rechnen →", "Calculate your own store →")}
+                      </Link>
+                      <button
+                        type="button"
+                        className="inline-flex h-12 w-fit items-center rounded-md px-5 text-[15px] font-medium text-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        onClick={() => stepsRef.current[0]?.scrollIntoView({ block: "center" })}
+                      >
+                        {tx("Zurück", "Back")}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="num mt-6 text-[12px] text-muted-foreground lg:hidden">{tx("weiter scrollen ↓", "keep scrolling ↓")}</p>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </div>
         <p className="num mt-8 max-w-[70ch] text-[12px] leading-relaxed text-muted-foreground">
@@ -238,7 +265,17 @@ function storySteps(story: PeakShavingExplain, deltaKw: number, language: "de" |
   ];
 }
 
-function StoryChart({ story, step, language }: { story: PeakShavingExplain; step: number; language: "de" | "en" }) {
+function StoryChart({
+  story,
+  step,
+  language,
+  stacked,
+}: {
+  story: PeakShavingExplain;
+  step: number;
+  language: "de" | "en";
+  stacked: boolean;
+}) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const frameRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
@@ -257,9 +294,8 @@ function StoryChart({ story, step, language }: { story: PeakShavingExplain; step
   }, []);
 
   const axis = axisFor(story.peakBeforeKw);
-  const compact = box.width > 0 && box.width < 560;
   const showSoc = step >= 3;
-  const pad = { l: compact ? 36 : 52, r: compact ? 64 : 84, t: 16 };
+  const pad = { l: 56, r: stacked ? 12 : 84, t: stacked ? 20 : 16 };
   const width = Math.max(0, box.width);
   const height = Math.max(0, box.height);
   const axisLabelH = 22;
@@ -321,11 +357,17 @@ function StoryChart({ story, step, language }: { story: PeakShavingExplain; step
               </text>
             </g>
           ))}
-          {[12, 14, 16, 18, 20, 22].filter((hour) => hour >= from && hour <= to).map((hour) => (
-            <text key={hour} x={x(hour)} y={height - 6} textAnchor="middle" className="num fill-muted-foreground" fontSize={12}>
-              {clockLabel(hour)}
-            </text>
-          ))}
+          {[12, 14, 16, 18, 20, 22].filter((hour) => hour >= from && hour <= to).map((hour) => {
+            const first = hour <= from + 0.01;
+            const last = hour >= to - 0.01;
+            const anchor = stacked && first ? "start" : stacked && last ? "end" : "middle";
+            const labelX = stacked && first ? pad.l : stacked && last ? pad.l + plotW : x(hour);
+            return (
+              <text key={hour} x={labelX} y={height - 6} textAnchor={anchor} className="num fill-muted-foreground" fontSize={12}>
+                {clockLabel(hour)}
+              </text>
+            );
+          })}
           <g className="story-layer" style={{ opacity: step >= 1 ? 1 : 0 }}>
             <path d={exceedance} fill="hsl(var(--c-limit) / 0.18)" />
             <line
@@ -337,13 +379,19 @@ function StoryChart({ story, step, language }: { story: PeakShavingExplain; step
               strokeWidth={2}
               strokeDasharray="6 4"
             />
-            <text x={pad.l + plotW + 8} y={y(story.limitKw) - 2} className="num fill-limit" fontSize={12}>
-              {formatQuantity(story.limitKw, language, 0)} kW
-            </text>
-            {compact ? null : (
-              <text x={pad.l + plotW + 8} y={y(story.limitKw) + 14} className="fill-limit" fontSize={12}>
-                {tx("Anschluss", "Connection")}
+            {stacked ? (
+              <text x={pad.l + 8} y={y(story.limitKw) - 8} textAnchor="start" className="num fill-limit" fontSize={12}>
+                {formatQuantity(story.limitKw, language, 0)} kW
               </text>
+            ) : (
+              <>
+                <text x={pad.l + plotW + 8} y={y(story.limitKw) - 2} className="num fill-limit" fontSize={12}>
+                  {formatQuantity(story.limitKw, language, 0)} kW
+                </text>
+                <text x={pad.l + plotW + 8} y={y(story.limitKw) + 14} className="fill-limit" fontSize={12}>
+                  {tx("Anschluss", "Connection")}
+                </text>
+              </>
             )}
           </g>
           <g className="story-layer" style={{ opacity: step >= 2 ? 1 : 0 }}>
@@ -368,8 +416,14 @@ function StoryChart({ story, step, language }: { story: PeakShavingExplain; step
               {formatQuantity(peak.loadKw, language, 0)} kW
             </text>
           ) : null}
-          {step >= 2 ? (
-            <text x={x(17.15)} y={y(story.limitKw) + 18} className="fill-foreground" fontSize={13}>
+          {step >= 2 && peak ? (
+            <text
+              x={x(peak.hour)}
+              y={y(peak.netKw) + 8 + 13}
+              textAnchor="middle"
+              className="story-halo fill-foreground"
+              fontSize={13}
+            >
               {tx("Netzbezug", "Grid import")}
             </text>
           ) : null}

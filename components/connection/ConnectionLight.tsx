@@ -8,8 +8,35 @@ const SEGMENTS: Array<{ status: Exclude<ConnectionLightStatus, "missing">; de: s
   { status: "over", de: "PASST NICHT", en: "DOES NOT FIT", fill: "bg-destructive", ink: "text-destructive" },
 ];
 
-export function ConnectionLight({ light, language }: { light: ConnectionLightModel; language: "de" | "en" }) {
+export function ConnectionLight({
+  light,
+  language,
+  neutral = false,
+}: {
+  light: ConnectionLightModel;
+  language: "de" | "en";
+  /** Step 1 of the teaching story: every segment is an outline, with no verdict yet. */
+  neutral?: boolean;
+}) {
   const sentence = language === "de" ? light.sentence.de : light.sentence.en;
+  const pending = language === "de" ? "Anschluss-Ampel, noch ohne Bewertung." : "Connection light, not assessed yet.";
+
+  if (neutral) {
+    return (
+      <div role="meter" aria-label={pending} aria-valuemin={0} aria-valuemax={1} aria-valuenow={0} aria-valuetext={pending}>
+        <div className="grid grid-cols-3 gap-1">
+          {SEGMENTS.map((segment) => (
+            <p
+              key={segment.status}
+              className="num flex h-11 items-center justify-center border border-border bg-transparent text-[11px] tracking-[0.14em] text-foreground uppercase"
+            >
+              {language === "de" ? segment.de : segment.en}
+            </p>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (light.status === "missing") {
     return (
