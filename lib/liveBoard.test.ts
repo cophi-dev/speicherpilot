@@ -117,6 +117,12 @@ describe("live board geography and readings", () => {
     });
     expect(board.lead.de).toContain("unter null");
     expect(board.priceLight).toBe("green");
+    const price = board.modules.find((entry) => entry.id === "price");
+    expect(price?.title.de).toBe("Preise der Day-Ahead-Auktion");
+    expect(price?.sentence.de).toContain("günstigsten Stunden");
+    expect(price?.sentence.de).toContain("höchsten Preise");
+    expect(price?.sentence.de).toContain("keine Handelsempfehlung");
+    expect(price?.sentence.de).not.toMatch(/Laden passt|hier laden|hier entladen/);
   });
 
   it("uses the yellow band only at the configured spread", () => {

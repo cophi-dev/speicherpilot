@@ -289,11 +289,11 @@ function priceCopy(reading: PriceReading): { sentence: LiveCopy; takeaway: LiveC
   const maxClock = berlinClock(reading.maxUnixMs);
   const deCount = qty(reading.negativeQuarterHours, "de", 0);
   const enCount = qty(reading.negativeQuarterHours, "en", 0);
+  const hours = {
+    de: `Die günstigsten Stunden liegen um ${minClock} Uhr, die höchsten Preise um ${maxClock} Uhr. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung.`,
+    en: `The lowest-priced hours are at ${minClock}, the highest prices at ${maxClock}. That is the day-ahead auction, not trading advice.`,
+  };
   if (reading.negativeQuarterHours > 0) {
-    const hours = {
-      de: `Laden passt eher zur tiefen Stunde um ${minClock} Uhr, Entladen zur hohen um ${maxClock} Uhr. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung.`,
-      en: `Charging fits the cheap hour at ${minClock}, discharging the expensive one at ${maxClock}. That is the day-ahead auction, not trading advice.`,
-    };
     return {
       sentence: hours,
       takeaway: {
@@ -303,10 +303,7 @@ function priceCopy(reading: PriceReading): { sentence: LiveCopy; takeaway: LiveC
     };
   }
   return {
-    sentence: {
-      de: `Laden passt eher zur tiefen Stunde um ${minClock} Uhr, Entladen zur hohen um ${maxClock} Uhr. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung.`,
-      en: `Charging fits the cheap hour at ${minClock}, discharging the expensive one at ${maxClock}. That is the day-ahead auction, not trading advice.`,
-    },
+    sentence: hours,
     takeaway: {
       de: `Heute liegt kein Viertelstundenpreis der Gebotszone DE-LU unter null: am günstigsten ${deMin} €/MWh um ${minClock} Uhr, am teuersten ${deMax} €/MWh um ${maxClock} Uhr.`,
       en: `No quarter-hour price in the DE-LU bidding zone is below zero today: cheapest ${enMin} €/MWh at ${minClock}, dearest ${enMax} €/MWh at ${maxClock}.`,
@@ -526,7 +523,7 @@ export function buildLiveBoard(input: LiveBoardInput): LiveBoard {
     modules.push({
       id: "price",
       level: LEVEL["gebotszone-de-lu"],
-      title: { de: "Stunden zum Laden und Entladen", en: "Hours to charge and discharge" },
+      title: { de: "Preise der Day-Ahead-Auktion", en: "Day-ahead auction prices" },
       sentence: copy.sentence,
       takeaway: copy.takeaway,
       available: true,
