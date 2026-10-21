@@ -18,6 +18,11 @@ const REQUIRED = [
   "opex",
   "npv",
   "day-ahead",
+  "quartier",
+  "ortsnetzstation",
+  "behind-the-meter",
+  "front-of-meter",
+  "fpa",
 ] as const;
 
 describe("glossary", () => {
