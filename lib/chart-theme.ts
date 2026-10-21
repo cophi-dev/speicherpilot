@@ -62,6 +62,31 @@ export const tooltip = {
   itemStyle: { color: cssVar("foreground"), padding: 0 },
 };
 
+/**
+ * Pixel x for the payback callout.
+ * Prefer the right side of the break-even line, at least `gap` px past the y axis.
+ * If that would run past the plot, shift left so the label stays inside.
+ */
+export function paybackLabelX(lineX: number, plotLeft: number, gap = 8, plotRight?: number, labelWidth = 0) {
+  const preferred = Math.max(lineX, plotLeft) + gap;
+  if (plotRight == null || labelWidth <= 0 || preferred + labelWidth <= plotRight) {
+    return preferred;
+  }
+  return Math.max(plotLeft + gap, plotRight - labelWidth);
+}
+
+/** Extend the year axis only when a short pad lets the callout sit right of the break-even line. */
+export function paybackDomainMax(maxYear: number, payback: number | null, innerWidth: number, labelWidthPx: number, maxExtraYears = 4) {
+  if (payback == null || innerWidth <= labelWidthPx + 8) {
+    return maxYear;
+  }
+  const needed = payback / (1 - labelWidthPx / innerWidth);
+  if (!Number.isFinite(needed) || needed - maxYear > maxExtraYears) {
+    return maxYear;
+  }
+  return Math.max(maxYear, needed);
+}
+
 export function fmtPower(kw: number, locale: ChartLocale = "de") {
   const absolute = Math.abs(kw);
   const sign = kw < 0 ? "−" : "";

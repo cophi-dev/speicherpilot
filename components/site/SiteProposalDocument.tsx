@@ -4,7 +4,7 @@ import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 import type { AppLanguage } from "@/components/language-context";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
-import type { LoadProfile, SitePlan, VoltageLevel } from "@/lib/sitePlanner";
+import { connectionRequestKw, exceedsFairGrid, type LoadProfile, type SitePlan, type VoltageLevel } from "@/lib/sitePlanner";
 import { registerPdfFonts } from "@/lib/pdfFonts";
 
 registerPdfFonts();
@@ -52,11 +52,13 @@ export function SiteProposalDocument({
   profile,
   language,
   enteredVoltage,
+  kind = "offer",
 }: {
   plan: SitePlan;
   profile: LoadProfile;
   language: AppLanguage;
   enteredVoltage: VoltageLevel;
+  kind?: "offer" | "connection";
 }) {
   const de = language === "de";
   const tx = (german: string, english: string) => (de ? german : english);
@@ -71,8 +73,8 @@ export function SiteProposalDocument({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.kicker}>SpeicherPilot · {tx("Standortvorschlag", "Site proposal")}</Text>
-        <Text style={styles.title}>{tx("Speicher und Netzanschluss", "Storage and grid connection")}</Text>
+        <Text style={styles.kicker}>SpeicherPilot · {kind === "connection" ? tx("Anschlussprüfung", "Connection check") : tx("Angebot", "Offer")}</Text>
+        <Text style={styles.title}>{kind === "connection" ? tx("Netzanschluss", "Grid connection") : tx("Speicher und Netzanschluss", "Storage and grid connection")}</Text>
         <Text style={styles.p}>
           {tx(
             "Herstellerneutraler Modellvorschlag. Keine Angebotsbinde, keine Anschlusszusage, keine Rechtsberatung.",
@@ -98,7 +100,38 @@ export function SiteProposalDocument({
             <Text style={styles.p}>{impact}</Text>
           </View>
         </View>
-        <Text style={styles.h2}>{tx("Wirtschaft, Modell", "Economics, model")}</Text>
+        {kind === "connection" ? (
+          <>
+            <Text style={styles.h2}>{tx("Netzlast", "Grid load")}</Text>
+            <View style={styles.line}>
+              <Text>{tx("Überschreitung ohne / mit Speicher", "Hours above the limit, without / with storage")}</Text>
+              <Text>
+                {qty(plan.exceedanceHoursBefore, 0)} h → {qty(plan.exceedanceHoursAfter, 0)} h
+              </Text>
+            </View>
+            <View style={styles.line}>
+              <Text>{tx("Einschätzung netzdienlich", "Grid-support estimate")}</Text>
+              <Text>
+                {plan.gridSupport.status} · {qty(plan.gridSupport.dischargeShareInPeaks * 100, 0)} %
+              </Text>
+            </View>
+            <Text style={styles.p}>
+              {tx(
+                "Modellschätzung, kein Befund. Nach BGH, Beschluss vom 15. Juli 2025 (EnVR 1/24), kann nur der Netzbetreiber beurteilen, ob Speicher das örtliche Netz entlasten. Schwellen 90 %, 60 % und 30 % sind vorläufig.",
+                "A model estimate, not a finding. Under the Federal Court of Justice decision of 15 July 2025 (EnVR 1/24), only the grid operator can assess whether storage relieves the local grid. The 90%, 60% and 30% thresholds are provisional."
+              )}
+            </Text>
+            {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, plan.availableConnectionKw)) ? (
+              <Text style={styles.p}>
+                {tx(
+                  "Anschlussbegehren über 1,5 MVA: Hamburger Energienetze, Fair Grid, Runden ab dem zweiten Halbjahr 2026. Hinweis, keine Zuteilung. kW bei cos φ = 1.",
+                  "Connection request above 1.5 MVA: Hamburger Energienetze, Fair Grid, rounds from the second half of 2026. A hint, not an allocation. kW at cos φ = 1."
+                )}
+              </Text>
+            ) : null}
+          </>
+        ) : null}
+        {kind === "offer" ? <Text style={styles.h2}>{tx("Wirtschaft, Modell", "Economics, model")}</Text> : <Text style={styles.h2}>{tx("Modellhinweis", "Model note")}</Text>}
         <View style={styles.line}>
           <Text>CAPEX</Text>
           <Text>{qty(plan.capexEur)} €</Text>
@@ -159,7 +192,7 @@ export function SiteProposalDocument({
         <Text style={styles.p}>{plan.assumptions.sizingRule}</Text>
         <Text style={styles.p}>
           RTE {qty(plan.assumptions.roundTripEfficiency * 100)} % · OPEX {qty(plan.assumptions.opexFractionOfCapex * 100, 1)} % CAPEX ·{" "}
-          {tx("Betrieb", "Operation")}: {plan.operation === "market" ? tx("marktgetrieben", "market-driven") : tx("netzdienlich", "grid-serving")}
+          {tx("Betrieb", "Operation")}: {plan.operation === "market" ? tx("marktgetrieben", "market-driven") : tx("netzorientiert", "grid-oriented")}
         </Text>
         <Text style={styles.p}>
           {tx("Nicht enthalten", "Excluded")}: {plan.assumptions.excluded.join(", ")}
