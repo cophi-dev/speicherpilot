@@ -22,6 +22,7 @@ export type GlossaryId =
   | "wind-auf-see"
   | "abregelung"
   | "deutschland-live"
+  | "residuallast"
   | "modellschaetzung"
   | "quartier"
   | "ortsnetzstation"
@@ -218,6 +219,14 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Die nationale Reihe. Sie wird nie als Hamburg oder als Norden beschriftet. Fehlt die Erzeugung, bleibt das Feld leer, statt aus 0 GW ein Defizit zu rechnen.",
       en: "The national series. It is never labelled as Hamburg or as the north. If generation is missing, the field stays empty instead of turning 0 GW into a deficit.",
+    },
+  },
+  {
+    id: "residuallast",
+    term: { de: "Residuallast", en: "Residual load" },
+    text: {
+      de: "Last minus Wind minus Sonne. Das ist, was andere Kraftwerke und Import in dieser Viertelstunde liefern müssen. Liegt die Kurve unter null, liefern Wind und Sonne mehr, als verbraucht wird.",
+      en: "Load minus wind minus solar. That is what other plants and imports have to supply in that quarter-hour. Below zero, wind and solar deliver more than is consumed.",
     },
   },
   {

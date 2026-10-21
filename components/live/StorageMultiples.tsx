@@ -168,7 +168,7 @@ function Legend({ language }: { language: Language }) {
       </span>
       <span className={item}>
         <svg width="18" height="12" aria-hidden="true"><line x1="0" y1="6" x2="18" y2="6" stroke={INK} strokeWidth="1.6" /></svg>
-        {tx("Last − Wind − Sonne", "Load − wind − solar")}
+        {tx("Residuallast: Last − Wind − Sonne", "Residual load: load − wind − solar")}
       </span>
       <span className={item}>
         <svg width="18" height="12" aria-hidden="true"><line x1="0" y1="6" x2="18" y2="6" stroke={DASH} strokeDasharray="4 3" strokeWidth="1.5" /></svg>
@@ -195,6 +195,11 @@ function StepHeading({ step, language, big }: { step: MoreStorageStep; language:
       <p className="text-[12px] leading-tight" style={{ color: MUTED }}>
         {textOf(language, step.shareCaption)}
       </p>
+      {step.estimateNote ? (
+        <p className="mt-1 text-[13px] font-medium leading-tight" style={{ color: "#E7B008" }}>
+          {textOf(language, step.estimateNote)}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -236,6 +241,11 @@ export function StoragePoster({
       >
         {textOf(spoken, storage.subhead)}
       </p>
+      {fixed ? (
+        <p className="max-w-[70ch] leading-snug" style={{ fontSize: portrait ? 18 : 15, color: INK, marginTop: 8 }}>
+          Die Kurve ist die Residuallast: was andere Kraftwerke und Import liefern müssen, wenn Wind und Sonne von der Last abgezogen sind.
+        </p>
+      ) : null}
       <div
         className={fixed ? undefined : "mt-4 grid gap-4 lg:grid-cols-3"}
         style={

@@ -61,6 +61,10 @@ describe("buildMoreStorage", () => {
     expect(today?.points.some((point) => point.hour < 17 && point.dischargeMw > 0)).toBe(false);
     expect(today?.shareLabel.de).toBe("25 %");
     expect(five?.shareLabel.de).toBe("100 %");
+    expect(today?.estimateNote).toBeNull();
+    expect(double?.estimateNote?.de).toBe("Modellschätzung · kein Ausbauziel");
+    expect(five?.estimateNote?.de).toBe("Modellschätzung · kein Ausbauziel");
+    expect(five?.estimateNote?.en).toContain("Model estimate");
   });
 
   it("names the fallback day in the headline and stays a Germany model estimate", () => {

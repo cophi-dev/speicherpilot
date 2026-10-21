@@ -49,6 +49,8 @@ export type MoreStorageStep = {
   shareLabel: Copy;
   shareCaption: Copy;
   peakLabel: Copy;
+  /** Set on the ×2 and ×5 panels. Today is the measured fleet, so it has no multiple note. */
+  estimateNote: Copy | null;
 };
 
 export type MoreStorageReport = {
@@ -376,6 +378,13 @@ export function buildMoreStorage(input: {
       shareLabel,
       shareCaption: { de: "vom Überschuss gespeichert", en: "of the surplus stored" },
       peakLabel: peakCopy(run.peakReductionGw, run.eveningPeakGw),
+      estimateNote:
+        step.factor === 1
+          ? null
+          : {
+              de: "Modellschätzung · kein Ausbauziel",
+              en: "Model estimate · not a build target",
+            },
     };
   });
 

@@ -30,6 +30,21 @@ export function MoreStorageModule({ storage, language }: { storage: MoreStorageR
 
   return (
     <article className="overflow-hidden rounded-md border border-border" aria-labelledby="more-storage-title">
+      <div className="bg-card px-4 pt-4 md:px-6 md:pt-5">
+        <p id="more-storage-residual" className="max-w-[68ch] text-sm">
+          {language === "de" ? (
+            <>
+              Die Kurve ist die Residuallast <GlossaryTip id="residuallast" language={language} />: was andere Kraftwerke
+              und Import liefern müssen, wenn Wind und Sonne von der Last abgezogen sind.
+            </>
+          ) : (
+            <>
+              The curve is residual load <GlossaryTip id="residuallast" language={language} />: what other plants and
+              imports have to supply once wind and solar are taken off the load.
+            </>
+          )}
+        </p>
+      </div>
       <StoragePoster storage={storage} language={language} variant="page" />
       <div className="bg-card p-4 md:px-6 md:pb-5">
         <p id="more-storage-sentence" className="max-w-[68ch] text-sm text-muted-foreground">
