@@ -23,8 +23,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { z } from "zod";
-
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   addBerlinCalendarDays,
@@ -33,16 +31,16 @@ import {
   formatBerlinDateKeyFromUtcDate,
   isoWeekKeyToBerlinStartKey,
 } from "@/lib/berlinCalendar";
-import {
-  computeEconomics,
-  defaultEconomicsAssumptions,
-} from "@/lib/bessEconomics";
+import { buildAnnualPerspectiveCopy } from "@/lib/annualPerspectiveEstimate";
+import { AnnualPerspectiveEstimateView } from "@/components/briefing/AnnualPerspectiveEstimateView";
 import { formatPaybackYears } from "@/lib/indicativeEconomicsDisplay";
 import type { BriefingStoryWindow } from "@/lib/briefingStoryWindow";
 import { energyFlowSelectorStateFromStoryWindow } from "@/lib/briefingStoryWindow";
 import { createLogger } from "@/lib/debug";
-import type { GermanyDispatchSlotsResponse } from "@/lib/energyChartsApi";
-import { buildGermanyPerspectiveFallback, buildGermanyPerspectiveSummaryAndDetails, type GermanyPerspectivePayload } from "@/lib/germanyPerspectiveLlm";
+import {
+  BALANCED_TIER_ROUND_TRIP_EFFICIENCY_PCT,
+  type GermanyDispatchSlotsResponse,
+} from "@/lib/energyChartsApi";
 import {
   computeCyclingFleetSurplusAbsorption,
   computeNetSurplusFleetAbsorption,
@@ -64,7 +62,6 @@ import {
 } from "@/lib/chartFleetSocSnapshot";
 import { Button } from "@/components/ui/button";
 
-import { CompactDetailStat, PerspectiveNarrativeBody, PerspectiveSummaryWithDetails } from "@/components/germany-day-energy-flow/CompactDetailStat";
 import {
   CROSS_BORDER_EXPORT_FILL,
   CROSS_BORDER_IMPORT_FILL,
@@ -226,11 +223,6 @@ export default function GermanyDayEnergyFlow(props: GermanyDayEnergyFlowProps) {
   const [flowChartFullscreenMode, setFlowChartFullscreenMode] = useState<"observed" | "simulated">(() =>
     initialSimulatedNet ? "simulated" : "observed"
   );
-  const [perspectiveNarrative, setPerspectiveNarrative] = useState<string | null>(null);
-  const [perspectiveSource, setPerspectiveSource] = useState<"llm" | "fallback_numeric" | null>(
-    null
-  );
-  const [isPerspectiveLoading, setIsPerspectiveLoading] = useState(false);
   useEffect(() => {
     if (!flowChartFullscreenOpen) {
       return undefined;
@@ -1440,28 +1432,6 @@ export default function GermanyDayEnergyFlow(props: GermanyDayEnergyFlowProps) {
     };
   }, [recommendation]);
 
-  const liveBalancedEconomics = useMemo(() => {
-    if (
-      revenueModel?.marketReference.spotPriceStatus !== "live" ||
-      !recommendationByTier?.balanced
-    ) {
-      return null;
-    }
-    return computeEconomics(
-      {
-        totalPowerMw: recommendationByTier.balanced.recommendedPowerMw,
-        totalEnergyMwh: recommendationByTier.balanced.recommendedEnergyMwh,
-        roundTripEfficiency: 90,
-      },
-      defaultEconomicsAssumptions
-    );
-  }, [recommendationByTier, revenueModel]);
-
-  const balancedRevenueTileValue =
-    liveBalancedEconomics?.annualRevenue ??
-    recommendation?.indicativeEconomicsAtBalancedTier?.annualRevenueEur ??
-    null;
-
   const selectedWindowRecommendation = useMemo(() => {
     if (!flow?.slots.length) {
       return null;
@@ -1953,81 +1923,6 @@ export default function GermanyDayEnergyFlow(props: GermanyDayEnergyFlowProps) {
           : `${customRangeStart} – ${customRangeEnd}`;
   const balancedRecommendation = recommendationByTier?.balanced ?? null;
   const marketReference = revenueModel?.marketReference ?? null;
-
-  useEffect(() => {
-    const balanced = recommendationByTier?.balanced;
-    if (!recommendation || !balanced) {
-      setPerspectiveNarrative(null);
-      setPerspectiveSource(null);
-      return;
-    }
-
-    const controller = new AbortController();
-    const payload = {
-      language,
-      lookbackLabel: `${recommendation.rangeStartBerlin}–${recommendation.rangeEndBerlin}`,
-      recommendedEnergyGwh: balanced.recommendedEnergyMwh / 1_000,
-      recommendedPowerGw: balanced.recommendedPowerMw / 1_000,
-      paybackYears: recommendation.indicativeEconomicsAtBalancedTier?.paybackYears ?? null,
-      absorbedSurplusSharePct: recommendation.impactAtBalancedTier
-        ? recommendation.impactAtBalancedTier.absorbedSurplusShare * 100
-        : null,
-      servedDeficitSharePct: recommendation.impactAtBalancedTier
-        ? recommendation.impactAtBalancedTier.servedDeficitShare * 100
-        : null,
-      annualRevenueEur: balancedRevenueTileValue,
-      peakSocGwh: recommendation.continuousWindowRequiredEnergyMwh / 1_000,
-      windowLabel: selectorLabel,
-    };
-
-    setPerspectiveNarrative(buildGermanyPerspectiveFallback(payload));
-    setPerspectiveSource("fallback_numeric");
-    setIsPerspectiveLoading(true);
-
-    const load = async () => {
-      try {
-        const response = await fetch("/api/briefing/germany-perspective", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error(`perspective ${response.status}`);
-        }
-        const raw: unknown = await response.json();
-        const parsed = z
-          .object({
-            source: z.enum(["llm", "fallback_numeric"]),
-            narrative: z.string().min(1),
-          })
-          .safeParse(raw);
-        if (!parsed.success || controller.signal.aborted) {
-          return;
-        }
-        setPerspectiveNarrative(parsed.data.narrative);
-        setPerspectiveSource(parsed.data.source);
-      } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
-        log("germany perspective fetch failed %o", { error });
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsPerspectiveLoading(false);
-        }
-      }
-    };
-    void load();
-    return () => controller.abort();
-  }, [
-    recommendation,
-    recommendationByTier,
-    language,
-    selectorLabel,
-    balancedRevenueTileValue,
-  ]);
-
 
   // In day mode, we prefer to wait for the 12M recommendation before computing
   // the scenario, to use the P90 balanced capacity rather than today's one-off
@@ -2937,54 +2832,20 @@ export default function GermanyDayEnergyFlow(props: GermanyDayEnergyFlowProps) {
         );
       }
 
-      const sourceLabel =
-        perspectiveSource === "llm" ? t.perspectiveSourceLlm : t.perspectiveSourceFallback;
-
-      const fallbackPayload: GermanyPerspectivePayload = {
-        language,
-        lookbackLabel: `${recommendation.rangeStartBerlin}–${recommendation.rangeEndBerlin}`,
-        recommendedEnergyGwh: balancedRecommendation.recommendedEnergyMwh / 1_000,
-        recommendedPowerGw: balancedRecommendation.recommendedPowerMw / 1_000,
-        paybackYears: recommendation.indicativeEconomicsAtBalancedTier?.paybackYears ?? null,
-        absorbedSurplusSharePct: recommendation.impactAtBalancedTier
-          ? recommendation.impactAtBalancedTier.absorbedSurplusShare * 100
-          : null,
-        servedDeficitSharePct: recommendation.impactAtBalancedTier
-          ? recommendation.impactAtBalancedTier.servedDeficitShare * 100
-          : null,
-        annualRevenueEur: balancedRevenueTileValue,
-        peakSocGwh: recommendation.continuousWindowRequiredEnergyMwh / 1_000,
-        windowLabel: selectorLabel,
-      };
-
-      const useLlmNarrative = perspectiveNarrative && perspectiveSource === "llm";
-
+      const economics = recommendation.indicativeEconomicsAtBalancedTier;
       return (
-        <section
-          className="rounded-xl border border-border/70 bg-muted/20 px-4 py-4 dark:border-slate-600/45 dark:bg-slate-950/25"
-          aria-labelledby="twelve-month-perspective-heading"
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p
-              id="twelve-month-perspective-heading"
-              className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400"
-            >
-              {t.perspectiveSectionTitle}
-            </p>
-            <p className="text-[9px] text-slate-400 dark:text-slate-500">
-              {isPerspectiveLoading ? t.perspectiveLoading : sourceLabel}
-            </p>
-          </div>
-          {useLlmNarrative ? (
-            <PerspectiveNarrativeBody text={perspectiveNarrative} />
-          ) : (
-            <PerspectiveSummaryWithDetails
-              summaryText={buildGermanyPerspectiveSummaryAndDetails(fallbackPayload).summary}
-              detailsText={buildGermanyPerspectiveSummaryAndDetails(fallbackPayload).details}
-              detailsLabel={t.perspectiveDetailsToggle}
-            />
-          )}
-        </section>
+        <AnnualPerspectiveEstimateView
+          copy={buildAnnualPerspectiveCopy({
+            language,
+            recommendedEnergyMwh: balancedRecommendation.recommendedEnergyMwh,
+            recommendedPowerMw: balancedRecommendation.recommendedPowerMw,
+            absorbedSurplusShare: recommendation.impactAtBalancedTier?.absorbedSurplusShare ?? null,
+            servedDeficitShare: recommendation.impactAtBalancedTier?.servedDeficitShare ?? null,
+            annualRevenueEur: economics?.annualRevenueEur ?? null,
+            paybackYears: economics?.paybackYears ?? null,
+            roundTripEfficiencyPct: BALANCED_TIER_ROUND_TRIP_EFFICIENCY_PCT,
+          })}
+        />
       );
     };
 

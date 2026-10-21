@@ -1,14 +1,14 @@
 import { z } from "zod";
 
 /**
- * Indicative pre-sales economics only — not investment advice, not a guarantee
- * of performance. Intended for BESS sales-engineering interview / demo workflows.
+ * Indicative planning economics only — not investment advice, not a guarantee
+ * of performance. A simplified throughput model for the public demo.
  */
 
-export const packTypeSchema = z.enum(["megapack-2-xl", "megapack-2", "custom"]);
+export const packTypeSchema = z.enum(["preset-standard", "preset-compact", "custom"]);
 export type PackType = z.infer<typeof packTypeSchema>;
 
-export const projectMegapackConfigSchema = z.object({
+export const projectBessConfigSchema = z.object({
   packType: packTypeSchema,
   label: z.string().min(1),
   count: z.number().int().nonnegative(),
@@ -19,7 +19,7 @@ export const projectMegapackConfigSchema = z.object({
   roundTripEfficiency: z.number().min(0).max(100),
 });
 
-export type ProjectMegapackConfig = z.infer<typeof projectMegapackConfigSchema>;
+export type ProjectBessConfig = z.infer<typeof projectBessConfigSchema>;
 
 export const gridRegulatoryScenarioSchema = z.enum([
   "baseline",
@@ -142,7 +142,7 @@ const REVENUE_SPLIT = {
  */
 export function computeEconomics(
   physical: Pick<
-    ProjectMegapackConfig,
+    ProjectBessConfig,
     "totalPowerMw" | "totalEnergyMwh" | "roundTripEfficiency"
   >,
   assumptions: EconomicsAssumptions,
@@ -278,14 +278,14 @@ export function computeEconomics(
 }
 
 export function aggregateProjectConfigurations(
-  configs: ProjectMegapackConfig[]
-): ProjectMegapackConfig | null {
+  configs: ProjectBessConfig[]
+): ProjectBessConfig | null {
   if (configs.length === 0) {
     return null;
   }
 
   if (configs.length === 1) {
-    return projectMegapackConfigSchema.parse(configs[0]);
+    return projectBessConfigSchema.parse(configs[0]);
   }
 
   const totalPowerMw = configs.reduce((sum, config) => sum + config.totalPowerMw, 0);
@@ -301,7 +301,7 @@ export function aggregateProjectConfigurations(
         ) / totalEnergyMwh
       : configs[0]!.roundTripEfficiency;
 
-  return projectMegapackConfigSchema.parse({
+  return projectBessConfigSchema.parse({
     packType: "custom",
     label: `Aggregated stack (${configs.length} blocks)`,
     count,

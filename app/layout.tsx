@@ -29,22 +29,23 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: {
-    default: "SpeicherPilot — Batteriespeicher live verstehen",
+    default: "SpeicherPilot — battery storage & grid connection planner",
     template: "%s | SpeicherPilot",
   },
   description:
-    "Live-Daten aus Energy-Charts: Tägliches Stromprofil für Deutschland, Speicher-Simulation und Marktüberblick — Fraunhofer-ISE-Daten.",
+    "SpeicherPilot — battery storage & grid connection planner. Live Germany generation and load from Energy-Charts, storage simulation, and a labelled model estimate.",
   openGraph: {
-    title: "SpeicherPilot — Batteriespeicher live verstehen",
-    description: "Live-Stromprofil für Deutschland, Speicher-Simulation und Marktüberblick — Energy-Charts-Daten.",
+    title: "SpeicherPilot — battery storage & grid connection planner",
+    description:
+      "battery storage & grid connection planner. Live Germany power balance from Energy-Charts, with a labelled storage model.",
     type: "website",
     url: siteOrigin,
     siteName: "SpeicherPilot",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SpeicherPilot — Batteriespeicher live verstehen",
-    description: "Energiewende-Signale für Deutschland — täglich aktuell.",
+    title: "SpeicherPilot — battery storage & grid connection planner",
+    description: "battery storage & grid connection planner — live Germany power balance.",
     ...(xSiteHandle ? { site: `@${xSiteHandle}` as const } : {}),
     ...(xCreatorHandle ? { creator: `@${xCreatorHandle}` as const } : {}),
   },

@@ -23,7 +23,8 @@ type GermanyMarketSnapshot = {
     unit: "MW";
     timestampIso: string;
     loadMw: number;
-    domesticGenerationMw: number;
+    domesticGenerationMw: number | null;
+    renewableShareOfGenerationPct?: number | null;
     batteryStorageMw: number | null;
     residualLoadMw?: number;
     renewableShareOfLoadPct?: number;
@@ -190,7 +191,8 @@ function RealtimeSystemPanel({
 }: {
   realtime: GermanyMarketSnapshot["realtimeSystem"];
 }) {
-  const surplusMw = realtime.domesticGenerationMw - realtime.loadMw;
+  const surplusMw =
+    realtime.domesticGenerationMw === null ? null : realtime.domesticGenerationMw - realtime.loadMw;
   const timestampLabel = new Date(realtime.timestampIso).toLocaleString("de-DE", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -217,7 +219,9 @@ function RealtimeSystemPanel({
             Domestic generation
           </p>
           <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
-            {formatAdaptivePower(realtime.domesticGenerationMw)}
+            {realtime.domesticGenerationMw === null
+              ? "n/a"
+              : formatAdaptivePower(realtime.domesticGenerationMw)}
           </p>
         </div>
         <div className="rounded-lg border border-slate-200/80 bg-white/60 px-3 py-2 dark:border-slate-600/40 dark:bg-slate-950/30">
@@ -239,10 +243,14 @@ function RealtimeSystemPanel({
 
       <p className="mt-4 text-sm font-medium text-slate-800 dark:text-slate-100">
         Domestic surplus / deficit (excl. imports):{" "}
-        <span className={surplusMw >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-amber-800 dark:text-amber-300"}>
-          {surplusMw >= 0 ? "+" : ""}
-          {formatAdaptivePower(surplusMw)}
-        </span>
+        {surplusMw === null ? (
+          <span className="text-slate-600 dark:text-slate-300">n/a — generation not published</span>
+        ) : (
+          <span className={surplusMw >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-amber-800 dark:text-amber-300"}>
+            {surplusMw >= 0 ? "+" : ""}
+            {formatAdaptivePower(surplusMw)}
+          </span>
+        )}
       </p>
 
       {realtime.residualLoadMw !== undefined || realtime.renewableShareOfLoadPct !== undefined ? (

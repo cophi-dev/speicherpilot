@@ -368,6 +368,81 @@ describe("getGermanyMarketSnapshot evening + daily aggregates", () => {
   });
 });
 
+describe("getGermanyMarketSnapshot live alignment", () => {
+  afterEach(() => {
+    clearEnergyChartsResponseCache();
+    jest.resetAllMocks();
+    delete (globalThis as { fetch?: typeof fetch }).fetch;
+  });
+
+  it("anchors generation on the last published quarter-hour when load runs ahead", async () => {
+    const points = 4;
+    const anchorUnixSeconds = 1_718_402_400;
+    const publishedGeneration = [18_000, 8_000, 12_000];
+    const totalPower = {
+      unix_seconds: Array.from({ length: points }, (_, index) => anchorUnixSeconds + index * 900),
+      production_types: [
+        { name: "Load (incl. self-consumption)", data: [50_000, 50_000, 50_000, 62_000] },
+        { name: "Residual load", data: [24_000, 24_000, 24_000, null] },
+        { name: "Renewable share of generation", data: [40, 40, 40, null] },
+        { name: "Solar", data: [publishedGeneration[0], publishedGeneration[0], publishedGeneration[0], null] },
+        { name: "Wind onshore", data: [publishedGeneration[1], publishedGeneration[1], publishedGeneration[1], null] },
+        { name: "Fossil hard coal", data: [publishedGeneration[2], publishedGeneration[2], publishedGeneration[2], null] },
+      ],
+    };
+
+    (globalThis as { fetch: typeof fetch }).fetch = jest.fn(async (input: string | URL | Request) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.includes("/installed_power?country=de")) {
+        return makeJsonResponse(installedPowerPayload);
+      }
+      if (url.includes("/total_power?country=de")) {
+        return makeJsonResponse(totalPower);
+      }
+      return makeJsonResponse({ message: "not found" }, 404);
+    }) as unknown as typeof fetch;
+
+    const snapshot = await getGermanyMarketSnapshot();
+
+    expect(snapshot.realtimeSystem.domesticGenerationMw).toBe(18_000 + 8_000 + 12_000);
+    expect(snapshot.realtimeSystem.loadMw).toBe(50_000);
+    expect(snapshot.realtimeSystem.timestampIso).toBe(
+      new Date((anchorUnixSeconds + 2 * 900) * 1000).toISOString()
+    );
+    expect(snapshot.realtimeSystem.renewableShareOfGenerationPct).toBeCloseTo(40, 3);
+    expect(snapshot.energyUsage.latestValueMw).toBe(62_000);
+  });
+
+  it("reports generation as unavailable instead of 0 MW when no generation series is published", async () => {
+    const totalPower = {
+      unix_seconds: [1_718_402_400, 1_718_403_300],
+      production_types: [
+        { name: "Load (incl. self-consumption)", data: [61_000, 62_000] },
+        { name: "Residual load", data: [null, null] },
+        { name: "Solar", data: [null, null] },
+        { name: "Fossil gas", data: [null, null] },
+      ],
+    };
+
+    (globalThis as { fetch: typeof fetch }).fetch = jest.fn(async (input: string | URL | Request) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.includes("/installed_power?country=de")) {
+        return makeJsonResponse(installedPowerPayload);
+      }
+      if (url.includes("/total_power?country=de")) {
+        return makeJsonResponse(totalPower);
+      }
+      return makeJsonResponse({ message: "not found" }, 404);
+    }) as unknown as typeof fetch;
+
+    const snapshot = await getGermanyMarketSnapshot();
+
+    expect(snapshot.realtimeSystem.domesticGenerationMw).toBeNull();
+    expect(snapshot.realtimeSystem.loadMw).toBe(62_000);
+    expect(snapshot.realtimeSystem.renewableShareOfGenerationPct).toBeNull();
+  });
+});
+
 describe("getGermanyMarketSnapshot resilience", () => {
   afterEach(() => {
     jest.resetAllMocks();

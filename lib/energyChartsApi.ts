@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getBerlinDateKeyFromUnixSeconds as getBerlinDateKey } from "@/lib/berlinCalendar";
 import { computeEconomics, defaultEconomicsAssumptions } from "@/lib/bessEconomics";
 import { createLogger } from "@/lib/debug";
+import { readAlignedGermanyRealtime } from "@/lib/realtimeSystemSnapshot";
 import {
   getDesignatedCurtailmentMwByTimestampForBerlinRange,
   hasNetztransparenzCurtailmentConfig,
@@ -230,13 +231,6 @@ const valueAtIndexWithFallback = (
   }
   return null;
 };
-
-const pickLatestAvailableValue = (
-  data: Array<number | null>,
-  primaryIndex: number
-): number | null =>
-  valueAtIndexWithFallback(data, primaryIndex, 96) ??
-  valueAtIndexWithFallback(data, data.length - 1, data.length);
 
 const sumDomesticGenerationMw = (
   productionTypes: { name: string; data: Array<number | null> }[],
@@ -524,10 +518,13 @@ export type GermanyMarketSnapshot = {
     unit: "MW";
     timestampIso: string;
     loadMw: number;
-    domesticGenerationMw: number;
+    /** Null when Energy-Charts has not published generation for any load sample. */
+    domesticGenerationMw: number | null;
     batteryStorageMw: number | null;
     residualLoadMw?: number;
     renewableShareOfLoadPct?: number;
+    /** Renewable share of domestic generation, 0–100. Null or omitted when generation is unpublished. */
+    renewableShareOfGenerationPct?: number | null;
   };
   eveningWindow: EveningWindowSnapshot | null;
   dailyEnergy: DailyEnergySnapshot | null;
@@ -1288,7 +1285,6 @@ const buildGermanyMarketSnapshot = ({
     "Load (incl. self-consumption)"
   );
   const loadPoint = getLatestNonNullPoint(totalPower.unix_seconds, loadSeries.data);
-  const loadIndex = loadPoint.index;
   const trailingLoadValues = loadSeries.data.filter((value): value is number => value !== null).slice(-96);
   const trailing24hAverageMw =
     trailingLoadValues.reduce((sum, value) => sum + value, 0) / trailingLoadValues.length;
@@ -1305,50 +1301,30 @@ const buildGermanyMarketSnapshot = ({
   const capacityPoint = getLatestNonNullPoint(installedPower.time, batteryCapacitySeries.data);
   const powerPoint = getLatestNonNullPoint(installedPower.time, batteryPowerSeries.data);
 
-  const domesticGenerationMw = sumDomesticGenerationMw(totalPower.production_types, loadIndex);
-  const batteryGridSeries = findBatteryStorageSeries(totalPower.production_types);
-  const batteryStorageMw =
-    batteryGridSeries === undefined
-      ? null
-      : valueAtIndexWithFallback(batteryGridSeries.data, loadIndex);
-
-  const residualSeries = findResidualLoadSeries(totalPower.production_types);
-  const residualValue =
-    residualSeries === undefined
-      ? loadPoint.value - domesticGenerationMw
-      : pickLatestAvailableValue(residualSeries.data, loadIndex) ?? (loadPoint.value - domesticGenerationMw);
-
-  const renewableShareSeries = totalPower.production_types.find(
-    (entry) => entry.name === "Renewable share of load"
-  );
-  const derivedRenewableShareSeries = deriveRenewableShareOfLoadSeries(
-    totalPower.production_types,
-    loadSeries
-  );
-  const mergedRenewableShareSeries =
-    renewableShareSeries === undefined
-      ? derivedRenewableShareSeries
-      : mergeRenewableShareSeries(renewableShareSeries.data, derivedRenewableShareSeries);
-  const renewableShareFromResidual =
-    residualValue !== null && loadPoint.value > 0
-      ? ((loadPoint.value - residualValue) / loadPoint.value) * 100
-      : null;
-  const renewableShareFromSeries =
-    mergedRenewableShareSeries.length === 0
-      ? null
-      : pickLatestAvailableValue(mergedRenewableShareSeries, loadIndex);
-  const renewableShareValue = renewableShareFromResidual ?? renewableShareFromSeries;
+  const alignedRealtime = readAlignedGermanyRealtime({
+    unixSeconds: totalPower.unix_seconds,
+    productionTypes: totalPower.production_types,
+  });
+  if (alignedRealtime === null) {
+    throw new Error("No non-null data points available");
+  }
 
   const realtimeSystem: GermanyMarketSnapshot["realtimeSystem"] = {
     unit: "MW",
-    timestampIso: new Date(loadPoint.label * 1000).toISOString(),
-    loadMw: loadPoint.value,
-    domesticGenerationMw,
-    batteryStorageMw,
-    ...(residualValue !== null ? { residualLoadMw: residualValue } : {}),
-    ...(renewableShareValue !== null ? { renewableShareOfLoadPct: renewableShareValue } : {}),
+    timestampIso: new Date(alignedRealtime.timestampUnixSeconds * 1000).toISOString(),
+    loadMw: alignedRealtime.loadMw,
+    domesticGenerationMw: alignedRealtime.domesticGenerationMw,
+    batteryStorageMw: alignedRealtime.batteryStorageMw,
+    ...(alignedRealtime.residualLoadMw !== null
+      ? { residualLoadMw: alignedRealtime.residualLoadMw }
+      : {}),
+    ...(alignedRealtime.renewableShareOfLoadPct !== null
+      ? { renewableShareOfLoadPct: alignedRealtime.renewableShareOfLoadPct }
+      : {}),
+    renewableShareOfGenerationPct: alignedRealtime.renewableShareOfGenerationPct,
   };
 
+  const residualSeries = findResidualLoadSeries(totalPower.production_types);
   const eveningWindow = computeEveningWindowSnapshot({
     unixSeconds: totalPower.unix_seconds,
     loadSeries,
@@ -1458,6 +1434,8 @@ export const getGermanyEnergyFlowForBerlinRange = async (
 };
 
 const TRAILING_BESS_RECOMMENDATION_LOOKBACK_DAYS = 365;
+/** RTE passed into `computeEconomics` for the public balanced-tier throughput estimate. */
+export const BALANCED_TIER_ROUND_TRIP_EFFICIENCY_PCT = 90;
 
 export const getGermanyBessRecommendationTrailingWindow = async (
   lookbackDays: number = TRAILING_BESS_RECOMMENDATION_LOOKBACK_DAYS,
@@ -1530,7 +1508,7 @@ export const getGermanyBessRecommendationTrailingWindow = async (
           {
             totalPowerMw: balancedTier.recommendedPowerMw,
             totalEnergyMwh: balancedTier.recommendedEnergyMwh,
-            roundTripEfficiency: 90,
+            roundTripEfficiency: BALANCED_TIER_ROUND_TRIP_EFFICIENCY_PCT,
           },
           defaultEconomicsAssumptions
         );

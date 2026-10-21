@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { PackType, ProjectMegapackConfig } from "@/lib/bessEconomics";
-import { teslaMegapackSpecs } from "@/lib/teslaMegapack";
+import type { PackType, ProjectBessConfig } from "@/lib/bessEconomics";
+import { bessExamplePresets } from "@/lib/bessExamplePresets";
 
-export type { ProjectMegapackConfig } from "@/lib/bessEconomics";
+export type { ProjectBessConfig } from "@/lib/bessEconomics";
 
-type MegapackConfiguratorProps = {
-  onAddToProject: (config: ProjectMegapackConfig) => void;
-  onConfigChange?: (config: ProjectMegapackConfig) => void;
+type BessConfiguratorProps = {
+  onAddToProject: (config: ProjectBessConfig) => void;
+  onConfigChange?: (config: ProjectBessConfig) => void;
 };
 
 const getSliderValue = (value: number | readonly number[]) =>
@@ -63,14 +63,14 @@ function MetricCard({
   );
 }
 
-export default function MegapackConfigurator({
+export default function BessConfigurator({
   onAddToProject,
   onConfigChange,
-}: MegapackConfiguratorProps) {
-  const [packType, setPackType] = useState<PackType>("megapack-2-xl");
+}: BessConfiguratorProps) {
+  const [packType, setPackType] = useState<PackType>("preset-standard");
   const [count, setCount] = useState(12);
 
-  const selectedPack = teslaMegapackSpecs[packType];
+  const selectedPack = bessExamplePresets[packType];
 
   const totals = useMemo(() => {
     return {
@@ -81,7 +81,7 @@ export default function MegapackConfigurator({
     };
   }, [count, selectedPack]);
 
-  const liveConfig = useMemo<ProjectMegapackConfig>(
+  const liveConfig = useMemo<ProjectBessConfig>(
     () => ({
       packType,
       label: selectedPack.label,
@@ -110,7 +110,7 @@ export default function MegapackConfigurator({
             Configure your BESS sizing
           </h2>
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Pick a Megapack type and quantity to generate the technical baseline used across the
+            Pick an example preset and quantity to generate the technical baseline used across the
             rest of this page.
           </p>
         </div>
@@ -121,16 +121,16 @@ export default function MegapackConfigurator({
             variant="default"
           >
             <TabsTrigger
-              value="megapack-2-xl"
+              value="preset-standard"
               className="data-active:bg-blue-500 data-active:text-white dark:data-active:bg-blue-400 dark:data-active:text-slate-900"
             >
-              Megapack 2 XL
+              {bessExamplePresets["preset-standard"].label}
             </TabsTrigger>
             <TabsTrigger
-              value="megapack-2"
+              value="preset-compact"
               className="data-active:bg-blue-500 data-active:text-white dark:data-active:bg-blue-400 dark:data-active:text-slate-900"
             >
-              Megapack 2
+              {bessExamplePresets["preset-compact"].label}
             </TabsTrigger>
             <TabsTrigger
               value="custom"

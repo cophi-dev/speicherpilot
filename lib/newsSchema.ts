@@ -3,7 +3,7 @@ import { z } from "zod";
 export const newsCategorySchema = z.enum([
   "industry_milestone",
   "germany",
-  "tesla_megapack",
+  "storage_projects",
   "regulation",
 ]);
 

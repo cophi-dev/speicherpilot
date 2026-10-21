@@ -3,6 +3,7 @@
 import { format, isSameDay, isWithinInterval, parseISO } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { de, enUS } from "react-day-picker/locale";
 
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -186,6 +187,7 @@ export function BerlinDateRangeCalendarButton({
           ) : null}
         </div>
         <Calendar
+          locale={language === "de" ? de : enUS}
           mode="single"
           selected={calendarSelected}
           defaultMonth={pendingStart ?? priorTo}

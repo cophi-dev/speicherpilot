@@ -149,10 +149,8 @@ export function SiteShell({ children }: SiteShellProps) {
                   className="hidden h-3.5 w-px bg-border/70 dark:bg-white/10 sm:inline-block"
                   aria-hidden
                 />
-                <span className="hidden truncate text-[10.5px] font-medium leading-none tracking-[0.22em] text-muted-foreground/80 uppercase sm:inline">
-                  {language === "de"
-                    ? "BESS-Planung & Einsatzsimulation"
-                    : "BESS Planning & Dispatch Simulator"}
+                <span className="hidden max-w-[16rem] truncate text-[11px] font-medium leading-none tracking-normal text-muted-foreground/80 sm:inline md:max-w-none">
+                  battery storage & grid connection planner
                 </span>
               </div>
             </Link>

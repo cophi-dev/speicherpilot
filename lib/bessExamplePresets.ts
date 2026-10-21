@@ -1,6 +1,10 @@
 import type { PackType } from "@/lib/bessEconomics";
 
-export type TeslaMegapackSpec = {
+/**
+ * Illustrative nameplate presets for the sizing demo.
+ * These are not a vendor catalog and are not tied to a specific product line.
+ */
+export type BessExamplePreset = {
   id: PackType;
   label: string;
   powerMw: number;
@@ -10,19 +14,19 @@ export type TeslaMegapackSpec = {
   efficiency: number;
 };
 
-export const teslaMegapackSpecs: Record<PackType, TeslaMegapackSpec> = {
-  "megapack-2-xl": {
-    id: "megapack-2-xl",
-    label: "Megapack 2 XL",
+export const bessExamplePresets: Record<PackType, BessExamplePreset> = {
+  "preset-standard": {
+    id: "preset-standard",
+    label: "Standard preset",
     powerMw: 1.927,
     energyMwh: 3.854,
     footprintM2: 57.4,
     weightTons: 38.2,
     efficiency: 92.5,
   },
-  "megapack-2": {
-    id: "megapack-2",
-    label: "Megapack 2",
+  "preset-compact": {
+    id: "preset-compact",
+    label: "Compact preset",
     powerMw: 1.9,
     energyMwh: 3.2,
     footprintM2: 52.1,
@@ -40,13 +44,13 @@ export const teslaMegapackSpecs: Record<PackType, TeslaMegapackSpec> = {
   },
 };
 
-export function getMegapackEquivalent(params: {
+export function getExamplePackEquivalent(params: {
   powerMw: number;
   capacityMwh: number;
   referencePackType?: PackType;
 }) {
-  const { powerMw, capacityMwh, referencePackType = "megapack-2-xl" } = params;
-  const referencePack = teslaMegapackSpecs[referencePackType];
+  const { powerMw, capacityMwh, referencePackType = "preset-standard" } = params;
+  const referencePack = bessExamplePresets[referencePackType];
   const packsByPower = referencePack.powerMw > 0 ? powerMw / referencePack.powerMw : 0;
   const packsByEnergy = referencePack.energyMwh > 0 ? capacityMwh / referencePack.energyMwh : 0;
   const requiredPacks = Math.max(packsByPower, packsByEnergy);

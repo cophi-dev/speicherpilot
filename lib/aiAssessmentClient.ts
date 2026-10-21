@@ -24,7 +24,7 @@ const requestContextSchema = z.object({
     }),
     realtimeSystem: z.object({
       loadMw: z.number(),
-      domesticGenerationMw: z.number(),
+      domesticGenerationMw: z.number().nullable(),
       batteryStorageMw: z.number().nullable(),
       residualLoadMw: z.number().optional(),
       renewableShareOfLoadPct: z.number().optional(),

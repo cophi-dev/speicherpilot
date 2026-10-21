@@ -21,7 +21,7 @@ import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { createLogger } from "@/lib/debug";
-import { getMegapackEquivalent } from "@/lib/teslaMegapack";
+import { getExamplePackEquivalent } from "@/lib/bessExamplePresets";
 
 const log = createLogger("dispatch-simulator");
 
@@ -248,10 +248,10 @@ const copy = {
     powerHint: "AC nameplate power, charge and discharge symmetric.",
     capacityLabel: "Capacity (MWh)",
     capacityHint: "Usable energy capacity. Default 2,000 MWh ≈ 4h at 500 MW.",
-    megapackRefTitle: "Megapack reference",
-    megapackRefHeadline: (packs: string) =>
-      `This simulator size is roughly ${packs} Megapack 2 XL units.`,
-    megapackRefDetail: (powerPacks: string, energyPacks: string) =>
+    examplePackRefTitle: "Example pack reference",
+    examplePackRefHeadline: (packs: string) =>
+      `This simulator size is roughly ${packs} standard example packs.`,
+    examplePackRefDetail: (powerPacks: string, energyPacks: string) =>
       `Power basis ${powerPacks} packs · Energy basis ${energyPacks} packs.`,
     rteLabel: "Round-trip efficiency (%)",
     rteHint: "Applied symmetrically as √η on each side.",
@@ -372,10 +372,10 @@ const copy = {
     powerHint: "AC-Nennleistung, symmetrisch für Lade- und Entladevorgang.",
     capacityLabel: "Kapazität (MWh)",
     capacityHint: "Nutzbare Energiekapazität. Default 2.000 MWh ≈ 4h bei 500 MW.",
-    megapackRefTitle: "Megapack-Referenz",
-    megapackRefHeadline: (packs: string) =>
-      `Diese Simulator-Größe entspricht grob ${packs} Megapack 2 XL Einheiten.`,
-    megapackRefDetail: (powerPacks: string, energyPacks: string) =>
+    examplePackRefTitle: "Beispiel-Pack",
+    examplePackRefHeadline: (packs: string) =>
+      `Diese Simulator-Größe entspricht grob ${packs} Standard-Beispielpacks.`,
+    examplePackRefDetail: (powerPacks: string, energyPacks: string) =>
       `Leistungsbasis ${powerPacks} Packs · Energiebasis ${energyPacks} Packs.`,
     rteLabel: "Round-Trip Efficiency (%)",
     rteHint: "Symmetrisch als √η auf jeder Seite angewandt.",
@@ -524,8 +524,8 @@ export default function BessDispatchSimulator() {
   const [error, setError] = useState<string | null>(null);
 
   const durationHours = capacityMwh > 0 && powerMw > 0 ? capacityMwh / powerMw : 0;
-  const megapackEquivalent = useMemo(
-    () => getMegapackEquivalent({ powerMw, capacityMwh, referencePackType: "megapack-2-xl" }),
+  const examplePackEquivalent = useMemo(
+    () => getExamplePackEquivalent({ powerMw, capacityMwh, referencePackType: "preset-standard" }),
     [capacityMwh, powerMw]
   );
 
@@ -705,20 +705,20 @@ export default function BessDispatchSimulator() {
 
           <div className="mt-4 rounded-2xl border border-emerald-400/30 bg-emerald-50/70 px-4 py-3 dark:border-emerald-400/20 dark:bg-emerald-500/8">
             <p className="text-[11px] font-semibold tracking-[0.14em] text-emerald-800 uppercase dark:text-emerald-200">
-              {t.megapackRefTitle}
+              {t.examplePackRefTitle}
             </p>
             <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">
-              {t.megapackRefHeadline(
-                INTEGER_FORMATTER.format(megapackEquivalent.roundedRequiredPacks)
+              {t.examplePackRefHeadline(
+                INTEGER_FORMATTER.format(examplePackEquivalent.roundedRequiredPacks)
               )}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-              {t.megapackRefDetail(
-                NUMBER_FORMATTER.format(megapackEquivalent.packsByPower),
-                NUMBER_FORMATTER.format(megapackEquivalent.packsByEnergy)
+              {t.examplePackRefDetail(
+                NUMBER_FORMATTER.format(examplePackEquivalent.packsByPower),
+                NUMBER_FORMATTER.format(examplePackEquivalent.packsByEnergy)
               )}{" "}
-              ({NUMBER_FORMATTER.format(megapackEquivalent.referencePack.powerMw)} MW /{" "}
-              {NUMBER_FORMATTER.format(megapackEquivalent.referencePack.energyMwh)} MWh each).
+              ({NUMBER_FORMATTER.format(examplePackEquivalent.referencePack.powerMw)} MW /{" "}
+              {NUMBER_FORMATTER.format(examplePackEquivalent.referencePack.energyMwh)} MWh each).
             </p>
           </div>
 

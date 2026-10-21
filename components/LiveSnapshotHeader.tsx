@@ -103,6 +103,12 @@ export function LiveSnapshotHeader({
     berlinTz: language === "de" ? "Europa/Berlin" : "Europe/Berlin",
     livePrefix: language === "de" ? "Live" : "Live",
     unavailable: language === "de" ? "n. v." : "n/a",
+    generationMissing:
+      language === "de"
+        ? "Keine veröffentlichte Erzeugung — nicht 0 GW"
+        : "No published generation — not 0 GW",
+    netNeedsGeneration:
+      language === "de" ? "Bilanz braucht Erzeugungsdaten" : "Balance needs generation data",
     charging: language === "de" ? "Laden" : "Charging",
     discharging: language === "de" ? "Entladen" : "Discharging",
     idle: language === "de" ? "Stillstand" : "Idle",
@@ -258,10 +264,18 @@ export function LiveSnapshotHeader({
                     </KpiValue>
                   </p>
                   <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
-                    {labels.genSub}:{" "}
-                    <span className="font-medium text-emerald-700/90 dark:text-emerald-300/90">
-                      {renewableSharePct !== null ? `${pctFormatter.format(renewableSharePct)} %` : labels.unavailable}
-                    </span>
+                    {generationGw === null ? (
+                      labels.generationMissing
+                    ) : (
+                      <>
+                        {labels.genSub}:{" "}
+                        <span className="font-medium text-emerald-700/90 dark:text-emerald-300/90">
+                          {renewableSharePct !== null
+                            ? `${pctFormatter.format(renewableSharePct)} %`
+                            : labels.unavailable}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </>
               )}
@@ -327,11 +341,13 @@ export function LiveSnapshotHeader({
                     )}
                   </KpiValue>
                 </p>
-                {netPositionGw !== null ? (
-                  <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
-                    {language === "de" ? "Erzeugung − Last" : "Generation − demand"}
-                  </p>
-                ) : null}
+                <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                  {netPositionGw !== null
+                    ? language === "de"
+                      ? "Erzeugung − Last"
+                      : "Generation − demand"
+                    : labels.netNeedsGeneration}
+                </p>
               </>
             )}
           </article>
