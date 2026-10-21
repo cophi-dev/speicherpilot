@@ -429,6 +429,7 @@
 .sim-sl {
   position: relative;
   margin-top: 40px;
+  --sat: 100;
 }
 
 .sim-bub {
@@ -474,7 +475,10 @@
 .sim-sl input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(90deg, hsl(var(--primary)) 0 calc(var(--p) * 1%), hsl(var(--border-strong)) calc(var(--p) * 1%) 100%);
+  background-image:
+    linear-gradient(90deg, hsl(var(--primary)) 0 calc(min(var(--p), var(--sat)) * 1%), hsl(var(--border-strong)) calc(min(var(--p), var(--sat)) * 1%) calc(var(--sat) * 1%), transparent calc(var(--sat) * 1%)),
+    repeating-linear-gradient(90deg, hsl(var(--muted-foreground)) 0 2px, transparent 2px 5px);
+  background-repeat: no-repeat;
 }
 
 .sim-sl input[type="range"]::-webkit-slider-thumb {
@@ -490,7 +494,10 @@
 .sim-sl input[type="range"]::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(90deg, hsl(var(--primary)) 0 calc(var(--p) * 1%), hsl(var(--border-strong)) calc(var(--p) * 1%) 100%);
+  background-image:
+    linear-gradient(90deg, hsl(var(--primary)) 0 calc(min(var(--p), var(--sat)) * 1%), hsl(var(--border-strong)) calc(min(var(--p), var(--sat)) * 1%) calc(var(--sat) * 1%), transparent calc(var(--sat) * 1%)),
+    repeating-linear-gradient(90deg, hsl(var(--muted-foreground)) 0 2px, transparent 2px 5px);
+  background-repeat: no-repeat;
 }
 
 .sim-sl input[type="range"]::-moz-range-thumb {
@@ -531,6 +538,14 @@
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.02em;
+}
+
+.sim-sat {
+  margin-top: 8px;
+  max-width: 36ch;
+  font-size: 13px;
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
 }
 
 .sim-delta {
@@ -891,6 +906,10 @@
 .sim-chart .an.s {
   fill: hsl(var(--foreground));
   font-weight: 500;
+  paint-order: stroke;
+  stroke: hsl(var(--card));
+  stroke-width: 6px;
+  stroke-linejoin: round;
 }
 
 .sim-chart .an.r {

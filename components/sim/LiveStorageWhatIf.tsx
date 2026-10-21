@@ -62,6 +62,19 @@ function formatGwh(value: number, language: AppLanguage) {
   return formatQuantity(value, language, digits);
 }
 
+/** Smallest multiple after which a larger fleet takes in no more surplus. */
+function saturationFactor(stories: Record<LiveDispatchFactor, LiveDispatchStory>): LiveDispatchFactor | null {
+  const factors = LIVE_DISPATCH_FACTORS;
+  for (let index = 0; index < factors.length - 1; index += 1) {
+    const charged = stories[factors[index]].chargedGwh;
+    const capped = factors.slice(index + 1).every((step) => stories[step].chargedGwh <= charged + 0.05);
+    if (capped && charged > 0.05) {
+      return factors[index];
+    }
+  }
+  return null;
+}
+
 function lerpPoints(from: LiveDispatchPoint[], to: LiveDispatchPoint[], amount: number): LiveDispatchPoint[] {
   return to.map((point, index) => {
     const prev = from[index] ?? point;
@@ -179,6 +192,7 @@ export function LiveStorageWhatIf({ dispatch }: { dispatch: LiveDispatchInput })
   }
 
   const stop = STOPS.find((item) => item.factor === factor) ?? STOPS[2];
+  const saturated = stories ? saturationFactor(stories) : null;
   const samples = toSamples(shown.length > 0 ? shown : story?.points ?? []);
 
   return (
@@ -204,6 +218,8 @@ export function LiveStorageWhatIf({ dispatch }: { dispatch: LiveDispatchInput })
             fallback={dispatch.fallback}
             intro={intro}
             stop={stop}
+            saturation={saturated}
+            saturationChargedGwh={saturated && stories ? stories[saturated].chargedGwh : null}
             sliderId={sliderId}
             language={language}
             onChoose={choose}
@@ -235,6 +251,8 @@ function LiveChart({
   fallback,
   intro,
   stop,
+  saturation,
+  saturationChargedGwh,
   sliderId,
   language,
   onChoose,
@@ -247,6 +265,8 @@ function LiveChart({
   fallback: boolean;
   intro: boolean;
   stop: { factor: LiveDispatchFactor; pos: number };
+  saturation: LiveDispatchFactor | null;
+  saturationChargedGwh: number | null;
   sliderId: string;
   language: AppLanguage;
   onChoose: (next: LiveDispatchFactor) => void;
@@ -260,10 +280,21 @@ function LiveChart({
   const beforeLabel = beforeShown == null ? "" : formatGw(beforeShown, language);
   const afterLabel = afterShown == null ? "" : formatGw(afterShown, language);
   const discharged = `${formatGwh(story.dischargedGwh, language)} GWh ${tx("entladen", "discharged")}`;
+  const charged = `${formatGwh(story.chargedGwh, language)} GWh ${tx("geladen", "charged")}`;
+  const endPct = story.energyMwh > 0 ? (story.endSocGwh / (story.energyMwh / 1000)) * 100 : 0;
   const chargedNote = tx(
-    `Geladen ${formatGwh(story.chargedGwh, language)} GWh einschließlich Verluste. Wirkungsgrad ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)} % (Annahme).`,
-    `Charged ${formatGwh(story.chargedGwh, language)} GWh including losses. Round-trip efficiency ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)}% (assumption).`
+    `Geladen ${formatGwh(story.chargedGwh, language)} GWh vor 17 Uhr. Abgegeben ${formatGwh(story.dischargedGwh, language)} GWh. Am Tagesende bleiben ${formatGwh(story.endSocGwh, language)} GWh im Speicher (${formatQuantity(endPct, language, 0)} %). Abgegeben = (geladen − Rest) × ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)} %.`,
+    `Charged ${formatGwh(story.chargedGwh, language)} GWh before 17:00. Discharged ${formatGwh(story.dischargedGwh, language)} GWh. ${formatGwh(story.endSocGwh, language)} GWh remain in storage at the end of the day (${formatQuantity(endPct, language, 0)}%). Discharged = (charged − remainder) × ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)}%.`
   );
+  const satStop = STOPS.find((item) => item.factor === saturation);
+  const satPct = satStop ? (satStop.pos / 9) * 100 : 100;
+  const satNote =
+    saturation != null && saturationChargedGwh != null
+      ? tx(
+          `ab ×${saturation} kein zusätzlicher Überschuss (${formatGwh(saturationChargedGwh, language)} GWh aufgenommen)`,
+          `from ×${saturation} no further surplus (${formatGwh(saturationChargedGwh, language)} GWh taken in)`
+        )
+      : null;
   const deltaValue = evening && beforeShown != null && afterShown != null ? Math.round((beforeShown - afterShown) * 10) / 10 : 0;
   const deltaSign = deltaValue > 0 ? "−" : deltaValue < 0 ? "+" : "";
   const fleetHrefLabel = fleet.source === "battery-charts" ? "battery-charts.de" : "Energy-Charts";
@@ -309,7 +340,7 @@ function LiveChart({
               )
         }
         tag="MODELL"
-        annotations={liveNotes(samples, factor, discharged, language)}
+        annotations={liveNotes(samples, factor, discharged, charged, language)}
         chargedNote={chargedNote}
         intro={intro}
         language={language}
@@ -319,7 +350,7 @@ function LiveChart({
           <label htmlFor={sliderId} className="sim-kicker">
             {tx("Speicher im Netz · Vielfaches von heute", "Storage on the grid · multiple of today")}
           </label>
-          <div className="sim-sl" style={{ "--p": String((stop.pos / 9) * 100) } as CSSProperties}>
+          <div className="sim-sl" style={{ "--p": String((stop.pos / 9) * 100), "--sat": String(satPct) } as CSSProperties}>
             <div className="sim-bub num" aria-hidden="true">
               ×{factor}
             </div>
@@ -385,6 +416,7 @@ function LiveChart({
               <p className="sim-hero num">
                 {beforeLabel} → {afterLabel} GW
               </p>
+              {satNote ? <p className="sim-sat num">{satNote}</p> : null}
               <p className="sim-delta num">
                 {deltaSign}
                 {formatQuantity(Math.abs(deltaValue), language, Number.isInteger(deltaValue) ? 0 : 1)} GW {tx("Abendspitze", "evening peak")}
@@ -398,13 +430,7 @@ function LiveChart({
                   : tx(
                       `Mit ×${factor} Speicher liegt die Abendspitze bei ${afterLabel} GW, ohne Speicher bei ${beforeLabel} GW. Abgegeben werden ${formatGwh(story.dischargedGwh, language)} GWh. Modellschätzung, kein Messwert.`,
                       `With ×${factor} storage the evening peak is ${afterLabel} GW, and ${beforeLabel} GW without storage. ${formatGwh(story.dischargedGwh, language)} GWh are discharged. A model estimate, not a measurement.`
-                    )}{" "}
-                {story.energyMwh / 1000 > story.surplusGwh + 0.05 && story.chargedGwh + 0.05 >= story.surplusGwh
-                  ? tx(
-                      `Der Überschuss vor 17 Uhr war ${formatGwh(story.surplusGwh, language)} GWh und ist aufgenommen. Ein größeres Vielfaches findet an diesem Tag nichts Zusätzliches.`,
-                      `Surplus before 17:00 was ${formatGwh(story.surplusGwh, language)} GWh and has been taken in. A larger multiple finds nothing further on this day.`
-                    )
-                  : null}
+                    )}
               </p>
             </>
           ) : (
@@ -429,7 +455,7 @@ function LiveChart({
   );
 }
 
-function liveNotes(samples: ChartSample[], factor: number, discharged: string, language: AppLanguage): ChartAnnotation[] {
+function liveNotes(samples: ChartSample[], factor: number, discharged: string, charged: string, language: AppLanguage): ChartAnnotation[] {
   const notes: ChartAnnotation[] = [];
   let peak = -1;
   let peakValue = Number.NEGATIVE_INFINITY;
@@ -466,9 +492,9 @@ function liveNotes(samples: ChartSample[], factor: number, discharged: string, l
       value: sample.mit,
       text: `${formatGw(sample.mit, language)} GW ${language === "de" ? "mit" : "with"} ×${factor}`,
       anchor: "middle",
-      dy: mitPeak === peak ? 18 : -8,
-      mdx: mitPeak === peak ? 0 : 18,
-      mdy: mitPeak === peak ? 16 : -10,
+      dy: -8,
+      mdx: 18,
+      mdy: -10,
       strong: true,
     });
   }
@@ -490,7 +516,9 @@ function liveNotes(samples: ChartSample[], factor: number, discharged: string, l
       value: samples[lastDischarge].mit,
       text: discharged,
       dx: 8,
+      dy: 16,
       mdx: 12,
+      mdy: 14,
       strong: true,
     });
   }
@@ -498,7 +526,7 @@ function liveNotes(samples: ChartSample[], factor: number, discharged: string, l
     notes.push({
       hour: samples[maxCharge].hour + 0.125,
       value: -maxChargeValue,
-      text: discharged,
+      text: charged,
       anchor: "middle",
       dy: 16,
       mdy: 14,

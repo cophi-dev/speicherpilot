@@ -64,8 +64,13 @@ export type LiveDispatchStory = {
   eveningPeakAfterGw: number | null;
   /** Energy delivered to the grid, GWh. This is the on-chart label. */
   dischargedGwh: number;
-  /** Energy drawn from the grid, GWh. Includes round-trip losses. Tooltip only. */
+  /** Energy drawn from the grid before 17:00, GWh. This is the charge-area label. */
   chargedGwh: number;
+  /**
+   * Energy still stored at the last quarter, GWh. The SoC band draws this as a share of nameplate.
+   * Delivered energy is `(charged − this) × rte`, because losses are taken on discharge.
+   */
+  endSocGwh: number;
   /** Wind-plus-solar surplus before 17:00, GWh. The charge cannot exceed this. */
   surplusGwh: number;
   powerMw: number;
@@ -159,6 +164,7 @@ export function buildLiveDispatchStory(input: {
   const before = run.eveningPeakGw;
   const after = before === null || run.peakReductionGw === null ? null : before - run.peakReductionGw;
   const dischargedMwh = run.points.reduce((sum, point) => sum + point.dischargeMw * QUARTER_HOUR_H, 0);
+  const endSocGwh = ((points[points.length - 1]?.soc ?? 0) * scaled.energyMwh) / 1000;
   const surplusMwh = input.day.slots.reduce((sum, slot) => {
     if (slot.hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR) {
       return sum;
@@ -175,6 +181,7 @@ export function buildLiveDispatchStory(input: {
     eveningPeakAfterGw: after,
     dischargedGwh: dischargedMwh / 1000,
     chargedGwh: run.storedMwh / 1000,
+    endSocGwh,
     surplusGwh: surplusMwh / 1000,
     powerMw: scaled.powerMw,
     energyMwh: scaled.energyMwh,

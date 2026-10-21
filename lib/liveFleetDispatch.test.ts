@@ -107,6 +107,42 @@ describe("live fleet dispatch", () => {
     expect(story.dischargedGwh).toBeCloseTo(story.chargedGwh * MORE_STORAGE_ROUND_TRIP, 1);
   });
 
+  it("holds discharged energy to (charged − end-of-day SoC) × round-trip efficiency", () => {
+    const spike = dayFromResidual("2026-10-20", (hour) => {
+      if (hour >= 10 && hour < 15) return -20_000;
+      if (hour >= 18 && hour < 19) return 40_000;
+      if (hour >= 17) return 12_000;
+      return 8_000;
+    });
+    const limited = buildLiveDispatchStory({
+      day: spike,
+      fallback: false,
+      powerMw: 2_000,
+      energyMwh: 8_000,
+      factor: 1,
+    });
+    expect(limited.chargedGwh).toBeGreaterThan(limited.dischargedGwh);
+    expect(limited.endSocGwh).toBeGreaterThan(1);
+    expect(limited.dischargedGwh).toBeCloseTo((limited.chargedGwh - limited.endSocGwh) * LIVE_DISPATCH_RTE, 5);
+    expect(limited.points[limited.points.length - 1]?.soc).toBeCloseTo(limited.endSocGwh / (limited.energyMwh / 1000), 5);
+
+    const plateau = dayFromResidual("2026-10-20", (hour) => {
+      if (hour >= 11 && hour < 15) return -20_000;
+      if (hour >= 17 && hour < 21) return 48_000;
+      return 20_000;
+    });
+    const covered = buildLiveDispatchStory({
+      day: plateau,
+      fallback: false,
+      powerMw: 10_000,
+      energyMwh: 40_000,
+      factor: 1,
+    });
+    expect(covered.endSocGwh).toBeLessThan(0.05);
+    expect(covered.dischargedGwh).toBeCloseTo((covered.chargedGwh - covered.endSocGwh) * LIVE_DISPATCH_RTE, 5);
+    expect(covered.dischargedGwh).toBeCloseTo(covered.chargedGwh * LIVE_DISPATCH_RTE - covered.endSocGwh * LIVE_DISPATCH_RTE, 5);
+  });
+
   it("leaves the peak unchanged when there is no surplus to charge", () => {
     const day = dayFromResidual("2026-10-20", () => 30_000);
     const story = buildLiveDispatchStory({

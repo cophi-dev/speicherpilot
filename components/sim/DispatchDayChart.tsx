@@ -319,12 +319,14 @@ export function DispatchDayChart({
                   </g>
                 );
               }
+              const placedX = xAt(note.hour) + (note.dx ?? 0);
+              const runsPast = placedX > width * 0.85;
               return (
                 <text
                   key={`a-${index}`}
-                  x={xAt(note.hour) + (note.dx ?? 0)}
+                  x={runsPast ? xAt(note.hour) : placedX}
                   y={yAt(note.value) + (note.dy ?? 0)}
-                  textAnchor={note.anchor ?? "start"}
+                  textAnchor={runsPast ? "end" : (note.anchor ?? "start")}
                   className={`an lb${note.strong ? " s" : ""}${intro ? " fade2" : ""}`}
                 >
                   {note.text}

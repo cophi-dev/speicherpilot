@@ -45,9 +45,9 @@ export function ChartLegend({
   items: { label: string; swatch: "line" | "line-bold" | "teal" | "teal-dim" | "dashed" | "pv" }[];
 }) {
   return (
-    <ul className="num mt-2 flex max-w-full gap-x-4 gap-y-1 overflow-x-auto text-[12px] text-muted-foreground">
+    <ul className="num mt-2 flex max-w-full flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
       {items.map((item) => (
-        <li key={item.label} className="inline-flex shrink-0 items-center gap-1.5">
+        <li key={item.label} className="inline-flex items-center gap-1.5">
           <Swatch kind={item.swatch} />
           {item.label}
         </li>
