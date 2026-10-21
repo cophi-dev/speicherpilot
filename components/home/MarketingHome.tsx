@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 
 import { ChartLegend, DispatchChart, type DispatchPoint } from "@/components/charts/DispatchChart";
+import { PerspectiveChoice } from "@/components/PerspectiveChoice";
 import { HomeLiveBlock } from "@/components/live/HomeLiveBlock";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
@@ -40,11 +41,9 @@ export function MarketingHome({ board }: { board: LiveBoard }) {
                 "For businesses and for anyone checking a power connection: the tool shows whether a battery cuts the expensive load peak and whether the connection you already have is then enough."
               )}
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/site" className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                {tx("Standort rechnen →", "Size a site →")}
-              </Link>
-              <Link href="/methodik" className="inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+            <div className="mt-8">
+              <PerspectiveChoice language={language} columns={false} />
+              <Link href="/methodik" className="mt-3 inline-flex h-10 items-center text-sm font-medium text-foreground underline underline-offset-[3px] focus-visible:ring-2 focus-visible:ring-ring">
                 {tx("Methodik lesen", "Read the method")}
               </Link>
             </div>

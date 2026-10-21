@@ -24,6 +24,11 @@ const REQUIRED = [
   "wind-auf-see",
   "abregelung",
   "deutschland-live",
+  "quartier",
+  "ortsnetzstation",
+  "behind-the-meter",
+  "front-of-meter",
+  "fpa",
 ] as const;
 
 describe("glossary", () => {

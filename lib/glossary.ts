@@ -21,7 +21,12 @@ export type GlossaryId =
   | "gebotszone"
   | "wind-auf-see"
   | "abregelung"
-  | "deutschland-live";
+  | "deutschland-live"
+  | "quartier"
+  | "ortsnetzstation"
+  | "behind-the-meter"
+  | "front-of-meter"
+  | "fpa";
 
 export type GlossaryEntry = {
   id: GlossaryId;
@@ -212,6 +217,46 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Die nationale Reihe. Sie wird nie als Hamburg oder als Norden beschriftet. Fehlt die Erzeugung, bleibt das Feld leer, statt aus 0 GW ein Defizit zu rechnen.",
       en: "The national series. It is never labelled as Hamburg or as the north. If generation is missing, the field stays empty instead of turning 0 GW into a deficit.",
+    },
+  },
+  {
+    id: "quartier",
+    term: { de: "Quartier", en: "Neighbourhood" },
+    text: {
+      de: "Hier ein fiktives neues Wohngebiet: viele Haushalte, Wärmepumpen, Wallboxen und Dach-PV hinter einer gemeinsamen Ortsnetzstation, mit einem Speicher an dieser Station.",
+      en: "Here, a fictional new housing area: many households, heat pumps, chargers and rooftop PV behind one shared distribution substation, with a battery at that substation.",
+    },
+  },
+  {
+    id: "ortsnetzstation",
+    term: { de: "Ortsnetzstation", en: "Distribution substation" },
+    text: {
+      de: "Die Station, die Mittelspannung auf Niederspannung bringt. Im Quartiersbeispiel ist ihre Planleistung eine Annahme, kein gemessener Transformator und keine Hamburger Anlage.",
+      en: "The station that steps medium voltage down to low voltage. In the neighbourhood example its planning rating is an assumption, not a measured transformer and not a Hamburg asset.",
+    },
+  },
+  {
+    id: "behind-the-meter",
+    term: { de: "Behind-the-Meter", en: "Behind the meter" },
+    text: {
+      de: "Der Speicher steht hinter dem Zähler eines Betriebs oder Quartiers und arbeitet mit dessen Last. Das Supermarkt- und das Quartiersbeispiel sind so gebaut.",
+      en: "The battery sits behind a site or neighbourhood meter and works with that load. The supermarket and neighbourhood examples are built this way.",
+    },
+  },
+  {
+    id: "front-of-meter",
+    term: { de: "Front-of-Meter", en: "Front of the meter" },
+    text: {
+      de: "Ein Speicher direkt am Netz, ohne Last eines Betriebs dahinter. Flower in Bergedorf ist so ein Fall. Dieser Rechner kann dann keine Lastspitze eines Standorts kappen.",
+      en: "A battery on the grid itself, with no site load behind it. Flower in Bergedorf is that kind of case. This calculator then cannot shave a site peak.",
+    },
+  },
+  {
+    id: "fpa",
+    term: { de: "Flexibility Purchase Agreement", en: "Flexibility Purchase Agreement" },
+    text: {
+      de: "Ein Vertrag, mit dem ein Vermarkter die Flexibilität des Speichers handelt. Flower und ENGIE haben ein solches Agreement, auch virtuelles Tolling genannt. Der Preis steht in den Quellen nicht.",
+      en: "A contract under which a marketer trades the battery’s flexibility. Flower and ENGIE have one, also called a virtual tolling agreement. The sources do not state the price.",
     },
   },
 ];

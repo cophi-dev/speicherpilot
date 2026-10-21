@@ -56,16 +56,25 @@ describe("live board geography and readings", () => {
     expect(hertz?.sentence.de).toContain("nicht für die Stadt");
     expect(hertz?.sentence.de).toContain("30 %");
     expect(price?.level.de).toBe("Gebotszone DE-LU");
-    expect(price?.sentence.de).toContain("kein Viertelstundenpreis");
-    expect(price?.sentence.de).toContain("152,81");
-    expect(price?.sentence.de).toContain("279,61");
+    expect(price?.takeaway.de).toContain("kein Viertelstundenpreis");
+    expect(price?.takeaway.de).toContain("152,81");
+    expect(price?.takeaway.de).toContain("279,61");
+    expect(price?.sentence.de).toContain("Handelsempfehlung");
+    expect(price?.sentence.de).not.toContain("kein Viertelstundenpreis");
     expect(zones?.level.de).toContain("TransnetBW");
-    expect(zones?.sentence.de).toContain("kein Engpass");
+    expect(zones?.sentence.de).toContain("mehr Wind");
+    expect(zones?.sentence.de).not.toMatch(/Engpass/);
     expect(board.priceLight).toBe("yellow");
     expect(board.lead.de).toContain("Gebotszone DE-LU");
+    expect(board.sentences).toHaveLength(2);
+    expect(board.sentences[0].de).toBe(board.lead.de);
+    expect(board.sentences[1].de).toContain("Regelzone 50Hertz");
+    expect(board.sentences[1].de).not.toBe(board.sentences[0].de);
+    expect(board.sentences.map((line) => line.de).join(" ")).not.toContain("TransnetBW");
     const blob = JSON.stringify(board);
     expect(blob).not.toContain("Regelzone Hamburg");
     expect(blob).not.toContain("Norddeutschland hat");
+    expect(blob).not.toContain("kein Engpass");
   });
 
   it("does not invent a German deficit when generation is missing", () => {

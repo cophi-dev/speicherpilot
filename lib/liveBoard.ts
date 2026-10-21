@@ -228,6 +228,8 @@ export type LiveModule = {
 export type LiveBoard = {
   berlinDateKey: string;
   lead: LiveCopy;
+  /** Two different post lines. The zone comparison is never one of them. */
+  sentences: LiveCopy[];
   modules: LiveModule[];
   priceLight: PriceLight | null;
   priceLightLabel: LiveCopy | null;
@@ -288,11 +290,12 @@ function priceCopy(reading: PriceReading): { sentence: LiveCopy; takeaway: LiveC
   const deCount = qty(reading.negativeQuarterHours, "de", 0);
   const enCount = qty(reading.negativeQuarterHours, "en", 0);
   if (reading.negativeQuarterHours > 0) {
+    const hours = {
+      de: `Laden passt eher zur tiefen Stunde um ${minClock} Uhr, Entladen zur hohen um ${maxClock} Uhr. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung.`,
+      en: `Charging fits the cheap hour at ${minClock}, discharging the expensive one at ${maxClock}. That is the day-ahead auction, not trading advice.`,
+    };
     return {
-      sentence: {
-        de: `In der Gebotszone DE-LU liegen heute ${deCount} Viertelstunden unter null. Der niedrigste Preis ist ${deMin} €/MWh um ${minClock} Uhr, der höchste ${deMax} €/MWh um ${maxClock} Uhr. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung.`,
-        en: `In the DE-LU bidding zone, ${enCount} quarter-hours today are below zero. The lowest price is ${enMin} €/MWh at ${minClock}, the highest ${enMax} €/MWh at ${maxClock}. That is the day-ahead auction, not trading advice.`,
-      },
+      sentence: hours,
       takeaway: {
         de: `In der Gebotszone DE-LU liegen heute ${deCount} Viertelstunden unter null, der niedrigste Preis ist ${deMin} €/MWh um ${minClock} Uhr.`,
         en: `In the DE-LU bidding zone, ${enCount} quarter-hours today are below zero, and the lowest price is ${enMin} €/MWh at ${minClock}.`,
@@ -301,8 +304,8 @@ function priceCopy(reading: PriceReading): { sentence: LiveCopy; takeaway: LiveC
   }
   return {
     sentence: {
-      de: `Heute liegt kein Viertelstundenpreis der Gebotszone DE-LU unter null. Der niedrigste Preis ist ${deMin} €/MWh um ${minClock} Uhr, der höchste ${deMax} €/MWh um ${maxClock} Uhr. Laden passt eher zur tiefen Stunde, Entladen zur hohen. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung.`,
-      en: `No quarter-hour price in the DE-LU bidding zone is below zero today. The lowest price is ${enMin} €/MWh at ${minClock}, the highest ${enMax} €/MWh at ${maxClock}. Charging fits the cheap hour, discharging the expensive one. That is the day-ahead auction, not trading advice.`,
+      de: `Laden passt eher zur tiefen Stunde um ${minClock} Uhr, Entladen zur hohen um ${maxClock} Uhr. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung.`,
+      en: `Charging fits the cheap hour at ${minClock}, discharging the expensive one at ${maxClock}. That is the day-ahead auction, not trading advice.`,
     },
     takeaway: {
       de: `Heute liegt kein Viertelstundenpreis der Gebotszone DE-LU unter null: am günstigsten ${deMin} €/MWh um ${minClock} Uhr, am teuersten ${deMax} €/MWh um ${maxClock} Uhr.`,
@@ -335,16 +338,11 @@ function zoneCopy(unixMs: number, hertzPct: number, transnetPct: number): { sent
   const enHertz = qty(hertzPct, "en", 0);
   const deSouth = qty(transnetPct, "de", 0);
   const enSouth = qty(transnetPct, "en", 0);
-  return {
-    sentence: {
-      de: `Um ${clock} Uhr decken Wind und Photovoltaik ${deHertz} % der Last in der Regelzone 50Hertz und ${deSouth} % in der Regelzone TransnetBW. TransnetBW hat in dieser Quelle keine Offshore-Reihe. Das ist ein Vergleich zweier gemessener Zonen, kein Engpass und kein Redispatch.`,
-      en: `At ${clock}, wind and solar cover ${enHertz}% of load in the 50Hertz control area and ${enSouth}% in the TransnetBW control area. TransnetBW has no offshore series in this source. That compares two measured areas. It is not congestion and not redispatch.`,
-    },
-    takeaway: {
-      de: `Um ${clock} Uhr decken Wind und Photovoltaik ${deHertz} % der Last in der Regelzone 50Hertz und ${deSouth} % in der Regelzone TransnetBW, und das ist kein Engpass.`,
-      en: `At ${clock}, wind and solar cover ${enHertz}% of load in the 50Hertz control area and ${enSouth}% in the TransnetBW control area, and that is not a congestion figure.`,
-    },
+  const line = {
+    de: `Um ${clock} Uhr decken Wind und Photovoltaik ${deHertz} % der Last in der Regelzone 50Hertz und ${deSouth} % in der Regelzone TransnetBW, weil im Norden mehr Wind steht als im Süden.`,
+    en: `At ${clock}, wind and solar cover ${enHertz}% of load in the 50Hertz control area and ${enSouth}% in the TransnetBW control area, because the north has more wind than the south.`,
   };
+  return { sentence: line, takeaway: line };
 }
 
 function germanyCopy(input: { unixMs: number; loadMw: number; generationMw: number | null }): { sentence: LiveCopy; takeaway: LiveCopy } {
@@ -386,12 +384,12 @@ function signalCopy(reading: { unixMs: number; sharePct: number; signal: SignalC
   if (reading.signal === -1) {
     return {
       sentence: {
-        de: `Energy-Charts setzt um ${clock} Uhr für Deutschland die Engpassmarke, bei ${deShare} % erneuerbarem Anteil an der Last. Das ist ihre Kategorie für das Land, kein Befund für Hamburg.`,
-        en: `Energy-Charts sets the congestion mark for Germany at ${clock}, with renewables at ${enShare}% of load. That is their category for the country, not a finding for Hamburg.`,
+        de: `Energy-Charts setzt um ${clock} Uhr für Deutschland die Stufe minus eins, bei ${deShare} % erneuerbarem Anteil an der Last. Das ist ihre Kategorie für das Land, kein Befund für Hamburg.`,
+        en: `Energy-Charts sets Germany to step minus one at ${clock}, with renewables at ${enShare}% of load. That is their category for the country, not a finding for Hamburg.`,
       },
       takeaway: {
-        de: `Energy-Charts setzt um ${clock} Uhr für Deutschland die Engpassmarke, bei ${deShare} % erneuerbarem Anteil an der Last, und das ist kein Befund für Hamburg.`,
-        en: `Energy-Charts sets the congestion mark for Germany at ${clock}, with renewables at ${enShare}% of load, and that is not a finding for Hamburg.`,
+        de: `Energy-Charts setzt um ${clock} Uhr für Deutschland die Stufe minus eins, bei ${deShare} % erneuerbarem Anteil an der Last, und das ist kein Befund für Hamburg.`,
+        en: `Energy-Charts sets Germany to step minus one at ${clock}, with renewables at ${enShare}% of load, and that is not a finding for Hamburg.`,
       },
     };
   }
@@ -574,7 +572,7 @@ export function buildLiveBoard(input: LiveBoardInput): LiveBoard {
         modules.push({
           id: "zones",
           level: LEVEL["regelzone-50hertz-transnetbw"],
-          title: { de: "Zwei Regelzonen, kein Engpasswert", en: "Two control areas, not a congestion figure" },
+          title: { de: "Mehr Wind im Norden", en: "More wind in the north" },
           sentence: copy.sentence,
           takeaway: copy.takeaway,
           available: true,
@@ -639,10 +637,23 @@ export function buildLiveBoard(input: LiveBoardInput): LiveBoard {
         : hertzModule
           ? hertzModule.takeaway
           : CURTAILMENT.takeaway;
+  const second = lead.de === priceModule?.takeaway.de
+    ? hertzModule?.takeaway
+    : lead.de === hertzModule?.takeaway.de
+      ? priceModule?.takeaway
+      : hertzModule?.takeaway ?? priceModule?.takeaway;
+  const sentences = [lead, second].filter((line): line is LiveCopy => line !== undefined && line.de !== "");
+  const unique: LiveCopy[] = [];
+  for (const line of sentences) {
+    if (!unique.some((kept) => kept.de === line.de)) {
+      unique.push(line);
+    }
+  }
 
   return {
     berlinDateKey: input.berlinDateKey,
     lead,
+    sentences: unique,
     modules,
     priceLight: priceReading?.light ?? null,
     priceLightLabel: priceReading ? priceLightLabel(priceReading.light) : null,

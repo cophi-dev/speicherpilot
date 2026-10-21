@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 
 import { useLanguage } from "@/components/language-context";
+import { FLOWER_BERGEDORF, flowerHoursAtFullPower } from "@/lib/flowerBergedorf";
 import { GLOSSARY } from "@/lib/glossary";
+import { QUARTIER, quartierPvKwp } from "@/lib/quartierExample";
 import { READABILITY_CONFIG } from "@/lib/readability";
 
 const SECTIONS = [
@@ -14,9 +16,10 @@ const SECTIONS = [
   { id: "wirtschaft", de: "Wirtschaftlichkeit", en: "Economics" },
   { id: "anschluss", de: "Netzanschluss", en: "Connection" },
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
-  { id: "live", de: "Live Deutschland", en: "Live Germany" },
+  { id: "live", de: "Live", en: "Live" },
   { id: "quellen", de: "Quellen", en: "Sources" },
   { id: "grenzen", de: "Grenzen", en: "Limits" },
+  { id: "beispiele", de: "Beispiele", en: "Examples" },
   { id: "glossar", de: "Glossar", en: "Glossary" },
   { id: "changelog", de: "Changelog", en: "Changelog" },
 ] as const;
@@ -147,7 +150,7 @@ grid-serving, same battery and same limit:
           <p>{tx("Jede Grafik trägt ihre Ebene im Titel. Eine nationale Reihe heißt Deutschland. Sie wird nicht als Hamburg oder als Norden beschriftet.", "Every chart carries its level in the title. A national series is called Germany. It is not labelled as Hamburg or as the north.")}</p>
           <p className="mt-3">{tx("Für die Stadt Hamburg gibt es in SMARD und bei Energy-Charts keine freie Viertelstundenreihe von Last oder Wind. Die nächste echte Ebene ist die Regelzone 50Hertz. Darin liegen unter anderem Hamburg, Berlin, Brandenburg, Mecklenburg-Vorpommern, Sachsen, Sachsen-Anhalt und Thüringen. Die TenneT-Regelzone wird nicht als Norddeutschland beschriftet, weil sie auch Bayern umfasst. Wind auf See wird getrennt gezeigt: 50Hertz über die Ostsee, TenneT über die Nordsee.", "SMARD and Energy-Charts have no free quarter-hour series of load or wind for the city of Hamburg. The next real level is the 50Hertz control area. It includes Hamburg, Berlin, Brandenburg, Mecklenburg-Vorpommern, Saxony, Saxony-Anhalt and Thuringia, among others. The TenneT control area is not labelled northern Germany, because it also includes Bavaria. Offshore wind is shown separately: 50Hertz through the Baltic, TenneT through the North Sea.")}</p>
           <p className="mt-3">{tx("Der Day-Ahead-Preis ist die Gebotszone DE-LU, 15 Minuten, von Energy-Charts mit der Lizenz CC BY 4.0 der Bundesnetzagentur | SMARD.de. Die Ampel daran ist eine Lesehilfe in LIVE_PRICE_CONFIG: grün, sobald eine Viertelstunde unter null liegt, gelb ab einer Spanne von 50 €/MWh, rot darunter. Das ist keine Handelsempfehlung.", "The day-ahead price is the DE-LU bidding zone, 15 minutes, from Energy-Charts under the CC BY 4.0 licence of Bundesnetzagentur | SMARD.de. The light on it is a reading aid in LIVE_PRICE_CONFIG: green once a quarter-hour is below zero, yellow from a spread of 50 €/MWh, red below that. It is not trading advice.")}</p>
-          <p className="mt-3">{tx("Der Vergleich 50Hertz gegen TransnetBW stellt zwei gemessene Wind- und Solaranteile an der Last nebeneinander. TransnetBW hat bei SMARD keine Offshore-Reihe. Der Vergleich ist kein Engpass und kein Redispatch.", "The 50Hertz versus TransnetBW comparison places two measured wind-and-solar shares of load side by side. TransnetBW has no offshore series on SMARD. The comparison is not congestion and not redispatch.")}</p>
+          <p className="mt-3">{tx("Der Vergleich 50Hertz gegen TransnetBW zeigt, warum die Anteile auseinanderliegen: im Norden steht mehr Wind als im Süden. TransnetBW hat bei SMARD keine Offshore-Reihe, die Süd-Zahl ist Wind an Land plus Photovoltaik.", "The 50Hertz versus TransnetBW comparison shows why the shares differ: the north has more wind than the south. TransnetBW has no offshore series on SMARD, so the southern figure is onshore wind plus solar.")}</p>
           <p className="mt-3">{tx("Erzeugung und Last für Deutschland kommen von Energy-Charts. Die Bilanz nutzt nur einen Zeitpunkt, an dem Last und mindestens eine Erzeugungsserie veröffentlicht sind. Fehlt die Erzeugung, steht dort keine Differenz und kein Defizit aus 0 GW.", "Generation and load for Germany come from Energy-Charts. The balance uses only a timestamp where load and at least one generation series are published. If generation is missing, the page shows no difference and does not invent a deficit from 0 GW.")}</p>
           <p className="mt-3">{tx("Abregelung und Redispatch veröffentlicht Netztransparenz. Der Maschinenabruf braucht einen registrierten Zugang. Diese öffentliche Instanz hat ihn nicht, deshalb steht dort eine Erklärung und keine Megawattzahl.", "Netztransparenz publishes curtailment and redispatch. The machine feed needs a registered login. This public instance does not have one, so the page shows an explanation and no megawatt figure.")}</p>
         </Section>
@@ -168,20 +171,49 @@ grid-serving, same battery and same limit:
                 <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.gesetze-im-internet.de/enwg_2005/__17.html">§ 17 EnWG</a></td><td>{tx("Abs. 2b, flexible Netzanschlussvereinbarung", "Subsection 2b, flexible connection agreement")}</td></tr>
                 <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/Netzanschluss/artikel.html">Bundesnetzagentur</a></td><td>{tx("Einordnung flexibler Netzanschlussvereinbarungen", "Flexible connection agreements, public note")}</td></tr>
                 <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.hamburger-energienetze.de/verbrauchen-erzeugen/planen-anmelden/kundenstation">Hamburger Energienetze</a></td><td>{tx("Verteilungsverfahren über 1,5 MVA; Fair Grid, Mitteilung 19. Mai 2026", "Allocation procedure above 1.5 MVA; Fair Grid, notice of 19 May 2026")}</td></tr>
+                <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Umwelt/UGR/private-haushalte/Tabellen/stromverbrauch-haushalte.html">Destatis</a></td><td>{tx("Stromverbrauch der Haushalte, Stand 27. September 2023", "Household electricity use, as of 27 September 2023")}</td></tr>
+                <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href="https://www.bdew.de/energie/standardlastprofile-strom/">BDEW</a></td><td>{tx("Standardlastprofile Strom. Die Zahlenreihe selbst steht nicht in diesem Rechner.", "Standard load profiles for electricity. The numeric series itself is not in this calculator.")}</td></tr>
+                <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href={FLOWER_BERGEDORF.sources[0].href}>Flower</a></td><td>{tx("BESS Hamburg-Bergedorf, Meldung 10. September 2026", "BESS Hamburg-Bergedorf, notice of 10 September 2026")}</td></tr>
+                <tr className="border-t border-border"><td className="px-2 py-2"><a className="underline underline-offset-[3px]" href={FLOWER_BERGEDORF.sources[1].href}>pv magazine</a></td><td>{tx("Spatenstich, 10. September 2026", "Groundbreaking, 10 September 2026")}</td></tr>
               </tbody>
             </table>
           </div>
         </Section>
         <Section id="grenzen" n="§10" title={tx("Grenzen und Haftung", "Limits and liability")}>
           <ul className="list-disc pl-5">
-            <li>{tx("Beispielprofile, darunter der fiktive Supermarkt in Hamburg, und das Day-Ahead-Band sind synthetisch und als BEISPIELDATEN markiert.", "Example profiles, including the fictional Hamburg supermarket, and the day-ahead band are synthetic and marked as example data.")}</li>
+            <li>{tx("Beispielprofile, darunter der fiktive Supermarkt in Hamburg und das fiktive Quartier, und das Day-Ahead-Band sind synthetisch und als BEISPIELDATEN markiert. Flower in Bergedorf nutzt nur die veröffentlichten Eckdaten.", "Example profiles, including the fictional Hamburg supermarket and the fictional neighbourhood, and the day-ahead band are synthetic and marked as example data. Flower in Bergedorf uses only the published figures.")}</li>
             <li>{tx("Keine Netzentgelte, keine Steuern, keine Finanzierung, keine Degradation.", "No grid tariffs beyond the inputs, no tax, no financing, no degradation.")}</li>
             <li>{tx("Keine Beschaffungs- oder Anlagenberatung.", "Not procurement or plant advice.")}</li>
             <li>{tx("VDE-AR-N 4105, 4110 und 4120 sind Quellenverweise. Die Spannungsschwellen 135 kW und 20 MW sind Planungshinweise in diesem Rechner, keine Rechtsauskunft.", "VDE-AR-N 4105, 4110 and 4120 are source references. The 135 kW and 20 MW voltage thresholds are planning hints in this calculator, not legal advice.")}</li>
             <li>{tx("Die Einschätzung netzdienlich ist kein Befund des Netzbetreibers. Fair Grid ist keine Zuteilung. Die flexible Anschlussvereinbarung im Rechner ist kein Vertrag.", "The grid-support estimate is not a grid-operator finding. Fair Grid is not an allocation. The flexible connection agreement in this calculator is not a contract.")}</li>
           </ul>
         </Section>
-        <Section id="glossar" n="§11" title={tx("Glossar", "Glossary")}>
+        <Section id="beispiele" n="§11" title={tx("Beispiele", "Examples")} date="2026-10-21">
+          <p>{tx("Drei Fälle auf /site. Supermarkt und Quartier sind BEISPIELDATEN. Flower nennt nur Zahlen, die Flower und pv magazine veröffentlicht haben.", "Three cases on /site. The supermarket and the neighbourhood are example data. Flower states only figures that Flower and pv magazine published.")}</p>
+          <h3 className="mt-4 text-lg font-medium">{tx("Supermarkt", "Supermarket")}</h3>
+          <p>{tx("Fiktiver Betrieb in Hamburg, hinter dem Zähler, Peak Shaving. Dach-PV und netzorientierter Betrieb halten die Bezugsspitze auf der Anschlussgrenze. Das ist kein gemessener Markt.", "A fictional Hamburg site, behind the meter, peak shaving. Rooftop PV and grid-serving operation hold the import peak on the connection limit. That is not a measured market.")}</p>
+          <h3 className="mt-4 text-lg font-medium">{tx("Quartier", "Neighbourhood")}</h3>
+          <p>{tx(`Fiktives neues Wohngebiet, ${QUARTIER.households} Haushalte hinter einer Ortsnetzstation. Kein Stadtteil von Hamburg und kein gemessener Transformator. Der Speicher steht an der Station. Für den Betreiber zählt Größe und Rückzahlung, für den Netzbetreiber, ob die Station unter ihrer Planleistung bleibt.`, `A fictional new neighbourhood, ${QUARTIER.households} households behind one distribution substation. Not a Hamburg district and not a measured transformer. The battery sits at the station. The operator reads size and payback. The grid operator reads whether the station stays under its planning rating.`)}</p>
+          <p>{tx(`Haushaltsstrom ${QUARTIER.householdKwhEach.toLocaleString("de-DE")} kWh je Haushalt für Licht und Geräte, ohne Wärmepumpe. Das liegt nahe an Destatis 2021, Zeile Haushaltsausstattung, 2.893 kWh. Diese Zeile schließt Raumwärme und Beleuchtung aus. Der gesamte Strom je Haushalt 2021 beträgt dort 3.383 kWh, inklusive Raumwärme, Warmwasser, Beleuchtung und Geräte (Stand 27. September 2023).`, `Household electricity ${QUARTIER.householdKwhEach.toLocaleString("en-GB")} kWh each for lights and appliances, without the heat pump. That sits near Destatis 2021, the household-appliances line, 2,893 kWh. That line excludes space heating and lighting. Total electricity per household in 2021 is 3,383 kWh there, including space heating, hot water, lighting and appliances (as of 27 September 2023).`)}</p>
+          <p>{tx("Die Form ist eine vereinfachte Abendspitze und auf die genannten Jahreskilowattstunden skaliert. Sie ist nicht das Standardlastprofil H0 und nicht H25. BDEW beschreibt die Profile und verweist auf die VDEW-Norm von 1999; die Profile sind auf 1.000 kWh normiert. Die Zahlenreihe ist urheberrechtlich geschützt und steht hier nicht. Das BDEW-Profil H25 von 2025 ist auf 1.000.000 kWh normiert; auch diese Reihe ist nicht eingelesen.", "The shape is a simplified evening peak, scaled to the stated annual kilowatt-hours. It is not standard load profile H0 and not H25. BDEW describes the profiles and points to the 1999 VDEW norm; the profiles are normalised to 1,000 kWh. That numeric series is copyrighted and is not reproduced here. The 2025 BDEW profile H25 is normalised to 1,000,000 kWh; that series is not ingested either.")}</p>
+          <ul className="list-disc pl-5">
+            <li>{tx(`Wärmepumpen: ${(QUARTIER.heatPumpShare * 100).toLocaleString("de-DE")} % der Haushalte, ${QUARTIER.heatPumpKwhEach.toLocaleString("de-DE")} kWh je Pumpe, im Winter höher gewichtet. Modellannahme, keine gemessene Jahresarbeitszahl.`, `Heat pumps: ${(QUARTIER.heatPumpShare * 100).toLocaleString("en-GB")}% of households, ${QUARTIER.heatPumpKwhEach.toLocaleString("en-GB")} kWh each, weighted toward winter. A model assumption, not a measured seasonal performance factor.`)}</li>
+            <li>{tx(`Wallboxen: ${(QUARTIER.wallboxShare * 100).toLocaleString("de-DE")} % der Haushalte, ${QUARTIER.wallboxKw} kW, Gleichzeitigkeit ${QUARTIER.wallboxCoincidence.toLocaleString("de-DE")}, ${QUARTIER.wallboxHoursPerWeekday.toLocaleString("de-DE")} Stunden je Werktag. Am Wochenende 0. Die Form ist eine Glocke um 18:30 mit einer Breite von 0,7 Stunden. Modellannahme.`, `Chargers: ${(QUARTIER.wallboxShare * 100).toLocaleString("en-GB")}% of households, ${QUARTIER.wallboxKw} kW, coincidence ${QUARTIER.wallboxCoincidence.toLocaleString("en-GB")}, ${QUARTIER.wallboxHoursPerWeekday.toLocaleString("en-GB")} hours on a weekday. Weekends are 0. The shape is a bell around 18:30 with a width of 0.7 hours. A model assumption.`)}</li>
+            <li>{tx(`Dach-PV: ${(QUARTIER.pvShare * 100).toLocaleString("de-DE")} % der Haushalte mal ${QUARTIER.pvKwpEach} kWp, zusammen ${quartierPvKwp().toLocaleString("de-DE")} kWp Süd. Dieselbe klare-Himmel-Reihe wie im übrigen Rechner.`, `Rooftop PV: ${(QUARTIER.pvShare * 100).toLocaleString("en-GB")}% of households times ${QUARTIER.pvKwpEach} kWp, ${quartierPvKwp().toLocaleString("en-GB")} kWp south in total. The same clear-sky series as the rest of the calculator.`)}</li>
+            <li>{tx(`Planleistung der Station ${QUARTIER.transformerKw} kW bei cos φ = 1. Annahme für eine bestehende Station, die die neue Last ohne Speicher überschreitet. Kein Hamburger Betriebsmittel.`, `Station planning rating ${QUARTIER.transformerKw} kW at cos φ = 1. An assumption for an existing station that the new load would exceed without storage. Not a Hamburg asset.`)}</li>
+            <li>{tx(`Speicher von Hand ${QUARTIER.powerKw} kW / ${QUARTIER.energyKwh} kWh, Betrieb netzorientiert, dynamischer Tarif aus. Leistungspreis ${QUARTIER.demandChargeEurPerKwYear} €/kW·a, Arbeitspreis ${QUARTIER.energyPriceCtPerKwh.toLocaleString("de-DE")} ct/kWh, Einspeisung ${QUARTIER.feedInCtPerKwh} ct/kWh, Wirkungsgrad ${(QUARTIER.roundTripEfficiency * 100).toLocaleString("de-DE")} %, CAPEX ${QUARTIER.capexEurPerKwh} €/kWh, Lebensdauer ${QUARTIER.lifetimeYears} Jahre, Diskont 0. Dieselben Preisannahmen wie im Supermarkt, kein Angebot.`, `Battery entered by hand at ${QUARTIER.powerKw} kW / ${QUARTIER.energyKwh} kWh, grid-serving operation, dynamic tariff off. Demand charge ${QUARTIER.demandChargeEurPerKwYear} €/kW·year, energy price ${QUARTIER.energyPriceCtPerKwh.toLocaleString("en-GB")} ct/kWh, feed-in ${QUARTIER.feedInCtPerKwh} ct/kWh, round-trip efficiency ${(QUARTIER.roundTripEfficiency * 100).toLocaleString("en-GB")}%, CAPEX ${QUARTIER.capexEurPerKwh} €/kWh, lifetime ${QUARTIER.lifetimeYears} years, discount 0. The same price assumptions as the supermarket, not a quote.`)}</li>
+            <li>{tx("Der Spannungshinweis folgt der angefragten Leistung und landet bei Mittelspannung. Das ist die Regel dieses Rechners, keine gemessene Spannung der Station.", "The voltage hint follows requested power and lands on medium voltage. That is this calculator’s rule, not a measured station voltage.")}</li>
+          </ul>
+          <h3 className="mt-4 text-lg font-medium">Flower BESS Hamburg-Bergedorf</h3>
+          <p>{tx(`Öffentliche Referenz, kein fiktives Lastprofil. ${FLOWER_BERGEDORF.powerMw} MW, ${FLOWER_BERGEDORF.energyMwh} MWh, Baubeginn 9. September 2026, Betrieb geplant ${FLOWER_BERGEDORF.operationPlannedDe}. Vermarktung durch ${FLOWER_BERGEDORF.marketer} über ein ${FLOWER_BERGEDORF.agreementDe}. Stunden bei voller Leistung: ${flowerHoursAtFullPower()} h, das ist ${FLOWER_BERGEDORF.energyMwh} MWh geteilt durch ${FLOWER_BERGEDORF.powerMw} MW.`, `A public reference, not a fictional load profile. ${FLOWER_BERGEDORF.powerMw} MW, ${FLOWER_BERGEDORF.energyMwh} MWh, construction started 9 September 2026, operation planned for the ${FLOWER_BERGEDORF.operationPlannedEn}. Marketed by ${FLOWER_BERGEDORF.marketer} under a ${FLOWER_BERGEDORF.agreementEn}. Hours at full power: ${flowerHoursAtFullPower()} h, which is ${FLOWER_BERGEDORF.energyMwh} MWh divided by ${FLOWER_BERGEDORF.powerMw} MW.`)}</p>
+          <p>{tx("Spannung, Netzanschlusspunkt, Erlös und Preis stehen in den beiden Quellen nicht. Der Rechner erfindet sie nicht. Ein Speicher vor dem Zähler hat keine Standortlast, deshalb keine Euro-Kachel und keine Anschlussgrenze. Für den Netzbetreiber bleibt die Frage, ob der Speicher lädt, während das Netz voll ist, plus das Szenario einer flexiblen Anschlussvereinbarung nach § 17 Abs. 2b EnWG. Die 80 % an anderer Stelle sind eine Modellannahme und nicht der Anschluss von Flower.", "The two sources do not state voltage, connection point, revenue or price. This calculator does not invent them. A front-of-meter battery has no site load, so there is no euro tile and no connection limit. For the grid operator the remaining question is whether the battery charges while the grid is full, plus the flexible-connection scenario under section 17 (2b) EnWG. The 80% used elsewhere is a model assumption and is not Flower’s connection.")}</p>
+          <p>
+            <a className="underline underline-offset-[3px]" href={FLOWER_BERGEDORF.sources[0].href}>Flower</a>
+            {" · "}
+            <a className="underline underline-offset-[3px]" href={FLOWER_BERGEDORF.sources[1].href}>pv magazine</a>
+          </p>
+        </Section>
+        <Section id="glossar" n="§12" title={tx("Glossar", "Glossary")}>
           <p>{tx("Dieselben kurzen Erklärungen stehen als Hinweis an den Begriffen im Rechner.", "The same short explanations appear as hints on the terms in the calculator.")}</p>
           <dl className="mt-4 space-y-4">
             {GLOSSARY.map((entry) => (
@@ -192,25 +224,26 @@ grid-serving, same battery and same limit:
             ))}
           </dl>
         </Section>
-        <Section id="changelog" n="§12" title={tx("Changelog", "Changelog")}>
+        <Section id="changelog" n="§13" title={tx("Changelog", "Changelog")}>
           <p className="num">2026-10-20 — {tx("Control-Room-Oberfläche, Standort-Rechner, Live unter /live.", "Control-room interface, site calculator, live view at /live.")}</p>
           <p className="num mt-2">2026-10-20 — {tx("Zwei Sichten auf /site: Projektierer und Netzbetreiber, ein Rechenkern. NPV, Spannungshinweis, netzorientierter Betrieb, flexibles Anschluss-Szenario.", "Two views on /site: developer and grid operator, one calculation core. NPV, voltage hint, grid-oriented operation, flexible-connection scenario.")}</p>
           <p className="num mt-2">2026-10-20 — {tx("Einschätzung netzdienlich statt Befund (BGH EnVR 1/24). Hinweis über 1,5 MVA, Fair Grid. Szenario nach § 17 Abs. 2b EnWG.", "Grid-support estimate instead of a finding (BGH EnVR 1/24). Flag above 1.5 MVA, Fair Grid. Scenario under section 17 (2b) EnWG.")}</p>
           <p className="num mt-2">2026-10-21 — {tx("Klare Sprache, Glossar, Ampel als Lesehilfe, Beispiel Supermarkt in Hamburg.", "Plain language, glossary, traffic-light reading aid, Hamburg supermarket example.")}</p>
-          <p className="num mt-2">2026-10-21 — {tx("Live-Ansicht mit benannter Ebene: Regelzone 50Hertz, Gebotszone DE-LU, Deutschland. Keine Abregelungszahl ohne freie Reihe.", "Live view with a named level: 50Hertz control area, DE-LU bidding zone, Germany. No curtailment figure without a free series.")}</p>
+          <p className="num mt-2">2026-10-21 — {tx("Einstieg mit zwei Perspektiven. Beispiele Supermarkt, Quartier und Flower Bergedorf.", "Entry with two perspectives. Examples: supermarket, neighbourhood, and Flower Bergedorf.")}</p>
+          <p className="num mt-2">2026-10-21 — {tx("Live-Ansicht mit benannter Ebene: Regelzone 50Hertz, Gebotszone DE-LU, Deutschland. Keine Abregelungszahl ohne freie Reihe. Der Zonenvergleich sagt, dass im Norden mehr Wind steht als im Süden.", "Live view with a named level: 50Hertz control area, DE-LU bidding zone, Germany. No curtailment figure without a free series. The area comparison says the north has more wind than the south.")}</p>
         </Section>
       </article>
     </div>
   );
 }
 
-function Section({ id, n, title, children }: { id: string; n: string; title: string; children: React.ReactNode }) {
+function Section({ id, n, title, date = "2026-10-20", children }: { id: string; n: string; title: string; date?: string; children: React.ReactNode }) {
   return (
     <section id={id} className="scroll-mt-24">
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{n}</p>
       <h2 className="mt-2 text-2xl font-medium">{title}</h2>
       <div className="mt-3 space-y-3 leading-relaxed">{children}</div>
-      <p className="num mt-4 text-[12px] text-muted-foreground">2026-10-20</p>
+      <p className="num mt-4 text-[12px] text-muted-foreground">{date}</p>
     </section>
   );
 }
