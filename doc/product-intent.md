@@ -6,7 +6,7 @@ SpeicherPilot is a public battery storage and grid connection planner for German
 
 | Surface | Feature |
 |---------|---------|
-| Live snapshot and day profile | [LiveSnapshotHeader.tsx](../components/LiveSnapshotHeader.tsx), [GermanyDayEnergyFlow.tsx](../components/GermanyDayEnergyFlow.tsx) |
+| Live view | [`/live`](../app/live/page.tsx) and the homepage block. Each chart names its level. The closest free quarter-hour series to Hamburg is the 50Hertz control area on SMARD (not the city, and not “northern Germany”). Day-ahead prices are the DE-LU bidding zone via Energy-Charts. Germany generation and load stay on Energy-Charts and still use the quarter-hour where generation and load both exist. Curtailment and redispatch are explained without a number, because the Netztransparenz machine feed is not connected. |
 | Example-pack sizing | [BessConfigurator.tsx](../components/BessConfigurator.tsx) — power, energy, footprint, weight, RTE. Presets in [bessExamplePresets.ts](../lib/bessExamplePresets.ts) are illustrative, not a vendor catalog |
 | Indicative economics | [FinancialDashboard.tsx](../components/FinancialDashboard.tsx) + [lib/bessEconomics.ts](../lib/bessEconomics.ts) — labelled model estimates, not tariffs or quotes |
 | Site context | [BessProjectMap.tsx](../components/BessProjectMap.tsx) — WGS84 markers; appendix in the PDF |

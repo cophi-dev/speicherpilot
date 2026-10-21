@@ -18,6 +18,12 @@ const REQUIRED = [
   "opex",
   "npv",
   "day-ahead",
+  "day-ahead-price",
+  "regelzone",
+  "gebotszone",
+  "wind-auf-see",
+  "abregelung",
+  "deutschland-live",
 ] as const;
 
 describe("glossary", () => {

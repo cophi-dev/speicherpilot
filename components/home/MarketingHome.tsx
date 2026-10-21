@@ -4,15 +4,13 @@ import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 
 import { ChartLegend, DispatchChart, type DispatchPoint } from "@/components/charts/DispatchChart";
-import { GlossaryTip } from "@/components/GlossaryTip";
+import { HomeLiveBlock } from "@/components/live/HomeLiveBlock";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
-import type { HomeBriefingInitialData } from "@/lib/homeBriefingData";
+import type { LiveBoard } from "@/lib/liveBoard";
 import { illustrativeCommercialDay } from "@/lib/sitePlanner";
-import { liveNetPositionMw } from "@/lib/realtimeSystemSnapshot";
-import { computeSlotSurplusFraction, estimateFleetSocAtMoment } from "@/lib/socEstimator";
 
-export function MarketingHome({ initial }: { initial: HomeBriefingInitialData }) {
+export function MarketingHome({ board }: { board: LiveBoard }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const example = useMemo(() => illustrativeCommercialDay(), []);
@@ -23,29 +21,6 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
     bess: (example.plan.peakDay.dischargeKw[index] ?? 0) - (example.plan.peakDay.chargeKw[index] ?? 0),
     pv: 0,
   }));
-  const market = initial.market;
-  const generationMw = market?.realtimeSystem.domesticGenerationMw ?? null;
-  const loadMw = market?.realtimeSystem.loadMw ?? null;
-  const netMw = generationMw === null || loadMw === null ? null : liveNetPositionMw(generationMw, loadMw);
-  const fleet = market
-    ? estimateFleetSocAtMoment({
-        renewableShareOfLoadPct: market.realtimeSystem.renewableShareOfLoadPct ?? null,
-        solarRichDays: market.recentRenewablePatterns?.solarRichDays ?? null,
-        at: new Date(market.realtimeSystem.timestampIso),
-        batteryStorageMw: market.realtimeSystem.batteryStorageMw ?? null,
-        installedFleetPowerMw: market.bess.installedPowerGw * 1000,
-        slotSurplusFraction: computeSlotSurplusFraction(market.dayEnergyFlow?.slots ?? null),
-        currentNetPositionMw: netMw,
-      })
-    : null;
-  const livePoints: DispatchPoint[] =
-    initial.initialEnergyFlow?.slots.map((slot) => ({
-      label: slot.hourBerlin % 3 === 0 ? String(slot.hourBerlin).padStart(2, "0") : "",
-      load: slot.loadMw * 1000,
-      grid: (slot.totalGenerationMw - slot.loadMw) * 1000,
-      bess: 0,
-      pv: 0,
-    })) ?? [];
 
   return (
     <div>
@@ -75,8 +50,8 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
             </div>
             <p className="num mt-7 text-[12px] text-muted-foreground">
               {tx(
-                "Kein Login · Daten bleiben im Browser · Quellen: Energy-Charts, Netztransparenz",
-                "No login · data stays in the browser · sources: Energy-Charts, Netztransparenz"
+                "Kein Login · Standortrechnung bleibt im Browser · Quellen: SMARD, Energy-Charts, Netztransparenz",
+                "No login · the site calculation stays in the browser · sources: SMARD, Energy-Charts, Netztransparenz"
               )}
             </p>
           </div>
@@ -164,51 +139,7 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
         </div>
       </section>
 
-      <section className="border-b border-border py-16 md:py-24">
-        <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-          <div className="flex items-center justify-between gap-3">
-            <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">02 — Live</p>
-            {market ? (
-              <span className="num rounded-[4px] border border-border px-2 py-0.5 text-[12px]">
-                {tx("BEOBACHTET", "OBSERVED")} · {new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }).format(new Date(market.realtimeSystem.timestampIso))}
-              </span>
-            ) : null}
-          </div>
-          {market && generationMw !== null && loadMw !== null && netMw !== null ? (
-            <>
-              <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                <Kpi label={tx("Erzeugung", "Generation")} value={formatQuantity(generationMw / 1000, language, 2)} unit="GW" />
-                <Kpi label={tx("Last", "Load")} value={formatQuantity(loadMw / 1000, language, 2)} unit="GW" />
-                <Kpi label={tx("Netto-Position", "Net position")} value={formatQuantity(netMw / 1000, language, 2)} unit="GW" hint={netMw >= 0 ? tx("Überschuss", "Surplus") : tx("Defizit", "Deficit")} />
-                <Kpi label={tx("Speicherstand der Flotte", "Fleet storage level")} value={fleet ? formatQuantity(fleet.midpointPct, language, 0) : "—"} unit="%" hint={tx("Schätzung, keine Messung", "Estimate, not a measurement")} tip={<GlossaryTip id="soc" language={language} />} />
-              </div>
-              <p className="mt-4 max-w-[68ch] text-sm text-muted-foreground">
-                {tx(
-                  "Das zeigt, ob im deutschen Netz gerade Strom übrig ist oder fehlt. Daran hängt, wann ein Speicher günstig lädt oder eine Spitze stützt.",
-                  "This shows whether the German grid currently has power to spare or is short. That is when a battery can charge cheaply or support a peak."
-                )}
-              </p>
-              {livePoints.length > 0 ? (
-                <div className="mt-4 rounded-md border border-border bg-card p-4">
-                  <DispatchChart points={livePoints} limitKw={0} language={language} height={240} />
-                  <p className="num mt-2 text-[12px] text-muted-foreground">
-                    {tx("Quelle: Energy-Charts · beobachtet", "Source: Energy-Charts · observed")} · {initial.defaultBerlinDateKey}
-                  </p>
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className="mt-4 border-l-[3px] border-limit bg-card p-4">
-              <h2 className="text-lg font-semibold">{tx("Daten nicht verfügbar", "Data unavailable")}</h2>
-              <p className="text-sm text-muted-foreground">{tx("Energy-Charts API antwortet nicht.", "The Energy-Charts API did not respond.")}</p>
-              <Link href="/live" className="mt-3 inline-flex h-8 items-center rounded-md border border-border px-3 text-sm">{tx("Erneut laden", "Reload")}</Link>
-            </div>
-          )}
-          <Link href="/live" className="mt-4 inline-block text-primary underline underline-offset-[3px]">
-            {tx("Zur Live-Ansicht →", "Open the live view →")}
-          </Link>
-        </div>
-      </section>
+      <HomeLiveBlock board={board} />
 
       <section className="border-b border-border py-16 md:py-24">
         <div className="mx-auto grid max-w-[1200px] gap-12 px-5 md:px-8 lg:grid-cols-12">
@@ -265,22 +196,6 @@ function Mini({ label, value, unit }: { label: string; value: string; unit: stri
         {value}
         <span className="text-[13px] text-muted-foreground"> {unit}</span>
       </p>
-    </div>
-  );
-}
-
-function Kpi({ label, value, unit, hint, tip }: { label: string; value: string; unit: string; hint?: string; tip?: ReactNode }) {
-  return (
-    <div className="min-h-28 border-l-[3px] border-border bg-card px-4 py-4">
-      <p className="num inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
-        {label}
-        {tip}
-      </p>
-      <p className="num mt-2 text-[28px] leading-none md:text-[32px]">
-        {value}
-        <span className="ml-1 text-base text-muted-foreground">{unit}</span>
-      </p>
-      {hint ? <p className="mt-2 text-sm text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }
