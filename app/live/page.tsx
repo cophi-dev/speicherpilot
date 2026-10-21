@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { buildDayClock } from "@/lib/dayClock";
 import { loadHomeBriefingInitialData } from "@/lib/homeBriefingData";
-import { chooseStorageDay } from "@/lib/liveFleetDispatch";
+import { chooseStorageDay, dayIsUsable } from "@/lib/liveFleetDispatch";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadLiveBoard } from "@/lib/loadLiveBoard";
 import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
@@ -16,7 +16,13 @@ export const metadata = {
     "A model of today’s German residual load with the large-storage fleet scaled from ×1 to ×10. The battery starts empty, charges on surplus, and cuts the evening peak. No euro figures.",
 };
 
-export default async function LivePage() {
+export default async function LivePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tag?: string | string[] }>;
+}) {
+  const query = await searchParams;
+  const requestedTag = Array.isArray(query.tag) ? query.tag[0] : query.tag;
   const now = new Date();
   const berlinTodayKey = formatBerlinDateKeyFromUtcDate(now);
   const initial = await loadHomeBriefingInitialData(now);
@@ -35,7 +41,10 @@ export default async function LivePage() {
     loadWindSolarDays(now),
   ]);
   const today = days.find((day) => day.dateBerlin === berlinTodayKey) ?? null;
-  const chosen = chooseStorageDay(days, berlinTodayKey);
+  const tagged = requestedTag && /^\d{4}-\d{2}-\d{2}$/.test(requestedTag) ? days.find((day) => day.dateBerlin === requestedTag) : null;
+  const chosen = tagged && dayIsUsable(tagged)
+    ? { day: tagged, fallback: tagged.dateBerlin !== berlinTodayKey }
+    : chooseStorageDay(days, berlinTodayKey);
   const clock = buildDayClock({
     dateBerlin: berlinTodayKey,
     slots: today?.slots ?? [],

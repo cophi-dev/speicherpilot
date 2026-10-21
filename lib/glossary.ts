@@ -29,7 +29,9 @@ export type GlossaryId =
   | "ortsnetzstation"
   | "behind-the-meter"
   | "front-of-meter"
-  | "fpa";
+  | "fpa"
+  | "grossspeicher"
+  | "ladezustand";
 
 export type GlossaryEntry = {
   id: GlossaryId;
@@ -284,6 +286,22 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Ein Vertrag, mit dem ein Vermarkter die Flexibilität des Speichers handelt. Flower und ENGIE haben ein solches Agreement, auch virtuelles Tolling genannt. Der Preis steht in den Quellen nicht.",
       en: "A contract under which a marketer trades the battery’s flexibility. Flower and ENGIE have one, also called a virtual tolling agreement. The sources do not state the price.",
+    },
+  },
+  {
+    id: "grossspeicher",
+    term: { de: "Großspeicher", en: "Large storage" },
+    text: {
+      de: "Batteriespeicher ab 1 000 kWh oder 1 000 kW, wie sie Battery Charts aus dem Marktstammdatenregister zählt. Die Zahl ist der registrierte Bestand, keine Messung, was an diesem Tag geladen wurde.",
+      en: "Batteries from 1,000 kWh or 1,000 kW, as Battery Charts counts them from the Marktstammdatenregister. The figure is the registered stock, not a measurement of what charged on this day.",
+    },
+  },
+  {
+    id: "ladezustand",
+    term: { de: "Ladezustand", en: "State of charge" },
+    text: {
+      de: "Wie voll der Speicher ist. Im Modell starten die Großspeicher leer und füllen sich nur mit Überschuss vor 17 Uhr. Der Ring innen zeigt diesen Stand als Anteil der Nennenergie.",
+      en: "How full the battery is. In the model the large storage starts empty and fills only on surplus before 17:00. The inner ring shows that level as a share of nameplate energy.",
     },
   },
 ];
