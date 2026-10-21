@@ -34,7 +34,8 @@ async function cachedJson(url: string): Promise<unknown> {
 
 async function smard(filter: number, region: SmardRegion): Promise<QuarterPoint[] | null> {
   try {
-    return await fetchSmardQuarterHours(filter, region, async (url) => {
+    return await fetchSmardQuarterHours(filter, region, async (input) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
       const body = await cachedJson(url);
       return new Response(JSON.stringify(body), { status: 200 });
     });
