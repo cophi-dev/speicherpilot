@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ConnectionStory } from "@/components/home/ConnectionStory";
 import { HeuteHero } from "@/components/home/HeuteHero";
 import { useLanguage } from "@/components/language-context";
 import type { HeuteImNetz } from "@/lib/heuteImNetz";
@@ -14,6 +15,8 @@ export function MarketingHome({ heute }: { heute: HeuteImNetz }) {
   return (
     <div>
       <HeuteHero heute={heute} />
+
+      <ConnectionStory />
 
       <section className="border-b border-border py-16 md:py-20">
         <div className="mx-auto max-w-[1200px] px-5 md:px-8">
@@ -155,3 +158,4 @@ function StoryDrawing({ kind }: { kind: "peak" | "cut" | "save" }) {
     </svg>
   );
 }
+

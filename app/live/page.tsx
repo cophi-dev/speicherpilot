@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { LiveView } from "@/components/live/LiveView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { buildDayClock } from "@/lib/dayClock";
 import { loadHomeBriefingInitialData } from "@/lib/homeBriefingData";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadLiveBoard } from "@/lib/loadLiveBoard";
@@ -32,11 +33,18 @@ export default async function LivePage() {
     loadLargeBatteryFleet(),
     loadWindSolarDays(now),
   ]);
+  const today = days.find((day) => day.dateBerlin === berlinTodayKey) ?? null;
+  const clock = buildDayClock({
+    dateBerlin: berlinTodayKey,
+    slots: today?.slots ?? [],
+    fleet: fleet ? { energyGwh: fleet.energyGwh, updatedLabel: fleet.updatedLabel } : null,
+  });
   const picked = pickSurplusDay(days, berlinTodayKey);
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-64 max-w-[1200px]" />}>
       <LiveView
         board={board}
+        clock={clock}
         fleet={fleet}
         days={days}
         todayKey={berlinTodayKey}

@@ -1,11 +1,13 @@
 "use client";
 
 import { GlossaryTip } from "@/components/GlossaryTip";
+import { DayClock } from "@/components/live/DayClock";
 import { LiveLineChart } from "@/components/live/LiveCharts";
 import { NorthSouthChart } from "@/components/live/NorthSouthChart";
 import { StorageWhatIf } from "@/components/live/StorageWhatIf";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
+import type { DayClockView } from "@/lib/dayClock";
 import { LIVE_SOURCE_TABLE, type LiveBoard, type LiveModule, type PriceLight } from "@/lib/liveBoard";
 import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
 import type { ResidualDay } from "@/lib/windSolarResidual";
@@ -30,6 +32,7 @@ function lightMark(light: PriceLight) {
 
 export function LiveView({
   board,
+  clock,
   fleet,
   days,
   todayKey,
@@ -37,6 +40,7 @@ export function LiveView({
   initialFallback,
 }: {
   board: LiveBoard;
+  clock: DayClockView | null;
   fleet: LargeBatteryFleet | null;
   days: ResidualDay[];
   todayKey: string;
@@ -57,6 +61,7 @@ export function LiveView({
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Live", "Live")}</p>
       <h1 className="mt-2 max-w-[18ch] text-[32px] leading-tight font-medium md:text-[44px]">{tx("Was heute los ist", "What is happening today")}</h1>
       <p className="mt-4 max-w-[68ch] text-lg">{lead}</p>
+      {clock ? <DayClock clock={clock} /> : null}
       {board.lead.de === board.modules.find((entry) => entry.id === "price")?.takeaway.de && board.priceLight && board.priceLightLabel ? (
         <p className={`num mt-3 text-[12px] tracking-[0.08em] uppercase ${lightTone(board.priceLight)}`}>
           <span aria-hidden="true">{lightMark(board.priceLight)} </span>
