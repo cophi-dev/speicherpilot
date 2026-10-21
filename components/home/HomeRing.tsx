@@ -162,8 +162,8 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
                   {tx(`, Stand ${stand}`, `, as of ${stand}`)}
                   ): {fleetSizeLabel(1, story.powerMw, story.energyMwh, language)}
                   {tx(
-                    " Daten: Energy-Charts (Fraunhofer ISE), Last, Wind und Sonne, CC BY 4.0.",
-                    " Data: Energy-Charts (Fraunhofer ISE), load, wind and solar, CC BY 4.0."
+                    " · Daten: Energy-Charts (Fraunhofer ISE), Last, Wind und Sonne, CC BY 4.0.",
+                    " · Data: Energy-Charts (Fraunhofer ISE), load, wind and solar, CC BY 4.0."
                   )}
                 </span>
               </p>
