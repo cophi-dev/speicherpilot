@@ -1,11 +1,12 @@
-import { simulateBessDispatch } from "@/lib/bessDispatchSimulator";
 import {
   buildLiveDispatchStory,
   chooseDispatchDay,
+  chooseStorageDay,
   LIVE_DISPATCH_RTE,
   scaleFleet,
   socEdge,
 } from "@/lib/liveFleetDispatch";
+import { MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 
 function dayFromResidual(date: string, residualAt: (hour: number) => number): ResidualDay {
@@ -80,32 +81,73 @@ describe("live fleet dispatch", () => {
     expect(story.chargedGwh).toBeGreaterThan(story.dischargedGwh);
     expect(story.eveningPeakBeforeGw).not.toBeNull();
     expect(JSON.stringify(story)).not.toMatch(/€|Eur|grossRevenue/);
-    expect(story.rte).toBe(LIVE_DISPATCH_RTE);
+    expect(story.rte).toBe(MORE_STORAGE_ROUND_TRIP);
+    expect(LIVE_DISPATCH_RTE).toBe(MORE_STORAGE_ROUND_TRIP);
+    expect(story.points[0]?.soc).toBe(0);
   });
 
-  it("reaches the empty and the full state of charge", () => {
-    const day = dayFromResidual("2026-10-21", duck);
-    const out = simulateBessDispatch({
-      powerMW: 2_000,
-      energyMWh: 50,
-      efficiency: LIVE_DISPATCH_RTE,
-      strategy: "arbitrage_gap",
-      day: {
-        dateBerlin: day.dateBerlin,
-        timestampsIso: day.slots.map((slot) => slot.timestampIso),
-        hourBerlin: day.slots.map((slot) => slot.hourBerlin + slot.minuteBerlin / 60),
-        loadMw: day.slots.map((slot) => slot.loadMw),
-        totalGenerationMw: day.slots.map((slot) => slot.windMw + slot.solarMw),
-        residualLoadMw: day.slots.map((slot) => slot.loadMw - slot.windMw - slot.solarMw),
-        renewableShareOfLoadPct: day.slots.map((slot) => ((slot.windMw + slot.solarMw) / slot.loadMw) * 100),
-      },
+  it("lowers the evening peak by several gigawatts when stored energy covers the window", () => {
+    const day = dayFromResidual("2026-10-20", (hour) => {
+      if (hour >= 11 && hour < 15) return -20_000;
+      if (hour >= 17 && hour < 21) return 48_000;
+      return 20_000;
     });
-    const edges = new Set(out.socPct.map(socEdge));
+    const story = buildLiveDispatchStory({
+      day,
+      fallback: false,
+      powerMw: 10_000,
+      energyMwh: 40_000,
+      factor: 1,
+    });
+    expect(story.eveningPeakBeforeGw).toBeCloseTo(48, 5);
+    expect(story.eveningPeakAfterGw).not.toBeNull();
+    const cut = (story.eveningPeakBeforeGw ?? 0) - (story.eveningPeakAfterGw ?? 0);
+    expect(cut).toBeGreaterThan(5);
+    expect(story.chargedGwh).toBeGreaterThan(30);
+    expect(story.dischargedGwh).toBeCloseTo(story.chargedGwh * MORE_STORAGE_ROUND_TRIP, 1);
+  });
+
+  it("leaves the peak unchanged when there is no surplus to charge", () => {
+    const day = dayFromResidual("2026-10-20", () => 30_000);
+    const story = buildLiveDispatchStory({
+      day,
+      fallback: false,
+      powerMw: 10_000,
+      energyMwh: 40_000,
+      factor: 1,
+    });
+    expect(story.chargedGwh).toBe(0);
+    expect(story.dischargedGwh).toBeCloseTo(0, 5);
+    expect(story.eveningPeakAfterGw).toBeCloseTo(story.eveningPeakBeforeGw ?? 0, 5);
+  });
+
+  it("starts empty and reaches a full battery when surplus exceeds capacity", () => {
+    const day = dayFromResidual("2026-10-20", duck);
+    const story = buildLiveDispatchStory({
+      day,
+      fallback: false,
+      powerMw: 2_000,
+      energyMwh: 50,
+      factor: 1,
+    });
+    const edges = new Set(story.points.map((point) => socEdge(point.soc * 100)));
     expect(edges.has("empty")).toBe(true);
     expect(edges.has("full")).toBe(true);
-    for (const soc of out.socPct) {
-      expect(soc).toBeGreaterThanOrEqual(10 - 0.05);
-      expect(soc).toBeLessThanOrEqual(90 + 0.05);
+    for (const point of story.points) {
+      expect(point.soc).toBeGreaterThanOrEqual(0);
+      expect(point.soc).toBeLessThanOrEqual(1);
     }
+  });
+
+  it("picks the latest day that has both surplus and an evening", () => {
+    const older = dayFromResidual("2026-10-19", duck);
+    const yesterday = dayFromResidual("2026-10-20", () => 30_000);
+    const morning: ResidualDay = {
+      dateBerlin: "2026-10-21",
+      slots: older.slots.filter((slot) => slot.hourBerlin < 12),
+    };
+    expect(chooseStorageDay([morning, yesterday, older], "2026-10-21")?.day.dateBerlin).toBe("2026-10-19");
+    expect(chooseStorageDay([morning, yesterday, older], "2026-10-21")?.fallback).toBe(true);
+    expect(chooseStorageDay([older], "2026-10-19")?.fallback).toBe(false);
   });
 });

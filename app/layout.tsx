@@ -6,9 +6,6 @@ import { ThemeInitScript } from "@/components/ThemeInitScript";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 
 const siteOrigin = getPublicSiteOrigin();
-const xSiteHandle = process.env.NEXT_PUBLIC_X_SITE_HANDLE?.replace(/^@/, "").trim();
-const xCreatorHandle =
-  process.env.NEXT_PUBLIC_X_CREATOR_HANDLE?.replace(/^@/, "").trim() ?? xSiteHandle;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -33,11 +30,9 @@ export const metadata: Metadata = {
     siteName: "SpeicherPilot",
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "SpeicherPilot — battery storage & grid connection planner",
     description: "battery storage & grid connection planner — live 50Hertz wind and solar, DE-LU prices.",
-    ...(xSiteHandle ? { site: `@${xSiteHandle}` as const } : {}),
-    ...(xCreatorHandle ? { creator: `@${xCreatorHandle}` as const } : {}),
   },
 };
 

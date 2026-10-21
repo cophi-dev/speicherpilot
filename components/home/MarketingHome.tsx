@@ -113,8 +113,7 @@ export function MarketingHome({ heute }: { heute: HeuteImNetz }) {
       <div className="num border-b border-border py-6 text-[12px] text-muted-foreground">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-5 md:flex-row md:justify-between md:px-8">
           <span>
-            {tx("Gebaut von Phillipp Zarindast, offen auf", "Built by Phillipp Zarindast, in public on")}{" "}
-            <a className="text-primary underline underline-offset-[3px]" href="https://x.com/pphhiillliipppp">X · @pphhiillliipppp</a>
+            {tx("Gebaut von Phillipp Zarindast.", "Built by Phillipp Zarindast.")}
           </span>
           <a className="text-primary underline underline-offset-[3px]" href="https://github.com/cophi-dev/speicherpilot">
             {tx("Repository", "Repository")}

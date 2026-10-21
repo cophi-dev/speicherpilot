@@ -1,6 +1,6 @@
-import { simulateBessDispatch, type BessDispatchDayInput } from "@/lib/bessDispatchSimulator";
 import type { LargeBatteryFleetSource } from "@/lib/largeBatteryFleet";
-import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
+import { dispatchPeakFleet, MORE_STORAGE_DISCHARGE_HOUR, MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
+import { windSolarSurplusMwh, type ResidualDay } from "@/lib/windSolarResidual";
 
 /** Public fleet fields. The keyed Battery Charts URL stays on the server. */
 export type LiveFleetPublic = {
@@ -19,8 +19,10 @@ export type LiveDispatchInput = {
   fallback: boolean;
 };
 
-/** Visible model assumption. Not a measured round-trip efficiency. */
-export const LIVE_DISPATCH_RTE = 0.88;
+/** Same documented round-trip efficiency as /methodik and `MORE_STORAGE_ROUND_TRIP`. Losses are taken on discharge. */
+export const LIVE_DISPATCH_RTE = MORE_STORAGE_ROUND_TRIP;
+
+const QUARTER_HOUR_H = 0.25;
 
 export const LIVE_DISPATCH_FACTORS = [1, 2, 5, 10] as const;
 
@@ -54,24 +56,22 @@ export type LiveDispatchStory = {
   factor: LiveDispatchFactor;
   dateBerlin: string;
   fallback: boolean;
-  /** Evening window 17:00–21:00 is in the published series. */
+  /** At least one quarter from 17:00 is in the published series. */
   eveningPublished: boolean;
   points: LiveDispatchPoint[];
-  /** Maximum residual in the evening window, GW. Null when that window is not published. */
+  /** Maximum residual from 17:00, GW. Null when that part of the day is not published. */
   eveningPeakBeforeGw: number | null;
   eveningPeakAfterGw: number | null;
   /** Energy delivered to the grid, GWh. This is the on-chart label. */
   dischargedGwh: number;
   /** Energy drawn from the grid, GWh. Includes round-trip losses. Tooltip only. */
   chargedGwh: number;
+  /** Wind-plus-solar surplus before 17:00, GWh. The charge cannot exceed this. */
+  surplusGwh: number;
   powerMw: number;
   energyMwh: number;
   rte: number;
 };
-
-function residualMw(slot: ResidualSlot): number {
-  return slot.loadMw - slot.windMw - slot.solarMw;
-}
 
 export function dayIsUsable(day: ResidualDay | null | undefined): day is ResidualDay {
   return Boolean(day && day.slots.length >= MIN_SLOTS);
@@ -100,26 +100,32 @@ export function chooseDispatchDay(
   return null;
 }
 
-export function toDispatchDay(day: ResidualDay): BessDispatchDayInput {
-  return {
-    dateBerlin: day.dateBerlin,
-    timestampsIso: day.slots.map((slot) => slot.timestampIso),
-    hourBerlin: day.slots.map((slot) => slot.hourBerlin + slot.minuteBerlin / 60),
-    loadMw: day.slots.map((slot) => slot.loadMw),
-    totalGenerationMw: day.slots.map((slot) => slot.windMw + slot.solarMw),
-    residualLoadMw: day.slots.map(residualMw),
-    renewableShareOfLoadPct: day.slots.map((slot) =>
-      slot.loadMw > 0 ? ((slot.windMw + slot.solarMw) / slot.loadMw) * 100 : null
-    ),
-  };
+function hasModelEvening(day: ResidualDay | null | undefined): boolean {
+  return Boolean(day?.slots.some((slot) => slot.hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR));
 }
 
-function eveningPeakMw(points: LiveDispatchPoint[], key: "ohneMw" | "mitMw"): number | null {
-  const evening = points.filter((point) => point.hour >= 17 && point.hour < 21);
-  if (evening.length === 0) {
-    return null;
+/** Prefer a day that can charge on surplus and still show the evening peak. */
+export function chooseStorageDay(
+  days: ResidualDay[],
+  todayKey: string
+): { day: ResidualDay; fallback: boolean } | null {
+  const usable = days.filter(dayIsUsable).sort((left, right) => (left.dateBerlin < right.dateBerlin ? 1 : -1));
+  const ready = usable.filter((day) => windSolarSurplusMwh(day.slots) > 0 && hasModelEvening(day));
+  const todayReady = ready.find((day) => day.dateBerlin === todayKey);
+  if (todayReady) {
+    return { day: todayReady, fallback: false };
   }
-  return evening.reduce((max, point) => Math.max(max, point[key]), Number.NEGATIVE_INFINITY);
+  if (ready[0]) {
+    return { day: ready[0], fallback: true };
+  }
+  const today = usable.find((day) => day.dateBerlin === todayKey);
+  if (today) {
+    return { day: today, fallback: false };
+  }
+  if (usable[0]) {
+    return { day: usable[0], fallback: usable[0].dateBerlin !== todayKey };
+  }
+  return null;
 }
 
 export function buildLiveDispatchStory(input: {
@@ -128,53 +134,60 @@ export function buildLiveDispatchStory(input: {
   powerMw: number;
   energyMwh: number;
   factor: LiveDispatchFactor;
-  rte?: number;
 }): LiveDispatchStory {
-  const rte = input.rte ?? LIVE_DISPATCH_RTE;
+  const rte = LIVE_DISPATCH_RTE;
   const scaled = scaleFleet(input.powerMw, input.energyMwh, input.factor);
-  const result = simulateBessDispatch({
-    powerMW: scaled.powerMw,
-    energyMWh: scaled.energyMwh,
-    efficiency: rte,
-    strategy: "arbitrage_gap",
-    day: toDispatchDay(input.day),
-  });
-  const points: LiveDispatchPoint[] = result.quarters.map((quarter) => {
-    const chargeMw = Math.max(0, -quarter.powerMw);
-    const dischargeMw = Math.max(0, quarter.powerMw);
+  const run = dispatchPeakFleet(input.day.slots, scaled.powerMw, scaled.energyMwh);
+  let socMwh = 0;
+  const points: LiveDispatchPoint[] = run.points.map((point) => {
+    if (point.chargeMw > 0) {
+      socMwh += point.chargeMw * QUARTER_HOUR_H;
+    }
+    if (point.dischargeMw > 0) {
+      socMwh -= (point.dischargeMw * QUARTER_HOUR_H) / rte;
+    }
+    socMwh = Math.min(scaled.energyMwh, Math.max(0, socMwh));
     return {
-      hour: quarter.hourBerlin,
-      ohneMw: quarter.residualLoadMw,
-      mitMw: quarter.residualLoadMw + chargeMw - dischargeMw,
-      chargeMw,
-      dischargeMw,
-      soc: quarter.socPct / 100,
+      hour: point.hour,
+      ohneMw: point.residualMw,
+      mitMw: point.residualMw + point.chargeMw - point.dischargeMw,
+      chargeMw: point.chargeMw,
+      dischargeMw: point.dischargeMw,
+      soc: scaled.energyMwh > 0 ? socMwh / scaled.energyMwh : 0,
     };
   });
-  const before = eveningPeakMw(points, "ohneMw");
-  const after = eveningPeakMw(points, "mitMw");
+  const before = run.eveningPeakGw;
+  const after = before === null || run.peakReductionGw === null ? null : before - run.peakReductionGw;
+  const dischargedMwh = run.points.reduce((sum, point) => sum + point.dischargeMw * QUARTER_HOUR_H, 0);
+  const surplusMwh = input.day.slots.reduce((sum, slot) => {
+    if (slot.hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR) {
+      return sum;
+    }
+    return sum + Math.max(0, -(slot.loadMw - slot.windMw - slot.solarMw)) * QUARTER_HOUR_H;
+  }, 0);
   return {
     factor: input.factor,
     dateBerlin: input.day.dateBerlin,
     fallback: input.fallback,
     eveningPublished: before !== null,
     points,
-    eveningPeakBeforeGw: before === null ? null : before / 1000,
-    eveningPeakAfterGw: after === null ? null : after / 1000,
-    dischargedGwh: result.economics.energyDischargedToGridMwh / 1000,
-    chargedGwh: result.economics.energyChargedFromGridMwh / 1000,
+    eveningPeakBeforeGw: before,
+    eveningPeakAfterGw: after,
+    dischargedGwh: dischargedMwh / 1000,
+    chargedGwh: run.storedMwh / 1000,
+    surplusGwh: surplusMwh / 1000,
     powerMw: scaled.powerMw,
     energyMwh: scaled.energyMwh,
     rte,
   };
 }
 
-/** SoC at the engine floor (10 %) or ceiling (90 %). */
+/** SoC at empty (0 %) or full nameplate (100 %). The peak model starts empty and can fill. */
 export function socEdge(socPct: number): "empty" | "full" | "between" {
-  if (socPct <= 10.05) {
+  if (socPct <= 0.05) {
     return "empty";
   }
-  if (socPct >= 89.95) {
+  if (socPct >= 99.95) {
     return "full";
   }
   return "between";

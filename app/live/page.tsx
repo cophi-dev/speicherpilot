@@ -2,10 +2,10 @@ import { Suspense } from "react";
 
 import { LiveView } from "@/components/live/LiveView";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatBerlinDateKeyFromUtcDate, prevBerlinDateKey } from "@/lib/berlinCalendar";
+import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { buildDayClock } from "@/lib/dayClock";
 import { loadHomeBriefingInitialData } from "@/lib/homeBriefingData";
-import { chooseDispatchDay } from "@/lib/liveFleetDispatch";
+import { chooseStorageDay } from "@/lib/liveFleetDispatch";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadLiveBoard } from "@/lib/loadLiveBoard";
 import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
@@ -35,8 +35,7 @@ export default async function LivePage() {
     loadWindSolarDays(now),
   ]);
   const today = days.find((day) => day.dateBerlin === berlinTodayKey) ?? null;
-  const yesterday = days.find((day) => day.dateBerlin === prevBerlinDateKey(berlinTodayKey)) ?? null;
-  const chosen = chooseDispatchDay(today, yesterday);
+  const chosen = chooseStorageDay(days, berlinTodayKey);
   const clock = buildDayClock({
     dateBerlin: berlinTodayKey,
     slots: today?.slots ?? [],

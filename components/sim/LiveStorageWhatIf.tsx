@@ -53,7 +53,7 @@ function toSamples(points: LiveDispatchPoint[]): ChartSample[] {
 }
 
 function formatGw(value: number, language: AppLanguage) {
-  const shown = Math.abs(value) >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
+  const shown = Math.round(value * 10) / 10;
   return formatQuantity(shown, language, Number.isInteger(shown) ? 0 : 1);
 }
 
@@ -212,8 +212,8 @@ export function LiveStorageWhatIf({ dispatch }: { dispatch: LiveDispatchInput })
           <p>
             {dispatch.fleet
               ? tx(
-                  "Für heute und gestern liegt keine Residuallast mit mindestens vier Viertelstunden vor. Ohne diese Reihe gibt es keine Abendspitze.",
-                  "Today and yesterday have no residual-load series with at least four quarter-hours. Without that series there is no evening peak."
+                  "In den geladenen Tagen liegt keine Residuallast mit mindestens vier Viertelstunden vor. Ohne diese Reihe gibt es keine Abendspitze.",
+                  "The loaded days have no residual-load series with at least four quarter-hours. Without that series there is no evening peak."
                 )
               : tx(
                   "Die Großspeicher-Flotte von battery-charts.de ist gerade nicht geladen. Ohne diese Zahl gibt es kein ×1.",
@@ -262,7 +262,7 @@ function LiveChart({
     `Geladen ${formatGwh(story.chargedGwh, language)} GWh einschließlich Verluste. Wirkungsgrad ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)} % (Annahme).`,
     `Charged ${formatGwh(story.chargedGwh, language)} GWh including losses. Round-trip efficiency ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)}% (assumption).`
   );
-  const deltaValue = evening ? Math.round(before ?? 0) - Math.round(after ?? 0) : 0;
+  const deltaValue = evening ? Math.round(((before ?? 0) - (after ?? 0)) * 10) / 10 : 0;
   const deltaSign = deltaValue > 0 ? "−" : deltaValue < 0 ? "+" : "";
   const fleetHrefLabel = fleet.source === "battery-charts" ? "battery-charts.de" : "Energy-Charts";
 
@@ -271,7 +271,7 @@ function LiveChart({
       <div className="sim-cardhead">
         <p className="sim-kicker">
           {tx("Residuallast", "Residual load")} · ¼h · {shortDate(story.dateBerlin)}
-          {fallback ? <span className="sim-chip sim-chip-gap">{tx("Daten von gestern", "Data from yesterday")}</span> : null}
+          {fallback ? <span className="sim-chip sim-chip-gap">{tx("Letzter Überschusstag", "Last surplus day")}</span> : null}
         </p>
         <span className="sim-chip">MODELL</span>
       </div>
@@ -302,8 +302,8 @@ function LiveChart({
                 `Residual load on ${shortDate(story.dateBerlin)} with and without storage. Evening peak ${beforeLabel} to ${afterLabel} GW. Discharged ${formatGwh(story.dischargedGwh, language)} GWh. Model estimate.`
               )
             : tx(
-                `Residuallast am ${shortDate(story.dateBerlin)}. Die Abendspitze 17 bis 21 Uhr ist in dieser Reihe noch nicht veröffentlicht. Modellschätzung.`,
-                `Residual load on ${shortDate(story.dateBerlin)}. The 17:00–21:00 evening peak is not in this series yet. Model estimate.`
+                `Residuallast am ${shortDate(story.dateBerlin)}. Die Stunden ab 17 Uhr sind in dieser Reihe noch nicht veröffentlicht. Modellschätzung.`,
+                `Residual load on ${shortDate(story.dateBerlin)}. The hours from 17:00 are not in this series yet. Model estimate.`
               )
         }
         tag="MODELL"
@@ -396,14 +396,20 @@ function LiveChart({
                   : tx(
                       `Mit ×${factor} Speicher liegt die Abendspitze bei ${afterLabel} GW, ohne Speicher bei ${beforeLabel} GW. Abgegeben werden ${formatGwh(story.dischargedGwh, language)} GWh. Modellschätzung, kein Messwert.`,
                       `With ×${factor} storage the evening peak is ${afterLabel} GW, and ${beforeLabel} GW without storage. ${formatGwh(story.dischargedGwh, language)} GWh are discharged. A model estimate, not a measurement.`
-                    )}
+                    )}{" "}
+                {story.energyMwh / 1000 > story.surplusGwh + 0.05 && story.chargedGwh + 0.05 >= story.surplusGwh
+                  ? tx(
+                      `Der Überschuss vor 17 Uhr war ${formatGwh(story.surplusGwh, language)} GWh und ist aufgenommen. Ein größeres Vielfaches findet an diesem Tag nichts Zusätzliches.`,
+                      `Surplus before 17:00 was ${formatGwh(story.surplusGwh, language)} GWh and has been taken in. A larger multiple finds nothing further on this day.`
+                    )
+                  : null}
               </p>
             </>
           ) : (
             <p className="sim-sentence">
               {tx(
-                "Die Abendspitze von 17 bis 21 Uhr ist in dieser Reihe noch nicht veröffentlicht. Die Grafik zeigt nur die Stunden, die Energy-Charts schon gemeldet hat.",
-                "The evening peak from 17:00 to 21:00 is not in this series yet. The chart shows only the hours Energy-Charts has already published."
+                "Die Stunden ab 17 Uhr sind in dieser Reihe noch nicht veröffentlicht. Die Grafik zeigt nur die Stunden, die Energy-Charts schon gemeldet hat.",
+                "The hours from 17:00 are not in this series yet. The chart shows only the hours Energy-Charts has already published."
               )}
             </p>
           )}
@@ -412,8 +418,8 @@ function LiveChart({
       <p className="sim-src">
         <span className="sim-chip">MODELL</span>{" "}
         {tx(
-          "Modellschätzung. Kupferplatte: alle Speicher wirken als ein Block, keine Netzengpässe. Wirkungsgrad 88 % (Annahme). Quelle: Energy-Charts, Residuallast. Keine Euro-Werte.",
-          "Model estimate. Copper plate: every battery acts as one block, no grid bottlenecks. Round-trip efficiency 88% (assumption). Source: Energy-Charts, residual load. No euro figures."
+          `Modellschätzung. Kupferplatte: alle Speicher wirken als ein Block, keine Netzengpässe. Wirkungsgrad ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)} % (Annahme). Quelle: Energy-Charts, Residuallast. Keine Euro-Werte.`,
+          `Model estimate. Copper plate: every battery acts as one block, no grid bottlenecks. Round-trip efficiency ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)}% (assumption). Source: Energy-Charts, residual load. No euro figures.`
         )}{" "}
         <a href="/methodik#live">{tx("Formeln", "Formulas")}</a>
       </p>
@@ -426,7 +432,7 @@ function liveNotes(samples: ChartSample[], factor: number, discharged: string, l
   let peak = -1;
   let peakValue = Number.NEGATIVE_INFINITY;
   samples.forEach((sample, index) => {
-    if (sample.hour >= 17 && sample.hour < 21 && sample.ohne > peakValue) {
+    if (sample.hour >= 17 && sample.ohne > peakValue) {
       peakValue = sample.ohne;
       peak = index;
     }
@@ -434,7 +440,7 @@ function liveNotes(samples: ChartSample[], factor: number, discharged: string, l
   let mitPeak = -1;
   let mitValue = Number.NEGATIVE_INFINITY;
   samples.forEach((sample, index) => {
-    if (sample.hour >= 17 && sample.hour < 21 && sample.mit > mitValue) {
+    if (sample.hour >= 17 && sample.mit > mitValue) {
       mitValue = sample.mit;
       mitPeak = index;
     }
