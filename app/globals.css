@@ -1475,6 +1475,9 @@
 
 .day-ticks text {
   fill: #c5ced6;
+  font-feature-settings: "calt" 0, "liga" 0, "zero" 0;
+  font-variant-ligatures: none;
+  text-rendering: geometricPrecision;
 }
 
 .day-ticks line {

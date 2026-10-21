@@ -6,6 +6,7 @@ import {
   compactHourLabel,
   compactRingView,
   COMPACT_FRAME_PX,
+  HOUR_LABEL_PAD_PX,
   RING_OF_FRAME,
   energyColor,
   kwRadius,
@@ -56,19 +57,32 @@ describe("day ring scale", () => {
     expect(path).not.toMatch(/\d\.\d{3}/);
   });
 
-  it("sizes a 358px frame so the disk, including the evening peak, is 92% of the radius and centred", () => {
+  it("keeps the evening peak at 92% of a frame that has room for the hour labels", () => {
     for (const gw of [0, 12, 38, 52]) {
       const outer = Math.max(ringRadius(gw), RING_R0);
-      const view = compactRingView(outer);
+      const view = compactRingView(outer, 720);
       expect(view.w).toBeCloseTo(view.h, 5);
       expect(view.x).toBeCloseTo(-view.w / 2, 5);
       expect(view.y).toBeCloseTo(-view.h / 2, 5);
-      expect(ringDiskPx(outer, COMPACT_FRAME_PX, view.w)).toBeCloseTo(COMPACT_FRAME_PX * RING_OF_FRAME, 1);
-      const label = compactHourLabel(outer, view.w / 2);
-      expect((label.labelGap * COMPACT_FRAME_PX) / view.w).toBeCloseTo(8, 1);
-      expect((label.fontSize * COMPACT_FRAME_PX) / view.w).toBeCloseTo(12, 1);
+      expect(ringDiskPx(outer, 720, view.w)).toBeCloseTo(720 * RING_OF_FRAME, 1);
+      const label = compactHourLabel(outer, view.w / 2, 720);
+      expect((label.labelGap * 720) / view.w).toBeCloseTo(8, 1);
+      expect((label.fontSize * 720) / view.w).toBeCloseTo(12, 1);
       expect(label.labelRadius - label.fontSize * 0.6 - outer).toBeCloseTo(label.labelGap, 1);
+      expect(label.labelRadius + label.fontSize * 0.7).toBeLessThanOrEqual(view.w / 2);
     }
+  });
+
+  it("shrinks the guide on a 358px frame so 00, 06, 12 and 18 stay inside the viewBox", () => {
+    const outer = ringRadius(38);
+    const view = compactRingView(outer, COMPACT_FRAME_PX);
+    const label = compactHourLabel(outer, view.w / 2, COMPACT_FRAME_PX);
+    expect(view.x).toBeCloseTo(-view.w / 2, 5);
+    expect(view.y).toBeCloseTo(-view.h / 2, 5);
+    expect(ringDiskPx(outer, COMPACT_FRAME_PX, view.w)).toBeLessThan(COMPACT_FRAME_PX * RING_OF_FRAME);
+    expect(label.labelRadius + label.fontSize * 0.7).toBeLessThanOrEqual(view.w / 2);
+    expect((label.labelGap * COMPACT_FRAME_PX) / view.w).toBeCloseTo(8, 1);
+    expect((HOUR_LABEL_PAD_PX * 2) / COMPACT_FRAME_PX).toBeGreaterThan(1 - RING_OF_FRAME);
   });
 
   it("keeps the centre box 12px inside the inner circle", () => {

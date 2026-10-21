@@ -141,22 +141,31 @@ export function socRingGeometry(unit: "GW" | "kW" = "GW", bold = false): { radiu
   return { radius, width, innerEdge: radius - width / 2 };
 }
 
-/** Phone width of the ring frame. The disk fills 92% of that frame's radius. */
+/** Phone width of the ring frame. The disk fills 92% of that frame's radius when the labels fit. */
 export const COMPACT_FRAME_PX = 358;
 export const RING_OF_FRAME = 0.92;
 export const HOUR_LABEL_GAP_PX = 8;
 export const HOUR_LABEL_PX = 12;
+/**
+ * Screen pixels the hour label needs outside the guide.
+ * 8px gap, then the anchor (0.6em), then the outer half of the 16px em box, plus 2px of clearance.
+ */
+export const HOUR_LABEL_PAD_PX = 26;
 /** Secondary grey used for hour labels and the guide circle. */
 export const STEIN = "#C5CED6";
 
 /**
  * Square viewBox centred on the ring.
  * `outerRadius` is the furthest point of the day, including the evening peak.
- * That radius sits at 92% of the frame; the centre of the disk is the centre of the frame.
+ * That radius sits at 92% of the frame when the 8% margin holds the hour labels.
+ * On a narrower frame the guide gets smaller so 00, 06, 12 and 18 stay inside the viewBox.
  */
-export function compactRingView(outerRadius: number): { x: number; y: number; w: number; h: number } {
+export function compactRingView(outerRadius: number, framePx: number = COMPACT_FRAME_PX): { x: number; y: number; w: number; h: number } {
   const outer = Math.max(1, outerRadius);
-  const half = round2(outer / RING_OF_FRAME);
+  const byScale = outer / RING_OF_FRAME;
+  const padFrac = (2 * HOUR_LABEL_PAD_PX) / Math.max(1, framePx);
+  const byLabels = padFrac < 0.85 ? outer / (1 - padFrac) : outer + HOUR_LABEL_PAD_PX;
+  const half = round2(Math.max(byScale, byLabels));
   const side = round2(half * 2);
   return { x: -half, y: -half, w: side, h: side };
 }

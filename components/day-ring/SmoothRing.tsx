@@ -64,9 +64,9 @@ export function SmoothRing({
   return (
     <g className="day-smooth">
       <defs>
-        <mask id={`${clipId}-zero`} maskUnits="userSpaceOnUse">
+        <mask id={`${clipId}-zero`} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
           <rect x={view.x} y={view.y} width={view.w} height={view.h} fill="white" />
-          <path d={area} fill="black" />
+          <path d={area} fill="black" fillRule="nonzero" />
         </mask>
         {span ? (
           <clipPath id={`${clipId}-wedge`} clipPathUnits="userSpaceOnUse">
@@ -168,8 +168,8 @@ function RingPaint({
   return (
     <g className={mark ? "day-smooth-base" : "day-smooth-hot"} opacity={opacity < 1 ? opacity : undefined}>
       <defs>
-        <mask id={clipId} maskUnits="userSpaceOnUse">
-          <path className={mark ? "day-ring-area" : undefined} d={area} fill="white" shapeRendering="geometricPrecision" />
+        <mask id={clipId} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
+          <path className={mark ? "day-ring-area" : undefined} d={area} fill="white" fillRule="nonzero" shapeRendering="geometricPrecision" />
         </mask>
       </defs>
       <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} mask={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">

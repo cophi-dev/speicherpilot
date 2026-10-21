@@ -109,8 +109,8 @@ export function DayRing({
   const outer = unit === "kW"
     ? Math.max(radiusOf(Math.max(maxValue, limit ?? 0)), kwRadius(0))
     : Math.max(ringRadius(maxGw), RING_R0);
-  const view = useMemo(() => compactRingView(outer), [outer]);
   const [framePx, setFramePx] = useState(720);
+  const view = useMemo(() => compactRingView(outer, framePx), [outer, framePx]);
   const hourLabel = compactHourLabel(outer, view.w / 2, framePx);
   const innerEdge = socRingGeometry(unit, mode === "projekt").innerEdge;
   const layoutKey = callouts.map((callout) => `${callout.id}:${callout.point.hour}:${callout.text}`).join("|");
