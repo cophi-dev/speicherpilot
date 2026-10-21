@@ -125,6 +125,12 @@ grid-serving, same battery and same limit:
   min(limit, that day's uncontrolled import peak)
   no arbitrage`}</pre>
           <p className="text-sm text-muted-foreground">{tx("Die Netzbetreiber-Sicht zeigt, ob die gewählte Betriebsart die Spitze am Netzanschlusspunkt senkt oder hebt. Die rote Linie in der Grafik ist die eingegebene Anschlussleistung.", "The grid-operator view shows whether the selected operation lowers or raises the peak at the connection point. The red line on the chart is the connection capacity you entered.")}</p>
+          <p id="peak-erklaert">
+            {tx(
+              "Die Startseite zeigt denselben Winterwerktag des Beispiel-Supermarkts ohne Dach-PV, in fünf Schritten. Das ist ein Lehrstück, nicht der Dispatch des Standort-Rechners. Der Speicher startet voll, Wirkungsgrad 90 %, Entladen nur über der Anschlussgrenze, Nachladen ab 19:30 mit höchstens 15 kW und nur so weit, wie unter der Grenze Luft ist. Die Euro-Zahl ist die gesenkte Spitze mal 120 €/kW·a, eine Modellschätzung auf Beispieldaten, kein Angebot.",
+              "The homepage shows the same winter weekday of the example supermarket without rooftop PV, in five steps. That is a teaching piece, not the site calculator’s dispatch. The battery starts full, round-trip efficiency 90%, discharge only above the connection limit, recharge from 19:30 at 15 kW at most and only while there is room under the limit. The euro figure is the shaved peak times €120/kW·year, a model estimate on example data, not a quote."
+            )}
+          </p>
         </Section>
         <Section id="wirtschaft" n="§5" title={tx("Wirtschaftlichkeit", "Economics")}>
           <p>{tx("Nutzen = Leistungspreis-Ersparnis + Arbeitspreis auf der Peak-Shaving-Energie + Arbitrage zum synthetischen oder übergebenen Preis + Änderung der Einspeisung − 1,5 % CAPEX als OPEX.", "Benefit = demand-charge saving + retail energy on the peak-shaving throughput + arbitrage at the synthetic or supplied price + the change in export − 1.5% of CAPEX as OPEX.")}</p>
@@ -232,6 +238,7 @@ grid-serving, same battery and same limit:
           <p className="num mt-2">2026-10-21 — {tx("Klare Sprache, Glossar, Ampel als Lesehilfe, Beispiel Supermarkt in Hamburg.", "Plain language, glossary, traffic-light reading aid, Hamburg supermarket example.")}</p>
           <p className="num mt-2">2026-10-21 — {tx("Einstieg mit zwei Perspektiven. Beispiele Supermarkt, Quartier und Flower Bergedorf. /site öffnet die Projektierung mit dem Supermarkt, gekennzeichnet als Beispieldaten. Die Netzansicht beginnt mit der Anschluss-Ampel.", "Entry with two perspectives. Examples: supermarket, neighbourhood, and Flower Bergedorf. /site opens the project view on the supermarket, labelled as example data. The grid view starts with the connection traffic light.")}</p>
           <p className="num mt-2">2026-10-21 — {tx("Live-Ansicht mit benannter Ebene: Regelzone 50Hertz, Gebotszone DE-LU, Deutschland. Keine Abregelungszahl ohne freie Reihe. Der Zonenvergleich sagt, dass im Norden mehr Wind steht als im Süden.", "Live view with a named level: 50Hertz control area, DE-LU bidding zone, Germany. No curtailment figure without a free series. The area comparison says the north has more wind than the south.")}</p>
+          <p className="num mt-2">2026-10-21 — {tx("Startseite: Ein Tag am Netzanschluss, Lehrstück Peak Shaving. Live: Ein Tag als Uhr mit dem heutigen Deutschland-Tag.", "Homepage: one day at the connection, a peak-shaving teaching piece. Live: the day as a clock, using today’s Germany.")}</p>
         </Section>
       </article>
     </div>
