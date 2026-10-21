@@ -6,6 +6,8 @@ SpeicherPilot is a public battery storage and grid connection planner for German
 
 | Surface | Feature |
 |---------|---------|
+| Homepage story | [`/`](../app/page.tsx) section “Was ist Peak Shaving?”. Teaching dispatch for the fictional Hamburg supermarket winter weekday, no rooftop PV, labelled Beispieldaten and Modellschätzung. It is not `planSite`. The connection light is PASST / KNAPP / PASST NICHT. |
+| Day clock | [`/live`](../app/live/page.tsx). Today’s Germany wind plus solar against load, area-true radius, no glow. A day without surplus stays today and reads “kein Überschuss”. Fleet energy is a size comparison, not stored energy. |
 | Live view | [`/live`](../app/live/page.tsx) and the homepage block. Each chart names its level. The closest free quarter-hour series to Hamburg is the 50Hertz control area on SMARD (the whole zone, which includes the city). A 50Hertz versus TransnetBW line says the north has more wind than the south. Day-ahead prices are the DE-LU bidding zone via Energy-Charts. Germany generation and load stay on Energy-Charts and still use the quarter-hour where generation and load both exist. Curtailment and redispatch are explained without a number, because the Netztransparenz machine feed is not connected. |
 | Example-pack sizing | [BessConfigurator.tsx](../components/BessConfigurator.tsx) — power, energy, footprint, weight, RTE. Presets in [bessExamplePresets.ts](../lib/bessExamplePresets.ts) are illustrative, not a vendor catalog |
 | Indicative economics | [FinancialDashboard.tsx](../components/FinancialDashboard.tsx) + [lib/bessEconomics.ts](../lib/bessEconomics.ts) — labelled model estimates, not tariffs or quotes |

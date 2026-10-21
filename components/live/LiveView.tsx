@@ -4,9 +4,11 @@ import { toPng } from "html-to-image";
 import { useRef, useState } from "react";
 
 import { GlossaryTip } from "@/components/GlossaryTip";
+import { DayClock } from "@/components/live/DayClock";
 import { LiveLineChart } from "@/components/live/LiveCharts";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
+import type { DayClockView } from "@/lib/dayClock";
 import { LIVE_SOURCE_TABLE, type LiveBoard, type LiveModule, type PriceLight } from "@/lib/liveBoard";
 
 function copy(language: "de" | "en", text: { de: string; en: string }) {
@@ -25,7 +27,7 @@ function lightMark(light: PriceLight) {
   return "▲";
 }
 
-export function LiveView({ board }: { board: LiveBoard }) {
+export function LiveView({ board, clock }: { board: LiveBoard; clock: DayClockView | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const posterRef = useRef<HTMLDivElement>(null);
@@ -60,6 +62,7 @@ export function LiveView({ board }: { board: LiveBoard }) {
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Live", "Live")}</p>
       <h1 className="mt-2 max-w-[18ch] text-[32px] leading-tight font-medium md:text-[44px]">{tx("Was heute los ist", "What is happening today")}</h1>
       <p className="mt-4 max-w-[68ch] text-lg">{lead}</p>
+      {clock ? <DayClock clock={clock} /> : null}
       {board.lead.de === board.modules.find((entry) => entry.id === "price")?.takeaway.de && board.priceLight && board.priceLightLabel ? (
         <p className={`num mt-3 text-[12px] tracking-[0.08em] uppercase ${lightTone(board.priceLight)}`}>
           <span aria-hidden="true">{lightMark(board.priceLight)} </span>

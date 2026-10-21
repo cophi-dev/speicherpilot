@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 
 import { ChartLegend, DispatchChart, type DispatchPoint } from "@/components/charts/DispatchChart";
+import { ConnectionStory } from "@/components/home/ConnectionStory";
 import { PerspectiveChoice } from "@/components/PerspectiveChoice";
 import { HomeLiveBlock } from "@/components/live/HomeLiveBlock";
 import { useLanguage } from "@/components/language-context";
@@ -84,31 +85,7 @@ export function MarketingHome({ board }: { board: LiveBoard }) {
         </div>
       </section>
 
-      <section className="border-b border-border py-16 md:py-20">
-        <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-          <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("In drei Schritten", "In three steps")}</p>
-          <ol className="mt-6 grid gap-4 md:grid-cols-3">
-            <StoryStep
-              n="01"
-              title={tx("Dein Betrieb hat Lastspitzen", "Your site has load peaks")}
-              body={tx("An manchen Stunden zieht der Betrieb viel mehr Strom als sonst.", "In some hours the site draws much more power than usual.")}
-              drawing="peak"
-            />
-            <StoryStep
-              n="02"
-              title={tx("Der Speicher schneidet sie ab", "The battery cuts them off")}
-              body={tx("Er gibt in diesen Stunden Strom ab, damit die Spitze flacher wird.", "It supplies power in those hours so the peak gets flatter.")}
-              drawing="cut"
-            />
-            <StoryStep
-              n="03"
-              title={tx("Du sparst Leistungspreis – oder brauchst keinen größeren Netzanschluss", "You save the demand charge — or you do not need a larger connection")}
-              body={tx("Die teuerste Stunde wird kleiner. Oft reicht dann der Anschluss, den du schon hast.", "The most expensive hour gets smaller. Often the connection you already have is then enough.")}
-              drawing="save"
-            />
-          </ol>
-        </div>
-      </section>
+      <ConnectionStory />
 
       <section className="border-b border-border py-16 md:py-24">
         <div className="mx-auto max-w-[1200px] px-5 md:px-8">
@@ -203,32 +180,3 @@ function Chip({ children }: { children: ReactNode }) {
   return <span className="rounded-[4px] border border-border px-1.5 py-0.5">{children}</span>;
 }
 
-function StoryStep({ n, title, body, drawing }: { n: string; title: string; body: string; drawing: "peak" | "cut" | "save" }) {
-  return (
-    <li className="rounded-md border border-border bg-card p-5">
-      <StoryDrawing kind={drawing} />
-      <p className="num mt-4 text-[13px] text-primary">{n}</p>
-      <h2 className="mt-1 text-lg leading-snug font-medium">{title}</h2>
-      <p className="mt-2 text-sm text-muted-foreground">{body}</p>
-    </li>
-  );
-}
-
-function StoryDrawing({ kind }: { kind: "peak" | "cut" | "save" }) {
-  const peak = "M4 46 C 28 46, 40 44, 58 30 C 78 14, 92 8, 108 18 C 124 28, 140 46, 176 46";
-  const flat = "M4 46 C 28 46, 40 44, 58 34 C 78 26, 92 26, 108 30 C 124 34, 140 46, 176 46";
-  return (
-    <svg viewBox="0 0 180 64" className="h-16 w-full" aria-hidden="true">
-      <line x1="4" y1="40" x2="176" y2="40" stroke="currentColor" className="text-destructive" strokeDasharray="4 3" />
-      {kind === "save" ? (
-        <>
-          <rect x="18" y="28" width="28" height="18" className="fill-primary" />
-          <rect x="54" y="18" width="28" height="28" className="fill-primary opacity-80" />
-          <rect x="90" y="34" width="28" height="12" className="fill-foreground opacity-80" />
-        </>
-      ) : (
-        <path d={kind === "cut" ? flat : peak} fill="none" stroke="currentColor" className="text-foreground" strokeWidth="2" />
-      )}
-    </svg>
-  );
-}
