@@ -58,16 +58,22 @@ export function SmoothRing({
   const gradient = conicGradient(ohneSeries.map((sample) => ({ angleDeg: sample.angleDeg, color: colorOf(sample.value) })));
   const span = highlightSpan(highlight);
   const reach = Math.max(zero, ...ohneSamples.map((sample) => sample.radius), ...mitSamples.map((sample) => sample.radius)) + 48;
+  const area = polarAreaPath(ohneSamples, zero);
 
   return (
     <g className="day-smooth">
-      {span ? (
-        <defs>
+      <defs>
+        <mask id={`${clipId}-zero`} maskUnits="userSpaceOnUse">
+          <rect x={view.x} y={view.y} width={view.w} height={view.h} fill="white" />
+          <path d={area} fill="black" stroke="black" strokeWidth="6" />
+        </mask>
+        {span ? (
           <clipPath id={`${clipId}-wedge`} clipPathUnits="userSpaceOnUse">
             <path d={wedgePath(span.start, span.end, reach)} />
           </clipPath>
-        </defs>
-      ) : null}
+        ) : null}
+      </defs>
+      <circle className="day-zero" cx="0" cy="0" r={zero} fill="none" mask={`url(#${clipId}-zero)`} />
       <RingPaint
         clipId={clipId}
         ohne={ohneSamples}

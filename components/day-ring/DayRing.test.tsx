@@ -69,6 +69,8 @@ describe("day ring raw numbers", () => {
     expect(container.querySelector(".day-ring-area")?.getAttribute("d") ?? "").toMatch(/^M /);
     expect(container.querySelector(".day-limit")?.tagName.toLowerCase()).toBe("circle");
     expect(container.querySelector("foreignObject div")?.getAttribute("style") ?? "").toMatch(/conic-gradient/);
+    expect(container.querySelectorAll(".day-zero")).toHaveLength(1);
+    expect(container.querySelector(".day-zero")?.getAttribute("mask") ?? "").toMatch(/^url\(#/);
   });
 
   it("morphs the drawn path and leaves the tooltip on the raw value", () => {

@@ -239,7 +239,10 @@ export function DayRing({
           </pattern>
         </defs>
         {empty ? (
-          <circle className="day-empty-ring" cx="0" cy="0" r={unit === "kW" ? kwRadius(40) : 280} fill="none" stroke="#C5CED6" strokeWidth="2" />
+          <>
+            <circle className="day-empty-ring" cx="0" cy="0" r={unit === "kW" ? kwRadius(40) : 280} fill="none" stroke="#C5CED6" strokeWidth="2" />
+            <circle className="day-zero" cx="0" cy="0" r={unit === "kW" ? kwRadius(0) : RING_R0} fill="none" />
+          </>
         ) : (
           <SmoothRing
             points={points}
@@ -253,7 +256,6 @@ export function DayRing({
             view={view}
           />
         )}
-        <circle className="day-zero" cx="0" cy="0" r={unit === "kW" ? kwRadius(0) : RING_R0} fill="none" />
         {!empty && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
         {!empty && highlight ? <InkArc points={points} highlight={highlight} radiusOf={radiusOf} unit={unit} /> : null}
         {!empty && showSoc ? <SocRing points={points} bold={mode === "projekt"} unit={unit} /> : null}
