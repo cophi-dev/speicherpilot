@@ -339,6 +339,19 @@ function LiveChart({
                   onChoose(next.factor);
                 }
               }}
+              onKeyDown={(event) => {
+                const order = STOPS.findIndex((item) => item.factor === factor);
+                const forward = event.key === "ArrowRight" || event.key === "ArrowUp";
+                const back = event.key === "ArrowLeft" || event.key === "ArrowDown";
+                if (!forward && !back && event.key !== "Home" && event.key !== "End") {
+                  return;
+                }
+                event.preventDefault();
+                const next = event.key === "Home" ? STOPS[0] : event.key === "End" ? STOPS[STOPS.length - 1] : STOPS[order + (forward ? 1 : -1)];
+                if (next && next.factor !== factor) {
+                  onChoose(next.factor);
+                }
+              }}
             />
           </div>
           <div className="sim-ticks num" aria-hidden="true">
@@ -418,6 +431,14 @@ function liveNotes(samples: ChartSample[], factor: number, discharged: string, l
       peak = index;
     }
   });
+  let mitPeak = -1;
+  let mitValue = Number.NEGATIVE_INFINITY;
+  samples.forEach((sample, index) => {
+    if (sample.hour >= 17 && sample.hour < 21 && sample.mit > mitValue) {
+      mitValue = sample.mit;
+      mitPeak = index;
+    }
+  });
   if (peak >= 0) {
     const sample = samples[peak];
     notes.push({
@@ -429,13 +450,17 @@ function liveNotes(samples: ChartSample[], factor: number, discharged: string, l
       mdx: -16,
       mdy: -10,
     });
+  }
+  if (mitPeak >= 0) {
+    const sample = samples[mitPeak];
     notes.push({
       hour: sample.hour + 0.125,
       value: sample.mit,
       text: `${formatGw(sample.mit, language)} GW ${language === "de" ? "mit" : "with"} ×${factor}`,
       anchor: "middle",
-      dy: 18,
-      mdy: 16,
+      dy: mitPeak === peak ? 18 : -8,
+      mdx: mitPeak === peak ? 0 : 18,
+      mdy: mitPeak === peak ? 16 : -10,
       strong: true,
     });
   }

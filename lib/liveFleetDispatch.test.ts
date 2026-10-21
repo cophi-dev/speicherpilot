@@ -50,6 +50,12 @@ describe("live fleet dispatch", () => {
     expect(chooseDispatchDay(empty, yesterday)).toEqual({ day: yesterday, fallback: true });
     expect(chooseDispatchDay(yesterday, null)?.fallback).toBe(false);
     expect(chooseDispatchDay(empty, null)).toBeNull();
+    const morning: ResidualDay = {
+      dateBerlin: "2026-10-21",
+      slots: yesterday.slots.filter((slot) => slot.hourBerlin < 12),
+    };
+    expect(chooseDispatchDay(morning, yesterday)?.day.dateBerlin).toBe("2026-10-20");
+    expect(chooseDispatchDay(morning, yesterday)?.fallback).toBe(true);
   });
 
   it("names discharged energy and keeps euro fields off the story", () => {

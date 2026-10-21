@@ -77,10 +77,20 @@ export function dayIsUsable(day: ResidualDay | null | undefined): day is Residua
   return Boolean(day && day.slots.length >= MIN_SLOTS);
 }
 
+function hasEvening(day: ResidualDay | null | undefined): boolean {
+  return Boolean(day?.slots.some((slot) => slot.hourBerlin >= 17 && slot.hourBerlin < 21));
+}
+
 export function chooseDispatchDay(
   today: ResidualDay | null,
   yesterday: ResidualDay | null
 ): { day: ResidualDay; fallback: boolean } | null {
+  if (dayIsUsable(today) && hasEvening(today)) {
+    return { day: today, fallback: false };
+  }
+  if (dayIsUsable(yesterday) && hasEvening(yesterday)) {
+    return { day: yesterday, fallback: true };
+  }
   if (dayIsUsable(today)) {
     return { day: today, fallback: false };
   }

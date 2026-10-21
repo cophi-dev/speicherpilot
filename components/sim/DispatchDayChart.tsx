@@ -356,6 +356,7 @@ export function DispatchDayChart({
               <line className="xh" x1={tipLeft} x2={tipLeft} y1={PT} y2={bandTop + BAND} />
             ) : null}
             <rect
+              className="hit"
               x={padLeft}
               y={PT}
               width={plotW}
