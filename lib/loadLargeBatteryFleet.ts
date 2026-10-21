@@ -1,5 +1,6 @@
 import "server-only";
 
+import { readFleetSnapshot } from "@/lib/fleetSnapshot";
 import {
   BATTERY_CHARTS_ENERGY_QUERY,
   BATTERY_CHARTS_POWER_QUERY,
@@ -38,27 +39,38 @@ async function loadEnergyChartsFleet(): Promise<LargeBatteryFleet | null> {
   return parseLargeBatteryFleet(payload);
 }
 
-export async function loadLargeBatteryFleet(): Promise<LargeBatteryFleet | null> {
+async function loadFreshFleet(now: Date): Promise<LargeBatteryFleet | null> {
+  try {
+    const live = await loadBatteryChartsFleet();
+    if (live) {
+      return live;
+    }
+  } catch {
+    // Battery Charts did not answer. The committed stand is next.
+  }
+  const snapshot = readFleetSnapshot(now);
+  if (snapshot) {
+    return snapshot;
+  }
+  return loadEnergyChartsFleet();
+}
+
+export function clearLargeBatteryFleetCache(): void {
+  cache = null;
+}
+
+export async function loadLargeBatteryFleet(now: Date = new Date()): Promise<LargeBatteryFleet | null> {
   if (cache && Date.now() - cache.at < CACHE_MS) {
     return cache.fleet;
   }
   try {
-    const fleet = (await loadBatteryChartsFleet()) ?? (await loadEnergyChartsFleet());
+    const fleet = await loadFreshFleet(now);
     if (!fleet) {
       return cache?.fleet ?? null;
     }
     cache = { at: Date.now(), fleet };
     return fleet;
   } catch {
-    try {
-      const fleet = await loadEnergyChartsFleet();
-      if (!fleet) {
-        return cache?.fleet ?? null;
-      }
-      cache = { at: Date.now(), fleet };
-      return fleet;
-    } catch {
-      return cache?.fleet ?? null;
-    }
+    return cache?.fleet ?? null;
   }
 }
