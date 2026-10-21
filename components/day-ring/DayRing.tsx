@@ -34,14 +34,21 @@ type Highlight = "night" | "midday" | "evening" | null;
 
 const NARROW_QUERY = "(max-width: 767px)";
 
+function narrowFrameNow(): boolean {
+  return typeof window.matchMedia === "function" ? window.matchMedia(NARROW_QUERY).matches : false;
+}
+
 function useNarrowFrame(): boolean {
   return useSyncExternalStore(
     (onStoreChange) => {
+      if (typeof window.matchMedia !== "function") {
+        return () => undefined;
+      }
       const query = window.matchMedia(NARROW_QUERY);
       query.addEventListener("change", onStoreChange);
       return () => query.removeEventListener("change", onStoreChange);
     },
-    () => window.matchMedia(NARROW_QUERY).matches,
+    narrowFrameNow,
     () => false
   );
 }
