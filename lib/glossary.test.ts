@@ -24,6 +24,7 @@ const REQUIRED = [
   "wind-auf-see",
   "abregelung",
   "deutschland-live",
+  "modellschaetzung",
   "quartier",
   "ortsnetzstation",
   "behind-the-meter",

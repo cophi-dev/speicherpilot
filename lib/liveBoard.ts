@@ -712,6 +712,13 @@ export const LIVE_SOURCE_TABLE: Array<{
     href: "https://api.energy-charts.info/v2/total_power?country=de",
   },
   {
+    module: { de: "Mehr Speicher", en: "More storage" },
+    level: LEVEL.deutschland,
+    latency: { de: "Bestand Tagesstand, Tag Viertelstunde. Modell, keine Messung", en: "Fleet is a daily stock figure, the day is quarter-hours. A model, not a measurement" },
+    licence: "CC BY 4.0 · Battery Charts, RWTH, aus MaStR · Energy-Charts, Fraunhofer ISE",
+    href: "https://battery-charts.de/de/battery-charts-de/",
+  },
+  {
     module: { de: "Abregelung und Redispatch", en: "Curtailment and redispatch" },
     level: LEVEL["keine-reihe"],
     latency: { de: "Netztransparenz-API, hier nicht angebunden", en: "Netztransparenz API, not connected here" },

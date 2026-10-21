@@ -22,6 +22,7 @@ export type GlossaryId =
   | "wind-auf-see"
   | "abregelung"
   | "deutschland-live"
+  | "modellschaetzung"
   | "quartier"
   | "ortsnetzstation"
   | "behind-the-meter"
@@ -217,6 +218,14 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Die nationale Reihe. Sie wird nie als Hamburg oder als Norden beschriftet. Fehlt die Erzeugung, bleibt das Feld leer, statt aus 0 GW ein Defizit zu rechnen.",
       en: "The national series. It is never labelled as Hamburg or as the north. If generation is missing, the field stays empty instead of turning 0 GW into a deficit.",
+    },
+  },
+  {
+    id: "modellschaetzung",
+    term: { de: "Modellschätzung", en: "Model estimate" },
+    text: {
+      de: "Eine Rechnung für den deutschen Großspeicher-Bestand, kein Messwert. Der Speicher startet leer, lädt nur wenn Wind plus Sonne über der Last liegt, und gibt ab 17 Uhr auf die Abendspitze ab. Der Wirkungsgrad ist 90 %.",
+      en: "A calculation for Germany’s large-storage fleet, not a measurement. The battery starts empty, charges only while wind plus solar exceeds load, and releases onto the evening peak from 17:00. Round-trip efficiency is 90%.",
     },
   },
   {
