@@ -1298,17 +1298,26 @@
   gap: 28px;
 }
 
+.day-hero-layout > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .day-order-kicker { order: 1; }
 .day-order-title { order: 2; }
 .day-order-ring { order: 3; }
 .day-order-legend { order: 4; }
 .day-order-controls { order: 5; }
 
+.day-order-ring,
+.day-ring-frame,
+.day-ring-svg {
+  max-width: 100%;
+}
+
 .day-ring-frame {
   position: relative;
-  width: 100%;
-  min-width: 240px;
-  max-width: 720px;
+  width: min(100%, 720px);
   margin-inline: auto;
 }
 
@@ -1316,7 +1325,24 @@
   display: block;
   width: 100%;
   height: auto;
-  overflow: visible;
+}
+
+.day-hero figure {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.day-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .day-zero {
@@ -1642,7 +1668,6 @@
 @media (min-width: 768px) {
   .day-hero { padding: 48px 32px 64px; }
   .day-title { font-size: 52px; }
-  .day-ring-frame { min-width: 280px; }
   .day-callout-list { display: none; }
   .day-methods { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

@@ -188,9 +188,11 @@ function CalloutMarker({ callout }: { callout: RingCallout }) {
 export function Callout({ callout, maxGw }: { callout: RingCallout; maxGw: number }) {
   const deg = hourToDeg(callout.point.hour) + 1.8;
   const place = polarPoint(0, 0, ringRadius(Math.max(maxGw, 8)) + 78, deg);
-  const left = ((place.x - RING_VIEW.x) / RING_VIEW.w) * 100;
-  const top = ((place.y - RING_VIEW.y) / RING_VIEW.h) * 100;
-  const side = place.x >= 0 ? "is-right" : "is-left";
+  const rawLeft = ((place.x - RING_VIEW.x) / RING_VIEW.w) * 100;
+  const rawTop = ((place.y - RING_VIEW.y) / RING_VIEW.h) * 100;
+  const left = Math.min(82, Math.max(18, rawLeft));
+  const top = Math.min(88, Math.max(10, rawTop));
+  const side = left >= 50 ? "is-left" : "is-right";
   return (
     <p className={`day-callout ${side}`} style={{ left: `${left}%`, top: `${top}%` }}>
       <span className="num">{callout.n}</span>
@@ -242,7 +244,8 @@ export function DayValuesTable({
   socLabel: string;
 }) {
   return (
-    <table className="sr-only">
+    <div className="day-sr">
+    <table>
       <caption>{caption}</caption>
       <thead>
         <tr>
@@ -267,6 +270,7 @@ export function DayValuesTable({
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

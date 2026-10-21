@@ -260,7 +260,7 @@ function LiveRingBody({
                 />
               </div>
             )}
-            <figcaption className="sr-only">{description}</figcaption>
+            <figcaption className="day-sr">{description}</figcaption>
             <DayValuesTable
               points={story.points}
               caption={description}
