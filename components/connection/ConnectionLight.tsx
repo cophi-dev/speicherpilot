@@ -1,0 +1,58 @@
+"use client";
+
+import type { ConnectionLight as ConnectionLightModel, ConnectionLightStatus } from "@/lib/connectionLight";
+
+const SEGMENTS: Array<{ status: Exclude<ConnectionLightStatus, "missing">; de: string; en: string; fill: string; ink: string }> = [
+  { status: "ok", de: "PASST", en: "FITS", fill: "bg-success", ink: "text-success" },
+  { status: "tight", de: "KNAPP", en: "TIGHT", fill: "bg-warning", ink: "text-warning" },
+  { status: "over", de: "PASST NICHT", en: "DOES NOT FIT", fill: "bg-destructive", ink: "text-destructive" },
+];
+
+export function ConnectionLight({ light, language }: { light: ConnectionLightModel; language: "de" | "en" }) {
+  const sentence = language === "de" ? light.sentence.de : light.sentence.en;
+
+  if (light.status === "missing") {
+    return (
+      <div
+        role="meter"
+        aria-label={sentence}
+        aria-valuemin={0}
+        aria-valuemax={1}
+        aria-valuenow={0}
+        aria-valuetext={sentence}
+        className="flex h-11 items-center justify-center border border-border bg-secondary px-3"
+      >
+        <p className="num text-[12px] tracking-[0.14em] text-foreground uppercase">{sentence.replace(/\.$/, "")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      role="meter"
+      aria-label={sentence}
+      aria-valuemin={0}
+      aria-valuemax={light.limitKw ?? undefined}
+      aria-valuenow={light.peakKw ?? undefined}
+      aria-valuetext={sentence}
+    >
+      <div className="grid grid-cols-3 gap-1">
+        {SEGMENTS.map((segment) => {
+          const active = light.status === segment.status;
+          const label = language === "de" ? segment.de : segment.en;
+          return (
+            <p
+              key={segment.status}
+              className={`num flex h-11 items-center justify-center text-[11px] tracking-[0.14em] uppercase ${
+                active ? `${segment.fill} text-background` : segment.ink
+              }`}
+            >
+              {label}
+            </p>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-[15px] leading-snug text-foreground">{sentence}</p>
+    </div>
+  );
+}

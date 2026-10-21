@@ -225,7 +225,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "residuallast",
     term: { de: "Residuallast", en: "Residual load" },
     text: {
-      de: "Last minus Wind minus Sonne. Das ist, was andere Kraftwerke und Import in dieser Viertelstunde liefern müssen. Liegt die Kurve unter null, liefern Wind und Sonne mehr, als verbraucht wird.",
+      de: "Last minus Wind minus Sonne. Das ist, was andere Kraftwerke und Import in dieser Viertelstunde liefern müssen. Liegt die Linie unter null, liefern Wind und Sonne mehr, als verbraucht wird.",
       en: "Load minus wind minus solar. That is what other plants and imports have to supply in that quarter-hour. Below zero, wind and solar deliver more than is consumed.",
     },
   },
