@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChargedLine } from "@/components/day-ring/ChargedLine";
@@ -101,7 +101,8 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
             saturated={saturated}
             onFactor={(next) => {
               setPendingFactor(next);
-              replaceQuery("x", String(next));
+              // The ring morph has to start on this frame. The URL follows on the next one.
+              window.requestAnimationFrame(() => replaceQuery("x", String(next)));
             }}
             onView={(next) => replaceQuery("ansicht", next === "uhr" ? null : next)}
           />
@@ -165,6 +166,7 @@ function LiveRingBody({
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
   const kicker = `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
   const callouts = buildCallouts(story, story.points, language);
+  const tablePoints = useDeferredValue(story.points);
   const description = tx(
     `Residuallast am ${dateLabel}, Viertelstunde für Viertelstunde. Der Radius wächst linear mit der Leistung in GW. Der gestrichelte Kreis ist null. Dieselbe Reihe steht in der Tabelle.`,
     `Residual load on ${dateLabel}, quarter-hour by quarter-hour. Radius grows linearly with power in GW. The dashed circle is zero. The same series is in the table.`
@@ -227,7 +229,7 @@ function LiveRingBody({
             )}
             <figcaption className="day-sr">{description}</figcaption>
             <DayValuesTable
-              points={story.points}
+              points={tablePoints}
               caption={description}
               timeLabel={tx("Zeit", "Time")}
               ohneLabel={tx("Residuallast GW", "Residual load GW")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { energyColor, kwRadius, polarPoint, RING_R0, ringRadius, utilisationColor } from "@/lib/dayRingScale";
@@ -214,7 +214,7 @@ function useMorphedSeries(values: number[]): number[] {
   valuesRef.current = values;
   const fromRef = useRef(values);
   const [shown, setShown] = useState(values);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const target = valuesRef.current;
     const from = fromRef.current.slice();
     const reduced = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
