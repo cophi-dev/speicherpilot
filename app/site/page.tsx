@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { SitePlanner } from "@/components/site/SitePlanner";
+import { SiteDay } from "@/components/site/SiteDay";
 
 export const metadata = {
   title: "Speicher oder Anschluss",
@@ -10,7 +10,7 @@ export const metadata = {
 export default function SitePage() {
   return (
     <Suspense>
-      <SitePlanner />
+      <SiteDay />
     </Suspense>
   );
 }

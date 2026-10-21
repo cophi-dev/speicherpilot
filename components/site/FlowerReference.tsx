@@ -77,8 +77,8 @@ export function FlowerReference({ language, view }: { language: "de" | "en"; vie
           </p>
           <p className="mt-3 text-sm">
             {tx(
-              "§ 17 Abs. 2b EnWG: der Netzbetreiber kann eine flexible Anschlussvereinbarung mit einer Grenze für Bezug oder Einspeisung anbieten. Das ist kein Anspruch. Für Flower ist keine solche Grenze veröffentlicht. Die 80 % im übrigen Rechner sind eine Modellannahme und gelten hier nicht als Anschluss von Flower.",
-              "Section 17 (2b) EnWG: the grid operator may offer a flexible connection agreement with a cap on withdrawal or feed-in. There is no entitlement. No such cap is published for Flower. The 80% used elsewhere in this calculator is a model assumption and is not Flower’s connection."
+              "Für Flower ist keine Anschlussgrenze veröffentlicht. Die 80 % im übrigen Rechner sind eine Modellannahme und gelten hier nicht als Anschluss von Flower.",
+              "No connection limit is published for Flower. The 80% used elsewhere in this calculator is a model assumption and is not Flower’s connection."
             )}
           </p>
           <a className="mt-3 inline-block text-sm underline underline-offset-[3px]" href="/methodik#anschluss">

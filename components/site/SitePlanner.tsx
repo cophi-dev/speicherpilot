@@ -1199,8 +1199,8 @@ function DsoView({
           </label>
           <p className="mt-2 text-sm text-muted-foreground">
             {tx(
-              `§ 17 Abs. 2b EnWG: der Netzbetreiber kann eine Kappung von Bezug und Einspeisung anbieten. Dieses Szenario setzt beide Seiten auf ${formatQuantity(GRID_CONNECTION_CONFIG.flexibleCapFraction * 100, language, 0)} % der eingegebenen Anschlussleistung. Kein Anspruch, kein Vertrag, kein SCADA. Die Prozentzahl steht in GRID_CONNECTION_CONFIG und ist keine gesetzliche Höhe.`,
-              `Section 17 (2b) EnWG: the grid operator may offer a cap on withdrawal and feed-in. This scenario sets both sides to ${formatQuantity(GRID_CONNECTION_CONFIG.flexibleCapFraction * 100, language, 0)}% of the entered connection capacity. No entitlement, no contract, no SCADA. The percentage lives in GRID_CONNECTION_CONFIG and is not a statutory level.`
+              `Szenario einer Kappung: beide Seiten auf ${formatQuantity(GRID_CONNECTION_CONFIG.flexibleCapFraction * 100, language, 0)} % der eingegebenen Anschlussleistung. Kein Anspruch, kein Vertrag, kein SCADA. Die Prozentzahl steht in GRID_CONNECTION_CONFIG und ist keine veröffentlichte Grenze.`,
+              `A cap scenario: both sides at ${formatQuantity(GRID_CONNECTION_CONFIG.flexibleCapFraction * 100, language, 0)}% of the entered connection capacity. No entitlement, no contract, no SCADA. The percentage lives in GRID_CONNECTION_CONFIG and is not a published limit.`
             )}
           </p>
           {draft.flexible && flexible ? (

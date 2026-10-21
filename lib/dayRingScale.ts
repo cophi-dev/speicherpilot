@@ -31,6 +31,50 @@ export const COLOR_STOPS: ReadonlyArray<{ gw: number; color: string }> = [
 
 const SPAN_DEG = (360 - RING_GAP_DEG) / RING_SLOTS;
 
+/** Site ring. Radius is linear in kW. The zero circle is import = 0. */
+export const KW_R0 = 180;
+export const KW_K = 1.35;
+
+/**
+ * Utilisation stops. The value is power divided by the connection limit.
+ * Negative is export. These stops are not the national GW scale.
+ */
+export const UTILISATION_STOPS: ReadonlyArray<{ ratio: number; color: string }> = [
+  { ratio: -0.15, color: "#9BF6E6" },
+  { ratio: 0, color: "#2CC8B8" },
+  { ratio: 0.35, color: "#1E9CB0" },
+  { ratio: 0.6, color: "#2F6FC0" },
+  { ratio: 0.8, color: "#5E62C8" },
+  { ratio: 0.9, color: "#F2A25C" },
+  { ratio: 1, color: "#FF6655" },
+  { ratio: 1.3, color: "#E0364A" },
+];
+
+export function utilisationColor(ratio: number): string {
+  const stops = UTILISATION_STOPS;
+  if (ratio <= stops[0].ratio) {
+    return stops[0].color;
+  }
+  const last = stops[stops.length - 1];
+  if (ratio >= last.ratio) {
+    return last.color;
+  }
+  for (let index = 1; index < stops.length; index += 1) {
+    const right = stops[index];
+    const left = stops[index - 1];
+    if (ratio <= right.ratio) {
+      const t = (ratio - left.ratio) / (right.ratio - left.ratio);
+      return mixHex(left.color, right.color, t);
+    }
+  }
+  return last.color;
+}
+
+/** r = r0 + k·kW. Export sits inside the zero circle. */
+export function kwRadius(kw: number): number {
+  return Math.max(1, KW_R0 + KW_K * kw);
+}
+
 export function energyColor(gw: number): string {
   const stops = COLOR_STOPS;
   if (gw <= stops[0].gw) {

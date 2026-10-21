@@ -352,7 +352,7 @@ export function assessGridSupport(args: {
  * Public connection-check thresholds.
  * `fairGridAboveMva` matches Hamburger Energienetze ("größer 1,5 MVA").
  * This model compares kilowatts at cos φ = 1. It does not measure apparent power.
- * `flexibleCapFraction` is a scenario assumption for § 17 Abs. 2b EnWG.
+ * `flexibleCapFraction` is a scenario assumption, not a published connection limit.
  * The statute lets the operator cap withdrawal and feed-in; it does not set this share.
  */
 export const GRID_CONNECTION_CONFIG = {

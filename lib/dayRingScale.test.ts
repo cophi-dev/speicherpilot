@@ -8,6 +8,8 @@ import {
   COMPACT_FRAME_PX,
   COMPACT_RING_MIN_PX,
   energyColor,
+  kwRadius,
+  KW_R0,
   polarPoint,
   ringDiskPx,
   ringRadius,
@@ -17,6 +19,7 @@ import {
   sectorPath,
   segmentAngles,
   socRingGeometry,
+  utilisationColor,
 } from "@/lib/dayRingScale";
 
 describe("day ring scale", () => {
@@ -83,6 +86,24 @@ describe("day ring scale", () => {
     expect(energyColor(38)).toBe("#FF6655");
     expect(energyColor(47.73)).toBe("#FF6655");
     expect(energyColor(4)).toBe("#2786B8");
+  });
+
+  it("colours site utilisation from export to 130 percent", () => {
+    expect(utilisationColor(-0.15)).toBe("#9BF6E6");
+    expect(utilisationColor(0)).toBe("#2CC8B8");
+    expect(utilisationColor(0.35)).toBe("#1E9CB0");
+    expect(utilisationColor(0.6)).toBe("#2F6FC0");
+    expect(utilisationColor(0.8)).toBe("#5E62C8");
+    expect(utilisationColor(0.9)).toBe("#F2A25C");
+    expect(utilisationColor(1)).toBe("#FF6655");
+    expect(utilisationColor(1.3)).toBe("#E0364A");
+    expect(utilisationColor(2)).toBe("#E0364A");
+  });
+
+  it("grows the site ring in kW and keeps zero at r0", () => {
+    expect(kwRadius(0)).toBe(KW_R0);
+    expect(kwRadius(90)).toBeCloseTo(KW_R0 + 1.35 * 90, 5);
+    expect(kwRadius(-10)).toBeCloseTo(KW_R0 - 13.5, 5);
   });
 
   it("builds a closed sector", () => {
