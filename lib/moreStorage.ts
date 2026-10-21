@@ -158,7 +158,7 @@ type Dispatch = {
   eveningPeakGw: number | null;
 };
 
-function dispatchFleet(slots: ResidualSlot[], powerMw: number, energyMwh: number): Dispatch {
+export function dispatchPeakFleet(slots: ResidualSlot[], powerMw: number, energyMwh: number): Dispatch {
   const residualMw = slots.map((slot) => slot.loadMw - slot.windMw - slot.solarMw);
   const surplusMw = residualMw.map((residual) => Math.max(0, -residual));
   let socMwh = 0;
@@ -395,7 +395,7 @@ export function buildMoreStorage(input: {
   const steps = MORE_STORAGE_STEPS.map((step) => {
     const powerMw = fleet.powerGw * step.factor * 1000;
     const energyMwh = fleet.energyGwh * step.factor * 1000;
-    const run = dispatchFleet(slots, powerMw, energyMwh);
+    const run = dispatchPeakFleet(slots, powerMw, energyMwh);
     const storedSurplusGwh = run.storedMwh / 1000;
     const storedShare = surplusGwh > 0 ? Math.min(1, storedSurplusGwh / surplusGwh) : 0;
     const shareLabel = both((language) => `${quantity(Math.round(storedShare * 100), language, 0)} %`);

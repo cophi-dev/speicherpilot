@@ -24,6 +24,7 @@ export type GlossaryId =
   | "deutschland-live"
   | "residuallast"
   | "modellschaetzung"
+  | "kupferplatte"
   | "quartier"
   | "ortsnetzstation"
   | "behind-the-meter"
@@ -233,8 +234,16 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "modellschaetzung",
     term: { de: "Modellschätzung", en: "Model estimate" },
     text: {
-      de: "Eine Rechnung für den deutschen Großspeicher-Bestand, kein Messwert. Der Speicher startet leer, lädt nur wenn Wind plus Sonne über der Last liegt, und gibt ab 17 Uhr auf die Abendspitze ab. Der Wirkungsgrad ist 90 %.",
-      en: "A calculation for Germany’s large-storage fleet, not a measurement. The battery starts empty, charges only while wind plus solar exceeds load, and releases onto the evening peak from 17:00. Round-trip efficiency is 90%.",
+      de: "Eine Rechnung für den deutschen Großspeicher-Bestand, kein Messwert. Der Speicher startet leer, lädt nur wenn Wind plus Sonne über der Last liegt, und gibt ab 17 Uhr auf die Abendspitze ab. Was der Abend nicht aufnimmt, bleibt im Ladezustand. Der Wirkungsgrad ist 90 %.",
+      en: "A calculation for Germany’s large-storage fleet, not a measurement. The battery starts empty, charges only while wind plus solar exceeds load, and releases onto the evening peak from 17:00. What the evening does not take stays in the state of charge. Round-trip efficiency is 90%.",
+    },
+  },
+  {
+    id: "kupferplatte",
+    term: { de: "Kupferplatte", en: "Copper plate" },
+    text: {
+      de: "Annahme in der Live-Simulation: alle Speicher wirken als ein Block. Netzengpässe zwischen ihnen werden nicht gerechnet.",
+      en: "Assumption in the live simulation: every battery acts as one block. Grid bottlenecks between them are not modelled.",
     },
   },
   {

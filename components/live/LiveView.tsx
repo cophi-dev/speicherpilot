@@ -4,13 +4,13 @@ import { GlossaryTip } from "@/components/GlossaryTip";
 import { DayClock } from "@/components/live/DayClock";
 import { LiveLineChart } from "@/components/live/LiveCharts";
 import { NorthSouthChart } from "@/components/live/NorthSouthChart";
-import { StorageWhatIf } from "@/components/live/StorageWhatIf";
 import { useLanguage } from "@/components/language-context";
+import { LiveStorageWhatIf } from "@/components/sim/LiveStorageWhatIf";
+import { NewsList } from "@/components/sim/NewsList";
+import type { LiveDispatchInput } from "@/lib/liveFleetDispatch";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { DayClockView } from "@/lib/dayClock";
 import { LIVE_SOURCE_TABLE, type LiveBoard, type LiveModule, type PriceLight } from "@/lib/liveBoard";
-import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
-import type { ResidualDay } from "@/lib/windSolarResidual";
 
 const KPI_ORDER = ["hertz", "price", "germany", "signal", "offshore"] as const;
 
@@ -30,23 +30,7 @@ function lightMark(light: PriceLight) {
   return "▲";
 }
 
-export function LiveView({
-  board,
-  clock,
-  fleet,
-  days,
-  todayKey,
-  initialDate,
-  initialFallback,
-}: {
-  board: LiveBoard;
-  clock: DayClockView | null;
-  fleet: LargeBatteryFleet | null;
-  days: ResidualDay[];
-  todayKey: string;
-  initialDate: string | null;
-  initialFallback: boolean;
-}) {
+export function LiveView({ board, clock, dispatch }: { board: LiveBoard; clock: DayClockView | null; dispatch: LiveDispatchInput }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const lead = copy(language, board.lead);
@@ -58,8 +42,10 @@ export function LiveView({
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-8">
+      <LiveStorageWhatIf dispatch={dispatch} />
+      <section className="mt-16" aria-labelledby="live-today">
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Live", "Live")}</p>
-      <h1 className="mt-2 max-w-[18ch] text-[32px] leading-tight font-medium md:text-[44px]">{tx("Was heute los ist", "What is happening today")}</h1>
+      <h2 id="live-today" className="mt-2 max-w-[18ch] text-[32px] leading-tight font-medium md:text-[44px]">{tx("Was heute los ist", "What is happening today")}</h2>
       <p className="mt-4 max-w-[68ch] text-lg">{lead}</p>
       {clock ? <DayClock clock={clock} /> : null}
       {board.lead.de === board.modules.find((entry) => entry.id === "price")?.takeaway.de && board.priceLight && board.priceLightLabel ? (
@@ -69,17 +55,6 @@ export function LiveView({
           <span className="text-muted-foreground"> · {tx("Keine Handelsempfehlung", "Not trading advice")}</span>
         </p>
       ) : null}
-
-      <div className="mt-8">
-        <StorageWhatIf
-          fleet={fleet}
-          days={days}
-          todayKey={todayKey}
-          initialDate={initialDate}
-          initialFallback={initialFallback}
-          language={language}
-        />
-      </div>
 
       {kpis.length > 0 ? (
         <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -104,6 +79,7 @@ export function LiveView({
           <ModuleCard key={item.id} item={item} board={board} language={language} hideFigure={kpiIds.has(item.id)} wide={item.id === "zones"} />
         ))}
       </div>
+      </section>
 
       <section className="mt-10" aria-labelledby="live-sources">
         <h2 id="live-sources" className="text-xl font-medium">{tx("Quellen", "Sources")}</h2>
@@ -118,6 +94,8 @@ export function LiveView({
           ))}
         </ul>
       </section>
+
+      <NewsList />
     </div>
   );
 }

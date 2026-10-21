@@ -1,11 +1,9 @@
 "use client";
 
-import { toPng } from "html-to-image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { GlossaryTip } from "@/components/GlossaryTip";
-import { StoragePoster } from "@/components/live/StorageMultiples";
 import { Slider } from "@/components/ui/slider";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
@@ -114,9 +112,6 @@ export function StorageWhatIf({
     [fleet, day, fallback, todayKey]
   );
   const step = report.steps.find((entry) => entry.factor === factor) ?? report.steps[0] ?? null;
-  const landscapeRef = useRef<HTMLDivElement>(null);
-  const portraitRef = useRef<HTMLDivElement>(null);
-  const [busy, setBusy] = useState(false);
 
   function select(next: { factor?: StorageFactor; date?: string | null }) {
     const params = new URLSearchParams(searchParams.toString());
@@ -135,28 +130,6 @@ export function StorageWhatIf({
     const query = params.toString();
     const href = query ? `${pathname}?${query}` : pathname;
     router.replace(href, { scroll: false });
-  }
-
-  async function savePng(node: HTMLDivElement | null, width: number, height: number, suffix: string) {
-    if (!node || busy || !report.available) {
-      return;
-    }
-    setBusy(true);
-    const previousLeft = node.style.left;
-    const previousZ = node.style.zIndex;
-    node.style.left = "0px";
-    node.style.zIndex = "-1";
-    try {
-      const url = await toPng(node, { cacheBust: true, pixelRatio: 1, backgroundColor: "#101418", width, height });
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `speicherpilot-mehr-speicher-${report.dateBerlin ?? todayKey}-x${factor}${suffix}.png`;
-      link.click();
-    } finally {
-      node.style.left = previousLeft;
-      node.style.zIndex = previousZ;
-      setBusy(false);
-    }
   }
 
   if (!report.available || !step) {
@@ -178,7 +151,6 @@ export function StorageWhatIf({
     );
   }
 
-  const poster: MoreStorageReport = { ...report, steps: [step] };
   const index = Math.max(0, STORAGE_FACTORS.indexOf(factor));
 
   return (
@@ -289,31 +261,6 @@ export function StorageWhatIf({
             </a>
           </p>
         ) : null}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="inline-flex h-11 items-center rounded-md border border-border bg-card px-4 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
-            onClick={() => void savePng(landscapeRef.current, 1600, 900, "")}
-            disabled={busy}
-          >
-            {busy ? tx("Bild wird gebaut", "Building image") : tx("Bild für einen Post", "Image for a post")}
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-11 items-center rounded-md border border-border bg-card px-4 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
-            onClick={() => void savePng(portraitRef.current, 1080, 1350, "-hoch")}
-            disabled={busy}
-          >
-            {tx("Hochformat", "Portrait")}
-          </button>
-        </div>
-      </div>
-
-      <div ref={landscapeRef} inert aria-hidden className="pointer-events-none fixed top-0 -left-[2400px]">
-        <StoragePoster storage={poster} language="de" variant="landscape" />
-      </div>
-      <div ref={portraitRef} inert aria-hidden className="pointer-events-none fixed top-0 -left-[2400px]">
-        <StoragePoster storage={poster} language="de" variant="portrait" />
       </div>
     </article>
   );

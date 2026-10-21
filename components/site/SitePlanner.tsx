@@ -1,6 +1,5 @@
 "use client";
 
-import { toPng } from "html-to-image";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,6 +11,8 @@ import { useLanguage } from "@/components/language-context";
 import { FlowerReference } from "@/components/site/FlowerReference";
 import { ResultRating } from "@/components/site/ResultRating";
 import { ScenarioPicker } from "@/components/site/ScenarioPicker";
+import { NewsList } from "@/components/sim/NewsList";
+import { SiteConnectionSim } from "@/components/sim/SiteConnectionSim";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile } from "@/lib/hamburgSupermarket";
 import { QUARTIER, quartierProfile, quartierPvKwp } from "@/lib/quartierExample";
@@ -252,7 +253,6 @@ export function SitePlanner() {
   const [pdfBusy, setPdfBusy] = useState(false);
   const [tab, setTab] = useState<"peak" | "duration">("peak");
   const [dayPick, setDayPick] = useState<"peak" | "median">("peak");
-  const posterRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   if (view === "netz" && !seenNetz) {
@@ -357,17 +357,6 @@ export function SitePlanner() {
     }, 50);
   }
 
-  async function exportPng() {
-    if (!posterRef.current) {
-      return;
-    }
-    const url = await toPng(posterRef.current, { cacheBust: true, pixelRatio: 1 });
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "speicherpilot-bess-dispatch.png";
-    link.click();
-  }
-
   function exportCsv() {
     if (!plan || !profile) {
       return;
@@ -397,28 +386,6 @@ export function SitePlanner() {
     link.click();
   }
 
-  async function shareLink() {
-    const params = new URLSearchParams();
-    params.set("profile", draft.mode);
-    params.set("pv", String(draft.pvKwp));
-    params.set("limit", String(draft.limitKw));
-    params.set("demand", String(draft.demand));
-    params.set("energy", String(draft.energyCt));
-    params.set("dynamic", draft.dynamic ? "1" : "0");
-    params.set("auto", draft.autoSize ? "1" : "0");
-    if (view) {
-      params.set("view", view);
-    }
-    if (scenario) {
-      params.set("scenario", scenario);
-    }
-    if (language === "en") {
-      params.set("lang", "en");
-    }
-    const url = `${window.location.origin}/site?${params.toString()}`;
-    await navigator.clipboard.writeText(url);
-  }
-
   async function exportPdf(kind: "offer" | "connection" = view === "netz" ? "connection" : "offer") {
     if (!plan || !profile || pdfBusy) {
       return;
@@ -441,15 +408,18 @@ export function SitePlanner() {
     }
   }
 
+  const showConnectionSim = scenario === "supermarkt";
+  const PlannerTitle = showConnectionSim ? "h2" : "h1";
   return (
     <div className="relative mx-auto max-w-[1360px] px-5 py-8 md:px-8">
-      <div className={`border-l-[3px] pl-4 ${view === "projekt" ? "border-primary" : "border-foreground"}`}>
+      {showConnectionSim ? <SiteConnectionSim view={view} /> : null}
+      <div className={`border-l-[3px] pl-4 ${showConnectionSim ? "mt-16" : ""} ${view === "projekt" ? "border-primary" : "border-foreground"}`}>
         <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
           {view === "projekt" ? tx("Perspektive · Speicher", "Perspective · storage") : tx("Perspektive · Netzbetreiber", "Perspective · grid operator")}
         </p>
-        <h1 className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
+        <PlannerTitle className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
           {view === "projekt" ? tx("Speicher planen oder betreiben", "Plan or operate storage") : tx("Anschluss prüfen", "Check a connection")}
-        </h1>
+        </PlannerTitle>
         <p className="mt-2 max-w-[68ch] text-muted-foreground">
           {view === "projekt"
             ? tx("Du siehst die Größe, die Kosten und ob sich der Speicher an einem Lastprofil bezahlt macht.", "You see the size, the cost, and whether the battery pays for itself on a load profile.")
@@ -964,9 +934,7 @@ export function SitePlanner() {
                 <p className="mt-3 text-sm text-muted-foreground">{tx("Illustratives Modell, keine Beschaffungs- oder Anlagenberatung.", "Illustrative model, not procurement or plant advice.")}</p>
               </details>
               <div className="no-print flex flex-wrap gap-2">
-                <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => void exportPng()}>PNG</button>
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={exportCsv}>CSV</button>
-                <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => void shareLink()}>{tx("Link teilen", "Share link")}</button>
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => window.print()}>{tx("Drucken", "Print")}</button>
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => void exportPdf(view === "netz" ? "offer" : "connection")}>
                   {view === "netz" ? tx("Angebot als PDF", "Offer as PDF") : tx("Anschlussprüfung als PDF", "Connection check as PDF")}
@@ -993,28 +961,7 @@ export function SitePlanner() {
           )}
         </div>
       ) : null}
-
-      {plan && profile ? (
-        <div ref={posterRef} inert aria-hidden className="pointer-events-none fixed top-0 -left-[2000px] h-[900px] w-[1600px] bg-[#0B0D0F] text-[#ECEDEE]">
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-          <div className="relative px-20 pt-16">
-            <p className="num text-[22px] tracking-[0.08em] text-[#9CA2A8] uppercase">SpeicherPilot · Speicher-Fahrplan · 24 h · ¼h</p>
-            <p className="mt-4 max-w-[1400px] text-[56px] leading-none font-medium">
-              {tx("Speicher kappt die Spitze", "Storage cuts the peak")}
-            </p>
-            <p className="mt-4 text-[30px] text-[#9CA2A8]">
-              {formatQuantity(plan.energyKwh, "de", 0)} kWh / {formatQuantity(plan.powerKw, "de", 0)} kW · {formatQuantity(plan.peakImportBeforeKw, "de", 0)} → {formatQuantity(plan.peakImportAfterKw, "de", 0)} kW
-            </p>
-            <div className="mt-8">
-              <DispatchChart points={points.slice(0, 96)} limitKw={draft.limitKw} language="de" height={430} />
-            </div>
-            <div className="num mt-6 flex justify-between text-[20px] text-[#9CA2A8]">
-              <span>speicherpilot.app</span>
-              <span className="text-[#FF6A5C]">{profile.synthetic ? "BEISPIELDATEN · synthetisches Profil, nicht gemessen" : tx("Hochgeladenes Profil · modelliert", "Uploaded profile · modelled")}</span>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <NewsList />
     </div>
   );
 }
