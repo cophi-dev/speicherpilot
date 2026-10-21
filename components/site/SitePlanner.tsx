@@ -1,15 +1,21 @@
 "use client";
 
 import { toPng } from "html-to-image";
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChartLegend, DispatchChart, type DispatchPoint, useNarrowScreen } from "@/components/charts/DispatchChart";
 import { GlossaryTip } from "@/components/GlossaryTip";
+import { PerspectiveChoice } from "@/components/PerspectiveChoice";
 import { useLanguage } from "@/components/language-context";
+import { FlowerReference } from "@/components/site/FlowerReference";
 import { ResultRating } from "@/components/site/ResultRating";
+import { ScenarioPicker } from "@/components/site/ScenarioPicker";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile } from "@/lib/hamburgSupermarket";
+import { QUARTIER, quartierProfile, quartierPvKwp } from "@/lib/quartierExample";
+import { parsePerspective, parseScenario, sitePath, type ScenarioId } from "@/lib/perspective";
 import { rateConnection, rateGridSupport, ratePayback, rateStorage } from "@/lib/readability";
 import { connectionSentence, paybackSentence, peakSentence, storageSentence, supportSentence } from "@/lib/resultCopy";
 import {
@@ -46,7 +52,7 @@ import {
   type VoltageLevel,
 } from "@/lib/sitePlanner";
 
-type ProfileMode = ExampleProfileId | "manual" | "csv" | "supermarkt";
+type ProfileMode = ExampleProfileId | "manual" | "csv" | "supermarkt" | "quartier" | "grossspeicher";
 
 type Draft = {
   mode: ProfileMode;
@@ -109,11 +115,6 @@ function defaultDraft(): Draft {
   };
 }
 
-function loadExample(setDraft: (next: Draft) => void, setOperation: (next: OperationMode) => void) {
-  setDraft(defaultDraft());
-  setOperation(HAMBURG_SUPERMARKET.operation);
-}
-
 function profileFromDraft(draft: Draft): LoadProfile | null {
   if (draft.mode === "csv") {
     return draft.csv;
@@ -124,7 +125,49 @@ function profileFromDraft(draft: Draft): LoadProfile | null {
   if (draft.mode === "supermarkt") {
     return hamburgSupermarketProfile();
   }
+  if (draft.mode === "quartier") {
+    return quartierProfile();
+  }
+  if (draft.mode === "grossspeicher") {
+    return null;
+  }
   return exampleProfile(draft.mode);
+}
+
+function draftForScenario(id: ScenarioId): Draft {
+  if (id === "quartier") {
+    return {
+      ...defaultDraft(),
+      mode: "quartier",
+      pvEnabled: true,
+      pvKwp: quartierPvKwp(),
+      limitKw: QUARTIER.transformerKw,
+      voltage: QUARTIER.voltage,
+      transformerKw: QUARTIER.transformerKw,
+      dynamic: QUARTIER.dynamicTariff,
+      autoSize: false,
+      powerKw: QUARTIER.powerKw,
+      energyKwh: QUARTIER.energyKwh,
+      demand: QUARTIER.demandChargeEurPerKwYear,
+      energyCt: QUARTIER.energyPriceCtPerKwh,
+      feedIn: QUARTIER.feedInCtPerKwh,
+      rtePct: QUARTIER.roundTripEfficiency * 100,
+      capex: QUARTIER.capexEurPerKwh,
+      cycles: QUARTIER.maxCyclesPerYear,
+      life: QUARTIER.lifetimeYears,
+    };
+  }
+  if (id === "grossspeicher") {
+    return { ...defaultDraft(), mode: "grossspeicher", pvEnabled: false, pvKwp: 0, limitKw: 0, autoSize: false };
+  }
+  return defaultDraft();
+}
+
+function operationForScenario(id: ScenarioId): OperationMode {
+  if (id === "quartier") {
+    return QUARTIER.operation;
+  }
+  return HAMBURG_SUPERMARKET.operation;
 }
 
 function run(
@@ -170,38 +213,63 @@ function flexibleCaps(draft: Draft) {
   };
 }
 
+function openingDraft(params: { get: (key: string) => string | null }): Draft {
+  const initialScenario = parseScenario(params.get("scenario"));
+  return initialScenario ? draftForScenario(initialScenario) : draftFromParams(params);
+}
+
 export function SitePlanner() {
   const { language } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const view = searchParams.get("view") === "netz" ? "netz" : "projekt";
+  const view = parsePerspective(searchParams.get("view"));
+  const scenario = parseScenario(searchParams.get("scenario"));
   const [seenNetz, setSeenNetz] = useState(() => searchParams.get("view") === "netz");
+  const [appliedScenario, setAppliedScenario] = useState<ScenarioId | null>(() => parseScenario(searchParams.get("scenario")));
   const narrow = useNarrowScreen();
-
-  function selectView(next: "projekt" | "netz") {
-    if (next === "netz") {
-      setSeenNetz(true);
-    }
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("view", next);
-    const scrollY = window.scrollY;
-    router.replace(`/site?${params.toString()}`, { scroll: false });
-    window.requestAnimationFrame(() => window.scrollTo(0, scrollY));
-  }
-  const [draft, setDraft] = useState<Draft>(() => draftFromParams(searchParams));
-  const [operation, setOperation] = useState<OperationMode>(() =>
-    draftFromParams(searchParams).mode === "supermarkt" ? HAMBURG_SUPERMARKET.operation : "market"
-  );
+  const [draft, setDraft] = useState<Draft>(() => openingDraft(searchParams));
+  const [operation, setOperation] = useState<OperationMode>(() => {
+    const initialScenario = parseScenario(searchParams.get("scenario"));
+    return initialScenario ? operationForScenario(initialScenario) : "market";
+  });
   const [netzTab, setNetzTab] = useState<"duration" | "peak">("duration");
-  const [marketPlan, setMarketPlan] = useState<SitePlan | null>(() => run(draftFromParams(searchParams), "market"));
-  const [servingPlan, setServingPlan] = useState<SitePlan | null>(() => run(draftFromParams(searchParams), "grid-serving"));
+  const [marketPlan, setMarketPlan] = useState<SitePlan | null>(() => run(openingDraft(searchParams), "market"));
+  const [servingPlan, setServingPlan] = useState<SitePlan | null>(() => run(openingDraft(searchParams), "grid-serving"));
   const [flexiblePlan, setFlexiblePlan] = useState<SitePlan | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [tab, setTab] = useState<"peak" | "duration">("peak");
   const [dayPick, setDayPick] = useState<"peak" | "median">("peak");
   const posterRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  if (view === "netz" && !seenNetz) {
+    setSeenNetz(true);
+  }
+  if (scenario !== appliedScenario) {
+    setAppliedScenario(scenario);
+    if (scenario) {
+      const next = draftForScenario(scenario);
+      setDraft(next);
+      setOperation(operationForScenario(scenario));
+      setMarketPlan(run(next, "market"));
+      setServingPlan(run(next, "grid-serving"));
+      setFlexiblePlan(null);
+    }
+  }
+
+  useEffect(() => {
+    if (!view || scenario) {
+      return;
+    }
+    if (searchParams.get("profile") || searchParams.get("limit")) {
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", view);
+    params.set("scenario", "supermarkt");
+    router.replace(`/site?${params.toString()}`, { scroll: false });
+  }, [view, scenario, searchParams, router]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -235,10 +303,34 @@ export function SitePlanner() {
     near: tx("An der Grenze", "On the limit"),
     over: tx("Darüber", "Above"),
   };
-  const showingExample = draft.mode === "supermarkt";
+  const showingExample = draft.mode === "supermarkt" || draft.mode === "quartier";
+  const flowerCase = scenario === "grossspeicher";
+
+  function chooseScenario(next: ScenarioId) {
+    if (!view) {
+      return;
+    }
+    if (next === scenario) {
+      const reset = draftForScenario(next);
+      setDraft(reset);
+      setOperation(operationForScenario(next));
+      setMarketPlan(run(reset, "market"));
+      setServingPlan(run(reset, "grid-serving"));
+      setFlexiblePlan(null);
+      return;
+    }
+    router.replace(sitePath(view, next), { scroll: false });
+  }
 
   function enterOwnData() {
     setDraft({ ...draft, mode: "csv", csv: null, csvError: null });
+    if (view) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("view", view);
+      params.delete("scenario");
+      params.set("profile", "csv");
+      router.replace(`/site?${params.toString()}`, { scroll: false });
+    }
     window.setTimeout(() => {
       document.getElementById("load-profile")?.scrollIntoView({ block: "start" });
       document.getElementById("csv-drop")?.focus();
@@ -294,7 +386,12 @@ export function SitePlanner() {
     params.set("energy", String(draft.energyCt));
     params.set("dynamic", draft.dynamic ? "1" : "0");
     params.set("auto", draft.autoSize ? "1" : "0");
-    params.set("view", view);
+    if (view) {
+      params.set("view", view);
+    }
+    if (scenario) {
+      params.set("scenario", scenario);
+    }
     if (language === "en") {
       params.set("lang", "en");
     }
@@ -324,35 +421,50 @@ export function SitePlanner() {
     }
   }
 
+  if (!view) {
+    return (
+      <div className="mx-auto max-w-[1360px] px-5 py-8 md:px-8">
+        <p className="num text-[12px] text-muted-foreground">Start / {tx("Standort", "Site")}</p>
+        <h1 className="mt-1.5 max-w-[16ch] text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
+          {tx("Womit willst du anfangen?", "Where do you want to start?")}
+        </h1>
+        <p className="mt-3 max-w-[62ch] text-muted-foreground">
+          {tx(
+            "Speicher und Netzanschluss sind zwei Fragen. Wähle zuerst die Perspektive, dann ein Beispiel.",
+            "Storage and the grid connection are two questions. Choose the perspective first, then an example."
+          )}
+        </p>
+        <div className="mt-8 max-w-[880px]">
+          <PerspectiveChoice language={language} />
+        </div>
+      </div>
+    );
+  }
+
+  const otherView = view === "projekt" ? "netz" : "projekt";
+
   return (
     <div className="relative mx-auto max-w-[1360px] px-5 py-8 md:px-8">
-      <div className="md:max-w-[calc(100%-300px)]">
-        <p className="num text-[12px] text-muted-foreground">Start / {tx("Standort", "Site")}</p>
-          <h1 className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">{tx("Standort rechnen", "Size a site")}</h1>
-          <p className="mt-1 max-w-[68ch] text-muted-foreground">
-            {tx(
-              "Für einen Betrieb oder einen Netzanschluss: wie groß der Speicher ist, ob die Lastspitze hineinpasst und wann sich die Ausgabe bezahlt macht.",
-              "For a business or a grid connection: how big the battery is, whether the load peak fits, and when the outlay pays for itself."
-            )}
-          </p>
+      <div className={`border-l-[3px] pl-4 ${view === "projekt" ? "border-primary" : "border-foreground"}`}>
+        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
+          {view === "projekt" ? tx("Perspektive · Speicher", "Perspective · storage") : tx("Perspektive · Netzbetreiber", "Perspective · grid operator")}
+        </p>
+        <h1 className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
+          {view === "projekt" ? tx("Speicher planen oder betreiben", "Plan or operate storage") : tx("Anschluss prüfen", "Check a connection")}
+        </h1>
+        <p className="mt-2 max-w-[68ch] text-muted-foreground">
+          {view === "projekt"
+            ? tx("Du siehst die Größe, die Kosten und ob sich der Speicher an einem Lastprofil bezahlt macht.", "You see the size, the cost, and whether the battery pays for itself on a load profile.")
+            : tx("Du siehst, ob die Lastspitze in den Anschluss oder die Station passt, die schon da ist.", "You see whether the load peak fits the connection or the substation that is already there.")}
+        </p>
+        <Link href={sitePath(otherView, scenario)} className="mt-3 inline-flex text-sm underline underline-offset-[3px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          {tx("Perspektive wechseln", "Switch perspective")}
+        </Link>
       </div>
-      <ViewSwitch view={view} onSelect={selectView} tx={tx} />
-      <p className="mt-3 max-w-[68ch] text-sm text-muted-foreground">
-        {view === "projekt"
-          ? tx("Hier siehst du die Speichergröße, die Kosten und ob sich der Speicher bezahlt macht.", "Here you see the battery size, the cost, and whether the battery pays for itself.")
-          : tx("Hier siehst du, ob die Lastspitze in den bestehenden Anschluss passt.", "Here you see whether the load peak fits the connection you already have.")}
-      </p>
-      <div className="no-print mt-4 flex flex-wrap items-center gap-2 md:absolute md:top-8 md:right-8 md:mt-0">
-          {profile?.synthetic ? <span className="num rounded-[4px] border border-border px-2 py-0.5 text-[12px]">BEISPIELDATEN</span> : null}
-          <button type="button" className="h-10 rounded-md px-3 text-sm" onClick={() => loadExample(setDraft, setOperation)}>
-            {tx("Beispiel laden", "Load example")}
-          </button>
-          <button type="button" className="h-10 rounded-md border border-border-strong px-3 text-sm" onClick={enterOwnData}>
-            {tx("Zurücksetzen", "Reset")}
-          </button>
-      </div>
+      <ScenarioPicker scenario={scenario} view={view} language={language} onSelect={chooseScenario} />
 
-      <div className="mt-7 grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div className={`mt-7 grid items-start gap-6 ${flowerCase ? "" : "lg:grid-cols-[360px_minmax(0,1fr)]"}`}>
+        {flowerCase ? null : (
         <form id="load-profile" className="rounded-md border border-border bg-card p-5 lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-auto" onSubmit={(event) => event.preventDefault()}>
           <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">01 {tx("Lastprofil", "Load profile")}</p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -450,7 +562,15 @@ export function SitePlanner() {
 
           <Section label={`03 ${tx("Netzanschluss", "Connection")}`}>
             {view === "netz" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} language={language} required /> : null}
-            <Field id="limit" label={tx("Anschlussleistung", "Connection capacity")} unit="kW" value={draft.limitKw} onChange={(limitKw) => setDraft({ ...draft, limitKw })} required={view === "netz"} />
+            <Field
+              id="limit"
+              label={draft.mode === "quartier" ? tx("Planleistung der Station", "Station planning rating") : tx("Anschlussleistung", "Connection capacity")}
+              unit="kW"
+              value={draft.limitKw}
+              onChange={(limitKw) => setDraft({ ...draft, limitKw, transformerKw: draft.mode === "quartier" ? limitKw : draft.transformerKw })}
+              required={view === "netz"}
+              tip={draft.mode === "quartier" ? <GlossaryTip id="ortsnetzstation" language={language} /> : undefined}
+            />
             <p className="mt-1 text-[12px] text-muted-foreground">
               {tx("Profilspitze", "Profile peak")}: {formatQuantity(peakKw, language, 0)} kW
               {peakKw > draft.limitKw ? <span className="text-warning"> · {tx("über Limit", "above the limit")}</span> : null}
@@ -517,9 +637,12 @@ export function SitePlanner() {
           </button>
           <p className="mt-2 text-center text-[12px] text-muted-foreground">{tx("Daten bleiben im Browser", "Data stays in the browser")}</p>
         </form>
+        )}
 
         <div className="flex min-w-0 flex-col gap-6 pb-24 lg:pb-0">
-          {!plan || !profile ? (
+          {flowerCase ? (
+            <FlowerReference language={language} view={view} />
+          ) : !plan || !profile ? (
             <div className="rounded-md border border-dashed border-border-strong p-8" role="tabpanel" id="results-panel">
               <p>
                 {view === "netz"
@@ -531,8 +654,8 @@ export function SitePlanner() {
                   {tx("ANSCHLUSSLEISTUNG FEHLT", "CONNECTION CAPACITY MISSING")}
                 </button>
               ) : null}
-              <button type="button" className="mt-4 h-10 rounded-md border border-border px-3 text-sm" onClick={() => loadExample(setDraft, setOperation)}>
-                {tx("Beispiel laden", "Load example")}
+              <button type="button" className="mt-4 h-10 rounded-md border border-border px-3 text-sm" onClick={() => chooseScenario("supermarkt")}>
+                {tx("Beispiel Supermarkt", "Supermarket example")}
               </button>
             </div>
           ) : (
@@ -542,13 +665,52 @@ export function SitePlanner() {
                 {showingExample ? (
                   <div className="mt-3 rounded-md border border-border-strong bg-card p-4 md:p-5">
                     <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">BEISPIELDATEN</p>
-                    <h2 className="mt-1 text-xl font-medium">{language === "de" ? HAMBURG_SUPERMARKET.labelDe : HAMBURG_SUPERMARKET.labelEn}</h2>
+                    <h2 className="mt-1 text-xl font-medium">
+                      {draft.mode === "quartier"
+                        ? language === "de" ? QUARTIER.labelDe : QUARTIER.labelEn
+                        : language === "de" ? HAMBURG_SUPERMARKET.labelDe : HAMBURG_SUPERMARKET.labelEn}
+                    </h2>
                     <p className="mt-2 max-w-[62ch] text-sm text-muted-foreground">
-                      {tx(
-                        "Fiktiver Betrieb, keine Messung. Der Speicher kappt die Abendspitze auf die Anschlussgrenze. Ein CSV mit 15-Minuten- oder Stundenwerten deines eigenen Lastprofils ergibt das echte Ergebnis.",
-                        "A fictional site, not a measurement. The battery cuts the evening peak to the connection limit. A CSV of 15-minute or hourly values from your own load profile gives the real result."
+                      {draft.mode === "quartier"
+                        ? view === "netz"
+                          ? tx(
+                              "Fiktives Wohngebiet, keine Messung und kein Hamburger Netz. Die Frage: hält der Speicher die Ortsnetzstation unter ihrer Planleistung, oder braucht die Station einen größeren Trafo? Die Annahmen stehen in der Methodik.",
+                              "A fictional neighbourhood, not a measurement and not the Hamburg grid. The question: does the battery keep the distribution substation under its planning rating, or does the station need a larger transformer? The assumptions are in the method."
+                            )
+                          : tx(
+                              "Fiktives Wohngebiet, keine Messung. 150 Haushalte mit Wärmepumpen, Wallboxen und Dach-PV hinter einer Ortsnetzstation. Die Frage: welche Speichergröße und welche Rückzahlung. Die Annahmen stehen in der Methodik.",
+                              "A fictional neighbourhood, not a measurement. 150 households with heat pumps, chargers and rooftop PV behind one distribution substation. The question: which battery size, and what payback. The assumptions are in the method."
+                            )
+                        : view === "netz"
+                          ? tx(
+                              "Fiktiver Betrieb hinter dem Zähler, keine Messung. Die Frage: bleibt die Lastspitze in dem Anschluss, der schon da ist. Ein eigenes CSV ergibt das echte Ergebnis.",
+                              "A fictional site behind the meter, not a measurement. The question: does the load peak fit the connection that is already there. Your own CSV gives the real result."
+                            )
+                          : tx(
+                              "Fiktiver Betrieb hinter dem Zähler, keine Messung. Der Speicher kappt die Abendspitze auf die Anschlussgrenze. Ein CSV mit 15-Minuten- oder Stundenwerten deines eigenen Lastprofils ergibt das echte Ergebnis.",
+                              "A fictional site behind the meter, not a measurement. The battery cuts the evening peak to the connection limit. A CSV of 15-minute or hourly values from your own load profile gives the real result."
+                            )}
+                    </p>
+                    <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                      {draft.mode === "quartier" ? (
+                        <>
+                          <span>{tx("Quartier", "Neighbourhood")}</span>
+                          <GlossaryTip id="quartier" language={language} />
+                          <span>{tx("Ortsnetzstation", "Distribution substation")}</span>
+                          <GlossaryTip id="ortsnetzstation" language={language} />
+                        </>
+                      ) : (
+                        <>
+                          <span>{tx("Hinter dem Zähler", "Behind the meter")}</span>
+                          <GlossaryTip id="behind-the-meter" language={language} />
+                        </>
                       )}
                     </p>
+                    {draft.mode === "quartier" ? (
+                      <a className="mt-3 inline-block text-sm underline underline-offset-[3px]" href="/methodik#beispiele">
+                        {tx("Annahmen in der Methodik", "Assumptions in the method")}
+                      </a>
+                    ) : null}
                     <button
                       type="button"
                       className="mt-4 hidden h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:inline-flex"
@@ -857,56 +1019,6 @@ function clockLabel(hour: number) {
   const whole = Math.floor(hour);
   const minutes = Math.round((hour - whole) * 60);
   return `${String(whole).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-}
-
-function ViewSwitch({ view, onSelect, tx }: { view: "projekt" | "netz"; onSelect: (next: "projekt" | "netz") => void; tx: (de: string, en: string) => string }) {
-  const order = ["projekt", "netz"] as const;
-  return (
-    <div className="sticky top-14 z-30 -mx-5 mt-4 border-b border-border bg-background/90 px-5 py-2.5 backdrop-blur md:static md:z-auto md:mx-0 md:mt-5 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
-      <div
-        role="tablist"
-        aria-label={tx("Perspektive", "Perspective")}
-        className="flex min-h-9 w-full border border-border-strong min-[481px]:w-fit"
-        onKeyDown={(event) => {
-          const index = order.indexOf(view);
-          let next: "projekt" | "netz" | null = null;
-          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-            event.preventDefault();
-            const delta = event.key === "ArrowRight" ? 1 : -1;
-            next = order[(index + delta + 2) % 2] ?? "projekt";
-          }
-          if (event.key === "Home") {
-            event.preventDefault();
-            next = "projekt";
-          }
-          if (event.key === "End") {
-            event.preventDefault();
-            next = "netz";
-          }
-          if (next) {
-            onSelect(next);
-            event.currentTarget.querySelector<HTMLButtonElement>(`[data-view="${next}"]`)?.focus();
-          }
-        }}
-      >
-        {order.map((key) => (
-          <button
-            key={key}
-            type="button"
-            role="tab"
-            data-view={key}
-            aria-selected={view === key}
-            aria-controls="results-panel"
-            tabIndex={view === key ? 0 : -1}
-            className={`flex min-h-9 flex-1 items-center justify-center px-3 py-1.5 text-center text-sm leading-tight font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-[481px]:flex-none min-[481px]:px-4 ${view === key ? "bg-foreground text-background" : "bg-card"}`}
-            onClick={() => onSelect(key)}
-          >
-            {key === "projekt" ? tx("Ich plane einen Speicher", "I am planning storage") : tx("Ich prüfe einen Netzanschluss", "I am checking a connection")}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function VoltageField({ draft, setDraft, tx, language, required }: { draft: Draft; setDraft: (next: Draft) => void; tx: (de: string, en: string) => string; language: "de" | "en"; required?: boolean }) {
