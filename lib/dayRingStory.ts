@@ -106,23 +106,38 @@ export function heroSentence(input: { dateBerlin: string; todayKey: string; surp
  * Factor-aware charged sentence.
  * ×1 names today’s fleet. ×n names that multiple, because the gigawatt-hours are not today’s fleet alone.
  */
-export function chargedWouldHave(
+export type ChargedSentenceParts = { before: string; amount: string; after: string };
+
+/** Same sentence as `chargedWouldHave`, split so only the amount is set in mono. */
+export function chargedWouldHaveParts(
   chargedGwh: number,
   factor: LiveDispatchFactor,
   language: AppLanguage
-): string | null {
+): ChargedSentenceParts | null {
   if (chargedGwh <= SURPLUS_EPS_GWH) {
     return null;
   }
   const amount = formatGwh(chargedGwh, language);
   if (language === "de") {
     return factor === 1
-      ? `${amount} GWh hätten die heutigen Großspeicher geladen`
-      : `${amount} GWh hätte die ${factor}-fache Großspeicher-Flotte geladen`;
+      ? { before: "", amount, after: " GWh hätten die heutigen Großspeicher geladen" }
+      : { before: "", amount, after: ` GWh hätte die ${factor}-fache Großspeicher-Flotte geladen` };
   }
   return factor === 1
-    ? `Today's large storage would have charged ${amount} GWh`
-    : `A ${factor}× large-storage fleet would have charged ${amount} GWh`;
+    ? { before: "Today's large storage would have charged ", amount, after: " GWh" }
+    : { before: `A ${factor}× large-storage fleet would have charged `, amount, after: " GWh" };
+}
+
+export function chargedWouldHave(
+  chargedGwh: number,
+  factor: LiveDispatchFactor,
+  language: AppLanguage
+): string | null {
+  const parts = chargedWouldHaveParts(chargedGwh, factor, language);
+  if (!parts) {
+    return null;
+  }
+  return `${parts.before}${parts.amount}${parts.after}`;
 }
 
 /** “×5 = 22,6 GW · 39,3 GWh” from the scaled fleet the model actually ran. */

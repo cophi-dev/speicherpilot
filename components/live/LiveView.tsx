@@ -34,12 +34,10 @@ export function LiveView({
   board,
   clock,
   dispatch,
-  todayKey,
 }: {
   board: LiveBoard;
   clock: DayClockView | null;
   dispatch: LiveDispatchInput;
-  todayKey: string;
 }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
@@ -52,7 +50,7 @@ export function LiveView({
 
   return (
     <>
-      <LiveRing dispatch={dispatch} todayKey={todayKey} />
+      <LiveRing dispatch={dispatch} />
       <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-8">
       <section aria-labelledby="live-today">
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Live", "Live")}</p>

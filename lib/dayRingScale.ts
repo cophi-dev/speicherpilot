@@ -74,12 +74,76 @@ export function hourToDeg(hour: number): number {
   return segmentAngles(segmentIndexForHour(hour)).start;
 }
 
+/** Hundredths. Node and the browser disagree past that on sin/cos, which mismatches hydration. */
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 export function polarPoint(cx: number, cy: number, r: number, deg: number): { x: number; y: number } {
   const rad = (deg * Math.PI) / 180;
   return {
-    x: cx + r * Math.sin(rad),
-    y: cy - r * Math.cos(rad),
+    x: round2(cx + r * Math.sin(rad)),
+    y: round2(cy - r * Math.cos(rad)),
   };
+}
+
+/**
+ * State-of-charge ring. The centre copy is fitted inside `innerEdge`, with 12px of clearance.
+ * kW sizes match the site ring; GW is the national day ring.
+ */
+export function socRingGeometry(unit: "GW" | "kW" = "GW", bold = false): { radius: number; width: number; innerEdge: number } {
+  const radius = unit === "kW" ? (bold ? 92 : 70) : 150;
+  const width = bold ? 26 : unit === "kW" ? 8 : 14;
+  return { radius, width, innerEdge: radius - width / 2 };
+}
+
+/** Phone width the compact viewBox is drawn for, and the disk that width must show. */
+export const COMPACT_FRAME_PX = 390;
+export const COMPACT_RING_MIN_PX = 340;
+
+/**
+ * ViewBox that makes a disk of `outerRadius` at least 340px wide inside a 390px frame.
+ * Half-extent is computed from that ratio and then shortened until the inequality holds after rounding.
+ */
+export function compactRingView(outerRadius: number): { x: number; y: number; w: number; h: number } {
+  const outer = Math.max(1, outerRadius);
+  let half = Math.floor(outer * (COMPACT_FRAME_PX / COMPACT_RING_MIN_PX) * 100) / 100;
+  while (half > outer && (COMPACT_FRAME_PX * outer) / half < COMPACT_RING_MIN_PX) {
+    half = Math.round((half - 0.01) * 100) / 100;
+  }
+  const side = Math.round(half * 2 * 100) / 100;
+  return { x: -half, y: -half, w: side, h: side };
+}
+
+export function ringDiskPx(outerRadius: number, framePx: number, viewWidth: number): number {
+  return (framePx * (2 * outerRadius)) / viewWidth;
+}
+
+/** Radius, in px, that still leaves `clearancePx` inside the inner circle. */
+export function centerLimitPx(innerEdgeUser: number, svgWidth: number, viewWidth: number, clearancePx = 12): number {
+  if (svgWidth <= 0 || viewWidth <= 0) {
+    return 0;
+  }
+  return innerEdgeUser * (svgWidth / viewWidth) - clearancePx;
+}
+
+/** True when the box's corners lie inside a circle of `radiusPx`. */
+export function boxFitsCircle(width: number, height: number, radiusPx: number): boolean {
+  if (radiusPx <= 0) {
+    return false;
+  }
+  return Math.hypot(width / 2, height / 2) <= radiusPx;
+}
+
+/** Hour-label placement that stays inside a compact viewBox. Font size tracks the radius, not a fixed px. */
+export function compactHourLabel(outerRadius: number, half: number): { labelRadius: number; labelGap: number; fontSize: number } {
+  const fontSize = round2(Math.min(28, (24 * outerRadius) / COMPACT_RING_MIN_PX));
+  const labelGap = 10;
+  const overhang = fontSize * 0.7;
+  const room = half - overhang - labelGap;
+  const preferred = outerRadius + 4;
+  const labelRadius = round2(Math.max(outerRadius, Math.min(preferred, room)));
+  return { labelRadius, labelGap, fontSize };
 }
 
 /** Annular sector, clockwise from `startDeg` to `endDeg`. Radii are ordered inside the path. */

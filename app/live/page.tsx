@@ -55,7 +55,6 @@ export default async function LivePage({
       <LiveView
         board={board}
         clock={clock}
-        todayKey={berlinTodayKey}
         dispatch={{
           fleet: fleet
             ? {

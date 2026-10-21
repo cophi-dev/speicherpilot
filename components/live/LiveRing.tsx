@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { ChargedLine } from "@/components/day-ring/ChargedLine";
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { LineDayChart } from "@/components/day-ring/LineDayChart";
-import { ModelChip } from "@/components/day-ring/ModelChip";
 import { StatTrio } from "@/components/day-ring/StatTrio";
 import { ViewToggle } from "@/components/day-ring/ViewToggle";
 import { GlossaryTip } from "@/components/GlossaryTip";
@@ -15,13 +15,12 @@ import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   calloutAnchors,
-  chargedWouldHave,
+  chargedWouldHaveParts,
   fleetSizeLabel,
   formatBerlinDayLabel,
   formatGw1,
   formatSignedGw,
   fullSurplusFactor,
-  heroSentence,
   onceRoundDeltaGw,
   parseRingView,
   saturationNote,
@@ -68,7 +67,7 @@ function lerpPoints(from: LiveDispatchPoint[], to: LiveDispatchPoint[], elapsedM
   });
 }
 
-export function LiveRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; todayKey: string }) {
+export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const router = useRouter();
@@ -144,7 +143,6 @@ export function LiveRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
             fleet={dispatch.fleet}
             factor={factor}
             view={view}
-            todayKey={todayKey}
             language={language}
             saturationIndex={saturationIndex}
             saturated={saturated}
@@ -179,7 +177,6 @@ function LiveRingBody({
   fleet,
   factor,
   view,
-  todayKey,
   language,
   saturationIndex,
   saturated,
@@ -192,7 +189,6 @@ function LiveRingBody({
   fleet: NonNullable<LiveDispatchInput["fleet"]>;
   factor: LiveDispatchFactor;
   view: "uhr" | "linie";
-  todayKey: string;
   language: AppLanguage;
   saturationIndex: number | null;
   saturated: LiveDispatchFactor | null;
@@ -200,11 +196,13 @@ function LiveRingBody({
   onView: (view: "uhr" | "linie") => void;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const sentence = heroSentence({ dateBerlin: story.dateBerlin, todayKey, surplusGwh: story.surplusGwh });
-  const title = language === "de" ? sentence.de : sentence.en;
+  const title = tx(
+    "Schieb den Regler und sieh, wie Speicher den Tag runder machen.",
+    "Move the slider and see how storage rounds the day."
+  );
   const before = story.eveningPeakBeforeGw;
   const after = story.eveningPeakAfterGw;
-  const charged = chargedWouldHave(story.chargedGwh, factor, language);
+  const charged = chargedWouldHaveParts(story.chargedGwh, factor, language);
   const hours = surplusHours(story);
   const hourLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
   const delta = before !== null && after !== null ? -onceRoundDeltaGw(before, after) : null;
@@ -226,6 +224,17 @@ function LiveRingBody({
         <h1 id="live-what-if" className="day-title day-order-title">
           {title}
         </h1>
+        <div className="day-order-slider">
+          <FactorSlider
+            factor={factor}
+            valueText={sliderValueText(factor, after, language)}
+            label={tx("Speicherfaktor", "Storage factor")}
+            saturationIndex={saturationIndex}
+            onChange={onFactor}
+          />
+          {showSaturation && saturated ? <p className="day-sat">{saturationNote(saturated, language)}</p> : null}
+          {charged ? <ChargedLine parts={charged} modelLabel={tx("Modell", "Model")} /> : null}
+        </div>
         <div className="day-order-ring">
           <figure>
             {view === "uhr" ? (
@@ -315,20 +324,6 @@ function LiveRingBody({
               },
             ]}
           />
-          {charged ? (
-            <p className="day-charged">
-              <span className="num">{charged}</span>
-              <ModelChip label={tx("Modell", "Model")} />
-            </p>
-          ) : null}
-          <FactorSlider
-            factor={factor}
-            valueText={sliderValueText(factor, after, language)}
-            label={tx("Speicherfaktor", "Storage factor")}
-            saturationIndex={saturationIndex}
-            onChange={onFactor}
-          />
-          {showSaturation && saturated ? <p className="day-sat">{saturationNote(saturated, language)}</p> : null}
           <ul className="day-peaks" aria-label={tx("Abendspitze in GW", "Evening peak in GW")}>
             {LIVE_DISPATCH_FACTORS.map((step) => {
               const peak = stories[step].eveningPeakAfterGw;

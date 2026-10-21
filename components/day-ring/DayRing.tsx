@@ -1,9 +1,13 @@
 "use client";
 
-import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import { leaderEnd, placeCalloutBoxes, ringClearRadius, type CalloutBox } from "@/lib/dayRingCallouts";
 import {
+  boxFitsCircle,
+  centerLimitPx,
+  compactHourLabel,
+  compactRingView,
   energyColor,
   hourToDeg,
   polarPoint,
@@ -14,6 +18,7 @@ import {
   sectorPath,
   segmentAngles,
   segmentIndexForHour,
+  socRingGeometry,
 } from "@/lib/dayRingScale";
 import { quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
@@ -26,6 +31,20 @@ export type RingCallout = CalloutAnchor & {
 };
 
 type Highlight = "night" | "midday" | "evening" | null;
+
+const NARROW_QUERY = "(max-width: 767px)";
+
+function useNarrowFrame(): boolean {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      const query = window.matchMedia(NARROW_QUERY);
+      query.addEventListener("change", onStoreChange);
+      return () => query.removeEventListener("change", onStoreChange);
+    },
+    () => window.matchMedia(NARROW_QUERY).matches,
+    () => false
+  );
+}
 
 export function DayRing({
   points,
@@ -56,8 +75,13 @@ export function DayRing({
   const descId = useId();
   const hatchId = useId();
   const frameRef = useRef<HTMLDivElement>(null);
+  const narrow = useNarrowFrame();
   const maxGw = points.reduce((max, point) => Math.max(max, point.ohneMw / 1000, point.mitMw / 1000), 0);
-  const view = callouts.length > 0 ? RING_CALLOUT_VIEW : RING_VIEW;
+  const outer = Math.max(ringRadius(maxGw), RING_R0);
+  const wideView = callouts.length > 0 ? RING_CALLOUT_VIEW : RING_VIEW;
+  const view = useMemo(() => (narrow ? compactRingView(outer) : wideView), [narrow, outer, wideView]);
+  const hourLabel = narrow ? compactHourLabel(outer, view.w / 2) : null;
+  const innerEdge = socRingGeometry().innerEdge;
   const layoutKey = callouts.map((callout) => `${callout.id}:${callout.point.hour}:${callout.text}`).join("|");
   const fallback = placeCalloutBoxes(
     callouts.map((callout) => ({
@@ -107,6 +131,53 @@ export function DayRing({
     return () => observer.disconnect();
   }, [callouts, layoutKey, maxGw, view]);
 
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) {
+      return;
+    }
+    const fit = () => {
+      const svg = frame.querySelector(".day-ring-svg");
+      const centerEl = frame.querySelector<HTMLElement>(".day-center");
+      const figure = centerEl?.querySelector<HTMLElement>(".day-center-figure, .num");
+      if (!svg || !centerEl || !figure) {
+        return;
+      }
+      const svgWidth = svg.getBoundingClientRect().width;
+      const limit = centerLimitPx(innerEdge, svgWidth, view.w, 12);
+      const apply = (size: number) => {
+        figure.style.fontSize = `${size}px`;
+      };
+      if (limit <= 4) {
+        apply(8);
+        return;
+      }
+      let low = 8;
+      let high = 28;
+      const fits = (size: number) => {
+        apply(size);
+        const box = centerEl.getBoundingClientRect();
+        return boxFitsCircle(box.width, box.height, limit);
+      };
+      if (fits(high)) {
+        return;
+      }
+      while (high - low > 0.25) {
+        const mid = (low + high) / 2;
+        if (fits(mid)) {
+          low = mid;
+        } else {
+          high = mid;
+        }
+      }
+      apply(low);
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [center, innerEdge, view.w]);
+
   return (
     <div className="day-ring-frame" ref={frameRef}>
       <svg
@@ -135,7 +206,12 @@ export function DayRing({
         ))}
         {showSoc ? <SocRing points={points} /> : null}
         {showShift && chargedGwh > 0.05 ? <ShiftArrow points={points} /> : null}
-        <HourTicks showHours={showHourTicks} labelRadius={ringRadius(Math.max(52, maxGw + 6))} />
+        <HourTicks
+          showHours={showHourTicks}
+          labelRadius={hourLabel ? hourLabel.labelRadius : ringRadius(Math.max(52, maxGw + 6))}
+          labelGap={hourLabel ? hourLabel.labelGap : 28}
+          fontSize={hourLabel ? hourLabel.fontSize : 28}
+        />
         {callouts.map((callout) => (
           <CalloutMarker key={callout.id} callout={callout} />
         ))}
@@ -185,9 +261,9 @@ export function FlowBand({
 }
 
 export function SocRing({ points }: { points: LiveDispatchPoint[] }) {
-  const radius = 150;
+  const { radius, width } = socRingGeometry();
   return (
-    <g className="day-soc" fill="none" strokeWidth="14" strokeLinecap="butt">
+    <g className="day-soc" fill="none" strokeWidth={width} strokeLinecap="butt">
       {points.map((point) => {
         const angles = segmentAngles(segmentIndexForHour(point.hour));
         return (
@@ -296,15 +372,25 @@ function sameBoxes(prev: CalloutBox[], next: CalloutBox[]): boolean {
   });
 }
 
-function HourTicks({ showHours, labelRadius }: { showHours: boolean; labelRadius: number }) {
+function HourTicks({
+  showHours,
+  labelRadius,
+  labelGap,
+  fontSize,
+}: {
+  showHours: boolean;
+  labelRadius: number;
+  labelGap: number;
+  fontSize: number;
+}) {
   const hours = showHours ? [0, 6, 12, 18] : [0];
   return (
-    <g className="day-ticks" fill="#E9EEF2" fontFamily="var(--font-plex-mono), monospace" fontSize="28" aria-hidden="true">
+    <g className="day-ticks" fill="#E9EEF2" fontFamily="var(--font-plex-mono), monospace" fontSize={fontSize} aria-hidden="true">
       {hours.map((hour) => {
         const deg = hour === 0 ? 0 : hourToDeg(hour) + 1.8;
-        const inner = polarPoint(0, 0, labelRadius - 18, deg);
+        const inner = polarPoint(0, 0, Math.max(1, labelRadius - 18), deg);
         const outer = polarPoint(0, 0, labelRadius, deg);
-        const label = polarPoint(0, 0, labelRadius + 28, deg);
+        const label = polarPoint(0, 0, labelRadius + labelGap, deg);
         const text = hour === 0 ? "00" : String(hour).padStart(2, "0");
         return (
           <g key={hour}>
