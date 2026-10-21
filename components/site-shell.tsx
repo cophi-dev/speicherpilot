@@ -157,6 +157,21 @@ export function SiteShell({ children }: SiteShellProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return;
+    }
+    const query = window.matchMedia("(min-width: 768px)");
+    const apply = () => {
+      document.querySelectorAll<HTMLDetailsElement>(".site-fold").forEach((node) => {
+        node.open = query.matches;
+      });
+    };
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, [pathname]);
+
   useLayoutEffect(() => {
     const update = () => {
       const hero = document.querySelector(".day-hero");
@@ -287,7 +302,8 @@ export function SiteShell({ children }: SiteShellProps) {
         <footer className="border-t border-border">
           <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8">
             <div>
-              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Quellen", "Sources")}</p>
+              <details className="site-fold">
+              <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Quellen", "Sources")}</summary>
               <ul className="mt-3 space-y-1.5">
                 <li>
                   <a className="text-primary underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
@@ -310,6 +326,13 @@ export function SiteShell({ children }: SiteShellProps) {
                   </a>
                 </li>
               </ul>
+              </details>
+              <details className="site-fold">
+                <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Glossar", "Glossary")}</summary>
+                <p className="mt-3">
+                  <Link href="/methodik#glossar">{tx("Begriffe in der Methodik", "Terms in the method")}</Link>
+                </p>
+              </details>
             </div>
             <p>
               {tx(

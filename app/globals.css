@@ -1394,10 +1394,29 @@
   border-color: #7dfce6;
 }
 
+.day-title,
+.day-hero h1,
+.day-hero h2,
+.day-paper h2,
+.day-movements h2,
+.methodik-hero h1,
+.site-hero h1,
+.day-stats dd,
+.story-figure {
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-weight: 300;
+}
+
+.day-stats dd .num,
+.story-figure {
+  font-family: inherit;
+  font-weight: inherit;
+}
+
 .day-title {
   max-width: 18ch;
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 300;
   line-height: 1.12;
   letter-spacing: -0.02em;
 }
@@ -1436,12 +1455,44 @@
   display: block;
   width: 100%;
   height: auto;
+  overflow: visible;
+}
+
+.day-smooth path {
+  shape-rendering: geometricPrecision;
+}
+
+.day-guide {
+  fill: none;
+  stroke: #c5ced6;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.day-ticks {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+.day-ticks text {
+  fill: #c5ced6;
+  font-feature-settings: "calt" 0, "liga" 0, "zero" 0;
+  font-variant-ligatures: none;
+  text-rendering: geometricPrecision;
+}
+
+.day-ticks line {
+  stroke: #c5ced6;
 }
 
 .day-hero figure {
   position: relative;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.day-ring-block {
+  width: 100%;
+  max-width: 100%;
 }
 
 .day-sr {
@@ -1459,7 +1510,8 @@
 .day-zero {
   stroke: rgba(233, 238, 242, 0.55);
   stroke-dasharray: 4 7;
-  stroke-width: 2;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .day-center {
@@ -1489,7 +1541,7 @@
   font-size: 13px;
   line-height: 1.25;
   color: #c5ced6;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .day-callout {
@@ -1645,6 +1697,16 @@
   color: #c5ced6;
 }
 
+.day-stats-note {
+  display: block;
+  margin-top: 6px;
+  color: #c5ced6;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 .day-charged {
   display: flex;
   flex-wrap: wrap;
@@ -1689,8 +1751,8 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 17px;
-  height: 10px;
+  top: 18px;
+  height: 8px;
   border-radius: 999px;
   background-color: rgba(233, 238, 242, 0.16);
   background-image:
@@ -1715,15 +1777,16 @@
 
 .day-slider input::-webkit-slider-runnable-track,
 .day-slider input::-moz-range-track {
-  height: 10px;
+  height: 8px;
   background: transparent;
   border: none;
 }
 
 .day-slider input::-webkit-slider-thumb {
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
   border: 2px solid #0a0f14;
   border-radius: 50%;
   background: #7dfce6;
@@ -1732,8 +1795,8 @@
 .day-slider input::-moz-range-thumb {
   -moz-appearance: none;
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border: 2px solid #0a0f14;
   border-radius: 50%;
   background: #7dfce6;
@@ -1748,11 +1811,38 @@
   display: flex;
   justify-content: space-between;
   font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 14px;
+  color: #c5ced6;
+}
+
+.day-slider-stops button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.day-slider-stops .is-current { color: #e9eef2; }
+
+.day-legend-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  white-space: nowrap;
   font-size: 12px;
   color: #c5ced6;
 }
 
-.day-slider-stops .is-current { color: #e9eef2; }
+.day-legend-swatch {
+  flex: 1 1 auto;
+  height: 8px;
+  min-width: 72px;
+  border-radius: 999px;
+}
 
 .day-sat {
   max-width: 46ch;
@@ -1817,7 +1907,6 @@
 @media (min-width: 768px) {
   .day-hero { padding: calc(48px + 4rem) 32px 64px; }
   .day-title { font-size: 52px; }
-  .day-callout-list { display: none; }
   .day-methods { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
@@ -1828,10 +1917,11 @@
     overflow: visible;
   }
   .day-order-ring > figure .day-ring-frame,
-  .site-hero-grid .day-ring-frame {
-    width: calc(100% + 40px);
+  .site-hero-grid .day-ring-frame,
+  .day-movement-pin .day-ring-frame {
+    width: min(358px, calc(100vw - 16px));
     max-width: none;
-    margin-inline: -20px;
+    margin-inline: calc((100% - min(358px, 100vw - 16px)) / 2);
   }
 }
 
@@ -1916,8 +2006,30 @@
 .day-movements h2,
 .day-paper h2 {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 300;
   line-height: 1.15;
+}
+
+.day-movement-story {
+  display: grid;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.day-movement-pin {
+  position: sticky;
+  top: 5rem;
+  z-index: 2;
+  align-self: start;
+}
+
+.day-movements li {
+  scroll-margin-top: 5rem;
+  min-height: 42vh;
+}
+
+.story-step {
+  scroll-margin-top: 5rem;
 }
 
 .day-movements ol,
@@ -2109,7 +2221,8 @@
 }
 
 .day-paper .day-ticks line,
-.day-paper .day-zero {
+.day-paper .day-zero,
+.day-paper .day-guide {
   stroke: rgb(20 24 28 / 55%);
 }
 
@@ -2124,6 +2237,7 @@
 
 .dark .day-paper .day-ticks line,
 .dark .day-paper .day-zero,
+.dark .day-paper .day-guide,
 .dark .day-paper .day-shift {
   stroke: rgb(233 238 242 / 70%);
 }
@@ -2134,7 +2248,11 @@
 }
 
 @media (min-width: 960px) {
-  .day-movements ol { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .day-movement-story {
+    grid-template-columns: minmax(280px, 1.1fr) minmax(240px, 0.8fr);
+    align-items: start;
+  }
+  .day-movements ol { display: block; }
   .day-doors { grid-template-columns: 1fr 1fr; }
 }
 
@@ -2307,11 +2425,60 @@
 }
 
 .site-bar {
+  position: relative;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   height: 28px;
   margin: 12px 0;
-  background: linear-gradient(90deg, #1e9cb0 var(--share), rgb(20 24 28 / 12%) var(--share));
+  padding: 0 8px;
+  background: rgb(20 24 28 / 12%);
+  color: inherit;
+}
+
+.site-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--share);
+  background: #14181c;
+}
+
+.dark .site-bar::before {
+  background: #e9eef2;
+}
+
+.site-bar::after {
+  content: "";
+  position: absolute;
+  left: 60%;
+  top: -6px;
+  bottom: -6px;
+  width: 2px;
+  background: currentColor;
+}
+
+.site-bar span {
+  position: relative;
+  z-index: 1;
+}
+
+.site-fold summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.day-paper .day-slider-track {
+  background-color: rgb(20 24 28 / 12%);
+}
+
+.day-paper .day-slider-label,
+.day-paper .day-slider-stops {
+  color: #3c444c;
 }
 
 .site-examples {
@@ -2361,6 +2528,10 @@
   min-height: 44px;
 }
 
+.site-play .day-cta {
+  gap: 8px;
+}
+
 .site-quiet {
   margin-top: 16px;
   color: #c5ced6;
@@ -2390,13 +2561,21 @@
 .day-missing h1 { max-width: 16ch; }
 @media (min-width: 960px) { .day-missing-split { grid-template-columns: 280px minmax(0, 1fr); } }
 
-.methodik-hero h1, .news-hero h1 { max-width: 18ch; margin-top: 12px; font-size: 40px; font-weight: 500; line-height: 1.1; }
+.methodik-hero h1, .news-hero h1 { max-width: 18ch; margin-top: 12px; font-size: 40px; font-weight: 300; line-height: 1.1; }
 .methodik-scales, .methodik-phases, .methodik-gauges { display: grid; gap: 16px; margin-top: 28px; max-width: 100%; }
 .methodik-scales { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .methodik-phases, .methodik-gauges { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.methodik-scales .day-ring-frame { width: 100%; max-width: none; min-width: 160px; }
 .methodik-scales svg, .methodik-phases .empty-ring, .methodik-phases .day-ring-frame, .methodik-gauges svg { width: 100%; height: auto; max-width: 180px; }
+.methodik-scales .day-ring-frame, .methodik-scales .day-ring-svg { max-width: none; }
 .methodik-phases .day-ring-frame { margin-inline: 0; }
 .methodik-scales figcaption, .methodik-phases figcaption, .methodik-gauges figcaption { margin-top: 8px; color: #c5ced6; }
+.methodik-scale-short { display: none; }
+@media (max-width: 767px) {
+  .methodik-scale-long { display: none; }
+  .methodik-scale-short { display: inline; }
+  .methodik-scales figcaption { white-space: nowrap; }
+}
 .methodik-layout { display: grid; gap: 28px; min-width: 0; }
 .methodik article, .methodik nav { min-width: 0; max-width: 100%; }
 .methodik article { display: grid; gap: 28px; max-width: 68ch; }

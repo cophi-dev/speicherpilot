@@ -1,5 +1,6 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import type { AppLanguage } from "@/components/language-context";
@@ -72,24 +73,29 @@ export function SiteSimulator({
             : tx("Der Speicher wartet den Tag über und arbeitet an der Spitze.", "The battery waits through the day and works at the peak.")}
         </h2>
         <div className="site-play">
-          <button type="button" aria-pressed={playing} onClick={() => setPlaying((value) => !value)} disabled={reduced}>
+          <button type="button" className="day-cta" aria-pressed={playing} onClick={() => setPlaying((value) => !value)} disabled={reduced}>
+            {playing ? <Pause aria-hidden="true" size={18} /> : <Play aria-hidden="true" size={18} />}
             {playing ? tx("Pause", "Pause") : tx("Abspielen", "Play")}
           </button>
-          <label>
-            {tx("Uhrzeit", "Time")}
-            <input
-              type="range"
-              min={0}
-              max={24}
-              step={0.25}
-              value={hour}
-              aria-valuetext={clock(hour)}
-              onChange={(event) => {
-                setPlaying(false);
-                setHour(Number(event.target.value));
-              }}
-            />
-          </label>
+          <div className="day-slider-block">
+            <label className="day-slider-label" htmlFor="site-hour">{tx("Uhrzeit", "Time")}</label>
+            <div className="day-slider">
+              <div className="day-slider-track" aria-hidden="true" style={{ ["--fill" as string]: `${(hour / 24) * 100}%`, ["--hatch" as string]: "100%" }} />
+              <input
+                id="site-hour"
+                type="range"
+                min={0}
+                max={24}
+                step={0.25}
+                value={hour}
+                aria-valuetext={clock(hour)}
+                onChange={(event) => {
+                  setPlaying(false);
+                  setHour(Number(event.target.value));
+                }}
+              />
+            </div>
+          </div>
           <span className="num">{clock(hour)}</span>
         </div>
         <DispatchDayChart

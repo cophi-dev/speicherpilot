@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
@@ -23,6 +23,20 @@ const CHAPTERS = [
 export function MethodikDocs() {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return;
+    }
+    const query = window.matchMedia("(min-width: 768px)");
+    const apply = () => {
+      document.querySelectorAll<HTMLDetailsElement>(".site-fold").forEach((node) => {
+        node.open = query.matches;
+      });
+    };
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
   return (
     <div className="methodik">
       <section className="day-hero methodik-hero" aria-labelledby="methodik-title">
@@ -31,12 +45,18 @@ export function MethodikDocs() {
           <h1 id="methodik-title">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
           <div className="methodik-scales">
             <figure>
-              <ScaleRing mode="gw" />
-              <figcaption>{tx("Netz Deutschland · GW", "Germany grid · GW")}</figcaption>
+              <DayRing points={PHASE_POINTS} label={tx("Netz Deutschland", "Germany grid")} description={tx("Form der nationalen Uhr.", "Shape of the national clock.")} showShift={false} showHourTicks={false} showSoc={false} chargedGwh={0} />
+              <figcaption>
+                <span className="methodik-scale-long">{tx("Netz Deutschland · GW", "Germany grid · GW")}</span>
+                <span className="methodik-scale-short">{tx("Netz · GW", "Grid · GW")}</span>
+              </figcaption>
             </figure>
             <figure>
-              <ScaleRing mode="kw" />
-              <figcaption>{tx("Standort · kW", "Site · kW")}</figcaption>
+              <DayRing points={KW_MINI} unit="kW" scale="utilisation" limit={90} label={tx("Standort", "Site")} description={tx("Form der Standort-Uhr.", "Shape of the site clock.")} showShift={false} showHourTicks={false} showSoc={false} chargedGwh={0} />
+              <figcaption>
+                <span className="methodik-scale-long">{tx("Standort · kW", "Site · kW")}</span>
+                <span className="methodik-scale-short">{tx("Standort · kW", "Site · kW")}</span>
+              </figcaption>
             </figure>
           </div>
         </div>
@@ -83,18 +103,18 @@ export function MethodikDocs() {
               </div>
               <Formula label={tx("Geladene Energie vor 17 Uhr", "Energy charged before 17:00")}>
                 <math display="block">
-                  <mtable>
-                    <mtr>
-                      <mtd><msub><mi>E</mi><mtext>geladen</mtext></msub></mtd>
-                      <mtd><mo>=</mo></mtd>
-                      <mtd><mrow><mo>∑</mo><msub><mi>t</mi><mn>17</mn></msub></mrow></mtd>
-                    </mtr>
-                    <mtr>
-                      <mtd></mtd>
-                      <mtd></mtd>
-                      <mtd><mrow><mo>min</mo><mo>(</mo><mi>Ü</mi><mo>,</mo><mi>P</mi><mo>,</mo><mi>Raum</mi><mo>)</mo><mo>·</mo><mn>0,25 h</mn></mrow></mtd>
-                    </mtr>
-                  </mtable>
+                  <mrow>
+                    <msub><mi>E</mi><mtext>geladen</mtext></msub>
+                    <mo>=</mo>
+                    <munder>
+                      <mo>∑</mo>
+                      <mrow><mi>t</mi><mo>&lt;</mo><mtext>17 Uhr</mtext></mrow>
+                    </munder>
+                    <mo>min</mo>
+                    <mo>(</mo><mi>Ü</mi><mo>,</mo><mi>P</mi><mo>,</mo><mi>Raum</mi><mo>)</mo>
+                    <mo>·</mo>
+                    <mi>Δ</mi><mi>t</mi>
+                  </mrow>
                 </math>
               </Formula>
               <Formula label={tx("Abgebbare Energie, Verluste nur auf der Abgabe", "Deliverable energy, losses only on discharge")}>
@@ -173,7 +193,8 @@ export function MethodikDocs() {
               </blockquote>
             </section>
             <section id="quellen">
-              <h2>{tx("07 Quellen", "07 Sources")}</h2>
+              <details className="site-fold">
+              <summary><h2>{tx("07 Quellen", "07 Sources")}</h2></summary>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
@@ -184,7 +205,9 @@ export function MethodikDocs() {
                 <li><a href="https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Umwelt/UGR/private-haushalte/Tabellen/stromverbrauch-haushalte.html">Destatis</a> · {tx("Haushaltsstrom, Stand 27. September 2023", "Household electricity, as of 27 September 2023")}</li>
               </ul>
               <p>{tx("Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Flower zeigt nur veröffentlichte Eckdaten. Euro-Beträge stehen nur im aufklappbaren Annahmen-Block und dort als Modellschätzung. Kein Angebot, keine Anschlusszusage.", "The example supermarket and the example neighbourhood are fictional and marked as example data. Flower shows only published key figures. Euro amounts appear only in the collapsible assumptions block, and there as a model estimate. Not a quote and not a connection offer.")}</p>
-              <h3>{tx("Glossar", "Glossary")}</h3>
+              </details>
+              <details className="site-fold" id="glossar">
+              <summary><h3>{tx("Glossar", "Glossary")}</h3></summary>
               <dl>
                 {GLOSSARY.map((entry) => (
                   <div key={entry.id}>
@@ -193,6 +216,7 @@ export function MethodikDocs() {
                   </div>
                 ))}
               </dl>
+              </details>
               <p><Link href="/site?view=netz">{tx("Zum Standort", "To the site")}</Link></p>
             </section>
           </article>
@@ -208,23 +232,6 @@ function Formula({ label, children }: { label: string; children: ReactNode }) {
       {children}
       <figcaption>{label}</figcaption>
     </figure>
-  );
-}
-
-function ScaleRing({ mode }: { mode: "gw" | "kw" }) {
-  const colors = mode === "gw"
-    ? ["#9BF6E6", "#1E9CB0", "#2F6FC0", "#5E62C8", "#F2A25C", "#FF6655"]
-    : ["#9BF6E6", "#2CC8B8", "#1E9CB0", "#2F6FC0", "#5E62C8", "#F2A25C", "#FF6655", "#E0364A"];
-  const span = 358 / colors.length;
-  return (
-    <svg viewBox="-80 -80 160 160" width="160" height="160" aria-hidden="true">
-      {colors.map((color, index) => {
-        const start = 1 + index * span;
-        const end = start + span - 1;
-        return <path key={color} d={sector(52, 74, start, end)} fill={color} />;
-      })}
-      <circle cx="0" cy="0" r="52" fill="none" stroke="#C5CED6" strokeDasharray="3 4" />
-    </svg>
   );
 }
 
@@ -258,18 +265,6 @@ function Gauge({ pct, label }: { pct: number; label: string }) {
       <figcaption>{label}</figcaption>
     </figure>
   );
-}
-
-function sector(inner: number, outer: number, startDeg: number, endDeg: number) {
-  const p = (radius: number, deg: number) => {
-    const rad = (deg * Math.PI) / 180;
-    return [radius * Math.sin(rad), -radius * Math.cos(rad)];
-  };
-  const [x1, y1] = p(outer, startDeg);
-  const [x2, y2] = p(outer, endDeg);
-  const [x3, y3] = p(inner, endDeg);
-  const [x4, y4] = p(inner, startDeg);
-  return `M ${r2(x1)} ${r2(y1)} A ${r2(outer)} ${r2(outer)} 0 0 1 ${r2(x2)} ${r2(y2)} L ${r2(x3)} ${r2(y3)} A ${r2(inner)} ${r2(inner)} 0 0 0 ${r2(x4)} ${r2(y4)} Z`;
 }
 
 function arc(radius: number, startDeg: number, endDeg: number) {
@@ -319,4 +314,10 @@ const PHASE_POINTS: LiveDispatchPoint[] = Array.from({ length: 96 }, (_, index) 
     dischargeMw,
     soc,
   };
+});
+
+/** Same shape as the national miniature, drawn in kilowatts around a 90 kW line. Not a measured site. */
+const KW_MINI: LiveDispatchPoint[] = PHASE_POINTS.map((point) => {
+  const kw = 55 + point.ohneMw / 1000;
+  return { ...point, ohneMw: kw, mitMw: kw, chargeMw: 0, dischargeMw: 0 };
 });

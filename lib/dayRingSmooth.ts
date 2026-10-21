@@ -1,6 +1,6 @@
 import { curveCatmullRom, curveMonotoneX, line, type CurveFactory } from "d3-shape";
 
-import { polarPoint, segmentAngles, segmentIndexForHour } from "@/lib/dayRingScale";
+import { polarPoint, RING_GAP_DEG, RING_SLOTS, segmentAngles, segmentIndexForHour } from "@/lib/dayRingScale";
 
 /** Morph duration for a factor change. Ease-in-out, and the first frame is the next animation frame. */
 export const RING_MORPH_MS = 450;
@@ -35,7 +35,49 @@ export function smoothDrawnSeries(values: readonly number[]): number[] {
   });
 }
 
-/** Centre of the quarter-hour sector. The 2° midnight gap stays outside the curve. */
+/** Centre of the quarter-hour sector. The 4° midnight gap stays outside the curve. */
+
+/** Each end of the ring narrows onto the base radius across this many quarter-hours. */
+export const TAPER_QUARTERS = 2;
+
+export function taperSpanDeg(): number {
+  return TAPER_QUARTERS * ((360 - RING_GAP_DEG) / RING_SLOTS);
+}
+
+/** True inside the two quarter-hours at either side of the midnight gap. */
+export function inMidnightTaper(angleDeg: number): boolean {
+  const gap = RING_GAP_DEG / 2;
+  const taper = taperSpanDeg();
+  return angleDeg < gap + taper || angleDeg > 360 - gap - taper;
+}
+
+/**
+ * Pull both ends onto `zeroRadius` across two quarter-hours.
+ * The shape narrows; opacity stays solid. The 4° gap itself is not part of the path.
+ */
+export function taperRingSamples(samples: readonly CurveSample[], zeroRadius: number): CurveSample[] {
+  if (samples.length < 2) {
+    return samples.map((sample) => ({ ...sample }));
+  }
+  const gap = RING_GAP_DEG / 2;
+  const taper = taperSpanDeg();
+  const end = 360 - gap;
+  const blend = (angle: number, radius: number) => {
+    const into = Math.min(Math.max(0, angle - gap), Math.max(0, end - angle));
+    const t = taper <= 0 ? 1 : Math.min(1, into / taper);
+    const s = t * t * (3 - 2 * t);
+    return zeroRadius + (radius - zeroRadius) * s;
+  };
+  const body = samples
+    .filter((sample) => sample.angleDeg > gap && sample.angleDeg < end)
+    .map((sample) => ({ ...sample, radius: blend(sample.angleDeg, sample.radius) }));
+  if (body.length === 0) {
+    return [];
+  }
+  const head: CurveSample = { angleDeg: gap, radius: zeroRadius, value: body[0].value };
+  const tail: CurveSample = { angleDeg: end, radius: zeroRadius, value: body[body.length - 1].value };
+  return densify([head, ...body, tail], 0.35);
+}
 export function quarterCenterDeg(index: number): number {
   const span = segmentAngles(index);
   return (span.start + span.end) / 2;
@@ -80,7 +122,7 @@ export function smoothPolarSamples(
   return samples.map((sample) => clampSample(sample, controls, zeroRadius));
 }
 
-/** Filled area between the open outer curve and the zero circle. One path. */
+/** One filled area between the open outer curve and the base circle. No extra stroke. */
 export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: number): string {
   if (samples.length < 2) return "";
   const first = samples[0];
@@ -96,6 +138,28 @@ export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: numbe
   parts.push(`A ${radius} ${radius} 0 1 0 ${fmt(start.x)} ${fmt(start.y)}`);
   parts.push("Z");
   return parts.join(" ");
+}
+
+/** Even steps so the outer edge anti-aliases as one curve instead of a serrated polyline. */
+function densify(samples: readonly CurveSample[], stepDeg: number): CurveSample[] {
+  if (samples.length < 2) return [...samples];
+  const out: CurveSample[] = [];
+  for (let index = 0; index < samples.length - 1; index += 1) {
+    const from = samples[index];
+    const to = samples[index + 1];
+    const span = to.angleDeg - from.angleDeg;
+    const steps = Math.max(1, Math.round(span / stepDeg));
+    for (let step = 0; step < steps; step += 1) {
+      const t = step / steps;
+      out.push({
+        angleDeg: from.angleDeg + span * t,
+        radius: from.radius + (to.radius - from.radius) * t,
+        value: from.value + (to.value - from.value) * t,
+      });
+    }
+  }
+  out.push(samples[samples.length - 1]);
+  return out;
 }
 
 /** Band between two open curves that share angles. */

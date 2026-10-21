@@ -99,6 +99,54 @@ function placeOne(
   };
 }
 
+/** Leader lines stay within 24 screen pixels. Longer labels move to the numbered list. */
+export const MAX_LEADER_PX = 24;
+
+export function leaderLength(from: { x: number; y: number }, to: { x: number; y: number }): number {
+  return Math.hypot(to.x - from.x, to.y - from.y);
+}
+
+/**
+ * Park a label just outside its marker.
+ * Returns null when the leader would exceed `maxLeader` or the box would cover the disk, another label, or the frame.
+ */
+export function placeLabelBeside(
+  item: { angleDeg: number; w: number; h: number },
+  marker: { x: number; y: number },
+  maxLeader: number,
+  diskRadius: number,
+  view: ViewBox,
+  placed: readonly CalloutBox[]
+): CalloutBox | null {
+  const angle = (item.angleDeg * Math.PI) / 180;
+  const ux = Math.sin(angle);
+  const uy = -Math.cos(angle);
+  const support = (item.w / 2) * Math.abs(ux) + (item.h / 2) * Math.abs(uy);
+  const markerR = Math.hypot(marker.x, marker.y);
+  const gap = Math.min(maxLeader, Math.max(4, maxLeader * 0.45));
+  const dist = markerR + gap + support;
+  const box = {
+    x: ux * dist - item.w / 2,
+    y: uy * dist - item.h / 2,
+    w: item.w,
+    h: item.h,
+  };
+  if (!insideView(box, view, 2)) {
+    return null;
+  }
+  if (rectDistanceToOrigin(box) < diskRadius) {
+    return null;
+  }
+  if (placed.some((other) => overlaps(box, other, 8))) {
+    return null;
+  }
+  const end = leaderEnd(box, marker);
+  if (leaderLength(marker, end) > maxLeader + 0.5) {
+    return null;
+  }
+  return box;
+}
+
 /** Point on the label edge nearest the marker, where the leader line ends. */
 export function leaderEnd(box: CalloutBox, from: { x: number; y: number }): { x: number; y: number } {
   return {

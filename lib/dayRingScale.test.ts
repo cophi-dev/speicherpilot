@@ -3,10 +3,12 @@ import {
   centerCaptionPx,
   centerLimitPx,
   centerWrapPx,
+  chooseCenterFont,
   compactHourLabel,
   compactRingView,
   COMPACT_FRAME_PX,
-  COMPACT_RING_MIN_PX,
+  HOUR_LABEL_PAD_PX,
+  RING_OF_FRAME,
   energyColor,
   kwRadius,
   KW_R0,
@@ -30,7 +32,7 @@ describe("day ring scale", () => {
     expect(ringRadius(-1000)).toBe(1);
   });
 
-  it("leaves a 2° gap centred on midnight for the 00 tick", () => {
+  it("leaves a 4° gap centred on midnight for the 00 tick", () => {
     const span = (360 - RING_GAP_DEG) / RING_SLOTS;
     expect(segmentAngles(0).start).toBeCloseTo(RING_GAP_DEG / 2, 5);
     expect(segmentAngles(0).end - segmentAngles(0).start).toBeCloseTo(span, 5);
@@ -56,15 +58,77 @@ describe("day ring scale", () => {
     expect(path).not.toMatch(/\d\.\d{3}/);
   });
 
-  it("sizes a 390px frame so the disk is at least 340px and the hour label stays inside", () => {
+  it("keeps the evening peak at 92% of a frame that has room for the hour labels", () => {
     for (const gw of [0, 12, 38, 52]) {
       const outer = Math.max(ringRadius(gw), RING_R0);
-      const view = compactRingView(outer);
-      expect(ringDiskPx(outer, COMPACT_FRAME_PX, view.w)).toBeGreaterThanOrEqual(COMPACT_RING_MIN_PX);
-      const label = compactHourLabel(outer, view.w / 2);
-      const outermost = label.labelRadius + label.labelGap + label.fontSize * 0.7;
-      expect(outermost).toBeLessThanOrEqual(view.w / 2 + 0.05);
+      const view = compactRingView(outer, 720);
+      expect(view.w).toBeCloseTo(view.h, 5);
+      expect(view.x).toBeCloseTo(-view.w / 2, 5);
+      expect(view.y).toBeCloseTo(-view.h / 2, 5);
+      expect(ringDiskPx(outer, 720, view.w)).toBeCloseTo(720 * RING_OF_FRAME, 1);
+      const label = compactHourLabel(outer, view.w / 2, 720);
+      expect((label.labelGap * 720) / view.w).toBeCloseTo(8, 1);
+      expect((label.fontSize * 720) / view.w).toBeCloseTo(12, 1);
+      expect(label.labelRadius - label.fontSize * 0.6 - outer).toBeCloseTo(label.labelGap, 1);
+      expect(label.labelRadius + label.fontSize * 0.7).toBeLessThanOrEqual(view.w / 2);
     }
+  });
+
+  it("shrinks the guide on a 358px frame so 00, 06, 12 and 18 stay inside the viewBox", () => {
+    const outer = ringRadius(38);
+    const view = compactRingView(outer, COMPACT_FRAME_PX);
+    const label = compactHourLabel(outer, view.w / 2, COMPACT_FRAME_PX);
+    expect(view.x).toBeCloseTo(-view.w / 2, 5);
+    expect(view.y).toBeCloseTo(-view.h / 2, 5);
+    expect(ringDiskPx(outer, COMPACT_FRAME_PX, view.w)).toBeLessThan(COMPACT_FRAME_PX * RING_OF_FRAME);
+    expect(label.labelRadius + label.fontSize * 0.7).toBeLessThanOrEqual(view.w / 2);
+    expect((label.labelGap * COMPACT_FRAME_PX) / view.w).toBeCloseTo(8, 1);
+    expect((HOUR_LABEL_PAD_PX * 2) / COMPACT_FRAME_PX).toBeGreaterThan(1 - RING_OF_FRAME);
+  });
+
+  it("keeps a miniature frame at 92% so the methodik rings do not shrink to fit a 12px label", () => {
+    const outer = ringRadius(38);
+    const view = compactRingView(outer, 167);
+    expect(ringDiskPx(outer, 167, view.w)).toBeCloseTo(167 * RING_OF_FRAME, 1);
+  });
+
+  it("renders the home centre value inside the phone ring, and refuses a stale 1px box", () => {
+    const outer = Math.max(ringRadius(38), RING_R0);
+    const view = compactRingView(outer, COMPACT_FRAME_PX);
+    const limit = centerLimitPx(socRingGeometry("GW").innerEdge, COMPACT_FRAME_PX, view.w, 12);
+    // Em widths of the laid-out strings: "38,1 → 33,5" and "GW Abendspitze · ×1".
+    const home = (font: number) => {
+      const captionPx = centerCaptionPx(font);
+      return {
+        width: Math.max(font * 6.36, captionPx * 9.74),
+        height: font * 1.05 + 4 + captionPx * 1.25,
+      };
+    };
+    const size = chooseCenterFont(limit, home);
+    expect(size).not.toBeNull();
+    expect(size!).toBeGreaterThanOrEqual(13);
+    expect(boxFitsCircle(home(size!).width, home(size!).height, limit)).toBe(true);
+    expect(home(size!).width).toBeGreaterThan(70);
+    expect(chooseCenterFont(limit, () => ({ width: 400, height: 80 }))).toBeNull();
+    expect(chooseCenterFont(limit, () => ({ width: 0, height: 0 }))).toBeNull();
+  });
+
+  it("keeps GW Abendspitze ×5 on one line inside the desktop centre", () => {
+    const outer = Math.max(ringRadius(38), RING_R0);
+    const view = compactRingView(outer, 720);
+    const limit = centerLimitPx(socRingGeometry("GW").innerEdge, 720, view.w, 12);
+    const live = (font: number) => {
+      const captionPx = centerCaptionPx(font);
+      return {
+        width: Math.max(font * 6.36, captionPx * 9.8),
+        height: font * 1.05 + 4 + captionPx * 1.25,
+      };
+    };
+    const size = chooseCenterFont(limit, live);
+    expect(size).toBe(28);
+    const captionPx = centerCaptionPx(size!);
+    expect(captionPx * 9.8).toBeLessThanOrEqual(size! * 6.36 + 1);
+    expect(boxFitsCircle(live(size!).width, live(size!).height, limit)).toBe(true);
   });
 
   it("keeps the centre box 12px inside the inner circle", () => {

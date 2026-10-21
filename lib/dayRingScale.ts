@@ -2,7 +2,7 @@
 
 export const RING_R0 = 220;
 export const RING_K = 4.2;
-export const RING_GAP_DEG = 2;
+export const RING_GAP_DEG = 4;
 export const RING_SLOTS = 96;
 
 /** Geometry that fits a 50 GW day plus the midnight label. Same box on every day. */
@@ -101,7 +101,7 @@ export function ringRadius(gw: number): number {
 }
 
 /**
- * Quarter `index` (0 = 00:00). A 2° gap is centred on midnight, so 0° sits in the gap with the 00 tick.
+ * Quarter `index` (0 = 00:00). A 4° gap is centred on midnight, so 0° sits in the gap with the 00 tick.
  * Angles grow clockwise from 12 o'clock.
  */
 export function segmentAngles(index: number): { start: number; end: number } {
@@ -141,22 +141,39 @@ export function socRingGeometry(unit: "GW" | "kW" = "GW", bold = false): { radiu
   return { radius, width, innerEdge: radius - width / 2 };
 }
 
-/** Phone width the compact viewBox is drawn for, and the disk that width must show. */
-export const COMPACT_FRAME_PX = 390;
-export const COMPACT_RING_MIN_PX = 340;
+/** Phone width of the ring frame. The disk fills 92% of that frame's radius when the labels fit. */
+export const COMPACT_FRAME_PX = 358;
+export const RING_OF_FRAME = 0.92;
+export const HOUR_LABEL_GAP_PX = 8;
+export const HOUR_LABEL_PX = 12;
+/**
+ * Screen pixels the hour label needs outside the guide.
+ * 8px gap, then the anchor (0.6em), then the outer half of the 16px em box, plus 2px of clearance.
+ */
+export const HOUR_LABEL_PAD_PX = 26;
+/** Secondary grey used for hour labels and the guide circle. */
+export const STEIN = "#C5CED6";
 
 /**
- * ViewBox that makes a disk of `outerRadius` at least 340px wide inside a 390px frame.
- * Half-extent is computed from that ratio and then shortened until the inequality holds after rounding.
+ * Square viewBox centred on the ring.
+ * `outerRadius` is the furthest point of the day, including the evening peak.
+ * That radius sits at 92% of the frame when the 8% margin holds the hour labels.
+ * On a narrower frame the guide gets smaller so 00, 06, 12 and 18 stay inside the viewBox.
  */
-export function compactRingView(outerRadius: number): { x: number; y: number; w: number; h: number } {
+export function compactRingView(outerRadius: number, framePx: number = COMPACT_FRAME_PX): { x: number; y: number; w: number; h: number } {
   const outer = Math.max(1, outerRadius);
-  let half = Math.floor(outer * (COMPACT_FRAME_PX / COMPACT_RING_MIN_PX) * 100) / 100;
-  while (half > outer && (COMPACT_FRAME_PX * outer) / half < COMPACT_RING_MIN_PX) {
-    half = Math.round((half - 0.01) * 100) / 100;
-  }
-  const side = Math.round(half * 2 * 100) / 100;
+  const byScale = outer / RING_OF_FRAME;
+  // Miniatures stay at 92%. The four hour labels need the extra margin from the phone frame upward.
+  const padFrac = framePx >= 320 ? (2 * HOUR_LABEL_PAD_PX) / Math.max(1, framePx) : 0;
+  const byLabels = padFrac > 0 && padFrac < 0.85 ? outer / (1 - padFrac) : byScale;
+  const half = round2(Math.max(byScale, byLabels));
+  const side = round2(half * 2);
   return { x: -half, y: -half, w: side, h: side };
+}
+
+/** Screen pixels converted into the current viewBox. */
+export function pxToUser(px: number, viewWidth: number, framePx: number): number {
+  return round2((px * viewWidth) / Math.max(1, framePx));
 }
 
 export function ringDiskPx(outerRadius: number, framePx: number, viewWidth: number): number {
@@ -189,15 +206,74 @@ export function boxFitsCircle(width: number, height: number, radiusPx: number): 
   return Math.hypot(width / 2, height / 2) <= radiusPx;
 }
 
-/** Hour-label placement that stays inside a compact viewBox. Font size tracks the radius, not a fixed px. */
-export function compactHourLabel(outerRadius: number, half: number): { labelRadius: number; labelGap: number; fontSize: number } {
-  const fontSize = round2(Math.min(28, (24 * outerRadius) / COMPACT_RING_MIN_PX));
-  const labelGap = 10;
-  const overhang = fontSize * 0.7;
-  const room = half - overhang - labelGap;
-  const preferred = outerRadius + 4;
-  const labelRadius = round2(Math.max(outerRadius, Math.min(preferred, room)));
-  return { labelRadius, labelGap, fontSize };
+/**
+ * Largest figure size, up to 28px, whose measured box stays inside the centre circle.
+ * Returns null when the box has no size yet, or when shrinking the type does not shrink the box,
+ * so a stale layout cannot pin the centre text at 1px.
+ */
+export function chooseCenterFont(
+  limitPx: number,
+  measure: (size: number) => { width: number; height: number },
+  max = 28
+): number | null {
+  if (!(limitPx > 0)) {
+    return null;
+  }
+  const read = (size: number) => {
+    const box = measure(size);
+    const width = box.width;
+    const height = box.height;
+    return {
+      width,
+      height,
+      ok: width > 0 && height > 0 && boxFitsCircle(width, height, limitPx),
+    };
+  };
+  const atMax = read(max);
+  if (atMax.width <= 0 || atMax.height <= 0) {
+    return null;
+  }
+  if (atMax.ok) {
+    return max;
+  }
+  const atMin = read(1);
+  if (atMin.width <= 0 || atMin.height <= 0) {
+    return null;
+  }
+  if (atMin.width > atMax.width * 0.8 && atMin.height > atMax.height * 0.8) {
+    return null;
+  }
+  if (!atMin.ok) {
+    return 1;
+  }
+  let low = 1;
+  let high = max;
+  while (high - low > 0.25) {
+    const mid = (low + high) / 2;
+    if (read(mid).ok) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return low;
+}
+
+/**
+ * Hour labels are 12px JetBrains Mono.
+ * The text's inner edge sits 8px outside the guide circle, which is `outerRadius`.
+ */
+export function compactHourLabel(
+  outerRadius: number,
+  half: number,
+  framePx: number = COMPACT_FRAME_PX
+): { labelRadius: number; labelGap: number; fontSize: number } {
+  const viewW = half * 2;
+  const labelGap = pxToUser(HOUR_LABEL_GAP_PX, viewW, framePx);
+  const fontSize = pxToUser(HOUR_LABEL_PX, viewW, framePx);
+  // Two tabular digits are 1.2em wide, so the inner edge sits half of that inside the anchor.
+  const halfInk = round2(fontSize * 0.6);
+  return { labelRadius: round2(outerRadius + labelGap + halfInk), labelGap, fontSize };
 }
 
 /** Annular sector, clockwise from `startDeg` to `endDeg`. Radii are ordered inside the path. */

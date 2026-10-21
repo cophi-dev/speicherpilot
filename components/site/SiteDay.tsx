@@ -200,11 +200,6 @@ function ExampleHero({
               chargedGwh={0}
               center={<span className="num">{netz ? `${peak} → ${limit}` : energy}<small>{netz ? " kW" : " kWh"}</small></span>}
             />
-            <ol className="site-call-list">
-              {callouts.map((callout) => (
-                <li key={callout.id}><span className="num">{callout.n}</span> {callout.text}</li>
-              ))}
-            </ol>
             <UtilisationLegend language={language} />
           </div>
         </div>

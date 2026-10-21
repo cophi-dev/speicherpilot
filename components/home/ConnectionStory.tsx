@@ -77,7 +77,7 @@ export function ConnectionStory() {
     return () => observer.disconnect();
   }, [narrow]);
 
-  const shownPeak = step >= 2 ? story.peakAfterKw : story.peakBeforeKw;
+  const shownPeak = step >= 1 ? story.peakAfterKw : story.peakBeforeKw;
   const light = connectionLight(shownPeak, story.limitKw);
   const deltaKw = Math.max(0, story.peakBeforeKw - story.peakAfterKw);
   const steps = storySteps(story, deltaKw, language);
@@ -129,7 +129,7 @@ export function ConnectionStory() {
                   }}
                   data-step={index}
                   aria-current={active ? "step" : undefined}
-                  className={`flex min-h-[40vh] flex-col justify-center border-t border-border bg-card p-6 text-foreground lg:min-h-[60vh] lg:border-0 lg:bg-transparent lg:p-0 ${
+                  className={`story-step flex min-h-[40vh] flex-col justify-center border-t border-border bg-card p-6 text-foreground lg:border-0 lg:bg-transparent lg:p-0 ${
                     active ? "lg:text-foreground" : "lg:text-muted-foreground"
                   }`}
                 >
@@ -137,7 +137,7 @@ export function ConnectionStory() {
                   <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
                   <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
                   {item.figure ? (
-                    <p className="num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
+                    <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
                       {item.figure}
                       <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
                     </p>
@@ -193,58 +193,44 @@ function storySteps(story: PeakShavingExplain, deltaKw: number, language: "de" |
   const when = clockLabel(story.peakHour);
   const holds = story.holdsLimit;
 
+  const overLimit = story.peakBeforeKw > story.limitKw;
   return [
     {
       n: "01",
-      title: tx("Der Abend zieht eine Spitze", "The evening draws a peak"),
-      body: tx(
-        `Gegen ${when} Uhr braucht der Supermarkt ${peak} kW. Die schwarze Linie ist dieser Bedarf, Viertelstunde für Viertelstunde.`,
-        `Around ${when} the supermarket needs ${peak} kW. The black line is that demand, quarter-hour by quarter-hour.`
-      ),
-      figure: null,
-      figureUnit: null,
-      note: null,
-    },
-    {
-      n: "02",
-      title: tx("Die rote Linie ist der Anschluss", "The red line is the connection"),
-      body: tx(
-        `Der Anschluss lässt ${limit} kW zu. Was darüber liegt, ist rot. Die Spitze passt nicht durch.`,
-        `The connection allows ${limit} kW. Everything above it is red. The peak does not fit.`
-      ),
-      figure: null,
-      figureUnit: null,
-      note: null,
-    },
-    {
-      n: "03",
-      title: tx("Der Speicher nimmt die Spitze weg", "The battery takes the peak away"),
-      body: holds
+      title: overLimit
+        ? tx("Die Spitze passt nicht durch", "The peak does not fit through")
+        : tx("Der Abend zieht eine Spitze", "The evening draws a peak"),
+      body: overLimit
         ? tx(
-            `40 kW und 40 kWh. Er gibt ${shaved} kWh ab. Die fette Linie ist der Bezug aus dem Netz, grau bleibt die alte Last.`,
-            `40 kW and 40 kWh. It delivers ${shaved} kWh. The bold line is grid import. Grey is the old load.`
+            `Gegen ${when} Uhr braucht der Supermarkt ${peak} kW. Der Anschluss lässt ${limit} kW zu. Was darüber liegt, ist rot. Die Spitze passt nicht durch.`,
+            `Around ${when} the supermarket needs ${peak} kW. The connection allows ${limit} kW. Everything above it is red. The peak does not fit.`
           )
         : tx(
-            `40 kW und 40 kWh. Er gibt ab, was er kann. Der Bezug bleibt bei ${after} kW.`,
-            `40 kW and 40 kWh. It delivers what it can. Import stays at ${after} kW.`
+            `Gegen ${when} Uhr braucht der Supermarkt ${peak} kW. Die schwarze Linie ist dieser Bedarf, Viertelstunde für Viertelstunde. Der Anschluss lässt ${limit} kW zu.`,
+            `Around ${when} the supermarket needs ${peak} kW. The black line is that demand, quarter-hour by quarter-hour. The connection allows ${limit} kW.`
           ),
       figure: null,
       figureUnit: null,
       note: null,
     },
     {
-      n: "04",
-      title: tx("Danach ist er nicht leer", "Afterwards it is not empty"),
-      body: tx(
-        `Er startet voll. In der Spitze fällt der Ladestand auf ${soc} %. Ab ${clockLabel(story.rechargeFromHour)} lädt er mit höchstens ${formatQuantity(story.rechargeCapKw, language, 0)} kW nach, nur solange unter der Linie Luft ist.`,
-        `It starts full. During the peak the charge falls to ${soc}%. From ${clockLabel(story.rechargeFromHour)} it recharges at ${formatQuantity(story.rechargeCapKw, language, 0)} kW at most, and only while there is room under the line.`
-      ),
+      n: "02",
+      title: tx("Der Speicher nimmt die Spitze weg", "The battery takes the peak away"),
+      body: holds
+        ? tx(
+            `40 kW und 40 kWh, voll gestartet: Er gibt ${shaved} kWh ab, der Ladestand fällt auf ${soc} %. Ab ${clockLabel(story.rechargeFromHour)} lädt er mit höchstens ${formatQuantity(story.rechargeCapKw, language, 0)} kW nach, nur solange unter der Linie Luft ist.`,
+            `40 kW and 40 kWh, started full: it delivers ${shaved} kWh, the charge falls to ${soc}%. From ${clockLabel(story.rechargeFromHour)} it recharges at ${formatQuantity(story.rechargeCapKw, language, 0)} kW at most, only while there is room under the line.`
+          )
+        : tx(
+            `40 kW und 40 kWh, voll gestartet: Er gibt ab, was er kann. Der Bezug bleibt bei ${after} kW. Ab ${clockLabel(story.rechargeFromHour)} lädt er mit höchstens ${formatQuantity(story.rechargeCapKw, language, 0)} kW nach, nur solange unter der Linie Luft ist.`,
+            `40 kW and 40 kWh, started full: it delivers what it can. Import stays at ${after} kW. From ${clockLabel(story.rechargeFromHour)} it recharges at ${formatQuantity(story.rechargeCapKw, language, 0)} kW at most, only while there is room under the line.`
+          ),
       figure: null,
       figureUnit: null,
       note: null,
     },
     {
-      n: "05",
+      n: "03",
       title: tx("Die teure Spitze wird kleiner", "The expensive peak gets smaller"),
       body: holds
         ? tx(
@@ -294,7 +280,7 @@ function StoryChart({
   }, []);
 
   const axis = axisFor(story.peakBeforeKw);
-  const showSoc = step >= 3;
+  const showSoc = step >= 1;
   const pad = { l: 56, r: stacked ? 12 : 84, t: stacked ? 20 : 16 };
   const width = Math.max(0, box.width);
   const height = Math.max(0, box.height);
@@ -325,14 +311,16 @@ function StoryChart({
 
   const summary =
     step === 0
-      ? tx(`Lastgang, Spitze ${formatQuantity(story.peakBeforeKw, language, 0)} kW.`, `Load curve, peak ${formatQuantity(story.peakBeforeKw, language, 0)} kW.`)
+      ? tx(
+          `Lastgang, Spitze ${formatQuantity(story.peakBeforeKw, language, 0)} kW, Anschluss ${formatQuantity(story.limitKw, language, 0)} kW.`,
+          `Load curve, peak ${formatQuantity(story.peakBeforeKw, language, 0)} kW, connection ${formatQuantity(story.limitKw, language, 0)} kW.`
+        )
       : step === 1
-        ? tx(`Anschluss ${formatQuantity(story.limitKw, language, 0)} kW, die Spitze liegt darüber.`, `Connection ${formatQuantity(story.limitKw, language, 0)} kW, the peak sits above it.`)
-        : step === 2
-          ? tx(`Mit Speicher liegt der Bezug bei ${formatQuantity(story.peakAfterKw, language, 0)} kW.`, `With storage, import sits at ${formatQuantity(story.peakAfterKw, language, 0)} kW.`)
-          : step === 3
-            ? tx(`Ladestand, tiefster Stand ${formatQuantity(story.socMinPct, language, 0)} %.`, `State of charge, lowest point ${formatQuantity(story.socMinPct, language, 0)}%.`)
-            : tx(`Leistungspreis-Ersparnis, Modellschätzung.`, `Demand-charge saving, model estimate.`);
+        ? tx(
+            `Mit Speicher liegt der Bezug bei ${formatQuantity(story.peakAfterKw, language, 0)} kW. Ladestand, tiefster Stand ${formatQuantity(story.socMinPct, language, 0)} %.`,
+            `With storage, import sits at ${formatQuantity(story.peakAfterKw, language, 0)} kW. State of charge, lowest point ${formatQuantity(story.socMinPct, language, 0)}%.`
+          )
+        : tx("Leistungspreis-Ersparnis, Modellschätzung.", "Demand-charge saving, model estimate.");
 
   return (
     <div ref={frameRef} className="min-h-0 flex-1">
@@ -368,7 +356,7 @@ function StoryChart({
               </text>
             );
           })}
-          <g className="story-layer" style={{ opacity: step >= 1 ? 1 : 0 }}>
+          <g className="story-layer" style={{ opacity: 1 }}>
             <path d={exceedance} fill="hsl(var(--c-limit) / 0.18)" />
             <line
               x1={pad.l}
@@ -394,7 +382,7 @@ function StoryChart({
               </>
             )}
           </g>
-          <g className="story-layer" style={{ opacity: step >= 2 ? 1 : 0 }}>
+          <g className="story-layer" style={{ opacity: step >= 1 ? 1 : 0 }}>
             <path d={shaved} fill="hsl(var(--c-bess) / 0.85)" />
             <path d={overLeft} fill="hsl(var(--c-limit) / 0.18)" />
             <path d={netPath} fill="none" className="stroke-foreground" strokeWidth={2.75} />
@@ -402,9 +390,9 @@ function StoryChart({
           <path
             d={loadPath}
             fill="none"
-            strokeWidth={step >= 2 ? 1.5 : 2.25}
+            strokeWidth={step >= 1 ? 1.5 : 2.25}
             className="story-layer"
-            style={{ stroke: step >= 2 ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))" }}
+            style={{ stroke: step >= 1 ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))" }}
           />
           {afternoon ? (
             <text x={x(afternoon.hour)} y={y(afternoon.loadKw) - 12} className="fill-foreground" fontSize={13}>
@@ -416,7 +404,7 @@ function StoryChart({
               {formatQuantity(peak.loadKw, language, 0)} kW
             </text>
           ) : null}
-          {step >= 2 && peak ? (
+          {step >= 1 && peak ? (
             <text
               x={x(peak.hour)}
               y={y(peak.netKw) + 8 + 13}
