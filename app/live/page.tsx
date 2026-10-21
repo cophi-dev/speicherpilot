@@ -3,11 +3,8 @@ import { Suspense } from "react";
 import { LiveView } from "@/components/live/LiveView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
-import { buildDayClock } from "@/lib/dayClock";
-import { loadHomeBriefingInitialData } from "@/lib/homeBriefingData";
 import { chooseStorageDay, dayIsUsable } from "@/lib/liveFleetDispatch";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
-import { loadLiveBoard } from "@/lib/loadLiveBoard";
 import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
 
 export const metadata = {
@@ -19,42 +16,20 @@ export const metadata = {
 export default async function LivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tag?: string | string[] }>;
+  searchParams: Promise<{ tag?: string | string[]; x?: string | string[] }>;
 }) {
   const query = await searchParams;
   const requestedTag = Array.isArray(query.tag) ? query.tag[0] : query.tag;
   const now = new Date();
   const berlinTodayKey = formatBerlinDateKeyFromUtcDate(now);
-  const initial = await loadHomeBriefingInitialData(now);
-  const [board, fleet, days] = await Promise.all([
-    loadLiveBoard({
-      now,
-      germany: initial.market
-        ? {
-            timestampIso: initial.market.realtimeSystem.timestampIso,
-            loadMw: initial.market.realtimeSystem.loadMw,
-            generationMw: initial.market.realtimeSystem.domesticGenerationMw,
-          }
-        : null,
-    }),
-    loadLargeBatteryFleet(),
-    loadWindSolarDays(now),
-  ]);
-  const today = days.find((day) => day.dateBerlin === berlinTodayKey) ?? null;
+  const [fleet, days] = await Promise.all([loadLargeBatteryFleet(), loadWindSolarDays(now)]);
   const tagged = requestedTag && /^\d{4}-\d{2}-\d{2}$/.test(requestedTag) ? days.find((day) => day.dateBerlin === requestedTag) : null;
   const chosen = tagged && dayIsUsable(tagged)
     ? { day: tagged, fallback: tagged.dateBerlin !== berlinTodayKey }
     : chooseStorageDay(days, berlinTodayKey);
-  const clock = buildDayClock({
-    dateBerlin: berlinTodayKey,
-    slots: today?.slots ?? [],
-    fleet: fleet ? { energyGwh: fleet.energyGwh, updatedLabel: fleet.updatedLabel } : null,
-  });
   return (
-    <Suspense fallback={<Skeleton className="mx-auto mt-8 h-64 max-w-[1200px]" />}>
+    <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
       <LiveView
-        board={board}
-        clock={clock}
         dispatch={{
           fleet: fleet
             ? {

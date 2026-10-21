@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { energyColor, kwRadius, polarPoint, RING_R0, ringRadius, utilisationColor } from "@/lib/dayRingScale";
@@ -214,7 +214,7 @@ function useMorphedSeries(values: number[]): number[] {
   valuesRef.current = values;
   const fromRef = useRef(values);
   const [shown, setShown] = useState(values);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const target = valuesRef.current;
     const from = fromRef.current.slice();
     const reduced = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -227,12 +227,10 @@ function useMorphedSeries(values: number[]): number[] {
     const started = performance.now();
     let frame = requestAnimationFrame(function tick(now: number) {
       const t = Math.min(1, (now - started) / RING_MORPH_MS);
-      const eased = easeInOut(t);
-      const next = from.map((value, index) => value + (target[index] - value) * eased);
+      const next = t >= 1 ? target.slice() : from.map((value, index) => value + ((target[index] ?? value) - value) * easeInOut(t));
       fromRef.current = next;
       setShown(next);
       if (t < 1) frame = requestAnimationFrame(tick);
-      else fromRef.current = target;
     });
     return () => cancelAnimationFrame(frame);
   }, [signature]);

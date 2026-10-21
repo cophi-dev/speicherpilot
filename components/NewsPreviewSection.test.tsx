@@ -95,7 +95,34 @@ describe("NewsPreviewSection", () => {
     renderWithLanguage();
     await waitFor(() => expect(screen.getByRole("heading", { name: /Germany battery storage project/i })).toBeInTheDocument());
     expect(document.body.textContent).not.toContain("&nbsp;");
-    expect(screen.getByText(/pv magazine ·/)).toBeInTheDocument();
+    expect(document.querySelector(".news-source")?.textContent).toBe("pv magazine");
+  });
+
+  it("hides a teaser that matches the title after the source suffix is removed", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        asOfIso: "2026-05-08T10:00:00.000Z",
+        itemCount: 1,
+        items: [
+          {
+            id: "n4",
+            title: "Speicher am Netz - pv magazine",
+            summary: "Speicher am Netz",
+            sourceName: "pv magazine",
+            url: "https://example.com/suffix",
+            publishedAtIso: "2026-05-08T08:00:00.000Z",
+            categories: ["germany"],
+            relevanceScore: 80,
+          },
+        ],
+      }),
+    }) as typeof fetch;
+
+    renderWithLanguage();
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Speicher am Netz - pv magazine" })).toBeInTheDocument());
+    expect(screen.queryByText("Speicher am Netz")).not.toBeInTheDocument();
+    expect(document.querySelector(".news-source")?.textContent).toBe("pv magazine");
   });
 
   it("renders error state", async () => {

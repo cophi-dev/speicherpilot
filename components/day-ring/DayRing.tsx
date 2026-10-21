@@ -101,6 +101,7 @@ export function DayRing({
   const descId = useId();
   const hatchId = useId();
   const frameRef = useRef<HTMLDivElement>(null);
+  const [intro, setIntro] = useState(true);
   const narrow = useNarrowFrame();
   const magnitude = (point: LiveDispatchPoint) => (unit === "kW" ? point.ohneMw : point.ohneMw / 1000);
   const maxValue = points.reduce((max, point) => Math.max(max, magnitude(point), unit === "kW" ? point.mitMw : point.mitMw / 1000), 0);
@@ -129,9 +130,24 @@ export function DayRing({
 
   useLayoutEffect(() => {
     const frame = frameRef.current;
+    if (!frame) {
+      return;
+    }
+    const stop = () => setIntro(false);
+    frame.addEventListener("animationend", stop);
+    const timer = window.setTimeout(stop, 1300);
+    return () => {
+      frame.removeEventListener("animationend", stop);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
     if (!frame || callouts.length === 0) {
       return;
     }
+    let raf = 0;
     const measure = () => {
       const svg = frame.querySelector(".day-ring-svg");
       if (!svg) {
@@ -157,10 +173,17 @@ export function DayRing({
       );
       setMeasured((prev) => (prev?.key === layoutKey && sameBoxes(prev.boxes, next) ? prev : { key: layoutKey, boxes: next }));
     };
-    measure();
-    const observer = new ResizeObserver(measure);
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(measure);
+    };
+    schedule();
+    const observer = new ResizeObserver(schedule);
     observer.observe(frame);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, [callouts, clearRadius, layoutKey, view]);
 
   useLayoutEffect(() => {
@@ -216,14 +239,22 @@ export function DayRing({
       }
       apply(low);
     };
-    fit();
-    const observer = new ResizeObserver(fit);
+    let raf = 0;
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(fit);
+    };
+    schedule();
+    const observer = new ResizeObserver(schedule);
     observer.observe(frame);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, [center, innerEdge, view.w]);
 
   return (
-    <div className="day-ring-frame" ref={frameRef}>
+    <div className={intro ? "day-ring-frame is-intro" : "day-ring-frame"} ref={frameRef}>
       <svg
         className="day-ring-svg"
         viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}

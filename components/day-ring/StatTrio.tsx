@@ -1,3 +1,5 @@
+import { MonoNumber } from "@/components/day-ring/MonoNumber";
+
 export function StatTrio({
   items,
 }: {
@@ -9,7 +11,7 @@ export function StatTrio({
         <div key={item.label}>
           <dt>{item.label}</dt>
           <dd className={item.compact ? "day-stats-compact" : undefined}>
-            <span className="num">{item.value}</span>
+            <MonoNumber value={item.value} />
             {item.unit ? <span className="day-stats-unit"> {item.unit}</span> : null}
           </dd>
         </div>

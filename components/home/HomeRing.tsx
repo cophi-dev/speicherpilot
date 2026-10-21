@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
 import { ChargedLine } from "@/components/day-ring/ChargedLine";
+import { MonoNumber } from "@/components/day-ring/MonoNumber";
 import { StatTrio } from "@/components/day-ring/StatTrio";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
@@ -112,8 +113,8 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
                   center={
                     before !== null && after !== null ? (
                       <>
-                        <p className="day-center-figure num">
-                          {formatGw1(before, language)} → {formatGw1(after, language)}
+                        <p className="day-center-figure">
+                          <MonoNumber value={formatGw1(before, language)} /> → <MonoNumber value={formatGw1(after, language)} />
                         </p>
                         <p className="day-center-caption">GW {tx("Abendspitze", "evening peak")} · ×1</p>
                       </>
@@ -154,7 +155,6 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
               <StatTrio
                 items={[
                   { value: formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1), unit: "h", label: tx("Überschuss vor 17 Uhr", "Surplus before 17:00") },
-                  { value: fleetSizeLabel(1, story.powerMw, story.energyMwh, language), label: tx("Flotte", "Fleet"), compact: true },
                   { value: delta === null ? "—" : formatSignedGw(delta, language), unit: delta === null ? undefined : "GW", label: tx("Abendspitze", "Evening peak") },
                 ]}
               />
@@ -168,7 +168,12 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
                 <span>
                   {tx("Großspeicher", "Large storage")} (
                   <a href={dispatch.fleet.href}>{fleetName}</a>
-                  {tx(`, Stand ${stand}`, `, as of ${stand}`)})
+                  {tx(`, Stand ${stand}`, `, as of ${stand}`)}
+                  ): {fleetSizeLabel(1, story.powerMw, story.energyMwh, language)}
+                  {tx(
+                    " Daten: Energy-Charts (Fraunhofer ISE), Last, Wind und Sonne, CC BY 4.0.",
+                    " Data: Energy-Charts (Fraunhofer ISE), load, wind and solar, CC BY 4.0."
+                  )}
                 </span>
               </p>
             </div>

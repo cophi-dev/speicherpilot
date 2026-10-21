@@ -86,7 +86,7 @@ describe("loadLargeBatteryFleet", () => {
     expect(fleet.updatedLabel.de).toBe("21. Oktober 2026");
     expect(fleet.powerGw).toBeCloseTo(4.51554022, 5);
     expect(fleet.energyGwh).toBeCloseTo(7.86001657, 5);
-    expect(fleetSizeLabel(1, story.powerMw, story.energyMwh, "de")).toBe("×1 = 4,5 GW · 7,9 GWh");
+    expect(fleetSizeLabel(1, story.powerMw, story.energyMwh, "de")).toBe("×1: 4,5 GW · 7,9 GWh");
     expect(formatSignedGw(-onceRoundDeltaGw(before, after), "de")).toBe("−4,5");
     expect(calls.some((url) => url.includes("energy-charts.info"))).toBe(false);
     expect(fleet.source === "energy-charts" ? ". Battery Charts ist gerade nicht geladen." : "").toBe("");

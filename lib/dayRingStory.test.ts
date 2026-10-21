@@ -66,8 +66,11 @@ describe("day ring story on the October 2026 fixture", () => {
     expect(chargedWouldHave(stories[5].chargedGwh, 5, "de")).toBe(
       "22,8 GWh hätte die 5-fache Großspeicher-Flotte geladen"
     );
-    expect(fleetSizeLabel(1, x1.powerMw, x1.energyMwh, "de")).toBe("×1 = 4,5 GW · 7,9 GWh");
-    expect(fleetSizeLabel(5, stories[5].powerMw, stories[5].energyMwh, "de")).toBe("×5 = 22,6 GW · 39,3 GWh");
+    expect(fleetSizeLabel(1, x1.powerMw, x1.energyMwh, "de")).toBe("×1: 4,5 GW · 7,9 GWh");
+    expect(fleetSizeLabel(5, stories[5].powerMw, stories[5].energyMwh, "de")).toBe(
+      "×5: 22,6 GW · 39,3 GWh (5 × 4,52 GW)"
+    );
+    expect(fleetSizeLabel(5, stories[5].powerMw, stories[5].energyMwh, "de")).not.toContain("22,5");
     expect(formatGw1(stories[2].eveningPeakAfterGw ?? 0, "de")).toBe("31,7");
     expect(formatGw1(stories[5].eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
     expect(formatGw1(stories[10].eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
