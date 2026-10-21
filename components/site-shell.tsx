@@ -76,6 +76,13 @@ export function SiteShell({ children }: SiteShellProps) {
   const [chatSeedPrompt, setChatSeedPrompt] = useState<string | null>(null);
   const [language, setLanguage] = useState<AppLanguage>("de");
   const [menuOpen, setMenuOpen] = useState(false);
+  const nightHero = pathname === "/" || pathname === "/live";
+  const [overHero, setOverHero] = useState(nightHero);
+  const [trackedPath, setTrackedPath] = useState(pathname);
+  if (pathname !== trackedPath) {
+    setTrackedPath(pathname);
+    setOverHero(nightHero);
+  }
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -150,6 +157,24 @@ export function SiteShell({ children }: SiteShellProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!nightHero) {
+      return;
+    }
+    const hero = document.querySelector(".day-hero");
+    if (!hero) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setOverHero(entry.isIntersecting);
+      },
+      { rootMargin: "-64px 0px 0px 0px", threshold: 0 }
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, [nightHero, pathname]);
+
   const tx = (de: string, en: string) => (language === "de" ? de : en);
 
   return (
@@ -161,7 +186,7 @@ export function SiteShell({ children }: SiteShellProps) {
         >
           {tx("Zum Inhalt", "Skip to content")}
         </a>
-        <header className="sticky top-0 z-40 h-16 border-b border-border bg-background/85 backdrop-blur">
+        <header className={`site-header sticky top-0 z-40 h-16 border-b backdrop-blur ${overHero ? "is-over-hero" : "border-border bg-background/85"}`}>
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
             <Link href="/" className="flex min-w-0 items-center gap-2.5">
               <span className="text-[16px] font-semibold leading-none">SpeicherPilot</span>

@@ -1,6 +1,7 @@
 import { energyColor } from "@/lib/dayRingScale";
 import {
   chargedWouldHave,
+  fleetSizeLabel,
   formatGw1,
   formatGwh,
   fullSurplusFactor,
@@ -60,7 +61,12 @@ describe("day ring story on the October 2026 fixture", () => {
     expect(formatGw1(x1.eveningPeakAfterGw ?? 0, "de")).toBe("33,5");
     expect(onceRoundDeltaGw(x1.eveningPeakBeforeGw ?? 0, x1.eveningPeakAfterGw ?? 0)).toBe(4.5);
     expect(formatGwh(x1.chargedGwh, "de")).toBe("7,9");
-    expect(chargedWouldHave(x1.chargedGwh, "de")).toBe("7,9 GWh hätten die Großspeicher geladen");
+    expect(chargedWouldHave(x1.chargedGwh, 1, "de")).toBe("7,9 GWh hätten die heutigen Großspeicher geladen");
+    expect(chargedWouldHave(stories[5].chargedGwh, 5, "de")).toBe(
+      "22,8 GWh hätte die 5-fache Großspeicher-Flotte geladen"
+    );
+    expect(fleetSizeLabel(1, x1.powerMw, x1.energyMwh, "de")).toBe("×1 = 4,5 GW · 7,9 GWh");
+    expect(fleetSizeLabel(5, stories[5].powerMw, stories[5].energyMwh, "de")).toBe("×5 = 22,6 GW · 39,3 GWh");
     expect(formatGw1(stories[2].eveningPeakAfterGw ?? 0, "de")).toBe("31,7");
     expect(formatGw1(stories[5].eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
     expect(formatGw1(stories[10].eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
@@ -87,7 +93,7 @@ describe("day ring story on the October 2026 fixture", () => {
     expect(stories[1].surplusGwh).toBe(0);
     expect(stories[1].chargedGwh).toBe(0);
     expect(fullSurplusFactor(stories)).toBeNull();
-    expect(chargedWouldHave(stories[1].chargedGwh, "de")).toBeNull();
+    expect(chargedWouldHave(stories[1].chargedGwh, 1, "de")).toBeNull();
     expect(heroSentence({ dateBerlin: "2026-10-20", todayKey: "2026-10-21", surplusGwh: stories[1].surplusGwh }).de).toBe(
       "Gestern gab es keinen Überschuss – Speicher hätten im Modell nichts zu verschieben."
     );

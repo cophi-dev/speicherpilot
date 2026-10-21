@@ -102,15 +102,38 @@ export function heroSentence(input: { dateBerlin: string; todayKey: string; surp
   };
 }
 
-/** “7,9 GWh hätten die Großspeicher geladen”. Null when the model stored nothing. */
-export function chargedWouldHave(chargedGwh: number, language: AppLanguage): string | null {
+/**
+ * Factor-aware charged sentence.
+ * ×1 names today’s fleet. ×n names that multiple, because the gigawatt-hours are not today’s fleet alone.
+ */
+export function chargedWouldHave(
+  chargedGwh: number,
+  factor: LiveDispatchFactor,
+  language: AppLanguage
+): string | null {
   if (chargedGwh <= SURPLUS_EPS_GWH) {
     return null;
   }
   const amount = formatGwh(chargedGwh, language);
-  return language === "de"
-    ? `${amount} GWh hätten die Großspeicher geladen`
-    : `Large storage would have charged ${amount} GWh`;
+  if (language === "de") {
+    return factor === 1
+      ? `${amount} GWh hätten die heutigen Großspeicher geladen`
+      : `${amount} GWh hätte die ${factor}-fache Großspeicher-Flotte geladen`;
+  }
+  return factor === 1
+    ? `Today's large storage would have charged ${amount} GWh`
+    : `A ${factor}× large-storage fleet would have charged ${amount} GWh`;
+}
+
+/** “×5 = 22,6 GW · 39,3 GWh” from the scaled fleet the model actually ran. */
+export function fleetSizeLabel(factor: number, powerMw: number, energyMwh: number, language: AppLanguage): string {
+  const powerGw = powerMw / 1000;
+  const energyGwh = energyMwh / 1000;
+  const powerDigits = Math.abs(powerGw) >= 1 ? 1 : 2;
+  const energyDigits = Math.abs(energyGwh) >= 1 ? 1 : 2;
+  const power = formatQuantity(powerGw, language, powerDigits);
+  const energy = formatQuantity(energyGwh, language, energyDigits);
+  return `×${factor} = ${power} GW · ${energy} GWh`;
 }
 
 /** Smallest factor at which charged energy covers the day’s surplus. Null when nothing was stored. */

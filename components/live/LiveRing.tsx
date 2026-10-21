@@ -16,9 +16,9 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import {
   calloutAnchors,
   chargedWouldHave,
+  fleetSizeLabel,
   formatBerlinDayLabel,
   formatGw1,
-  formatGwh,
   formatSignedGw,
   fullSurplusFactor,
   heroSentence,
@@ -204,7 +204,7 @@ function LiveRingBody({
   const title = language === "de" ? sentence.de : sentence.en;
   const before = story.eveningPeakBeforeGw;
   const after = story.eveningPeakAfterGw;
-  const charged = chargedWouldHave(story.chargedGwh, language);
+  const charged = chargedWouldHave(story.chargedGwh, factor, language);
   const hours = surplusHours(story);
   const hourLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
   const delta = before !== null && after !== null ? -onceRoundDeltaGw(before, after) : null;
@@ -303,7 +303,11 @@ function LiveRingBody({
           <StatTrio
             items={[
               { value: hourLabel, unit: "h", label: tx("Überschuss vor 17 Uhr", "Surplus before 17:00") },
-              { value: formatGwh(story.chargedGwh, language), unit: "GWh", label: tx("geladen", "charged") },
+              {
+                value: fleetSizeLabel(factor, story.powerMw, story.energyMwh, language),
+                label: tx("Flotte", "Fleet"),
+                compact: true,
+              },
               {
                 value: delta === null ? "—" : formatSignedGw(delta, language),
                 unit: delta === null ? undefined : "GW",

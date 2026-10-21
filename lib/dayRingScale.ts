@@ -8,6 +8,12 @@ export const RING_SLOTS = 96;
 /** Geometry that fits a 50 GW day plus the midnight label. Same box on every day. */
 export const RING_VIEW = { x: -520, y: -520, w: 1040, h: 1040 } as const;
 
+/**
+ * Wider frame used when callout labels sit outside the ring.
+ * The GW scale (r0, k) does not change; only the margin around it grows.
+ */
+export const RING_CALLOUT_VIEW = { x: -760, y: -760, w: 1520, h: 1520 } as const;
+
 /** Step-line domain. Fixed per page, wide enough for a day above the colour clamp. */
 export const LINE_GW_MIN = -10;
 export const LINE_GW_MAX = 50;

@@ -1,9 +1,13 @@
-import { useId, type ReactNode } from "react";
+"use client";
 
+import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+
+import { leaderEnd, placeCalloutBoxes, ringClearRadius, type CalloutBox } from "@/lib/dayRingCallouts";
 import {
   energyColor,
   hourToDeg,
   polarPoint,
+  RING_CALLOUT_VIEW,
   RING_R0,
   RING_VIEW,
   ringRadius,
@@ -13,6 +17,8 @@ import {
 } from "@/lib/dayRingScale";
 import { quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
+
+const CALLOUT_WIDTH = "min(180px, 28%)";
 
 export type RingCallout = CalloutAnchor & {
   n: number;
@@ -49,13 +55,63 @@ export function DayRing({
   const titleId = useId();
   const descId = useId();
   const hatchId = useId();
+  const frameRef = useRef<HTMLDivElement>(null);
   const maxGw = points.reduce((max, point) => Math.max(max, point.ohneMw / 1000, point.mitMw / 1000), 0);
+  const view = callouts.length > 0 ? RING_CALLOUT_VIEW : RING_VIEW;
+  const layoutKey = callouts.map((callout) => `${callout.id}:${callout.point.hour}:${callout.text}`).join("|");
+  const fallback = placeCalloutBoxes(
+    callouts.map((callout) => ({
+      angleDeg: hourToDeg(callout.point.hour) + 1.8,
+      w: view.w * 0.28,
+      h: 280,
+    })),
+    ringClearRadius(maxGw),
+    view
+  );
+  const [measured, setMeasured] = useState<{ key: string; boxes: CalloutBox[] } | null>(null);
+  const boxes = measured?.key === layoutKey ? measured.boxes : fallback;
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    if (!frame || callouts.length === 0) {
+      return;
+    }
+    const measure = () => {
+      const svg = frame.querySelector(".day-ring-svg");
+      if (!svg) {
+        return;
+      }
+      const width = svg.getBoundingClientRect().width;
+      if (width <= 0) {
+        return;
+      }
+      const scale = width / view.w;
+      const nodes = Array.from(frame.querySelectorAll<HTMLElement>(".day-callout"));
+      if (nodes.length !== callouts.length || nodes.some((node) => node.offsetWidth === 0)) {
+        return;
+      }
+      const next = placeCalloutBoxes(
+        nodes.map((node, index) => ({
+          angleDeg: hourToDeg(callouts[index].point.hour) + 1.8,
+          w: node.offsetWidth / scale,
+          h: node.offsetHeight / scale,
+        })),
+        ringClearRadius(maxGw),
+        view
+      );
+      setMeasured((prev) => (prev?.key === layoutKey && sameBoxes(prev.boxes, next) ? prev : { key: layoutKey, boxes: next }));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [callouts, layoutKey, maxGw, view]);
 
   return (
-    <div className="day-ring-frame">
+    <div className="day-ring-frame" ref={frameRef}>
       <svg
         className="day-ring-svg"
-        viewBox={`${RING_VIEW.x} ${RING_VIEW.y} ${RING_VIEW.w} ${RING_VIEW.h}`}
+        viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
         role="img"
         aria-labelledby={titleId}
         aria-describedby={descId}
@@ -83,9 +139,12 @@ export function DayRing({
         {callouts.map((callout) => (
           <CalloutMarker key={callout.id} callout={callout} />
         ))}
+        {callouts.map((callout, index) => (
+          <CalloutLeader key={callout.id} callout={callout} box={boxes[index]} />
+        ))}
       </svg>
-      {callouts.map((callout) => (
-        <Callout key={callout.id} callout={callout} maxGw={maxGw} />
+      {callouts.map((callout, index) => (
+        <Callout key={callout.id} callout={callout} box={boxes[index]} view={view} />
       ))}
       {center ? <div className="day-center">{center}</div> : null}
     </div>
@@ -185,20 +244,56 @@ function CalloutMarker({ callout }: { callout: RingCallout }) {
   );
 }
 
-export function Callout({ callout, maxGw }: { callout: RingCallout; maxGw: number }) {
+function CalloutLeader({ callout, box }: { callout: RingCallout; box: CalloutBox | undefined }) {
+  if (!box) {
+    return null;
+  }
   const deg = hourToDeg(callout.point.hour) + 1.8;
-  const place = polarPoint(0, 0, ringRadius(Math.max(maxGw, 8)) + 78, deg);
-  const rawLeft = ((place.x - RING_VIEW.x) / RING_VIEW.w) * 100;
-  const rawTop = ((place.y - RING_VIEW.y) / RING_VIEW.h) * 100;
-  const left = Math.min(82, Math.max(18, rawLeft));
-  const top = Math.min(88, Math.max(10, rawTop));
-  const side = left >= 50 ? "is-left" : "is-right";
+  const from = polarPoint(0, 0, ringRadius(callout.point.ohneMw / 1000) + 18, deg);
+  const to = leaderEnd(box, from);
   return (
-    <p className={`day-callout ${side}`} style={{ left: `${left}%`, top: `${top}%` }}>
+    <line
+      className="day-leader"
+      x1={from.x}
+      y1={from.y}
+      x2={to.x}
+      y2={to.y}
+      stroke="#E9EEF2"
+      strokeWidth="1.5"
+    />
+  );
+}
+
+export function Callout({
+  callout,
+  box,
+  view,
+}: {
+  callout: RingCallout;
+  box: CalloutBox | undefined;
+  view: { x: number; y: number; w: number; h: number };
+}) {
+  if (!box) {
+    return null;
+  }
+  const left = ((box.x - view.x) / view.w) * 100;
+  const top = ((box.y - view.y) / view.h) * 100;
+  return (
+    <p className="day-callout" data-callout={callout.id} style={{ left: `${left}%`, top: `${top}%`, width: CALLOUT_WIDTH }}>
       <span className="num">{callout.n}</span>
       {callout.text}
     </p>
   );
+}
+
+function sameBoxes(prev: CalloutBox[], next: CalloutBox[]): boolean {
+  if (prev.length !== next.length) {
+    return false;
+  }
+  return prev.every((box, index) => {
+    const other = next[index];
+    return Math.abs(box.x - other.x) < 0.5 && Math.abs(box.y - other.y) < 0.5 && Math.abs(box.w - other.w) < 0.5 && Math.abs(box.h - other.h) < 0.5;
+  });
 }
 
 function HourTicks({ showHours, labelRadius }: { showHours: boolean; labelRadius: number }) {
