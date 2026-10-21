@@ -208,7 +208,7 @@ function LiveRingBody({
   const delta = before !== null && after !== null ? -onceRoundDeltaGw(before, after) : null;
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
   const kicker = `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
-  const callouts = buildCallouts(story, shown, language);
+  const callouts = buildCallouts(story, story.points, language);
   const description = tx(
     `Residuallast am ${dateLabel}, Viertelstunde für Viertelstunde. Der Radius wächst linear mit der Leistung in GW. Der gestrichelte Kreis ist null. Dieselbe Reihe steht in der Tabelle.`,
     `Residual load on ${dateLabel}, quarter-hour by quarter-hour. Radius grows linearly with power in GW. The dashed circle is zero. The same series is in the table.`
@@ -239,7 +239,7 @@ function LiveRingBody({
           <figure>
             {view === "uhr" ? (
               <DayRing
-                points={shown}
+                points={story.points}
                 label={title}
                 description={description}
                 callouts={callouts}
