@@ -154,6 +154,21 @@
     background-size: 24px 24px;
   }
 
+  .heute-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  @keyframes jetzt-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .jetzt-in {
+    animation: jetzt-in 300ms ease both;
+  }
+
   .fleet-map-muted .leaflet-tile-pane {
     filter: grayscale(1) contrast(0.9);
   }
@@ -161,6 +176,27 @@
   .dark .fleet-map-muted .leaflet-tile-pane {
     filter: none;
   }
+}
+
+@media (min-width: 1024px) {
+  .heute-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-areas:
+      "copy chart"
+      "cta chart"
+      "stats chart"
+      "note chart";
+    column-gap: 3.5rem;
+    row-gap: 1.5rem;
+    align-items: start;
+  }
+
+  .heute-copy { grid-area: copy; }
+  .heute-chart { grid-area: chart; }
+  .heute-cta { grid-area: cta; }
+  .heute-stats { grid-area: stats; }
+  .heute-note { grid-area: note; align-self: end; }
 }
 
 @media (prefers-reduced-motion: reduce) {
