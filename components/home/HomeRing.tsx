@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
@@ -143,18 +143,12 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
               </ol>
             </div>
             <div className="day-order-legend">
-              <EnergyScaleLegend
-                language={language}
-                residualLabel={tx("Residuallast, GW", "Residual load, GW")}
-                zeroLabel={tx("gestrichelter Kreis = 0", "dashed circle = 0")}
-                chargedLabel={tx("geladen", "charged")}
-                dischargedLabel={tx("abends abgegeben", "discharged in the evening")}
-              />
+              <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
             </div>
             <div className="day-order-controls">
               <StatTrio
                 items={[
-                  { value: formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1), unit: "h", label: tx("Überschuss vor 17 Uhr", "Surplus before 17:00") },
+                  { value: `≈ ${formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1)}`, unit: "h", label: tx("Mittagsüberschuss", "Midday surplus") },
                   { value: delta === null ? "—" : formatSignedGw(delta, language), unit: delta === null ? undefined : "GW", label: tx("Abendspitze", "Evening peak") },
                 ]}
               />
@@ -179,14 +173,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
             </div>
           </div>
 
-          <div className="day-movements">
-            <h2>{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
-            <ol>
-              <Movement n="01" title={tx("Nacht", "Night")} story={story} highlight="night" body={tx("Wind allein reicht nicht. Kraftwerke und Import füllen die Lücke.", "Wind alone is not enough. Power plants and imports fill the gap.")} />
-              <Movement n="02" title={tx("Mittag", "Midday")} story={story} highlight="midday" body={tx(`${formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1)} Stunden lang liefern Wind und Sonne mehr, als gebraucht wird. Speicher laden.`, `For ${formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1)} hours, wind and solar deliver more than is used. Storage charges.`)} />
-              <Movement n="03" title={tx("Abend", "Evening")} story={story} highlight="evening" body={tx("Die Sonne ist weg, der Verbrauch hoch. Speicher geben ab und kappen die Spitze.", "The sun is gone and use is high. Storage gives power back and cuts the peak.")} />
-            </ol>
-          </div>
+          <Movements story={story} language={language} hours={hours} />
         </div>
       </section>
 
@@ -215,34 +202,77 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
   );
 }
 
-function Movement({
-  n,
-  title,
-  body,
-  story,
-  highlight,
-}: {
-  n: string;
-  title: string;
-  body: string;
-  story: LiveDispatchStory;
-  highlight: "night" | "midday" | "evening";
-}) {
+const MOVEMENT_IDS = ["night", "midday", "evening"] as const;
+
+function Movements({ story, language, hours }: { story: LiveDispatchStory; language: AppLanguage; hours: number }) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const hoursLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
+  const steps = [
+    { id: MOVEMENT_IDS[0], n: "01", title: tx("Nacht", "Night"), body: tx("Wind allein reicht nicht. Kraftwerke und Import füllen die Lücke.", "Wind alone is not enough. Power plants and imports fill the gap.") },
+    { id: MOVEMENT_IDS[1], n: "02", title: tx("Mittag", "Midday"), body: tx(`${hoursLabel} Stunden lang liefern Wind und Sonne mehr, als gebraucht wird. Speicher laden.`, `For ${hoursLabel} hours, wind and solar deliver more than is used. Storage charges.`) },
+    { id: MOVEMENT_IDS[2], n: "03", title: tx("Abend", "Evening"), body: tx("Die Sonne ist weg, der Verbrauch hoch. Speicher geben ab und kappen die Spitze.", "The sun is gone and use is high. Storage gives power back and cuts the peak.") },
+  ];
+  const [highlight, setHighlight] = useState<(typeof steps)[number]["id"]>("night");
+  const items = useRef<Array<HTMLLIElement | null>>([]);
+  useEffect(() => {
+    const ratios = new Map<number, number>();
+    const nodes = items.current.filter((node): node is HTMLLIElement => node !== null);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const index = Number((entry.target as HTMLLIElement).dataset.step);
+          ratios.set(index, entry.isIntersecting ? entry.intersectionRatio : 0);
+        }
+        let best = 0;
+        let bestRatio = -1;
+        for (const [index, ratio] of ratios) {
+          if (ratio > bestRatio) {
+            best = index;
+            bestRatio = ratio;
+          }
+        }
+        if (bestRatio > 0) {
+          setHighlight(MOVEMENT_IDS[best] ?? "night");
+        }
+      },
+      { rootMargin: "-20% 0px -45% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
+    );
+    for (const node of nodes) observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  const active = steps.find((step) => step.id === highlight) ?? steps[0];
   return (
-    <li>
-      <DayRing
-        points={story.points}
-        label={title}
-        description={body}
-        highlight={highlight}
-        showShift={false}
-        showHourTicks={false}
-        chargedGwh={0}
-      />
-      <p className="num day-movement-n">{n}</p>
-      <h3>{title}</h3>
-      <p>{body}</p>
-    </li>
+    <div className="day-movements">
+      <h2>{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
+      <div className="day-movement-story">
+        <div className="day-movement-pin">
+          <DayRing
+            points={story.points}
+            label={active.title}
+            description={active.body}
+            highlight={highlight}
+            showShift={false}
+            showHourTicks={false}
+            chargedGwh={0}
+          />
+        </div>
+        <ol>
+          {steps.map((step, index) => (
+            <li
+              key={step.id}
+              data-step={index}
+              ref={(node) => {
+                items.current[index] = node;
+              }}
+            >
+              <p className="num day-movement-n">{step.n}</p>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
   );
 }
 
@@ -303,13 +333,13 @@ function movementCallouts(story: LiveDispatchStory, language: AppLanguage): Ring
   return calloutAnchors(story.points).map((anchor, index) => {
     const gw = formatGw1(Math.abs(anchor.point.ohneMw / 1000), language);
     const text = anchor.id === "midday"
-      ? tx(`Mittag, Überschuss ${gw} GW.`, `Midday, surplus ${gw} GW.`)
+      ? tx(`Mittag ${gw}`, `Midday ${gw}`)
       : anchor.id === "evening" && story.eveningPeakAfterGw !== null
         ? tx(
-            `Abendspitze ${formatGw1(story.eveningPeakBeforeGw ?? 0, language)} → ${formatGw1(story.eveningPeakAfterGw, language)} GW.`,
-            `Evening peak ${formatGw1(story.eveningPeakBeforeGw ?? 0, language)} → ${formatGw1(story.eveningPeakAfterGw, language)} GW.`
+            `Abend ${formatGw1(story.eveningPeakBeforeGw ?? 0, language)}→${formatGw1(story.eveningPeakAfterGw, language)}`,
+            `Evening ${formatGw1(story.eveningPeakBeforeGw ?? 0, language)}→${formatGw1(story.eveningPeakAfterGw, language)}`
           )
-        : tx(`Nachts liegt die Last bei ${formatGw1(anchor.point.ohneMw / 1000, language)} GW.`, `At night the load sits at ${formatGw1(anchor.point.ohneMw / 1000, language)} GW.`);
+        : tx(`Nacht ${formatGw1(anchor.point.ohneMw / 1000, language)}`, `Night ${formatGw1(anchor.point.ohneMw / 1000, language)}`);
     return { ...anchor, n: index + 1, text };
   });
 }

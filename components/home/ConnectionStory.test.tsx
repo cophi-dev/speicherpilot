@@ -68,7 +68,11 @@ describe("ConnectionStory", () => {
     );
 
     const items = screen.getAllByRole("listitem");
-    expect(items).toHaveLength(5);
+    expect(items).toHaveLength(3);
+    expect(screen.getByText("Die Spitze passt nicht durch")).toBeInTheDocument();
+    expect(screen.getByText(/lädt er mit höchstens/)).toBeInTheDocument();
+    expect(screen.getByText("03")).toBeInTheDocument();
+    expect(screen.getByText(/Modellschätzung/)).toBeInTheDocument();
     for (const item of items) {
       expect(item.className).not.toContain("border-l");
     }

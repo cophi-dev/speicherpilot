@@ -258,18 +258,12 @@ function LiveRingBody({
           />
         </div>
           <div className="day-order-legend">
-            <EnergyScaleLegend
-              language={language}
-              residualLabel={tx("Residuallast, GW", "Residual load, GW")}
-              zeroLabel={tx("gestrichelter Kreis = 0", "dashed circle = 0")}
-              chargedLabel={tx("geladen", "charged")}
-              dischargedLabel={tx("abends abgegeben", "discharged in the evening")}
-            />
+            <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
           </div>
         <div className="day-order-controls">
           <StatTrio
             items={[
-              { value: hourLabel, unit: "h", label: tx("Überschuss vor 17 Uhr", "Surplus before 17:00") },
+              { value: `≈ ${hourLabel}`, unit: "h", label: tx("Mittagsüberschuss", "Midday surplus") },
               {
                 value: delta === null ? "—" : formatSignedGw(delta, language),
                 unit: delta === null ? undefined : "GW",
@@ -345,15 +339,15 @@ function buildCallouts(story: LiveDispatchStory, points: LiveDispatchPoint[], la
   return calloutAnchors(points).map((anchor, index) => {
     const gw = anchor.point.ohneMw / 1000;
     const shown = formatGw1(gw, language);
-    let text = tx(`Residuallast ${shown} GW.`, `Residual load ${shown} GW.`);
+    let text = tx(`Last ${shown}`, `Load ${shown}`);
     if (anchor.id === "night") {
-      text = tx(`Nachts liegt die Last bei ${shown} GW.`, `At night the load sits at ${shown} GW.`);
+      text = tx(`Nacht ${shown}`, `Night ${shown}`);
     } else if (anchor.id === "midday") {
-      text = tx(`Mittag, Überschuss ${formatGw1(Math.abs(gw), language)} GW.`, `Midday, surplus ${formatGw1(Math.abs(gw), language)} GW.`);
+      text = tx(`Mittag ${formatGw1(Math.abs(gw), language)}`, `Midday ${formatGw1(Math.abs(gw), language)}`);
     } else if (anchor.id === "evening" && story.eveningPeakAfterGw !== null) {
       text = tx(
-        `Abendspitze ${formatGw1(story.eveningPeakBeforeGw ?? gw, language)} → ${formatGw1(story.eveningPeakAfterGw, language)} GW.`,
-        `Evening peak ${formatGw1(story.eveningPeakBeforeGw ?? gw, language)} → ${formatGw1(story.eveningPeakAfterGw, language)} GW.`
+        `Abend ${formatGw1(story.eveningPeakBeforeGw ?? gw, language)}→${formatGw1(story.eveningPeakAfterGw, language)}`,
+        `Evening ${formatGw1(story.eveningPeakBeforeGw ?? gw, language)}→${formatGw1(story.eveningPeakAfterGw, language)}`
       );
     }
     return { ...anchor, n: index + 1, text };

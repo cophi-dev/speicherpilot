@@ -8,21 +8,21 @@ import {
   centerCaptionPx,
   centerLimitPx,
   centerWrapPx,
+  COMPACT_FRAME_PX,
   compactHourLabel,
   compactRingView,
-  energyColor,
   hourToDeg,
   kwRadius,
   polarPoint,
-  RING_CALLOUT_VIEW,
   RING_R0,
-  RING_VIEW,
   ringRadius,
   segmentAngles,
   segmentIndexForHour,
   socRingGeometry,
 } from "@/lib/dayRingScale";
 import { SmoothRing } from "@/components/day-ring/SmoothRing";
+import { useMorphedSeries } from "@/components/day-ring/useMorphedSeries";
+import { polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
 import { quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
@@ -110,9 +110,8 @@ export function DayRing({
   const outer = unit === "kW"
     ? Math.max(radiusOf(Math.max(maxValue, limit ?? 0)), kwRadius(0))
     : Math.max(ringRadius(maxGw), RING_R0);
-  const wideView = callouts.length > 0 ? RING_CALLOUT_VIEW : RING_VIEW;
-  const view = useMemo(() => (narrow ? compactRingView(outer) : wideView), [narrow, outer, wideView]);
-  const hourLabel = narrow ? compactHourLabel(outer, view.w / 2) : null;
+  const view = useMemo(() => compactRingView(outer), [outer]);
+  const hourLabel = compactHourLabel(outer, view.w / 2, narrow ? COMPACT_FRAME_PX : 720);
   const innerEdge = socRingGeometry(unit, mode === "projekt").innerEdge;
   const clearRadius = unit === "kW" ? radiusOf(Math.max(maxValue, limit ?? 0)) + 78 : ringClearRadius(maxGw);
   const layoutKey = callouts.map((callout) => `${callout.id}:${callout.point.hour}:${callout.text}`).join("|");
@@ -383,21 +382,18 @@ function Spoke({ hour, radius }: { hour: number; radius: number }) {
 
 export function SocRing({ points, bold = false, unit = "GW" }: { points: LiveDispatchPoint[]; bold?: boolean; unit?: RingUnit }) {
   const { radius, width } = socRingGeometry(unit, bold);
-  return (
-    <g className="day-soc" fill="none" strokeWidth={width} strokeLinecap="butt">
-      {points.map((point) => {
-        const angles = segmentAngles(segmentIndexForHour(point.hour));
-        return (
-          <path
-            key={point.hour}
-            d={arcEdge(radius, angles.start, angles.end)}
-            stroke={unit === "kW" ? "#1E9CB0" : energyColor(point.ohneMw / 1000)}
-            opacity={0.25 + 0.75 * point.soc}
-          />
-        );
-      })}
-    </g>
+  const soc = useMorphedSeries(points.map((point) => point.soc));
+  const series = points.map((point, index) => ({
+    angleDeg: quarterCenterForHour(point.hour),
+    value: soc[index] ?? point.soc,
+  }));
+  const inner = Math.max(1, radius - width / 2);
+  const samples = smoothPolarSamples(series, (value) => inner + Math.max(0, Math.min(1, value)) * width, inner);
+  const band = polarRibbonPath(
+    samples,
+    samples.map((sample) => ({ ...sample, radius: inner }))
   );
+  return <path className="day-soc" d={band} fill={unit === "kW" ? "#1E9CB0" : "#7DFCE6"} opacity={0.9} />;
 }
 
 export function ShiftArrow({ points }: { points: LiveDispatchPoint[] }) {

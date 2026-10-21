@@ -141,21 +141,19 @@ export function socRingGeometry(unit: "GW" | "kW" = "GW", bold = false): { radiu
   return { radius, width, innerEdge: radius - width / 2 };
 }
 
-/** Phone width the compact viewBox is drawn for, and the disk that width must show. */
-export const COMPACT_FRAME_PX = 390;
-export const COMPACT_RING_MIN_PX = 340;
+/** Phone width of the ring frame. The disk fills 92% of that frame's radius. */
+export const COMPACT_FRAME_PX = 358;
+export const RING_OF_FRAME = 0.92;
+export const HOUR_LABEL_GAP_PX = 8;
 
 /**
- * ViewBox that makes a disk of `outerRadius` at least 340px wide inside a 390px frame.
- * Half-extent is computed from that ratio and then shortened until the inequality holds after rounding.
+ * ViewBox that centres the outer disk on 92% of the frame radius.
+ * The remaining band holds the hour labels.
  */
 export function compactRingView(outerRadius: number): { x: number; y: number; w: number; h: number } {
   const outer = Math.max(1, outerRadius);
-  let half = Math.floor(outer * (COMPACT_FRAME_PX / COMPACT_RING_MIN_PX) * 100) / 100;
-  while (half > outer && (COMPACT_FRAME_PX * outer) / half < COMPACT_RING_MIN_PX) {
-    half = Math.round((half - 0.01) * 100) / 100;
-  }
-  const side = Math.round(half * 2 * 100) / 100;
+  const half = round2(outer / RING_OF_FRAME);
+  const side = round2(half * 2);
   return { x: -half, y: -half, w: side, h: side };
 }
 
@@ -189,15 +187,17 @@ export function boxFitsCircle(width: number, height: number, radiusPx: number): 
   return Math.hypot(width / 2, height / 2) <= radiusPx;
 }
 
-/** Hour-label placement that stays inside a compact viewBox. Font size tracks the radius, not a fixed px. */
-export function compactHourLabel(outerRadius: number, half: number): { labelRadius: number; labelGap: number; fontSize: number } {
-  const fontSize = round2(Math.min(28, (24 * outerRadius) / COMPACT_RING_MIN_PX));
-  const labelGap = 10;
-  const overhang = fontSize * 0.7;
-  const room = half - overhang - labelGap;
-  const preferred = outerRadius + 4;
-  const labelRadius = round2(Math.max(outerRadius, Math.min(preferred, room)));
-  return { labelRadius, labelGap, fontSize };
+/** Hour labels sit 8px outside the disk and stay inside the frame. */
+export function compactHourLabel(
+  outerRadius: number,
+  half: number,
+  framePx: number = COMPACT_FRAME_PX
+): { labelRadius: number; labelGap: number; fontSize: number } {
+  const viewW = half * 2;
+  const labelGap = round2((HOUR_LABEL_GAP_PX * viewW) / Math.max(1, framePx));
+  const room = Math.max(0, half - outerRadius - labelGap);
+  const fontSize = round2(Math.max(10, Math.min(22, room * 0.9)));
+  return { labelRadius: round2(outerRadius), labelGap, fontSize };
 }
 
 /** Annular sector, clockwise from `startDeg` to `endDeg`. Radii are ordered inside the path. */

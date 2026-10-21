@@ -50,11 +50,11 @@ export function FactorSlider({
           }}
         />
       </div>
-      <div className="day-slider-stops" aria-hidden="true">
+      <div className="day-slider-stops">
         {LIVE_DISPATCH_FACTORS.map((step) => (
-          <span key={step} className={step === factor ? "is-current" : undefined}>
+          <button key={step} type="button" className={step === factor ? "is-current" : undefined} onClick={() => onChange(step)}>
             ×{step}
-          </span>
+          </button>
         ))}
       </div>
     </div>
