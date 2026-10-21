@@ -17,6 +17,7 @@ const SECTIONS = [
   { id: "anschluss", de: "Netzanschluss", en: "Connection" },
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
   { id: "live", de: "Live", en: "Live" },
+  { id: "netzbrief", de: "Netzbrief", en: "Grid letter" },
   { id: "quellen", de: "Quellen", en: "Sources" },
   { id: "grenzen", de: "Grenzen", en: "Limits" },
   { id: "beispiele", de: "Beispiele", en: "Examples" },
@@ -154,7 +155,12 @@ grid-serving, same battery and same limit:
           <p className="mt-3">{tx("Erzeugung und Last für Deutschland kommen von Energy-Charts. Die Bilanz nutzt nur einen Zeitpunkt, an dem Last und mindestens eine Erzeugungsserie veröffentlicht sind. Fehlt die Erzeugung, steht dort keine Differenz und kein Defizit aus 0 GW.", "Generation and load for Germany come from Energy-Charts. The balance uses only a timestamp where load and at least one generation series are published. If generation is missing, the page shows no difference and does not invent a deficit from 0 GW.")}</p>
           <p className="mt-3">{tx("Abregelung und Redispatch veröffentlicht Netztransparenz. Der Maschinenabruf braucht einen registrierten Zugang. Diese öffentliche Instanz hat ihn nicht, deshalb steht dort eine Erklärung und keine Megawattzahl.", "Netztransparenz publishes curtailment and redispatch. The machine feed needs a registered login. This public instance does not have one, so the page shows an explanation and no megawatt figure.")}</p>
         </Section>
-        <Section id="quellen" n="§9" title={tx("Datenquellen", "Sources")}>
+        <Section id="netzbrief" n="§9" title={tx("Netzbrief", "Grid letter")} date="2026-10-21">
+          <p>{tx("Unter /notizen liegt das Archiv der nummerierten Ausgaben. Eine Ausgabe trägt den Rahmen SPEICHERPILOT · NETZBRIEF, eine Nummer, ein Format, einen Satz, die Grafik, den Datenstand, einen CSV-Download und diesen Anker. Nichts davon wird von der Seite aus gepostet.", "The /notizen archive holds the numbered issues. An issue carries the frame SPEICHERPILOT · NETZBRIEF, a number, a format, one sentence, the chart, the data date, a CSV download and this anchor. The site does not post any of it.")}</p>
+          <p className="mt-3">{tx("Vier Formate: Uhr, täglich, mit der Fläche von Wind und Sonne; Mehr Speicher, wöchentlich, als Modellschätzung mit fünfmal so viel Bestand; Nord/Süd, wöchentlich, als Anteil der Regelzonen 50Hertz und TransnetBW; Erklärt, dauerhaft, mit den Beispieldaten des Supermarkts.", "Four formats: Clock, daily, with the area of wind and solar; More storage, weekly, a model estimate with five times the fleet; North/South, weekly, as a share of the 50Hertz and TransnetBW control areas; Explained, evergreen, with the supermarket example data.")}</p>
+          <p className="mt-3">{tx("Der Preisstreifen auf der Uhr heißt die günstigsten Stunden und die höchsten Preise. Er ist grau. Das ist die Day-Ahead-Auktion, keine Handelsempfehlung. Die 100-%-Linie im Nord-Süd-Bild ist eine Gitterlinie.", "The price stripe on the clock names the lowest-priced hours and the highest prices. It is gray. That is the day-ahead auction, not trading advice. The 100% line on the north-south chart is a gridline.")}</p>
+        </Section>
+        <Section id="quellen" n="§10" title={tx("Datenquellen", "Sources")}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-secondary"><tr className="num text-[12px] uppercase"><th className="px-2 py-2 text-left">{tx("Quelle", "Source")}</th><th className="px-2 py-2 text-left">{tx("Inhalt", "Content")}</th></tr></thead>
@@ -179,7 +185,7 @@ grid-serving, same battery and same limit:
             </table>
           </div>
         </Section>
-        <Section id="grenzen" n="§10" title={tx("Grenzen und Haftung", "Limits and liability")}>
+        <Section id="grenzen" n="§11" title={tx("Grenzen und Haftung", "Limits and liability")}>
           <ul className="list-disc pl-5">
             <li>{tx("Beispielprofile, darunter der fiktive Supermarkt in Hamburg und das fiktive Quartier, und das Day-Ahead-Band sind synthetisch und als BEISPIELDATEN markiert. Flower in Bergedorf nutzt nur die veröffentlichten Eckdaten.", "Example profiles, including the fictional Hamburg supermarket and the fictional neighbourhood, and the day-ahead band are synthetic and marked as example data. Flower in Bergedorf uses only the published figures.")}</li>
             <li>{tx("Keine Netzentgelte, keine Steuern, keine Finanzierung, keine Degradation.", "No grid tariffs beyond the inputs, no tax, no financing, no degradation.")}</li>
@@ -188,7 +194,7 @@ grid-serving, same battery and same limit:
             <li>{tx("Die Einschätzung netzdienlich ist kein Befund des Netzbetreibers. Fair Grid ist keine Zuteilung. Die flexible Anschlussvereinbarung im Rechner ist kein Vertrag.", "The grid-support estimate is not a grid-operator finding. Fair Grid is not an allocation. The flexible connection agreement in this calculator is not a contract.")}</li>
           </ul>
         </Section>
-        <Section id="beispiele" n="§11" title={tx("Beispiele", "Examples")} date="2026-10-21">
+        <Section id="beispiele" n="§12" title={tx("Beispiele", "Examples")} date="2026-10-21">
           <p>{tx("Drei Fälle auf /site. Supermarkt und Quartier sind BEISPIELDATEN. Flower nennt nur Zahlen, die Flower und pv magazine veröffentlicht haben.", "Three cases on /site. The supermarket and the neighbourhood are example data. Flower states only figures that Flower and pv magazine published.")}</p>
           <h3 className="mt-4 text-lg font-medium">{tx("Supermarkt", "Supermarket")}</h3>
           <p>{tx("Fiktiver Betrieb in Hamburg, hinter dem Zähler, Peak Shaving. Dach-PV und netzorientierter Betrieb halten die Bezugsspitze auf der Anschlussgrenze. Das ist kein gemessener Markt.", "A fictional Hamburg site, behind the meter, peak shaving. Rooftop PV and grid-serving operation hold the import peak on the connection limit. That is not a measured market.")}</p>
@@ -213,7 +219,7 @@ grid-serving, same battery and same limit:
             <a className="underline underline-offset-[3px]" href={FLOWER_BERGEDORF.sources[1].href}>pv magazine</a>
           </p>
         </Section>
-        <Section id="glossar" n="§12" title={tx("Glossar", "Glossary")}>
+        <Section id="glossar" n="§13" title={tx("Glossar", "Glossary")}>
           <p>{tx("Dieselben kurzen Erklärungen stehen als Hinweis an den Begriffen im Rechner.", "The same short explanations appear as hints on the terms in the calculator.")}</p>
           <dl className="mt-4 space-y-4">
             {GLOSSARY.map((entry) => (
@@ -224,13 +230,14 @@ grid-serving, same battery and same limit:
             ))}
           </dl>
         </Section>
-        <Section id="changelog" n="§13" title={tx("Changelog", "Changelog")}>
+        <Section id="changelog" n="§14" title={tx("Changelog", "Changelog")}>
           <p className="num">2026-10-20 — {tx("Control-Room-Oberfläche, Standort-Rechner, Live unter /live.", "Control-room interface, site calculator, live view at /live.")}</p>
           <p className="num mt-2">2026-10-20 — {tx("Zwei Sichten auf /site: Projektierer und Netzbetreiber, ein Rechenkern. NPV, Spannungshinweis, netzorientierter Betrieb, flexibles Anschluss-Szenario.", "Two views on /site: developer and grid operator, one calculation core. NPV, voltage hint, grid-oriented operation, flexible-connection scenario.")}</p>
           <p className="num mt-2">2026-10-20 — {tx("Einschätzung netzdienlich statt Befund (BGH EnVR 1/24). Hinweis über 1,5 MVA, Fair Grid. Szenario nach § 17 Abs. 2b EnWG.", "Grid-support estimate instead of a finding (BGH EnVR 1/24). Flag above 1.5 MVA, Fair Grid. Scenario under section 17 (2b) EnWG.")}</p>
           <p className="num mt-2">2026-10-21 — {tx("Klare Sprache, Glossar, Ampel als Lesehilfe, Beispiel Supermarkt in Hamburg.", "Plain language, glossary, traffic-light reading aid, Hamburg supermarket example.")}</p>
           <p className="num mt-2">2026-10-21 — {tx("Einstieg mit zwei Perspektiven. Beispiele Supermarkt, Quartier und Flower Bergedorf.", "Entry with two perspectives. Examples: supermarket, neighbourhood, and Flower Bergedorf.")}</p>
           <p className="num mt-2">2026-10-21 — {tx("Live-Ansicht mit benannter Ebene: Regelzone 50Hertz, Gebotszone DE-LU, Deutschland. Keine Abregelungszahl ohne freie Reihe. Der Zonenvergleich sagt, dass im Norden mehr Wind steht als im Süden.", "Live view with a named level: 50Hertz control area, DE-LU bidding zone, Germany. No curtailment figure without a free series. The area comparison says the north has more wind than the south.")}</p>
+          <p className="num mt-2">2026-10-21 — {tx("Netzbrief unter /notizen. Der Day-Ahead-Satz nennt die günstigsten Stunden und die höchsten Preise.", "Grid letter at /notizen. The day-ahead sentence names the lowest-priced hours and the highest prices.")}</p>
         </Section>
       </article>
     </div>

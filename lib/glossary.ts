@@ -26,7 +26,8 @@ export type GlossaryId =
   | "ortsnetzstation"
   | "behind-the-meter"
   | "front-of-meter"
-  | "fpa";
+  | "fpa"
+  | "residuallast";
 
 export type GlossaryEntry = {
   id: GlossaryId;
@@ -257,6 +258,14 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Ein Vertrag, mit dem ein Vermarkter die Flexibilität des Speichers handelt. Flower und ENGIE haben ein solches Agreement, auch virtuelles Tolling genannt. Der Preis steht in den Quellen nicht.",
       en: "A contract under which a marketer trades the battery’s flexibility. Flower and ENGIE have one, also called a virtual tolling agreement. The sources do not state the price.",
+    },
+  },
+  {
+    id: "residuallast",
+    term: { de: "Residuallast", en: "Residual load" },
+    text: {
+      de: "Was Kraftwerke und Import liefern müssen: Last minus Wind minus Sonne.",
+      en: "What power plants and imports have to supply: load minus wind minus solar.",
     },
   },
 ];

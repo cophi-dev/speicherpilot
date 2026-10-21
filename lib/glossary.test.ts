@@ -29,6 +29,7 @@ const REQUIRED = [
   "behind-the-meter",
   "front-of-meter",
   "fpa",
+  "residuallast",
 ] as const;
 
 describe("glossary", () => {

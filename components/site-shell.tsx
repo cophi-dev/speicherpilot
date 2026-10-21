@@ -19,6 +19,7 @@ const NAV = [
   { href: "/", de: "Start", en: "Start" },
   { href: "/site", de: "Standort", en: "Site" },
   { href: "/live", de: "Live", en: "Live" },
+  { href: "/notizen", de: "Notizen", en: "Notes" },
   { href: "/methodik", de: "Methodik", en: "Method" },
 ] as const;
 
