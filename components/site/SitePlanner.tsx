@@ -6,8 +6,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChartLegend, DispatchChart, type DispatchPoint, useNarrowScreen } from "@/components/charts/DispatchChart";
+import { ConnectionLight } from "@/components/connection/ConnectionLight";
 import { GlossaryTip } from "@/components/GlossaryTip";
-import { PerspectiveChoice } from "@/components/PerspectiveChoice";
 import { useLanguage } from "@/components/language-context";
 import { FlowerReference } from "@/components/site/FlowerReference";
 import { ResultRating } from "@/components/site/ResultRating";
@@ -15,7 +15,8 @@ import { ScenarioPicker } from "@/components/site/ScenarioPicker";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile } from "@/lib/hamburgSupermarket";
 import { QUARTIER, quartierProfile, quartierPvKwp } from "@/lib/quartierExample";
-import { parsePerspective, parseScenario, sitePath, type ScenarioId } from "@/lib/perspective";
+import { connectionLight } from "@/lib/connectionLight";
+import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
 import { rateConnection, rateGridSupport, ratePayback, rateStorage } from "@/lib/readability";
 import { connectionSentence, paybackSentence, peakSentence, storageSentence, supportSentence } from "@/lib/resultCopy";
 import {
@@ -213,8 +214,19 @@ function flexibleCaps(draft: Draft) {
   };
 }
 
+function resolvedScenario(params: { get: (key: string) => string | null }): ScenarioId | null {
+  const named = parseScenario(params.get("scenario")) ?? parseScenario(params.get("preset"));
+  if (named) {
+    return named;
+  }
+  if (params.get("profile") || params.get("limit")) {
+    return null;
+  }
+  return "supermarkt";
+}
+
 function openingDraft(params: { get: (key: string) => string | null }): Draft {
-  const initialScenario = parseScenario(params.get("scenario"));
+  const initialScenario = resolvedScenario(params);
   return initialScenario ? draftForScenario(initialScenario) : draftFromParams(params);
 }
 
@@ -223,14 +235,14 @@ export function SitePlanner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const view = parsePerspective(searchParams.get("view"));
-  const scenario = parseScenario(searchParams.get("scenario"));
+  const view: Perspective = parsePerspective(searchParams.get("view")) ?? "projekt";
+  const scenario = resolvedScenario(searchParams);
   const [seenNetz, setSeenNetz] = useState(() => searchParams.get("view") === "netz");
-  const [appliedScenario, setAppliedScenario] = useState<ScenarioId | null>(() => parseScenario(searchParams.get("scenario")));
+  const [appliedScenario, setAppliedScenario] = useState<ScenarioId | null>(() => resolvedScenario(searchParams));
   const narrow = useNarrowScreen();
   const [draft, setDraft] = useState<Draft>(() => openingDraft(searchParams));
   const [operation, setOperation] = useState<OperationMode>(() => {
-    const initialScenario = parseScenario(searchParams.get("scenario"));
+    const initialScenario = resolvedScenario(searchParams);
     return initialScenario ? operationForScenario(initialScenario) : "market";
   });
   const [netzTab, setNetzTab] = useState<"duration" | "peak">("duration");
@@ -259,17 +271,25 @@ export function SitePlanner() {
   }
 
   useEffect(() => {
-    if (!view || scenario) {
-      return;
-    }
-    if (searchParams.get("profile") || searchParams.get("limit")) {
-      return;
-    }
     const params = new URLSearchParams(searchParams.toString());
-    params.set("view", view);
-    params.set("scenario", "supermarkt");
-    router.replace(`/site?${params.toString()}`, { scroll: false });
-  }, [view, scenario, searchParams, router]);
+    let changed = false;
+    if (!parsePerspective(params.get("view"))) {
+      params.set("view", "projekt");
+      changed = true;
+    }
+    const named = parseScenario(params.get("scenario")) ?? parseScenario(params.get("preset"));
+    if (!params.get("scenario") && named) {
+      params.set("scenario", named);
+      changed = true;
+    }
+    if (!parseScenario(params.get("scenario")) && !params.get("profile") && !params.get("limit")) {
+      params.set("scenario", "supermarkt");
+      changed = true;
+    }
+    if (changed) {
+      router.replace(`/site?${params.toString()}`, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -421,28 +441,6 @@ export function SitePlanner() {
     }
   }
 
-  if (!view) {
-    return (
-      <div className="mx-auto max-w-[1360px] px-5 py-8 md:px-8">
-        <p className="num text-[12px] text-muted-foreground">Start / {tx("Standort", "Site")}</p>
-        <h1 className="mt-1.5 max-w-[16ch] text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
-          {tx("Womit willst du anfangen?", "Where do you want to start?")}
-        </h1>
-        <p className="mt-3 max-w-[62ch] text-muted-foreground">
-          {tx(
-            "Speicher und Netzanschluss sind zwei Fragen. Wähle zuerst die Perspektive, dann ein Beispiel.",
-            "Storage and the grid connection are two questions. Choose the perspective first, then an example."
-          )}
-        </p>
-        <div className="mt-8 max-w-[880px]">
-          <PerspectiveChoice language={language} />
-        </div>
-      </div>
-    );
-  }
-
-  const otherView = view === "projekt" ? "netz" : "projekt";
-
   return (
     <div className="relative mx-auto max-w-[1360px] px-5 py-8 md:px-8">
       <div className={`border-l-[3px] pl-4 ${view === "projekt" ? "border-primary" : "border-foreground"}`}>
@@ -457,9 +455,25 @@ export function SitePlanner() {
             ? tx("Du siehst die Größe, die Kosten und ob sich der Speicher an einem Lastprofil bezahlt macht.", "You see the size, the cost, and whether the battery pays for itself on a load profile.")
             : tx("Du siehst, ob die Lastspitze in den Anschluss oder die Station passt, die schon da ist.", "You see whether the load peak fits the connection or the substation that is already there.")}
         </p>
-        <Link href={sitePath(otherView, scenario)} className="mt-3 inline-flex text-sm underline underline-offset-[3px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-          {tx("Perspektive wechseln", "Switch perspective")}
-        </Link>
+        <div className="mt-4 inline-flex rounded-md border border-border p-0.5" role="group" aria-label={tx("Perspektive", "Perspective")}>
+          <Link
+            href={sitePath("projekt", scenario)}
+            aria-current={view === "projekt" ? "page" : undefined}
+            className={`inline-flex h-10 items-center rounded-[5px] px-3 text-sm ${view === "projekt" ? "bg-foreground text-background" : "text-muted-foreground"}`}
+          >
+            {tx("Projektierung", "Project")}
+          </Link>
+          <Link
+            href={sitePath("netz", scenario)}
+            aria-current={view === "netz" ? "page" : undefined}
+            className={`inline-flex h-10 items-center rounded-[5px] px-3 text-sm ${view === "netz" ? "bg-foreground text-background" : "text-muted-foreground"}`}
+          >
+            {tx("Netzbetreiber", "Grid operator")}
+          </Link>
+        </div>
+        {scenario === "supermarkt" || scenario === "quartier" ? (
+          <p className="num mt-3 inline-flex border border-warning/50 bg-warning/10 px-2 py-1 text-[12px] text-foreground">{tx("Beispieldaten", "Example data")}</p>
+        ) : null}
       </div>
       <ScenarioPicker scenario={scenario} view={view} language={language} onSelect={chooseScenario} />
 
@@ -1140,8 +1154,16 @@ function DsoView({
       charge: row?.chargeKwh ?? 0,
     };
   });
+  const light = connectionLight(plan.peakImportAfterKw, draft.limitKw);
   return (
     <>
+      <article className="rounded-md border border-border bg-card p-4 md:p-5">
+        <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Anschluss", "Connection")}</p>
+        <h2 className="mt-1 text-lg font-medium">{language === "de" ? light.sentence.de : light.sentence.en}</h2>
+        <div className="mt-3">
+          <ConnectionLight light={light} language={language} />
+        </div>
+      </article>
       <p className="text-sm text-muted-foreground">
         {tx(
           "Verteilnetzbetreiber prüfen und schließen Speicher Dritter an. Sie besitzen ihn hier nicht. Keine Anschlusszusage, keine Rechtsberatung.",
