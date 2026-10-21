@@ -290,10 +290,10 @@ function LiveChart({
   const satStop = STOPS.find((item) => item.factor === saturation);
   const satPct = satStop ? (satStop.pos / 9) * 100 : 100;
   const satNote =
-    saturation != null && saturationChargedGwh != null
+    saturation != null && saturationChargedGwh != null && factor >= saturation
       ? tx(
-          `ab ×${saturation} kein zusätzlicher Überschuss (${formatGwh(saturationChargedGwh, language)} GWh aufgenommen)`,
-          `from ×${saturation} no further surplus (${formatGwh(saturationChargedGwh, language)} GWh taken in)`
+          `ab ×${saturation} ist der ganze Überschuss (${formatGwh(saturationChargedGwh, language)} GWh) gespeichert`,
+          `from ×${saturation} the whole surplus (${formatGwh(saturationChargedGwh, language)} GWh) is stored`
         )
       : null;
   const deltaValue = evening && before != null && after != null ? roundPeakDeltaGw(before, after) : 0;
