@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { useLanguage } from "@/components/language-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { plainNewsText } from "@/lib/newsText";
 
 const newsItemSchema = z.object({
   id: z.string(),
@@ -132,7 +133,11 @@ export default function NewsPreviewSection({
 
       {state.status === "ready" && renderedItems.length > 0 ? (
         <div className="mt-4 grid gap-3 sm:grid-cols-1">
-          {renderedItems.map((item) => (
+          {renderedItems.map((item) => {
+            const title = plainNewsText(item.title);
+            const summary = plainNewsText(item.summary);
+            const sourceName = plainNewsText(item.sourceName);
+            return (
             <article
               key={item.id}
               className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm transition hover:border-emerald-500/30 hover:shadow-md md:p-5"
@@ -159,15 +164,15 @@ export default function NewsPreviewSection({
                     rel="noopener noreferrer"
                     className="transition hover:text-emerald-600 hover:underline dark:hover:text-emerald-300"
                   >
-                    {item.title}
+                    {title}
                   </a>
                 </h2>
-                {!compact && !sameCopy(item.summary, item.title) ? (
-                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{item.summary}</p>
+                {!compact && summary && !sameCopy(summary, title) ? (
+                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{summary}</p>
                 ) : null}
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">
                   <p>
-                    {item.sourceName} ·{" "}
+                    {sourceName} ·{" "}
                     {new Date(item.publishedAtIso).toLocaleString(language === "de" ? "de-DE" : "en-GB")}
                   </p>
                   <a
@@ -181,7 +186,8 @@ export default function NewsPreviewSection({
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       ) : null}
     </section>

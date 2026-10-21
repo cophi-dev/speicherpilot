@@ -552,10 +552,10 @@
 
 .sim-sat {
   margin-top: 8px;
-  max-width: 36ch;
-  font-size: 13px;
-  line-height: 1.4;
-  color: hsl(var(--muted-foreground));
+  max-width: 46ch;
+  font-size: 16px;
+  line-height: 1.45;
+  color: hsl(var(--foreground));
 }
 
 .sim-delta {
@@ -1737,10 +1737,12 @@
 .day-slider-stops .is-current { color: #e9eef2; }
 
 .day-sat {
-  margin: 8px 0 0;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 13px;
-  color: #c5ced6;
+  max-width: 46ch;
+  margin: 12px 0 0;
+  font-family: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #e9eef2;
 }
 
 .day-peaks { margin-top: 14px; }
@@ -2010,7 +2012,9 @@
   max-width: 46ch;
   margin: 16px auto 0;
   text-align: center;
-  color: #c5ced6;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #e9eef2;
 }
 
 .day-paper {

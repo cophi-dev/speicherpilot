@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 import { createLogger } from "@/lib/debug";
+import { plainNewsText } from "@/lib/newsText";
 import {
   curatedNewsResponseSchema,
   llmNewsOutputSchema,
@@ -52,32 +53,23 @@ const AI_CURATION_TIMEOUT_MS = 10_000;
 
 const stripCdata = (value: string) => value.replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "");
 
-const decodeCodePoint = (code: number, fallback: string) =>
-  Number.isInteger(code) && code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : fallback;
-
-const decodeHtmlEntities = (value: string) =>
-  value
-    .replace(/&amp;/gi, "&")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&#(\d+);/g, (entity, digits: string) => decodeCodePoint(Number(digits), entity))
-    .replace(/&#x([0-9a-f]+);/gi, (entity, digits: string) => decodeCodePoint(Number.parseInt(digits, 16), entity));
-
-const stripHtml = (value: string) => value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-
-const normalizeText = (value: string) =>
-  stripHtml(decodeHtmlEntities(value))
-    .replace(/https?:\/\/\S+/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
+const normalizeText = (value: string) => plainNewsText(stripCdata(value));
 
 const extractTag = (itemXml: string, tag: string): string | null => {
-  const match = itemXml.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  const match = itemXml.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"));
   return match ? stripCdata(match[1].trim()) : null;
 };
+
+/** Google puts the publisher after two non-breaking spaces. Drop that suffix once the source is known. */
+function withoutTrailingSource(text: string, sourceName: string): string {
+  const source = sourceName.trim();
+  if (!source) {
+    return text;
+  }
+  const escaped = source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const stripped = text.replace(new RegExp(`\\s+${escaped}$`, "i"), "").trim();
+  return stripped || text;
+}
 
 const parseRss = (xml: string, sourceName: string): RawNewsCandidate[] => {
   const items = xml.match(/<item>[\s\S]*?<\/item>/gi) ?? [];
@@ -87,6 +79,7 @@ const parseRss = (xml: string, sourceName: string): RawNewsCandidate[] => {
     const description = extractTag(itemXml, "description") ?? "";
     const url = extractTag(itemXml, "link");
     const pubDateRaw = extractTag(itemXml, "pubDate");
+    const publisher = extractTag(itemXml, "source");
     if (!title || !url) {
       continue;
     }
@@ -94,10 +87,13 @@ const parseRss = (xml: string, sourceName: string): RawNewsCandidate[] => {
     if (Number.isNaN(publishedAt.getTime())) {
       continue;
     }
+    const publisherName = publisher ? normalizeText(publisher) : "";
+    const headline = normalizeText(title);
+    const teaser = withoutTrailingSource(normalizeText(description) || headline, publisherName);
     const candidate = rawNewsCandidateSchema.safeParse({
-      title: normalizeText(title),
-      description: normalizeText(description) || normalizeText(title),
-      sourceName,
+      title: headline,
+      description: teaser,
+      sourceName: publisherName || sourceName,
       url,
       publishedAtIso: publishedAt.toISOString(),
     });
@@ -267,6 +263,9 @@ const getNewsCurationFromAi = async (candidates: RawNewsCandidate[], limit: numb
   }
   return parsed.data.items.slice(0, limit).map((item) => ({
     ...item,
+    title: plainNewsText(item.title) || item.title,
+    summary: plainNewsText(item.summary) || item.summary,
+    sourceName: plainNewsText(item.sourceName) || item.sourceName,
     id: createHash("sha1").update(`${item.url}-${item.publishedAtIso}`).digest("hex").slice(0, 16),
   }));
 };
