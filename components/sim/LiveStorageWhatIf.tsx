@@ -255,14 +255,16 @@ function LiveChart({
   const before = story.eveningPeakBeforeGw;
   const after = story.eveningPeakAfterGw;
   const evening = story.eveningPublished && before != null && after != null;
-  const beforeLabel = before == null ? "" : formatGw(before, language);
-  const afterLabel = after == null ? "" : formatGw(after, language);
+  const beforeShown = before == null ? null : Math.round(before * 10) / 10;
+  const afterShown = after == null ? null : Math.round(after * 10) / 10;
+  const beforeLabel = beforeShown == null ? "" : formatGw(beforeShown, language);
+  const afterLabel = afterShown == null ? "" : formatGw(afterShown, language);
   const discharged = `${formatGwh(story.dischargedGwh, language)} GWh ${tx("entladen", "discharged")}`;
   const chargedNote = tx(
     `Geladen ${formatGwh(story.chargedGwh, language)} GWh einschließlich Verluste. Wirkungsgrad ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)} % (Annahme).`,
     `Charged ${formatGwh(story.chargedGwh, language)} GWh including losses. Round-trip efficiency ${formatQuantity(LIVE_DISPATCH_RTE * 100, language, 0)}% (assumption).`
   );
-  const deltaValue = evening ? Math.round(((before ?? 0) - (after ?? 0)) * 10) / 10 : 0;
+  const deltaValue = evening && beforeShown != null && afterShown != null ? Math.round((beforeShown - afterShown) * 10) / 10 : 0;
   const deltaSign = deltaValue > 0 ? "−" : deltaValue < 0 ? "+" : "";
   const fleetHrefLabel = fleet.source === "battery-charts" ? "battery-charts.de" : "Energy-Charts";
 
@@ -385,7 +387,7 @@ function LiveChart({
               </p>
               <p className="sim-delta num">
                 {deltaSign}
-                {formatQuantity(Math.abs(deltaValue), language, 0)} GW {tx("Abendspitze", "evening peak")}
+                {formatQuantity(Math.abs(deltaValue), language, Number.isInteger(deltaValue) ? 0 : 1)} GW {tx("Abendspitze", "evening peak")}
               </p>
               <p className="sim-sentence">
                 {deltaValue >= 0
