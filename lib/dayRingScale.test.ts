@@ -30,7 +30,7 @@ describe("day ring scale", () => {
     expect(ringRadius(-1000)).toBe(1);
   });
 
-  it("leaves a 2° gap centred on midnight for the 00 tick", () => {
+  it("leaves a 4° gap centred on midnight for the 00 tick", () => {
     const span = (360 - RING_GAP_DEG) / RING_SLOTS;
     expect(segmentAngles(0).start).toBeCloseTo(RING_GAP_DEG / 2, 5);
     expect(segmentAngles(0).end - segmentAngles(0).start).toBeCloseTo(span, 5);
@@ -56,16 +56,18 @@ describe("day ring scale", () => {
     expect(path).not.toMatch(/\d\.\d{3}/);
   });
 
-  it("sizes a 358px frame so the disk is 92% of the radius and the hour label stays 8px outside", () => {
+  it("sizes a 358px frame so the disk, including the evening peak, is 92% of the radius and centred", () => {
     for (const gw of [0, 12, 38, 52]) {
       const outer = Math.max(ringRadius(gw), RING_R0);
       const view = compactRingView(outer);
+      expect(view.w).toBeCloseTo(view.h, 5);
+      expect(view.x).toBeCloseTo(-view.w / 2, 5);
+      expect(view.y).toBeCloseTo(-view.h / 2, 5);
       expect(ringDiskPx(outer, COMPACT_FRAME_PX, view.w)).toBeCloseTo(COMPACT_FRAME_PX * RING_OF_FRAME, 1);
       const label = compactHourLabel(outer, view.w / 2);
-      expect(label.labelRadius).toBeCloseTo(outer, 2);
-      expect(label.labelGap).toBeGreaterThan(0);
-      const outermost = label.labelRadius + label.labelGap + label.fontSize * 0.7;
-      expect(outermost).toBeLessThanOrEqual(view.w / 2 + 0.05);
+      expect((label.labelGap * COMPACT_FRAME_PX) / view.w).toBeCloseTo(8, 1);
+      expect((label.fontSize * COMPACT_FRAME_PX) / view.w).toBeCloseTo(12, 1);
+      expect(label.labelRadius - label.fontSize * 0.6 - outer).toBeCloseTo(label.labelGap, 1);
     }
   });
 

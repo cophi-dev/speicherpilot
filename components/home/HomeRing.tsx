@@ -16,11 +16,11 @@ import {
   chargedWouldHaveParts,
   fleetSizeLabel,
   formatBerlinDayLabel,
+  eveningPeakStat,
   formatGw1,
-  formatSignedGw,
   fullSurplusFactor,
   heroSentence,
-  onceRoundDeltaGw,
+  ringCalloutText,
   saturationNote,
   surplusHours,
   weekdayShort,
@@ -79,7 +79,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
   const title = language === "de" ? sentence.de : sentence.en;
   const before = story.eveningPeakBeforeGw;
   const after = story.eveningPeakAfterGw;
-  const delta = before !== null && after !== null ? -onceRoundDeltaGw(before, after) : null;
+  const peak = eveningPeakStat(before, after, language);
   const hours = surplusHours(story);
   const charged = chargedWouldHaveParts(story.chargedGwh, 1, language);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
@@ -133,14 +133,6 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
                   socLabel={tx("Ladezustand %", "State of charge %")}
                 />
               </figure>
-              <ol className="day-callout-list">
-                {callouts.map((callout) => (
-                  <li key={callout.id}>
-                    <span className="num">{callout.n}</span>
-                    {callout.text}
-                  </li>
-                ))}
-              </ol>
             </div>
             <div className="day-order-legend">
               <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
@@ -149,7 +141,12 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
               <StatTrio
                 items={[
                   { value: `≈ ${formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1)}`, unit: "h", label: tx("Mittagsüberschuss", "Midday surplus") },
-                  { value: delta === null ? "—" : formatSignedGw(delta, language), unit: delta === null ? undefined : "GW", label: tx("Abendspitze", "Evening peak") },
+                  {
+                    value: peak?.value ?? "—",
+                    unit: peak ? "GW" : undefined,
+                    label: tx("Abendspitze", "Evening peak"),
+                    note: peak?.note,
+                  },
                 ]}
               />
               {charged ? <ChargedLine parts={charged} modelLabel={tx("Modell", "Model")} /> : null}
@@ -329,17 +326,12 @@ function FactorMorph({
 }
 
 function movementCallouts(story: LiveDispatchStory, language: AppLanguage): RingCallout[] {
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
-  return calloutAnchors(story.points).map((anchor, index) => {
-    const gw = formatGw1(Math.abs(anchor.point.ohneMw / 1000), language);
-    const text = anchor.id === "midday"
-      ? tx(`Mittag ${gw}`, `Midday ${gw}`)
-      : anchor.id === "evening" && story.eveningPeakAfterGw !== null
-        ? tx(
-            `Abend ${formatGw1(story.eveningPeakBeforeGw ?? 0, language)}→${formatGw1(story.eveningPeakAfterGw, language)}`,
-            `Evening ${formatGw1(story.eveningPeakBeforeGw ?? 0, language)}→${formatGw1(story.eveningPeakAfterGw, language)}`
-          )
-        : tx(`Nacht ${formatGw1(anchor.point.ohneMw / 1000, language)}`, `Night ${formatGw1(anchor.point.ohneMw / 1000, language)}`);
-    return { ...anchor, n: index + 1, text };
-  });
+  return calloutAnchors(story.points).map((anchor, index) => ({
+    ...anchor,
+    n: index + 1,
+    text: ringCalloutText(anchor.id, anchor.point.ohneMw / 1000, language, {
+      before: story.eveningPeakBeforeGw,
+      after: story.eveningPeakAfterGw,
+    }),
+  }));
 }

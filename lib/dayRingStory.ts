@@ -56,6 +56,45 @@ export function formatSignedGw(value: number, language: AppLanguage): string {
   return body;
 }
 
+/** Absolute evening peak, plus the cut rounded once from the raw peaks. */
+export function eveningPeakStat(
+  beforeGw: number | null,
+  afterGw: number | null,
+  language: AppLanguage
+): { value: string; note: string } | null {
+  if (beforeGw === null || afterGw === null || !Number.isFinite(beforeGw) || !Number.isFinite(afterGw)) {
+    return null;
+  }
+  const signed = formatSignedGw(-onceRoundDeltaGw(beforeGw, afterGw), language);
+  return {
+    value: formatGw1(afterGw, language),
+    note: language === "de" ? `${signed} GW gegenüber ohne Speicher` : `${signed} GW vs. no storage`,
+  };
+}
+
+/** Callout copy. Residual-load values keep the sign from the data. */
+export function ringCalloutText(
+  id: CalloutAnchor["id"] | "load",
+  gw: number,
+  language: AppLanguage,
+  evening?: { before: number | null; after: number | null }
+): string {
+  if (id === "midday") {
+    const shown = formatSignedGw(gw, language);
+    return language === "de" ? `Überschuss ${shown}` : `Surplus ${shown}`;
+  }
+  if (id === "evening" && evening?.after != null) {
+    const before = formatGw1(evening.before ?? gw, language);
+    const after = formatGw1(evening.after, language);
+    return language === "de" ? `Abend ${before}→${after}` : `Evening ${before}→${after}`;
+  }
+  const shown = formatSignedGw(gw, language);
+  if (id === "night") {
+    return language === "de" ? `Nacht ${shown}` : `Night ${shown}`;
+  }
+  return language === "de" ? `Last ${shown}` : `Load ${shown}`;
+}
+
 export function formatBerlinDayLabel(dateBerlin: string): string {
   const [year, month, day] = dateBerlin.split("-");
   return year && month && day ? `${day}.${month}.${year}` : dateBerlin;

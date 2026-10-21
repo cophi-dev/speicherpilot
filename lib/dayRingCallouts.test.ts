@@ -1,4 +1,4 @@
-import { placeCalloutBoxes, rectDistanceToOrigin, ringClearRadius } from "@/lib/dayRingCallouts";
+import { leaderEnd, leaderLength, placeCalloutBoxes, placeLabelBeside, rectDistanceToOrigin, ringClearRadius } from "@/lib/dayRingCallouts";
 import { hourToDeg, RING_CALLOUT_VIEW } from "@/lib/dayRingScale";
 import { calloutAnchors } from "@/lib/dayRingStory";
 import fixture from "@/lib/fixtures/residual-2026-10-11-20.json";
@@ -52,6 +52,20 @@ describe("callout boxes", () => {
     expect(overlaps(boxes[0], boxes[1])).toBe(false);
     expect(overlaps(boxes[0], boxes[2])).toBe(false);
     expect(overlaps(boxes[1], boxes[2])).toBe(false);
+  });
+
+  it("caps a beside-label leader at 24 and drops a label that does not fit", () => {
+    const view = { x: -400, y: -400, w: 800, h: 800 };
+    const marker = { x: 0, y: -300 };
+    const fitted = placeLabelBeside({ angleDeg: 0, w: 40, h: 16 }, marker, 24, 280, view, []);
+    expect(fitted).not.toBeNull();
+    if (!fitted) {
+      return;
+    }
+    expect(leaderLength(marker, leaderEnd(fitted, marker))).toBeLessThanOrEqual(24.5);
+    expect(rectDistanceToOrigin(fitted)).toBeGreaterThanOrEqual(280);
+    const tight = { x: -330, y: -330, w: 660, h: 660 };
+    expect(placeLabelBeside({ angleDeg: 0, w: 180, h: 36 }, { x: 0, y: -300 }, 24, 300, tight, [])).toBeNull();
   });
 
   it("still clears a hot day whose ticks sit further out", () => {

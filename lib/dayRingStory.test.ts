@@ -2,11 +2,13 @@ import { energyColor } from "@/lib/dayRingScale";
 import {
   chargedWouldHave,
   fleetSizeLabel,
+  eveningPeakStat,
   formatGw1,
   formatGwh,
   fullSurplusFactor,
   heroSentence,
   onceRoundDeltaGw,
+  ringCalloutText,
   saturationNote,
   sliderValueText,
   weekdayIndex,
@@ -83,6 +85,21 @@ describe("day ring story on the October 2026 fixture", () => {
       `Ab ×${saturated} ist der ganze Mittagsüberschuss gespeichert. Mehr Speicher bringt an diesem Tag nichts mehr, weil kein Strom übrig ist.`
     );
     expect(sliderValueText(5, stories[5].eveningPeakAfterGw, "de")).toBe("×5, Abendspitze 30,7 GW");
+    expect(eveningPeakStat(x1.eveningPeakBeforeGw, x1.eveningPeakAfterGw, "de")).toEqual({
+      value: "33,5",
+      note: "−4,5 GW gegenüber ohne Speicher",
+    });
+    expect(eveningPeakStat(stories[5].eveningPeakBeforeGw, stories[5].eveningPeakAfterGw, "de")).toEqual({
+      value: "30,7",
+      note: "−7,4 GW gegenüber ohne Speicher",
+    });
+    expect(eveningPeakStat(stories[5].eveningPeakBeforeGw, stories[5].eveningPeakAfterGw, "en")?.note).toBe(
+      "−7.4 GW vs. no storage"
+    );
+    expect(ringCalloutText("midday", -6.6844, "de")).toBe("Überschuss −6,7");
+    expect(ringCalloutText("midday", -6.6844, "en")).toBe("Surplus −6.7");
+    expect(ringCalloutText("night", 3.6976, "de")).toBe("Nacht +3,7");
+    expect(ringCalloutText("night", -2.04, "en")).toBe("Night −2.0");
     expect(weekdayIndex("2026-10-11")).toBe(7);
     expect(heroSentence({ dateBerlin: "2026-10-11", todayKey: "2026-10-21", surplusGwh: x1.surplusGwh }).de).toBe(
       "Am Sonntag hatte der Mittag Strom übrig, den der Abend gebraucht hätte."

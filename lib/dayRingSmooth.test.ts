@@ -1,10 +1,12 @@
-import { ringRadius, RING_R0 } from "@/lib/dayRingScale";
+import { RING_GAP_DEG, ringRadius, RING_R0 } from "@/lib/dayRingScale";
 import {
   polarAreaPath,
   quarterCenterDeg,
   ringTip,
   smoothDrawnSeries,
   smoothPolarSamples,
+  taperRingSamples,
+  taperSpanDeg,
 } from "@/lib/dayRingSmooth";
 
 function day(values: readonly number[]) {
@@ -74,6 +76,24 @@ describe("smooth day ring", () => {
       expect(sample.radius).toBeGreaterThan(ringRadius(0));
       expect(sample.radius).toBeLessThan(ringRadius(20));
     }
+  });
+
+  it("tapers both ends onto the base radius across two quarter-hours and leaves the 4° gap open", () => {
+    const samples = day(Array.from({ length: 96 }, () => 20));
+    const drawn = taperRingSamples(samples, RING_R0);
+    const gap = RING_GAP_DEG / 2;
+    expect(drawn[0].angleDeg).toBeCloseTo(gap, 5);
+    expect(drawn[0].radius).toBeCloseTo(RING_R0, 5);
+    expect(drawn[drawn.length - 1].angleDeg).toBeCloseTo(360 - gap, 5);
+    expect(drawn[drawn.length - 1].radius).toBeCloseTo(RING_R0, 5);
+    const past = drawn.find((sample) => sample.angleDeg > gap + taperSpanDeg() + 0.2 && sample.angleDeg < 180);
+    expect(past?.radius).toBeCloseTo(ringRadius(20), 1);
+    const path = polarAreaPath(drawn, RING_R0);
+    expect(path.startsWith("M ")).toBe(true);
+    expect(path.endsWith("Z")).toBe(true);
+    expect(path.match(/M /g)).toHaveLength(1);
+    expect(path.match(/A /g)).toHaveLength(1);
+    expect(path).not.toMatch(/stroke/i);
   });
 
   it("holds a same-sign day on its own side of the zero circle", () => {

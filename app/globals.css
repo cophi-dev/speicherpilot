@@ -1455,12 +1455,41 @@
   display: block;
   width: 100%;
   height: auto;
+  overflow: visible;
+}
+
+.day-smooth path {
+  shape-rendering: geometricPrecision;
+}
+
+.day-guide {
+  fill: none;
+  stroke: #c5ced6;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.day-ticks {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+.day-ticks text {
+  fill: #c5ced6;
+}
+
+.day-ticks line {
+  stroke: #c5ced6;
 }
 
 .day-hero figure {
   position: relative;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.day-ring-block {
+  width: 100%;
+  max-width: 100%;
 }
 
 .day-sr {
@@ -1665,6 +1694,16 @@
   color: #c5ced6;
 }
 
+.day-stats-note {
+  display: block;
+  margin-top: 6px;
+  color: #c5ced6;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 .day-charged {
   display: flex;
   flex-wrap: wrap;
@@ -1769,7 +1808,7 @@
   display: flex;
   justify-content: space-between;
   font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 12px;
+  font-size: 14px;
   color: #c5ced6;
 }
 
@@ -1865,7 +1904,6 @@
 @media (min-width: 768px) {
   .day-hero { padding: calc(48px + 4rem) 32px 64px; }
   .day-title { font-size: 52px; }
-  .day-callout-list { display: none; }
   .day-methods { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
@@ -2180,7 +2218,8 @@
 }
 
 .day-paper .day-ticks line,
-.day-paper .day-zero {
+.day-paper .day-zero,
+.day-paper .day-guide {
   stroke: rgb(20 24 28 / 55%);
 }
 
@@ -2195,6 +2234,7 @@
 
 .dark .day-paper .day-ticks line,
 .dark .day-paper .day-zero,
+.dark .day-paper .day-guide,
 .dark .day-paper .day-shift {
   stroke: rgb(233 238 242 / 70%);
 }
@@ -2527,6 +2567,12 @@
 .methodik-scales .day-ring-frame, .methodik-scales .day-ring-svg { max-width: none; }
 .methodik-phases .day-ring-frame { margin-inline: 0; }
 .methodik-scales figcaption, .methodik-phases figcaption, .methodik-gauges figcaption { margin-top: 8px; color: #c5ced6; }
+.methodik-scale-short { display: none; }
+@media (max-width: 767px) {
+  .methodik-scale-long { display: none; }
+  .methodik-scale-short { display: inline; }
+  .methodik-scales figcaption { white-space: nowrap; }
+}
 .methodik-layout { display: grid; gap: 28px; min-width: 0; }
 .methodik article, .methodik nav { min-width: 0; max-width: 100%; }
 .methodik article { display: grid; gap: 28px; max-width: 68ch; }

@@ -7,6 +7,7 @@ import { energyColor, kwRadius, polarPoint, RING_R0, ringRadius, utilisationColo
 import {
   booleanRuns,
   conicGradient,
+  inMidnightTaper,
   polarAreaPath,
   polarCapPath,
   polarRibbonPath,
@@ -14,6 +15,7 @@ import {
   ringTip,
   smoothDrawnSeries,
   smoothPolarSamples,
+  taperRingSamples,
   type CurveSample,
 } from "@/lib/dayRingSmooth";
 import type { Highlight, RingMode, RingScale, RingUnit } from "@/components/day-ring/DayRing";
@@ -50,8 +52,8 @@ export function SmoothRing({
   const zero = unit === "kW" ? kwRadius(0) : RING_R0;
   const ohneSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: ohne[index] ?? 0 }));
   const mitSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: mit[index] ?? 0 }));
-  const ohneSamples = smoothPolarSamples(ohneSeries, radiusOf, zero);
-  const mitSamples = smoothPolarSamples(mitSeries, radiusOf, zero);
+  const ohneSamples = taperRingSamples(smoothPolarSamples(ohneSeries, radiusOf, zero), zero);
+  const mitSamples = taperRingSamples(smoothPolarSamples(mitSeries, radiusOf, zero), zero);
   const colorOf = (value: number) =>
     scale === "utilisation" && limit != null && limit > 0 ? utilisationColor(value / limit) : energyColor(value);
   const gradient = conicGradient(ohneSeries.map((sample) => ({ angleDeg: sample.angleDeg, color: colorOf(sample.value) })));
@@ -64,7 +66,7 @@ export function SmoothRing({
       <defs>
         <mask id={`${clipId}-zero`} maskUnits="userSpaceOnUse">
           <rect x={view.x} y={view.y} width={view.w} height={view.h} fill="white" />
-          <path d={area} fill="black" stroke="black" strokeWidth="6" />
+          <path d={area} fill="black" />
         </mask>
         {span ? (
           <clipPath id={`${clipId}-wedge`} clipPathUnits="userSpaceOnUse">
@@ -156,39 +158,32 @@ function RingPaint({
 }) {
   const area = polarAreaPath(ohne, zero);
   const epsilon = unit === "kW" ? 0.2 : 0.02;
-  const charge = booleanRuns(ohne.map((sample, index) => (mit[index]?.value ?? sample.value) > sample.value + epsilon));
-  const discharge = booleanRuns(ohne.map((sample, index) => sample.value > (mit[index]?.value ?? sample.value) + epsilon));
+  const open = (sample: CurveSample) => !inMidnightTaper(sample.angleDeg);
+  const charge = booleanRuns(ohne.map((sample, index) => open(sample) && (mit[index]?.value ?? sample.value) > sample.value + epsilon));
+  const discharge = booleanRuns(ohne.map((sample, index) => open(sample) && sample.value > (mit[index]?.value ?? sample.value) + epsilon));
   const over =
     mode === "netz" && limit != null
-      ? booleanRuns(ohne.map((sample) => sample.value > limit + epsilon))
+      ? booleanRuns(ohne.map((sample) => open(sample) && sample.value > limit + epsilon))
       : [];
   return (
     <g className={mark ? "day-smooth-base" : "day-smooth-hot"} opacity={opacity < 1 ? opacity : undefined}>
       <defs>
-        <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
-          <path d={area} />
-        </clipPath>
+        <mask id={clipId} maskUnits="userSpaceOnUse">
+          <path className={mark ? "day-ring-area" : undefined} d={area} fill="white" shapeRendering="geometricPrecision" />
+        </mask>
       </defs>
-      <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
+      <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} mask={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
         <div style={{ width: "100%", height: "100%", background: gradient }} />
       </foreignObject>
-      <path className={mark ? "day-ring-area" : undefined} d={area} fill="none" />
       {showFlow
         ? charge.map((run) => (
             <path key={`c${run.start}`} d={polarRibbonPath(mit.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1))} fill="#7DFCE6" />
           ))
         : null}
       {showFlow && mode !== "projekt"
-        ? discharge.map((run) => {
-            const outer = ohne.slice(run.start, run.end + 1);
-            const inner = mit.slice(run.start, run.end + 1);
-            return (
-              <g key={`d${run.start}`}>
-                <path d={polarRibbonPath(outer, inner)} fill={`url(#${hatchId})`} />
-                <path d={openStroke(outer)} fill="none" stroke="#FF8A70" strokeWidth="2" strokeDasharray="5 4" />
-              </g>
-            );
-          })
+        ? discharge.map((run) => (
+            <path key={`d${run.start}`} d={polarRibbonPath(ohne.slice(run.start, run.end + 1), mit.slice(run.start, run.end + 1))} fill={`url(#${hatchId})`} />
+          ))
         : null}
       {showFlow && mode === "projekt"
         ? discharge.map((run) => (
@@ -220,11 +215,6 @@ function wedgePath(start: number, end: number, radius: number): string {
   const large = end - start > 180 ? 1 : 0;
   const r = (Math.round(radius * 100) / 100).toString();
   return `M 0 0 L ${from[0]} ${from[1]} A ${r} ${r} 0 ${large} 1 ${to[0]} ${to[1]} Z`;
-}
-
-function openStroke(samples: readonly CurveSample[]): string {
-  if (samples.length < 2) return "";
-  return samples.map((sample, index) => `${index === 0 ? "M" : "L"} ${xyPair(sample.radius, sample.angleDeg).join(" ")}`).join(" ");
 }
 
 function xyPair(radius: number, angleDeg: number): [number, number] {
