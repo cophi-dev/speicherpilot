@@ -16,6 +16,12 @@ export type GlossaryId =
   | "opex"
   | "npv"
   | "day-ahead"
+  | "day-ahead-price"
+  | "regelzone"
+  | "gebotszone"
+  | "wind-auf-see"
+  | "abregelung"
+  | "deutschland-live"
   | "quartier"
   | "ortsnetzstation"
   | "behind-the-meter"
@@ -163,6 +169,54 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Strom laden, wenn der angenommene Preis niedrig ist, und entladen, wenn er hoch ist. Gerechnet auf der 15-Minuten-Reihe, kein echtes Orderbuch.",
       en: "Charge when the assumed price is low and discharge when it is high. Computed on the 15-minute series, not a real order book.",
+    },
+  },
+  {
+    id: "day-ahead-price",
+    term: { de: "Day-Ahead-Preis", en: "Day-ahead price" },
+    text: {
+      de: "Der Preis aus der Auktion für den nächsten Tag, in Euro pro Megawattstunde. Für Deutschland und Luxemburg ist das eine Gebotszone, kein Hamburger Preis.",
+      en: "The price from the auction for the next day, in euro per megawatt-hour. For Germany and Luxembourg that is one bidding zone, not a Hamburg price.",
+    },
+  },
+  {
+    id: "regelzone",
+    term: { de: "Regelzone", en: "Control area" },
+    text: {
+      de: "Das Gebiet eines Übertragungsnetzbetreibers. Hamburg liegt in der Regelzone 50Hertz. Die Zahl gilt für die ganze Zone, unter anderem Berlin, Brandenburg und Sachsen, nicht für die Stadt.",
+      en: "The area of a transmission operator. Hamburg sits in the 50Hertz control area. The figure is the whole area, including Berlin, Brandenburg and Saxony, not the city.",
+    },
+  },
+  {
+    id: "gebotszone",
+    term: { de: "Gebotszone", en: "Bidding zone" },
+    text: {
+      de: "Das Gebiet mit einem gemeinsamen Strompreis. DE-LU ist Deutschland und Luxemburg zusammen. Darin gibt es keinen eigenen Preis für Hamburg oder für den Norden.",
+      en: "The area that shares one electricity price. DE-LU is Germany and Luxembourg together. It has no separate price for Hamburg or for the north.",
+    },
+  },
+  {
+    id: "wind-auf-see",
+    term: { de: "Wind auf See", en: "Offshore wind" },
+    text: {
+      de: "Windparks im Meer. Die Reihe der Regelzone 50Hertz ist an die Ostsee angeschlossen, die Reihe der Regelzone TenneT an die Nordsee. Das ist nicht die Stromlast von Norddeutschland.",
+      en: "Wind farms at sea. The 50Hertz series is connected to the Baltic, the TenneT series to the North Sea. That is not northern Germany’s electricity load.",
+    },
+  },
+  {
+    id: "abregelung",
+    term: { de: "Abregelung", en: "Curtailment" },
+    text: {
+      de: "Erzeugung, die das Netz nicht aufnimmt und die deshalb gedrosselt wird. Redispatch ist der Eingriff, mit dem der Netzbetreiber Kraftwerke hoch- oder herunterfährt. Für heute zeigt diese Seite keine solche Zahl.",
+      en: "Generation the grid does not take, so it is turned down. Redispatch is the grid operator moving plants up or down. This page shows no such figure for today.",
+    },
+  },
+  {
+    id: "deutschland-live",
+    term: { de: "Deutschland", en: "Germany" },
+    text: {
+      de: "Die nationale Reihe. Sie wird nie als Hamburg oder als Norden beschriftet. Fehlt die Erzeugung, bleibt das Feld leer, statt aus 0 GW ein Defizit zu rechnen.",
+      en: "The national series. It is never labelled as Hamburg or as the north. If generation is missing, the field stays empty instead of turning 0 GW into a deficit.",
     },
   },
   {

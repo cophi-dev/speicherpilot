@@ -23,11 +23,11 @@ export const metadata: Metadata = {
     template: "%s | SpeicherPilot",
   },
   description:
-    "SpeicherPilot — battery storage & grid connection planner. Live Germany generation and load from Energy-Charts, storage simulation, and a labelled model estimate.",
+    "SpeicherPilot — battery storage & grid connection planner. Live 50Hertz wind and solar, DE-LU day-ahead prices, the Germany snapshot, and a labelled storage model.",
   openGraph: {
     title: "SpeicherPilot — battery storage & grid connection planner",
     description:
-      "battery storage & grid connection planner. Live Germany power balance from Energy-Charts, with a labelled storage model.",
+      "battery storage & grid connection planner. Live 50Hertz wind and solar, DE-LU day-ahead prices, and a labelled storage model.",
     type: "website",
     url: siteOrigin,
     siteName: "SpeicherPilot",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "SpeicherPilot — battery storage & grid connection planner",
-    description: "battery storage & grid connection planner — live Germany power balance.",
+    description: "battery storage & grid connection planner — live 50Hertz wind and solar, DE-LU prices.",
     ...(xSiteHandle ? { site: `@${xSiteHandle}` as const } : {}),
     ...(xCreatorHandle ? { creator: `@${xCreatorHandle}` as const } : {}),
   },
