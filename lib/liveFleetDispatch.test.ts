@@ -3,6 +3,7 @@ import {
   chooseDispatchDay,
   chooseStorageDay,
   LIVE_DISPATCH_RTE,
+  roundPeakDeltaGw,
   scaleFleet,
   socEdge,
 } from "@/lib/liveFleetDispatch";
@@ -37,6 +38,15 @@ const duck = (hour: number) => {
 };
 
 describe("live fleet dispatch", () => {
+  it("rounds the evening-peak delta once from the unrounded peaks", () => {
+    expect(roundPeakDeltaGw(38.052, 33.54)).toBe(4.5);
+    expect(roundPeakDeltaGw(38.0521, 33.53656)).toBe(4.5);
+    expect(Math.round((Math.round(38.0521 * 10) / 10 - Math.round(33.53656 * 10) / 10) * 10) / 10).toBe(4.6);
+    expect(roundPeakDeltaGw(38.0521, 31.692735)).toBe(6.4);
+    expect(roundPeakDeltaGw(38.052, 30.66)).toBe(7.4);
+    expect(roundPeakDeltaGw(38.0521, 30.66818)).toBe(7.4);
+  });
+
   it("keeps ×1 equal to the cited fleet and scales ×10 on both axes", () => {
     const once = scaleFleet(4_515.54, 7_860.02, 1);
     const ten = scaleFleet(4_515.54, 7_860.02, 10);
