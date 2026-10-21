@@ -13,8 +13,8 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import {
   calloutAnchors,
   chargedWouldHave,
+  fleetSizeLabel,
   formatBerlinDayLabel,
-  formatGwh,
   formatGw1,
   formatSignedGw,
   fullSurplusFactor,
@@ -80,7 +80,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
   const after = story.eveningPeakAfterGw;
   const delta = before !== null && after !== null ? -onceRoundDeltaGw(before, after) : null;
   const hours = surplusHours(story);
-  const charged = chargedWouldHave(story.chargedGwh, language);
+  const charged = chargedWouldHave(story.chargedGwh, 1, language);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
   const kicker = story.dateBerlin === todayKey
     ? tx(`Heute · Deutschland · ${dateLabel}`, `Today · Germany · ${dateLabel}`)
@@ -154,7 +154,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
               <StatTrio
                 items={[
                   { value: formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1), unit: "h", label: tx("Überschuss vor 17 Uhr", "Surplus before 17:00") },
-                  { value: formatGwh(story.chargedGwh, language), unit: "GWh", label: tx("geladen", "charged") },
+                  { value: fleetSizeLabel(1, story.powerMw, story.energyMwh, language), label: tx("Flotte", "Fleet"), compact: true },
                   { value: delta === null ? "—" : formatSignedGw(delta, language), unit: delta === null ? undefined : "GW", label: tx("Abendspitze", "Evening peak") },
                 ]}
               />
