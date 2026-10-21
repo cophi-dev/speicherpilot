@@ -1390,6 +1390,9 @@
   position: absolute;
   left: 50%;
   top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: max-content;
   max-width: none;
   transform: translate(-50%, -50%);
@@ -1404,11 +1407,13 @@
 }
 
 .day-center-caption {
-  max-width: 12ch;
-  margin: 4px auto 0;
+  min-width: 0;
+  max-width: none;
+  margin: 4px 0 0;
   font-size: 13px;
   line-height: 1.25;
   color: #c5ced6;
+  overflow-wrap: anywhere;
 }
 
 .day-callout {

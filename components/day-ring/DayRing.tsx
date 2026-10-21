@@ -5,7 +5,9 @@ import { useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore
 import { leaderEnd, placeCalloutBoxes, ringClearRadius, type CalloutBox } from "@/lib/dayRingCallouts";
 import {
   boxFitsCircle,
+  centerCaptionPx,
   centerLimitPx,
+  centerWrapPx,
   compactHourLabel,
   compactRingView,
   energyColor,
@@ -146,27 +148,39 @@ export function DayRing({
     const fit = () => {
       const svg = frame.querySelector(".day-ring-svg");
       const centerEl = frame.querySelector<HTMLElement>(".day-center");
-      const figure = centerEl?.querySelector<HTMLElement>(".day-center-figure, .num");
-      if (!svg || !centerEl || !figure) {
+      if (!svg || !centerEl) {
+        return;
+      }
+      const figure = centerEl.querySelector<HTMLElement>(".day-center-figure, .num");
+      const caption = centerEl.querySelector<HTMLElement>(".day-center-caption");
+      const sized = figure ?? caption;
+      if (!sized) {
         return;
       }
       const svgWidth = svg.getBoundingClientRect().width;
       const limit = centerLimitPx(innerEdge, svgWidth, view.w, 12);
       const apply = (size: number) => {
-        figure.style.fontSize = `${size}px`;
+        sized.style.fontSize = `${size}px`;
+        if (caption && figure && caption !== figure) {
+          caption.style.fontSize = `${centerCaptionPx(size)}px`;
+          caption.style.maxWidth = `${figure.getBoundingClientRect().width}px`;
+        } else if (caption) {
+          caption.style.maxWidth = `${centerWrapPx(limit)}px`;
+        }
       };
-      if (limit <= 4) {
-        apply(8);
-        return;
-      }
-      let low = 8;
-      let high = 28;
       const fits = (size: number) => {
         apply(size);
         const box = centerEl.getBoundingClientRect();
         return boxFitsCircle(box.width, box.height, limit);
       };
-      if (fits(high)) {
+      const max = 28;
+      if (fits(max)) {
+        return;
+      }
+      let low = 1;
+      let high = max;
+      if (!fits(low)) {
+        apply(low);
         return;
       }
       while (high - low > 0.25) {

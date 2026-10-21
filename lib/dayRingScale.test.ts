@@ -1,6 +1,8 @@
 import {
   boxFitsCircle,
+  centerCaptionPx,
   centerLimitPx,
+  centerWrapPx,
   compactHourLabel,
   compactRingView,
   COMPACT_FRAME_PX,
@@ -68,6 +70,10 @@ describe("day ring scale", () => {
     expect(limit).toBeCloseTo(hole * (720 / 1520) - 12, 5);
     expect(boxFitsCircle(80, 28, limit)).toBe(true);
     expect(boxFitsCircle(limit * 2, 4, limit)).toBe(false);
+    expect(centerCaptionPx(22)).toBeCloseTo(13.64, 5);
+    expect(centerCaptionPx(8)).toBeLessThan(8);
+    expect(centerWrapPx(limit)).toBeCloseTo(limit * 1.6, 2);
+    expect(centerWrapPx(limit)).toBeLessThan(limit * 2);
   });
 
   it("clamps colour outside −7..38 GW and hits the published stops", () => {

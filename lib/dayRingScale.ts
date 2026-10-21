@@ -127,6 +127,16 @@ export function centerLimitPx(innerEdgeUser: number, svgWidth: number, viewWidth
   return innerEdgeUser * (svgWidth / viewWidth) - clearancePx;
 }
 
+/** Caption size tracks the centre value, so the value — not the caption — sets the box width. */
+export function centerCaptionPx(figurePx: number): number {
+  return round2(Math.max(0, figurePx) * 0.62);
+}
+
+/** Wrap width, in px, for a caption that has to sit inside the clearance circle. */
+export function centerWrapPx(limitPx: number): number {
+  return round2(Math.max(0, limitPx) * 1.6);
+}
+
 /** True when the box's corners lie inside a circle of `radiusPx`. */
 export function boxFitsCircle(width: number, height: number, radiusPx: number): boolean {
   if (radiusPx <= 0) {
