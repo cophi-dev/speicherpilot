@@ -85,6 +85,12 @@ describe("day ring scale", () => {
     expect((HOUR_LABEL_PAD_PX * 2) / COMPACT_FRAME_PX).toBeGreaterThan(1 - RING_OF_FRAME);
   });
 
+  it("keeps a miniature frame at 92% so the methodik rings do not shrink to fit a 12px label", () => {
+    const outer = ringRadius(38);
+    const view = compactRingView(outer, 167);
+    expect(ringDiskPx(outer, 167, view.w)).toBeCloseTo(167 * RING_OF_FRAME, 1);
+  });
+
   it("keeps the centre box 12px inside the inner circle", () => {
     const hole = socRingGeometry("GW").innerEdge;
     const limit = centerLimitPx(hole, 720, 1520, 12);

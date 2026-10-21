@@ -163,8 +163,9 @@ export const STEIN = "#C5CED6";
 export function compactRingView(outerRadius: number, framePx: number = COMPACT_FRAME_PX): { x: number; y: number; w: number; h: number } {
   const outer = Math.max(1, outerRadius);
   const byScale = outer / RING_OF_FRAME;
-  const padFrac = (2 * HOUR_LABEL_PAD_PX) / Math.max(1, framePx);
-  const byLabels = padFrac < 0.85 ? outer / (1 - padFrac) : outer + HOUR_LABEL_PAD_PX;
+  // Miniatures stay at 92%. The four hour labels need the extra margin from the phone frame upward.
+  const padFrac = framePx >= 320 ? (2 * HOUR_LABEL_PAD_PX) / Math.max(1, framePx) : 0;
+  const byLabels = padFrac > 0 && padFrac < 0.85 ? outer / (1 - padFrac) : byScale;
   const half = round2(Math.max(byScale, byLabels));
   const side = round2(half * 2);
   return { x: -half, y: -half, w: side, h: side };
