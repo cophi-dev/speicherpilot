@@ -140,7 +140,12 @@ export function chargedWouldHave(
   return `${parts.before}${parts.amount}${parts.after}`;
 }
 
-/** “×5 = 22,6 GW · 39,3 GWh” from the scaled fleet the model actually ran. */
+/**
+ * One fleet notation.
+ * ×1 stays at the rounded stand (4,5 GW · 7,9 GWh).
+ * A multiple shows the scaled model value, then the two-decimal basis it was multiplied from,
+ * so 5 × 4,52 GW is visibly not 5 × 4,5.
+ */
 export function fleetSizeLabel(factor: number, powerMw: number, energyMwh: number, language: AppLanguage): string {
   const powerGw = powerMw / 1000;
   const energyGwh = energyMwh / 1000;
@@ -148,7 +153,12 @@ export function fleetSizeLabel(factor: number, powerMw: number, energyMwh: numbe
   const energyDigits = Math.abs(energyGwh) >= 1 ? 1 : 2;
   const power = formatQuantity(powerGw, language, powerDigits);
   const energy = formatQuantity(energyGwh, language, energyDigits);
-  return `×${factor} = ${power} GW · ${energy} GWh`;
+  const shown = `×${factor}: ${power} GW · ${energy} GWh`;
+  if (factor === 1) {
+    return shown;
+  }
+  const basis = formatQuantity(powerGw / factor, language, 2);
+  return `${shown} (${factor} × ${basis} GW)`;
 }
 
 /** Smallest factor at which charged energy covers the day’s surplus. Null when nothing was stored. */

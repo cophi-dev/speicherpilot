@@ -2,8 +2,8 @@ import { curveCatmullRom, curveMonotoneX, line, type CurveFactory } from "d3-sha
 
 import { polarPoint, segmentAngles, segmentIndexForHour } from "@/lib/dayRingScale";
 
-/** Morph duration for a factor change and a perspective change. */
-export const RING_MORPH_MS = 500;
+/** Morph duration for a factor change. Ease-in-out, and the first frame is the next animation frame. */
+export const RING_MORPH_MS = 450;
 
 export type CurveSample = {
   angleDeg: number;

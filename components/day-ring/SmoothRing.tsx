@@ -227,12 +227,10 @@ function useMorphedSeries(values: number[]): number[] {
     const started = performance.now();
     let frame = requestAnimationFrame(function tick(now: number) {
       const t = Math.min(1, (now - started) / RING_MORPH_MS);
-      const eased = easeInOut(t);
-      const next = from.map((value, index) => value + (target[index] - value) * eased);
+      const next = t >= 1 ? target.slice() : from.map((value, index) => value + ((target[index] ?? value) - value) * easeInOut(t));
       fromRef.current = next;
       setShown(next);
       if (t < 1) frame = requestAnimationFrame(tick);
-      else fromRef.current = target;
     });
     return () => cancelAnimationFrame(frame);
   }, [signature]);

@@ -106,15 +106,28 @@ describe("day ring raw numbers", () => {
     expect(container.querySelector(".day-ring-area")?.getAttribute("d")).toBe(start);
     expect(container.querySelector('.day-ring-tip[data-raw="30.0"] title')?.textContent).toBe("30.0");
 
+    const svg = container.querySelector(".day-ring-svg");
+    expect(container.querySelector(".day-ring-frame")?.classList.contains("is-intro")).toBe(true);
+
+    now = 16;
+    act(() => {
+      frames.splice(0).forEach((frame) => frame(now));
+    });
+    const early = container.querySelector(".day-ring-area")?.getAttribute("d");
+    expect(early).not.toBe(start);
+    expect(now).toBeLessThan(50);
+
     now = 250;
     act(() => {
       frames.splice(0).forEach((frame) => frame(now));
     });
     const mid = container.querySelector(".day-ring-area")?.getAttribute("d");
-    expect(mid).not.toBe(start);
+    expect(mid).not.toBe(early);
     expect(container.querySelector('.day-ring-tip[data-raw="30.0"] title')?.textContent).toBe("30.0");
+    expect(container.querySelector(".day-ring-svg")).toBe(svg);
+    expect(container.querySelector(".day-ring-frame")?.classList.contains("is-intro")).toBe(true);
 
-    now = 500;
+    now = 450;
     act(() => {
       frames.splice(0).forEach((frame) => frame(now));
     });
@@ -124,5 +137,79 @@ describe("day ring raw numbers", () => {
     window.cancelAnimationFrame = previousCancel;
     window.matchMedia = previousMatch;
     jest.spyOn(performance, "now").mockRestore();
+  });
+
+  it("lands on the latest series when a new value arrives before the morph ends", () => {
+    const frames: FrameRequestCallback[] = [];
+    const previousRaf = window.requestAnimationFrame;
+    const previousMatch = window.matchMedia;
+    let now = 0;
+    window.matchMedia = (query: string) =>
+      ({
+        matches: false,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() {
+          return false;
+        },
+      }) as unknown as MediaQueryList;
+    window.requestAnimationFrame = (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    };
+    jest.spyOn(performance, "now").mockImplementation(() => now);
+    const props = { label: "Tag", description: "Rohwerte", showSoc: false, showShift: false, showHourTicks: false };
+    const { rerender, container } = render(<DayRing points={series(2000)} {...props} />);
+    rerender(<DayRing points={series(30000)} {...props} />);
+    now = 40;
+    act(() => {
+      frames.splice(0).forEach((frame) => frame(now));
+    });
+    rerender(<DayRing points={series(50000)} {...props} />);
+    now = 40 + 450;
+    act(() => {
+      frames.splice(0).forEach((frame) => frame(now));
+    });
+    const landed = container.querySelector(".day-ring-area")?.getAttribute("d");
+
+    window.matchMedia = (query: string) =>
+      ({
+        matches: query.includes("reduce"),
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() {
+          return false;
+        },
+      }) as unknown as MediaQueryList;
+    const jumped = render(<DayRing points={series(50000)} {...props} />);
+    expect(jumped.container.querySelector(".day-ring-area")?.getAttribute("d")).toBe(landed);
+    expect(container.querySelector('.day-ring-tip[data-raw="50.0"] title')?.textContent).toBe("50.0");
+
+    window.requestAnimationFrame = previousRaf;
+    window.matchMedia = previousMatch;
+    jest.spyOn(performance, "now").mockRestore();
+  });
+
+  it("jumps to the final path when reduced motion is requested", () => {
+    const previousMatch = window.matchMedia;
+    window.matchMedia = (query: string) =>
+      ({
+        matches: query.includes("reduce"),
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() {
+          return false;
+        },
+      }) as unknown as MediaQueryList;
+    const props = { label: "Tag", description: "Rohwerte", showSoc: false, showShift: false, showHourTicks: false };
+    const { rerender, container } = render(<DayRing points={series(2000)} {...props} />);
+    const start = container.querySelector(".day-ring-area")?.getAttribute("d");
+    rerender(<DayRing points={series(30000)} {...props} />);
+    expect(container.querySelector(".day-ring-area")?.getAttribute("d")).not.toBe(start);
+    expect(container.querySelector('.day-ring-tip[data-raw="30.0"] title')?.textContent).toBe("30.0");
+    window.matchMedia = previousMatch;
   });
 });

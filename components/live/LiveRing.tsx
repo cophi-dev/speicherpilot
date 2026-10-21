@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChargedLine } from "@/components/day-ring/ChargedLine";
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
+import { MonoNumber } from "@/components/day-ring/MonoNumber";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { LineDayChart } from "@/components/day-ring/LineDayChart";
@@ -38,43 +39,18 @@ import {
   type LiveDispatchStory,
 } from "@/lib/liveFleetDispatch";
 
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduced(media.matches);
-    apply();
-    media.addEventListener("change", apply);
-    return () => media.removeEventListener("change", apply);
-  }, []);
-  return reduced;
-}
-
-function lerpPoints(from: LiveDispatchPoint[], to: LiveDispatchPoint[], elapsedMs: number): LiveDispatchPoint[] {
-  const t = Math.min(1, elapsedMs / 600);
-  return to.map((point, index) => {
-    const prev = from[index] ?? point;
-    const local = point.hour < 17 ? Math.min(1, t / (2 / 3)) : Math.min(1, Math.max(0, (t - 1 / 3) / (2 / 3)));
-    const mix = (start: number, end: number) => start + (end - start) * local;
-    return {
-      hour: point.hour,
-      ohneMw: point.ohneMw,
-      mitMw: mix(prev.mitMw, point.mitMw),
-      chargeMw: mix(prev.chargeMw, point.chargeMw),
-      dischargeMw: mix(prev.dischargeMw, point.dischargeMw),
-      soc: mix(prev.soc, point.soc),
-    };
-  });
-}
-
 export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const factor = parseLiveFactor(searchParams.get("x"));
+  const queryFactor = parseLiveFactor(searchParams.get("x"));
+  const [pendingFactor, setPendingFactor] = useState<LiveDispatchFactor | null>(null);
+  if (pendingFactor !== null && pendingFactor === queryFactor) {
+    setPendingFactor(null);
+  }
+  const factor = pendingFactor ?? queryFactor;
   const view = parseRingView(searchParams.get("ansicht"));
-  const reduced = usePrefersReducedMotion();
 
   const stories = useMemo(() => {
     if (!dispatch.day || !dispatch.fleet) {
@@ -94,29 +70,6 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
   }, [dispatch.day, dispatch.fallback, dispatch.fleet]);
 
   const story = stories?.[factor] ?? null;
-  const [shown, setShown] = useState<LiveDispatchPoint[]>(() => story?.points ?? []);
-  const shownRef = useRef(shown);
-  shownRef.current = shown;
-
-  useEffect(() => {
-    if (!story) {
-      return;
-    }
-    const from = shownRef.current;
-    if (reduced || from.length !== story.points.length || from === story.points) {
-      setShown(story.points);
-      return;
-    }
-    const started = performance.now();
-    let frame = requestAnimationFrame(function tick(now: number) {
-      const elapsed = now - started;
-      setShown(lerpPoints(from, story.points, elapsed));
-      if (elapsed < 600) {
-        frame = requestAnimationFrame(tick);
-      }
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [story, reduced]);
 
   function replaceQuery(key: string, value: string | null) {
     const params = new URLSearchParams(searchParams.toString());
@@ -139,14 +92,17 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
           <LiveRingBody
             story={story}
             stories={stories}
-            shown={shown.length === story.points.length ? shown : story.points}
+            shown={story.points}
             fleet={dispatch.fleet}
             factor={factor}
             view={view}
             language={language}
             saturationIndex={saturationIndex}
             saturated={saturated}
-            onFactor={(next) => replaceQuery("x", String(next))}
+            onFactor={(next) => {
+              setPendingFactor(next);
+              replaceQuery("x", String(next));
+            }}
             onView={(next) => replaceQuery("ansicht", next === "uhr" ? null : next)}
           />
         ) : (
@@ -247,8 +203,8 @@ function LiveRingBody({
                 center={
                   before !== null && after !== null ? (
                     <>
-                      <p className="day-center-figure num">
-                        {formatGw1(before, language)} → {formatGw1(after, language)}
+                      <p className="day-center-figure">
+                        <MonoNumber value={formatGw1(before, language)} /> → <MonoNumber value={formatGw1(after, language)} />
                       </p>
                       <p className="day-center-caption">
                         GW {tx("Abendspitze", "evening peak")} · ×{factor}
@@ -313,11 +269,6 @@ function LiveRingBody({
             items={[
               { value: hourLabel, unit: "h", label: tx("Überschuss vor 17 Uhr", "Surplus before 17:00") },
               {
-                value: fleetSizeLabel(factor, story.powerMw, story.energyMwh, language),
-                label: tx("Flotte", "Fleet"),
-                compact: true,
-              },
-              {
                 value: delta === null ? "—" : formatSignedGw(delta, language),
                 unit: delta === null ? undefined : "GW",
                 label: tx("Abendspitze", "Evening peak"),
@@ -331,7 +282,7 @@ function LiveRingBody({
                 <li key={step}>
                   <button type="button" aria-pressed={step === factor} onClick={() => onFactor(step)}>
                     <span>×{step}</span>
-                    <span className="num">{peak === null ? "—" : formatGw1(peak, language)}</span>
+                    {peak === null ? <span className="num">—</span> : <MonoNumber value={formatGw1(peak, language)} />}
                   </button>
                 </li>
               );
@@ -342,14 +293,12 @@ function LiveRingBody({
             <span>
               {tx("Großspeicher", "Large storage")} (
               <a href={fleet.href}>{fleetName}</a>
-              {tx(`, Stand ${stand}`, `, as of ${stand}`)})
+              {tx(`, Stand ${stand}`, `, as of ${stand}`)}
+              ): {fleetSizeLabel(factor, story.powerMw, story.energyMwh, language)}
+              {fleet.source === "energy-charts"
+                ? tx(". Battery Charts ist gerade nicht geladen.", ". Battery Charts did not load.")
+                : null}
             </span>
-          </p>
-          <p className="day-source">
-            {formatQuantity(fleet.powerGw, language, 2)} GW · {formatQuantity(fleet.energyGwh, language, 2)} GWh
-            {fleet.source === "energy-charts"
-              ? tx(". Battery Charts ist gerade nicht geladen.", ". Battery Charts did not load.")
-              : null}
           </p>
         </div>
       </div>
@@ -378,8 +327,10 @@ function LiveRingBody({
             <GlossaryTip id="ladezustand" language={language} />
           </h2>
           <p>
-            {formatQuantity(fleet.powerGw, language, 2)} GW · {formatQuantity(fleet.energyGwh, language, 2)} GWh
-            {tx(`. Stand ${stand}. Der innere Ring ist der Ladezustand im Modell, keine Messung.`, `. As of ${stand}. The inner ring is the state of charge in the model, not a measurement.`)}
+            {tx(
+              `Stand ${stand}. Der innere Ring ist der Ladezustand im Modell, keine Messung.`,
+              `As of ${stand}. The inner ring is the state of charge in the model, not a measurement.`
+            )}
           </p>
         </section>
       </div>

@@ -144,7 +144,15 @@
 
   .num {
     font-family: var(--font-plex-mono), ui-monospace, monospace;
-    font-variant-numeric: tabular-nums slashed-zero;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "kern" 1;
+    letter-spacing: 0;
+  }
+
+  .num-sep {
+    font-variant-numeric: proportional-nums;
+    font-feature-settings: "tnum" 0, "kern" 1;
+    letter-spacing: 0;
   }
 
   .paper-grid {
@@ -1611,7 +1619,7 @@
 
 .day-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin: 0;
 }
@@ -1701,7 +1709,15 @@
   margin: 0;
   background: transparent;
   appearance: none;
+  -moz-appearance: none;
   cursor: pointer;
+}
+
+.day-slider input::-webkit-slider-runnable-track,
+.day-slider input::-moz-range-track {
+  height: 10px;
+  background: transparent;
+  border: none;
 }
 
 .day-slider input::-webkit-slider-thumb {
@@ -1714,6 +1730,8 @@
 }
 
 .day-slider input::-moz-range-thumb {
+  -moz-appearance: none;
+  appearance: none;
   width: 22px;
   height: 22px;
   border: 2px solid #0a0f14;
@@ -1846,12 +1864,12 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .day-ring-svg {
+  .day-ring-frame.is-intro .day-ring-svg {
     --ring-draw: 1;
     mask-image: conic-gradient(from 0deg, #000 calc(var(--ring-draw) * 1turn), transparent 0);
     animation: day-ring-draw 1200ms cubic-bezier(0.4, 0, 0.2, 1) both;
   }
-  .day-callout {
+  .day-ring-frame.is-intro .day-callout {
     animation: day-callout-in 400ms 1200ms both;
   }
 }
@@ -2125,6 +2143,19 @@
 }
 
 /* site-v2 */
+.site-loading {
+  min-height: 100vh;
+}
+
+.site-loading .site-skel-copy {
+  min-height: 360px;
+}
+
+.site-loading .day-ring-frame {
+  width: min(100%, 640px);
+  aspect-ratio: 1;
+}
+
 .site-toggle {
   display: flex;
   width: min(100%, 420px);

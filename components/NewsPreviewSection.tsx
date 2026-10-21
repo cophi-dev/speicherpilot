@@ -25,9 +25,23 @@ const responseSchema = z.object({
   items: z.array(newsItemSchema),
 });
 
-function sameCopy(left: string, right: string): boolean {
-  const fold = (value: string) => value.replace(/\s+/g, " ").trim().toLocaleLowerCase("de");
-  return fold(left) === fold(right);
+function foldNews(value: string): string {
+  return value.normalize("NFKC").replace(/\s+/g, " ").trim().toLocaleLowerCase("de");
+}
+
+/** Drop a trailing " - Source" so a title and its teaser can be compared without the publisher. */
+function withoutSourceSuffix(value: string, sourceName: string): string {
+  const text = foldNews(value);
+  const source = foldNews(sourceName);
+  const suffix = source ? ` - ${source}` : "";
+  if (suffix && text.endsWith(suffix)) {
+    return text.slice(0, -suffix.length).trim();
+  }
+  return text;
+}
+
+function sameCopy(left: string, right: string, sourceName = ""): boolean {
+  return withoutSourceSuffix(left, sourceName) === withoutSourceSuffix(right, sourceName);
 }
 
 type NewsPreviewSectionProps = {
@@ -167,12 +181,12 @@ export default function NewsPreviewSection({
                     {title}
                   </a>
                 </h2>
-                {!compact && summary && !sameCopy(summary, title) ? (
+                {!compact && summary && !sameCopy(summary, title, sourceName) ? (
                   <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{summary}</p>
                 ) : null}
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">
+                  {sourceName ? <p className="news-source">{sourceName}</p> : null}
                   <p>
-                    {sourceName} ·{" "}
                     {new Date(item.publishedAtIso).toLocaleString(language === "de" ? "de-DE" : "en-GB")}
                   </p>
                   <a
