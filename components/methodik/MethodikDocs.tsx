@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { useLanguage } from "@/components/language-context";
+import { GLOSSARY } from "@/lib/glossary";
+import { READABILITY_CONFIG } from "@/lib/readability";
 
 const SECTIONS = [
   { id: "ueberblick", de: "Überblick", en: "Overview" },
@@ -15,6 +17,7 @@ const SECTIONS = [
   { id: "live", de: "Live Deutschland", en: "Live Germany" },
   { id: "quellen", de: "Quellen", en: "Sources" },
   { id: "grenzen", de: "Grenzen", en: "Limits" },
+  { id: "glossar", de: "Glossar", en: "Glossary" },
   { id: "changelog", de: "Changelog", en: "Changelog" },
 ] as const;
 
@@ -124,6 +127,7 @@ grid-serving, same battery and same limit:
           <p>{tx("Nutzen = Leistungspreis-Ersparnis + Arbeitspreis auf der Peak-Shaving-Energie + Arbitrage zum synthetischen oder übergebenen Preis + Änderung der Einspeisung − 1,5 % CAPEX als OPEX.", "Benefit = demand-charge saving + retail energy on the peak-shaving throughput + arbitrage at the synthetic or supplied price + the change in export − 1.5% of CAPEX as OPEX.")}</p>
           <p className="mt-3">{tx("Amortisation = CAPEX / Jahresnutzen, solange der Diskont 0 ist. NPV = −CAPEX + Summe der diskontierten Jahresnutzen über die Lebensdauer. Derselbe Jahresnutzen, kein zweites Preisszenario. Standard-CAPEX 500 €/kWh ist eine Annahme, kein Angebot.", "Payback = CAPEX / annual benefit while the discount rate is 0. NPV = −CAPEX + the sum of discounted annual benefits over the lifetime. The same annual benefit, not a second price scenario. The default CAPEX of 500 €/kWh is an assumption, not a quote.")}</p>
           <p className="mt-3">{tx("Die Arbitrage nutzt 15-Minuten-Preise. Ohne übergebene Reihe ist das ein synthetisches Band in Day-Ahead-Form, kein Intraday-Orderbuch. Erlösstapelung (Regelenergie, Kapazitätsmärkte) wird nicht bepreist und steht als Platzhalter ohne Euro-Betrag.", "Arbitrage uses 15-minute prices. Without a supplied series that band is synthetic and shaped like day-ahead, not an intraday order book. Revenue stacking (balancing, capacity markets) is not priced and is shown as a placeholder with no euro amount.")}</p>
+          <p className="mt-3">{tx(`Die Ampel an der Amortisation ist eine Lesehilfe in READABILITY_CONFIG, keine Bankregel und kein Tarif: grün bis ${READABILITY_CONFIG.paybackGreenMaxYears} Jahre, gelb bis ${READABILITY_CONFIG.paybackYellowMaxYears} Jahre, rot darüber oder wenn das Geld innerhalb der Lebensdauer nicht zurückkommt.`, `The payback traffic light is a reading aid in READABILITY_CONFIG, not a bank rule and not a tariff: green up to ${READABILITY_CONFIG.paybackGreenMaxYears} years, yellow up to ${READABILITY_CONFIG.paybackYellowMaxYears} years, red beyond that or when the money does not come back inside the lifetime.`)}</p>
         </Section>
         <Section id="anschluss" n="§6" title={tx("Netzanschluss-Check", "Connection check")}>
           <p>{tx("OK unter 90 % der Anschlussleistung, nahe am Limit ab 90 %, über dem Limit wenn Bezug oder Rückspeisung die Leistung überschreitet. Die Checkliste verlangt zusätzlich 10 % Reserve und null Überschreitungsstunden. Angefragt ist die höhere der beiden Spitzen ohne Speicher, verfügbar ist die eingegebene Anschlussleistung.", "OK below 90% of the connection, near the limit from 90%, over the limit when import or export exceeds capacity. The checklist also asks for 10% reserve and zero hours above the limit. Requested power is the higher of the two peaks without storage. Available power is the connection capacity you entered.")}</p>
@@ -165,17 +169,29 @@ grid-serving, same battery and same limit:
         </Section>
         <Section id="grenzen" n="§10" title={tx("Grenzen und Haftung", "Limits and liability")}>
           <ul className="list-disc pl-5">
-            <li>{tx("Beispielprofile und das Day-Ahead-Band sind synthetisch und als BEISPIELDATEN markiert.", "Example profiles and the day-ahead band are synthetic and marked as example data.")}</li>
+            <li>{tx("Beispielprofile, darunter der fiktive Supermarkt in Hamburg, und das Day-Ahead-Band sind synthetisch und als BEISPIELDATEN markiert.", "Example profiles, including the fictional Hamburg supermarket, and the day-ahead band are synthetic and marked as example data.")}</li>
             <li>{tx("Keine Netzentgelte, keine Steuern, keine Finanzierung, keine Degradation.", "No grid tariffs beyond the inputs, no tax, no financing, no degradation.")}</li>
             <li>{tx("Keine Beschaffungs- oder Anlagenberatung.", "Not procurement or plant advice.")}</li>
             <li>{tx("VDE-AR-N 4105, 4110 und 4120 sind Quellenverweise. Die Spannungsschwellen 135 kW und 20 MW sind Planungshinweise in diesem Rechner, keine Rechtsauskunft.", "VDE-AR-N 4105, 4110 and 4120 are source references. The 135 kW and 20 MW voltage thresholds are planning hints in this calculator, not legal advice.")}</li>
             <li>{tx("Die Einschätzung netzdienlich ist kein Befund des Netzbetreibers. Fair Grid ist keine Zuteilung. Die flexible Anschlussvereinbarung im Rechner ist kein Vertrag.", "The grid-support estimate is not a grid-operator finding. Fair Grid is not an allocation. The flexible connection agreement in this calculator is not a contract.")}</li>
           </ul>
         </Section>
-        <Section id="changelog" n="§11" title={tx("Changelog", "Changelog")}>
+        <Section id="glossar" n="§11" title={tx("Glossar", "Glossary")}>
+          <p>{tx("Dieselben kurzen Erklärungen stehen als Hinweis an den Begriffen im Rechner.", "The same short explanations appear as hints on the terms in the calculator.")}</p>
+          <dl className="mt-4 space-y-4">
+            {GLOSSARY.map((entry) => (
+              <div key={entry.id}>
+                <dt className="font-medium">{language === "de" ? entry.term.de : entry.term.en}</dt>
+                <dd className="text-muted-foreground">{language === "de" ? entry.text.de : entry.text.en}</dd>
+              </div>
+            ))}
+          </dl>
+        </Section>
+        <Section id="changelog" n="§12" title={tx("Changelog", "Changelog")}>
           <p className="num">2026-10-20 — {tx("Control-Room-Oberfläche, Standort-Rechner, Live unter /live.", "Control-room interface, site calculator, live view at /live.")}</p>
           <p className="num mt-2">2026-10-20 — {tx("Zwei Sichten auf /site: Projektierer und Netzbetreiber, ein Rechenkern. NPV, Spannungshinweis, netzorientierter Betrieb, flexibles Anschluss-Szenario.", "Two views on /site: developer and grid operator, one calculation core. NPV, voltage hint, grid-oriented operation, flexible-connection scenario.")}</p>
           <p className="num mt-2">2026-10-20 — {tx("Einschätzung netzdienlich statt Befund (BGH EnVR 1/24). Hinweis über 1,5 MVA, Fair Grid. Szenario nach § 17 Abs. 2b EnWG.", "Grid-support estimate instead of a finding (BGH EnVR 1/24). Flag above 1.5 MVA, Fair Grid. Scenario under section 17 (2b) EnWG.")}</p>
+          <p className="num mt-2">2026-10-21 — {tx("Klare Sprache, Glossar, Ampel als Lesehilfe, Beispiel Supermarkt in Hamburg.", "Plain language, glossary, traffic-light reading aid, Hamburg supermarket example.")}</p>
         </Section>
       </article>
     </div>
