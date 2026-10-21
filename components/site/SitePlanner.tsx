@@ -36,10 +36,8 @@ import {
 import { axis, common, cssVar, grid, limitLine, paybackDomainMax, paybackLabelX, series, tooltip } from "@/lib/chart-theme";
 import {
   GRID_CONNECTION_CONFIG,
-  connectionRequestKw,
   defaultPlannerEconomics,
   exampleProfile,
-  exceedsFairGrid,
   manualAnnualProfile,
   parseLoadProfileCsv,
   planSite,
@@ -893,9 +891,6 @@ export function SitePlanner() {
                   </p>
                   <span className="num text-[12px]">{statusLabel[plan.connection]}</span>
                 </div>
-                {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, draft.limitKw)) ? (
-                  <p className="mt-2 text-sm text-warning">{tx("Über 1,5 MVA · Fair Grid. Hinweis im Netzbetreiber-Check, keine Zuteilung.", "Above 1.5 MVA · Fair Grid. See the grid-operator check. Not an allocation.")}</p>
-                ) : null}
               </article>
               </div>
               {seenNetz && marketPlan && servingPlan ? (
@@ -1180,18 +1175,6 @@ function DsoView({
         <p className="mt-4 text-sm text-muted-foreground">
           {tx("Trafo-Planungswert", "Transformer planning rating")} {formatQuantity(plan.transformerLoadBeforePct * 100, language, 0)} % → {formatQuantity(plan.transformerLoadAfterPct * 100, language, 0)} % {tx("von", "of")} {formatQuantity(plan.transformerRatingKw, language, 0)} kW. {tx("Kein gemessener Transformator.", "Not a measured transformer.")}
         </p>
-        {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, draft.limitKw)) ? (
-          <div className="mt-4 border border-warning p-3">
-            <p className="num text-[12px] tracking-[0.08em] text-warning uppercase">{tx("Über 1,5 MVA · Fair Grid", "Above 1.5 MVA · Fair Grid")}</p>
-            <p className="mt-1 text-sm">
-              {tx(
-                "Hamburger Energienetze vergeben neue Hoch- und Mittelspannungsanschlüsse über 1,5 MVA im Fair-Grid-Verfahren in Runden, angekündigt für das zweite Halbjahr 2026. Hinweis, keine Zuteilung. Vergleich in kW bei cos φ = 1, nicht als gemessene Scheinleistung.",
-                "Hamburger Energienetze allocates new high- and medium-voltage connections above 1.5 MVA in Fair Grid rounds, announced for the second half of 2026. A hint, not an allocation. Compared in kW at cos φ = 1, not as measured apparent power."
-              )}
-            </p>
-            <a className="mt-2 inline-block text-sm underline underline-offset-[3px]" href="/methodik#anschluss">{tx("Quellen", "Sources")}</a>
-          </div>
-        ) : null}
         <div className="mt-4 border border-border p-3">
           <label className="flex items-center justify-between gap-3 text-sm font-medium">
             {tx("Flexible Anschlussvereinbarung, Szenario", "Flexible connection agreement, scenario")}

@@ -18,12 +18,11 @@ import {
   RING_R0,
   RING_VIEW,
   ringRadius,
-  sectorPath,
   segmentAngles,
   segmentIndexForHour,
   socRingGeometry,
-  utilisationColor,
 } from "@/lib/dayRingScale";
+import { SmoothRing } from "@/components/day-ring/SmoothRing";
 import { quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
@@ -34,7 +33,7 @@ export type RingCallout = CalloutAnchor & {
   text: string;
 };
 
-type Highlight = "night" | "midday" | "evening" | null;
+export type Highlight = "night" | "midday" | "evening" | null;
 export type RingUnit = "GW" | "kW";
 export type RingScale = "energy" | "utilisation";
 export type RingMode = "live" | "netz" | "projekt";
@@ -239,23 +238,23 @@ export function DayRing({
             <line x1="0" y1="0" x2="0" y2="8" stroke="#FF8A70" strokeWidth="2" />
           </pattern>
         </defs>
-        <circle className="day-zero" cx="0" cy="0" r={unit === "kW" ? kwRadius(0) : RING_R0} fill="none" />
         {empty ? (
-          <circle className="day-empty-ring" cx="0" cy="0" r={unit === "kW" ? kwRadius(40) : 280} fill="none" stroke="#C5CED6" strokeWidth="2" />
+          <>
+            <circle className="day-empty-ring" cx="0" cy="0" r={unit === "kW" ? kwRadius(40) : 280} fill="none" stroke="#C5CED6" strokeWidth="2" />
+            <circle className="day-zero" cx="0" cy="0" r={unit === "kW" ? kwRadius(0) : RING_R0} fill="none" />
+          </>
         ) : (
-          points.map((point) => (
-            <FlowBand
-              key={point.hour}
-              point={point}
-              hatchId={hatchId}
-              dim={dimmed(point.hour, highlight)}
-              showFlow={showFlow}
-              unit={unit}
-              scale={scale}
-              limit={limit}
-              mode={mode}
-            />
-          ))
+          <SmoothRing
+            points={points}
+            unit={unit}
+            scale={scale}
+            limit={limit}
+            mode={mode}
+            showFlow={showFlow}
+            highlight={highlight}
+            hatchId={hatchId}
+            view={view}
+          />
         )}
         {!empty && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
         {!empty && highlight ? <InkArc points={points} highlight={highlight} radiusOf={radiusOf} unit={unit} /> : null}
@@ -288,56 +287,6 @@ export function DayRing({
       ))}
       {center ? <div className="day-center">{center}</div> : null}
     </div>
-  );
-}
-
-export function FlowBand({
-  point,
-  hatchId,
-  dim,
-  showFlow,
-  unit = "GW",
-  scale = "energy",
-  limit = null,
-  mode = "live",
-}: {
-  point: LiveDispatchPoint;
-  hatchId: string;
-  dim: boolean;
-  showFlow: boolean;
-  unit?: RingUnit;
-  scale?: RingScale;
-  limit?: number | null;
-  mode?: RingMode;
-}) {
-  const angles = segmentAngles(segmentIndexForHour(point.hour));
-  const ohne = unit === "kW" ? point.ohneMw : point.ohneMw / 1000;
-  const mit = unit === "kW" ? point.mitMw : point.mitMw / 1000;
-  const radiusOf = (value: number) => (unit === "kW" ? kwRadius(value) : ringRadius(value));
-  const zero = unit === "kW" ? kwRadius(0) : RING_R0;
-  const colorOf = (value: number) =>
-    scale === "utilisation" && limit != null && limit > 0 ? utilisationColor(value / limit) : energyColor(value);
-  const base = sectorPath(0, 0, zero, radiusOf(ohne), angles.start, angles.end);
-  const opacity = dim ? 0.3 : 1;
-  const charging = mit > ohne + (unit === "kW" ? 0.2 : 0.02);
-  const discharging = ohne > mit + (unit === "kW" ? 0.2 : 0.02);
-  const flow = sectorPath(0, 0, radiusOf(ohne), radiusOf(mit), angles.start, angles.end);
-  const overLimit = unit === "kW" && limit != null && ohne > limit + 0.2;
-  const cap = overLimit ? sectorPath(0, 0, radiusOf(limit), radiusOf(ohne), angles.start, angles.end) : "";
-  const covered = mode === "projekt" && discharging;
-  return (
-    <g opacity={opacity} data-hour={point.hour} data-gw={ohne.toFixed(3)}>
-      <path d={base} fill={colorOf(ohne)} />
-      {showFlow && charging ? <path d={flow} fill="#7DFCE6" /> : null}
-      {showFlow && discharging && mode !== "projekt" ? (
-        <>
-          <path d={flow} fill={`url(#${hatchId})`} />
-          <path d={arcEdge(radiusOf(ohne), angles.start, angles.end)} fill="none" stroke="#FF8A70" strokeWidth="2" strokeDasharray="5 4" />
-        </>
-      ) : null}
-      {showFlow && covered ? <path d={flow} fill="#7DFCE6" opacity="0.85" /> : null}
-      {mode === "netz" && overLimit ? <path d={cap} fill={`url(#${hatchId})`} /> : null}
-    </g>
   );
 }
 

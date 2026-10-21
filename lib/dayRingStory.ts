@@ -166,8 +166,8 @@ export function fullSurplusFactor(
 
 export function saturationNote(factor: LiveDispatchFactor, language: AppLanguage): string {
   return language === "de"
-    ? `Ab ×${factor} ist der Überschuss dieses Tages voll gespeichert.`
-    : `From ×${factor} this day’s surplus is fully stored.`;
+    ? `Ab ×${factor} ist der ganze Mittagsüberschuss gespeichert. Mehr Speicher bringt an diesem Tag nichts mehr, weil kein Strom übrig ist.`
+    : `From ×${factor} the whole midday surplus is stored. More storage does nothing more on this day, because no electricity is left.`;
 }
 
 export function sliderValueText(factor: LiveDispatchFactor, afterGw: number | null, language: AppLanguage): string {

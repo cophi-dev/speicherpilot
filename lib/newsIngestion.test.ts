@@ -64,4 +64,41 @@ describe("getCuratedNewsFeed", () => {
     const shared = result.items.filter((item) => item.url === "https://example.com/shared");
     expect(shared).toHaveLength(1);
   });
+
+  it("decodes non-breaking spaces instead of leaving the entity in the teaser", async () => {
+    const rssBody = makeRss([
+      makeItem({
+        title: "Germany battery storage project",
+        link: "https://example.com/nbsp",
+        pubDate: "Wed, 08 May 2026 10:00:00 GMT",
+        description: "Speicher&nbsp;&nbsp;am Netz &#160;heute",
+      }),
+    ]);
+    (globalThis as { fetch: typeof fetch }).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => rssBody,
+    }) as unknown as typeof fetch;
+
+    const result = await getCuratedNewsFeed(5);
+    const item = result.items.find((entry) => entry.url === "https://example.com/nbsp");
+    expect(item?.summary).toBe("Speicher am Netz heute");
+    expect(item?.summary).not.toContain("&nbsp;");
+  });
+
+  it("drops the double-escaped non-breaking spaces Google puts before the publisher", async () => {
+    const rssBody = makeRss([
+      `<item><title>Germany battery storage project - pv magazine</title><link>https://example.com/google</link><pubDate>Wed, 08 May 2026 10:00:00 GMT</pubDate><description>&lt;a href="https://news.google.com/rss/articles/x"&gt;Germany battery storage project&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;font color="#6f6f6f"&gt;pv magazine&lt;/font&gt;</description><source url="https://www.pv-magazine.com">pv magazine</source></item>`,
+    ]);
+    (globalThis as { fetch: typeof fetch }).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => rssBody,
+    }) as unknown as typeof fetch;
+
+    const result = await getCuratedNewsFeed(5);
+    const item = result.items.find((entry) => entry.url === "https://example.com/google");
+    expect(item?.sourceName).toBe("pv magazine");
+    expect(item?.summary).toBe("Germany battery storage project");
+    expect(JSON.stringify(item)).not.toContain("&nbsp;");
+    expect(JSON.stringify(item)).not.toContain("&amp;");
+  });
 });

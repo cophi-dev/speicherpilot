@@ -7,6 +7,7 @@ import {
   fullSurplusFactor,
   heroSentence,
   onceRoundDeltaGw,
+  saturationNote,
   sliderValueText,
   weekdayIndex,
 } from "@/lib/dayRingStory";
@@ -72,7 +73,12 @@ describe("day ring story on the October 2026 fixture", () => {
     expect(formatGw1(stories[10].eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
     expect(formatGwh(stories[5].chargedGwh, "de")).toBe("22,8");
     expect(formatGwh(stories[10].chargedGwh, "de")).toBe("22,8");
-    expect(fullSurplusFactor(stories)).toBe(5);
+    const saturated = fullSurplusFactor(stories);
+    expect(saturated).toBe(5);
+    expect(saturated).toBeLessThan(10);
+    expect(saturationNote(saturated ?? 1, "de")).toBe(
+      `Ab ×${saturated} ist der ganze Mittagsüberschuss gespeichert. Mehr Speicher bringt an diesem Tag nichts mehr, weil kein Strom übrig ist.`
+    );
     expect(sliderValueText(5, stories[5].eveningPeakAfterGw, "de")).toBe("×5, Abendspitze 30,7 GW");
     expect(weekdayIndex("2026-10-11")).toBe(7);
     expect(heroSentence({ dateBerlin: "2026-10-11", todayKey: "2026-10-21", surplusGwh: x1.surplusGwh }).de).toBe(

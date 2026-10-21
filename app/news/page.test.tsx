@@ -16,8 +16,8 @@ describe("News page", () => {
       </LanguageContext.Provider>
     );
 
-    expect(screen.getByRole("heading", { name: /BESS Market Updates/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /What changed for storage is written here in one sentence/i })).toBeInTheDocument();
+    expect(screen.getByText("Chronicle")).toBeInTheDocument();
     expect(screen.getByTestId("news-preview-section")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Back to briefing/i })).toHaveAttribute("href", "/");
   });
 });

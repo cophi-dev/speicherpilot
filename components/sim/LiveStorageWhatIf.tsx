@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { DispatchDayChart, niceChartScale, SimLegend, type ChartAnnotation, type ChartSample } from "@/components/sim/DispatchDayChart";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { fullSurplusFactor, saturationNote } from "@/lib/dayRingStory";
 import {
   buildLiveDispatchStory,
   LIVE_DISPATCH_FACTORS,
@@ -63,18 +64,6 @@ function formatGwh(value: number, language: AppLanguage) {
   return formatQuantity(value, language, digits);
 }
 
-/** Smallest multiple after which a larger fleet takes in no more surplus. */
-function saturationFactor(stories: Record<LiveDispatchFactor, LiveDispatchStory>): LiveDispatchFactor | null {
-  const factors = LIVE_DISPATCH_FACTORS;
-  for (let index = 0; index < factors.length - 1; index += 1) {
-    const charged = stories[factors[index]].chargedGwh;
-    const capped = factors.slice(index + 1).every((step) => stories[step].chargedGwh <= charged + 0.05);
-    if (capped && charged > 0.05) {
-      return factors[index];
-    }
-  }
-  return null;
-}
 
 function lerpPoints(from: LiveDispatchPoint[], to: LiveDispatchPoint[], amount: number): LiveDispatchPoint[] {
   return to.map((point, index) => {
@@ -193,7 +182,7 @@ export function LiveStorageWhatIf({ dispatch }: { dispatch: LiveDispatchInput })
   }
 
   const stop = STOPS.find((item) => item.factor === factor) ?? STOPS[2];
-  const saturated = stories ? saturationFactor(stories) : null;
+  const saturated = stories ? fullSurplusFactor(stories) : null;
   const samples = toSamples(shown.length > 0 ? shown : story?.points ?? []);
 
   return (
@@ -291,10 +280,7 @@ function LiveChart({
   const satPct = satStop ? (satStop.pos / 9) * 100 : 100;
   const satNote =
     saturation != null && saturationChargedGwh != null && factor >= saturation
-      ? tx(
-          `ab ×${saturation} ist der ganze Überschuss (${formatGwh(saturationChargedGwh, language)} GWh) gespeichert`,
-          `from ×${saturation} the whole surplus (${formatGwh(saturationChargedGwh, language)} GWh) is stored`
-        )
+      ? saturationNote(saturation, language)
       : null;
   const deltaValue = evening && before != null && after != null ? roundPeakDeltaGw(before, after) : 0;
   const deltaSign = deltaValue > 0 ? "−" : deltaValue < 0 ? "+" : "";
@@ -418,7 +404,7 @@ function LiveChart({
               <p className="sim-hero num">
                 {beforeLabel} → {afterLabel} GW
               </p>
-              {satNote ? <p className="sim-sat num">{satNote}</p> : null}
+              {satNote ? <p className="sim-sat">{satNote}</p> : null}
               <p className="sim-delta num">
                 {deltaSign}
                 {formatQuantity(Math.abs(deltaValue), language, Number.isInteger(deltaValue) ? 0 : 1)} GW {tx("Abendspitze", "evening peak")}

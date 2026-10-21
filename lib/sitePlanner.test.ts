@@ -313,7 +313,7 @@ describe("sitePlanner", () => {
     expect(raised.status).toBe("new-peak");
   });
 
-  it("flags connection requests above the Fair Grid threshold and keeps the cap share in config", () => {
+  it("keeps an internal connection flag out of the UI and the cap share in config", () => {
     expect(GRID_CONNECTION_CONFIG.fairGridAboveMva).toBe(1.5);
     expect(GRID_CONNECTION_CONFIG.flexibleCapFraction).toBeGreaterThan(0);
     expect(GRID_CONNECTION_CONFIG.flexibleCapFraction).toBeLessThan(1);
