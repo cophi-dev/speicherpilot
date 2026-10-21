@@ -12,6 +12,7 @@ import {
   compactRingView,
   energyColor,
   hourToDeg,
+  kwRadius,
   polarPoint,
   RING_CALLOUT_VIEW,
   RING_R0,
@@ -21,6 +22,7 @@ import {
   segmentAngles,
   segmentIndexForHour,
   socRingGeometry,
+  utilisationColor,
 } from "@/lib/dayRingScale";
 import { quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
@@ -33,6 +35,9 @@ export type RingCallout = CalloutAnchor & {
 };
 
 type Highlight = "night" | "midday" | "evening" | null;
+export type RingUnit = "GW" | "kW";
+export type RingScale = "energy" | "utilisation";
+export type RingMode = "live" | "netz" | "projekt";
 
 const NARROW_QUERY = "(max-width: 767px)";
 
@@ -67,6 +72,12 @@ export function DayRing({
   showHourTicks = true,
   chargedGwh = 0,
   center = null,
+  unit = "GW",
+  scale = "energy",
+  limit = null,
+  mode = "live",
+  empty = false,
+  spokeHour = null,
 }: {
   points: LiveDispatchPoint[];
   label: string;
@@ -79,18 +90,31 @@ export function DayRing({
   showHourTicks?: boolean;
   chargedGwh?: number;
   center?: ReactNode;
+  unit?: RingUnit;
+  scale?: RingScale;
+  /** Connection limit in the ring unit. Draws the limit circle. */
+  limit?: number | null;
+  mode?: RingMode;
+  empty?: boolean;
+  spokeHour?: number | null;
 }) {
   const titleId = useId();
   const descId = useId();
   const hatchId = useId();
   const frameRef = useRef<HTMLDivElement>(null);
   const narrow = useNarrowFrame();
-  const maxGw = points.reduce((max, point) => Math.max(max, point.ohneMw / 1000, point.mitMw / 1000), 0);
-  const outer = Math.max(ringRadius(maxGw), RING_R0);
+  const magnitude = (point: LiveDispatchPoint) => (unit === "kW" ? point.ohneMw : point.ohneMw / 1000);
+  const maxValue = points.reduce((max, point) => Math.max(max, magnitude(point), unit === "kW" ? point.mitMw : point.mitMw / 1000), 0);
+  const radiusOf = (value: number) => (unit === "kW" ? kwRadius(value) : ringRadius(value));
+  const maxGw = unit === "kW" ? 0 : maxValue;
+  const outer = unit === "kW"
+    ? Math.max(radiusOf(Math.max(maxValue, limit ?? 0)), kwRadius(0))
+    : Math.max(ringRadius(maxGw), RING_R0);
   const wideView = callouts.length > 0 ? RING_CALLOUT_VIEW : RING_VIEW;
   const view = useMemo(() => (narrow ? compactRingView(outer) : wideView), [narrow, outer, wideView]);
   const hourLabel = narrow ? compactHourLabel(outer, view.w / 2) : null;
-  const innerEdge = socRingGeometry().innerEdge;
+  const innerEdge = socRingGeometry(unit, mode === "projekt").innerEdge;
+  const clearRadius = unit === "kW" ? radiusOf(Math.max(maxValue, limit ?? 0)) + 78 : ringClearRadius(maxGw);
   const layoutKey = callouts.map((callout) => `${callout.id}:${callout.point.hour}:${callout.text}`).join("|");
   const fallback = placeCalloutBoxes(
     callouts.map((callout) => ({
@@ -98,7 +122,7 @@ export function DayRing({
       w: view.w * 0.28,
       h: 280,
     })),
-    ringClearRadius(maxGw),
+    clearRadius,
     view
   );
   const [measured, setMeasured] = useState<{ key: string; boxes: CalloutBox[] } | null>(null);
@@ -129,7 +153,7 @@ export function DayRing({
           w: node.offsetWidth / scale,
           h: node.offsetHeight / scale,
         })),
-        ringClearRadius(maxGw),
+        clearRadius,
         view
       );
       setMeasured((prev) => (prev?.key === layoutKey && sameBoxes(prev.boxes, next) ? prev : { key: layoutKey, boxes: next }));
@@ -138,7 +162,7 @@ export function DayRing({
     const observer = new ResizeObserver(measure);
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [callouts, layoutKey, maxGw, view]);
+  }, [callouts, clearRadius, layoutKey, view]);
 
   useLayoutEffect(() => {
     const frame = frameRef.current;
@@ -215,24 +239,43 @@ export function DayRing({
             <line x1="0" y1="0" x2="0" y2="8" stroke="#FF8A70" strokeWidth="2" />
           </pattern>
         </defs>
-        <circle className="day-zero" cx="0" cy="0" r={RING_R0} fill="none" />
-        {points.map((point) => (
-          <FlowBand
-            key={point.hour}
-            point={point}
-            hatchId={hatchId}
-            dim={dimmed(point.hour, highlight)}
-            showFlow={showFlow}
+        <circle className="day-zero" cx="0" cy="0" r={unit === "kW" ? kwRadius(0) : RING_R0} fill="none" />
+        {empty ? (
+          <circle className="day-empty-ring" cx="0" cy="0" r={unit === "kW" ? kwRadius(40) : 280} fill="none" stroke="#C5CED6" strokeWidth="2" />
+        ) : (
+          points.map((point) => (
+            <FlowBand
+              key={point.hour}
+              point={point}
+              hatchId={hatchId}
+              dim={dimmed(point.hour, highlight)}
+              showFlow={showFlow}
+              unit={unit}
+              scale={scale}
+              limit={limit}
+              mode={mode}
+            />
+          ))
+        )}
+        {!empty && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
+        {!empty && highlight ? <InkArc points={points} highlight={highlight} radiusOf={radiusOf} unit={unit} /> : null}
+        {!empty && showSoc ? <SocRing points={points} bold={mode === "projekt"} unit={unit} /> : null}
+        {!empty && showShift && chargedGwh > 0.05 ? <ShiftArrow points={points} /> : null}
+        {!empty && spokeHour != null ? <Spoke hour={spokeHour} radius={radiusOf(Math.max(maxValue, limit ?? 0)) + 18} /> : null}
+        {empty && !showHourTicks ? null : (
+          <HourTicks
+            showHours={showHourTicks}
+            labelRadius={
+              hourLabel
+                ? hourLabel.labelRadius
+                : unit === "kW"
+                  ? radiusOf(Math.max(maxValue, limit ?? 0, 40)) + 36
+                  : ringRadius(Math.max(52, maxGw + 6))
+            }
+            labelGap={hourLabel ? hourLabel.labelGap : 28}
+            fontSize={hourLabel ? hourLabel.fontSize : 28}
           />
-        ))}
-        {showSoc ? <SocRing points={points} /> : null}
-        {showShift && chargedGwh > 0.05 ? <ShiftArrow points={points} /> : null}
-        <HourTicks
-          showHours={showHourTicks}
-          labelRadius={hourLabel ? hourLabel.labelRadius : ringRadius(Math.max(52, maxGw + 6))}
-          labelGap={hourLabel ? hourLabel.labelGap : 28}
-          fontSize={hourLabel ? hourLabel.fontSize : 28}
-        />
+        )}
         {callouts.map((callout) => (
           <CalloutMarker key={callout.id} callout={callout} />
         ))}
@@ -253,36 +296,113 @@ export function FlowBand({
   hatchId,
   dim,
   showFlow,
+  unit = "GW",
+  scale = "energy",
+  limit = null,
+  mode = "live",
 }: {
   point: LiveDispatchPoint;
   hatchId: string;
   dim: boolean;
   showFlow: boolean;
+  unit?: RingUnit;
+  scale?: RingScale;
+  limit?: number | null;
+  mode?: RingMode;
 }) {
   const angles = segmentAngles(segmentIndexForHour(point.hour));
-  const ohneGw = point.ohneMw / 1000;
-  const mitGw = point.mitMw / 1000;
-  const base = sectorPath(0, 0, RING_R0, ringRadius(ohneGw), angles.start, angles.end);
-  const opacity = dim ? 0.2 : 1;
-  const charging = mitGw > ohneGw + 0.02;
-  const discharging = ohneGw > mitGw + 0.02;
-  const flow = sectorPath(0, 0, ringRadius(ohneGw), ringRadius(mitGw), angles.start, angles.end);
+  const ohne = unit === "kW" ? point.ohneMw : point.ohneMw / 1000;
+  const mit = unit === "kW" ? point.mitMw : point.mitMw / 1000;
+  const radiusOf = (value: number) => (unit === "kW" ? kwRadius(value) : ringRadius(value));
+  const zero = unit === "kW" ? kwRadius(0) : RING_R0;
+  const colorOf = (value: number) =>
+    scale === "utilisation" && limit != null && limit > 0 ? utilisationColor(value / limit) : energyColor(value);
+  const base = sectorPath(0, 0, zero, radiusOf(ohne), angles.start, angles.end);
+  const opacity = dim ? 0.3 : 1;
+  const charging = mit > ohne + (unit === "kW" ? 0.2 : 0.02);
+  const discharging = ohne > mit + (unit === "kW" ? 0.2 : 0.02);
+  const flow = sectorPath(0, 0, radiusOf(ohne), radiusOf(mit), angles.start, angles.end);
+  const overLimit = unit === "kW" && limit != null && ohne > limit + 0.2;
+  const cap = overLimit ? sectorPath(0, 0, radiusOf(limit), radiusOf(ohne), angles.start, angles.end) : "";
+  const covered = mode === "projekt" && discharging;
   return (
-    <g opacity={opacity} data-hour={point.hour} data-gw={ohneGw.toFixed(3)}>
-      <path d={base} fill={energyColor(ohneGw)} />
+    <g opacity={opacity} data-hour={point.hour} data-gw={ohne.toFixed(3)}>
+      <path d={base} fill={colorOf(ohne)} />
       {showFlow && charging ? <path d={flow} fill="#7DFCE6" /> : null}
-      {showFlow && discharging ? (
+      {showFlow && discharging && mode !== "projekt" ? (
         <>
           <path d={flow} fill={`url(#${hatchId})`} />
-          <path d={arcEdge(ringRadius(ohneGw), angles.start, angles.end)} fill="none" stroke="#FF8A70" strokeWidth="2" strokeDasharray="5 4" />
+          <path d={arcEdge(radiusOf(ohne), angles.start, angles.end)} fill="none" stroke="#FF8A70" strokeWidth="2" strokeDasharray="5 4" />
         </>
       ) : null}
+      {showFlow && covered ? <path d={flow} fill="#7DFCE6" opacity="0.85" /> : null}
+      {mode === "netz" && overLimit ? <path d={cap} fill={`url(#${hatchId})`} /> : null}
     </g>
   );
 }
 
-export function SocRing({ points }: { points: LiveDispatchPoint[] }) {
-  const { radius, width } = socRingGeometry();
+function LimitCircle({
+  kw,
+  mode,
+  radiusOf,
+}: {
+  kw: number;
+  mode: RingMode;
+  radiusOf: (value: number) => number;
+}) {
+  const dotted = mode === "projekt";
+  return (
+    <circle
+      className={dotted ? "day-cap-target" : "day-limit"}
+      cx="0"
+      cy="0"
+      r={radiusOf(kw)}
+      fill="none"
+      stroke={dotted ? "#C5CED6" : "#FF5A4E"}
+      strokeWidth={dotted ? 2 : 3}
+      strokeDasharray={dotted ? "2 7" : "10 7"}
+    />
+  );
+}
+
+function InkArc({
+  points,
+  highlight,
+  radiusOf,
+  unit,
+}: {
+  points: LiveDispatchPoint[];
+  highlight: Exclude<Highlight, null>;
+  radiusOf: (value: number) => number;
+  unit: RingUnit;
+}) {
+  const active = points.filter((point) => !dimmed(point.hour, highlight));
+  if (active.length === 0) {
+    return null;
+  }
+  const value = (point: LiveDispatchPoint) => (unit === "kW" ? point.ohneMw : point.ohneMw / 1000);
+  const outer = Math.max(...active.map((point) => radiusOf(value(point))));
+  const start = segmentAngles(segmentIndexForHour(active[0].hour)).start;
+  const last = active[active.length - 1];
+  const end = segmentAngles(segmentIndexForHour(last.hour)).end;
+  return (
+    <path
+      className="day-ink-arc"
+      d={arcEdge(outer + 8, start, end)}
+      fill="none"
+      strokeWidth="6"
+      vectorEffect="non-scaling-stroke"
+    />
+  );
+}
+
+function Spoke({ hour, radius }: { hour: number; radius: number }) {
+  const at = polarPoint(0, 0, radius, hourToDeg(hour) + 1.8);
+  return <line className="day-spoke" x1="0" y1="0" x2={at.x} y2={at.y} stroke="#E9EEF2" strokeWidth="2" />;
+}
+
+export function SocRing({ points, bold = false, unit = "GW" }: { points: LiveDispatchPoint[]; bold?: boolean; unit?: RingUnit }) {
+  const { radius, width } = socRingGeometry(unit, bold);
   return (
     <g className="day-soc" fill="none" strokeWidth={width} strokeLinecap="butt">
       {points.map((point) => {
@@ -291,7 +411,7 @@ export function SocRing({ points }: { points: LiveDispatchPoint[] }) {
           <path
             key={point.hour}
             d={arcEdge(radius, angles.start, angles.end)}
-            stroke={energyColor(point.ohneMw / 1000)}
+            stroke={unit === "kW" ? "#1E9CB0" : energyColor(point.ohneMw / 1000)}
             opacity={0.25 + 0.75 * point.soc}
           />
         );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
@@ -191,11 +191,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
           <p className="day-paper-lead">
             {tx("Dieselbe Residuallast, die Flotte mal zwei, mal fünf, mal zehn.", "The same residual load, with the fleet times two, five and ten.")}
           </p>
-          <ol className="day-factor-grid">
-            {LIVE_DISPATCH_FACTORS.map((factor) => (
-              <FactorMini key={factor} factor={factor} story={stories[factor]} language={language} saturated={saturated} />
-            ))}
-          </ol>
+          <FactorMorph stories={stories} language={language} saturated={saturated} />
           <div className="day-doors">
             <Link className="day-door" href={sitePath("projekt")}>
               <span className="day-kicker">{tx("Für Projektierer", "For developers")}</span>
@@ -245,40 +241,55 @@ function Movement({
   );
 }
 
-function FactorMini({
-  factor,
-  story,
+function FactorMorph({
+  stories,
   language,
   saturated,
 }: {
-  factor: LiveDispatchFactor;
-  story: LiveDispatchStory;
+  stories: Record<LiveDispatchFactor, LiveDispatchStory>;
   language: AppLanguage;
   saturated: LiveDispatchFactor | null;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const [factor, setFactor] = useState<LiveDispatchFactor>(1);
+  const story = stories[factor];
   const after = story.eveningPeakAfterGw;
-  const names: Record<LiveDispatchFactor, { de: string; en: string }> = {
-    1: { de: "Großspeicher heute", en: "Large storage today" },
-    2: { de: "Zweimal so viel", en: "Twice as much" },
-    5: { de: "Fünfmal so viel", en: "Five times as much" },
-    10: { de: "Zehnmal so viel", en: "Ten times as much" },
-  };
   return (
-    <li>
+    <div className="day-morph">
+      <div className="day-factor-switch" role="group" aria-label={tx("Flottenfaktor", "Fleet factor")}>
+        {LIVE_DISPATCH_FACTORS.map((item) => (
+          <button
+            key={item}
+            type="button"
+            aria-pressed={item === factor}
+            onClick={() => setFactor(item)}
+          >
+            ×{item}
+          </button>
+        ))}
+      </div>
       <DayRing
         points={story.points}
-        label={`${names[factor].de}, ×${factor}`}
+        label={tx(`Großspeicher ×${factor}`, `Large storage ×${factor}`)}
         description={tx("Abendspitze mit dieser Flotte", "Evening peak with this fleet")}
         showShift={false}
         showHourTicks={false}
-        chargedGwh={story.chargedGwh}
+        chargedGwh={0}
+        center={<span className="num">{after === null ? "—" : formatGw1(after, language)}</span>}
       />
-      <p className="num">×{factor}</p>
-      <h3>{language === "de" ? names[factor].de : names[factor].en}</h3>
-      <p className="num day-factor-peak">{after === null ? "—" : `${formatGw1(after, language)} GW`}</p>
-      {saturated === factor ? <p>{saturationNote(factor, language)}</p> : null}
-    </li>
+      <dl className="day-factor-values">
+        {LIVE_DISPATCH_FACTORS.map((item) => {
+          const peak = stories[item].eveningPeakAfterGw;
+          return (
+            <div key={item} className={item === factor ? "is-active" : undefined}>
+              <dt>×{item}</dt>
+              <dd className="num">{peak === null ? "—" : `${formatGw1(peak, language)} GW`}</dd>
+            </div>
+          );
+        })}
+      </dl>
+      {saturated !== null && factor >= saturated ? <p className="day-factor-note">{saturationNote(saturated, language)}</p> : null}
+    </div>
   );
 }
 

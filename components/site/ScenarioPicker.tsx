@@ -43,8 +43,8 @@ const ITEMS: {
     badgeEn: "PUBLIC FIGURES",
     projektDe: "Flower, Bergedorf: öffentliche Eckdaten. Kein Euro, der Vertrag ist nicht veröffentlicht.",
     projektEn: "Flower, Bergedorf: published figures. No euro amount, the contract is not published.",
-    netzDe: "Flower, Bergedorf: Speicher vor dem Zähler. Laden in vollen Netzstunden und § 17 Abs. 2b.",
-    netzEn: "Flower, Bergedorf: front-of-meter storage. Charging in heavy grid hours, and section 17 (2b).",
+    netzDe: "Flower, Bergedorf: Speicher vor dem Zähler. Kein veröffentlichter Tagesverlauf.",
+    netzEn: "Flower, Bergedorf: front-of-meter storage. No published daily profile.",
   },
 ];
 

@@ -46,6 +46,9 @@ export type DispatchDayChartProps = {
   language: AppLanguage;
   /** Pull labels inside the plot and apart from each other. */
   fitLabels?: boolean;
+  /** Colour each step of the uncontrolled line. Null keeps the default stroke. */
+  segmentColor?: (value: number) => string;
+  markerHour?: number | null;
 };
 
 const BAND = 32;
@@ -135,6 +138,8 @@ export function DispatchDayChart({
   intro,
   language,
   fitLabels = false,
+  segmentColor,
+  markerHour = null,
 }: DispatchDayChartProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -310,7 +315,27 @@ export function DispatchDayChart({
                 />
               );
             })}
-            <path d={step("ohne")} className="l-ohne" clipPath={`url(#c-${rawId})`} />
+            {segmentColor
+              ? samples.map((sample, index) => {
+                  const slot = slotHours(samples, index);
+                  const y = yAt(sample.ohne);
+                  return (
+                    <line
+                      key={`seg-${sample.hour}`}
+                      x1={xAt(sample.hour)}
+                      x2={xAt(sample.hour + slot)}
+                      y1={y}
+                      y2={y}
+                      stroke={segmentColor(sample.ohne)}
+                      strokeWidth="2.5"
+                      clipPath={`url(#c-${rawId})`}
+                    />
+                  );
+                })
+              : <path d={step("ohne")} className="l-ohne" clipPath={`url(#c-${rawId})`} />}
+            {markerHour != null ? (
+              <line className="l-spoke" x1={xAt(markerHour)} x2={xAt(markerHour)} y1={PT} y2={PT + plotH} />
+            ) : null}
             {limit != null ? (
               <>
                 <line x1={padLeft} x2={width - padRight} y1={yAt(limit)} y2={yAt(limit)} className="l-lim" />
