@@ -164,16 +164,21 @@ export function SiteShell({ children }: SiteShellProps) {
     const update = () => {
       const hero = document.querySelector(".day-hero");
       if (!hero) {
-        setOverHero(false);
         return;
       }
       const rect = hero.getBoundingClientRect();
       setOverHero(rect.bottom > 64 && rect.top < window.innerHeight);
     };
     update();
+    const main = document.getElementById("inhalt");
+    const mutations = new MutationObserver(update);
+    if (main) {
+      mutations.observe(main, { childList: true, subtree: true });
+    }
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
     return () => {
+      mutations.disconnect();
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
