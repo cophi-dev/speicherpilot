@@ -5,7 +5,7 @@ import { DayClock } from "@/components/live/DayClock";
 import { LiveLineChart } from "@/components/live/LiveCharts";
 import { NorthSouthChart } from "@/components/live/NorthSouthChart";
 import { useLanguage } from "@/components/language-context";
-import { LiveStorageWhatIf } from "@/components/sim/LiveStorageWhatIf";
+import { LiveRing } from "@/components/live/LiveRing";
 import { NewsList } from "@/components/sim/NewsList";
 import type { LiveDispatchInput } from "@/lib/liveFleetDispatch";
 import { formatQuantity } from "@/lib/formatQuantity";
@@ -30,7 +30,17 @@ function lightMark(light: PriceLight) {
   return "▲";
 }
 
-export function LiveView({ board, clock, dispatch }: { board: LiveBoard; clock: DayClockView | null; dispatch: LiveDispatchInput }) {
+export function LiveView({
+  board,
+  clock,
+  dispatch,
+  todayKey,
+}: {
+  board: LiveBoard;
+  clock: DayClockView | null;
+  dispatch: LiveDispatchInput;
+  todayKey: string;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const lead = copy(language, board.lead);
@@ -41,9 +51,10 @@ export function LiveView({ board, clock, dispatch }: { board: LiveBoard; clock: 
   const cards = board.modules.filter((entry) => !kpiIds.has(entry.id) || entry.id === "hertz" || entry.id === "price" || entry.id === "zones");
 
   return (
-    <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-8">
-      <LiveStorageWhatIf dispatch={dispatch} />
-      <section className="mt-16" aria-labelledby="live-today">
+    <>
+      <LiveRing dispatch={dispatch} todayKey={todayKey} />
+      <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-8">
+      <section aria-labelledby="live-today">
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Live", "Live")}</p>
       <h2 id="live-today" className="mt-2 max-w-[18ch] text-[32px] leading-tight font-medium md:text-[44px]">{tx("Was heute los ist", "What is happening today")}</h2>
       <p className="mt-4 max-w-[68ch] text-lg">{lead}</p>
@@ -96,7 +107,8 @@ export function LiveView({ board, clock, dispatch }: { board: LiveBoard; clock: 
       </section>
 
       <NewsList />
-    </div>
+      </div>
+    </>
   );
 }
 
