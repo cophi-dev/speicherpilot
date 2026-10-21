@@ -117,15 +117,15 @@ export function SiteProposalDocument({
             </View>
             <Text style={styles.p}>
               {tx(
-                "Modellschätzung, kein Befund. Nach BGH, Beschluss vom 15. Juli 2025 (EnVR 1/24), kann nur der Netzbetreiber beurteilen, ob Speicher das örtliche Netz entlasten. Schwellen 90 %, 60 % und 30 % sind vorläufig.",
-                "A model estimate, not a finding. Under the Federal Court of Justice decision of 15 July 2025 (EnVR 1/24), only the grid operator can assess whether storage relieves the local grid. The 90%, 60% and 30% thresholds are provisional."
+                "Ob netzdienlicher Speicherbetrieb im örtlichen Verteilnetz Netzausbau vermeidet, kann nur der Netzbetreiber beurteilen; ihm steht dabei ein Entscheidungsspielraum zu. Die Bundesnetzagentur durfte ihre Vorgaben (Positionspapier 2009, Leistungspreismodell) als angemessen ansehen. BGH, Beschluss vom 15.07.2025, EnVR 1/24, Pressemitteilung 129/2025, https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html. Stand 21.10.2026. Schwellen 90 %, 60 % und 30 % sind vorläufig.",
+                "Whether grid-supportive storage operation avoids network expansion in the local distribution network can only be judged by the network operator; that operator has a margin of decision. The Federal Network Agency was entitled to regard its requirements (2009 position paper, capacity-price model) as appropriate. BGH, decision of 15 July 2025, EnVR 1/24, press release 129/2025, https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html. As of 21 October 2026. The 90%, 60% and 30% thresholds are provisional."
               )}
             </Text>
             {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, plan.availableConnectionKw)) ? (
               <Text style={styles.p}>
                 {tx(
-                  "Anschlussbegehren über 1,5 MVA: Hamburger Energienetze, Fair Grid, Runden ab dem zweiten Halbjahr 2026. Hinweis, keine Zuteilung. kW bei cos φ = 1.",
-                  "Connection request above 1.5 MVA: Hamburger Energienetze, Fair Grid, rounds from the second half of 2026. A hint, not an allocation. kW at cos φ = 1."
+                  "Anschlussbegehren über 1,5 MVA liegt außerhalb dieser Modellprüfung. Vergleich in kW bei cos φ = 1, nicht als gemessene Scheinleistung.",
+                  "A connection request above 1.5 MVA is outside this model check. Compared in kW at cos φ = 1, not as measured apparent power."
                 )}
               </Text>
             ) : null}

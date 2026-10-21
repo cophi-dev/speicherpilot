@@ -130,7 +130,7 @@ export function ConnectionStory() {
                   data-step={index}
                   aria-current={active ? "step" : undefined}
                   className={`flex min-h-[40vh] flex-col justify-center border-t border-border bg-card p-6 text-foreground lg:min-h-[60vh] lg:border-0 lg:bg-transparent lg:p-0 ${
-                    active ? "lg:text-foreground lg:opacity-100" : "lg:text-muted-foreground lg:opacity-50 lg:focus-within:opacity-100"
+                    active ? "lg:text-foreground" : "lg:text-muted-foreground"
                   }`}
                 >
                   <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>

@@ -894,7 +894,7 @@ export function SitePlanner() {
                   <span className="num text-[12px]">{statusLabel[plan.connection]}</span>
                 </div>
                 {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, draft.limitKw)) ? (
-                  <p className="mt-2 text-sm text-warning">{tx("Über 1,5 MVA · Fair Grid. Hinweis im Netzbetreiber-Check, keine Zuteilung.", "Above 1.5 MVA · Fair Grid. See the grid-operator check. Not an allocation.")}</p>
+                  <p className="mt-2 text-sm text-warning">{tx("Über 1,5 MVA. Liegt außerhalb dieser Modellprüfung.", "Above 1.5 MVA. Outside this model check.")}</p>
                 ) : null}
               </article>
               </div>
@@ -1182,11 +1182,11 @@ function DsoView({
         </p>
         {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, draft.limitKw)) ? (
           <div className="mt-4 border border-warning p-3">
-            <p className="num text-[12px] tracking-[0.08em] text-warning uppercase">{tx("Über 1,5 MVA · Fair Grid", "Above 1.5 MVA · Fair Grid")}</p>
+            <p className="num text-[12px] tracking-[0.08em] text-warning uppercase">{tx("Über 1,5 MVA", "Above 1.5 MVA")}</p>
             <p className="mt-1 text-sm">
               {tx(
-                "Hamburger Energienetze vergeben neue Hoch- und Mittelspannungsanschlüsse über 1,5 MVA im Fair-Grid-Verfahren in Runden, angekündigt für das zweite Halbjahr 2026. Hinweis, keine Zuteilung. Vergleich in kW bei cos φ = 1, nicht als gemessene Scheinleistung.",
-                "Hamburger Energienetze allocates new high- and medium-voltage connections above 1.5 MVA in Fair Grid rounds, announced for the second half of 2026. A hint, not an allocation. Compared in kW at cos φ = 1, not as measured apparent power."
+                "Anschlussbegehren über 1,5 MVA liegt außerhalb dieser Modellprüfung. Vergleich in kW bei cos φ = 1, nicht als gemessene Scheinleistung.",
+                "A connection request above 1.5 MVA is outside this model check. Compared in kW at cos φ = 1, not as measured apparent power."
               )}
             </p>
             <a className="mt-2 inline-block text-sm underline underline-offset-[3px]" href="/methodik#anschluss">{tx("Quellen", "Sources")}</a>

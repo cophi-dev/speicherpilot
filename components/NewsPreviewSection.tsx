@@ -147,7 +147,7 @@ export default function NewsPreviewSection({
                     </span>
                   ))}
                 </div>
-                <h3 className="mt-3 text-base font-semibold leading-snug text-foreground md:text-lg">
+                <h2 className="mt-3 text-base font-semibold leading-snug text-foreground md:text-lg">
                   <a
                     href={item.url}
                     target="_blank"
@@ -156,7 +156,7 @@ export default function NewsPreviewSection({
                   >
                     {item.title}
                   </a>
-                </h3>
+                </h2>
                 {!compact ? (
                   <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{item.summary}</p>
                 ) : null}
