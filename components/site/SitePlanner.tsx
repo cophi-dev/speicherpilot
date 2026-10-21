@@ -12,6 +12,8 @@ import { useLanguage } from "@/components/language-context";
 import { FlowerReference } from "@/components/site/FlowerReference";
 import { ResultRating } from "@/components/site/ResultRating";
 import { ScenarioPicker } from "@/components/site/ScenarioPicker";
+import { NewsList } from "@/components/sim/NewsList";
+import { SiteConnectionSim } from "@/components/sim/SiteConnectionSim";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile } from "@/lib/hamburgSupermarket";
 import { QUARTIER, quartierProfile, quartierPvKwp } from "@/lib/quartierExample";
@@ -441,15 +443,18 @@ export function SitePlanner() {
     }
   }
 
+  const showConnectionSim = scenario === "supermarkt";
+  const PlannerTitle = showConnectionSim ? "h2" : "h1";
   return (
     <div className="relative mx-auto max-w-[1360px] px-5 py-8 md:px-8">
-      <div className={`border-l-[3px] pl-4 ${view === "projekt" ? "border-primary" : "border-foreground"}`}>
+      {showConnectionSim ? <SiteConnectionSim view={view} /> : null}
+      <div className={`border-l-[3px] pl-4 ${showConnectionSim ? "mt-16" : ""} ${view === "projekt" ? "border-primary" : "border-foreground"}`}>
         <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
           {view === "projekt" ? tx("Perspektive · Speicher", "Perspective · storage") : tx("Perspektive · Netzbetreiber", "Perspective · grid operator")}
         </p>
-        <h1 className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
+        <PlannerTitle className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
           {view === "projekt" ? tx("Speicher planen oder betreiben", "Plan or operate storage") : tx("Anschluss prüfen", "Check a connection")}
-        </h1>
+        </PlannerTitle>
         <p className="mt-2 max-w-[68ch] text-muted-foreground">
           {view === "projekt"
             ? tx("Du siehst die Größe, die Kosten und ob sich der Speicher an einem Lastprofil bezahlt macht.", "You see the size, the cost, and whether the battery pays for itself on a load profile.")
@@ -1015,6 +1020,7 @@ export function SitePlanner() {
           </div>
         </div>
       ) : null}
+      <NewsList />
     </div>
   );
 }

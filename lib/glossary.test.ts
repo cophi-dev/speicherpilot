@@ -26,6 +26,7 @@ const REQUIRED = [
   "deutschland-live",
   "residuallast",
   "modellschaetzung",
+  "kupferplatte",
   "quartier",
   "ortsnetzstation",
   "behind-the-meter",

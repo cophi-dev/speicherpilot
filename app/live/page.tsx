@@ -2,17 +2,18 @@ import { Suspense } from "react";
 
 import { LiveView } from "@/components/live/LiveView";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { formatBerlinDateKeyFromUtcDate, prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { buildDayClock } from "@/lib/dayClock";
 import { loadHomeBriefingInitialData } from "@/lib/homeBriefingData";
+import { chooseDispatchDay } from "@/lib/liveFleetDispatch";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadLiveBoard } from "@/lib/loadLiveBoard";
 import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
-import { pickSurplusDay } from "@/lib/windSolarResidual";
 
 export const metadata = {
-  title: "Was heute los ist",
-  description: "Live wind and solar in the 50Hertz control area, DE-LU day-ahead prices, the Germany snapshot, and a model of more large storage. Each chart names its geography.",
+  title: "Was wäre, wenn Deutschland mehr Speicher hätte?",
+  description:
+    "A model of today’s German residual load with the large-storage fleet scaled from ×1 to ×10. The battery starts empty, charges on surplus, and cuts the evening peak. No euro figures.",
 };
 
 export default async function LivePage() {
@@ -34,22 +35,33 @@ export default async function LivePage() {
     loadWindSolarDays(now),
   ]);
   const today = days.find((day) => day.dateBerlin === berlinTodayKey) ?? null;
+  const yesterday = days.find((day) => day.dateBerlin === prevBerlinDateKey(berlinTodayKey)) ?? null;
+  const chosen = chooseDispatchDay(today, yesterday);
   const clock = buildDayClock({
     dateBerlin: berlinTodayKey,
     slots: today?.slots ?? [],
     fleet: fleet ? { energyGwh: fleet.energyGwh, updatedLabel: fleet.updatedLabel } : null,
   });
-  const picked = pickSurplusDay(days, berlinTodayKey);
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-64 max-w-[1200px]" />}>
       <LiveView
         board={board}
         clock={clock}
-        fleet={fleet}
-        days={days}
-        todayKey={berlinTodayKey}
-        initialDate={picked?.day.dateBerlin ?? null}
-        initialFallback={picked?.fallback ?? false}
+        dispatch={{
+          fleet: fleet
+            ? {
+                powerMw: fleet.powerGw * 1000,
+                energyMwh: fleet.energyGwh * 1000,
+                powerGw: fleet.powerGw,
+                energyGwh: fleet.energyGwh,
+                updatedLabel: fleet.updatedLabel,
+                source: fleet.source,
+                href: fleet.chartUrl,
+              }
+            : null,
+          day: chosen?.day ?? null,
+          fallback: Boolean(chosen?.fallback),
+        }}
       />
     </Suspense>
   );
