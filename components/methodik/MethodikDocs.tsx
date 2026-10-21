@@ -149,13 +149,13 @@ grid-serving, same battery and same limit:
         <Section id="netzdienlichkeit" n="§7" title={tx("Einschätzung netzdienlich", "Grid-support estimate")}>
           <p>
             {tx(
-              "Die Marke heißt Einschätzung netzdienlich. Sie ist kein Befund und keine Zusage, dass der Speicher das Netz entlastet. Ob ein Speicher netzdienlich fährt, entscheidet am Ende der Netzbetreiber; die Bundesnetzagentur hat dabei einen eigenen Beurteilungsspielraum (",
-              "The badge is labelled as a grid-support estimate. It is not a finding and not a statement that the storage relieves the grid. Whether storage runs in a grid-supportive way is decided in the end by the network operator; the Federal Network Agency has its own margin of appraisal ("
+              "Die Marke heißt Einschätzung netzdienlich. Sie ist kein Befund und keine Zusage, dass der Speicher das Netz entlastet. Ob netzdienlicher Speicherbetrieb im örtlichen Verteilnetz Netzausbau vermeidet, kann nur der Netzbetreiber beurteilen; ihm steht dabei ein Entscheidungsspielraum zu. Die Bundesnetzagentur durfte ihre Vorgaben (Positionspapier 2009, Leistungspreismodell) als angemessen ansehen. ",
+              "The badge is labelled as a grid-support estimate. It is not a finding and not a statement that the storage relieves the grid. Whether grid-supportive storage operation avoids network expansion in the local distribution network can only be judged by the network operator; that operator has a margin of decision. The Federal Network Agency was entitled to regard its requirements (2009 position paper, capacity-price model) as appropriate. "
             )}
             <a className="underline underline-offset-[3px]" href="https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html">
-              {tx("BGH, EnVR 1/24, 15.07.2025", "BGH, EnVR 1/24, 15 July 2025")}
+              {tx("BGH, Beschluss vom 15.07.2025, EnVR 1/24, Pressemitteilung 129/2025", "BGH, decision of 15 July 2025, EnVR 1/24, press release 129/2025")}
             </a>
-            {tx("). SpeicherPilot schätzt nur.", "). SpeicherPilot only estimates.")}
+            {tx(". Stand 21.10.2026. SpeicherPilot schätzt nur.", ". As of 21 October 2026. SpeicherPilot only estimates.")}
           </p>
           <p className="mt-3">{tx("Die Schätzung vergleicht die Entladeenergie mit der Auslastung des Anschlusses. Ein Intervall zählt als Spitzenfenster, wenn die Standortlast mindestens 90 % der Anschlussleistung erreicht. Der Anteil ist die Entladeenergie in diesen Fenstern geteilt durch die gesamte Entladeenergie.", "The estimate compares discharge energy with connection utilisation. An interval counts as a peak window when site load is at least 90% of the connection capacity. The share is discharge energy in those windows divided by all discharge energy.")}</p>
           <p className="mt-3">{tx("Einschätzung netzdienlich ab 60 % und ohne neue Bezugsspitze. Einschätzung gemischt von 30 % bis unter 60 %. Einschätzung marktgetrieben unter 30 %. Einschätzung neue Spitze, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt.", "Estimate grid-supportive from 60% and only if charging creates no new import peak. Estimate mixed from 30% up to 60%. Estimate market-driven below 30%. Estimate new peak as soon as a charging interval lifts the import above the peak without storage.")}</p>
