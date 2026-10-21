@@ -1541,7 +1541,7 @@
   font-size: 13px;
   line-height: 1.25;
   color: #c5ced6;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .day-callout {

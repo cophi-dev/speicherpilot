@@ -4,10 +4,10 @@ import { useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore
 
 import { leaderEnd, MAX_LEADER_PX, placeLabelBeside, type CalloutBox } from "@/lib/dayRingCallouts";
 import {
-  boxFitsCircle,
   centerCaptionPx,
   centerLimitPx,
   centerWrapPx,
+  chooseCenterFont,
   compactHourLabel,
   compactRingView,
   hourToDeg,
@@ -211,7 +211,13 @@ export function DayRing({
     if (!frame) {
       return;
     }
+    let cancelled = false;
+    let attempts = 0;
+    let raf = 0;
     const fit = () => {
+      if (cancelled) {
+        return;
+      }
       const svg = frame.querySelector(".day-ring-svg");
       const centerEl = frame.querySelector<HTMLElement>(".day-center");
       if (!svg || !centerEl) {
@@ -225,49 +231,62 @@ export function DayRing({
       }
       const svgWidth = svg.getBoundingClientRect().width;
       const limit = centerLimitPx(innerEdge, svgWidth, view.w, 12);
+      const freeze = (el: HTMLElement) => {
+        // Reduced motion forces a 0.01ms duration on every element. The initial
+        // transition-property is `all`, so font-size keeps the previous frame's
+        // box and the search collapses the centre value. Zero it before measuring.
+        el.style.setProperty("transition-property", "none", "important");
+        el.style.setProperty("transition-duration", "0s", "important");
+      };
       const apply = (size: number) => {
+        freeze(sized);
+        centerEl.querySelectorAll<HTMLElement>("*").forEach(freeze);
         sized.style.fontSize = `${size}px`;
         if (caption && figure && caption !== figure) {
           caption.style.fontSize = `${centerCaptionPx(size)}px`;
-          caption.style.maxWidth = `${figure.getBoundingClientRect().width}px`;
+          caption.style.maxWidth = "none";
+          caption.style.whiteSpace = "nowrap";
         } else if (caption) {
           caption.style.maxWidth = `${centerWrapPx(limit)}px`;
+          caption.style.whiteSpace = "nowrap";
         }
       };
-      const fits = (size: number) => {
+      const chosen = chooseCenterFont(limit, (size) => {
         apply(size);
         const box = centerEl.getBoundingClientRect();
-        return boxFitsCircle(box.width, box.height, limit);
-      };
-      const max = 28;
-      if (fits(max)) {
-        return;
-      }
-      let low = 1;
-      let high = max;
-      if (!fits(low)) {
-        apply(low);
-        return;
-      }
-      while (high - low > 0.25) {
-        const mid = (low + high) / 2;
-        if (fits(mid)) {
-          low = mid;
-        } else {
-          high = mid;
+        return { width: box.width, height: box.height };
+      });
+      if (chosen == null) {
+        sized.style.fontSize = "";
+        if (caption && caption !== sized) {
+          caption.style.fontSize = "";
         }
+        attempts += 1;
+        if (attempts < 10) {
+          raf = requestAnimationFrame(fit);
+        }
+        return;
       }
-      apply(low);
+      apply(chosen);
     };
-    let raf = 0;
-    const schedule = () => {
+    fit();
+    const observer = new ResizeObserver(() => {
+      attempts = 0;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(fit);
-    };
-    schedule();
-    const observer = new ResizeObserver(schedule);
+    });
     observer.observe(frame);
+    const centerEl = frame.querySelector(".day-center");
+    if (centerEl) {
+      observer.observe(centerEl);
+    }
+    void document.fonts?.ready.then(() => {
+      if (!cancelled) {
+        fit();
+      }
+    });
     return () => {
+      cancelled = true;
       cancelAnimationFrame(raf);
       observer.disconnect();
     };

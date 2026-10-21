@@ -207,6 +207,59 @@ export function boxFitsCircle(width: number, height: number, radiusPx: number): 
 }
 
 /**
+ * Largest figure size, up to 28px, whose measured box stays inside the centre circle.
+ * Returns null when the box has no size yet, or when shrinking the type does not shrink the box,
+ * so a stale layout cannot pin the centre text at 1px.
+ */
+export function chooseCenterFont(
+  limitPx: number,
+  measure: (size: number) => { width: number; height: number },
+  max = 28
+): number | null {
+  if (!(limitPx > 0)) {
+    return null;
+  }
+  const read = (size: number) => {
+    const box = measure(size);
+    const width = box.width;
+    const height = box.height;
+    return {
+      width,
+      height,
+      ok: width > 0 && height > 0 && boxFitsCircle(width, height, limitPx),
+    };
+  };
+  const atMax = read(max);
+  if (atMax.width <= 0 || atMax.height <= 0) {
+    return null;
+  }
+  if (atMax.ok) {
+    return max;
+  }
+  const atMin = read(1);
+  if (atMin.width <= 0 || atMin.height <= 0) {
+    return null;
+  }
+  if (atMin.width > atMax.width * 0.8 && atMin.height > atMax.height * 0.8) {
+    return null;
+  }
+  if (!atMin.ok) {
+    return 1;
+  }
+  let low = 1;
+  let high = max;
+  while (high - low > 0.25) {
+    const mid = (low + high) / 2;
+    if (read(mid).ok) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return low;
+}
+
+/**
  * Hour labels are 12px JetBrains Mono.
  * The text's inner edge sits 8px outside the guide circle, which is `outerRadius`.
  */

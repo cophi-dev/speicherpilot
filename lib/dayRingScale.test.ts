@@ -3,6 +3,7 @@ import {
   centerCaptionPx,
   centerLimitPx,
   centerWrapPx,
+  chooseCenterFont,
   compactHourLabel,
   compactRingView,
   COMPACT_FRAME_PX,
@@ -89,6 +90,45 @@ describe("day ring scale", () => {
     const outer = ringRadius(38);
     const view = compactRingView(outer, 167);
     expect(ringDiskPx(outer, 167, view.w)).toBeCloseTo(167 * RING_OF_FRAME, 1);
+  });
+
+  it("renders the home centre value inside the phone ring, and refuses a stale 1px box", () => {
+    const outer = Math.max(ringRadius(38), RING_R0);
+    const view = compactRingView(outer, COMPACT_FRAME_PX);
+    const limit = centerLimitPx(socRingGeometry("GW").innerEdge, COMPACT_FRAME_PX, view.w, 12);
+    // Em widths of the laid-out strings: "38,1 → 33,5" and "GW Abendspitze · ×1".
+    const home = (font: number) => {
+      const captionPx = centerCaptionPx(font);
+      return {
+        width: Math.max(font * 6.36, captionPx * 9.74),
+        height: font * 1.05 + 4 + captionPx * 1.25,
+      };
+    };
+    const size = chooseCenterFont(limit, home);
+    expect(size).not.toBeNull();
+    expect(size!).toBeGreaterThanOrEqual(13);
+    expect(boxFitsCircle(home(size!).width, home(size!).height, limit)).toBe(true);
+    expect(home(size!).width).toBeGreaterThan(70);
+    expect(chooseCenterFont(limit, () => ({ width: 400, height: 80 }))).toBeNull();
+    expect(chooseCenterFont(limit, () => ({ width: 0, height: 0 }))).toBeNull();
+  });
+
+  it("keeps GW Abendspitze ×5 on one line inside the desktop centre", () => {
+    const outer = Math.max(ringRadius(38), RING_R0);
+    const view = compactRingView(outer, 720);
+    const limit = centerLimitPx(socRingGeometry("GW").innerEdge, 720, view.w, 12);
+    const live = (font: number) => {
+      const captionPx = centerCaptionPx(font);
+      return {
+        width: Math.max(font * 6.36, captionPx * 9.8),
+        height: font * 1.05 + 4 + captionPx * 1.25,
+      };
+    };
+    const size = chooseCenterFont(limit, live);
+    expect(size).toBe(28);
+    const captionPx = centerCaptionPx(size!);
+    expect(captionPx * 9.8).toBeLessThanOrEqual(size! * 6.36 + 1);
+    expect(boxFitsCircle(live(size!).width, live(size!).height, limit)).toBe(true);
   });
 
   it("keeps the centre box 12px inside the inner circle", () => {
