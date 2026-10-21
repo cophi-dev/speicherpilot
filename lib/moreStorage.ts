@@ -381,13 +381,14 @@ export function buildMoreStorage(input: {
   }
 
   const fleet = input.fleet;
-  const slots = input.day.slots;
+  const day = input.day;
+  const slots = day.slots;
   const surplusMwh = windSolarSurplusMwh(slots);
   if (surplusMwh <= 0 && !input.showWithoutSurplus) {
     return emptyReport("no-day", fleet);
   }
   const hasEvening = slots.some((slot) => slot.hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR);
-  const partial = input.day.dateBerlin === input.berlinTodayKey && slots.length < 96;
+  const partial = day.dateBerlin === input.berlinTodayKey && slots.length < 96;
   const clock = lastClock(slots);
   const surplusGwh = surplusMwh / 1000;
 
@@ -430,7 +431,7 @@ export function buildMoreStorage(input: {
       reading: stepReading({
         step: built,
         fallback: input.fallback,
-        dateBerlin: input.day.dateBerlin,
+        dateBerlin: day.dateBerlin,
         partial,
         clock,
       }),
@@ -444,12 +445,12 @@ export function buildMoreStorage(input: {
     available: true,
     reason: null,
     fleet,
-    dateBerlin: input.day.dateBerlin,
+    dateBerlin: day.dateBerlin,
     fallback: input.fallback,
     partial,
     hasEvening,
-    headline: headline(input.fallback, input.day.dateBerlin),
-    subhead: subhead(input.day.dateBerlin, partial, clock),
+    headline: headline(input.fallback, day.dateBerlin),
+    subhead: subhead(day.dateBerlin, partial, clock),
     sentence: today.reading,
     footnote: footnote(fleet),
     yMinGw: axis.yMinGw,

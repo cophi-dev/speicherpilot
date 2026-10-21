@@ -75,6 +75,7 @@ export function HomeLiveBlock({ board }: { board: LiveBoard }) {
               primaryLabel={tx("Day-Ahead-Preis", "Day-ahead price")}
               unit="€/MWh"
               describedBy="home-live-lead"
+              language={language}
               label={tx("Gebotszone DE-LU, Day-Ahead-Preis in Euro pro Megawattstunde", "DE-LU bidding zone, day-ahead price in euro per megawatt-hour")}
             />
           </div>
