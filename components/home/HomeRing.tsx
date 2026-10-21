@@ -5,14 +5,14 @@ import { useMemo } from "react";
 
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
-import { ModelChip } from "@/components/day-ring/ModelChip";
+import { ChargedLine } from "@/components/day-ring/ChargedLine";
 import { StatTrio } from "@/components/day-ring/StatTrio";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   calloutAnchors,
-  chargedWouldHave,
+  chargedWouldHaveParts,
   fleetSizeLabel,
   formatBerlinDayLabel,
   formatGw1,
@@ -80,7 +80,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
   const after = story.eveningPeakAfterGw;
   const delta = before !== null && after !== null ? -onceRoundDeltaGw(before, after) : null;
   const hours = surplusHours(story);
-  const charged = chargedWouldHave(story.chargedGwh, 1, language);
+  const charged = chargedWouldHaveParts(story.chargedGwh, 1, language);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
   const kicker = story.dateBerlin === todayKey
     ? tx(`Heute · Deutschland · ${dateLabel}`, `Today · Germany · ${dateLabel}`)
@@ -158,12 +158,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
                   { value: delta === null ? "—" : formatSignedGw(delta, language), unit: delta === null ? undefined : "GW", label: tx("Abendspitze", "Evening peak") },
                 ]}
               />
-              {charged ? (
-                <p className="day-charged">
-                  <span className="num">{charged}</span>
-                  <ModelChip label={tx("Modell", "Model")} />
-                </p>
-              ) : null}
+              {charged ? <ChargedLine parts={charged} modelLabel={tx("Modell", "Model")} /> : null}
               <div className="day-cta-row">
                 <Link className="day-cta" href="/live">{tx("Mit dem Speicher spielen →", "Play with the storage →")}</Link>
                 <Link className="day-textlink" href={sitePath("projekt")}>{tx("Standort rechnen", "Size a site")}</Link>
