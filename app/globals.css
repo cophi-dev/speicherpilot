@@ -1275,6 +1275,7 @@
 .site-header.is-over-hero {
   background: rgba(10, 15, 20, 0.55);
   border-bottom-color: rgba(233, 238, 242, 0.14);
+  color: #e9eef2;
   --background: 200 27% 6%;
   --foreground: 204 20% 93%;
   --muted-foreground: 206 14% 78%;
@@ -1283,6 +1284,25 @@
   --card: 204 28% 9%;
   --card-foreground: 204 20% 93%;
   --ring: 168 95% 74%;
+}
+
+.site-header.is-over-hero a,
+.site-header.is-over-hero button {
+  color: #e9eef2;
+}
+
+.site-header.is-over-hero .text-muted-foreground {
+  color: #c5ced6;
+}
+
+.site-header.is-over-hero .bg-foreground {
+  background: #e9eef2;
+  color: #0a0f14;
+}
+
+.site-header.is-over-hero .bg-card {
+  background: #121a22;
+  color: #e9eef2;
 }
 
 .day-hero-inner {

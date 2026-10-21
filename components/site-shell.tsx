@@ -161,18 +161,22 @@ export function SiteShell({ children }: SiteShellProps) {
     if (!nightHero) {
       return;
     }
-    const hero = document.querySelector(".day-hero");
-    if (!hero) {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setOverHero(entry.isIntersecting);
-      },
-      { rootMargin: "-64px 0px 0px 0px", threshold: 0 }
-    );
-    observer.observe(hero);
-    return () => observer.disconnect();
+    const update = () => {
+      const hero = document.querySelector(".day-hero");
+      if (!hero) {
+        setOverHero(false);
+        return;
+      }
+      const rect = hero.getBoundingClientRect();
+      setOverHero(rect.bottom > 64 && rect.top < window.innerHeight);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, [nightHero, pathname]);
 
   const tx = (de: string, en: string) => (language === "de" ? de : en);
