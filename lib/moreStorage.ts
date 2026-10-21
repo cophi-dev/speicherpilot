@@ -1,5 +1,6 @@
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
+import { niceAxis } from "@/lib/niceTicks";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 import { windSolarSurplusMwh } from "@/lib/windSolarResidual";
 
@@ -14,7 +15,9 @@ const QUARTER_HOUR_H = 0.25;
 export const MORE_STORAGE_STEPS = [
   { id: "today", factor: 1 },
   { id: "double", factor: 2 },
+  { id: "triple", factor: 3 },
   { id: "five", factor: 5 },
+  { id: "ten", factor: 10 },
 ] as const;
 
 export type MoreStorageStepId = (typeof MORE_STORAGE_STEPS)[number]["id"];
@@ -49,7 +52,9 @@ export type MoreStorageStep = {
   shareLabel: Copy;
   shareCaption: Copy;
   peakLabel: Copy;
-  /** Set on the ×2 and ×5 panels. Today is the measured fleet, so it has no multiple note. */
+  /** Plain-language reading of this multiplier. */
+  reading: Copy;
+  /** Set on every multiplier. Today is the measured fleet, so it has no multiple note. */
   estimateNote: Copy | null;
 };
 
@@ -68,13 +73,30 @@ export type MoreStorageReport = {
   footnote: Copy | null;
   yMinGw: number;
   yMaxGw: number;
+  yTicksGw: number[];
   steps: MoreStorageStep[];
 };
 
 const STEP_TITLE: Record<MoreStorageStepId, Copy> = {
   today: { de: "Heute", en: "Today" },
   double: { de: "× 2", en: "× 2" },
+  triple: { de: "× 3", en: "× 3" },
   five: { de: "× 5", en: "× 5" },
+  ten: { de: "× 10", en: "× 10" },
+};
+
+const FACTOR_WORD_DE: Record<number, string> = {
+  2: "doppelt",
+  3: "dreimal",
+  5: "fünfmal",
+  10: "zehnmal",
+};
+
+const FACTOR_WORD_EN: Record<number, string> = {
+  2: "twice",
+  3: "three times",
+  5: "five times",
+  10: "ten times",
 };
 
 function gwhDigits(value: number): number {
@@ -207,16 +229,15 @@ function dispatchFleet(slots: ResidualSlot[], powerMw: number, energyMwh: number
   };
 }
 
-function axisGw(points: MoreStoragePoint[]): { yMinGw: number; yMaxGw: number } {
+function axisGw(points: MoreStoragePoint[]): { yMinGw: number; yMaxGw: number; yTicksGw: number[] } {
   let lo = 0;
   let hi = 0;
   for (const point of points) {
     lo = Math.min(lo, point.residualMw / 1000);
     hi = Math.max(hi, point.residualMw / 1000);
   }
-  const yMinGw = Math.min(-10, Math.floor(lo / 10) * 10);
-  const yMaxGw = Math.max(10, Math.ceil(hi / 10) * 10);
-  return { yMinGw, yMaxGw };
+  const axis = niceAxis(lo, hi);
+  return { yMinGw: axis.min, yMaxGw: axis.max, yTicksGw: axis.ticks };
 }
 
 function headline(fallback: boolean, dateBerlin: string): Copy {
@@ -261,45 +282,60 @@ function footnote(fleet: LargeBatteryFleet): Copy {
   };
 }
 
-function sentence(input: {
+function factorLead(factor: number, language: "de" | "en"): string {
+  if (factor === 1) {
+    return language === "de" ? "Mit dem heutigen Großspeicher-Bestand" : "With today's large-storage fleet";
+  }
+  if (language === "de") {
+    return `Mit ${FACTOR_WORD_DE[factor] ?? `${factor}-mal`} so viel Speicher`;
+  }
+  return `With ${FACTOR_WORD_EN[factor] ?? `${factor} times`} as much storage`;
+}
+
+function stepReading(input: {
+  step: Pick<MoreStorageStep, "factor" | "shareLabel" | "storedSurplusGwh" | "surplusGwh" | "peakReductionGw" | "eveningPeakGw">;
   fallback: boolean;
   dateBerlin: string;
   partial: boolean;
   clock: string;
-  today: MoreStorageStep;
-  five: MoreStorageStep;
 }): Copy {
   const whenDe = spokenDate(input.dateBerlin, "de");
   const whenEn = spokenDate(input.dateBerlin, "en");
-  const shareDe = input.today.shareLabel.de;
-  const shareEn = input.today.shareLabel.en;
-  const storedDe = quantity(input.today.storedSurplusGwh, "de", gwhDigits(input.today.storedSurplusGwh));
-  const storedEn = quantity(input.today.storedSurplusGwh, "en", gwhDigits(input.today.storedSurplusGwh));
+  const untilDe = input.partial ? ` bis ${input.clock} Uhr` : "";
+  const untilEn = input.partial ? ` through ${input.clock}` : "";
   const leadDe = input.fallback
     ? `Heute lag Wind plus Sonne nicht über der Last. Letzter Überschusstag: ${shortDate(input.dateBerlin)} `
     : "";
   const leadEn = input.fallback
     ? `Today, wind plus solar did not exceed load. Last surplus day: ${shortDate(input.dateBerlin)} `
     : "";
-  const untilDe = input.partial ? ` bis ${input.clock} Uhr` : "";
-  const untilEn = input.partial ? ` through ${input.clock}` : "";
+  const modelDe = input.step.factor === 1 ? " Das ist eine Modellschätzung, keine Messung." : " Das ist eine Modellschätzung, kein Ausbauziel und keine Messung.";
+  const modelEn = input.step.factor === 1 ? " This is a model estimate, not a measurement." : " This is a model estimate, not a build target and not a measurement.";
+  if (input.step.surplusGwh <= 0) {
+    return {
+      de: `${leadDe}An diesem Tag lag Wind plus Sonne in Deutschland nicht über der Last. Vom Überschuss gespeichert: 0 %.${modelDe}`,
+      en: `${leadEn}On this day, wind plus solar in Germany did not exceed load. Share of surplus stored: 0%.${modelEn}`,
+    };
+  }
+  const storedDe = quantity(input.step.storedSurplusGwh, "de", gwhDigits(input.step.storedSurplusGwh));
+  const storedEn = quantity(input.step.storedSurplusGwh, "en", gwhDigits(input.step.storedSurplusGwh));
   let peakDe: string;
   let peakEn: string;
-  if (input.five.peakReductionGw === null) {
+  if (input.step.peakReductionGw === null) {
     peakDe = " Die Stunden ab 17 Uhr sind in der Reihe noch nicht veröffentlicht.";
     peakEn = " The hours from 17:00 are not in the series yet.";
-  } else if (input.five.eveningPeakGw === null || input.five.eveningPeakGw <= 0) {
+  } else if (input.step.eveningPeakGw === null || input.step.eveningPeakGw <= 0) {
     peakDe = " Ab 17 Uhr lag keine Abendspitze.";
     peakEn = " From 17:00 there was no evening peak.";
   } else {
-    const cutDe = gw(input.five.peakReductionGw ?? 0, "de");
-    const cutEn = gw(input.five.peakReductionGw ?? 0, "en");
-    peakDe = ` Fünfmal so viel Speicher hätte die Abendspitze um ${cutDe} GW gesenkt.`;
-    peakEn = ` Five times as much storage would have lowered the evening peak by ${cutEn} GW.`;
+    const cutDe = gw(input.step.peakReductionGw, "de");
+    const cutEn = gw(input.step.peakReductionGw, "en");
+    peakDe = ` Die Abendspitze wäre um ${cutDe} GW niedriger.`;
+    peakEn = ` The evening peak would be ${cutEn} GW lower.`;
   }
   return {
-    de: `${leadDe}Mit dem heutigen Großspeicher-Bestand wären am ${whenDe}${untilDe} in Deutschland ${shareDe} des Überschusses aus Wind und Sonne gespeichert worden, ${storedDe} GWh.${peakDe} Das ist eine Modellschätzung, keine Messung.`,
-    en: `${leadEn}Today's large-storage fleet would have stored ${shareEn} of the wind-and-solar surplus in Germany on ${whenEn}${untilEn}, ${storedEn} GWh.${peakEn} This is a model estimate, not a measurement.`,
+    de: `${leadDe}${factorLead(input.step.factor, "de")} wären am ${whenDe}${untilDe} in Deutschland ${input.step.shareLabel.de} des Überschusses aus Wind und Sonne gespeichert worden, ${storedDe} GWh.${peakDe}${modelDe}`,
+    en: `${leadEn}${factorLead(input.step.factor, "en")} would have stored ${input.step.shareLabel.en} of the wind-and-solar surplus in Germany on ${whenEn}${untilEn}, ${storedEn} GWh.${peakEn}${modelEn}`,
   };
 }
 
@@ -324,6 +360,7 @@ function emptyReport(reason: "no-fleet" | "no-day", fleet: LargeBatteryFleet | n
     footnote: fleet ? footnote(fleet) : null,
     yMinGw: -10,
     yMaxGw: 30,
+    yTicksGw: [-10, 0, 10, 20, 30],
     steps: [],
   };
 }
@@ -333,6 +370,8 @@ export function buildMoreStorage(input: {
   day: ResidualDay | null;
   fallback: boolean;
   berlinTodayKey: string;
+  /** Draw a dry day when the visitor picked it. The automatic view still refuses an empty surplus. */
+  showWithoutSurplus?: boolean;
 }): MoreStorageReport {
   if (!input.fleet) {
     return emptyReport("no-fleet", null);
@@ -344,7 +383,7 @@ export function buildMoreStorage(input: {
   const fleet = input.fleet;
   const slots = input.day.slots;
   const surplusMwh = windSolarSurplusMwh(slots);
-  if (surplusMwh <= 0) {
+  if (surplusMwh <= 0 && !input.showWithoutSurplus) {
     return emptyReport("no-day", fleet);
   }
   const hasEvening = slots.some((slot) => slot.hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR);
@@ -357,9 +396,9 @@ export function buildMoreStorage(input: {
     const energyMwh = fleet.energyGwh * step.factor * 1000;
     const run = dispatchFleet(slots, powerMw, energyMwh);
     const storedSurplusGwh = run.storedMwh / 1000;
-    const storedShare = Math.min(1, storedSurplusGwh / surplusGwh);
+    const storedShare = surplusGwh > 0 ? Math.min(1, storedSurplusGwh / surplusGwh) : 0;
     const shareLabel = both((language) => `${quantity(Math.round(storedShare * 100), language, 0)} %`);
-    return {
+    const built = {
       id: step.id,
       factor: step.factor,
       powerGw: fleet.powerGw * step.factor,
@@ -386,10 +425,19 @@ export function buildMoreStorage(input: {
               en: "Model estimate · not a build target",
             },
     };
+    return {
+      ...built,
+      reading: stepReading({
+        step: built,
+        fallback: input.fallback,
+        dateBerlin: input.day.dateBerlin,
+        partial,
+        clock,
+      }),
+    };
   });
 
   const today = steps[0];
-  const five = steps[2];
   const axis = axisGw(today.points);
 
   return {
@@ -402,17 +450,11 @@ export function buildMoreStorage(input: {
     hasEvening,
     headline: headline(input.fallback, input.day.dateBerlin),
     subhead: subhead(input.day.dateBerlin, partial, clock),
-    sentence: sentence({
-      fallback: input.fallback,
-      dateBerlin: input.day.dateBerlin,
-      partial,
-      clock,
-      today,
-      five,
-    }),
+    sentence: today.reading,
     footnote: footnote(fleet),
     yMinGw: axis.yMinGw,
     yMaxGw: axis.yMaxGw,
+    yTicksGw: axis.yTicksGw,
     steps,
   };
 }

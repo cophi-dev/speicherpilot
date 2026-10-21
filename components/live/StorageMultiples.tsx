@@ -4,6 +4,7 @@ import { useId } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { MoreStorageReport, MoreStorageStep } from "@/lib/moreStorage";
+import { niceAxis } from "@/lib/niceTicks";
 
 type Language = "de" | "en";
 type Variant = "page" | "landscape" | "portrait";
@@ -67,10 +68,7 @@ function SeriesChart({
     shaved: yOf(point.residualMw - point.dischargeMw),
     rawTop: yOf(point.residualMw),
   }));
-  const yTicks: number[] = [];
-  for (let tick = yMinGw; tick <= yMaxGw; tick += 10) {
-    yTicks.push(tick);
-  }
+  const yTicks = niceAxis(yMinGw, yMaxGw).ticks;
   const xTicks = [0, 6, 12, 18, 24];
   const line = placed.map((point) => `${point.x.toFixed(1)},${point.residual.toFixed(1)}`).join(" ");
   const stored = band(placed, (point) => point.stored, (point) => point.zero);

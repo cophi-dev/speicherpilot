@@ -59,12 +59,23 @@ describe("buildMoreStorage", () => {
     expect(five?.peakReductionGw).toBeCloseTo(1.8, 2);
     expect(today?.points.some((point) => point.hour >= 17 && point.chargeMw > 0)).toBe(false);
     expect(today?.points.some((point) => point.hour < 17 && point.dischargeMw > 0)).toBe(false);
+    const triple = report.steps.find((step) => step.id === "triple");
+    const ten = report.steps.find((step) => step.id === "ten");
     expect(today?.shareLabel.de).toBe("25 %");
     expect(five?.shareLabel.de).toBe("100 %");
+    expect(triple?.storedShare).toBeCloseTo(0.75, 5);
+    expect(ten?.storedShare).toBeCloseTo(1, 5);
+    expect(report.steps.map((step) => step.factor)).toEqual([1, 2, 3, 5, 10]);
     expect(today?.estimateNote).toBeNull();
-    expect(double?.estimateNote?.de).toBe("Modellschätzung · kein Ausbauziel");
-    expect(five?.estimateNote?.de).toBe("Modellschätzung · kein Ausbauziel");
-    expect(five?.estimateNote?.en).toContain("Model estimate");
+    for (const step of [double, triple, five, ten]) {
+      expect(step?.estimateNote?.de).toBe("Modellschätzung · kein Ausbauziel");
+      expect(step?.estimateNote?.en).toContain("Model estimate");
+    }
+    expect(five?.reading.de).toContain("fünfmal");
+    expect(ten?.reading.de).toContain("zehnmal");
+    expect(ten?.reading.de).toContain("kein Ausbauziel");
+    expect(today?.reading.de).not.toContain("kein Ausbauziel");
+    expect(report.yTicksGw).toContain(0);
   });
 
   it("names the fallback day in the headline and stays a Germany model estimate", () => {
@@ -103,5 +114,16 @@ describe("buildMoreStorage", () => {
     });
     expect(missing.available).toBe(false);
     expect(missing.steps).toHaveLength(0);
+    const shown = buildMoreStorage({
+      fleet,
+      day: { dateBerlin: "2026-10-21", slots: slot(9, 4, 60_000, 10_000, 5_000) },
+      fallback: false,
+      berlinTodayKey: "2026-10-21",
+      showWithoutSurplus: true,
+    });
+    expect(shown.available).toBe(true);
+    expect(shown.steps[0]?.storedShare).toBe(0);
+    expect(shown.steps[0]?.reading.de).toContain("nicht über der Last");
+    expect(shown.steps.every((step) => step.factor === 1 || step.estimateNote !== null)).toBe(true);
   });
 });

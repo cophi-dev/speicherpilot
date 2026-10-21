@@ -1,16 +1,16 @@
 "use client";
 
-import { toPng } from "html-to-image";
-import { useRef, useState } from "react";
-
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { LiveLineChart } from "@/components/live/LiveCharts";
-import { MoreStorageModule } from "@/components/live/MoreStorageModule";
-import { StoragePoster } from "@/components/live/StorageMultiples";
+import { NorthSouthChart } from "@/components/live/NorthSouthChart";
+import { StorageWhatIf } from "@/components/live/StorageWhatIf";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LIVE_SOURCE_TABLE, type LiveBoard, type LiveModule, type PriceLight } from "@/lib/liveBoard";
-import type { MoreStorageReport } from "@/lib/moreStorage";
+import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
+import type { ResidualDay } from "@/lib/windSolarResidual";
+
+const KPI_ORDER = ["hertz", "price", "germany", "signal", "offshore"] as const;
 
 function copy(language: "de" | "en", text: { de: string; en: string }) {
   return language === "de" ? text.de : text.en;
@@ -28,35 +28,29 @@ function lightMark(light: PriceLight) {
   return "▲";
 }
 
-export function LiveView({ board, storage }: { board: LiveBoard; storage: MoreStorageReport }) {
+export function LiveView({
+  board,
+  fleet,
+  days,
+  todayKey,
+  initialDate,
+  initialFallback,
+}: {
+  board: LiveBoard;
+  fleet: LargeBatteryFleet | null;
+  days: ResidualDay[];
+  todayKey: string;
+  initialDate: string | null;
+  initialFallback: boolean;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const landscapeRef = useRef<HTMLDivElement>(null);
-  const portraitRef = useRef<HTMLDivElement>(null);
-  const [busy, setBusy] = useState(false);
   const lead = copy(language, board.lead);
-
-  async function savePng(node: HTMLDivElement | null, width: number, height: number, suffix: string) {
-    if (!node || busy || !storage.available) return;
-    setBusy(true);
-    const previousLeft = node.style.left;
-    const previousZ = node.style.zIndex;
-    // Chrome does not paint a fixed node parked off the left edge, so the
-    // share image comes out empty. Park it on the canvas, behind the page.
-    node.style.left = "0px";
-    node.style.zIndex = "-1";
-    try {
-      const url = await toPng(node, { cacheBust: true, pixelRatio: 1, backgroundColor: "#101418", width, height });
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `speicherpilot-mehr-speicher-${storage.dateBerlin ?? board.berlinDateKey}${suffix}.png`;
-      link.click();
-    } finally {
-      node.style.left = previousLeft;
-      node.style.zIndex = previousZ;
-      setBusy(false);
-    }
-  }
+  const kpis = KPI_ORDER.map((id) => board.modules.find((entry) => entry.id === id && entry.figure !== null)).filter(
+    (entry): entry is LiveModule => entry !== undefined
+  ).slice(0, 4);
+  const kpiIds = new Set(kpis.map((entry) => entry.id));
+  const cards = board.modules.filter((entry) => !kpiIds.has(entry.id) || entry.id === "hertz" || entry.id === "price" || entry.id === "zones");
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-8">
@@ -70,29 +64,39 @@ export function LiveView({ board, storage }: { board: LiveBoard; storage: MoreSt
           <span className="text-muted-foreground"> · {tx("Keine Handelsempfehlung", "Not trading advice")}</span>
         </p>
       ) : null}
-      <div className="mt-5 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="inline-flex h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
-          onClick={() => void savePng(landscapeRef.current, 1600, 900, "")}
-          disabled={busy || !storage.available}
-        >
-          {busy ? tx("Bild wird gebaut", "Building image") : tx("Bild für einen Post", "Image for a post")}
-        </button>
-        <button
-          type="button"
-          className="inline-flex h-11 items-center rounded-md border border-border bg-card px-4 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60"
-          onClick={() => void savePng(portraitRef.current, 1080, 1350, "-hoch")}
-          disabled={busy || !storage.available}
-        >
-          {tx("Hochformat", "Portrait")}
-        </button>
+
+      <div className="mt-8">
+        <StorageWhatIf
+          fleet={fleet}
+          days={days}
+          todayKey={todayKey}
+          initialDate={initialDate}
+          initialFallback={initialFallback}
+          language={language}
+        />
       </div>
 
-      <div className="mt-8 flex flex-col gap-6">
-        <MoreStorageModule storage={storage} language={language} />
-        {board.modules.map((item) => (
-          <ModuleCard key={item.id} item={item} board={board} language={language} />
+      {kpis.length > 0 ? (
+        <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {kpis.map((item) => {
+            const figure = item.figure === null ? item.value : formatQuantity(item.figure, language, item.digits);
+            return (
+              <li key={item.id} className="rounded-md border border-border bg-card px-3 py-3 md:px-4">
+                <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{copy(language, item.level)}</p>
+                <p className="num mt-2 text-[28px] leading-none">
+                  {figure}
+                  {item.unit ? <span className="text-sm text-muted-foreground"> {item.unit}</span> : null}
+                </p>
+                {item.figureLabel ? <p className="mt-2 text-sm leading-snug">{copy(language, item.figureLabel)}</p> : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+        {cards.map((item) => (
+          <ModuleCard key={item.id} item={item} board={board} language={language} hideFigure={kpiIds.has(item.id)} wide={item.id === "zones"} />
         ))}
       </div>
 
@@ -109,30 +113,31 @@ export function LiveView({ board, storage }: { board: LiveBoard; storage: MoreSt
           ))}
         </ul>
       </section>
-
-      {storage.available ? (
-        <>
-          <div ref={landscapeRef} inert aria-hidden className="pointer-events-none fixed top-0 -left-[2400px]">
-            <StoragePoster storage={storage} language="de" variant="landscape" />
-          </div>
-          <div ref={portraitRef} inert aria-hidden className="pointer-events-none fixed top-0 -left-[2400px]">
-            <StoragePoster storage={storage} language="de" variant="portrait" />
-          </div>
-        </>
-      ) : null}
     </div>
   );
 }
 
-function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBoard; language: "de" | "en" }) {
+function ModuleCard({
+  item,
+  board,
+  language,
+  hideFigure,
+  wide,
+}: {
+  item: LiveModule;
+  board: LiveBoard;
+  language: "de" | "en";
+  hideFigure: boolean;
+  wide: boolean;
+}) {
   const sentenceId = `live-${item.id}-sentence`;
   const figure = item.figure === null ? item.value : formatQuantity(item.figure, language, item.digits);
   const figureName = item.figureLabel ? copy(language, item.figureLabel) : null;
   return (
-    <article className="rounded-md border border-border bg-card p-4 md:p-5">
+    <article className={`rounded-md border border-border bg-card p-4 md:p-5 ${wide ? "md:col-span-2" : ""}`}>
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{copy(language, item.level)}</p>
-      <h2 className="mt-1 flex flex-wrap items-center gap-2 text-xl font-medium">
-        {copy(language, item.title)}
+      <h2 id={sentenceId} className="mt-1 flex flex-wrap items-center gap-2 text-lg leading-snug font-medium">
+        <span>{copy(language, item.sentence)}</span>
         {item.id === "hertz" || item.id === "zones" ? <GlossaryTip id="regelzone" language={language} /> : null}
         {item.id === "offshore" ? <GlossaryTip id="wind-auf-see" language={language} /> : null}
         {item.id === "price" ? <GlossaryTip id="day-ahead-price" language={language} /> : null}
@@ -140,7 +145,7 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
         {item.id === "curtailment" ? <GlossaryTip id="abregelung" language={language} /> : null}
         {item.id === "germany" || item.id === "signal" ? <GlossaryTip id="deutschland-live" language={language} /> : null}
       </h2>
-      {figure ? (
+      {!hideFigure && figure ? (
         <div className="mt-3">
           {figureName ? <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{figureName}</p> : null}
           <p className="num mt-1 text-[32px] leading-none">
@@ -154,7 +159,6 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
           {copy(language, board.priceLightLabel)}
         </p>
       ) : null}
-      <p id={sentenceId} className="mt-3 max-w-[68ch] text-sm text-muted-foreground">{copy(language, item.sentence)}</p>
       {item.id === "hertz" && board.hertzChart.length > 0 ? (
         <div className="mt-4">
           <LiveLineChart
@@ -163,6 +167,7 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
             secondaryLabel={language === "de" ? "Wind und Photovoltaik" : "Wind and solar"}
             unit="MW"
             describedBy={sentenceId}
+            language={language}
             label={language === "de" ? "Regelzone 50Hertz, Last sowie Wind und Photovoltaik in Megawatt" : "50Hertz control area, load and wind plus solar in megawatts"}
           />
         </div>
@@ -174,11 +179,12 @@ function ModuleCard({ item, board, language }: { item: LiveModule; board: LiveBo
             primaryLabel={language === "de" ? "Day-Ahead-Preis" : "Day-ahead price"}
             unit="€/MWh"
             describedBy={sentenceId}
+            language={language}
             label={language === "de" ? "Gebotszone DE-LU, Day-Ahead-Preis in Euro pro Megawattstunde" : "DE-LU bidding zone, day-ahead price in euro per megawatt-hour"}
           />
         </div>
       ) : null}
+      {item.id === "zones" && board.zoneChart.length > 0 ? <NorthSouthChart points={board.zoneChart} language={language} /> : null}
     </article>
   );
 }
-

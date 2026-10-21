@@ -235,6 +235,15 @@ export type LiveBoard = {
   priceLightLabel: LiveCopy | null;
   hertzChart: LiveChartPoint[];
   priceChart: LiveChartPoint[];
+  /** 50Hertz (north) and TransnetBW (south), wind plus solar as a share of load. */
+  zoneChart: ZoneSharePoint[];
+};
+
+export type ZoneSharePoint = {
+  unixMs: number;
+  label: string;
+  northPct: number;
+  southPct: number;
 };
 
 export type LiveBoardInput = {
@@ -427,6 +436,62 @@ const CURTAILMENT: LiveModule = {
   },
 };
 
+function finiteMap(points: QuarterPoint[]): Map<number, number> {
+  const map = new Map<number, number>();
+  for (const point of points) {
+    if (point.value !== null && Number.isFinite(point.value)) {
+      map.set(point.unixMs, point.value);
+    }
+  }
+  return map;
+}
+
+/** Quarter-hours where both control areas have published wind, solar and load. A null sample is dropped. */
+export function zoneShareSeries(
+  hertz: NonNullable<LiveBoardInput["hertz"]>,
+  transnet: NonNullable<LiveBoardInput["transnet"]>,
+  dateKey: string
+): ZoneSharePoint[] {
+  const northWind = finiteMap(hertz.windOn);
+  const northOff = finiteMap(hertz.windOff);
+  const northPv = finiteMap(hertz.pv);
+  const northLoad = finiteMap(hertz.load);
+  const southWind = finiteMap(transnet.windOn);
+  const southPv = finiteMap(transnet.pv);
+  const southLoad = finiteMap(transnet.load);
+  const stamps = [...northLoad.keys()].filter((stamp) => berlinDateKey(stamp) === dateKey).sort((a, b) => a - b);
+  const points: ZoneSharePoint[] = [];
+  for (const stamp of stamps) {
+    const loadNorth = northLoad.get(stamp);
+    const loadSouth = southLoad.get(stamp);
+    const wind = northWind.get(stamp);
+    const offshore = northOff.get(stamp);
+    const solar = northPv.get(stamp);
+    const windSouth = southWind.get(stamp);
+    const solarSouth = southPv.get(stamp);
+    if (
+      loadNorth === undefined ||
+      loadSouth === undefined ||
+      wind === undefined ||
+      offshore === undefined ||
+      solar === undefined ||
+      windSouth === undefined ||
+      solarSouth === undefined ||
+      loadNorth <= 0 ||
+      loadSouth <= 0
+    ) {
+      continue;
+    }
+    points.push({
+      unixMs: stamp,
+      label: berlinClock(stamp),
+      northPct: ((wind + offshore + solar) / loadNorth) * 100,
+      southPct: ((windSouth + solarSouth) / loadSouth) * 100,
+    });
+  }
+  return points;
+}
+
 function chartFrom(dayPoints: Array<{ unixMs: number; primary: number; secondary: number | null }>): LiveChartPoint[] {
   return dayPoints.map((point) => ({
     unixMs: point.unixMs,
@@ -442,6 +507,7 @@ export function buildLiveBoard(input: LiveBoardInput): LiveBoard {
   let priceReading: PriceReading | null = null;
   let hertzChart: LiveChartPoint[] = [];
   let priceChart: LiveChartPoint[] = [];
+  const zoneChart = input.hertz && input.transnet ? zoneShareSeries(input.hertz, input.transnet, input.berlinDateKey) : [];
 
   if (input.hertz) {
     const aligned = alignLatest(
@@ -659,6 +725,7 @@ export function buildLiveBoard(input: LiveBoardInput): LiveBoard {
     priceLightLabel: priceReading ? priceLightLabel(priceReading.light) : null,
     hertzChart,
     priceChart,
+    zoneChart,
   };
 }
 

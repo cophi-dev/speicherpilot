@@ -7,7 +7,6 @@ import { loadHomeBriefingInitialData } from "@/lib/homeBriefingData";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadLiveBoard } from "@/lib/loadLiveBoard";
 import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
-import { buildMoreStorage } from "@/lib/moreStorage";
 import { pickSurplusDay } from "@/lib/windSolarResidual";
 
 export const metadata = {
@@ -34,15 +33,16 @@ export default async function LivePage() {
     loadWindSolarDays(now),
   ]);
   const picked = pickSurplusDay(days, berlinTodayKey);
-  const storage = buildMoreStorage({
-    fleet,
-    day: picked?.day ?? null,
-    fallback: picked?.fallback ?? false,
-    berlinTodayKey,
-  });
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-64 max-w-[1200px]" />}>
-      <LiveView board={board} storage={storage} />
+      <LiveView
+        board={board}
+        fleet={fleet}
+        days={days}
+        todayKey={berlinTodayKey}
+        initialDate={picked?.day.dateBerlin ?? null}
+        initialFallback={picked?.fallback ?? false}
+      />
     </Suspense>
   );
 }
