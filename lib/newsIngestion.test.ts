@@ -64,4 +64,24 @@ describe("getCuratedNewsFeed", () => {
     const shared = result.items.filter((item) => item.url === "https://example.com/shared");
     expect(shared).toHaveLength(1);
   });
+
+  it("decodes non-breaking spaces instead of leaving the entity in the teaser", async () => {
+    const rssBody = makeRss([
+      makeItem({
+        title: "Germany battery storage project",
+        link: "https://example.com/nbsp",
+        pubDate: "Wed, 08 May 2026 10:00:00 GMT",
+        description: "Speicher&nbsp;&nbsp;am Netz &#160;heute",
+      }),
+    ]);
+    (globalThis as { fetch: typeof fetch }).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => rssBody,
+    }) as unknown as typeof fetch;
+
+    const result = await getCuratedNewsFeed(5);
+    const item = result.items.find((entry) => entry.url === "https://example.com/nbsp");
+    expect(item?.summary).toBe("Speicher am Netz heute");
+    expect(item?.summary).not.toContain("&nbsp;");
+  });
 });

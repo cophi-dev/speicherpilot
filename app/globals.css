@@ -2359,7 +2359,8 @@
 .methodik-scales, .methodik-phases, .methodik-gauges { display: grid; gap: 16px; margin-top: 28px; max-width: 100%; }
 .methodik-scales { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .methodik-phases, .methodik-gauges { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.methodik-scales svg, .methodik-phases .empty-ring, .methodik-gauges svg { width: 100%; height: auto; max-width: 180px; }
+.methodik-scales svg, .methodik-phases .empty-ring, .methodik-phases .day-ring-frame, .methodik-gauges svg { width: 100%; height: auto; max-width: 180px; }
+.methodik-phases .day-ring-frame { margin-inline: 0; }
 .methodik-scales figcaption, .methodik-phases figcaption, .methodik-gauges figcaption { margin-top: 8px; color: #c5ced6; }
 .methodik-layout { display: grid; gap: 28px; min-width: 0; }
 .methodik article, .methodik nav { min-width: 0; max-width: 100%; }
@@ -2379,7 +2380,12 @@
 .dark .methodik-formula figcaption { color: #c5ced6; }
 .methodik blockquote { margin: 0; padding: 20px; border-radius: 12px; background: #0a0f14; color: #e9eef2; }
 .methodik blockquote a { color: #7dfce6; }
-.news-arc { display: block; width: min(100%, 320px); margin-bottom: 16px; }
+.news-ring { display: block; width: 72px; height: 72px; margin-bottom: 16px; }
+.news-v2 .day-paper h2 { font-size: 24px; font-weight: 600; line-height: 1.25; }
+@media (min-width: 768px) {
+  .news-v2 .day-paper h2 { font-size: 26px; }
+}
+
 @media (min-width: 960px) {
   .methodik-layout { grid-template-columns: 240px minmax(0, 1fr); align-items: start; }
   .methodik nav ol { display: grid; }

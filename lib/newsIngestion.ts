@@ -52,13 +52,19 @@ const AI_CURATION_TIMEOUT_MS = 10_000;
 
 const stripCdata = (value: string) => value.replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "");
 
+const decodeCodePoint = (code: number, fallback: string) =>
+  Number.isInteger(code) && code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : fallback;
+
 const decodeHtmlEntities = (value: string) =>
   value
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&amp;/gi, "&")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#(\d+);/g, (entity, digits: string) => decodeCodePoint(Number(digits), entity))
+    .replace(/&#x([0-9a-f]+);/gi, (entity, digits: string) => decodeCodePoint(Number.parseInt(digits, 16), entity));
 
 const stripHtml = (value: string) => value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 

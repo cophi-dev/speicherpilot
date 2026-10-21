@@ -3,6 +3,16 @@ import { render, screen } from "@testing-library/react";
 import { LanguageContext } from "@/components/language-context";
 import { MethodikDocs } from "@/components/methodik/MethodikDocs";
 
+class ObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+beforeAll(() => {
+  global.ResizeObserver = ObserverStub as unknown as typeof ResizeObserver;
+});
+
 describe("methodik v2", () => {
   it("quotes the BGH press release and keeps the forbidden word out", () => {
     render(
@@ -16,5 +26,12 @@ describe("methodik v2", () => {
     expect(document.body.textContent).not.toMatch(/Beurteilungsspielraum/);
     expect(document.body.textContent).not.toMatch(/EnWG/);
     expect(document.body.textContent).toContain("η");
+    const phases = document.querySelectorAll(".methodik-phases .day-ring-svg");
+    expect(phases).toHaveLength(3);
+    for (const ring of phases) {
+      const band = ring.querySelector("path[fill]");
+      expect(band?.getAttribute("d") ?? "").toMatch(/^M /);
+    }
+    expect(document.body.textContent).not.toMatch(/1,5 MVA|1\.5 MVA|Fair Grid/);
   });
 });

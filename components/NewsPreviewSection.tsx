@@ -24,6 +24,11 @@ const responseSchema = z.object({
   items: z.array(newsItemSchema),
 });
 
+function sameCopy(left: string, right: string): boolean {
+  const fold = (value: string) => value.replace(/\s+/g, " ").trim().toLocaleLowerCase("de");
+  return fold(left) === fold(right);
+}
+
 type NewsPreviewSectionProps = {
   limit?: number;
   compact?: boolean;
@@ -157,7 +162,7 @@ export default function NewsPreviewSection({
                     {item.title}
                   </a>
                 </h2>
-                {!compact ? (
+                {!compact && !sameCopy(item.summary, item.title) ? (
                   <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{item.summary}</p>
                 ) : null}
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">

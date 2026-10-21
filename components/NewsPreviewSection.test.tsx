@@ -43,6 +43,32 @@ describe("NewsPreviewSection", () => {
     expect(screen.getByText(/A concise summary/i)).toBeInTheDocument();
   });
 
+  it("hides a teaser that repeats the title", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        asOfIso: "2026-05-08T10:00:00.000Z",
+        itemCount: 1,
+        items: [
+          {
+            id: "n2",
+            title: "Same line",
+            summary: "Same   line",
+            sourceName: "News Source",
+            url: "https://example.com/same",
+            publishedAtIso: "2026-05-08T08:00:00.000Z",
+            categories: ["germany"],
+            relevanceScore: 70,
+          },
+        ],
+      }),
+    }) as typeof fetch;
+
+    renderWithLanguage();
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Same line" })).toBeInTheDocument());
+    expect(screen.getAllByText("Same line")).toHaveLength(1);
+  });
+
   it("renders error state", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,

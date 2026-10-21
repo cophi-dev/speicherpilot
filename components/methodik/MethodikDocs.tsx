@@ -3,8 +3,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { EmptyRing } from "@/components/day-ring/EmptyRing";
+import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
+import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { FLOWER_BERGEDORF } from "@/lib/flowerBergedorf";
 import { GLOSSARY } from "@/lib/glossary";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
@@ -76,9 +77,9 @@ export function MethodikDocs() {
             <section id="grossspeicher">
               <h2>{tx("03 Großspeicher-Modell", "03 Large-storage model")}</h2>
               <div className="methodik-phases" aria-hidden="true">
-                <Phase label={tx("Laden", "Charge")} />
-                <Phase label={tx("Halten", "Hold")} />
-                <Phase label={tx("Abgeben", "Discharge")} />
+                <Phase label={tx("Laden", "Charge")} highlight="midday" />
+                <Phase label={tx("Halten", "Hold")} highlight={null} />
+                <Phase label={tx("Abgeben", "Discharge")} highlight="evening" />
               </div>
               <Formula label={tx("Geladene Energie vor 17 Uhr", "Energy charged before 17:00")}>
                 <math display="block">
@@ -227,10 +228,18 @@ function ScaleRing({ mode }: { mode: "gw" | "kw" }) {
   );
 }
 
-function Phase({ label }: { label: string }) {
+function Phase({ label, highlight }: { label: string; highlight: "midday" | "evening" | null }) {
   return (
     <figure>
-      <EmptyRing label={label} />
+      <DayRing
+        points={PHASE_POINTS}
+        label={label}
+        description={label}
+        highlight={highlight}
+        showShift={false}
+        showHourTicks={false}
+        chargedGwh={0}
+      />
       <figcaption>{label}</figcaption>
     </figure>
   );
@@ -260,7 +269,7 @@ function sector(inner: number, outer: number, startDeg: number, endDeg: number) 
   const [x2, y2] = p(outer, endDeg);
   const [x3, y3] = p(inner, endDeg);
   const [x4, y4] = p(inner, startDeg);
-  return `M ${x1} ${y1} A ${outer} ${outer} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${inner} ${inner} 0 0 0 ${x4} ${y4} Z`;
+  return `M ${r2(x1)} ${r2(y1)} A ${r2(outer)} ${r2(outer)} 0 0 1 ${r2(x2)} ${r2(y2)} L ${r2(x3)} ${r2(y3)} A ${r2(inner)} ${r2(inner)} 0 0 0 ${r2(x4)} ${r2(y4)} Z`;
 }
 
 function arc(radius: number, startDeg: number, endDeg: number) {
@@ -271,5 +280,43 @@ function arc(radius: number, startDeg: number, endDeg: number) {
   const [x1, y1] = p(startDeg);
   const [x2, y2] = p(endDeg);
   const large = endDeg - startDeg > 180 ? 1 : 0;
-  return `M ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2}`;
+  return `M ${r2(x1)} ${r2(y1)} A ${r2(radius)} ${r2(radius)} 0 ${large} 1 ${r2(x2)} ${r2(y2)}`;
 }
+
+/** Hundredths, so the methodik scale paths match between the server and the browser. */
+function r2(value: number): string {
+  return (Math.round(value * 100) / 100).toString();
+}
+
+/** One synthetic surplus day. Laden, Halten and Abgeben are the same ring with a different highlight. */
+const PHASE_POINTS: LiveDispatchPoint[] = Array.from({ length: 96 }, (_, index) => {
+  const hour = index / 4;
+  const night = 20;
+  const midday = -8;
+  const evening = 36;
+  let ohne = night;
+  if (hour >= 6 && hour < 10) {
+    ohne = night + ((midday - night) * (hour - 6)) / 4;
+  } else if (hour >= 10 && hour < 15) {
+    ohne = midday;
+  } else if (hour >= 15 && hour < 18) {
+    ohne = midday + ((evening - midday) * (hour - 15)) / 3;
+  } else if (hour >= 18 && hour < 22) {
+    ohne = evening;
+  } else if (hour >= 22) {
+    ohne = evening + ((night - evening) * (hour - 22)) / 2;
+  }
+  const charging = hour >= 10 && hour < 15;
+  const discharging = hour >= 17 && hour < 22;
+  const soc = hour < 10 ? 0.12 : hour < 15 ? 0.12 + (0.7 * (hour - 10)) / 5 : hour < 17 ? 0.82 : hour < 22 ? 0.82 - (0.55 * (hour - 17)) / 5 : 0.27;
+  const chargeMw = charging ? 500 : 0;
+  const dischargeMw = discharging ? 420 : 0;
+  return {
+    hour,
+    ohneMw: ohne * 1000,
+    mitMw: ohne * 1000 + chargeMw - dischargeMw,
+    chargeMw,
+    dischargeMw,
+    soc,
+  };
+});

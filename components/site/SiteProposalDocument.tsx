@@ -4,7 +4,7 @@ import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 import type { AppLanguage } from "@/components/language-context";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
-import { connectionRequestKw, exceedsFairGrid, type LoadProfile, type SitePlan, type VoltageLevel } from "@/lib/sitePlanner";
+import { type LoadProfile, type SitePlan, type VoltageLevel } from "@/lib/sitePlanner";
 import { registerPdfFonts } from "@/lib/pdfFonts";
 
 registerPdfFonts();
@@ -121,14 +121,6 @@ export function SiteProposalDocument({
                 "Whether grid-supportive storage operation avoids network expansion in the local distribution network can only be judged by the network operator; that operator has a margin of decision. The Federal Network Agency was entitled to regard its requirements (2009 position paper, capacity-price model) as appropriate. BGH, decision of 15 July 2025, EnVR 1/24, press release 129/2025, https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html. As of 21 October 2026. The 90%, 60% and 30% thresholds are provisional."
               )}
             </Text>
-            {exceedsFairGrid(connectionRequestKw(plan.requestedConnectionKw, plan.availableConnectionKw)) ? (
-              <Text style={styles.p}>
-                {tx(
-                  "Anschlussbegehren über 1,5 MVA liegt außerhalb dieser Modellprüfung. Vergleich in kW bei cos φ = 1, nicht als gemessene Scheinleistung.",
-                  "A connection request above 1.5 MVA is outside this model check. Compared in kW at cos φ = 1, not as measured apparent power."
-                )}
-              </Text>
-            ) : null}
           </>
         ) : null}
         {kind === "offer" ? <Text style={styles.h2}>{tx("Wirtschaft, Modell", "Economics, model")}</Text> : <Text style={styles.h2}>{tx("Modellhinweis", "Model note")}</Text>}
