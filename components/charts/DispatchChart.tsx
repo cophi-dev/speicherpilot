@@ -23,6 +23,8 @@ export type DispatchPoint = {
   grid: number;
   bess: number;
   pv: number;
+  /** Grid connection point without storage (load − PV). Drawn when present. */
+  uncontrolled?: number;
 };
 
 export function useNarrowScreen() {
@@ -84,11 +86,14 @@ export function DispatchChart({
   limitKw,
   language,
   height,
+  capKw,
 }: {
   points: DispatchPoint[];
   limitKw: number;
   language: AppLanguage;
   height?: number;
+  /** Optional flexible-connection cap. The firm limit stays the red dashed line. */
+  capKw?: number | null;
 }) {
   const narrow = useNarrowScreen();
   const chartHeight = height ?? (narrow ? 240 : 320);
@@ -116,8 +121,22 @@ export function DispatchChart({
           </Bar>
           <Line dataKey="pv" name="PV" type="monotone" {...common.line} stroke={series.pv.stroke} strokeWidth={series.pv.strokeWidth} dot={false} />
           <Line dataKey="load" name={language === "de" ? "Last ohne BESS" : "Load without BESS"} type="stepAfter" {...common.line} {...series.load} />
+          {points.some((point) => point.uncontrolled !== undefined) ? (
+            <Line
+              dataKey="uncontrolled"
+              name={language === "de" ? "Netz ohne Speicher" : "Grid without storage"}
+              type="stepAfter"
+              {...common.line}
+              stroke={cssVar("subtle")}
+              strokeWidth={1.5}
+              dot={false}
+            />
+          ) : null}
           <Line dataKey="grid" name={language === "de" ? "Netzbezug mit BESS" : "Grid with BESS"} type="stepAfter" {...common.line} {...series.netLoad} />
           {limitKw > 0 ? <ReferenceLine {...limitLine(limitKw, limitLabel)} /> : null}
+          {capKw != null && capKw > 0 ? (
+            <ReferenceLine y={capKw} stroke={cssVar("warning")} strokeDasharray="2 3" ifOverflow="extendDomain" />
+          ) : null}
           <ReferenceLine y={0} stroke={cssVar("border-strong")} />
         </ComposedChart>
       </ResponsiveContainer>
