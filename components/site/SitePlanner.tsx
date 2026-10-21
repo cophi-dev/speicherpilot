@@ -1,12 +1,17 @@
 "use client";
 
 import { toPng } from "html-to-image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChartLegend, DispatchChart, type DispatchPoint, useNarrowScreen } from "@/components/charts/DispatchChart";
+import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
+import { ResultRating } from "@/components/site/ResultRating";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
+import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile } from "@/lib/hamburgSupermarket";
+import { rateConnection, rateGridSupport, ratePayback, rateStorage } from "@/lib/readability";
+import { connectionSentence, paybackSentence, peakSentence, storageSentence, supportSentence } from "@/lib/resultCopy";
 import {
   Bar,
   BarChart,
@@ -41,7 +46,7 @@ import {
   type VoltageLevel,
 } from "@/lib/sitePlanner";
 
-type ProfileMode = ExampleProfileId | "manual" | "csv";
+type ProfileMode = ExampleProfileId | "manual" | "csv" | "supermarkt";
 
 type Draft = {
   mode: ProfileMode;
@@ -74,33 +79,39 @@ type Draft = {
 const economics = defaultPlannerEconomics();
 
 function defaultDraft(): Draft {
+  const example = HAMBURG_SUPERMARKET;
   return {
-    mode: "gewerbe",
+    mode: "supermarkt",
     csv: null,
     csvError: null,
     annualKwh: 3_100_000,
     shape: "G0",
     pvEnabled: true,
-    pvKwp: economics.pvKwp,
+    pvKwp: example.pvKwp,
     orientation: "south",
-    limitKw: economics.limitKw,
-    voltage: economics.voltage,
-    demand: economics.demandChargeEurPerKwYear,
-    energyCt: economics.energyPriceCtPerKwh,
-    feedIn: economics.feedInCtPerKwh,
-    dynamic: true,
-    autoSize: true,
-    powerKw: 310,
-    energyKwh: 620,
-    rtePct: 90,
-    capex: economics.capexEurPerKwh,
-    cycles: economics.maxCyclesPerYear,
-    life: economics.lifetimeYears,
+    limitKw: example.limitKw,
+    voltage: example.voltage,
+    demand: example.demandChargeEurPerKwYear,
+    energyCt: example.energyPriceCtPerKwh,
+    feedIn: example.feedInCtPerKwh,
+    dynamic: example.dynamicTariff,
+    autoSize: false,
+    powerKw: example.powerKw,
+    energyKwh: example.energyKwh,
+    rtePct: example.roundTripEfficiency * 100,
+    capex: example.capexEurPerKwh,
+    cycles: example.maxCyclesPerYear,
+    life: example.lifetimeYears,
     discountPct: 0,
     transformerKw: 0,
     flexible: false,
     advanced: false,
   };
+}
+
+function loadExample(setDraft: (next: Draft) => void, setOperation: (next: OperationMode) => void) {
+  setDraft(defaultDraft());
+  setOperation(HAMBURG_SUPERMARKET.operation);
 }
 
 function profileFromDraft(draft: Draft): LoadProfile | null {
@@ -109,6 +120,9 @@ function profileFromDraft(draft: Draft): LoadProfile | null {
   }
   if (draft.mode === "manual") {
     return manualAnnualProfile(draft.shape, draft.annualKwh);
+  }
+  if (draft.mode === "supermarkt") {
+    return hamburgSupermarketProfile();
   }
   return exampleProfile(draft.mode);
 }
@@ -176,7 +190,9 @@ export function SitePlanner() {
     window.requestAnimationFrame(() => window.scrollTo(0, scrollY));
   }
   const [draft, setDraft] = useState<Draft>(() => draftFromParams(searchParams));
-  const [operation, setOperation] = useState<OperationMode>("market");
+  const [operation, setOperation] = useState<OperationMode>(() =>
+    draftFromParams(searchParams).mode === "supermarkt" ? HAMBURG_SUPERMARKET.operation : "market"
+  );
   const [netzTab, setNetzTab] = useState<"duration" | "peak">("duration");
   const [marketPlan, setMarketPlan] = useState<SitePlan | null>(() => run(draftFromParams(searchParams), "market"));
   const [servingPlan, setServingPlan] = useState<SitePlan | null>(() => run(draftFromParams(searchParams), "grid-serving"));
@@ -215,10 +231,19 @@ export function SitePlanner() {
   const dsoPoints = points.map((point) => ({ ...point, uncontrolled: point.load - point.pv }));
 
   const statusLabel: Record<ConnectionStatus, string> = {
-    ok: tx("ANSCHLUSS OK", "CONNECTION OK"),
-    near: tx("NAHE LIMIT", "NEAR LIMIT"),
-    over: tx("ÜBER LIMIT", "OVER LIMIT"),
+    ok: tx("Passt", "Fits"),
+    near: tx("An der Grenze", "On the limit"),
+    over: tx("Darüber", "Above"),
   };
+  const showingExample = draft.mode === "supermarkt";
+
+  function enterOwnData() {
+    setDraft({ ...draft, mode: "csv", csv: null, csvError: null });
+    window.setTimeout(() => {
+      document.getElementById("load-profile")?.scrollIntoView({ block: "start" });
+      document.getElementById("csv-drop")?.focus();
+    }, 50);
+  }
 
   async function exportPng() {
     if (!posterRef.current) {
@@ -306,25 +331,36 @@ export function SitePlanner() {
           <h1 className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">{tx("Standort rechnen", "Size a site")}</h1>
           <p className="mt-1 max-w-[68ch] text-muted-foreground">
             {tx(
-              "Dieselbe Rechnung für Projektierer und Netzbetreiber: Speichergröße, Wirtschaftlichkeit und Wirkung am Netzanschlusspunkt.",
-              "The same calculation for a developer and a grid operator: storage size, economics, and the effect at the connection point."
+              "Für einen Betrieb oder einen Netzanschluss: wie groß der Speicher ist, ob die Lastspitze hineinpasst und wann sich die Ausgabe bezahlt macht.",
+              "For a business or a grid connection: how big the battery is, whether the load peak fits, and when the outlay pays for itself."
             )}
           </p>
       </div>
       <ViewSwitch view={view} onSelect={selectView} tx={tx} />
+      <p className="mt-3 max-w-[68ch] text-sm text-muted-foreground">
+        {view === "projekt"
+          ? tx("Hier siehst du die Speichergröße, die Kosten und ob sich der Speicher bezahlt macht.", "Here you see the battery size, the cost, and whether the battery pays for itself.")
+          : tx("Hier siehst du, ob die Lastspitze in den bestehenden Anschluss passt.", "Here you see whether the load peak fits the connection you already have.")}
+      </p>
       <div className="no-print mt-4 flex flex-wrap items-center gap-2 md:absolute md:top-8 md:right-8 md:mt-0">
           {profile?.synthetic ? <span className="num rounded-[4px] border border-border px-2 py-0.5 text-[12px]">BEISPIELDATEN</span> : null}
-          <button type="button" className="h-10 rounded-md px-3 text-sm" onClick={() => setDraft(defaultDraft())}>
+          <button type="button" className="h-10 rounded-md px-3 text-sm" onClick={() => loadExample(setDraft, setOperation)}>
             {tx("Beispiel laden", "Load example")}
           </button>
-          <button type="button" className="h-10 rounded-md border border-border-strong px-3 text-sm" onClick={() => setDraft({ ...defaultDraft(), mode: "csv", csv: null })}>
+          <button type="button" className="h-10 rounded-md border border-border-strong px-3 text-sm" onClick={enterOwnData}>
             {tx("Zurücksetzen", "Reset")}
           </button>
       </div>
 
       <div className="mt-7 grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <form className="rounded-md border border-border bg-card p-5 lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-auto" onSubmit={(event) => event.preventDefault()}>
+        <form id="load-profile" className="rounded-md border border-border bg-card p-5 lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-auto" onSubmit={(event) => event.preventDefault()}>
           <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">01 {tx("Lastprofil", "Load profile")}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {tx(
+              "Ein CSV mit 15-Minuten- oder Stundenwerten deines Betriebs ergibt das echte Ergebnis. Das Beispiel bleibt als Beispiel gekennzeichnet.",
+              "A CSV of 15-minute or hourly values from your site gives the real result. The example stays labelled as an example."
+            )}
+          </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {(["gewerbe", "kuehlhaus", "ladepark"] as const).map((kind) => (
               <button key={kind} type="button" className={`num h-8 rounded-md border px-2 text-[12px] ${draft.mode === kind ? "border-foreground bg-foreground text-background" : "border-border"}`} onClick={() => setDraft({ ...draft, mode: kind })}>
@@ -339,13 +375,18 @@ export function SitePlanner() {
             <input id="annual" inputMode="decimal" className="num w-full bg-transparent text-right outline-none" value={draft.annualKwh} onChange={(event) => setDraft({ ...draft, mode: "manual", annualKwh: Number(event.target.value) })} />
             <span className="num ml-2 text-[13px] text-muted-foreground">kWh</span>
           </div>
-          <label className="mt-3 block text-sm font-medium" htmlFor="shape">{tx("Profiltyp", "Shape")}</label>
+          <span className="mt-3 flex items-center gap-2 text-sm font-medium">
+            <label htmlFor="shape">{tx("Profiltyp", "Shape")}</label>
+            <GlossaryTip id="g0" language={language} />
+            <GlossaryTip id="g1" language={language} />
+            <GlossaryTip id="l0" language={language} />
+          </span>
           <select id="shape" className="mt-1.5 h-10 w-full rounded-md border border-input bg-card px-2 dark:bg-secondary" value={draft.shape} onChange={(event) => setDraft({ ...draft, mode: "manual", shape: event.target.value as ManualShapeId })}>
-            <option value="G0">G0</option>
-            <option value="G1">G1</option>
-            <option value="L0">L0</option>
+            <option value="G0">G0 · {tx("Gewerbe, tagsüber gleichmäßig", "commercial, flat through the day")}</option>
+            <option value="G1">G1 · {tx("Gewerbe mit Abendspitze", "commercial with an evening peak")}</option>
+            <option value="L0">L0 · {tx("Morgen- und Abendspitze", "morning and evening peak")}</option>
           </select>
-          <button type="button" className="mt-3 flex h-[120px] w-full items-center justify-center rounded-md border border-dashed border-border-strong px-3 text-center" onClick={() => fileRef.current?.click()}>
+          <button id="csv-drop" type="button" className="mt-3 flex h-[120px] w-full items-center justify-center rounded-md border border-dashed border-border-strong px-3 text-center focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" onClick={() => fileRef.current?.click()}>
             <span className="num text-[12px] text-muted-foreground">CSV · 15-min {tx("oder", "or")} 60-min · kW {tx("oder", "or")} kWh · max 10 MB</span>
           </button>
           <input
@@ -408,23 +449,26 @@ export function SitePlanner() {
           </Section>
 
           <Section label={`03 ${tx("Netzanschluss", "Connection")}`}>
-            {view === "netz" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} required /> : null}
+            {view === "netz" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} language={language} required /> : null}
             <Field id="limit" label={tx("Anschlussleistung", "Connection capacity")} unit="kW" value={draft.limitKw} onChange={(limitKw) => setDraft({ ...draft, limitKw })} required={view === "netz"} />
             <p className="mt-1 text-[12px] text-muted-foreground">
               {tx("Profilspitze", "Profile peak")}: {formatQuantity(peakKw, language, 0)} kW
               {peakKw > draft.limitKw ? <span className="text-warning"> · {tx("über Limit", "above the limit")}</span> : null}
             </p>
-            {view === "projekt" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} /> : null}
+            {view === "projekt" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} language={language} /> : null}
           </Section>
 
           <Section label={`04 ${tx("Tarif", "Tariff")}`}>
-            <Field label={tx("Leistungspreis", "Demand charge")} unit="€/kW·a" value={draft.demand} onChange={(demand) => setDraft({ ...draft, demand })} />
+            <Field label={tx("Leistungspreis", "Demand charge")} unit="€/kW·a" value={draft.demand} onChange={(demand) => setDraft({ ...draft, demand })} tip={<GlossaryTip id="eur-per-kw-year" language={language} />} />
             <Field label={tx("Arbeitspreis", "Energy price")} unit="ct/kWh" value={draft.energyCt} onChange={(energyCt) => setDraft({ ...draft, energyCt })} />
             <Field label={tx("Einspeisevergütung", "Feed-in")} unit="ct/kWh" value={draft.feedIn} onChange={(feedIn) => setDraft({ ...draft, feedIn })} />
-            <label className="mt-3 flex items-center justify-between text-sm">
-              {tx("Dynamischer Tarif (Day-Ahead)", "Dynamic tariff (day-ahead)")}
-              <input type="checkbox" checked={draft.dynamic} onChange={(event) => setDraft({ ...draft, dynamic: event.target.checked })} />
-            </label>
+            <div className="mt-3 flex items-center justify-between gap-2 text-sm">
+              <span className="inline-flex items-center gap-2">
+                <label htmlFor="dynamic-tariff">{tx("Dynamischer Tarif (Day-Ahead)", "Dynamic tariff (day-ahead)")}</label>
+                <GlossaryTip id="day-ahead" language={language} />
+              </span>
+              <input id="dynamic-tariff" type="checkbox" checked={draft.dynamic} onChange={(event) => setDraft({ ...draft, dynamic: event.target.checked })} />
+            </div>
           </Section>
 
           <button type="button" className="num mt-4 flex w-full items-center justify-between border-t border-border pt-3 text-[12px] tracking-[0.08em] text-muted-foreground uppercase" onClick={() => setDraft({ ...draft, advanced: !draft.advanced })}>
@@ -440,7 +484,7 @@ export function SitePlanner() {
               <Field label="kW" unit="kW" value={draft.powerKw} onChange={(powerKw) => setDraft({ ...draft, autoSize: false, powerKw })} />
               <Field label="kWh" unit="kWh" value={draft.energyKwh} onChange={(energyKwh) => setDraft({ ...draft, autoSize: false, energyKwh })} />
               <Field label={tx("Wirkungsgrad", "Round trip")} unit="%" value={draft.rtePct} onChange={(rtePct) => setDraft({ ...draft, rtePct })} />
-              <Field label="CAPEX" unit="€/kWh" value={draft.capex} onChange={(capex) => setDraft({ ...draft, capex })} />
+              <Field label="CAPEX" unit="€/kWh" value={draft.capex} onChange={(capex) => setDraft({ ...draft, capex })} tip={<GlossaryTip id="capex" language={language} />} />
               <Field label={tx("Zyklen/Jahr max", "Max cycles/year")} unit="/a" value={draft.cycles} onChange={(cycles) => setDraft({ ...draft, cycles })} />
               <p className="mt-3 text-sm font-medium">{tx("Betriebsart", "Operation")}</p>
               <div className="mt-1.5 flex gap-2">
@@ -465,7 +509,7 @@ export function SitePlanner() {
 
           <button
             type="button"
-            className="no-print mt-5 hidden h-10 w-full items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground disabled:opacity-60 lg:inline-flex"
+            className={`no-print mt-5 hidden h-10 w-full items-center justify-center rounded-md text-sm font-medium disabled:opacity-60 lg:inline-flex ${showingExample ? "border border-border bg-card text-foreground" : "bg-primary text-primary-foreground"}`}
             disabled={!plan || pdfBusy}
             onClick={() => void exportPdf(view === "netz" ? "connection" : "offer")}
           >
@@ -487,7 +531,7 @@ export function SitePlanner() {
                   {tx("ANSCHLUSSLEISTUNG FEHLT", "CONNECTION CAPACITY MISSING")}
                 </button>
               ) : null}
-              <button type="button" className="mt-4 h-10 rounded-md border border-border px-3 text-sm" onClick={() => setDraft(defaultDraft())}>
+              <button type="button" className="mt-4 h-10 rounded-md border border-border px-3 text-sm" onClick={() => loadExample(setDraft, setOperation)}>
                 {tx("Beispiel laden", "Load example")}
               </button>
             </div>
@@ -495,14 +539,69 @@ export function SitePlanner() {
             <>
               <div>
                 <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Ergebnis", "Result")}</p>
-                {profile.synthetic ? <p className="num mt-1 text-[12px] text-muted-foreground">BEISPIELDATEN</p> : null}
+                {showingExample ? (
+                  <div className="mt-3 rounded-md border border-border-strong bg-card p-4 md:p-5">
+                    <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">BEISPIELDATEN</p>
+                    <h2 className="mt-1 text-xl font-medium">{language === "de" ? HAMBURG_SUPERMARKET.labelDe : HAMBURG_SUPERMARKET.labelEn}</h2>
+                    <p className="mt-2 max-w-[62ch] text-sm text-muted-foreground">
+                      {tx(
+                        "Fiktiver Betrieb, keine Messung. Der Speicher kappt die Abendspitze auf die Anschlussgrenze. Ein CSV mit 15-Minuten- oder Stundenwerten deines eigenen Lastprofils ergibt das echte Ergebnis.",
+                        "A fictional site, not a measurement. The battery cuts the evening peak to the connection limit. A CSV of 15-minute or hourly values from your own load profile gives the real result."
+                      )}
+                    </p>
+                    <button
+                      type="button"
+                      className="mt-4 hidden h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:inline-flex"
+                      onClick={enterOwnData}
+                    >
+                      {tx("Eigene Daten eingeben", "Enter your own data")}
+                    </button>
+                  </div>
+                ) : profile.synthetic ? (
+                  <p className="num mt-1 text-[12px] text-muted-foreground">BEISPIELDATEN</p>
+                ) : null}
                 <div className="mt-2.5 grid grid-cols-2 gap-3 xl:grid-cols-4">
-                  <Tile key="speicher" tone="bess" label={tx("Speicher", "Storage")} value={`${formatQuantity(plan.energyKwh, language, 0)}/${formatQuantity(plan.powerKw, language, 0)}`} unit="kWh/kW" hint={`C ${formatQuantity(plan.cRate, language, 2)}`} />
-                  <Tile key="spitze" tone="limit" label={tx("Spitze", "Peak")} value={formatQuantity(plan.peakImportAfterKw, language, 0)} unit="kW" hint={`${tx("von", "from")} ${formatQuantity(plan.peakImportBeforeKw, language, 0)} kW`} />
-                  <Tile key="anschluss" label={tx("Anschluss", "Connection")} value={statusLabel[plan.connection]} unit="" hint={`${formatQuantity(draft.limitKw, language, 0)} kW · ${draft.voltage}`} chip={plan.connection} />
+                  <Tile
+                    key="speicher"
+                    tone="bess"
+                    label={tx("Speicher", "Storage")}
+                    value={formatQuantity(plan.energyKwh, language, 0)}
+                    unit="kWh"
+                    sentence={storageSentence(plan.energyKwh, plan.powerKw, language)}
+                    light={rateStorage({ peakBeforeKw: plan.peakImportBeforeKw, peakAfterKw: plan.peakImportAfterKw, limitKw: draft.limitKw })}
+                    language={language}
+                  />
+                  <Tile
+                    key="spitze"
+                    tone="limit"
+                    label={tx("Spitze", "Peak")}
+                    value={formatQuantity(plan.peakImportAfterKw, language, 0)}
+                    unit="kW"
+                    sentence={peakSentence(plan.peakImportBeforeKw, plan.peakImportAfterKw, language)}
+                    light={rateConnection(plan.connection)}
+                    language={language}
+                  />
+                  <Tile
+                    key="anschluss"
+                    label={tx("Anschluss", "Connection")}
+                    value={statusLabel[plan.connection]}
+                    unit=""
+                    sentence={connectionSentence(plan.connection, plan.peakImportAfterKw - draft.limitKw, language)}
+                    light={rateConnection(plan.connection)}
+                    language={language}
+                    chip={plan.connection}
+                    words
+                  />
                   <div className="relative min-w-0">
                     <div className={`${view === "projekt" ? "opacity-100" : "pointer-events-none absolute inset-0 opacity-0"} transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none`}>
-                      <Tile label={tx("Amortisation", "Payback")} value={formatYears(plan.paybackYears, language)} unit={plan.paybackYears ? "a" : ""} hint={`${formatQuantity(plan.annualBenefitEur, language, 0)} €/a`} />
+                      <Tile
+                        label={tx("Amortisation", "Payback")}
+                        value={formatYears(plan.paybackYears, language)}
+                        unit={plan.paybackYears ? "a" : ""}
+                        sentence={paybackSentence(plan.paybackYears, language)}
+                        light={ratePayback(plan.paybackYears)}
+                        language={language}
+                      />
                     </div>
                     <div className={`${view === "netz" ? "opacity-100" : "pointer-events-none absolute inset-0 opacity-0"} transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none`}>
                       <SupportTile plan={plan} language={language} tx={tx} />
@@ -514,7 +613,10 @@ export function SitePlanner() {
               <div className="relative" role="tabpanel" id="results-panel">
               <div className={`${view === "projekt" ? "opacity-100" : "pointer-events-none absolute inset-x-0 opacity-0"} flex flex-col gap-6 transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none`} aria-hidden={view !== "projekt"} inert={view !== "projekt"}>
               <article className="rounded-md border border-border bg-card p-4 md:p-6">
-                <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Peak Shaving · {profile.intervalMinutes} min</p>
+                <p className="num flex items-center gap-2 text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
+                  Peak Shaving · {profile.intervalMinutes} min
+                  <GlossaryTip id="peak-shaving" language={language} />
+                </p>
                 <h2 className="mt-1.5 text-lg font-semibold">
                   {plan.importImpact === "increases"
                     ? tx("Spitze steigt von", "Peak rises from")
@@ -525,7 +627,12 @@ export function SitePlanner() {
                 </h2>
                 <div className="mt-3 flex gap-6 overflow-x-auto border-b border-border text-sm font-medium">
                   <button type="button" className={tab === "peak" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setTab("peak")}>{tx("Typischer Spitzentag", "Typical peak day")}</button>
-                  <button type="button" className={tab === "duration" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setTab("duration")}>{tx("Jahresdauerlinie", "Duration curve")}</button>
+                  <span className="inline-flex items-center gap-2">
+                    <button type="button" className={tab === "duration" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setTab("duration")}>
+                      {tx("Jahresdauerlinie", "Duration curve")}
+                    </button>
+                    <GlossaryTip id="jahresdauerlinie" language={language} />
+                  </span>
                 </div>
                 {tab === "peak" ? (
                   <>
@@ -537,8 +644,8 @@ export function SitePlanner() {
                       ))}
                     </div>
                     <ChartLegend items={[
-                      { label: tx("Last ohne BESS", "Load without BESS"), swatch: "line" },
-                      { label: tx("Netzbezug mit BESS", "Grid with BESS"), swatch: "line-bold" },
+                      { label: tx("Last ohne Speicher", "Load without storage"), swatch: "line" },
+                      { label: tx("Netzbezug mit Speicher", "Grid with storage"), swatch: "line-bold" },
                       { label: tx("Entladen", "Discharge"), swatch: "teal" },
                       { label: tx("Laden", "Charge"), swatch: "teal-dim" },
                       { label: "PV", swatch: "pv" },
@@ -554,7 +661,7 @@ export function SitePlanner() {
                 </p>
                 <div className="mt-3 grid gap-3 border-t border-border pt-3 md:grid-cols-3">
                   <Mini label={tx("Leistungspreis-Ersparnis", "Demand-charge saving")} value={`${formatQuantity(plan.demandChargeSavingsEur, language, 0)} €/a`} />
-                  <Mini label={tx("Vollzyklen", "Full cycles")} value={`${formatQuantity(plan.fullCycles, language, 0)} /a`} />
+                  <Mini label={tx("Vollzyklen", "Full cycles")} value={`${formatQuantity(plan.fullCycles, language, 0)} /a`} tip={<GlossaryTip id="vollzyklen" language={language} />} />
                   <Mini label={tx("Überschreitung", "Exceedance")} value={`${formatQuantity(plan.exceedanceHoursBefore, language, 0)} h → ${formatQuantity(plan.exceedanceHoursAfter, language, 0)} h`} />
                 </div>
               </article>
@@ -589,7 +696,12 @@ export function SitePlanner() {
                 </h2>
                 <PaybackChart plan={plan} narrow={narrow} language={language} />
                 <p className="num mt-2 text-[12px] text-muted-foreground">
-                  CAPEX {formatQuantity(plan.capexEur, language, 0)} € · OPEX {formatQuantity(plan.assumptions.opexFractionOfCapex * 100, language, 1)} % · {tx("Diskont", "Discount")} {formatQuantity(draft.discountPct, language, 1)} % · NPV {formatQuantity(plan.npvEur, language, 0)} €
+                  <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="inline-flex items-center gap-1">CAPEX {formatQuantity(plan.capexEur, language, 0)} € <GlossaryTip id="capex" language={language} /></span>
+                    <span className="inline-flex items-center gap-1">OPEX {formatQuantity(plan.assumptions.opexFractionOfCapex * 100, language, 1)} % <GlossaryTip id="opex" language={language} /></span>
+                    <span>{tx("Diskont", "Discount")} {formatQuantity(draft.discountPct, language, 1)} %</span>
+                    <span className="inline-flex items-center gap-1">NPV {formatQuantity(plan.npvEur, language, 0)} € <GlossaryTip id="npv" language={language} /></span>
+                  </span>
                 </p>
                 <div className="mt-3 flex items-baseline justify-between gap-4 border-t border-border pt-3 text-sm">
                   <span>{tx("Erlösstapelung (Regelenergie, Kapazität)", "Revenue stacking (balancing, capacity)")}</span>
@@ -667,7 +779,7 @@ export function SitePlanner() {
               <details className="rounded-md border border-border bg-card p-4">
                 <summary className="cursor-pointer text-sm font-medium">{tx("Annahmen", "Assumptions")}</summary>
                 <dl className="num mt-3 grid gap-2 text-[13px]">
-                  <div className="flex justify-between gap-4"><dt>{tx("Dimensionierung", "Sizing")}</dt><dd className="text-right">{plan.assumptions.sizingRule}</dd></div>
+                  <div className="flex justify-between gap-4"><dt className="inline-flex items-center gap-2">{tx("Dimensionierung", "Sizing")} <GlossaryTip id="p95" language={language} /></dt><dd className="text-right">{plan.assumptions.sizingRule}</dd></div>
                   <div className="flex justify-between gap-4"><dt>{tx("Preise", "Prices")}</dt><dd className="text-right">{plan.assumptions.priceNote}</dd></div>
                   <div className="flex justify-between gap-4"><dt>RTE</dt><dd>{formatQuantity(plan.assumptions.roundTripEfficiency * 100, language, 0)} %</dd></div>
                   <div className="flex justify-between gap-4"><dt>{tx("Nicht enthalten", "Excluded")}</dt><dd className="text-right">{plan.assumptions.excluded.join(", ")}</dd></div>
@@ -694,9 +806,15 @@ export function SitePlanner() {
           <p className="num text-sm">
             {formatQuantity(plan.energyKwh, language, 0)} kWh
           </p>
-          <button type="button" className="h-10 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground disabled:opacity-60" disabled={pdfBusy} onClick={() => void exportPdf(view === "netz" ? "connection" : "offer")}>
-            {view === "netz" ? tx("Anschlussprüfung als PDF", "Connection PDF") : tx("Angebot als PDF", "Offer as PDF")}
-          </button>
+          {showingExample ? (
+            <button type="button" className="h-10 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground" onClick={enterOwnData}>
+              {tx("Eigene Daten eingeben", "Enter your own data")}
+            </button>
+          ) : (
+            <button type="button" className="h-10 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground disabled:opacity-60" disabled={pdfBusy} onClick={() => void exportPdf(view === "netz" ? "connection" : "offer")}>
+              {view === "netz" ? tx("Anschlussprüfung als PDF", "Connection PDF") : tx("Angebot als PDF", "Offer as PDF")}
+            </button>
+          )}
         </div>
       ) : null}
 
@@ -704,7 +822,7 @@ export function SitePlanner() {
         <div ref={posterRef} inert aria-hidden className="pointer-events-none fixed top-0 -left-[2000px] h-[900px] w-[1600px] bg-[#0B0D0F] text-[#ECEDEE]">
           <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
           <div className="relative px-20 pt-16">
-            <p className="num text-[22px] tracking-[0.08em] text-[#9CA2A8] uppercase">SpeicherPilot · BESS-Dispatch · 24 h · ¼h</p>
+            <p className="num text-[22px] tracking-[0.08em] text-[#9CA2A8] uppercase">SpeicherPilot · Speicher-Fahrplan · 24 h · ¼h</p>
             <p className="mt-4 max-w-[1400px] text-[56px] leading-none font-medium">
               {tx("Speicher kappt die Spitze", "Storage cuts the peak")}
             </p>
@@ -748,7 +866,7 @@ function ViewSwitch({ view, onSelect, tx }: { view: "projekt" | "netz"; onSelect
       <div
         role="tablist"
         aria-label={tx("Perspektive", "Perspective")}
-        className="flex h-9 w-full border border-border-strong min-[481px]:w-fit"
+        className="flex min-h-9 w-full border border-border-strong min-[481px]:w-fit"
         onKeyDown={(event) => {
           const index = order.indexOf(view);
           let next: "projekt" | "netz" | null = null;
@@ -780,13 +898,10 @@ function ViewSwitch({ view, onSelect, tx }: { view: "projekt" | "netz"; onSelect
             aria-selected={view === key}
             aria-controls="results-panel"
             tabIndex={view === key ? 0 : -1}
-            className={`flex h-full flex-1 items-center justify-center px-3 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-[481px]:flex-none min-[481px]:px-4 ${view === key ? "bg-foreground text-background" : "bg-card"}`}
+            className={`flex min-h-9 flex-1 items-center justify-center px-3 py-1.5 text-center text-sm leading-tight font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-[481px]:flex-none min-[481px]:px-4 ${view === key ? "bg-foreground text-background" : "bg-card"}`}
             onClick={() => onSelect(key)}
           >
-            {key === "projekt" ? tx("Projektierung", "Project") : tx("Netzbetreiber", "Grid operator")}
-            <span className="num ml-2 hidden text-[12px] font-normal md:inline">
-              {key === "projekt" ? tx("Größe · Erlös", "Size · revenue") : tx("Anschluss · Netzlast", "Connection · grid load")}
-            </span>
+            {key === "projekt" ? tx("Ich plane einen Speicher", "I am planning storage") : tx("Ich prüfe einen Netzanschluss", "I am checking a connection")}
           </button>
         ))}
       </div>
@@ -794,17 +909,22 @@ function ViewSwitch({ view, onSelect, tx }: { view: "projekt" | "netz"; onSelect
   );
 }
 
-function VoltageField({ draft, setDraft, tx, required }: { draft: Draft; setDraft: (next: Draft) => void; tx: (de: string, en: string) => string; required?: boolean }) {
+function VoltageField({ draft, setDraft, tx, language, required }: { draft: Draft; setDraft: (next: Draft) => void; tx: (de: string, en: string) => string; language: "de" | "en"; required?: boolean }) {
   return (
     <>
-      <label className="mt-3 block text-sm font-medium" htmlFor="voltage">
-        {tx("Spannungsebene", "Voltage")}
-        {required ? <span className="num ml-2 text-[12px] tracking-[0.08em] text-muted-foreground">PFLICHT</span> : null}
-      </label>
+      <span className="mt-3 flex items-center gap-2 text-sm font-medium">
+        <label htmlFor="voltage">
+          {tx("Spannungsebene", "Voltage")}
+          {required ? <span className="num ml-2 text-[12px] tracking-[0.08em] text-muted-foreground">PFLICHT</span> : null}
+        </label>
+        <GlossaryTip id="ns" language={language} />
+        <GlossaryTip id="ms" language={language} />
+        <GlossaryTip id="hs" language={language} />
+      </span>
       <select id="voltage" className="mt-1.5 h-10 w-full rounded-md border border-input bg-card px-2 dark:bg-secondary" value={draft.voltage} onChange={(event) => setDraft({ ...draft, voltage: event.target.value as VoltageLevel })}>
-        <option value="NS">NS</option>
-        <option value="MS">MS</option>
-        <option value="HS">HS</option>
+        <option value="NS">NS · {tx("Niederspannung", "Low voltage")}</option>
+        <option value="MS">MS · {tx("Mittelspannung", "Medium voltage")}</option>
+        <option value="HS">HS · {tx("Hochspannung", "High voltage")}</option>
       </select>
     </>
   );
@@ -836,6 +956,8 @@ function SupportTile({ plan, language, tx }: { plan: SitePlan; language: "de" | 
         <i className="absolute top-0 h-1.5 border-l border-border-strong" style={{ left: "30%" }} />
         <i className="absolute top-0 h-1.5 border-l border-border-strong" style={{ left: "60%" }} />
       </div>
+      <p className="mt-2 text-[12px] leading-snug text-foreground">{supportSentence(status, language)}</p>
+      <ResultRating light={rateGridSupport(status)} language={language} />
       <p className="mt-2 text-[12px] text-muted-foreground">{tx("Kein Befund des Netzbetreibers.", "Not a grid-operator finding.")}</p>
       <a className="mt-1 inline-block text-[12px] underline underline-offset-[3px]" href="/methodik#netzdienlichkeit" title={tooltip}>
         {tx("Methodik", "Method")}
@@ -922,7 +1044,12 @@ function DsoView({
           {formatQuantity(plan.exceedanceHoursBefore, language, 0)} h {tx("über", "above")} {formatQuantity(draft.limitKw, language, 0)} kW {tx("ohne Speicher", "without storage")}, {formatQuantity(plan.exceedanceHoursAfter, language, 0)} h {tx("mit", "with")}
         </h2>
         <div className="mt-3 flex gap-6 overflow-x-auto border-b border-border text-sm font-medium">
-          <button type="button" className={netzTab === "duration" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setNetzTab("duration")}>{tx("Jahresdauerlinie", "Duration curve")}</button>
+          <span className="inline-flex items-center gap-2">
+            <button type="button" className={netzTab === "duration" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setNetzTab("duration")}>
+              {tx("Jahresdauerlinie", "Duration curve")}
+            </button>
+            <GlossaryTip id="jahresdauerlinie" language={language} />
+          </span>
           <button type="button" className={netzTab === "peak" ? "border-b-2 border-foreground py-2" : "py-2 text-muted-foreground"} onClick={() => setNetzTab("peak")}>{tx("Tagesprofil", "Day profile")}</button>
         </div>
         {netzTab === "duration" ? (
@@ -1079,16 +1206,29 @@ function DsoView({
 function draftFromParams(params: { get: (key: string) => string | null }): Draft {
   const base = defaultDraft();
   const mode = params.get("profile");
-  if (!mode) {
+  if (!mode || mode === "supermarkt") {
     return base;
   }
-  return {
+  const legacy: Draft = {
     ...base,
+    mode: "gewerbe",
+    pvKwp: economics.pvKwp,
+    limitKw: economics.limitKw,
+    voltage: economics.voltage,
+    demand: economics.demandChargeEurPerKwYear,
+    energyCt: economics.energyPriceCtPerKwh,
+    dynamic: true,
+    autoSize: true,
+    powerKw: 310,
+    energyKwh: 620,
+  };
+  return {
+    ...legacy,
     mode: mode === "kuehlhaus" || mode === "ladepark" || mode === "manual" || mode === "csv" ? mode : "gewerbe",
-    pvKwp: numberOr(params.get("pv"), base.pvKwp),
-    limitKw: numberOr(params.get("limit"), base.limitKw),
-    demand: numberOr(params.get("demand"), base.demand),
-    energyCt: numberOr(params.get("energy"), base.energyCt),
+    pvKwp: numberOr(params.get("pv"), legacy.pvKwp),
+    limitKw: numberOr(params.get("limit"), legacy.limitKw),
+    demand: numberOr(params.get("demand"), legacy.demand),
+    energyCt: numberOr(params.get("energy"), legacy.energyCt),
     dynamic: params.get("dynamic") !== "0",
     autoSize: params.get("auto") !== "0",
   };
@@ -1111,39 +1251,66 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function Field({ label, unit, value, onChange, id, required }: { label: string; unit: string; value: number; onChange: (value: number) => void; id?: string; required?: boolean }) {
+function Field({ label, unit, value, onChange, id, required, tip }: { label: string; unit: string; value: number; onChange: (value: number) => void; id?: string; required?: boolean; tip?: React.ReactNode }) {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
   return (
-    <label className="mt-3 block">
-      <span className="text-sm font-medium">
-        {label}
-        {required ? <span className="num ml-2 text-[12px] tracking-[0.08em] text-muted-foreground">PFLICHT</span> : null}
+    <div className="mt-3 block">
+      <span className="inline-flex items-center gap-2 text-sm font-medium">
+        <label htmlFor={inputId}>{label}</label>
+        {tip}
+        {required ? <span className="num text-[12px] tracking-[0.08em] text-muted-foreground">PFLICHT</span> : null}
       </span>
       <span className="mt-1.5 flex h-10 items-center rounded-md border border-input bg-card px-3 dark:bg-secondary">
-        <input id={id} inputMode="decimal" className="num w-full bg-transparent text-right outline-none" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value))} />
+        <input id={inputId} inputMode="decimal" className="num w-full bg-transparent text-right outline-none" value={Number.isFinite(value) ? value : 0} onChange={(event) => onChange(Number(event.target.value))} />
         <span className="num ml-2 shrink-0 text-[13px] text-muted-foreground">{unit}</span>
       </span>
-    </label>
+    </div>
   );
 }
 
-function Tile({ label, value, unit, hint, tone, chip }: { label: string; value: string; unit: string; hint?: string; tone?: "bess" | "limit"; chip?: ConnectionStatus }) {
+function Tile({
+  label,
+  value,
+  unit,
+  sentence,
+  light,
+  language,
+  tone,
+  chip,
+  words,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  sentence: string;
+  light: "green" | "yellow" | "red";
+  language: "de" | "en";
+  tone?: "bess" | "limit";
+  chip?: ConnectionStatus;
+  words?: boolean;
+}) {
   const border = tone === "bess" ? "border-bess" : tone === "limit" ? "border-limit" : "border-border";
   const chipClass = chip === "ok" ? "text-success" : chip === "near" ? "text-warning" : chip === "over" ? "text-destructive" : "";
   return (
     <div className={`min-w-0 border border-border border-l-[3px] ${border} bg-card p-3 md:px-4 md:py-4`}>
       <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{label}</p>
-      <p className={`num mt-2 leading-none text-[24px] md:text-[32px] ${chipClass}`}>
+      <p className={`num mt-2 leading-tight ${words ? "text-[20px] md:text-[22px]" : "text-[24px] md:text-[32px]"} ${chipClass}`}>
         {value} {unit ? <span className="text-[12px] text-muted-foreground">{unit}</span> : null}
       </p>
-      {hint ? <p className="mt-2 text-sm text-muted-foreground">{hint}</p> : null}
+      <p className="mt-2 text-sm text-foreground">{sentence}</p>
+      <ResultRating light={light} language={language} />
     </div>
   );
 }
 
-function Mini({ label, value }: { label: string; value: string }) {
+function Mini({ label, value, tip }: { label: string; value: string; tip?: React.ReactNode }) {
   return (
     <div>
-      <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{label}</p>
+      <p className="num inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
+        {label}
+        {tip}
+      </p>
       <p className="num text-lg">{value}</p>
     </div>
   );
@@ -1221,8 +1388,8 @@ function DurationChart({
           <YAxis {...axis} width={56} />
           <Tooltip {...tooltip} />
           {exceedBefore > 0 ? <ReferenceArea x1={0} x2={Math.min(exceedBefore, span)} fill={cssVar("c-limit", 0.08)} /> : null}
-          <Line dataKey="before" type="monotone" {...common.line} stroke={cssVar("subtle")} strokeWidth={1.5} name="ohne BESS" />
-          <Line dataKey="after" type="monotone" {...common.line} {...series.netLoad} name="mit BESS" />
+          <Line dataKey="before" type="monotone" {...common.line} stroke={cssVar("subtle")} strokeWidth={1.5} name="ohne Speicher" />
+          <Line dataKey="after" type="monotone" {...common.line} {...series.netLoad} name="mit Speicher" />
           {limitKw > 0 ? (
             <ReferenceLine
               y={limitKw * 0.9}

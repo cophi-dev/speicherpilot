@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 
 import { ChartLegend, DispatchChart, type DispatchPoint } from "@/components/charts/DispatchChart";
+import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { HomeBriefingInitialData } from "@/lib/homeBriefingData";
@@ -52,7 +53,7 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
         <div className="mx-auto grid max-w-[1200px] items-center gap-12 px-5 md:px-8 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
-              BESS · {tx("Netzanschluss", "Grid connection")} · ¼h-{tx("Profile", "profiles")}
+              {tx("Für Betriebe mit Lastspitzen", "For sites with load peaks")}
             </p>
             <h1 className="mt-5 text-[36px] leading-[1.05] font-medium tracking-[-0.02em] md:text-[56px]">
               {tx("Batteriespeicher & Netzanschluss planen.", "Plan battery storage and the grid connection.")}
@@ -60,8 +61,8 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
             <p className="num mt-3.5 text-[15px] text-muted-foreground">battery storage & grid connection planner</p>
             <p className="mt-6 max-w-[52ch] text-lg leading-[1.55]">
               {tx(
-                "Lastprofil hochladen, Anschlussgrenze setzen und in Sekunden sehen, welcher Speicher die Spitze kappt, was er verdient und ob der Anschluss reicht.",
-                "Upload a load profile, set the connection limit, and see which battery cuts the peak, what it earns, and whether the connection holds."
+                "Für Gewerbe und für alle, die einen Stromanschluss prüfen: das Werkzeug zeigt, ob ein Batteriespeicher die teure Lastspitze kappt und ob der bestehende Anschluss dann reicht.",
+                "For businesses and for anyone checking a power connection: the tool shows whether a battery cuts the expensive load peak and whether the connection you already have is then enough."
               )}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -91,8 +92,8 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
             </h2>
             <ChartLegend
               items={[
-                { label: tx("Last ohne BESS", "Load without BESS"), swatch: "line" },
-                { label: tx("Netzbezug mit BESS", "Grid with BESS"), swatch: "line-bold" },
+                { label: tx("Last ohne Speicher", "Load without storage"), swatch: "line" },
+                { label: tx("Netzbezug mit Speicher", "Grid with storage"), swatch: "line-bold" },
                 { label: tx("Entladen", "Discharge"), swatch: "teal" },
                 { label: tx("Laden", "Charge"), swatch: "teal-dim" },
                 { label: tx("Netzanschluss", "Connection"), swatch: "dashed" },
@@ -109,28 +110,54 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
         </div>
       </section>
 
+      <section className="border-b border-border py-16 md:py-20">
+        <div className="mx-auto max-w-[1200px] px-5 md:px-8">
+          <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("In drei Schritten", "In three steps")}</p>
+          <ol className="mt-6 grid gap-4 md:grid-cols-3">
+            <StoryStep
+              n="01"
+              title={tx("Dein Betrieb hat Lastspitzen", "Your site has load peaks")}
+              body={tx("An manchen Stunden zieht der Betrieb viel mehr Strom als sonst.", "In some hours the site draws much more power than usual.")}
+              drawing="peak"
+            />
+            <StoryStep
+              n="02"
+              title={tx("Der Speicher schneidet sie ab", "The battery cuts them off")}
+              body={tx("Er gibt in diesen Stunden Strom ab, damit die Spitze flacher wird.", "It supplies power in those hours so the peak gets flatter.")}
+              drawing="cut"
+            />
+            <StoryStep
+              n="03"
+              title={tx("Du sparst Leistungspreis – oder brauchst keinen größeren Netzanschluss", "You save the demand charge — or you do not need a larger connection")}
+              body={tx("Die teuerste Stunde wird kleiner. Oft reicht dann der Anschluss, den du schon hast.", "The most expensive hour gets smaller. Often the connection you already have is then enough.")}
+              drawing="save"
+            />
+          </ol>
+        </div>
+      </section>
+
       <section className="border-b border-border py-16 md:py-24">
         <div className="mx-auto max-w-[1200px] px-5 md:px-8">
           <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">01 — {tx("Für wen", "Who for")}</p>
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <article className="rounded-md border border-border bg-card p-6">
-              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Netzplanung", "Grid planning")}</p>
-              <h2 className="mt-2 text-[22px] leading-snug font-medium">{tx("Vermeidet ein Speicher die Anschlusserweiterung?", "Does storage avoid a connection upgrade?")}</h2>
-              <p className="mt-2.5 text-muted-foreground">{tx("Spitzenlast, Überschreitungsstunden und Jahresdauerlinie gegen die Anschlussleistung, in ¼h-Auflösung.", "Peak load, hours above the limit, and the annual duration curve against connection capacity, at 15-minute resolution.")}</p>
+              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Stromanschluss", "Power connection")}</p>
+              <h2 className="mt-2 text-[22px] leading-snug font-medium">{tx("Vermeidet ein Speicher einen größeren Anschluss?", "Does a battery avoid a larger connection?")}</h2>
+              <p className="mt-2.5 text-muted-foreground">{tx("Du siehst die höchste Last, wie viele Stunden sie über der Grenze liegt, und ob der vorhandene Anschluss reicht.", "You see the highest load, how many hours it sits above the limit, and whether the connection you have is enough.")}</p>
               <div className="num mt-4 flex flex-wrap gap-2 text-[12px]">
-                <Chip>¼h-{tx("Auflösung", "resolution")}</Chip>
-                <Chip>{tx("Jahresdauerlinie", "Duration curve")}</Chip>
-                <Chip>{tx("Anschluss-Check", "Connection check")}</Chip>
+                <Chip>{tx("Höchste Last", "Highest load")}</Chip>
+                <Chip>{tx("Stunden über der Grenze", "Hours above the limit")}</Chip>
+                <Chip>{tx("Anschluss", "Connection")}</Chip>
               </div>
             </article>
             <article className="rounded-md border border-border bg-card p-6">
-              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("BESS-Projektierung", "BESS development")}</p>
+              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Speicher planen", "Plan storage")}</p>
               <h2 className="mt-2 text-[22px] leading-snug font-medium">{tx("Welche Größe rechnet sich?", "Which size pays back?")}</h2>
-              <p className="mt-2.5 text-muted-foreground">{tx("Leistung, Kapazität, Zyklen und Erlös aus Peak Shaving und Day-Ahead-Arbitrage.", "Power, energy, cycles, and revenue from peak shaving and day-ahead arbitrage.")}</p>
+              <p className="mt-2.5 text-muted-foreground">{tx("Du siehst, wie viel Strom der Speicher halten muss, was er kostet und nach wie vielen Jahren die Ausgabe wieder drin ist.", "You see how much energy the battery must hold, what it costs, and after how many years the outlay is back.")}</p>
               <div className="num mt-4 flex flex-wrap gap-2 text-[12px]">
-                <Chip>{tx("P95-Dimensionierung", "P95 sizing")}</Chip>
-                <Chip>{tx("Arbitrage", "Arbitrage")}</Chip>
-                <Chip>{tx("Amortisation", "Payback")}</Chip>
+                <Chip>{tx("Größe", "Size")}</Chip>
+                <Chip>{tx("Kosten", "Cost")}</Chip>
+                <Chip>{tx("Jahre bis zur Rückzahlung", "Years to payback")}</Chip>
               </div>
             </article>
           </div>
@@ -139,27 +166,8 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
 
       <section className="border-b border-border py-16 md:py-24">
         <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-          <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">02 — {tx("Ablauf", "Steps")}</p>
-          <ol className="mt-8 grid gap-6 border-t border-border-strong pt-5 md:grid-cols-3">
-            {[
-              ["01", tx("Profil laden", "Load a profile"), tx("CSV (15 oder 60 min) oder Beispielprofil.", "CSV (15 or 60 min) or an example profile.")],
-              ["02", tx("Grenzen setzen", "Set the limits"), tx("Anschluss kW, PV kWp, Tarif.", "Connection kW, PV kWp, tariff.")],
-              ["03", tx("Ergebnis lesen", "Read the result"), tx("Größe, Peak Shaving, Arbitrage, Amortisation, Anschluss-Check.", "Size, peak shaving, arbitrage, payback, connection check.")],
-            ].map(([num, title, body]) => (
-              <li key={num}>
-                <p className="num text-[13px] text-primary">{num}</p>
-                <h3 className="mt-1.5 text-lg font-semibold">{title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="border-b border-border py-16 md:py-24">
-        <div className="mx-auto max-w-[1200px] px-5 md:px-8">
           <div className="flex items-center justify-between gap-3">
-            <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">03 — Live</p>
+            <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">02 — Live</p>
             {market ? (
               <span className="num rounded-[4px] border border-border px-2 py-0.5 text-[12px]">
                 {tx("BEOBACHTET", "OBSERVED")} · {new Intl.DateTimeFormat(language === "de" ? "de-DE" : "en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }).format(new Date(market.realtimeSystem.timestampIso))}
@@ -172,8 +180,14 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
                 <Kpi label={tx("Erzeugung", "Generation")} value={formatQuantity(generationMw / 1000, language, 2)} unit="GW" />
                 <Kpi label={tx("Last", "Load")} value={formatQuantity(loadMw / 1000, language, 2)} unit="GW" />
                 <Kpi label={tx("Netto-Position", "Net position")} value={formatQuantity(netMw / 1000, language, 2)} unit="GW" hint={netMw >= 0 ? tx("Überschuss", "Surplus") : tx("Defizit", "Deficit")} />
-                <Kpi label={tx("BESS-Flotte SoC", "BESS fleet SoC")} value={fleet ? formatQuantity(fleet.midpointPct, language, 0) : "—"} unit="%" hint={tx("Schätzung, keine Telemetrie", "Estimate, not telemetry")} />
+                <Kpi label={tx("Speicherstand der Flotte", "Fleet storage level")} value={fleet ? formatQuantity(fleet.midpointPct, language, 0) : "—"} unit="%" hint={tx("Schätzung, keine Messung", "Estimate, not a measurement")} tip={<GlossaryTip id="soc" language={language} />} />
               </div>
+              <p className="mt-4 max-w-[68ch] text-sm text-muted-foreground">
+                {tx(
+                  "Das zeigt, ob im deutschen Netz gerade Strom übrig ist oder fehlt. Daran hängt, wann ein Speicher günstig lädt oder eine Spitze stützt.",
+                  "This shows whether the German grid currently has power to spare or is short. That is when a battery can charge cheaply or support a peak."
+                )}
+              </p>
               {livePoints.length > 0 ? (
                 <div className="mt-4 rounded-md border border-border bg-card p-4">
                   <DispatchChart points={livePoints} limitKw={0} language={language} height={240} />
@@ -199,7 +213,7 @@ export function MarketingHome({ initial }: { initial: HomeBriefingInitialData })
       <section className="border-b border-border py-16 md:py-24">
         <div className="mx-auto grid max-w-[1200px] gap-12 px-5 md:px-8 lg:grid-cols-12">
           <div className="lg:col-span-5">
-            <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">04 — {tx("Methodik", "Method")}</p>
+            <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">03 — {tx("Methodik", "Method")}</p>
             <h2 className="mt-4 text-[32px] leading-tight font-medium">{tx("Nachvollziehbar statt Blackbox.", "Traceable, not a black box.")}</h2>
             <p className="mt-3 max-w-[44ch] text-muted-foreground">
               {tx(
@@ -255,10 +269,13 @@ function Mini({ label, value, unit }: { label: string; value: string; unit: stri
   );
 }
 
-function Kpi({ label, value, unit, hint }: { label: string; value: string; unit: string; hint?: string }) {
+function Kpi({ label, value, unit, hint, tip }: { label: string; value: string; unit: string; hint?: string; tip?: ReactNode }) {
   return (
     <div className="min-h-28 border-l-[3px] border-border bg-card px-4 py-4">
-      <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{label}</p>
+      <p className="num inline-flex items-center gap-2 text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
+        {label}
+        {tip}
+      </p>
       <p className="num mt-2 text-[28px] leading-none md:text-[32px]">
         {value}
         <span className="ml-1 text-base text-muted-foreground">{unit}</span>
@@ -270,4 +287,34 @@ function Kpi({ label, value, unit, hint }: { label: string; value: string; unit:
 
 function Chip({ children }: { children: ReactNode }) {
   return <span className="rounded-[4px] border border-border px-1.5 py-0.5">{children}</span>;
+}
+
+function StoryStep({ n, title, body, drawing }: { n: string; title: string; body: string; drawing: "peak" | "cut" | "save" }) {
+  return (
+    <li className="rounded-md border border-border bg-card p-5">
+      <StoryDrawing kind={drawing} />
+      <p className="num mt-4 text-[13px] text-primary">{n}</p>
+      <h2 className="mt-1 text-lg leading-snug font-medium">{title}</h2>
+      <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+    </li>
+  );
+}
+
+function StoryDrawing({ kind }: { kind: "peak" | "cut" | "save" }) {
+  const peak = "M4 46 C 28 46, 40 44, 58 30 C 78 14, 92 8, 108 18 C 124 28, 140 46, 176 46";
+  const flat = "M4 46 C 28 46, 40 44, 58 34 C 78 26, 92 26, 108 30 C 124 34, 140 46, 176 46";
+  return (
+    <svg viewBox="0 0 180 64" className="h-16 w-full" aria-hidden="true">
+      <line x1="4" y1="40" x2="176" y2="40" stroke="currentColor" className="text-destructive" strokeDasharray="4 3" />
+      {kind === "save" ? (
+        <>
+          <rect x="18" y="28" width="28" height="18" className="fill-primary" />
+          <rect x="54" y="18" width="28" height="28" className="fill-primary opacity-80" />
+          <rect x="90" y="34" width="28" height="12" className="fill-foreground opacity-80" />
+        </>
+      ) : (
+        <path d={kind === "cut" ? flat : peak} fill="none" stroke="currentColor" className="text-foreground" strokeWidth="2" />
+      )}
+    </svg>
+  );
 }
