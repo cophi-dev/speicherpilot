@@ -1310,6 +1310,46 @@
   margin-inline: auto;
 }
 
+.day-missing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-missing-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: min(100%, 24rem);
+  text-align: center;
+}
+
+.day-missing h1 {
+  max-width: 16ch;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.day-missing-ring {
+  width: min(72vw, 280px);
+  height: auto;
+}
+
+.day-missing a {
+  color: #1e9cb0;
+  font-size: 16px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day-missing a:focus-visible {
+  outline: 2px solid #7dfce6;
+  outline-offset: 3px;
+}
+
 .day-kicker {
   font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 12px;
