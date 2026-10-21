@@ -11,6 +11,7 @@ import {
   LIVE_DISPATCH_FACTORS,
   LIVE_DISPATCH_RTE,
   parseLiveFactor,
+  roundPeakDeltaGw,
   type LiveDispatchFactor,
   type LiveDispatchInput,
   type LiveDispatchPoint,
@@ -295,7 +296,7 @@ function LiveChart({
           `from ×${saturation} no further surplus (${formatGwh(saturationChargedGwh, language)} GWh taken in)`
         )
       : null;
-  const deltaValue = evening && beforeShown != null && afterShown != null ? Math.round((beforeShown - afterShown) * 10) / 10 : 0;
+  const deltaValue = evening && before != null && after != null ? roundPeakDeltaGw(before, after) : 0;
   const deltaSign = deltaValue > 0 ? "−" : deltaValue < 0 ? "+" : "";
   const fleetHrefLabel = fleet.source === "battery-charts" ? "battery-charts.de" : "Energy-Charts";
 
@@ -344,6 +345,7 @@ function LiveChart({
         chargedNote={chargedNote}
         intro={intro}
         language={language}
+        fitLabels
       />
       <div className="sim-ctl">
         <div>

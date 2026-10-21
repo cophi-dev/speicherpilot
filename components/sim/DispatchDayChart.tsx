@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
+import { layoutChartLabels } from "@/lib/chartLabelLayout";
 import type { AppLanguage } from "@/components/language-context";
 
 export type ChartSample = {
@@ -43,6 +44,8 @@ export type DispatchDayChartProps = {
   chargedNote: string;
   intro: boolean;
   language: AppLanguage;
+  /** Pull labels inside the plot and apart from each other. */
+  fitLabels?: boolean;
 };
 
 const BAND = 32;
@@ -131,6 +134,7 @@ export function DispatchDayChart({
   chargedNote,
   intro,
   language,
+  fitLabels = false,
 }: DispatchDayChartProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -228,6 +232,18 @@ export function DispatchDayChart({
 
   const hovered = hover == null ? null : samples[hover];
   const tipLeft = hovered ? xAt(hovered.hour + slotHours(samples, hover ?? 0) / 2) : 0;
+  const placedLabels = !fitLabels || mobile
+    ? []
+    : layoutChartLabels(
+        annotations.map((note) => ({
+          text: note.text,
+          x: xAt(note.hour) + (note.dx ?? 0),
+          y: yAt(note.value) + (note.dy ?? 0),
+          anchor: note.anchor ?? "start",
+          prefers: (note.dy ?? 0) < 0 ? ("up" as const) : ("down" as const),
+        })),
+        { minX: 4, maxX: width - 4, minY: 14, maxY: bandTop - 4 }
+      );
 
   return (
     <div className={`sim-chart${intro ? " intro" : ""}`} ref={wrapRef}>
@@ -306,33 +322,49 @@ export function DispatchDayChart({
               </>
             ) : null}
             <path d={step("mit")} className="l-mit" pathLength={1} />
-            {annotations.map((note, index) => {
-              if (mobile) {
-                const mx = Math.min(Math.max(xAt(note.hour) + (note.mdx ?? 0), padLeft + 8), width - padRight - 8);
-                const my = yAt(note.value) + (note.mdy ?? 0);
-                return (
-                  <g key={`m-${index}`} className={intro ? "mk fade2" : "mk"}>
-                    <circle cx={mx} cy={my} r="8" />
-                    <text x={mx} y={my + 3.5} textAnchor="middle">
-                      {index + 1}
-                    </text>
-                  </g>
-                );
-              }
-              const placedX = xAt(note.hour) + (note.dx ?? 0);
-              const runsPast = placedX > width * 0.85;
-              return (
-                <text
-                  key={`a-${index}`}
-                  x={runsPast ? xAt(note.hour) : placedX}
-                  y={yAt(note.value) + (note.dy ?? 0)}
-                  textAnchor={runsPast ? "end" : (note.anchor ?? "start")}
-                  className={`an lb${note.strong ? " s" : ""}${intro ? " fade2" : ""}`}
-                >
-                  {note.text}
-                </text>
-              );
-            })}
+            {mobile
+              ? annotations.map((note, index) => {
+                  const mx = Math.min(Math.max(xAt(note.hour) + (note.mdx ?? 0), padLeft + 8), width - padRight - 8);
+                  const my = yAt(note.value) + (note.mdy ?? 0);
+                  return (
+                    <g key={`m-${index}`} className={intro ? "mk fade2" : "mk"}>
+                      <circle cx={mx} cy={my} r="8" />
+                      <text x={mx} y={my + 3.5} textAnchor="middle">
+                        {index + 1}
+                      </text>
+                    </g>
+                  );
+                })
+              : fitLabels
+                ? placedLabels.map((placed, index) => {
+                    const note = annotations[index];
+                    return (
+                      <text
+                        key={`a-${index}`}
+                        x={placed.x}
+                        y={placed.y}
+                        textAnchor={placed.anchor}
+                        className={`an lb${note?.strong ? " s" : ""}${intro ? " fade2" : ""}`}
+                      >
+                        {note?.text}
+                      </text>
+                    );
+                  })
+                : annotations.map((note, index) => {
+                    const placedX = xAt(note.hour) + (note.dx ?? 0);
+                    const runsPast = placedX > width * 0.85;
+                    return (
+                      <text
+                        key={`a-${index}`}
+                        x={runsPast ? xAt(note.hour) : placedX}
+                        y={yAt(note.value) + (note.dy ?? 0)}
+                        textAnchor={runsPast ? "end" : (note.anchor ?? "start")}
+                        className={`an lb${note.strong ? " s" : ""}${intro ? " fade2" : ""}`}
+                      >
+                        {note.text}
+                      </text>
+                    );
+                  })}
             <rect x={padLeft} y={bandTop} width={plotW} height={BAND} className="band-bg" />
             <path d={socHold} className="soc-a" shapeRendering="crispEdges" />
             <path d={socCharge} className="soc-a c" shapeRendering="crispEdges" />

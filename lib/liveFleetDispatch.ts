@@ -35,6 +35,14 @@ export function parseLiveFactor(value: string | null | undefined): LiveDispatchF
   return LIVE_DISPATCH_FACTORS.includes(parsed as LiveDispatchFactor) ? (parsed as LiveDispatchFactor) : 5;
 }
 
+/**
+ * Evening-peak cut in GW, rounded once from the unrounded peaks.
+ * Rounding each peak first and then subtracting is a different number (38.1 − 33.5 = 4.6).
+ */
+export function roundPeakDeltaGw(beforeGw: number, afterGw: number): number {
+  return Math.round((beforeGw - afterGw) * 10) / 10;
+}
+
 export function scaleFleet(powerMw: number, energyMwh: number, factor: number) {
   return {
     powerMw: powerMw * factor,
