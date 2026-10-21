@@ -14,28 +14,15 @@ const DEFAULT_ZOOM = 6;
 type Rgb = [number, number, number];
 
 const HEAT_COLOR_STOPS: Array<{ at: number; color: Rgb }> = [
-  { at: 0, color: [12, 34, 94] },
-  { at: 0.18, color: [29, 78, 216] },
-  { at: 0.38, color: [8, 145, 178] },
-  { at: 0.56, color: [34, 197, 94] },
-  { at: 0.74, color: [250, 204, 21] },
-  { at: 0.9, color: [249, 115, 22] },
-  { at: 1, color: [220, 38, 38] },
+  { at: 0, color: [214, 232, 232] },
+  { at: 0.35, color: [120, 186, 190] },
+  { at: 0.7, color: [11, 104, 112] },
+  { at: 1, color: [4, 42, 46] },
 ];
 
 const knownProjectIcon = L.divIcon({
   className: "known-bess-marker",
-  html: `
-    <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9999px;background:radial-gradient(circle at 30% 24%, #fde68a 0%, #f59e0b 48%, #b45309 100%);border:2px solid rgba(255,255,255,0.98);box-shadow:0 10px 20px rgba(15,23,42,0.35);backdrop-filter:blur(1.5px);">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="4" y="7" width="13.2" height="10" rx="2.1" fill="#1f2937"/>
-        <rect x="17.8" y="10.4" width="1.8" height="3.2" rx="0.6" fill="#1f2937"/>
-        <rect x="6.1" y="9.2" width="2.2" height="5.6" rx="0.8" fill="#f8fafc"/>
-        <rect x="9.3" y="9.2" width="2.2" height="5.6" rx="0.8" fill="#f8fafc"/>
-        <rect x="12.5" y="9.2" width="2.2" height="5.6" rx="0.8" fill="#f8fafc"/>
-      </svg>
-    </div>
-  `,
+  html: `<div style="width:12px;height:12px;margin:10px;border-radius:2px;background:#0B6870;border:1px solid #111315"></div>`,
   iconSize: [32, 32],
   iconAnchor: [16, 16],
 });
@@ -146,6 +133,15 @@ function MapSizeInvalidator({ resizeSignal }: { resizeSignal: number }) {
 export default function BessProjectMap({ compact = false }: { compact?: boolean }) {
   const [showCommercialProjects, setShowCommercialProjects] = useState(true);
   const [showResidentialDensity, setShowResidentialDensity] = useState(true);
+  const [darkTiles, setDarkTiles] = useState(false);
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => setDarkTiles(root.classList.contains("dark"));
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapResizeSignal, setMapResizeSignal] = useState(0);
   const [knownProjects, setKnownProjects] = useState<GermanyBessProject[]>([]);
@@ -360,8 +356,13 @@ export default function BessProjectMap({ compact = false }: { compact?: boolean 
           <ZoomControl position="bottomright" />
           <MapSizeInvalidator resizeSignal={mapResizeSignal} />
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            key={darkTiles ? "dark" : "light"}
+            attribution='&copy; OpenStreetMap &copy; CARTO'
+            url={
+              darkTiles
+                ? "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+                : "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
+            }
           />
           {showResidentialDensity && knownProjectsSource === "mastr_zenodo"
             ? gradientCells.map((cell, index) => {

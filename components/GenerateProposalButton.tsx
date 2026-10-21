@@ -3,12 +3,26 @@
 import { useMemo, useState } from "react";
 import {
   Document,
+  Font,
   Page,
   StyleSheet,
   Text,
   View,
   pdf,
 } from "@react-pdf/renderer";
+
+Font.register({
+  family: "IBM Plex Sans",
+  fonts: [
+    { src: "/fonts/IBMPlexSans-Regular.ttf", fontWeight: 400 },
+    { src: "/fonts/IBMPlexSans-Medium.ttf", fontWeight: 500 },
+    { src: "/fonts/IBMPlexSans-SemiBold.ttf", fontWeight: 600 },
+  ],
+});
+Font.register({
+  family: "IBM Plex Mono",
+  src: "/fonts/IBMPlexMono-Regular.ttf",
+});
 import { FileDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,7 +53,7 @@ const proposalStyles = StyleSheet.create({
     paddingTop: 44,
     paddingBottom: 52,
     paddingHorizontal: 44,
-    fontFamily: "Helvetica",
+    fontFamily: "IBM Plex Sans",
     backgroundColor: "#0A0A0C",
     color: "#E5E7EB",
   },

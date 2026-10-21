@@ -1,19 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { plexMono, plexSans } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
 import { ThemeInitScript } from "@/components/ThemeInitScript";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-});
 
 const siteOrigin = getPublicSiteOrigin();
 const xSiteHandle = process.env.NEXT_PUBLIC_X_SITE_HANDLE?.replace(/^@/, "").trim();
@@ -60,7 +50,7 @@ export default function RootLayout({
     <html
       lang="de"
       suppressHydrationWarning
-      className={`${inter.variable} ${playfair.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground">
         <ThemeInitScript />
