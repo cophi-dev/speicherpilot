@@ -1878,9 +1878,9 @@
   .day-order-ring > figure .day-ring-frame,
   .site-hero-grid .day-ring-frame,
   .day-movement-pin .day-ring-frame {
-    width: min(358px, 100%);
-    max-width: 358px;
-    margin-inline: auto;
+    width: min(358px, calc(100vw - 16px));
+    max-width: none;
+    margin-inline: calc((100% - min(358px, 100vw - 16px)) / 2);
   }
 }
 
