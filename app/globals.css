@@ -2472,6 +2472,117 @@
   cursor: pointer;
 }
 
+.legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-size: 14px;
+}
+
+.legal-footer a,
+.legal-doc a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #0f6e7c;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-footer a:focus-visible,
+.legal-doc a:focus-visible {
+  outline: 2px solid #0f6e7c;
+  outline-offset: 3px;
+}
+
+.dark .legal-footer a,
+.dark .legal-doc a {
+  color: #1e9cb0;
+}
+
+.dark .legal-footer a:focus-visible,
+.dark .legal-doc a:focus-visible {
+  outline-color: #1e9cb0;
+}
+
+.legal-doc {
+  background: #f4f3ee;
+  color: #14181c;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  padding: 48px 20px 64px;
+}
+
+.dark .legal-doc {
+  background: #0e151c;
+  color: #e9eef2;
+}
+
+.legal-doc-inner {
+  width: min(100%, 68ch);
+  margin-inline: auto;
+}
+
+.legal-doc h1 {
+  margin: 0 0 16px;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.legal-doc h2 {
+  margin: 28px 0 8px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.legal-doc p,
+.legal-doc address {
+  margin: 8px 0;
+  font-size: 16px;
+  font-style: normal;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.legal-en {
+  margin: 0 0 20px;
+  color: #3c444c;
+  font-size: 14px;
+}
+
+.dark .legal-en {
+  color: #c5ced6;
+}
+
+.legal-placeholder {
+  display: inline-block;
+  margin: 2px 0;
+  padding: 2px 8px;
+  border: 1px dashed #0f6e7c;
+  border-radius: 4px;
+  background: #fff;
+  color: #14181c;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.dark .legal-placeholder {
+  border-color: #1e9cb0;
+  background: #121a22;
+  color: #e9eef2;
+}
+
+@media (min-width: 960px) {
+  .legal-doc h1 {
+    font-size: 44px;
+    font-weight: 300;
+  }
+}
+
 .day-paper .day-slider-track {
   background-color: rgb(20 24 28 / 12%);
 }
