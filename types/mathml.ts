@@ -3,6 +3,8 @@ export {};
 type MathElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
 
 declare module "react" {
+  // JSX intrinsic elements are still declared on this namespace.
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       math: MathElement & { display?: "block" | "inline" };

@@ -5,6 +5,7 @@ const newsItemSchema = z.object({
   source: z.string().min(1),
   url: z.string().url(),
   headline: z.string().min(1),
+  teaser: z.string().min(1).optional(),
 });
 
 export type NewsItem = z.infer<typeof newsItemSchema>;

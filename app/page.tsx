@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { MarketingHome } from "@/components/home/MarketingHome";
+import NewsPreviewSection from "@/components/NewsPreviewSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { chooseStorageDay } from "@/lib/liveFleetDispatch";
@@ -33,6 +34,13 @@ export default async function Home() {
           fallback: Boolean(chosen?.fallback),
         }}
       />
+      <div className="news-v2">
+        <section className="day-paper" id="home-news">
+          <div className="day-hero-inner">
+            <NewsPreviewSection limit={3} showHeaderLink />
+          </div>
+        </section>
+      </div>
     </Suspense>
   );
 }
