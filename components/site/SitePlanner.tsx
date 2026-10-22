@@ -804,7 +804,7 @@ export function SitePlanner() {
                   {profile.synthetic ? profile.sourceNote : tx("Quelle: hochgeladenes Profil · modelliert", "Source: uploaded profile · modelled")}
                 </p>
                 <div className="mt-3 grid gap-3 border-t border-border pt-3 md:grid-cols-3">
-                  <Mini label={tx("Leistungspreis-Ersparnis", "Demand-charge saving")} value={`${formatQuantity(plan.demandChargeSavingsEur, language, 0)} €/a`} />
+                  <Mini label={tx("Leistungspreis-Ersparnis", "Demand-charge saving")} value={`${formatQuantity(plan.demandChargeSavingsEur, language, 0)}\u202f€/a`} />
                   <Mini label={tx("Vollzyklen", "Full cycles")} value={`${formatQuantity(plan.fullCycles, language, 0)} /a`} tip={<GlossaryTip id="vollzyklen" language={language} />} />
                   <Mini label={tx("Überschreitung", "Exceedance")} value={`${formatQuantity(plan.exceedanceHoursBefore, language, 0)} h → ${formatQuantity(plan.exceedanceHoursAfter, language, 0)} h`} />
                 </div>
@@ -815,7 +815,7 @@ export function SitePlanner() {
                 {draft.dynamic ? (
                   <>
                     <h2 className="mt-1.5 text-lg font-semibold">{tx("Arbitrage auf dem Rest der Kapazität", "Arbitrage on the capacity left after peak shaving")}</h2>
-                    <p className="num mt-3 text-[20px]">{formatQuantity(plan.arbitrageEur, language, 0)} €/a</p>
+                    <p className="num mt-3 text-[20px]">{formatQuantity(plan.arbitrageEur, language, 0)}{"\u202f"}€/a</p>
                 <p className="mt-1 text-sm text-muted-foreground">{tx("15-Minuten-Preise. Kein separates Intraday-Orderbuch.", "15-minute prices. Not a separate intraday order book.")}</p>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {plan.assumptions.syntheticPrices
@@ -841,10 +841,10 @@ export function SitePlanner() {
                 <PaybackChart plan={plan} narrow={narrow} language={language} />
                 <p className="num mt-2 text-[12px] text-muted-foreground">
                   <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="inline-flex items-center gap-1">CAPEX {formatQuantity(plan.capexEur, language, 0)} € <GlossaryTip id="capex" language={language} /></span>
+                    <span className="inline-flex items-center gap-1">CAPEX {formatQuantity(plan.capexEur, language, 0)}{"\u202f"}€ <GlossaryTip id="capex" language={language} /></span>
                     <span className="inline-flex items-center gap-1">OPEX {formatQuantity(plan.assumptions.opexFractionOfCapex * 100, language, 1)} % <GlossaryTip id="opex" language={language} /></span>
                     <span>{tx("Diskont", "Discount")} {formatQuantity(draft.discountPct, language, 1)} %</span>
-                    <span className="inline-flex items-center gap-1">NPV {formatQuantity(plan.npvEur, language, 0)} € <GlossaryTip id="npv" language={language} /></span>
+                    <span className="inline-flex items-center gap-1">NPV {formatQuantity(plan.npvEur, language, 0)}{"\u202f"}€ <GlossaryTip id="npv" language={language} /></span>
                   </span>
                 </p>
                 <div className="mt-3 flex items-baseline justify-between gap-4 border-t border-border pt-3 text-sm">
@@ -924,7 +924,7 @@ export function SitePlanner() {
                   <div className="flex justify-between gap-4"><dt>{tx("Preise", "Prices")}</dt><dd className="text-right">{plan.assumptions.priceNote}</dd></div>
                   <div className="flex justify-between gap-4"><dt>RTE</dt><dd>{formatQuantity(plan.assumptions.roundTripEfficiency * 100, language, 0)} %</dd></div>
                   <div className="flex justify-between gap-4"><dt>{tx("Nicht enthalten", "Excluded")}</dt><dd className="text-right">{plan.assumptions.excluded.join(", ")}</dd></div>
-                  {view === "netz" ? <div className="flex justify-between gap-4"><dt>{tx("Amortisation", "Payback")}</dt><dd>{formatYears(plan.paybackYears, language)} · {formatQuantity(plan.annualBenefitEur, language, 0)} €/a</dd></div> : null}
+                  {view === "netz" ? <div className="flex justify-between gap-4"><dt>{tx("Amortisation", "Payback")}</dt><dd>{formatYears(plan.paybackYears, language)} · {formatQuantity(plan.annualBenefitEur, language, 0)}{"\u202f"}€/a</dd></div> : null}
                 </dl>
                 <p className="mt-3 text-sm text-muted-foreground">{tx("Illustratives Modell, keine Beschaffungs- oder Anlagenberatung.", "Illustrative model, not procurement or plant advice.")}</p>
               </details>

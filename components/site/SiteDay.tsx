@@ -16,7 +16,7 @@ import { formatQuantity, formatYears } from "@/lib/formatQuantity";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile, planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
 import { QUARTIER, planQuartier, quartierProfile } from "@/lib/quartierExample";
-import { storyFromPlan, supermarketConnectionStory, type ConnectionPoint, type SiteConnectionStory } from "@/lib/siteConnectionDay";
+import { middayMeanKw, storyFromPlan, supermarketConnectionStory, type ConnectionPoint, type SiteConnectionStory } from "@/lib/siteConnectionDay";
 import { parseLoadProfileCsv, planSite, type LoadProfile, type SitePlan } from "@/lib/sitePlanner";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
@@ -276,20 +276,23 @@ function siteCallouts(story: SiteConnectionStory, language: AppLanguage, netz: b
   const over = story.points.filter((point) => point.ohneKw > story.limitKw + 0.05);
   const first = over[0] ?? story.points[0];
   const last = over[over.length - 1] ?? first;
-  const pv = story.points.reduce((best, point) => (point.ohneKw < best.ohneKw ? point : best), story.points[0]);
   const end = clock(last.hour + 0.25);
   const limitPoint = story.points.find((point) => point.hour >= 9 && point.hour < 10) ?? story.points[0];
+  const middayPoint = story.points.find((point) => point.hour >= 13 && point.hour < 13.25)
+    ?? story.points.find((point) => point.hour >= 12 && point.hour < 14)
+    ?? story.points[0];
   const covered = netz
     ? tx(`${clock(first.hour)}–${end} über der Grenze`, `${clock(first.hour)}–${end} over the limit`)
     : tx("vom Speicher gedeckt", "covered by storage");
-  const middayKw = formatQuantity(Math.abs(pv.ohneKw), language, 0);
-  const midday = pv.ohneKw < -0.05
-    ? tx(`Mittags ${middayKw} kW Rückspeisung`, `Midday ${middayKw} kW export`)
-    : tx(`Mittags ${middayKw} kW Bezug`, `Midday ${middayKw} kW import`);
+  const middayValue = middayMeanKw(story.points) ?? middayPoint.ohneKw;
+  const middayKw = formatQuantity(Math.abs(middayValue), language, 0);
+  const midday = middayValue < -0.05
+    ? tx(`Mittel 12–14 Uhr: ${middayKw} kW Rückspeisung`, `Mean 12:00–14:00: ${middayKw} kW export`)
+    : tx(`Mittel 12–14 Uhr: ${middayKw} kW Bezug`, `Mean 12:00–14:00: ${middayKw} kW import`);
   return [
     { id: "evening", n: 1, point: toRing([first])[0], text: covered },
     { id: "night", n: 2, point: toRing([limitPoint])[0], text: tx(`Anschluss ${formatQuantity(story.limitKw, language, 0)} kW`, `Connection ${formatQuantity(story.limitKw, language, 0)} kW`) },
-    { id: "midday", n: 3, point: toRing([pv])[0], text: midday },
+    { id: "midday", n: 3, point: toRing([middayPoint])[0], text: midday },
   ];
 }
 

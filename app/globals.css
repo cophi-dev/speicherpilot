@@ -2078,13 +2078,25 @@ footer .site-fold a {
   width: min(240px, 100%);
   max-width: 240px;
   margin: 28px auto 0;
+}
+
+.day-hero .site-hero-grid > .site-flower-ring {
+  overflow: visible;
+}
+
+.site-hero-grid .site-flower-ring .day-ring-block,
+.site-hero-grid .site-flower-ring .day-ring-frame {
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 1;
+  margin-inline: 0;
   overflow: hidden;
 }
 
-.site-hero-grid .site-flower-ring .day-ring-frame {
-  width: min(240px, 100%);
-  max-width: 240px;
-  margin-inline: auto;
+.site-hero-grid .site-flower-ring .day-ring-svg {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .site-flower-note {
@@ -2096,8 +2108,7 @@ footer .site-fold a {
 }
 
 @media (min-width: 1280px) {
-  .site-flower-ring,
-  .site-hero-grid .site-flower-ring .day-ring-frame {
+  .site-flower-ring {
     width: min(360px, 100%);
     max-width: 360px;
   }

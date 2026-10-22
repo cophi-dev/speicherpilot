@@ -2,6 +2,7 @@ import { supermarketTeachingDay } from "@/lib/peakShavingExplain";
 import {
   connectionBadge,
   fullUtilisationAssessment,
+  middayMeanKw,
   supermarketConnectionStory,
   zeroUtilisationAssessment,
 } from "@/lib/siteConnectionDay";
@@ -41,5 +42,18 @@ describe("site connection day", () => {
     expect(story.points.every((point) => point.soc >= 0 && point.soc <= 1)).toBe(true);
     expect(["netzdienlich", "nicht erfüllt"]).toContain(story.badge.label);
     expect(JSON.stringify({ label: story.badge.label, peak: story.peakAfterKw })).not.toMatch(/€/);
+  });
+
+  it("reads midday import as the 12:00–14:00 mean, not the night minimum", () => {
+    const story = supermarketConnectionStory();
+    const night = story.points.reduce((best, point) => (point.ohneKw < best.ohneKw ? point : best));
+    const window = story.points.filter((point) => point.hour >= 12 && point.hour < 14);
+    const mean = window.reduce((sum, point) => sum + point.ohneKw, 0) / window.length;
+    expect(window.length).toBe(8);
+    expect(night.hour).toBe(0);
+    expect(mean).toBeGreaterThan(25);
+    expect(mean).toBeLessThan(35);
+    expect(middayMeanKw(story.points)).toBeCloseTo(mean, 6);
+    expect(mean).toBeGreaterThan(night.ohneKw + 5);
   });
 });

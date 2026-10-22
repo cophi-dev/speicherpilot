@@ -17,6 +17,7 @@ const NAV = [
   { href: "/", de: "Start", en: "Start" },
   { href: "/site", de: "Standort", en: "Site" },
   { href: "/live", de: "Live", en: "Live" },
+  { href: "/news", de: "News", en: "News" },
   { href: "/methodik", de: "Methodik", en: "Method" },
 ] as const;
 
@@ -302,6 +303,9 @@ export function SiteShell({ children }: SiteShellProps) {
         <footer className="border-t border-border">
           <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8">
             <div>
+              <p>
+                <Link href="/news" className="paper-link tap-44 inline-flex min-h-11 items-center">{tx("News", "News")}</Link>
+              </p>
               <details className="site-fold">
               <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Quellen", "Sources")}</summary>
               <ul className="mt-3 space-y-1.5">

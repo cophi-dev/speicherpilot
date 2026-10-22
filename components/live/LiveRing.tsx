@@ -186,7 +186,7 @@ function LiveRingBody({
         <div className="day-order-kicker">
           <p className="day-kicker">{kicker}</p>
           {showSurplusHint ? (
-            <p className="day-kicker">{tx(`Letzter Überschusstag: ${dateLabel}`, `Last surplus day: ${dateLabel}`)}</p>
+            <p className="day-kicker">{tx("Letzter Überschusstag", "Last surplus day")}</p>
           ) : null}
         </div>
         <h1 id="live-what-if" className="day-title day-order-title">

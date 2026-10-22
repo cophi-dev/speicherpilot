@@ -81,6 +81,9 @@ describe("live stored-surplus note", () => {
     expect(saturated).toBeLessThan(10);
     renderRing();
     expect(screen.getByText(saturationNote(saturated ?? 1, "de"))).toBeInTheDocument();
+    expect(screen.getByText("Letzter Überschusstag")).toBeInTheDocument();
+    expect(document.body.textContent).not.toContain("Letzter Überschusstag:");
+    expect(document.body.textContent).toContain("11.10.2026");
   });
 
   it("hides the sentence while surplus is still left to store", () => {

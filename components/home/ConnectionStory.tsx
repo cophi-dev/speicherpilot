@@ -137,9 +137,10 @@ export function ConnectionStory() {
                   <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
                   <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
                   {item.figure ? (
-                    <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
+                    <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] whitespace-nowrap md:text-[64px]">
                       {item.figure}
-                      <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
+                      {"\u202f"}
+                      <span className="text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
                     </p>
                   ) : null}
                   {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}

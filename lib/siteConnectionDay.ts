@@ -156,6 +156,15 @@ export function supermarketConnectionStory(): SiteConnectionStory {
   };
 }
 
+/** Mean import from 12:00 inclusive to 14:00 exclusive. Null when that window is empty. */
+export function middayMeanKw(points: ConnectionPoint[]): number | null {
+  const window = points.filter((point) => point.hour >= 12 && point.hour < 14);
+  if (window.length === 0) {
+    return null;
+  }
+  return window.reduce((sum, point) => sum + point.ohneKw, 0) / window.length;
+}
+
 /** 0 % of discharge sits in a peak window when the connection is never that full. */
 export function zeroUtilisationAssessment(): GridSupportAssessment {
   return assessGridSupport({
