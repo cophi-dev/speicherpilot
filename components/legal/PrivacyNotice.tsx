@@ -33,13 +33,10 @@ export function PrivacyNotice() {
         <section aria-labelledby="privacy-hosting">
           <h2 id="privacy-hosting">2 Hosting</h2>
           <p>
-            Die Seite liegt bei Vercel Inc. (USA). Beim Aufruf verarbeitet Vercel technisch notwendige Daten in Server-Logs: IP-Adresse, Zeitpunkt, aufgerufene Seite und Browser-Angaben. Das geschieht, um die Seite auszuliefern und abzusichern.
+            Diese Website wird bei <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel Inc.</a>, 440 N Barranca Avenue #4133, Covina, CA 91723, USA, gehostet. Beim Aufruf verarbeitet Vercel technisch notwendige Daten in Server-Logs: IP-Adresse, Zeitpunkt, aufgerufene Seite und Browser-Angaben. Das geschieht, um die Seite auszuliefern und abzusichern. Dabei werden Daten wie Ihre IP-Adresse auch in die USA übermittelt und dort verarbeitet. Vercel ist nach dem EU-U.S. Data Privacy Framework zertifiziert (Angemessenheitsbeschluss der EU-Kommission, Art. 45 DSGVO; Eintrag auf <a href="https://www.dataprivacyframework.gov/participant/6847" target="_blank" rel="noopener noreferrer">dataprivacyframework.gov</a>, Stand 22.10.2026: aktiv).
           </p>
           <p>
             Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse ist die sichere, funktionierende Auslieferung. Empfänger: Vercel Inc. als Hosting-Anbieter.
-          </p>
-          <p>
-            Diese Website wird bei <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel Inc.</a>, 440 N Barranca Avenue #4133, Covina, CA 91723, USA, gehostet. Dabei werden Daten wie Ihre IP-Adresse auch in die USA übermittelt und dort verarbeitet. Vercel ist nach dem EU-U.S. Data Privacy Framework zertifiziert (Angemessenheitsbeschluss der EU-Kommission, Art. 45 DSGVO; Eintrag auf <a href="https://www.dataprivacyframework.gov/participant/6847" target="_blank" rel="noopener noreferrer">dataprivacyframework.gov</a>, Stand 22.10.2026: aktiv).
           </p>
           <p>
             Die von Vercel erzeugten{" "}
@@ -66,7 +63,7 @@ export function PrivacyNotice() {
             Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21).
           </p>
           <p>
-            Sie können sich bei einer Aufsichtsbehörde beschweren, zum Beispiel bei Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit:{" "}
+            Sie können sich bei einer Aufsichtsbehörde beschweren, zum Beispiel beim Hamburgischen Beauftragten für Datenschutz und Informationsfreiheit:{" "}
             <a href="https://datenschutz-hamburg.de" target="_blank" rel="noopener noreferrer">
               datenschutz-hamburg.de
             </a>

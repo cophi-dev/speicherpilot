@@ -31,7 +31,8 @@ describe("legal pages", () => {
   it("states the checked hosting facts without a processor claim or placeholders", () => {
     renderDe(<PrivacyNotice />);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Datenschutz");
-    expect(document.body.textContent).toContain("Vercel Inc. (USA)");
+    expect(document.body.textContent).not.toContain("Die Seite liegt bei");
+    expect(document.body.textContent).toContain("Beim Aufruf verarbeitet Vercel technisch notwendige Daten in Server-Logs");
     expect(document.body.textContent).toContain("Art. 6 Abs. 1 lit. f DSGVO");
     expect(document.body.textContent).toContain("Empfänger: Vercel Inc. als Hosting-Anbieter.");
     expect(document.body.textContent).toContain("Vercel Inc., 440 N Barranca Avenue #4133, Covina, CA 91723, USA");
@@ -49,6 +50,8 @@ describe("legal pages", () => {
     expect(screen.getByRole("link", { name: "Laufzeit-Protokolle" })).toHaveAttribute("href", "https://vercel.com/docs/runtime-logs");
     expect(document.body.textContent).not.toMatch(/Auftragsverarbeiter|\{\{PRÜFEN/);
     expect(document.body.textContent).toContain("keine Cookies, kein Tracking, keine Kontaktformulare und keine Konten");
+    expect(document.body.textContent).toContain("zum Beispiel beim Hamburgischen Beauftragten für Datenschutz und Informationsfreiheit");
+    expect(document.body.textContent).not.toContain("bei Der Hamburgische");
     expect(screen.getByRole("link", { name: "datenschutz-hamburg.de" })).toHaveAttribute("href", "https://datenschutz-hamburg.de");
     expect(document.body.textContent).toContain("Oktober 2026");
     expect(document.body.textContent).not.toMatch(/Telefon|\+49|Cookie-Banner|Google Analytics/i);
