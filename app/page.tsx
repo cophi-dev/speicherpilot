@@ -34,13 +34,7 @@ export default async function Home() {
           fallback: Boolean(chosen?.fallback),
         }}
       />
-      <div className="news-v2">
-        <section className="day-paper" id="home-news">
-          <div className="day-hero-inner">
-            <NewsPreviewSection limit={3} showHeaderLink />
-          </div>
-        </section>
-      </div>
+      <NewsPreviewSection place="home" />
     </Suspense>
   );
 }

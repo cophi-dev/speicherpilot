@@ -1,4 +1,4 @@
-import { parseNews } from "@/lib/newsFeed";
+import { formatNewsDate, parseNews } from "@/lib/newsFeed";
 import news from "@/data/news.json";
 
 describe("news feed", () => {
@@ -27,5 +27,11 @@ describe("news feed", () => {
     expect(parseNews([{ ...item(1), teaser: "Ein Satz dazu." }])[0].teaser).toBe("Ein Satz dazu.");
     expect(parseNews([{ ...item(1), url: "not a url" }])).toEqual([]);
     expect(parseNews(null)).toEqual([]);
+  });
+
+  it("formats a Berlin calendar date as 21. Okt. 2026", () => {
+    expect(formatNewsDate("2026-10-21")).toBe("21. Okt. 2026");
+    expect(formatNewsDate("2026-05-01")).toBe("1. Mai 2026");
+    expect(formatNewsDate("not-a-date")).toBe("not-a-date");
   });
 });
