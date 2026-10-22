@@ -10,6 +10,70 @@ import { FLOWER_BERGEDORF } from "@/lib/flowerBergedorf";
 import { GLOSSARY } from "@/lib/glossary";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 
+function sourceHost(href: string): string {
+  try {
+    return new URL(href).hostname.replace(/^www\./, "");
+  } catch {
+    return href;
+  }
+}
+
+function sources(language: "de" | "en") {
+  const de = language === "de";
+  const flower = FLOWER_BERGEDORF.sources[0];
+  const magazine = FLOWER_BERGEDORF.sources[1];
+  return [
+    {
+      publisher: "Fraunhofer ISE",
+      title: "Energy-Charts",
+      meta: "CC BY 4.0",
+      href: "https://energy-charts.info/",
+    },
+    {
+      publisher: "RWTH Aachen",
+      title: "Battery Charts, Marktstammdatenregister",
+      meta: "CC BY 4.0",
+      href: "https://battery-charts.de/de/battery-charts-de/",
+    },
+    {
+      publisher: "Bundesnetzagentur",
+      title: "SMARD",
+      meta: de ? "Regelzonen, CC BY 4.0" : "Control areas, CC BY 4.0",
+      href: "https://www.smard.de/",
+    },
+    {
+      publisher: de ? "Bundeswirtschaftsministerium" : "Federal Ministry for Economic Affairs",
+      title: de ? "Stromspeicher-Strategie" : "Electricity storage strategy",
+      meta: de ? "FAQ der Strategie" : "Strategy FAQ",
+      href: "https://www.bundeswirtschaftsministerium.de/Redaktion/DE/FAQ/Stromspeicher-Strategie/faq-stromspeicher-strategie.html",
+    },
+    {
+      publisher: "Bundesgerichtshof",
+      title: de ? "Pressemitteilung 129/2025, EnVR 1/24" : "Press release 129/2025, EnVR 1/24",
+      meta: de ? "15.07.2025 · Abruf 21.10.2026" : "15 July 2025 · retrieved 21 October 2026",
+      href: "https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html",
+    },
+    {
+      publisher: flower.publisher,
+      title: de ? "Baubeginn des Speichers in Hamburg" : "Construction start of the Hamburg storage system",
+      meta: "10.09.2026",
+      href: flower.href,
+    },
+    {
+      publisher: magazine.publisher,
+      title: de ? "Spatenstich für den Speicher in Hamburg" : "Groundbreaking for the Hamburg storage system",
+      meta: "10.09.2026",
+      href: magazine.href,
+    },
+    {
+      publisher: "Destatis",
+      title: de ? "Stromverbrauch der privaten Haushalte" : "Household electricity use",
+      meta: de ? "Stand 27.09.2023" : "As of 27 September 2023",
+      href: "https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Umwelt/UGR/private-haushalte/Tabellen/stromverbrauch-haushalte.html",
+    },
+  ];
+}
+
 const CHAPTERS = [
   { id: "was", de: "Was gerechnet wird", en: "What is calculated" },
   { id: "einheiten", de: "Daten und Einheiten", en: "Data and units" },
@@ -75,7 +139,7 @@ export function MethodikDocs() {
           <article>
             <section id="was">
               <h2>{tx("01 Was gerechnet wird", "01 What is calculated")}</h2>
-              <p>{tx("Zwei Sichten, ein Kern. Der Projektierer sieht Größe, Zyklen und die abgegebene Energie eines Tages. Der Netzbetreiber sieht Kilowatt am Anschluss, die Ampel und die Einschätzung netzdienlich. Keine Zahl steht in beiden Helden.", "Two views, one core. The developer sees size, cycles and the energy delivered on one day. The grid operator sees kilowatts at the connection, the traffic light and the grid-support estimate. No figure appears in both heroes.")}</p>
+              <p>{tx("Zwei Sichten, ein Kern. Der Projektierer sieht Größe, Zyklen und die abgegebene Energie eines Tages. Der Netzbetreiber sieht Kilowatt am Anschluss, die Ampel und die Einschätzung netzdienlich.", "Two views, one core. The developer sees size, cycles and the energy delivered on one day. The grid operator sees kilowatts at the connection, the traffic light and the grid-support estimate.")}</p>
               <p>{tx("Die nationale Uhr auf /live und der Startseite ist die Residuallast Deutschlands in Polarform. Der Standort-Ring ist dieselbe Form in Kilowatt. Die GW-Skala kommt auf /site nicht vor.", "The national clock on /live and the homepage is Germany’s residual load in polar form. The site ring is the same form in kilowatts. The GW scale does not appear on /site.")}</p>
             </section>
             <section id="einheiten">
@@ -88,8 +152,8 @@ export function MethodikDocs() {
                   <tr><td>{tx("Residuallast", "Residual load")}</td><td>{tx("MW, in der Uhr GW", "MW, and GW on the clock")}</td><td>{tx("Energy-Charts, Last − Wind − Sonne", "Energy-Charts, load − wind − solar")}</td></tr>
                   <tr><td>{tx("Großspeicher", "Large storage")}</td><td>MW, MWh</td><td>battery-charts.de aus dem MaStR</td></tr>
                   <tr><td>{tx("Anschluss", "Connection")}</td><td>kW</td><td>{tx("Eingabe oder Beispiel", "Input or example")}</td></tr>
-                  <tr><td>{tx("Wirkungsgrad, live", "Efficiency, live")}</td><td>0,90 auf der Abgabe</td><td>MORE_STORAGE_ROUND_TRIP</td></tr>
-                  <tr><td>{tx("Wirkungsgrad, Standort", "Efficiency, site")}</td><td>√RTE je Richtung</td><td>planSite / sizeStorage</td></tr>
+                  <tr><td>{tx("Wirkungsgrad, live", "Efficiency, live")}</td><td>{tx("0,90 auf der Abgabe", "0.90 on discharge")}</td><td>{tx("Wirkungsgrad der Live-Rechnung, nur bei der Abgabe", "Efficiency of the live calculation, only on discharge")}</td></tr>
+                  <tr><td>{tx("Wirkungsgrad, Standort", "Efficiency, site")}</td><td>{tx("Wurzel aus dem Wirkungsgrad je Richtung", "Square root of the round-trip efficiency, each way")}</td><td>{tx("Standort-Rechnung", "Site calculation")}</td></tr>
                 </tbody>
               </table></div>
               <p>{tx("Eine nationale Reihe heißt Deutschland. Sie wird nicht als Hamburg oder als Norden beschriftet. 50Hertz ist die Regelzone, nicht die Stadt. TransnetBW zeigt, dass im Norden mehr Wind steht als im Süden, und ist kein Engpass.", "A national series is called Germany. It is not labelled as Hamburg or as the north. 50Hertz is the control area, not the city. TransnetBW shows that the north has more wind than the south, and is not a congestion.")}</p>
@@ -113,7 +177,7 @@ export function MethodikDocs() {
                     <mo>min</mo>
                     <mo>(</mo><mi>Ü</mi><mo>,</mo><mi>P</mi><mo>,</mo><mi>Raum</mi><mo>)</mo>
                     <mo>·</mo>
-                    <mi>Δ</mi><mi>t</mi>
+                    <mi mathvariant="normal">Δ</mi><mi>t</mi>
                   </mrow>
                 </math>
               </Formula>
@@ -124,20 +188,20 @@ export function MethodikDocs() {
                     <mo>=</mo>
                     <msub><mi>E</mi><mtext>geladen</mtext></msub>
                     <mo>·</mo>
-                    <mi>η</mi>
+                    <mi mathvariant="normal">η</mi>
                     <mo>,</mo>
-                    <mi>η</mi>
+                    <mi mathvariant="normal">η</mi>
                     <mo>=</mo>
                     <mn>0,9</mn>
                   </mrow>
                 </math>
               </Formula>
-              <p>{tx("Das ist dispatchPeakFleet. Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. η = 0,9 steht in MORE_STORAGE_ROUND_TRIP und wird erst bei der Abgabe angewendet. Der Standort-Rechner teilt denselben Wirkungsgrad anders auf: dort ist η_dis = √RTE auf dem Weg hinein und auf dem Weg hinaus. Die beiden Modelle werden nicht vermischt.", "That is dispatchPeakFleet. Charging happens only before 17:00 and only from surplus, limited by power and free capacity. η = 0.9 lives in MORE_STORAGE_ROUND_TRIP and is applied only on discharge. The site calculator splits the same round-trip efficiency differently: there η_dis = √RTE on the way in and on the way out. The two models are not mixed.")}</p>
+              <p>{tx("Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. Der Wirkungsgrad 0,90 gilt auf der Abgabe. Der Standort-Rechner teilt denselben Wirkungsgrad anders auf: dort gilt die Wurzel aus dem Wirkungsgrad auf dem Weg hinein und auf dem Weg hinaus. Die beiden Modelle werden nicht vermischt.", "Charging happens only before 17:00 and only from surplus, limited by power and free capacity. The efficiency is 0.90 on discharge. The site calculator splits the same round-trip efficiency differently: the square root applies on the way in and on the way out. The two models are not mixed.")}</p>
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
             </section>
             <section id="groesse">
               <h2>{tx("04 Speichergröße", "04 Storage size")}</h2>
-              <Formula label="sizeStorage">
+              <Formula label={tx("Leistung aus dem höchsten Tagesüberschuss", "Power from a day’s highest excess")}>
                 <math display="block">
                   <mtable>
                     <mtr>
@@ -160,16 +224,16 @@ export function MethodikDocs() {
                     <mo>=</mo>
                     <mfrac>
                       <mrow><msub><mi>P95</mi><mtext>Tag</mtext></msub><mo>(</mo><msub><mi>E</mi><mtext>Überschuss</mtext></msub><mo>)</mo></mrow>
-                      <mrow><msub><mi>η</mi><mtext>dis</mtext></msub><mo>·</mo><mn>0,85</mn></mrow>
+                      <mrow><msub><mi mathvariant="normal">η</mi><mtext>dis</mtext></msub><mo>·</mo><mn>0,85</mn></mrow>
                     </mfrac>
                     <mo>,</mo>
-                    <msub><mi>η</mi><mtext>dis</mtext></msub>
+                    <msub><mi mathvariant="normal">η</mi><mtext>dis</mtext></msub>
                     <mo>=</mo>
                     <msqrt><mtext>RTE</mtext></msqrt>
                   </mrow>
                 </math>
               </Formula>
-              <p>{tx("P_Tag ist der höchste Überschuss eines Tages, E_Überschuss die Summe dieses Tages. P95 darüber lässt die härtesten 5 % der Tage über der Grenze. Das ist Absicht. 0,85 ist SOC_MAX − SOC_MIN, also 0,95 − 0,10. Im Beispiel-Supermarkt ist RTE = 0,9, also η_dis = √0,9. Die Handwerte 40 kW und 40 kWh umgehen diese Formel, weil autoSize dort aus ist.", "P_day is a day’s highest excess, and E_excess is that day’s sum. P95 across those days leaves the hardest 5% above the limit. That is intentional. 0.85 is SOC_MAX − SOC_MIN, that is 0.95 − 0.10. In the supermarket example RTE = 0.9, so η_dis = √0.9. The hand values 40 kW and 40 kWh bypass this formula, because autoSize is off there.")}</p>
+              <p>{tx("Die Tagesleistung ist der höchste Überschuss eines Tages, die Überschussenergie die Summe dieses Tages. Das 95-Prozent-Maß darüber lässt die härtesten 5 % der Tage über der Grenze. Das ist Absicht. 0,85 ist der nutzbare Anteil zwischen 10 % und 95 % Füllstand. Im Beispiel-Supermarkt ist der Wirkungsgrad 0,9, also die Wurzel daraus je Richtung. Die Handwerte 40 kW und 40 kWh umgehen diese Formel, weil die Größe dort fest vorgegeben ist.", "Daily power is a day’s highest excess, and the excess energy is that day’s sum. The 95 percent measure across those days leaves the hardest 5% above the limit. That is intentional. 0.85 is the usable share between 10% and 95% state of charge. In the supermarket example the round-trip efficiency is 0.9, so each direction uses its square root. The hand values 40 kW and 40 kWh bypass this formula, because the size is fixed there.")}</p>
             </section>
             <section id="ampel">
               <h2>{tx("05 Anschluss-Ampel", "05 Connection light")}</h2>
@@ -182,7 +246,7 @@ export function MethodikDocs() {
             </section>
             <section id="netzdienlichkeit">
               <h2>{tx("06 Einschätzung netzdienlich", "06 Grid-support estimate")}</h2>
-              <p>{tx(`Regel v1. Ein Intervall zählt als Spitze, wenn die Standortlast mindestens ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)} % der Anschlussleistung erreicht. Einschätzung netzdienlich ab ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)} % der Entladeenergie in diesen Intervallen und ohne neue Bezugsspitze. Darunter bis ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)} % heißt die Schätzung gemischt, darunter marktgetrieben. Eine neue Spitze liegt vor, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt. Die Schwellen stehen nur in GRID_SUPPORT_CONFIG und sind vorläufig.`, `Rule v1. An interval counts as a peak when site load reaches at least ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)}% of the connection. The estimate is grid-supportive from ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)}% of discharge energy in those intervals and only without a new import peak. Down to ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)}% the estimate is mixed, and below that market-driven. A new peak exists as soon as a charging interval lifts the import above the peak without storage. The thresholds live only in GRID_SUPPORT_CONFIG and are provisional.`)}</p>
+              <p>{tx(`Regel v1. Ein Intervall zählt als Spitze, wenn die Standortlast mindestens ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)} % der Anschlussleistung erreicht. Einschätzung netzdienlich ab ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)} % der Entladeenergie in diesen Intervallen und ohne neue Bezugsspitze. Darunter bis ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)} % heißt die Schätzung gemischt, darunter marktgetrieben. Eine neue Spitze liegt vor, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt. Die Schwellen sind vorläufig.`, `Rule v1. An interval counts as a peak when site load reaches at least ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)}% of the connection. The estimate is grid-supportive from ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)}% of discharge energy in those intervals and only without a new import peak. Down to ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)}% the estimate is mixed, and below that market-driven. A new peak exists as soon as a charging interval lifts the import above the peak without storage. The thresholds are provisional.`)}</p>
               <p>{tx("Die Marke heißt netzdienlich v1 · Einschätzung, kein Befund. Die Schrift bleibt neutral, ohne Grün und ohne Rot.", "The badge reads grid-supportive v1 · estimate, not a finding. The type stays neutral, with no green and no red.")}</p>
               <blockquote>
                 <p>{tx("Ob netzdienlicher Speicherbetrieb im örtlichen Verteilnetz Netzausbau vermeidet, kann nur der Netzbetreiber beurteilen; ihm steht dabei ein Entscheidungsspielraum zu. Die Bundesnetzagentur durfte ihre Vorgaben (Positionspapier 2009, Leistungspreismodell) als angemessen ansehen.", "Whether grid-supportive storage operation avoids network expansion in the local distribution network can only be judged by the network operator; that operator has a margin of decision. The Federal Network Agency was entitled to regard its requirements (2009 position paper, capacity-price model) as appropriate.")}</p>
@@ -195,22 +259,26 @@ export function MethodikDocs() {
             <section id="quellen">
               <details className="site-fold">
               <summary><h2>{tx("07 Quellen", "07 Sources")}</h2></summary>
-              <ul>
-                <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
-                <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
-                <li><a href="https://www.smard.de/">SMARD</a> · {tx("Regelzonen, CC BY 4.0", "Control areas, CC BY 4.0")}</li>
-                <li><a href="https://www.bundeswirtschaftsministerium.de/Redaktion/DE/FAQ/Stromspeicher-Strategie/faq-stromspeicher-strategie.html">{tx("Bundeswirtschaftsministerium · Stromspeicher-Strategie", "Federal Ministry for Economic Affairs · storage strategy")}</a></li>
-                <li><a href="https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html">BGH · PM 129/2025</a></li>
-                <li><a href={FLOWER_BERGEDORF.sources[0].href}>Flower</a> · <a href={FLOWER_BERGEDORF.sources[1].href}>pv magazine</a></li>
-                <li><a href="https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Umwelt/UGR/private-haushalte/Tabellen/stromverbrauch-haushalte.html">Destatis</a> · {tx("Haushaltsstrom, Stand 27. September 2023", "Household electricity, as of 27 September 2023")}</li>
-              </ul>
-              <p>{tx("Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Flower zeigt nur veröffentlichte Eckdaten. Euro-Beträge stehen nur im aufklappbaren Annahmen-Block und dort als Modellschätzung. Kein Angebot, keine Anschlusszusage.", "The example supermarket and the example neighbourhood are fictional and marked as example data. Flower shows only published key figures. Euro amounts appear only in the collapsible assumptions block, and there as a model estimate. Not a quote and not a connection offer.")}</p>
+              <ol className="methodik-sources">
+                {sources(language).map((source) => (
+                  <li key={source.href}>
+                    <p className="src-pub">{source.publisher}</p>
+                    <p className="src-title">{source.title}</p>
+                    <p className="src-meta">{source.meta}</p>
+                    <a href={source.href} target="_blank" rel="noopener noreferrer">
+                      {sourceHost(source.href)} <span aria-hidden="true">↗</span>
+                      <span className="sr-only">{tx(" (öffnet in neuem Tab)", " (opens in a new tab)")}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+              <p>{tx("Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Flower zeigt nur veröffentlichte Eckdaten. Euro-Beträge sind Modellschätzungen mit Beispielannahmen (z. B. Leistungspreis 120 €/kW·a) und als solche gekennzeichnet. Kein Angebot, keine Anschlusszusage.", "The example supermarket and the example neighbourhood are fictional and marked as example data. Flower shows only published key figures. Euro amounts are model estimates with example assumptions (for example a demand charge of 120 €/kW·a) and are labelled as such. Not a quote and not a connection offer.")}</p>
               </details>
               <details className="site-fold" id="glossar">
               <summary><h3>{tx("Glossar", "Glossary")}</h3></summary>
-              <dl>
-                {GLOSSARY.map((entry) => (
-                  <div key={entry.id}>
+              <dl className="methodik-glossary">
+                {[...GLOSSARY].sort((a, b) => (language === "de" ? a.term.de : a.term.en).localeCompare(language === "de" ? b.term.de : b.term.en, language === "de" ? "de" : "en")).map((entry) => (
+                  <div key={entry.id} id={`begriff-${entry.id}`}>
                     <dt>{language === "de" ? entry.term.de : entry.term.en}</dt>
                     <dd>{language === "de" ? entry.text.de : entry.text.en}</dd>
                   </div>

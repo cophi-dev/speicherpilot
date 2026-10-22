@@ -3,9 +3,7 @@ import "./globals.css";
 import { jetbrainsMono, plexMono, plexSans } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
 import { ThemeInitScript } from "@/components/ThemeInitScript";
-import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
-
-const siteOrigin = getPublicSiteOrigin();
+const siteOrigin = "https://www.speicherpilot.app";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -16,23 +14,22 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: {
-    default: "SpeicherPilot — battery storage & grid connection planner",
+    default: "SpeicherPilot – Was Batteriespeicher am Netz bewirken",
     template: "%s | SpeicherPilot",
   },
   description:
-    "SpeicherPilot — battery storage & grid connection planner. Live 50Hertz wind and solar, DE-LU day-ahead prices, the Germany snapshot, and a labelled storage model.",
+    "Der Ring zeigt die Residuallast eines Tages und wie Batteriespeicher die Abendspitze glätten. Ein Modell mit veröffentlichten Netzdaten.",
   openGraph: {
-    title: "SpeicherPilot — battery storage & grid connection planner",
-    description:
-      "battery storage & grid connection planner. Live 50Hertz wind and solar, DE-LU day-ahead prices, and a labelled storage model.",
+    title: "SpeicherPilot – Was Batteriespeicher am Netz bewirken",
+    description: "Der Ring zeigt, wie Batteriespeicher die Abendspitze der Residuallast glätten.",
     type: "website",
     url: siteOrigin,
     siteName: "SpeicherPilot",
   },
   twitter: {
     card: "summary",
-    title: "SpeicherPilot — battery storage & grid connection planner",
-    description: "battery storage & grid connection planner — live 50Hertz wind and solar, DE-LU prices.",
+    title: "SpeicherPilot – Was Batteriespeicher am Netz bewirken",
+    description: "Der Ring zeigt, wie Batteriespeicher die Abendspitze der Residuallast glätten.",
   },
 };
 

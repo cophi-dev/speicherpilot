@@ -10,7 +10,7 @@ import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
 export const metadata = {
   title: "Was wäre, wenn Deutschland mehr Speicher hätte?",
   description:
-    "A model of today’s German residual load with the large-storage fleet scaled from ×1 to ×10. The battery starts empty, charges on surplus, and cuts the evening peak. No euro figures.",
+    "Der Ring zeigt die Residuallast und die Abendspitze, wenn die heutige Großspeicher-Flotte von ×1 bis ×10 wächst. Der Speicher startet leer und lädt nur Überschuss.",
 };
 
 export default async function LivePage({

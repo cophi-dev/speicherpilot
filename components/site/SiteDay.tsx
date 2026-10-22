@@ -64,7 +64,7 @@ export function SiteDay() {
   return (
     <div className="site-v2">
       {scenario === "grossspeicher" ? (
-        <FlowerHero view={view} language={language} />
+        <FlowerHero language={language} />
       ) : active ? (
         <ExampleHero view={view} scenario={scenario} language={language} plan={active.plan} story={active.story} example={!uploaded} />
       ) : null}
@@ -198,7 +198,13 @@ function ExampleHero({
               callouts={callouts}
               showShift={false}
               chargedGwh={0}
-              center={<span className="num">{netz ? `${peak} → ${limit}` : energy}<small>{netz ? " kW" : " kWh"}</small></span>}
+              center={
+                netz ? (
+                  <span className="num site-center-lock">{peak} → {limit} kW</span>
+                ) : (
+                  <span className="num">{energy}<small> kWh</small></span>
+                )
+              }
             />
             <UtilisationLegend language={language} />
           </div>
@@ -276,20 +282,23 @@ function siteCallouts(story: SiteConnectionStory, language: AppLanguage, netz: b
   const covered = netz
     ? tx(`${clock(first.hour)}–${end} über der Grenze`, `${clock(first.hour)}–${end} over the limit`)
     : tx("vom Speicher gedeckt", "covered by storage");
+  const middayKw = formatQuantity(Math.abs(pv.ohneKw), language, 0);
+  const midday = pv.ohneKw < -0.05
+    ? tx(`Mittags ${middayKw} kW Rückspeisung`, `Midday ${middayKw} kW export`)
+    : tx(`Mittags ${middayKw} kW Bezug`, `Midday ${middayKw} kW import`);
   return [
     { id: "evening", n: 1, point: toRing([first])[0], text: covered },
     { id: "night", n: 2, point: toRing([limitPoint])[0], text: tx(`Anschluss ${formatQuantity(story.limitKw, language, 0)} kW`, `Connection ${formatQuantity(story.limitKw, language, 0)} kW`) },
-    { id: "midday", n: 3, point: toRing([pv])[0], text: tx(`Mittags ${formatQuantity(Math.abs(pv.ohneKw), language, 0)} kW Rückspeisung`, `Midday ${formatQuantity(Math.abs(pv.ohneKw), language, 0)} kW export`) },
+    { id: "midday", n: 3, point: toRing([pv])[0], text: midday },
   ];
 }
 
-function FlowerHero({ view, language }: { view: Perspective; language: AppLanguage }) {
+function FlowerHero({ language }: { language: AppLanguage }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const facts = FLOWER_BERGEDORF;
   return (
     <section className="day-hero site-hero" aria-labelledby="site-hero-title">
       <div className="day-hero-inner">
-        <PerspectiveToggle view={view} scenario="grossspeicher" language={language} />
         <div className="site-hero-grid">
           <div>
             <p className="day-kicker">{tx("Standort · öffentliche Referenz", "Site · public reference")} <span className="site-chip site-chip-public">{tx("Öffentliche Eckdaten", "Public key figures")}</span></p>
@@ -301,7 +310,10 @@ function FlowerHero({ view, language }: { view: Perspective; language: AppLangua
             </dl>
             <p className="site-quiet">{tx("Keine Spannung, kein Anschluss, kein Erlös. Was die Quellen nicht nennen, steht hier nicht.", "No voltage, no connection, no revenue. What the sources do not state is not shown here.")}</p>
           </div>
-          <DayRing points={[]} unit="kW" scale="utilisation" mode="netz" empty showHourTicks={false} label={tx("Leerer Ring", "Empty ring")} description={tx("Kein veröffentlichter Tagesverlauf.", "No published daily profile.")} showSoc={false} showFlow={false} showShift={false} />
+          <div className="site-flower-ring">
+            <DayRing points={[]} unit="kW" scale="utilisation" mode="netz" empty showHourTicks={false} label={tx("Leerer Ring", "Empty ring")} description={tx("Kein veröffentlichter Tagesverlauf.", "No published daily profile.")} showSoc={false} showFlow={false} showShift={false} />
+            <p className="site-flower-note">{tx("nur öffentliche Eckdaten", "public key figures only")}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -320,14 +332,38 @@ function FlowerFact({ label, value, href, source }: { label: string; value: stri
 
 function SupportCard({ language, story }: { language: AppLanguage; story: SiteConnectionStory }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const share = Math.round(story.badge.dischargeShare * 100);
+  const noDischarge = story.dischargedKwh <= 1e-6;
+  const sharePct = Math.round(story.badge.dischargeShare * 100);
+  const met = story.badge.met;
   return (
     <section className="day-paper" aria-labelledby="site-support">
       <div className="day-hero-inner site-split">
         <article className="site-card">
           <p className="day-kicker">{tx("Einschätzung netzdienlich v1", "Grid-support estimate v1")}</p>
           <h2 id="site-support">{tx("Anteil der Entladung in der Spitze", "Share of discharge in the peak")}</h2>
-          <p className="num site-bar" style={{ ["--share" as string]: `${share}%` }}><span>{share} %</span><span>{tx("Schwelle 60 %", "Threshold 60%")}</span></p>
+          {noDischarge ? (
+            <p className="site-meter-empty">{tx("keine Entladung in der Spitze", "no discharge in the peak")}</p>
+          ) : (
+            <div className="site-meter">
+              <div className="site-meter-top">
+                <div
+                  className="site-meter-track"
+                  role="img"
+                  aria-label={tx(`${sharePct} Prozent der Entladung in der Spitze`, `${sharePct} percent of discharge in the peak`)}
+                >
+                  <span className="site-meter-clip" style={{ width: `${Math.min(100, Math.max(0, sharePct))}%` }}>
+                    <span className="site-meter-fill" />
+                  </span>
+                  <span className="site-meter-mark" />
+                  <span className="site-meter-threshold">60 %</span>
+                </div>
+                <p className="num site-meter-value">{formatQuantity(sharePct, language, 0)} %</p>
+              </div>
+              <p className={met ? "site-pill is-met" : "site-pill"}>
+                {met ? tx("netzdienlich (Schätzung)", "grid-supportive (estimate)") : tx("nicht netzdienlich", "not grid-supportive")}
+              </p>
+            </div>
+          )}
           <p>{tx(`Neue Bezugsspitze: ${story.badge.createsNewPeak ? "ja" : "keine"}.`, `New import peak: ${story.badge.createsNewPeak ? "yes" : "none"}.`)}</p>
           <p>{tx("Ob netzdienlicher Speicherbetrieb im örtlichen Verteilnetz Netzausbau vermeidet, kann nur der Netzbetreiber beurteilen; ihm steht dabei ein Entscheidungsspielraum zu.", "Whether grid-supportive storage operation avoids network expansion in the local distribution network can only be judged by the network operator; that operator has a margin of decision.")}</p>
           <Link href="/methodik#netzdienlichkeit">{tx("Regel v1 in der Methodik", "Rule v1 in the method")}</Link>
@@ -350,7 +386,7 @@ function Assumptions({ language, plan }: { language: AppLanguage; plan: SitePlan
             <li>{tx(`Leistungspreis ${formatQuantity(HAMBURG_SUPERMARKET.demandChargeEurPerKwYear, language, 0)} €/kW·Jahr, Annahme.`, `Demand charge ${formatQuantity(HAMBURG_SUPERMARKET.demandChargeEurPerKwYear, language, 0)} €/kW·year, an assumption.`)}</li>
             <li>{tx(`Arbeitspreis ${formatQuantity(HAMBURG_SUPERMARKET.energyPriceCtPerKwh, language, 1)} ct/kWh, Einspeisung ${formatQuantity(HAMBURG_SUPERMARKET.feedInCtPerKwh, language, 0)} ct/kWh.`, `Retail price ${formatQuantity(HAMBURG_SUPERMARKET.energyPriceCtPerKwh, language, 1)} ct/kWh, export ${formatQuantity(HAMBURG_SUPERMARKET.feedInCtPerKwh, language, 0)} ct/kWh.`)}</li>
             <li>{tx(`CAPEX ${formatQuantity(HAMBURG_SUPERMARKET.capexEurPerKwh, language, 0)} €/kWh, Wirkungsgrad ${formatQuantity(plan.assumptions.roundTripEfficiency * 100, language, 0)} %, Lebensdauer ${HAMBURG_SUPERMARKET.lifetimeYears} Jahre.`, `CAPEX ${formatQuantity(HAMBURG_SUPERMARKET.capexEurPerKwh, language, 0)} €/kWh, round-trip efficiency ${formatQuantity(plan.assumptions.roundTripEfficiency * 100, language, 0)}%, lifetime ${HAMBURG_SUPERMARKET.lifetimeYears} years.`)}</li>
-            <li><GlossaryTip id="capex" language={language} /> {tx("Keine Euro-Zahl außerhalb dieses Blocks. Kein Angebot.", "No euro figure outside this block. Not a quote.")}</li>
+            <li><GlossaryTip id="capex" language={language} /> {tx("Euro-Beträge sind Modellschätzungen mit Beispielannahmen (z. B. Leistungspreis 120 €/kW·a) und als solche gekennzeichnet.", "Euro amounts are model estimates with example assumptions (for example a demand charge of 120 €/kW·a) and are labelled as such.")}</li>
           </ul>
         </details>
       </div>
@@ -438,7 +474,7 @@ function PdfLink({ view, language, plan, profile }: { view: Perspective; languag
   return (
     <button
       type="button"
-      className="day-textlink"
+      className="day-textlink tap-44"
       disabled={busy}
       onClick={() => {
         setBusy(true);

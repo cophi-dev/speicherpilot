@@ -1,4 +1,4 @@
-import { HAMBURG_SUPERMARKET, planHamburgSupermarket } from "@/lib/hamburgSupermarket";
+import { supermarketTeachingDay } from "@/lib/peakShavingExplain";
 import {
   assessGridSupport,
   GRID_SUPPORT_CONFIG,
@@ -108,9 +108,52 @@ export function storyFromPlan(plan: SitePlan, limitKw: number, rte: number): Sit
   };
 }
 
+/**
+ * Same day as the homepage peak-shaving story: full at midnight, 40 kW / 40 kWh,
+ * recharge from 19:30 at most 15 kW, √round-trip efficiency. Not the year planner.
+ */
 export function supermarketConnectionStory(): SiteConnectionStory {
-  const plan = planHamburgSupermarket();
-  return storyFromPlan(plan, HAMBURG_SUPERMARKET.limitKw, HAMBURG_SUPERMARKET.roundTripEfficiency);
+  const day = supermarketTeachingDay();
+  const points: ConnectionPoint[] = day.quarters.map((quarter) => ({
+    hour: quarter.hour,
+    ohneKw: quarter.loadKw,
+    mitKw: quarter.netKw,
+    chargeKw: Math.max(0, -quarter.batteryKw),
+    dischargeKw: Math.max(0, quarter.batteryKw),
+    soc: day.energyKwh > 0 ? quarter.socKwh / day.energyKwh : 0,
+  }));
+  let hoursOver = 0;
+  let dischargedKwh = 0;
+  let chargedKwh = 0;
+  for (const point of points) {
+    dischargedKwh += point.dischargeKw * 0.25;
+    chargedKwh += point.chargeKw * 0.25;
+    if (point.ohneKw > day.limitKw) {
+      hoursOver += 0.25;
+    }
+  }
+  const assessment = assessGridSupport({
+    loadKw: points.map((point) => point.ohneKw),
+    chargeKw: points.map((point) => point.chargeKw),
+    dischargeKw: points.map((point) => point.dischargeKw),
+    gridKw: points.map((point) => point.mitKw),
+    netKw: points.map((point) => point.ohneKw),
+    limitKw: day.limitKw,
+    intervalHours: 0.25,
+  });
+  return {
+    limitKw: day.limitKw,
+    powerKw: day.powerKw,
+    energyKwh: day.energyKwh,
+    rte: day.roundTripEfficiency,
+    points,
+    peakBeforeKw: day.peakBeforeKw,
+    peakAfterKw: day.peakAfterKw,
+    hoursOverLimit: hoursOver,
+    dischargedKwh,
+    chargedKwh,
+    badge: connectionBadge(assessment),
+  };
 }
 
 /** 0 % of discharge sits in a peak window when the connection is never that full. */

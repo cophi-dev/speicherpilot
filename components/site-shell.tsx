@@ -236,7 +236,7 @@ export function SiteShell({ children }: SiteShellProps) {
                   <button
                     key={code}
                     type="button"
-                    className={`h-8 px-2.5 focus-visible:ring-2 focus-visible:ring-ring ${language === code ? "bg-foreground text-background" : "text-foreground"}`}
+                    className={`tap-44 h-8 px-2.5 focus-visible:ring-2 focus-visible:ring-ring ${language === code ? "bg-foreground text-background" : "text-foreground"}`}
                     aria-pressed={language === code}
                     onClick={() => setLanguage(code)}
                   >
@@ -246,7 +246,7 @@ export function SiteShell({ children }: SiteShellProps) {
               </div>
               <button
                 type="button"
-                className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                className="tap-44 inline-flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                 aria-expanded={menuOpen}
                 aria-label={tx("Menü", "Menu")}
                 onClick={() => setMenuOpen((open) => !open)}
@@ -259,7 +259,7 @@ export function SiteShell({ children }: SiteShellProps) {
             <div className="border-t border-border bg-card px-5 py-4 md:px-8">
               <nav className="flex flex-col gap-3 text-sm font-medium md:hidden" aria-label={tx("Hauptnavigation", "Primary")}>
                 {NAV.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+                  <Link key={item.href} href={item.href} className="tap-44 inline-flex min-h-11 items-center" onClick={() => setMenuOpen(false)}>
                     {language === "de" ? item.de : item.en}
                   </Link>
                 ))}
@@ -277,7 +277,7 @@ export function SiteShell({ children }: SiteShellProps) {
                     type="button"
                     onClick={() => setThemePref(key)}
                     aria-pressed={themePref === key}
-                    className={`inline-flex h-8 items-center gap-2 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                    className={`tap-44 inline-flex h-8 items-center gap-2 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
                   >
                     <Icon className="size-4" strokeWidth={1.5} aria-hidden />
                     {themeLabel(key, language)}
@@ -306,22 +306,22 @@ export function SiteShell({ children }: SiteShellProps) {
               <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Quellen", "Sources")}</summary>
               <ul className="mt-3 space-y-1.5">
                 <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
+                  <a className="paper-link underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
                     Energy-Charts
                   </a>
                 </li>
                 <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://www.ise.fraunhofer.de/" target="_blank" rel="noreferrer">
+                  <a className="paper-link underline underline-offset-[3px]" href="https://www.ise.fraunhofer.de/" target="_blank" rel="noreferrer">
                     Fraunhofer ISE
                   </a>
                 </li>
                 <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://www.netztransparenz.de/" target="_blank" rel="noreferrer">
+                  <a className="paper-link underline underline-offset-[3px]" href="https://www.netztransparenz.de/" target="_blank" rel="noreferrer">
                     Netztransparenz
                   </a>
                 </li>
                 <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://www.marktstammdatenregister.de/" target="_blank" rel="noreferrer">
+                  <a className="paper-link underline underline-offset-[3px]" href="https://www.marktstammdatenregister.de/" target="_blank" rel="noreferrer">
                     MaStR
                   </a>
                 </li>
@@ -330,7 +330,7 @@ export function SiteShell({ children }: SiteShellProps) {
               <details className="site-fold">
                 <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Glossar", "Glossary")}</summary>
                 <p className="mt-3">
-                  <Link href="/methodik#glossar">{tx("Begriffe in der Methodik", "Terms in the method")}</Link>
+                  <Link className="paper-link" href="/methodik#glossar">{tx("Begriffe in der Methodik", "Terms in the method")}</Link>
                 </p>
               </details>
             </div>
@@ -348,7 +348,7 @@ export function SiteShell({ children }: SiteShellProps) {
                     type="button"
                     aria-pressed={mounted && themePref === key}
                     onClick={() => setThemePref(key)}
-                    className={`h-8 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                    className={`tap-44 h-8 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
                   >
                     {themeLabel(key, language)}
                   </button>

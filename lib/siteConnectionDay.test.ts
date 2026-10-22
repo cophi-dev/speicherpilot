@@ -1,3 +1,4 @@
+import { supermarketTeachingDay } from "@/lib/peakShavingExplain";
 import {
   connectionBadge,
   fullUtilisationAssessment,
@@ -22,13 +23,21 @@ describe("site connection day", () => {
     expect(badge.label).toBe("netzdienlich");
   });
 
-  it("computes the supermarket badge from the site plan", () => {
+  it("uses the homepage teaching day for the supermarket, starting full", () => {
+    const day = supermarketTeachingDay();
     const story = supermarketConnectionStory();
-    expect(story.limitKw).toBe(90);
-    expect(story.points.length).toBe(96);
-    expect(story.peakBeforeKw).toBeGreaterThan(story.limitKw);
-    expect(story.dischargedKwh).toBeGreaterThan(0);
-    expect(story.chargedKwh).toBeGreaterThanOrEqual(0);
+    expect(story.limitKw).toBe(day.limitKw);
+    expect(story.powerKw).toBe(day.powerKw);
+    expect(story.energyKwh).toBe(day.energyKwh);
+    expect(story.rte).toBe(day.roundTripEfficiency);
+    expect(story.points).toHaveLength(day.quarters.length);
+    expect(story.peakBeforeKw).toBeCloseTo(day.peakBeforeKw, 6);
+    expect(story.peakAfterKw).toBeCloseTo(day.peakAfterKw, 6);
+    expect(story.dischargedKwh).toBeCloseTo(day.shavedKwh, 6);
+    expect(story.points[0]?.soc).toBeCloseTo(1, 5);
+    const lowest = story.points.reduce((best, point) => (point.soc < best.soc ? point : best));
+    expect(lowest.soc * story.energyKwh).toBeCloseTo(day.socMinKwh, 5);
+    expect(lowest.hour).toBeCloseTo(day.quarters.reduce((best, quarter) => (quarter.socKwh < best.socKwh ? quarter : best)).hour, 5);
     expect(story.points.every((point) => point.soc >= 0 && point.soc <= 1)).toBe(true);
     expect(["netzdienlich", "nicht erfüllt"]).toContain(story.badge.label);
     expect(JSON.stringify({ label: story.badge.label, peak: story.peakAfterKw })).not.toMatch(/€/);

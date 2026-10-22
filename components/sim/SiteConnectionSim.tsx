@@ -224,8 +224,8 @@ export function SiteConnectionSim({ view }: { view: Perspective }) {
           <p className="sim-src">
             <span className="sim-chip">MODELL</span>{" "}
             {tx(
-              `Modellschätzung · Beispieldaten · fiktiver Supermarkt · Wirkungsgrad ${formatQuantity(story.rte * 100, language, 0)} % (Annahme). Der Tag ist der Spitzentag aus dem Standort-Rechner.`,
-              `Model estimate · example data · fictional supermarket · round-trip efficiency ${formatQuantity(story.rte * 100, language, 0)}% (assumption). The day is the peak day from the site calculator.`
+              `Modellschätzung · Beispieldaten · fiktiver Supermarkt · Wirkungsgrad ${formatQuantity(story.rte * 100, language, 0)} % (Annahme). Dieselbe Tagesrechnung wie auf der Startseite: Start voll, Nachladen ab 19:30 mit höchstens 15 kW.`,
+              `Model estimate · example data · fictional supermarket · round-trip efficiency ${formatQuantity(story.rte * 100, language, 0)}% (assumption). The same day as the homepage: starts full, recharges from 19:30 at 15 kW at most.`
             )}
           </p>
         </div>

@@ -323,10 +323,11 @@ function StoryChart({
         : tx("Leistungspreis-Ersparnis, Modellschätzung.", "Demand-charge saving, model estimate.");
 
   return (
-    <div ref={frameRef} className="min-h-0 flex-1">
+    <div ref={frameRef} className="story-chart min-h-0 flex-1">
       <p className="sr-only" aria-live="polite">
         {summary}
       </p>
+      {stacked && step >= 1 ? <p className="story-series-label">{tx("Netzbezug", "Grid import")}</p> : null}
       {width > 0 && height > 0 ? (
         <svg role="img" aria-labelledby={titleId} width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="h-full w-full">
           <title id={titleId}>{summary}</title>
@@ -404,7 +405,7 @@ function StoryChart({
               {formatQuantity(peak.loadKw, language, 0)} kW
             </text>
           ) : null}
-          {step >= 1 && peak ? (
+          {step >= 1 && peak && !stacked ? (
             <text
               x={x(peak.hour)}
               y={y(peak.netKw) + 8 + 13}
@@ -417,7 +418,7 @@ function StoryChart({
           ) : null}
           {showSoc ? (
             <g className="story-layer">
-              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={11}>
+              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={12}>
                 {tx("LADESTAND", "CHARGE")}
               </text>
               <line x1={pad.l} x2={pad.l + plotW} y1={socY(0)} y2={socY(0)} className="stroke-gridline" />

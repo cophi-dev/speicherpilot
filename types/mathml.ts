@@ -1,6 +1,8 @@
 export {};
 
-type MathElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+type MathElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+  mathvariant?: "normal";
+};
 
 declare module "react" {
   // JSX intrinsic elements are still declared on this namespace.

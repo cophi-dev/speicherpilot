@@ -227,7 +227,7 @@ export default function BessAiChatOverlay({
                   : "ml-auto border-primary/45 bg-primary/95 text-white dark:border-emerald-200/50 dark:bg-emerald-700/85"
               }`}
             >
-              <p className="mb-1 text-[11px] tracking-[0.1em] uppercase opacity-75">
+              <p className="mb-1 text-xs tracking-[0.1em] uppercase opacity-75">
                 {message.role === "assistant" ? "SpeicherPilot" : language === "de" ? "Sie" : "You"}
               </p>
               <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>

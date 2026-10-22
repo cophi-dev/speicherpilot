@@ -403,7 +403,7 @@ export function DispatchDayChart({
             <text x={padLeft - 6} y={bandTop + BAND} textAnchor="end" className="tk soc-tick">
               0 %
             </text>
-            {[0, 3, 6, 9, 12, 15, 18, 21, 24].filter((hour) => (mobile ? hour % 6 === 0 : true)).map((hour) => (
+            {[0, 3, 6, 9, 12, 15, 18, 21, 24].map((hour) => (
               <g key={hour}>
                 <line x1={xAt(hour)} x2={xAt(hour)} y1={bandTop + BAND} y2={bandTop + BAND + 4} className="zl" />
                 <text x={xAt(hour)} y={height - 4} textAnchor={hour === 0 ? "start" : hour === 24 ? "end" : "middle"} className="tk">

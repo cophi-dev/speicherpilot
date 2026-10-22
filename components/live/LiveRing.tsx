@@ -13,6 +13,7 @@ import { StatTrio } from "@/components/day-ring/StatTrio";
 import { ViewToggle } from "@/components/day-ring/ViewToggle";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
+import { addBerlinCalendarDays, formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   calloutAnchors,
@@ -164,7 +165,11 @@ function LiveRingBody({
   const hours = surplusHours(story);
   const hourLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
+  const todayKey = formatBerlinDateKeyFromUtcDate(new Date());
+  const yesterdayKey = addBerlinCalendarDays(todayKey, -1);
+  const showSurplusHint = story.dateBerlin !== todayKey && story.dateBerlin !== yesterdayKey;
   const kicker = `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
+  const fleetNow = `${formatQuantity(fleet.powerMw / 1000, language, 1)} GW · ${formatQuantity(fleet.energyMwh / 1000, language, 1)} GWh`;
   const callouts = buildCallouts(story, story.points, language);
   const tablePoints = useDeferredValue(story.points);
   const description = tx(
@@ -178,7 +183,12 @@ function LiveRingBody({
   return (
     <>
       <div className="day-hero-layout">
-        <p className="day-kicker day-order-kicker">{kicker}</p>
+        <div className="day-order-kicker">
+          <p className="day-kicker">{kicker}</p>
+          {showSurplusHint ? (
+            <p className="day-kicker">{tx(`Letzter Überschusstag: ${dateLabel}`, `Last surplus day: ${dateLabel}`)}</p>
+          ) : null}
+        </div>
         <h1 id="live-what-if" className="day-title day-order-title">
           {title}
         </h1>
@@ -313,6 +323,7 @@ function LiveRingBody({
             {tx("Großspeicher heute", "Large storage today")}
             <GlossaryTip id="ladezustand" language={language} />
           </h2>
+          <p className="num day-fleet-now">{fleetNow}</p>
           <p>
             {tx(
               `Stand ${stand}. Der innere Ring ist der Ladezustand im Modell, keine Messung.`,

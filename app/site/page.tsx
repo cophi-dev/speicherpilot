@@ -4,7 +4,8 @@ import { SiteDay } from "@/components/site/SiteDay";
 
 export const metadata = {
   title: "Speicher oder Anschluss",
-  description: "Zwei Einstiege: Speicher planen oder einen Anschluss prüfen. Beispiele Supermarkt, Quartier und die öffentliche Referenz Flower in Hamburg-Bergedorf.",
+  description:
+    "Standort-Ring für Supermarkt, Quartier und die öffentlichen Eckdaten von Flower in Hamburg-Bergedorf. Die Abendspitze in Kilowatt, die Einschätzung netzdienlich als Schätzung.",
 };
 
 export default function SitePage() {

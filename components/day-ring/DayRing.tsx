@@ -241,7 +241,9 @@ export function DayRing({
       const apply = (size: number) => {
         freeze(sized);
         centerEl.querySelectorAll<HTMLElement>("*").forEach(freeze);
-        sized.style.fontSize = `${size}px`;
+        if (!sized.classList.contains("site-center-lock")) {
+          sized.style.fontSize = `${size}px`;
+        }
         if (caption && figure && caption !== figure) {
           caption.style.fontSize = `${centerCaptionPx(size)}px`;
           caption.style.maxWidth = "none";
@@ -268,6 +270,12 @@ export function DayRing({
         return;
       }
       apply(chosen);
+      if (!sized.classList.contains("site-center-lock")) {
+        sized.style.fontSize = `${Math.max(12, chosen)}px`;
+      }
+      if (caption && figure && caption !== figure) {
+        caption.style.fontSize = `${Math.max(13, centerCaptionPx(chosen))}px`;
+      }
     };
     fit();
     const observer = new ResizeObserver(() => {
