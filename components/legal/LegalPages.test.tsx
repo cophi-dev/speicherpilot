@@ -28,14 +28,26 @@ describe("legal pages", () => {
     expect(document.body.textContent).not.toMatch(/Telefon|Tel\.|\+49|Haftung|Disclaimer/i);
   });
 
-  it("keeps the privacy notice short and marks the two unchecked hosting facts", () => {
+  it("states the checked hosting facts without a processor claim or placeholders", () => {
     renderDe(<PrivacyNotice />);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Datenschutz");
     expect(document.body.textContent).toContain("Vercel Inc. (USA)");
     expect(document.body.textContent).toContain("Art. 6 Abs. 1 lit. f DSGVO");
-    expect(document.body.textContent).toContain("Auftragsverarbeiter");
-    expect(document.body.textContent).toContain("{{PRÜFEN: DPF/SCC}}");
-    expect(document.body.textContent).toContain("{{PRÜFEN: Speicherdauer}}");
+    expect(document.body.textContent).toContain("Empfänger: Vercel Inc. als Hosting-Anbieter.");
+    expect(document.body.textContent).toContain("Vercel Inc., 440 N Barranca Avenue #4133, Covina, CA 91723, USA");
+    expect(document.body.textContent).toContain("dataprivacyframework.gov, Stand 22.10.2026: aktiv");
+    expect(document.body.textContent).toContain("EU-U.S. Data Privacy Framework");
+    expect(document.body.textContent).toContain("Art. 45 DSGVO");
+    expect(document.body.textContent).toContain("Stand 22.10.2026: aktiv");
+    expect(document.body.textContent).toContain("eine Stunde lang abrufbar");
+    expect(document.body.textContent).toContain("eine feste Frist nennt Vercel nicht");
+    expect(screen.getByRole("link", { name: "Vercel Inc." })).toHaveAttribute("href", "https://vercel.com/legal/privacy-policy");
+    expect(screen.getByRole("link", { name: "dataprivacyframework.gov" })).toHaveAttribute(
+      "href",
+      "https://www.dataprivacyframework.gov/participant/6847",
+    );
+    expect(screen.getByRole("link", { name: "Laufzeit-Protokolle" })).toHaveAttribute("href", "https://vercel.com/docs/runtime-logs");
+    expect(document.body.textContent).not.toMatch(/Auftragsverarbeiter|\{\{PRÜFEN/);
     expect(document.body.textContent).toContain("keine Cookies, kein Tracking, keine Kontaktformulare und keine Konten");
     expect(screen.getByRole("link", { name: "datenschutz-hamburg.de" })).toHaveAttribute("href", "https://datenschutz-hamburg.de");
     expect(document.body.textContent).toContain("Oktober 2026");

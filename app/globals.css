@@ -2557,25 +2557,6 @@
   color: #c5ced6;
 }
 
-.legal-placeholder {
-  display: inline-block;
-  margin: 2px 0;
-  padding: 2px 8px;
-  border: 1px dashed #0f6e7c;
-  border-radius: 4px;
-  background: #fff;
-  color: #14181c;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.dark .legal-placeholder {
-  border-color: #1e9cb0;
-  background: #121a22;
-  color: #e9eef2;
-}
-
 @media (min-width: 960px) {
   .legal-doc h1 {
     font-size: 44px;

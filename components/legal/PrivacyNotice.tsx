@@ -36,13 +36,17 @@ export function PrivacyNotice() {
             Die Seite liegt bei Vercel Inc. (USA). Beim Aufruf verarbeitet Vercel technisch notwendige Daten in Server-Logs: IP-Adresse, Zeitpunkt, aufgerufene Seite und Browser-Angaben. Das geschieht, um die Seite auszuliefern und abzusichern.
           </p>
           <p>
-            Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse ist die sichere, funktionierende Auslieferung. Empfänger ist Vercel als Auftragsverarbeiter.
+            Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse ist die sichere, funktionierende Auslieferung. Empfänger: Vercel Inc. als Hosting-Anbieter.
           </p>
           <p>
-            Drittübermittlung in die USA: <Placeholder token="{{PRÜFEN: DPF/SCC}}" />
+            Diese Website wird bei <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel Inc.</a>, 440 N Barranca Avenue #4133, Covina, CA 91723, USA, gehostet. Dabei werden Daten wie Ihre IP-Adresse auch in die USA übermittelt und dort verarbeitet. Vercel ist nach dem EU-U.S. Data Privacy Framework zertifiziert (Angemessenheitsbeschluss der EU-Kommission, Art. 45 DSGVO; Eintrag auf <a href="https://www.dataprivacyframework.gov/participant/6847" target="_blank" rel="noopener noreferrer">dataprivacyframework.gov</a>, Stand 22.10.2026: aktiv).
           </p>
           <p>
-            Speicherdauer der Logs: <Placeholder token="{{PRÜFEN: Speicherdauer}}" />
+            Die von Vercel erzeugten{" "}
+            <a href="https://vercel.com/docs/runtime-logs" target="_blank" rel="noopener noreferrer">
+              Laufzeit-Protokolle
+            </a>{" "}
+            sind in diesem Tarif nach Angaben von Vercel eine Stunde lang abrufbar. Darüber hinaus speichert Vercel Daten nach eigener Angabe nur so lange, wie es für gesetzliche und vertragliche Pflichten oder berechtigte Geschäftszwecke nötig ist, und löscht oder anonymisiert sie danach; eine feste Frist nennt Vercel nicht.
           </p>
         </section>
 
@@ -75,14 +79,5 @@ export function PrivacyNotice() {
         </section>
       </div>
     </article>
-  );
-}
-
-function Placeholder({ token }: { token: string }) {
-  return (
-    <span className="legal-placeholder">
-      <span className="sr-only">Platzhalter, noch nicht geprüft: </span>
-      {token}
-    </span>
   );
 }
