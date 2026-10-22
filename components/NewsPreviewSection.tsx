@@ -122,26 +122,38 @@ function NewsRow({
 }) {
   const headline = plainNewsText(item.headline);
   const source = plainNewsText(item.source);
+  const short = item.sourceShort ? plainNewsText(item.sourceShort) : "";
+  const label = short || source;
   const teaser = item.teaser ? plainNewsText(item.teaser) : "";
   const showTeaser = Boolean(teaser) && !sameCopy(teaser, headline, source) && !hasEuro(teaser);
+  const read = de ? `Lesen bei ${label}` : `Read at ${label}`;
+  const words = read.split(" ");
+  const lastWord = words.pop() ?? read;
+  const lead = words.join(" ");
   return (
     <li className={featured ? "is-new" : undefined}>
       <article>
-        <a className="news-row" href={item.url} target="_blank" rel="noopener noreferrer">
+        <a className="news-row" href={item.url} target="_blank" rel="noopener noreferrer" title={source}>
           <div className="news-meta">
             <time dateTime={item.date}>{formatNewsDate(item.date)}</time>
             <span className="news-dot" aria-hidden="true">
               ·
             </span>
-            <span className="news-source">{source}</span>
+            <span className="news-source" title={source}>
+              {label}
+            </span>
           </div>
           <div className="news-body">
             <Heading className="news-title">{headline}</Heading>
             {showTeaser ? <p className="news-teaser">{teaser}</p> : null}
             <span className="news-go">
-              {de ? `Lesen bei ${source}` : `Read at ${source}`}{" "}
-              <span className="news-arr" aria-hidden="true">
-                ↗
+              {lead ? <>{lead} </> : null}
+              <span className="news-go-keep">
+                {lastWord}
+                {"\u00a0"}
+                <span className="news-arr" aria-hidden="true">
+                  ↗
+                </span>
               </span>
               <span className="sr-only">{de ? "(öffnet in neuem Tab)" : "(opens in a new tab)"}</span>
             </span>

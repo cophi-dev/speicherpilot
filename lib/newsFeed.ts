@@ -3,6 +3,7 @@ import { z } from "zod";
 const newsItemSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   source: z.string().min(1),
+  sourceShort: z.string().min(1).optional(),
   url: z.string().url(),
   headline: z.string().min(1),
   teaser: z.string().min(1).optional(),

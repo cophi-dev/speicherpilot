@@ -8,6 +8,7 @@ describe("news feed", () => {
       {
         date: "2026-10-21",
         source: "energate / Windindustrie in Deutschland",
+        sourceShort: "energate",
         url: "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27",
         headline: "Bundesnetzagentur: Keine Prüfgebühr für Netzanschlussanträge",
         teaser:
@@ -25,6 +26,8 @@ describe("news feed", () => {
     });
     expect(parseNews([item(1), item(2), item(3), item(4)])).toHaveLength(3);
     expect(parseNews([{ ...item(1), teaser: "Ein Satz dazu." }])[0].teaser).toBe("Ein Satz dazu.");
+    expect(parseNews([{ ...item(1), sourceShort: "BNetzA" }])[0].sourceShort).toBe("BNetzA");
+    expect(parseNews([item(1)])[0].sourceShort).toBeUndefined();
     expect(parseNews([{ ...item(1), url: "not a url" }])).toEqual([]);
     expect(parseNews(null)).toEqual([]);
   });

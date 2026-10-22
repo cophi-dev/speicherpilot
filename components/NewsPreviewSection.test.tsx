@@ -30,11 +30,15 @@ describe("NewsPreviewSection", () => {
     expect(headline).toHaveAttribute("target", "_blank");
     expect(headline).toHaveAttribute("rel", "noopener noreferrer");
     expect(headline.getAttribute("href")).not.toContain("news.google.com");
-    expect(headline).toHaveAccessibleName(/Lesen bei energate \/ Windindustrie in Deutschland/i);
+    expect(headline).toHaveAccessibleName(/Lesen bei energate/i);
     expect(headline).toHaveAccessibleName(/öffnet in neuem Tab/);
+    expect(headline).toHaveAttribute("title", "energate / Windindustrie in Deutschland");
     expect(headline.querySelectorAll("a")).toHaveLength(0);
     expect(screen.getByText("21. Okt. 2026")).toBeInTheDocument();
-    expect(screen.getByText("energate / Windindustrie in Deutschland")).toBeInTheDocument();
+    expect(document.querySelector(".news-source")).toHaveTextContent("energate");
+    expect(document.querySelector(".news-source")).toHaveAttribute("title", "energate / Windindustrie in Deutschland");
+    expect(document.querySelector(".news-go-keep")?.textContent).toBe("energate\u00a0↗");
+    expect(document.body.textContent).not.toContain("Windindustrie");
     expect(screen.getByText(/Mirai Power gegen TenneT/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: /Prüfgebühr/ })).toBeInTheDocument();
     expect(document.querySelectorAll(".news-list article")).toHaveLength(1);
@@ -42,6 +46,13 @@ describe("NewsPreviewSection", () => {
     expect(screen.getByRole("link", { name: "So prüfen wir Meldungen" })).toHaveAttribute("href", "/methodik");
     expect(document.body.textContent).not.toMatch(/€|\bEUR\b|\bEuro\b/);
     expect(JSON.stringify(bundledNews)).not.toContain("&nbsp;");
+  });
+
+  it("falls back to the long source when sourceShort is missing", () => {
+    renderNews("de", [item(3)]);
+    expect(document.querySelector(".news-source")).toHaveTextContent("Quelle 3");
+    expect(screen.getByRole("link", { name: /Lesen bei Quelle 3/ })).toHaveAttribute("title", "Quelle 3");
+    expect(document.querySelector(".news-go-keep")?.textContent).toBe("3\u00a0↗");
   });
 
   it("hides a teaser that repeats the title", () => {
