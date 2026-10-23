@@ -6,7 +6,7 @@ import { useEffect, type ReactNode } from "react";
 import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
-import { FLOWER_BERGEDORF } from "@/lib/flowerBergedorf";
+import { REFERENCE_PARK } from "@/lib/referencePark";
 import { GLOSSARY } from "@/lib/glossary";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 
@@ -17,6 +17,7 @@ const CHAPTERS = [
   { id: "groesse", de: "Speichergröße", en: "Storage size" },
   { id: "ampel", de: "Anschluss-Ampel", en: "Connection light" },
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
+  { id: "modelltag", de: "Modelltag Bollingstedt", en: "Bollingstedt model day" },
   { id: "quellen", de: "Quellen", en: "Sources" },
 ] as const;
 
@@ -192,19 +193,26 @@ export function MethodikDocs() {
                 </p>
               </blockquote>
             </section>
+            <section id="modelltag">
+              <h2>{tx("07 Modelltag Bollingstedt", "07 Bollingstedt model day")}</h2>
+              <p>{tx("Leistung und Inhalt sind die Summe zweier Einheiten im Marktstammdatenregister: SEE925543621515 und SEE922158261037. Zusammen sind das 103,5 MW und 238,5 MWh. Die Meldung des Betreibers nennt 238 MWh.", "Power and energy are the sum of two Marktstammdatenregister units: SEE925543621515 and SEE922158261037. Together that is 103.5 MW and 238.5 MWh. The operator’s release says 238 MWh.")}</p>
+              <p>{tx("2,3 h ist 238,5 MWh geteilt durch 103,5 MW. Die C-Rate 0,43 ist 103,5 geteilt durch 238,5. Beides ist eine Rechnung aus den veröffentlichten Zahlen, keine Messung.", "2.3 h is 238.5 MWh divided by 103.5 MW. The C-rate 0.43 is 103.5 divided by 238.5. Both are the published figures divided, not a measurement.")}</p>
+              <p>{tx("Die flexible Netzanschlussvereinbarung mit SH Netz begrenzt Bezug und Einspeisung dynamisch. Die Grenzwerte sind nicht veröffentlicht. Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine solche Vereinbarung anbieten, mit einer festen oder einer sich ändernden Grenze für die höchste Bezugs- oder Einspeiseleistung.", "The flexible grid connection agreement with SH Netz limits withdrawal and feed-in dynamically. The limits are not published. Under section 17 (2b) of the Energy Industry Act the network operator can offer such an agreement, with a fixed or a changing limit on the highest withdrawal or feed-in power.")}</p>
+              <p>{tx("Der Ring ist ein Modelltag. Er fährt 103,5 MW und 238,5 MWh gegen die Day-Ahead-Preise von gestern in der Gebotszone DE-LU. Der Wirkungsgrad ist 92 %, der Ladezustand bleibt zwischen 10 % und 90 %, der Start liegt bei 50 %. Das sind die Annahmen der vorhandenen Dispatch-Rechnung, keine Messung am Standort. Die echte Fahrweise steht beim Betreiber und wird hier nicht übernommen.", "The ring is a model day. It runs 103.5 MW and 238.5 MWh against yesterday’s day-ahead prices in the DE-LU bidding zone. Round-trip efficiency is 92 %, the state of charge stays between 10 % and 90 %, and the day starts at 50 %. Those are the assumptions of the existing dispatch calculation, not a measurement at the site. The real operation is published by the operator and is not copied here.")}</p>
+            </section>
             <section id="quellen">
               <details className="site-fold">
-              <summary><h2>{tx("07 Quellen", "07 Sources")}</h2></summary>
+              <summary><h2>{tx("08 Quellen", "08 Sources")}</h2></summary>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
                 <li><a href="https://www.smard.de/">SMARD</a> · {tx("Regelzonen, CC BY 4.0", "Control areas, CC BY 4.0")}</li>
                 <li><a href="https://www.bundeswirtschaftsministerium.de/Redaktion/DE/FAQ/Stromspeicher-Strategie/faq-stromspeicher-strategie.html">{tx("Bundeswirtschaftsministerium · Stromspeicher-Strategie", "Federal Ministry for Economic Affairs · storage strategy")}</a></li>
                 <li><a href="https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html">BGH · PM 129/2025</a></li>
-                <li><a href={FLOWER_BERGEDORF.sources[0].href}>Flower</a> · <a href={FLOWER_BERGEDORF.sources[1].href}>pv magazine</a></li>
+                <li><a href={REFERENCE_PARK.mastrUnits[0].href}>MaStR {REFERENCE_PARK.mastrUnits[0].seeId}</a> · <a href={REFERENCE_PARK.mastrUnits[1].href}>MaStR {REFERENCE_PARK.mastrUnits[1].seeId}</a> · <a href={REFERENCE_PARK.sources[2].href}>ECO STOR</a> · <a href={REFERENCE_PARK.sources[3].href}>SH Netz</a></li>
                 <li><a href="https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Umwelt/UGR/private-haushalte/Tabellen/stromverbrauch-haushalte.html">Destatis</a> · {tx("Haushaltsstrom, Stand 27. September 2023", "Household electricity, as of 27 September 2023")}</li>
               </ul>
-              <p>{tx("Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Flower zeigt nur veröffentlichte Eckdaten. Euro-Beträge stehen nur im aufklappbaren Annahmen-Block und dort als Modellschätzung. Kein Angebot, keine Anschlusszusage.", "The example supermarket and the example neighbourhood are fictional and marked as example data. Flower shows only published key figures. Euro amounts appear only in the collapsible assumptions block, and there as a model estimate. Not a quote and not a connection offer.")}</p>
+              <p>{tx("Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Bollingstedt zeigt die veröffentlichten Eckdaten. Der Tagesverlauf, wenn er gezeigt wird, ist ein Modelltag und nicht die echte Fahrweise. Euro-Beträge stehen nur im aufklappbaren Annahmen-Block und dort als Modellschätzung. Kein Angebot, keine Anschlusszusage.", "The example supermarket and the example neighbourhood are fictional and marked as example data. Bollingstedt shows the published key figures. The daily profile, when one is shown, is a model day and not the real operation. Euro amounts appear only in the collapsible assumptions block, and there as a model estimate. Not a quote and not a connection offer.")}</p>
               </details>
               <details className="site-fold" id="glossar">
               <summary><h3>{tx("Glossar", "Glossary")}</h3></summary>

@@ -1544,6 +1544,61 @@
   white-space: nowrap;
 }
 
+.day-model-mark {
+  pointer-events: none;
+}
+
+.day-model-pill {
+  fill: none;
+  stroke: #8a4b08;
+}
+
+.day-model-pill-text {
+  fill: #8a4b08;
+  stroke: none;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.day-model-figure,
+.day-model-unit {
+  fill: #14181c;
+  stroke: none;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+}
+
+.day-model-note {
+  fill: #243038;
+  stroke: none;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+}
+
+.day-hero .day-model-pill {
+  fill: none;
+  stroke: #e2b15a;
+}
+
+.day-hero .day-model-pill-text {
+  fill: #e2b15a;
+  stroke: none;
+}
+
+.day-hero .day-model-figure,
+.day-hero .day-model-unit,
+.day-hero .day-model-note {
+  fill: #e9eef2;
+}
+
+.day-ring-solid .day-zero {
+  stroke-dasharray: none;
+}
+
+@media (max-width: 959px) {
+  .site-model-grid > .site-model-ring {
+    order: -1;
+  }
+}
+
 .day-callout {
   position: absolute;
   width: min(180px, 28%);
@@ -2332,6 +2387,21 @@
   font-size: 14px;
 }
 
+.day-hero .site-facts a,
+.day-hero .site-quiet a,
+.day-hero .site-model-facts a {
+  color: #9bf6e6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day-hero .site-facts a:focus-visible,
+.day-hero .site-quiet a:focus-visible,
+.day-hero .site-model-facts a:focus-visible {
+  outline: 2px solid #7dfce6;
+  outline-offset: 3px;
+}
+
 .site-stats dt,
 .site-facts dt {
   margin-top: 8px;
@@ -2387,7 +2457,8 @@
   text-decoration: none;
 }
 
-.site-call-list {
+.site-call-list,
+.site-model-facts {
   display: grid;
   gap: 8px;
   margin: 16px 0 0;
