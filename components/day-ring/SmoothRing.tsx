@@ -88,7 +88,7 @@ export function SmoothRing({
         mode={mode}
         unit={unit}
         mark
-        opacity={span ? 0.3 : 1}
+        dim={Boolean(span)}
       />
       {span ? (
         <g clipPath={`url(#${clipId}-wedge)`} aria-hidden="true">
@@ -105,7 +105,7 @@ export function SmoothRing({
             mode={mode}
             unit={unit}
             mark={false}
-            opacity={1}
+            dim={false}
           />
         </g>
       ) : null}
@@ -140,7 +140,7 @@ function RingPaint({
   mode,
   unit,
   mark,
-  opacity,
+  dim,
 }: {
   clipId: string;
   ohne: CurveSample[];
@@ -154,7 +154,7 @@ function RingPaint({
   mode: RingMode;
   unit: RingUnit;
   mark: boolean;
-  opacity: number;
+  dim: boolean;
 }) {
   const area = polarAreaPath(ohne, zero);
   const epsilon = unit === "kW" ? 0.2 : 0.02;
@@ -166,13 +166,13 @@ function RingPaint({
       ? booleanRuns(ohne.map((sample) => open(sample) && sample.value > limit + epsilon))
       : [];
   return (
-    <g className={mark ? "day-smooth-base" : "day-smooth-hot"} opacity={opacity < 1 ? opacity : undefined}>
+    <g className={`${mark ? "day-smooth-base" : "day-smooth-hot"}${dim ? " is-dim" : ""}`}>
       <defs>
-        <mask id={clipId} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
-          <path className={mark ? "day-ring-area" : undefined} d={area} fill="white" fillRule="nonzero" shapeRendering="geometricPrecision" />
-        </mask>
+        <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
+          <path className={mark ? "day-ring-area" : undefined} d={area} fillRule="nonzero" shapeRendering="geometricPrecision" />
+        </clipPath>
       </defs>
-      <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} mask={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
+      <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
         <div style={{ width: "100%", height: "100%", background: gradient }} />
       </foreignObject>
       {showFlow

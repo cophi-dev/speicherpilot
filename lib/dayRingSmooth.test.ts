@@ -110,13 +110,14 @@ describe("smooth day ring", () => {
     for (let index = 1; index < drawn.length; index += 1) {
       const step = drawn[index].angleDeg - drawn[index - 1].angleDeg;
       expect(step).toBeGreaterThan(0);
-      expect(step).toBeLessThanOrEqual(1);
+      expect(step).toBeLessThanOrEqual(0.25);
     }
     for (let angle = Math.ceil(gap); angle < 360 - gap; angle += 1) {
       expect(drawn.some((sample) => Math.abs(sample.angleDeg - angle) <= 0.5)).toBe(true);
     }
     const head = polarPoint(0, 0, RING_R0, gap);
     expect(path.startsWith(`M ${head.x} ${head.y}`)).toBe(true);
+    expect(path).toMatch(/ C /);
     expect(path).toMatch(/A [\d.]+ [\d.]+ 0 1 0 /);
     expect(path.endsWith("Z")).toBe(true);
     expect(path.match(/M /g)).toHaveLength(1);
