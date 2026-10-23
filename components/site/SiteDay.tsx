@@ -18,7 +18,7 @@ import {
 } from "@/lib/bessDispatchSimulator";
 import { connectionLight } from "@/lib/connectionLight";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
-import type { ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
+import { referenceParkFullDrawKw, type ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
 import { REFERENCE_PARK, referenceParkCRate, referenceParkHoursAtFullPower } from "@/lib/referencePark";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile, planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
@@ -359,14 +359,16 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               points={points}
               unit="kW"
               scale="utilisation"
-              limit={70}
+              limit={referenceParkFullDrawKw()}
               showLimit={false}
               mode="netz"
               empty={points.length === 0}
               showHourTicks
-              showSoc={false}
+              showSoc
               showFlow={false}
               showShift={false}
+              smoothSeries={false}
+              clearCenter
               solidStrokes
               label={ringLabel}
               description={ringDescription}

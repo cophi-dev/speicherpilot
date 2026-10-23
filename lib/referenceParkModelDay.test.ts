@@ -1,6 +1,13 @@
 import { BESS_DISPATCH_ROUND_TRIP_EFFICIENCY } from "@/lib/bessDispatchSimulator";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
-import { dispatchReferencePark, referenceParkModelDay } from "@/lib/referenceParkModelDay";
+import { kwRadius, socRingGeometry } from "@/lib/dayRingScale";
+import { quarterCenterForHour, smoothPolarSamples, taperRingSamples } from "@/lib/dayRingSmooth";
+import {
+  dispatchReferencePark,
+  referenceParkBandLimits,
+  referenceParkModelDay,
+  referenceParkRingKw,
+} from "@/lib/referenceParkModelDay";
 
 const DAY = "2026-10-22";
 
@@ -49,6 +56,57 @@ describe("Bollingstedt model day", () => {
     expect(result?.economics.grossRevenueEur).toBe(0);
     const start = result?.quarters[0]?.socMwh;
     expect(result?.quarters.every((quarter) => quarter.socMwh === start)).toBe(true);
+  });
+
+  it("keeps every band radius outside the centre boundary", () => {
+    const limits = referenceParkBandLimits();
+    const center = socRingGeometry("kW").innerEdge;
+    expect(limits.center).toBe(center);
+    expect(limits.inner).toBeGreaterThan(center);
+    expect(kwRadius(referenceParkRingKw(103.5, 103.5))).toBeCloseTo(limits.outer, 5);
+    expect(kwRadius(referenceParkRingKw(-103.5, 103.5))).toBeCloseTo(limits.inner, 5);
+    expect(kwRadius(referenceParkRingKw(0, 103.5))).toBeCloseTo(limits.zero, 5);
+
+    const day = referenceParkModelDay({ prices: spread(), dateBerlin: DAY });
+    const zero = kwRadius(0);
+    const series = (day?.points ?? []).map((point) => ({
+      angleDeg: quarterCenterForHour(point.hour),
+      value: point.ohneMw,
+    }));
+    const samples = taperRingSamples(smoothPolarSamples(series, kwRadius, zero), zero);
+    expect(samples.length).toBeGreaterThan(0);
+    for (const sample of samples) {
+      expect(sample.radius).toBeGreaterThanOrEqual(limits.center);
+      expect(sample.radius).toBeGreaterThanOrEqual(limits.inner - 0.05);
+      expect(sample.radius).toBeLessThanOrEqual(limits.outer + 0.05);
+    }
+  });
+
+  it("gives an isolated nameplate quarter the full band, still outside the centre", () => {
+    const limits = referenceParkBandLimits();
+    const zero = kwRadius(0);
+    const hours = Array.from({ length: 96 }, (_, index) => index / 4);
+    const draw = hours.map((hour) => {
+      if (hour === 12) return referenceParkRingKw(-103.5, 103.5);
+      if (hour === 18.5) return referenceParkRingKw(103.5, 103.5);
+      return 0;
+    });
+    const series = hours.map((hour, index) => ({
+      angleDeg: quarterCenterForHour(hour),
+      value: draw[index] ?? 0,
+    }));
+    const samples = taperRingSamples(smoothPolarSamples(series, kwRadius, zero), zero);
+    expect(samples.length).toBeGreaterThan(0);
+    for (const sample of samples) {
+      expect(sample.radius).toBeGreaterThanOrEqual(limits.center);
+      expect(sample.radius).toBeGreaterThanOrEqual(limits.inner - 0.05);
+    }
+    const nearest = (hour: number) =>
+      samples.reduce((best, sample) =>
+        Math.abs(sample.angleDeg - quarterCenterForHour(hour)) < Math.abs(best.angleDeg - quarterCenterForHour(hour)) ? sample : best
+      );
+    expect(nearest(12).radius).toBeCloseTo(limits.inner, 4);
+    expect(nearest(18.5).radius).toBeCloseTo(limits.outer, 4);
   });
 
   it("expands an hourly price series into quarter-hours", () => {

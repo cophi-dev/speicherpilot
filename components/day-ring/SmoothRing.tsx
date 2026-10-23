@@ -31,6 +31,8 @@ export function SmoothRing({
   highlight,
   hatchId,
   view,
+  smoothSeries = true,
+  holeRadius = 0,
 }: {
   points: LiveDispatchPoint[];
   unit: RingUnit;
@@ -41,13 +43,17 @@ export function SmoothRing({
   highlight: Highlight;
   hatchId: string;
   view: { x: number; y: number; w: number; h: number };
+  /** Three-point average. Off when a quarter at the nameplate must keep its full radius. */
+  smoothSeries?: boolean;
+  /** User-unit radius kept clear of the painted band. */
+  holeRadius?: number;
 }) {
   const clipId = `ring-${useId().replace(/:/g, "")}`;
   const valueOf = (point: LiveDispatchPoint, field: "ohneMw" | "mitMw") => (unit === "kW" ? point[field] : point[field] / 1000);
   const rawOhne = points.map((point) => valueOf(point, "ohneMw"));
   const rawMit = points.map((point) => valueOf(point, "mitMw"));
-  const ohne = useMorphedSeries(smoothDrawnSeries(rawOhne));
-  const mit = useMorphedSeries(smoothDrawnSeries(rawMit));
+  const ohne = useMorphedSeries(smoothSeries ? smoothDrawnSeries(rawOhne) : rawOhne);
+  const mit = useMorphedSeries(smoothSeries ? smoothDrawnSeries(rawMit) : rawMit);
   const radiusOf = (value: number) => (unit === "kW" ? kwRadius(value) : ringRadius(value));
   const zero = unit === "kW" ? kwRadius(0) : RING_R0;
   const ohneSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: ohne[index] ?? 0 }));
@@ -87,6 +93,7 @@ export function SmoothRing({
         limit={limit}
         mode={mode}
         unit={unit}
+        holeRadius={holeRadius}
         mark
         opacity={span ? 0.3 : 1}
       />
@@ -104,6 +111,7 @@ export function SmoothRing({
             limit={limit}
             mode={mode}
             unit={unit}
+            holeRadius={holeRadius}
             mark={false}
             opacity={1}
           />
@@ -139,6 +147,7 @@ function RingPaint({
   limit,
   mode,
   unit,
+  holeRadius,
   mark,
   opacity,
 }: {
@@ -153,6 +162,7 @@ function RingPaint({
   limit: number | null;
   mode: RingMode;
   unit: RingUnit;
+  holeRadius: number;
   mark: boolean;
   opacity: number;
 }) {
@@ -170,6 +180,7 @@ function RingPaint({
       <defs>
         <mask id={clipId} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
           <path className={mark ? "day-ring-area" : undefined} d={area} fill="white" fillRule="nonzero" shapeRendering="geometricPrecision" />
+          {holeRadius > 0 ? <circle cx="0" cy="0" r={holeRadius} fill="black" /> : null}
         </mask>
       </defs>
       <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} mask={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">

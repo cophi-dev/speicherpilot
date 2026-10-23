@@ -80,6 +80,8 @@ export function DayRing({
   centerMark = null,
   solidStrokes = false,
   showLimit = true,
+  smoothSeries = true,
+  clearCenter = false,
 }: {
   points: LiveDispatchPoint[];
   label: string;
@@ -105,6 +107,10 @@ export function DayRing({
   solidStrokes?: boolean;
   /** Connection-limit circle. Colour can still use `limit` when this is false. */
   showLimit?: boolean;
+  /** Keep each quarter's radius. The three-point average would shrink an isolated nameplate hour. */
+  smoothSeries?: boolean;
+  /** Keep the painted band outside the state-of-charge inner edge. */
+  clearCenter?: boolean;
 }) {
   const titleId = useId();
   const descId = useId();
@@ -337,6 +343,8 @@ export function DayRing({
             highlight={highlight}
             hatchId={hatchId}
             view={view}
+            smoothSeries={smoothSeries}
+            holeRadius={clearCenter ? innerEdge : 0}
           />
         )}
         {!empty ? <circle className="day-guide" cx="0" cy="0" r={outer} /> : null}
@@ -367,6 +375,7 @@ export function DayRing({
             note={centerMark.note}
             viewWidth={view.w}
             framePx={framePx}
+            holeRadius={innerEdge}
           />
         ) : null}
       </svg>
