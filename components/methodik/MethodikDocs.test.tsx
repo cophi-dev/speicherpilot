@@ -27,6 +27,10 @@ describe("methodik v2", () => {
     expect(document.body.textContent).not.toMatch(/EnWG/);
     expect(document.body.textContent).toContain("η");
     expect(document.getElementById("peak-erklaert")).not.toBeNull();
+    expect(document.getElementById("wirkungsgrad")?.tagName).toBe("H3");
+    expect(document.body.textContent).not.toMatch(/P_Tag|E_Überschuss/);
+    expect(document.querySelector("#groesse var")?.textContent).toBe("PTag");
+    expect(document.getElementById("begriff-modellschaetzung")?.tagName).toBe("DT");
     expect(document.body.textContent).toContain("26,6 kWh");
     expect(document.body.textContent).toContain("Modellschätzung");
     expect(document.body.textContent).not.toMatch(/MORE_STORAGE_ROUND_TRIP|dispatchPeakFleet|GRID_SUPPORT_CONFIG|sizeStorage|SOC_MAX|planSite|autoSize/);

@@ -133,6 +133,7 @@ export function MethodikDocs() {
                   </mrow>
                 </math>
               </Formula>
+              <h3 id="wirkungsgrad">{tx("Wirkungsgrad", "Round-trip efficiency")}</h3>
               <p>{tx("Das ist das Großspeicher-Modell. Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. η = 0,9 ist die Annahme für den Round-Trip-Wirkungsgrad und wird erst bei der Abgabe angewendet. Der Standort-Rechner teilt denselben Wirkungsgrad anders auf: dort gilt je Richtung die Wurzel aus dem Round-Trip-Wirkungsgrad, auf dem Weg hinein und auf dem Weg hinaus. Die beiden Modelle werden nicht vermischt.", "That is the large-storage model. Charging happens only before 17:00 and only from surplus, limited by power and free capacity. η = 0.9 is the assumed round-trip efficiency and is applied only on discharge. The site calculator splits the same efficiency differently: each direction uses the square root of the round-trip efficiency, on the way in and on the way out. The two models are not mixed.")}</p>
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
             </section>
@@ -170,7 +171,17 @@ export function MethodikDocs() {
                   </mrow>
                 </math>
               </Formula>
-              <p>{tx("P_Tag ist der höchste Überschuss eines Tages, E_Überschuss die Summe dieses Tages. P95 darüber lässt die härtesten 5 % der Tage über der Grenze. Das ist Absicht. 0,85 ist das nutzbare Fenster, Obergrenze minus Untergrenze des Ladezustands, also 0,95 − 0,10. Im Beispiel-Supermarkt ist der Round-Trip-Wirkungsgrad 0,9, also gilt je Richtung √0,9. Die Handwerte 40 kW und 40 kWh umgehen diese Formel, weil die Größe dort von Hand gesetzt ist.", "P_day is a day’s highest excess, and E_excess is that day’s sum. P95 across those days leaves the hardest 5% above the limit. That is intentional. 0.85 is the usable window, the upper state-of-charge bound minus the lower bound, that is 0.95 − 0.10. In the supermarket example the round-trip efficiency is 0.9, so each direction uses √0.9. The hand values 40 kW and 40 kWh bypass this formula, because the size is set by hand there.")}</p>
+              <p>
+                {language === "de" ? (
+                  <>
+                    <var>P<sub>Tag</sub></var> ist der höchste Überschuss eines Tages, <var>E<sub>Überschuss</sub></var> die Summe dieses Tages. P95 darüber lässt die härtesten 5 % der Tage über der Grenze. Das ist Absicht. 0,85 ist das nutzbare Fenster, Obergrenze minus Untergrenze des Ladezustands, also 0,95 − 0,10. Im Beispiel-Supermarkt ist der Round-Trip-Wirkungsgrad 0,9, also gilt je Richtung √0,9. Die Handwerte 40 kW und 40 kWh umgehen diese Formel, weil die Größe dort von Hand gesetzt ist.
+                  </>
+                ) : (
+                  <>
+                    <var>P<sub>day</sub></var> is a day’s highest excess, and <var>E<sub>excess</sub></var> is that day’s sum. P95 across those days leaves the hardest 5% above the limit. That is intentional. 0.85 is the usable window, the upper state-of-charge bound minus the lower bound, that is 0.95 − 0.10. In the supermarket example the round-trip efficiency is 0.9, so each direction uses √0.9. The hand values 40 kW and 40 kWh bypass this formula, because the size is set by hand there.
+                  </>
+                )}
+              </p>
             </section>
             <section id="ampel">
               <h2>{tx("05 Anschluss-Ampel", "05 Connection light")}</h2>
@@ -245,7 +256,7 @@ export function MethodikDocs() {
               <dl>
                 {GLOSSARY.map((entry) => (
                   <div key={entry.id}>
-                    <dt>{language === "de" ? entry.term.de : entry.term.en}</dt>
+                    <dt id={`begriff-${entry.id}`}>{language === "de" ? entry.term.de : entry.term.en}</dt>
                     <dd>{language === "de" ? entry.text.de : entry.text.en}</dd>
                   </div>
                 ))}
