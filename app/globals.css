@@ -2880,7 +2880,16 @@ footer .site-fold a {
 .methodik-scales svg, .methodik-phases .empty-ring, .methodik-phases .day-ring-frame, .methodik-gauges svg { width: 100%; height: auto; max-width: 180px; }
 .methodik-scales .day-ring-frame, .methodik-scales .day-ring-svg { max-width: none; }
 .methodik-phases .day-ring-frame { margin-inline: 0; }
-.methodik-scales figcaption, .methodik-phases figcaption, .methodik-gauges figcaption { margin-top: 8px; color: #c5ced6; }
+.methodik-scales figcaption, .methodik-phases figcaption, .methodik-gauges figcaption { margin-top: 8px; }
+.methodik-scales figcaption { color: #c5ced6; }
+.methodik-phases figcaption, .methodik-gauges figcaption {
+  color: #5b6670;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.dark .day-paper .methodik-phases figcaption,
+.dark .day-paper .methodik-gauges figcaption { color: #c5ced6; }
 .methodik-scale-short { display: none; }
 @media (max-width: 767px) {
   .methodik-scale-long { display: none; }
@@ -2890,7 +2899,31 @@ footer .site-fold a {
 .methodik-layout { display: grid; gap: 28px; min-width: 0; }
 .methodik article, .methodik nav { min-width: 0; max-width: 100%; }
 .methodik article { display: grid; gap: 28px; max-width: 68ch; }
-.methodik article section { display: grid; gap: 12px; }
+.methodik article section { display: grid; gap: 12px; scroll-margin-top: 5rem; }
+#peak-erklaert { scroll-margin-top: 88px; }
+#wirkungsgrad {
+  margin-top: 32px;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 28px;
+  scroll-margin-top: 88px;
+}
+.methodik article dl dt {
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.methodik article dl dd { margin: 4px 0 20px; }
+.methodik var { font-style: normal; }
+.methodik article p,
+.methodik article li,
+.methodik article dd { font-size: 16px; line-height: 1.65; }
+math mi {
+  text-transform: none;
+  font-style: italic;
+}
 .methodik nav ol { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .methodik nav a { color: inherit; }
 .methodik-table { max-width: 100%; }
