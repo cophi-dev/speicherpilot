@@ -15,10 +15,37 @@ const WEEKDAY_SHORT_EN = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const SURPLUS_EPS_GWH = 0.05;
 
-export type RingView = "uhr" | "linie";
+/** Screen-reader sentence for the /live ring. Values are rounded once. */
+export function liveClockCaption(
+  beforeGw: number | null,
+  afterGw: number | null,
+  factor: number,
+  language: AppLanguage
+): string {
+  if (beforeGw === null || afterGw === null || !Number.isFinite(beforeGw) || !Number.isFinite(afterGw)) {
+    return language === "de"
+      ? "Residuallast über 24 Stunden, ohne Abendspitze."
+      : "Residual load over 24 hours, with no evening peak.";
+  }
+  const ohne = formatGw1(beforeGw, language);
+  const mit = formatGw1(afterGw, language);
+  return language === "de"
+    ? `Residuallast über 24 Stunden, Abendspitze ${ohne} GW ohne, ${mit} GW mit Speicher ×${factor}.`
+    : `Residual load over 24 hours, evening peak ${ohne} GW without storage, ${mit} GW with storage ×${factor}.`;
+}
 
-export function parseRingView(value: string | null | undefined): RingView {
-  return value === "linie" ? "linie" : "uhr";
+/** Mean residual load of each clock hour, in GW. One row per hour, for the screen-reader table. */
+export function hourlyResidualGw(points: LiveDispatchPoint[]): Array<{ hour: number; ohneGw: number; mitGw: number }> {
+  return Array.from({ length: 24 }, (_, hour) => {
+    const slice = points.filter((point) => point.hour >= hour && point.hour < hour + 1);
+    const mean = (pick: (point: LiveDispatchPoint) => number) =>
+      slice.length === 0 ? Number.NaN : slice.reduce((sum, point) => sum + pick(point), 0) / slice.length;
+    return {
+      hour,
+      ohneGw: mean((point) => point.ohneMw / 1000),
+      mitGw: mean((point) => point.mitMw / 1000),
+    };
+  });
 }
 
 /** One decimal from the unrounded gigawatt value. */

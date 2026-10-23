@@ -81,6 +81,9 @@ describe("live stored-surplus note", () => {
     expect(saturated).toBeLessThan(10);
     renderRing();
     expect(screen.getByText(saturationNote(saturated ?? 1, "de"))).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Ansicht" })).toBeNull();
+    expect(screen.getAllByText(/Residuallast über 24 Stunden, Abendspitze/).length).toBeGreaterThan(0);
+    expect(screen.getByRole("columnheader", { name: "Stunde" })).toBeInTheDocument();
   });
 
   it("hides the sentence while surplus is still left to store", () => {

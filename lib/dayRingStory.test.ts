@@ -7,6 +7,7 @@ import {
   formatGwh,
   fullSurplusFactor,
   heroSentence,
+  liveClockCaption,
   onceRoundDeltaGw,
   ringCalloutText,
   saturationNote,
@@ -124,5 +125,12 @@ describe("day ring story on the October 2026 fixture", () => {
       "Gestern gab es keinen Überschuss – Speicher hätten im Modell nichts zu verschieben."
     );
     expect(formatGw1(stories[1].eveningPeakBeforeGw ?? 0, "de")).toBe("47,7");
+  });
+
+  it("writes the live ring caption from the unrounded evening peaks", () => {
+    expect(liveClockCaption(38.04, 33.66, 5, "de")).toBe(
+      "Residuallast über 24 Stunden, Abendspitze 38,0 GW ohne, 33,7 GW mit Speicher ×5."
+    );
+    expect(liveClockCaption(null, null, 1, "de")).toBe("Residuallast über 24 Stunden, ohne Abendspitze.");
   });
 });

@@ -19,10 +19,13 @@ import {
   segmentIndexForHour,
   socRingGeometry,
 } from "@/lib/dayRingScale";
+import { RingKeyLabels, RingKeyLeaders } from "@/components/day-ring/RingKeys";
 import { SmoothRing } from "@/components/day-ring/SmoothRing";
 import { useMorphedSeries } from "@/components/day-ring/useMorphedSeries";
 import { polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
-import { quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
+import { hourlyResidualGw, quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
+import { formatQuantity } from "@/lib/formatQuantity";
+import { useLanguage } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
 const CALLOUT_WIDTH = "min(180px, 28%)";
@@ -293,9 +296,12 @@ export function DayRing({
   }, [center, innerEdge, view.w]);
 
   const listed = callouts.filter((_, index) => !beside[index]);
+  const socVisible = !empty && showSoc;
+  const shiftVisible = !empty && showShift && chargedGwh > 0.05;
+  const compact = framePx < 320;
 
   return (
-    <div className="day-ring-block">
+    <div className={compact ? "day-ring-block is-compact" : "day-ring-block"} data-unit={unit}>
     <div className={intro ? "day-ring-frame is-intro" : "day-ring-frame"} ref={frameRef}>
       <svg
         className="day-ring-svg"
@@ -349,11 +355,13 @@ export function DayRing({
         {callouts.map((callout, index) => (
           <CalloutLeader key={callout.id} callout={callout} unit={unit} box={beside[index]} />
         ))}
+        <RingKeyLeaders points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} />
       </svg>
       {callouts.map((callout, index) => (
         <Callout key={callout.id} callout={callout} box={beside[index]} view={view} />
       ))}
       {center ? <div className="day-center">{center}</div> : null}
+      <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} part="overlay" />
     </div>
     {listed.length > 0 ? (
       <ol className="day-callout-list">
@@ -365,6 +373,7 @@ export function DayRing({
         ))}
       </ol>
     ) : null}
+    <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} part="list" />
     </div>
   );
 }
@@ -591,6 +600,39 @@ function HourTicks({
         );
       })}
     </g>
+  );
+}
+
+export function HourlyResidualTable({
+  points,
+  caption,
+}: {
+  points: LiveDispatchPoint[];
+  caption: string;
+}) {
+  const { language } = useLanguage();
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const rows = hourlyResidualGw(points);
+  return (
+    <table className="day-sr">
+      <caption>{caption}</caption>
+      <thead>
+        <tr>
+          <th>{tx("Stunde", "Hour")}</th>
+          <th>{tx("ohne Speicher GW", "without storage GW")}</th>
+          <th>{tx("mit Speicher GW", "with storage GW")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.hour}>
+            <td>{String(row.hour).padStart(2, "0")}</td>
+            <td>{formatQuantity(row.ohneGw, language, 1)}</td>
+            <td>{formatQuantity(row.mitGw, language, 1)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
