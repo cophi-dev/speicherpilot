@@ -4,6 +4,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 export const plexSans = IBM_Plex_Sans({
   subsets: ["latin", "greek"],
   weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
   variable: "--font-plex-sans",
   display: "swap",
 });
