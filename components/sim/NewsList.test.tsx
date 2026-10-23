@@ -13,7 +13,7 @@ function renderNews(items?: unknown) {
 
 describe("NewsList", () => {
   it("renders nothing when the curated file is empty", () => {
-    const view = renderNews();
+    const view = renderNews([]);
     expect(view.container).toBeEmptyDOMElement();
     expect(screen.queryByText(/Platzhalter|Beispiel-Schlagzeile/)).toBeNull();
   });

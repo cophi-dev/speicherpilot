@@ -9,15 +9,20 @@ jest.mock("@/components/NewsPreviewSection", () => ({
 }));
 
 describe("News page", () => {
-  it("renders title and embedded preview section", () => {
+  it("renders the editorial title without the lead line or the ring", () => {
     render(
-      <LanguageContext.Provider value={{ language: "en", setLanguage: jest.fn() }}>
+      <LanguageContext.Provider value={{ language: "de", setLanguage: jest.fn() }}>
         <NewsPage />
       </LanguageContext.Provider>
     );
 
-    expect(screen.getByRole("heading", { name: /What changed for storage is written here in one sentence/i })).toBeInTheDocument();
-    expect(screen.getByText("Chronicle")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Was sich im Speichermarkt bewegt, geprüft und mit Quelle." })
+    ).toBeInTheDocument();
+    expect(screen.getByText("News · geprüft")).toBeInTheDocument();
+    expect(screen.queryByText(/Höchstens drei Meldungen/)).toBeNull();
+    expect(document.querySelector(".news-ring")).toBeNull();
+    expect(document.querySelector(".news-grad")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByTestId("news-preview-section")).toBeInTheDocument();
   });
 });

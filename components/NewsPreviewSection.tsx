@@ -1,29 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
 
 import { useLanguage } from "@/components/language-context";
-import { Skeleton } from "@/components/ui/skeleton";
+import bundledNews from "@/data/news.json";
+import { formatNewsDate, parseNews, type NewsItem } from "@/lib/newsFeed";
 import { plainNewsText } from "@/lib/newsText";
 
-const newsItemSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  summary: z.string(),
-  sourceName: z.string(),
-  url: z.string().url(),
-  publishedAtIso: z.string(),
-  categories: z.array(z.string()),
-  relevanceScore: z.number(),
-});
+type NewsPlace = "page" | "home";
 
-const responseSchema = z.object({
-  asOfIso: z.string(),
-  itemCount: z.number(),
-  items: z.array(newsItemSchema),
-});
+type NewsPreviewSectionProps = {
+  limit?: number;
+  place?: NewsPlace;
+  /** Test seam. Production reads `data/news.json`. */
+  items?: unknown;
+};
+
+const METHODIK_HREF = "/methodik";
 
 function foldNews(value: string): string {
   return value.normalize("NFKC").replace(/\s+/g, " ").trim().toLocaleLowerCase("de");
@@ -44,166 +37,129 @@ function sameCopy(left: string, right: string, sourceName = ""): boolean {
   return withoutSourceSuffix(left, sourceName) === withoutSourceSuffix(right, sourceName);
 }
 
-type NewsPreviewSectionProps = {
-  limit?: number;
-  compact?: boolean;
-  showHeaderLink?: boolean;
-};
+function hasEuro(value: string): boolean {
+  return /€|\bEUR\b|\bEuro\b/i.test(value);
+}
 
-const categoryLabels: Record<string, { en: string; de: string }> = {
-  industry_milestone: { en: "Milestone", de: "Meilenstein" },
-  germany: { en: "Germany", de: "Deutschland" },
-  storage_projects: { en: "Storage projects", de: "Speicherprojekte" },
-  regulation: { en: "Regulation", de: "Regulierung" },
-};
-
-export default function NewsPreviewSection({
-  limit = 4,
-  compact = false,
-  showHeaderLink = true,
-}: NewsPreviewSectionProps) {
+/** Curated links from `data/news.json`. Rendered with the page, not fetched. */
+export default function NewsPreviewSection({ limit = 3, place = "page", items }: NewsPreviewSectionProps) {
   const { language } = useLanguage();
-  const [state, setState] = useState<{
-    status: "loading" | "ready" | "error";
-    items: z.infer<typeof newsItemSchema>[];
-  }>({ status: "loading", items: [] });
+  const de = language === "de";
+  const news = parseNews(items ?? bundledNews)
+    .filter((item) => !hasEuro(item.headline))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, limit);
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const response = await fetch(`/api/news?limit=${limit}`, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
-        const payload = responseSchema.parse(await response.json());
-        if (active) {
-          setState({ status: "ready", items: payload.items });
-        }
-      } catch {
-        if (active) {
-          setState({ status: "error", items: [] });
-        }
-      }
-    };
-    void load();
-    return () => {
-      active = false;
-    };
-  }, [limit]);
+  if (place === "home" && news.length === 0) {
+    return null;
+  }
 
-  const title = language === "de" ? "SpeicherPilot-Newsfeed" : "SpeicherPilot Newsfeed";
-  const subtitle =
-    language === "de"
-      ? "Meilensteine · DE · Speicher · Regulierung."
-      : "Milestones · DE · storage · regulation.";
+  const list = (
+    <ol className="news-list">
+      {news.map((item, index) => (
+        <NewsRow key={`${item.date}-${item.url}`} item={item} heading={place === "home" ? "h3" : "h2"} featured={index === 0} de={de} />
+      ))}
+    </ol>
+  );
 
-  const renderedItems = useMemo(() => state.items.slice(0, limit), [state.items, limit]);
+  if (place === "home") {
+    return (
+      <div className="news-v2">
+        <section className="day-paper news-home" id="home-news" aria-labelledby="home-news-title">
+          <div className="day-hero-inner">
+            <div className="news-home-head">
+              <div>
+                <p className="day-kicker">{de ? "News · geprüft" : "News · checked"}</p>
+                <h2 id="home-news-title">{de ? "Aus dem Markt" : "From the market"}</h2>
+              </div>
+              <Link className="news-textlink" href="/news">
+                {de ? "Alle News →" : "All news →"}
+              </Link>
+            </div>
+            {list}
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
-    <section className="rounded-2xl border border-slate-300/45 bg-white/70 p-5 md:p-6 dark:border-slate-500/35 dark:bg-slate-900/55">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs tracking-[0.14em] text-slate-500 uppercase dark:text-slate-300">{title}</p>
-        {showHeaderLink ? (
-          <Link
-            href="/news"
-            className="text-xs font-semibold text-primary hover:underline dark:text-emerald-200"
-          >
-            {language === "de" ? "Alle Meldungen" : "View all"}
-          </Link>
-        ) : null}
+    <section className="day-paper news-sheet" aria-label={de ? "Geprüfte Meldungen" : "Checked reports"}>
+      <div className="day-hero-inner">
+        {news.length === 0 ? (
+          <div className="news-empty" role="status">
+            <p>{de ? "Gerade keine neuen geprüften Meldungen." : "No new checked reports right now."}</p>
+            <Link className="news-textlink" href={METHODIK_HREF}>
+              {de ? "Wie wir Meldungen prüfen" : "How we check reports"}
+            </Link>
+          </div>
+        ) : (
+          <>
+            {list}
+            <p className="news-foot">
+              {de ? "Auswahl nach unseren Kriterien." : "Selected by our criteria."}{" "}
+              <Link className="news-textlink" href={METHODIK_HREF}>
+                {de ? "So prüfen wir Meldungen" : "How we check reports"}
+              </Link>
+            </p>
+          </>
+        )}
       </div>
-      {!compact ? <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{subtitle}</p> : null}
-
-      {state.status === "loading" ? (
-        <div className="mt-4 grid gap-3">
-          {Array.from({ length: compact ? 2 : 3 }).map((_, index) => (
-            <article
-              key={`news-skeleton-${index}`}
-              className="rounded-xl border border-slate-200/70 bg-white/85 p-4 dark:border-slate-500/40 dark:bg-slate-900/55"
-            >
-              <div className="flex gap-2">
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-5 w-20 rounded-full" />
-              </div>
-              <Skeleton className="mt-3 h-6 w-3/4" />
-              <Skeleton className="mt-2 h-3 w-full" />
-              <Skeleton className="mt-2 h-3 w-5/6" />
-              <Skeleton className="mt-3 h-3 w-1/2" />
-            </article>
-          ))}
-        </div>
-      ) : null}
-      {state.status === "error" ? (
-        <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-          {language === "de" ? "Newsfeed ist gerade nicht erreichbar." : "Newsfeed is currently unavailable."}
-        </p>
-      ) : null}
-      {state.status === "ready" && renderedItems.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-          {language === "de" ? "Derzeit keine relevanten Updates gefunden." : "No relevant updates found right now."}
-        </p>
-      ) : null}
-
-      {state.status === "ready" && renderedItems.length > 0 ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-1">
-          {renderedItems.map((item) => {
-            const title = plainNewsText(item.title);
-            const summary = plainNewsText(item.summary);
-            const sourceName = plainNewsText(item.sourceName);
-            return (
-            <article
-              key={item.id}
-              className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm transition hover:border-emerald-500/30 hover:shadow-md md:p-5"
-            >
-              <div
-                className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-emerald-500/90 via-amber-400/70 to-sky-500/70 opacity-90 transition group-hover:opacity-100"
-                aria-hidden
-              />
-              <div className="relative pl-2">
-                <div className="flex flex-wrap items-center gap-2 text-[11px] tracking-[0.08em] text-muted-foreground uppercase">
-                  {item.categories.map((category) => (
-                    <span
-                      key={category}
-                      className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5"
-                    >
-                      {(categoryLabels[category]?.[language] ?? category).replaceAll("_", " ")}
-                    </span>
-                  ))}
-                </div>
-                <h2 className="mt-3 text-base font-semibold leading-snug text-foreground md:text-lg">
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition hover:text-emerald-600 hover:underline dark:hover:text-emerald-300"
-                  >
-                    {title}
-                  </a>
-                </h2>
-                {!compact && summary && !sameCopy(summary, title, sourceName) ? (
-                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{summary}</p>
-                ) : null}
-                <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3 text-xs text-muted-foreground">
-                  {sourceName ? <p className="news-source">{sourceName}</p> : null}
-                  <p>
-                    {new Date(item.publishedAtIso).toLocaleString(language === "de" ? "de-DE" : "en-GB")}
-                  </p>
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-emerald-600 hover:underline dark:text-emerald-400/90"
-                  >
-                    {language === "de" ? "Lesen" : "Read"}
-                  </a>
-                </div>
-              </div>
-            </article>
-            );
-          })}
-        </div>
-      ) : null}
     </section>
+  );
+}
+
+function NewsRow({
+  item,
+  heading: Heading,
+  featured,
+  de,
+}: {
+  item: NewsItem;
+  heading: "h2" | "h3";
+  featured: boolean;
+  de: boolean;
+}) {
+  const headline = plainNewsText(item.headline);
+  const source = plainNewsText(item.source);
+  const short = item.sourceShort ? plainNewsText(item.sourceShort) : "";
+  const label = short || source;
+  const teaser = item.teaser ? plainNewsText(item.teaser) : "";
+  const showTeaser = Boolean(teaser) && !sameCopy(teaser, headline, source) && !hasEuro(teaser);
+  const read = de ? `Lesen bei ${label}` : `Read at ${label}`;
+  const words = read.split(" ");
+  const lastWord = words.pop() ?? read;
+  const lead = words.join(" ");
+  return (
+    <li className={featured ? "is-new" : undefined}>
+      <article>
+        <a className="news-row" href={item.url} target="_blank" rel="noopener noreferrer" title={source}>
+          <div className="news-meta">
+            <time dateTime={item.date}>{formatNewsDate(item.date)}</time>
+            <span className="news-dot" aria-hidden="true">
+              ·
+            </span>
+            <span className="news-source" title={source}>
+              {label}
+            </span>
+          </div>
+          <div className="news-body">
+            <Heading className="news-title">{headline}</Heading>
+            {showTeaser ? <p className="news-teaser">{teaser}</p> : null}
+            <span className="news-go">
+              {lead ? <>{lead} </> : null}
+              <span className="news-go-keep">
+                {lastWord}
+                {"\u00a0"}
+                <span className="news-arr" aria-hidden="true">
+                  ↗
+                </span>
+              </span>
+              <span className="sr-only">{de ? "(öffnet in neuem Tab)" : "(opens in a new tab)"}</span>
+            </span>
+          </div>
+        </a>
+      </article>
+    </li>
   );
 }
