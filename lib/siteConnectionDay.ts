@@ -52,22 +52,16 @@ export type SiteConnectionStory = {
   badge: ConnectionBadge;
 };
 
-function walkSoc(chargeKw: number[], dischargeKw: number[], energyKwh: number, rte: number): number[] {
-  const eta = Math.sqrt(Math.min(1, Math.max(0.1, rte)));
-  const needed = dischargeKw.reduce((sum, value) => sum + Math.max(0, value) * 0.25 / eta, 0);
-  let soc = Math.min(energyKwh * 0.95, Math.max(energyKwh * 0.1, needed));
-  return chargeKw.map((charge, index) => {
-    const discharge = dischargeKw[index] ?? 0;
-    soc += Math.max(0, charge) * eta * 0.25;
-    soc -= Math.max(0, discharge) / eta * 0.25;
-    soc = Math.max(0, Math.min(energyKwh, soc));
-    return energyKwh > 0 ? soc / energyKwh : 0;
-  });
+function engineSoc(socKwh: number[] | undefined, energyKwh: number, steps: number): number[] | null {
+  if (!socKwh || socKwh.length !== steps || energyKwh <= 0) {
+    return null;
+  }
+  return socKwh.map((kwh) => kwh / energyKwh);
 }
 
 export function storyFromPlan(plan: SitePlan, limitKw: number, rte: number): SiteConnectionStory {
   const day = plan.peakDay;
-  const soc = walkSoc(day.chargeKw, day.dischargeKw, plan.energyKwh, rte);
+  const soc = engineSoc(day.socKwh, plan.energyKwh, day.chargeKw.length) ?? day.chargeKw.map(() => 0.5);
   const points: ConnectionPoint[] = day.loadKw.map((load, index) => {
     const ohneKw = load - (day.pvKw[index] ?? 0);
     return {

@@ -1,3 +1,4 @@
+import { planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import {
   connectionBadge,
   fullUtilisationAssessment,
@@ -29,7 +30,11 @@ describe("site connection day", () => {
     expect(story.peakBeforeKw).toBeGreaterThan(story.limitKw);
     expect(story.dischargedKwh).toBeGreaterThan(0);
     expect(story.chargedKwh).toBeGreaterThanOrEqual(0);
-    expect(story.points.every((point) => point.soc >= 0 && point.soc <= 1)).toBe(true);
+    expect(story.points.every((point) => point.soc >= 0.1 - 1e-9 && point.soc <= 0.95 + 1e-9)).toBe(true);
+    const plan = planHamburgSupermarket();
+    story.points.forEach((point, index) => {
+      expect(point.soc).toBeCloseTo((plan.peakDay.socKwh[index] ?? 0) / plan.energyKwh, 8);
+    });
     expect(["netzdienlich", "nicht erfüllt"]).toContain(story.badge.label);
     expect(JSON.stringify({ label: story.badge.label, peak: story.peakAfterKw })).not.toMatch(/€/);
   });

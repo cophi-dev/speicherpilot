@@ -207,6 +207,8 @@ export type DaySeries = {
   chargeKw: number[];
   dischargeKw: number[];
   gridKw: number[];
+  /** End-of-interval state of charge from the dispatch, kWh. Same window as the engine: 10–95 %. */
+  socKwh: number[];
   priceEurPerMwh: number[];
 };
 
@@ -837,6 +839,7 @@ type DispatchResult = {
   chargeKw: number[];
   dischargeKw: number[];
   gridKw: number[];
+  socKwh: number[];
   arbChargeKwh: number;
   arbDischargeKwh: number;
   peakChargeKwh: number;
@@ -870,6 +873,7 @@ function dispatchProfile(args: {
   const chargeKw = new Array<number>(n).fill(0);
   const dischargeKw = new Array<number>(n).fill(0);
   const gridKw = new Array<number>(n).fill(0);
+  const socKwh = new Array<number>(n).fill(0);
   let soc = args.energyKwh * 0.5;
   let arbChargeKwh = 0;
   let arbDischargeKwh = 0;
@@ -974,6 +978,7 @@ function dispatchProfile(args: {
       chargeKw[i] = charge;
       dischargeKw[i] = discharge;
       gridKw[i] = grid;
+      socKwh[i] = soc;
       const dischargeKwh = discharge * dt;
       const pricedCharge = (charge - extraCharge) * dt;
       const extraKwh = extraCharge * dt;
@@ -1004,6 +1009,7 @@ function dispatchProfile(args: {
     chargeKw,
     dischargeKw,
     gridKw,
+    socKwh,
     arbChargeKwh,
     arbDischargeKwh,
     peakChargeKwh,
@@ -1233,6 +1239,7 @@ export function planSite(input: SitePlannerInput): SitePlan {
     chargeKw: sliceDay(start, perDay, dispatched.chargeKw),
     dischargeKw: sliceDay(start, perDay, dispatched.dischargeKw),
     gridKw: sliceDay(start, perDay, dispatched.gridKw),
+    socKwh: sliceDay(start, perDay, dispatched.socKwh),
     priceEurPerMwh: sliceDay(start, perDay, priceEurPerMwh),
   });
 
