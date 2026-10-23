@@ -81,6 +81,12 @@ describe("live stored-surplus note", () => {
     expect(saturated).toBeLessThan(10);
     renderRing();
     expect(screen.getByText(saturationNote(saturated ?? 1, "de"))).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Ansicht" })).toBeNull();
+    expect(screen.getAllByText(/Residuallast über 24 Stunden, Abendspitze/).length).toBeGreaterThan(0);
+    expect(screen.getByRole("columnheader", { name: "Stunde" })).toBeInTheDocument();
+    const callouts = document.querySelector(".day-callout-list")?.textContent ?? "";
+    expect(callouts).toMatch(/Nacht \+[0-9,]+ GW/);
+    expect(callouts).toMatch(/Abend [0-9,]+→[0-9,]+ GW/);
   });
 
   it("hides the sentence while surplus is still left to store", () => {

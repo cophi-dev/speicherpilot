@@ -15,10 +15,37 @@ const WEEKDAY_SHORT_EN = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const SURPLUS_EPS_GWH = 0.05;
 
-export type RingView = "uhr" | "linie";
+/** Screen-reader sentence for the /live ring. Values are rounded once. */
+export function liveClockCaption(
+  beforeGw: number | null,
+  afterGw: number | null,
+  factor: number,
+  language: AppLanguage
+): string {
+  if (beforeGw === null || afterGw === null || !Number.isFinite(beforeGw) || !Number.isFinite(afterGw)) {
+    return language === "de"
+      ? "Residuallast über 24 Stunden, ohne Abendspitze."
+      : "Residual load over 24 hours, with no evening peak.";
+  }
+  const ohne = formatGw1(beforeGw, language);
+  const mit = formatGw1(afterGw, language);
+  return language === "de"
+    ? `Residuallast über 24 Stunden, Abendspitze ${ohne} GW ohne, ${mit} GW mit Speicher ×${factor}.`
+    : `Residual load over 24 hours, evening peak ${ohne} GW without storage, ${mit} GW with storage ×${factor}.`;
+}
 
-export function parseRingView(value: string | null | undefined): RingView {
-  return value === "linie" ? "linie" : "uhr";
+/** Mean residual load of each clock hour, in GW. One row per hour, for the screen-reader table. */
+export function hourlyResidualGw(points: LiveDispatchPoint[]): Array<{ hour: number; ohneGw: number; mitGw: number }> {
+  return Array.from({ length: 24 }, (_, hour) => {
+    const slice = points.filter((point) => point.hour >= hour && point.hour < hour + 1);
+    const mean = (pick: (point: LiveDispatchPoint) => number) =>
+      slice.length === 0 ? Number.NaN : slice.reduce((sum, point) => sum + pick(point), 0) / slice.length;
+    return {
+      hour,
+      ohneGw: mean((point) => point.ohneMw / 1000),
+      mitGw: mean((point) => point.mitMw / 1000),
+    };
+  });
 }
 
 /** One decimal from the unrounded gigawatt value. */
@@ -72,27 +99,32 @@ export function eveningPeakStat(
   };
 }
 
-/** Callout copy. Residual-load values keep the sign from the data. */
+/**
+ * Callout copy. The number is residual load and keeps its sign:
+ * positive is above zero (other plants must supply), negative is below zero (wind and solar exceed load).
+ * `unit` is GW on the national ring and kW on a site ring.
+ */
 export function ringCalloutText(
   id: CalloutAnchor["id"] | "load",
   gw: number,
   language: AppLanguage,
-  evening?: { before: number | null; after: number | null }
+  evening?: { before: number | null; after: number | null },
+  unit: "GW" | "kW" = "GW"
 ): string {
   if (id === "midday") {
     const shown = formatSignedGw(gw, language);
-    return language === "de" ? `Überschuss ${shown}` : `Surplus ${shown}`;
+    return language === "de" ? `Überschuss ${shown} ${unit}` : `Surplus ${shown} ${unit}`;
   }
   if (id === "evening" && evening?.after != null) {
     const before = formatGw1(evening.before ?? gw, language);
     const after = formatGw1(evening.after, language);
-    return language === "de" ? `Abend ${before}→${after}` : `Evening ${before}→${after}`;
+    return language === "de" ? `Abend ${before}→${after} ${unit}` : `Evening ${before}→${after} ${unit}`;
   }
   const shown = formatSignedGw(gw, language);
   if (id === "night") {
-    return language === "de" ? `Nacht ${shown}` : `Night ${shown}`;
+    return language === "de" ? `Nacht ${shown} ${unit}` : `Night ${shown} ${unit}`;
   }
-  return language === "de" ? `Last ${shown}` : `Load ${shown}`;
+  return language === "de" ? `Last ${shown} ${unit}` : `Load ${shown} ${unit}`;
 }
 
 export function formatBerlinDayLabel(dateBerlin: string): string {

@@ -4,10 +4,9 @@ import { useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore
 
 import { leaderEnd, MAX_LEADER_PX, placeLabelBeside, type CalloutBox } from "@/lib/dayRingCallouts";
 import {
-  centerCaptionPx,
   centerLimitPx,
-  centerWrapPx,
   chooseCenterFont,
+  pxToUser,
   compactHourLabel,
   compactRingView,
   hourToDeg,
@@ -19,10 +18,13 @@ import {
   segmentIndexForHour,
   socRingGeometry,
 } from "@/lib/dayRingScale";
+import { measureRingKeys, RingKeyLabels, RingKeyLeaders, SOC_PULL_PX, type KeyLayout } from "@/components/day-ring/RingKeys";
 import { SmoothRing } from "@/components/day-ring/SmoothRing";
 import { useMorphedSeries } from "@/components/day-ring/useMorphedSeries";
 import { polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
-import { quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
+import { hourlyResidualGw, quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
+import { formatQuantity } from "@/lib/formatQuantity";
+import { useLanguage } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
 const CALLOUT_WIDTH = "min(180px, 28%)";
@@ -238,29 +240,26 @@ export function DayRing({
         el.style.setProperty("transition-property", "none", "important");
         el.style.setProperty("transition-duration", "0s", "important");
       };
+      if (caption) {
+        caption.style.fontSize = "12px";
+        caption.style.maxWidth = "none";
+        caption.style.whiteSpace = "nowrap";
+      }
+      if (!figure) {
+        return;
+      }
       const apply = (size: number) => {
-        freeze(sized);
-        centerEl.querySelectorAll<HTMLElement>("*").forEach(freeze);
-        sized.style.fontSize = `${size}px`;
-        if (caption && figure && caption !== figure) {
-          caption.style.fontSize = `${centerCaptionPx(size)}px`;
-          caption.style.maxWidth = "none";
-          caption.style.whiteSpace = "nowrap";
-        } else if (caption) {
-          caption.style.maxWidth = `${centerWrapPx(limit)}px`;
-          caption.style.whiteSpace = "nowrap";
-        }
+        freeze(figure);
+        figure.querySelectorAll<HTMLElement>("*").forEach(freeze);
+        figure.style.fontSize = `${size}px`;
       };
       const chosen = chooseCenterFont(limit, (size) => {
         apply(size);
-        const box = centerEl.getBoundingClientRect();
+        const box = figure.getBoundingClientRect();
         return { width: box.width, height: box.height };
       });
       if (chosen == null) {
-        sized.style.fontSize = "";
-        if (caption && caption !== sized) {
-          caption.style.fontSize = "";
-        }
+        figure.style.fontSize = "";
         attempts += 1;
         if (attempts < 10) {
           raf = requestAnimationFrame(fit);
@@ -292,10 +291,45 @@ export function DayRing({
     };
   }, [center, innerEdge, view.w]);
 
+  const [keyLayout, setKeyLayout] = useState<KeyLayout>({ fallback: false, pullPx: SOC_PULL_PX, measured: false, socLine: null, shiftLine: null });
+  const socVisible = !empty && showSoc;
+  const shiftVisible = !empty && showShift && chargedGwh > 0.05;
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) {
+      return;
+    }
+    let raf = 0;
+    const read = () => {
+      const next = measureRingKeys(frame, points, socVisible, shiftVisible, unit, mode === "projekt", view.w, framePx, keyLayout.pullPx);
+      if (!next) {
+        return;
+      }
+      setKeyLayout((prev) => (sameKeyLayout(prev, next) ? prev : next));
+    };
+    read();
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(read);
+    });
+    observer.observe(frame);
+    const centerEl = frame.querySelector(".day-center");
+    if (centerEl) {
+      observer.observe(centerEl);
+    }
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, [chargedGwh, framePx, keyLayout.pullPx, mode, points, shiftVisible, socVisible, unit, view.w]);
+
   const listed = callouts.filter((_, index) => !beside[index]);
+  const compact = framePx < 320;
+  const blockClass = ["day-ring-block", compact ? "is-compact" : "", keyLayout.fallback ? "is-legend" : ""].filter(Boolean).join(" ");
 
   return (
-    <div className="day-ring-block">
+    <div className={blockClass} data-unit={unit}>
     <div className={intro ? "day-ring-frame is-intro" : "day-ring-frame"} ref={frameRef}>
       <svg
         className="day-ring-svg"
@@ -344,16 +378,30 @@ export function DayRing({
           />
         )}
         {callouts.map((callout) => (
-          <CalloutMarker key={callout.id} callout={callout} unit={unit} />
+          <CalloutMarker key={callout.id} callout={callout} unit={unit} framePx={framePx} viewW={view.w} />
         ))}
         {callouts.map((callout, index) => (
           <CalloutLeader key={callout.id} callout={callout} unit={unit} box={beside[index]} />
         ))}
+        <RingKeyLeaders
+          points={points}
+          showSoc={socVisible}
+          showShift={shiftVisible}
+          unit={unit}
+          bold={mode === "projekt"}
+          view={view}
+          framePx={framePx}
+          pullPx={keyLayout.pullPx}
+          measured={keyLayout.measured}
+          socLine={keyLayout.socLine}
+          shiftLine={keyLayout.shiftLine}
+        />
       </svg>
       {callouts.map((callout, index) => (
         <Callout key={callout.id} callout={callout} box={beside[index]} view={view} />
       ))}
       {center ? <div className="day-center">{center}</div> : null}
+      <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} framePx={framePx} pullPx={keyLayout.pullPx} part="overlay" />
     </div>
     {listed.length > 0 ? (
       <ol className="day-callout-list">
@@ -365,6 +413,7 @@ export function DayRing({
         ))}
       </ol>
     ) : null}
+    <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} framePx={framePx} pullPx={keyLayout.pullPx} part="list" />
     </div>
   );
 }
@@ -492,12 +541,19 @@ function hourLabelBoxes(labelRadius: number, fontSize: number): CalloutBox[] {
   });
 }
 
-function CalloutMarker({ callout, unit }: { callout: RingCallout; unit: RingUnit }) {
+function markerScreenPx(floorPx: number, framePx: number, viewW: number): number {
+  const rawScreen = (16 * framePx) / Math.max(1, viewW);
+  return pxToUser(Math.max(floorPx, rawScreen), viewW, framePx);
+}
+
+function CalloutMarker({ callout, unit, framePx, viewW }: { callout: RingCallout; unit: RingUnit; framePx: number; viewW: number }) {
   const { at } = calloutMarker(callout, unit);
+  const radius = markerScreenPx(10, framePx, viewW);
+  const digit = markerScreenPx(11, framePx, viewW);
   return (
     <g className="day-callout-mark" aria-hidden="true">
-      <circle cx={at.x} cy={at.y} r="16" fill="#0A0F14" stroke="#E9EEF2" strokeWidth="2" />
-      <text x={at.x} y={at.y + 5} textAnchor="middle" fill="#E9EEF2" fontSize="16" fontFamily="var(--font-plex-mono), monospace">
+      <circle cx={at.x} cy={at.y} r={radius} fill="#0A0F14" stroke="#E9EEF2" strokeWidth={pxToUser(2, viewW, framePx)} />
+      <text x={at.x} y={at.y} textAnchor="middle" dominantBaseline="central" fill="#E9EEF2" fontSize={digit} fontFamily="var(--font-plex-mono), monospace">
         {callout.n}
       </text>
     </g>
@@ -547,6 +603,17 @@ export function Callout({
   );
 }
 
+function sameKeyLayout(prev: KeyLayout, next: KeyLayout): boolean {
+  return prev.fallback === next.fallback && prev.measured === next.measured && Math.abs(prev.pullPx - next.pullPx) < 0.5 && sameSegment(prev.socLine, next.socLine) && sameSegment(prev.shiftLine, next.shiftLine);
+}
+
+function sameSegment(prev: KeyLayout["socLine"], next: KeyLayout["socLine"]): boolean {
+  if (!prev || !next) {
+    return prev === next;
+  }
+  return Math.abs(prev.x1 - next.x1) < 0.5 && Math.abs(prev.y1 - next.y1) < 0.5 && Math.abs(prev.x2 - next.x2) < 0.5 && Math.abs(prev.y2 - next.y2) < 0.5;
+}
+
 function sameBoxes(prev: Array<CalloutBox | null>, next: Array<CalloutBox | null>): boolean {
   if (prev.length !== next.length) {
     return false;
@@ -591,6 +658,41 @@ function HourTicks({
         );
       })}
     </g>
+  );
+}
+
+export function HourlyResidualTable({
+  points,
+  caption,
+}: {
+  points: LiveDispatchPoint[];
+  caption: string;
+}) {
+  const { language } = useLanguage();
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const rows = hourlyResidualGw(points);
+  return (
+    <div className="day-sr">
+    <table>
+      <caption>{caption}</caption>
+      <thead>
+        <tr>
+          <th>{tx("Stunde", "Hour")}</th>
+          <th>{tx("ohne Speicher GW", "without storage GW")}</th>
+          <th>{tx("mit Speicher GW", "with storage GW")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.hour}>
+            <td>{String(row.hour).padStart(2, "0")}</td>
+            <td>{formatQuantity(row.ohneGw, language, 1)}</td>
+            <td>{formatQuantity(row.mitGw, language, 1)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    </div>
   );
 }
 
