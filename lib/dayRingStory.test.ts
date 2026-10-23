@@ -73,9 +73,9 @@ describe("day ring story on the October 2026 fixture", () => {
       "×5: 22,6 GW · 39,3 GWh (5 × 4,52 GW)"
     );
     expect(fleetSizeLabel(5, stories[5].powerMw, stories[5].energyMwh, "de")).not.toContain("22,5");
-    expect(formatGw1(stories[2].eveningPeakAfterGw ?? 0, "de")).toBe("31,7");
-    expect(formatGw1(stories[5].eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
-    expect(formatGw1(stories[10].eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
+    expect(formatGw1(stories[2].eveningPeakAfterGw ?? 0, "de")).toBe("31,8");
+    expect(formatGw1(stories[5].eveningPeakAfterGw ?? 0, "de")).toBe("30,9");
+    expect(formatGw1(stories[10].eveningPeakAfterGw ?? 0, "de")).toBe("30,9");
     expect(formatGwh(stories[5].chargedGwh, "de")).toBe("22,8");
     expect(formatGwh(stories[10].chargedGwh, "de")).toBe("22,8");
     const saturated = fullSurplusFactor(stories);
@@ -84,17 +84,17 @@ describe("day ring story on the October 2026 fixture", () => {
     expect(saturationNote(saturated ?? 1, "de")).toBe(
       `Ab ×${saturated} ist der ganze Mittagsüberschuss gespeichert. Mehr Speicher bringt an diesem Tag nichts mehr, weil kein Strom übrig ist.`
     );
-    expect(sliderValueText(5, stories[5].eveningPeakAfterGw, "de")).toBe("×5, Abendspitze 30,7 GW");
+    expect(sliderValueText(5, stories[5].eveningPeakAfterGw, "de")).toBe("×5, Abendspitze 30,9 GW");
     expect(eveningPeakStat(x1.eveningPeakBeforeGw, x1.eveningPeakAfterGw, "de")).toEqual({
       value: "33,5",
       note: "−4,5 GW gegenüber ohne Speicher",
     });
     expect(eveningPeakStat(stories[5].eveningPeakBeforeGw, stories[5].eveningPeakAfterGw, "de")).toEqual({
-      value: "30,7",
-      note: "−7,4 GW gegenüber ohne Speicher",
+      value: "30,9",
+      note: "−7,2 GW gegenüber ohne Speicher",
     });
     expect(eveningPeakStat(stories[5].eveningPeakBeforeGw, stories[5].eveningPeakAfterGw, "en")?.note).toBe(
-      "−7.4 GW vs. no storage"
+      "−7.2 GW vs. no storage"
     );
     expect(ringCalloutText("midday", -6.6844, "de")).toBe("Überschuss −6,7");
     expect(ringCalloutText("midday", -6.6844, "en")).toBe("Surplus −6.7");

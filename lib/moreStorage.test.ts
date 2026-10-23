@@ -46,7 +46,7 @@ describe("buildMoreStorage", () => {
     berlinTodayKey: "2026-10-21",
   });
 
-  it("stores only surplus before 17:00 and shaves the evening peak with 90% round-trip", () => {
+  it("stores only surplus before 17:00 and shaves the evening peak with the round-trip", () => {
     expect(report.available).toBe(true);
     const today = report.steps.find((step) => step.id === "today");
     const double = report.steps.find((step) => step.id === "double");
@@ -55,8 +55,8 @@ describe("buildMoreStorage", () => {
     expect(today?.storedShare).toBeCloseTo(0.25, 5);
     expect(double?.storedShare).toBeCloseTo(0.5, 5);
     expect(five?.storedShare).toBeCloseTo(1, 5);
-    expect(today?.peakReductionGw).toBeCloseTo(0.45, 2);
-    expect(five?.peakReductionGw).toBeCloseTo(1.8, 2);
+    expect(today?.peakReductionGw).toBeCloseTo(0.425, 3);
+    expect(five?.peakReductionGw).toBeCloseTo(1.7, 2);
     expect(today?.points.some((point) => point.hour >= 17 && point.chargeMw > 0)).toBe(false);
     expect(today?.points.some((point) => point.hour < 17 && point.dischargeMw > 0)).toBe(false);
     const triple = report.steps.find((step) => step.id === "triple");
@@ -87,7 +87,7 @@ describe("buildMoreStorage", () => {
     expect(report.sentence.en).toContain("model estimate, not a measurement");
     expect(report.sentence.de).not.toMatch(/Hamburg|50Hertz|Engpass|Regelzone|Norddeutschland/);
     expect(report.footnote?.de).toContain("Battery Charts");
-    expect(report.footnote?.de).toContain("90 %");
+    expect(report.footnote?.de).toContain("85 %");
   });
 
   it("says when the evening is not published instead of drawing a fake peak", () => {

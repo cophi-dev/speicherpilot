@@ -5,7 +5,7 @@ import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 import { windSolarSurplusMwh } from "@/lib/windSolarResidual";
 
 /** Round-trip efficiency. Losses are taken on discharge, so stored energy is what left the surplus. */
-export const MORE_STORAGE_ROUND_TRIP = 0.9;
+export const MORE_STORAGE_ROUND_TRIP = 0.85;
 
 /** Discharge starts at this Berlin hour. Earlier slots only charge. */
 export const MORE_STORAGE_DISCHARGE_HOUR = 17;
@@ -270,15 +270,16 @@ function footnote(fleet: LargeBatteryFleet): Copy {
   const power = both((language) => gw(fleet.powerGw, language, 2));
   const energy = both((language) => quantity(fleet.energyGwh, language, 2));
   const duration = both((language) => quantity(fleet.durationHours, language, 1));
+  const rte = Math.round(MORE_STORAGE_ROUND_TRIP * 100);
   if (fleet.source === "battery-charts") {
     return {
-      de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh, Stand ${fleet.updatedLabel.de}. Das sind ${duration.de} Stunden bei voller Leistung. Battery Charts, ISEA und PGS, RWTH Aachen, aus dem Marktstammdatenregister, CC BY 4.0. Großspeicher heißt dort mindestens 1.000 kWh oder 1.000 kW. Die Tagesreihe ist Last, Wind und Sonne, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Modell: Start leer, 90 % Wirkungsgrad, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
-      en: `Large storage today ${power.en} GW / ${energy.en} GWh, as of ${fleet.updatedLabel.en}. That is ${duration.en} hours at full power. Battery Charts, ISEA and PGS, RWTH Aachen, from the Marktstammdatenregister, CC BY 4.0. Large storage there means at least 1,000 kWh or 1,000 kW. The day series is load, wind and solar, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Model: start empty, 90% round-trip efficiency, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
+      de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh, Stand ${fleet.updatedLabel.de}. Das sind ${duration.de} Stunden bei voller Leistung. Battery Charts, ISEA und PGS, RWTH Aachen, aus dem Marktstammdatenregister, CC BY 4.0. Großspeicher heißt dort mindestens 1.000 kWh oder 1.000 kW. Die Tagesreihe ist Last, Wind und Sonne, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Modell: Start leer, ${rte} % Wirkungsgrad, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
+      en: `Large storage today ${power.en} GW / ${energy.en} GWh, as of ${fleet.updatedLabel.en}. That is ${duration.en} hours at full power. Battery Charts, ISEA and PGS, RWTH Aachen, from the Marktstammdatenregister, CC BY 4.0. Large storage there means at least 1,000 kWh or 1,000 kW. The day series is load, wind and solar, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Model: start empty, ${rte}% round-trip efficiency, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
     };
   }
   return {
-    de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh im Jahr ${fleet.year}, Stand ${fleet.updatedLabel.de}. Energy-Charts / Fraunhofer ISE, Datengrundlage ${fleet.datasource}, CC BY 4.0. Die Tagesreihe ist Last, Wind und Sonne. Modell: Start leer, 90 % Wirkungsgrad, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
-    en: `Large storage today ${power.en} GW / ${energy.en} GWh in ${fleet.year}, as of ${fleet.updatedLabel.en}. Energy-Charts / Fraunhofer ISE, data basis ${fleet.datasource}, CC BY 4.0. The day series is load, wind and solar. Model: start empty, 90% round-trip efficiency, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
+    de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh im Jahr ${fleet.year}, Stand ${fleet.updatedLabel.de}. Energy-Charts / Fraunhofer ISE, Datengrundlage ${fleet.datasource}, CC BY 4.0. Die Tagesreihe ist Last, Wind und Sonne. Modell: Start leer, ${rte} % Wirkungsgrad, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
+    en: `Large storage today ${power.en} GW / ${energy.en} GWh in ${fleet.year}, as of ${fleet.updatedLabel.en}. Energy-Charts / Fraunhofer ISE, data basis ${fleet.datasource}, CC BY 4.0. The day series is load, wind and solar. Model: start empty, ${rte}% round-trip efficiency, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
   };
 }
 

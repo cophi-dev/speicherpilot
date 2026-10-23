@@ -1447,7 +1447,7 @@ export const getGermanyEnergyFlowForBerlinRange = async (
 
 const TRAILING_BESS_RECOMMENDATION_LOOKBACK_DAYS = 365;
 /** RTE passed into `computeEconomics` for the public balanced-tier throughput estimate. */
-export const BALANCED_TIER_ROUND_TRIP_EFFICIENCY_PCT = 90;
+export const BALANCED_TIER_ROUND_TRIP_EFFICIENCY_PCT = 85;
 
 export const getGermanyBessRecommendationTrailingWindow = async (
   lookbackDays: number = TRAILING_BESS_RECOMMENDATION_LOOKBACK_DAYS,

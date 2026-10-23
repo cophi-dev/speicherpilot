@@ -3,7 +3,7 @@
 import { useId } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
-import type { MoreStorageReport, MoreStorageStep } from "@/lib/moreStorage";
+import { MORE_STORAGE_ROUND_TRIP, type MoreStorageReport, type MoreStorageStep } from "@/lib/moreStorage";
 import { niceAxis } from "@/lib/niceTicks";
 
 type Language = "de" | "en";
@@ -31,7 +31,7 @@ function posterFooter(storage: MoreStorageReport): string {
     fleet?.source === "battery-charts"
       ? `Battery Charts (RWTH, aus MaStR), ${asOf}`
       : `Energy-Charts, Datengrundlage ${fleet?.datasource ?? ""}, ${asOf}`;
-  return `Daten: Energy-Charts (Fraunhofer ISE), Last/Wind/Solar DE, ${date}, ¼h · Großspeicher heute ${power} GW / ${energy} GWh: ${source} · Modell: Start leer, 90 % Wirkungsgrad, nur Wind+Sonne > Last`;
+  return `Daten: Energy-Charts (Fraunhofer ISE), Last/Wind/Solar DE, ${date}, ¼h · Großspeicher heute ${power} GW / ${energy} GWh: ${source} · Modell: Start leer, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % Wirkungsgrad, nur Wind+Sonne > Last`;
 }
 
 function SeriesChart({

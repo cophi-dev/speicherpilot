@@ -32,7 +32,14 @@ describe("methodik v2", () => {
     expect(document.querySelector("#groesse var")?.textContent).toBe("PTag");
     expect(document.getElementById("begriff-modellschaetzung")?.tagName).toBe("DT");
     expect(document.body.textContent).toContain("26,6 kWh");
+    expect(document.body.textContent).toContain("0,922");
+    expect(document.body.textContent).toContain("27,9 %");
+    expect(document.body.textContent).not.toMatch(/0,9487|√0,9/);
     expect(document.body.textContent).toContain("Modellschätzung");
+    expect(document.body.textContent).toContain("85 %");
+    expect(document.body.textContent).toContain("80–90 %");
+    expect(document.body.textContent).toContain("PNNL");
+    expect(document.body.textContent).toContain("AC zu AC");
     expect(document.body.textContent).not.toMatch(/MORE_STORAGE_ROUND_TRIP|dispatchPeakFleet|GRID_SUPPORT_CONFIG|sizeStorage|SOC_MAX|planSite|autoSize/);
     const phases = document.querySelectorAll(".methodik-phases .day-ring-svg");
     expect(phases).toHaveLength(3);

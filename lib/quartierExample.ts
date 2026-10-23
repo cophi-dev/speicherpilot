@@ -34,7 +34,7 @@ export const QUARTIER = {
   demandChargeEurPerKwYear: 120,
   energyPriceCtPerKwh: 21.4,
   feedInCtPerKwh: 8,
-  roundTripEfficiency: 0.9,
+  roundTripEfficiency: 0.85,
   capexEurPerKwh: 500,
   maxCyclesPerYear: 400,
   lifetimeYears: 15,
