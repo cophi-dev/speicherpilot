@@ -369,15 +369,16 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               smoothSeries={false}
               clearCenter
               solidStrokes
+              referenceRing
               label={ringLabel}
               description={ringDescription}
               centerMark={{ pill: "MODELLTAG", figure, unit: "MW", note: [] }}
             />
-            <p className="day-model-rule">
-              {rule}{" "}
-              <a href="/methodik#modelltag">{tx("Regel im Detail", "Rule in detail")}</a>
-            </p>
             <p className="day-model-caption">{note}</p>
+            <p className="day-model-rule">{rule}</p>
+            <p className="day-model-rule-link">
+              <a href="/methodik#modelltag">{tx("Regel im Detail →", "Rule in detail →")}</a>
+            </p>
             {points.length > 0 ? (
               <table className="day-sr">
                 <caption>{tx(`${ringLabel} ${note}. Leistung in MW, plus ist Abgabe, minus ist Bezug.`, `${ringLabel} ${note}. Power in MW, plus is discharge, minus is charge.`)}</caption>

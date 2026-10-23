@@ -145,6 +145,28 @@ export function smoothPolarSamples(
   return sampleMonotone(controls);
 }
 
+/**
+ * Monotone cubic through the samples. The radius stays between the neighbouring
+ * control radii, so the curve cannot pass a real value.
+ */
+export function monotonePolarSamples(
+  series: readonly { angleDeg: number; value: number }[],
+  radiusOf: (value: number) => number
+): CurveSample[] {
+  const controls: Control[] = [...series]
+    .sort((a, b) => a.angleDeg - b.angleDeg)
+    .map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: radiusOf(sample.value) }));
+  if (controls.length < 2) return [];
+  const monotone = radiusLookup(flattenCurve(curveMonotoneX, controls));
+  return angleGrid(controls).map((angle) => {
+    const sample = sampleAt(controls, angle, monotone);
+    const { left, right } = bracket(controls, angle);
+    const minR = Math.min(left.radius, right.radius);
+    const maxR = Math.max(left.radius, right.radius);
+    return { ...sample, radius: clamp(sample.radius, minR, maxR) };
+  });
+}
+
 /** One filled area between the open outer curve and the base circle. No extra stroke. */
 export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: number): string {
   if (samples.length < 2) return "";

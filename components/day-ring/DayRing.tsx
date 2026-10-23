@@ -22,7 +22,8 @@ import { measureRingKeys, RingKeyLabels, RingKeyLeaders, SOC_PULL_PX, type KeyLa
 import { ModelDayMark } from "@/components/day-ring/ModelDayMark";
 import { SmoothRing } from "@/components/day-ring/SmoothRing";
 import { useMorphedSeries } from "@/components/day-ring/useMorphedSeries";
-import { polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
+import { monotonePolarSamples, polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
+import { referenceRingUser } from "@/lib/referenceRingLayout";
 import { hourlyResidualGw, quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { useLanguage } from "@/components/language-context";
@@ -84,6 +85,7 @@ export function DayRing({
   showLimit = true,
   smoothSeries = true,
   clearCenter = false,
+  referenceRing = false,
 }: {
   points: LiveDispatchPoint[];
   label: string;
@@ -113,6 +115,8 @@ export function DayRing({
   smoothSeries?: boolean;
   /** Keep the painted band outside the state-of-charge inner edge. */
   clearCenter?: boolean;
+  /** Bollingstedt model day: px geometry, monotone state of charge, solid sign colours. */
+  referenceRing?: boolean;
 }) {
   const titleId = useId();
   const descId = useId();
@@ -128,8 +132,10 @@ export function DayRing({
     ? Math.max(radiusOf(Math.max(maxValue, limit ?? 0)), kwRadius(0))
     : Math.max(ringRadius(maxGw), RING_R0);
   const [framePx, setFramePx] = useState(720);
-  const view = useMemo(() => compactRingView(outer, framePx), [outer, framePx]);
-  const hourLabel = compactHourLabel(outer, view.w / 2, framePx);
+  const guideUser = referenceRing ? 240 : outer;
+  const view = useMemo(() => compactRingView(guideUser, framePx), [guideUser, framePx]);
+  const referenceLayout = referenceRing ? referenceRingUser(framePx, view.w) : null;
+  const hourLabel = compactHourLabel(guideUser, view.w / 2, framePx);
   const innerEdge = socRingGeometry(unit, mode === "projekt").innerEdge;
   const layoutKey = callouts.map((callout) => `${callout.id}:${callout.point.hour}:${callout.text}`).join("|");
   const [measured, setMeasured] = useState<{ key: string; boxes: Array<CalloutBox | null> } | null>(null);
@@ -379,19 +385,39 @@ export function DayRing({
             view={view}
             framePx={framePx}
             smoothSeries={smoothSeries}
-            holeRadius={clearCenter ? innerEdge : 0}
+            holeRadius={referenceLayout ? referenceLayout.socOuter100 : clearCenter ? innerEdge : 0}
+            radiusOf={referenceLayout ? (value) => referenceRadius(value, limit, referenceLayout) : undefined}
+            zeroRadius={referenceLayout?.zero}
+            monotone={referenceLayout != null}
+            solidSigns={referenceLayout != null}
           />
         )}
-        {!empty ? <circle className="day-guide" cx="0" cy="0" r={outer} /> : null}
+        {!empty ? <circle className="day-guide" cx="0" cy="0" r={guideUser} /> : null}
         {!empty && showLimit && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
         {!empty && highlight ? <InkArc points={points} highlight={highlight} radiusOf={radiusOf} unit={unit} /> : null}
-        {!empty && showSoc ? <SocRing points={points} bold={mode === "projekt"} unit={unit} framePx={framePx} viewW={view.w} /> : null}
+        {!empty && showSoc ? (
+          <SocRing
+            points={points}
+            bold={mode === "projekt"}
+            unit={unit}
+            framePx={framePx}
+            viewW={view.w}
+            layout={
+              referenceLayout
+                ? {
+                    innerUser: referenceLayout.innerEdge,
+                    radiusOf: (soc) => referenceLayout.innerEdge + referenceLayout.thickness(soc),
+                  }
+                : undefined
+            }
+          />
+        ) : null}
         {!empty && showShift && chargedGwh > 0.05 ? <ShiftArrow points={points} /> : null}
         {!empty && spokeHour != null ? <Spoke hour={spokeHour} radius={radiusOf(Math.max(maxValue, limit ?? 0)) + 18} /> : null}
         {empty && !showHourTicks ? null : (
           <HourTicks
             showHours={showHourTicks}
-            guideRadius={outer}
+            guideRadius={guideUser}
             labelRadius={hourLabel.labelRadius}
             fontSize={hourLabel.fontSize}
           />
@@ -415,7 +441,7 @@ export function DayRing({
           socLine={keyLayout.socLine}
           shiftLine={keyLayout.shiftLine}
         />
-        {centerMark ? (
+        {centerMark && !referenceRing ? (
           <ModelDayMark
             pill={centerMark.pill}
             figure={centerMark.figure}
@@ -427,6 +453,15 @@ export function DayRing({
           />
         ) : null}
       </svg>
+      {centerMark && referenceRing ? (
+        <div className="day-model-overlay day-model-mark" data-fitted="true">
+          <span className="day-model-pill">{centerMark.pill}</span>
+          <span className="day-model-figure-row">
+            <span className="day-model-figure">{centerMark.figure}</span>
+            <span className="day-model-unit">{centerMark.unit}</span>
+          </span>
+        </div>
+      ) : null}
       {callouts.map((callout, index) => (
         <Callout key={callout.id} callout={callout} box={beside[index]} view={view} />
       ))}
@@ -508,18 +543,33 @@ function Spoke({ hour, radius }: { hour: number; radius: number }) {
   return <line className="day-spoke" x1="0" y1="0" x2={at.x} y2={at.y} stroke="#E9EEF2" strokeWidth="2" />;
 }
 
+function referenceRadius(
+  value: number,
+  limit: number | null,
+  layout: NonNullable<ReturnType<typeof referenceRingUser>>
+): number {
+  const span = limit != null && limit > 0 ? limit : 1;
+  const share = Math.max(-1, Math.min(1, value / span));
+  return share >= 0
+    ? layout.zero + share * (layout.bandOuter - layout.zero)
+    : layout.zero + share * (layout.zero - layout.bandInner);
+}
+
 export function SocRing({
   points,
   bold = false,
   unit = "GW",
   framePx = 720,
   viewW = 720,
+  layout,
 }: {
   points: LiveDispatchPoint[];
   bold?: boolean;
   unit?: RingUnit;
   framePx?: number;
   viewW?: number;
+  /** Fixed inner edge. Thickness grows outward and is already in user units. */
+  layout?: { innerUser: number; radiusOf: (soc: number) => number };
 }) {
   const { radius, width } = socRingGeometry(unit, bold);
   const soc = useMorphedSeries(points.map((point) => point.soc));
@@ -527,19 +577,33 @@ export function SocRing({
     angleDeg: quarterCenterForHour(point.hour),
     value: soc[index] ?? point.soc,
   }));
-  const inner = Math.max(1, radius - width / 2);
-  const minBand = Math.max(pxToUser(1.5, viewW, framePx), 0.75);
-  // One Fritsch–Carlson outer edge. A per-sample floor would kink that curve into sawteeth,
-  // so the whole band is lifted until its thinnest point is at least 1.5px.
-  const raw = smoothPolarSamples(series, (value) => inner + Math.max(0, Math.min(1, value)) * width, inner);
-  const thin = raw.reduce((min, sample) => Math.min(min, sample.radius - inner), Number.POSITIVE_INFINITY);
-  const lift = Math.max(0, minBand - (Number.isFinite(thin) ? thin : 0));
-  const outer = raw.map((sample) => ({ ...sample, radius: sample.radius + lift }));
+  const inner = layout?.innerUser ?? Math.max(1, radius - width / 2);
+  const radiusOf = layout?.radiusOf ?? ((value: number) => inner + Math.max(0, Math.min(1, value)) * width);
+  const outer = layout
+    ? monotonePolarSamples(series, radiusOf)
+    : liftSocBand(smoothPolarSamples(series, radiusOf, inner), inner, Math.max(pxToUser(1.5, viewW, framePx), 0.75));
   const band = polarRibbonPath(
     outer,
     outer.map((sample) => ({ ...sample, radius: inner }))
   );
-  return <path className="day-soc" d={band} fill={unit === "kW" ? "#1E9CB0" : "var(--mint-stroke)"} opacity={0.9} />;
+  return (
+    <g className="day-soc-layer">
+      <path className="day-soc" d={band} fill={unit === "kW" ? "#1E9CB0" : "var(--mint-stroke)"} opacity={0.9} />
+      {layout ? <circle className="day-soc-edge" cx="0" cy="0" r={inner} /> : null}
+    </g>
+  );
+}
+
+function liftSocBand(
+  raw: { angleDeg: number; radius: number }[],
+  inner: number,
+  minBand: number
+): { angleDeg: number; radius: number }[] {
+  // One Fritsch–Carlson outer edge. A per-sample floor would kink that curve into sawteeth,
+  // so the whole band is lifted until its thinnest point is at least 1.5px.
+  const thin = raw.reduce((min, sample) => Math.min(min, sample.radius - inner), Number.POSITIVE_INFINITY);
+  const lift = Math.max(0, minBand - (Number.isFinite(thin) ? thin : 0));
+  return raw.map((sample) => ({ ...sample, radius: sample.radius + lift }));
 }
 
 export function ShiftArrow({ points }: { points: LiveDispatchPoint[] }) {
