@@ -342,7 +342,7 @@ export function DayRing({
         <desc id={descId}>{description}</desc>
         <defs>
           <pattern id={hatchId} patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="8" stroke="#FF8A70" strokeWidth="2" />
+            <line x1="0" y1="0" x2="0" y2="8" stroke="var(--coral-stroke)" strokeWidth="2" />
           </pattern>
         </defs>
         {empty ? (
@@ -491,7 +491,7 @@ export function SocRing({ points, bold = false, unit = "GW" }: { points: LiveDis
     samples,
     samples.map((sample) => ({ ...sample, radius: inner }))
   );
-  return <path className="day-soc" d={band} fill={unit === "kW" ? "#1E9CB0" : "#7DFCE6"} opacity={0.9} />;
+  return <path className="day-soc" d={band} fill={unit === "kW" ? "#1E9CB0" : "var(--mint-stroke)"} opacity={0.9} />;
 }
 
 export function ShiftArrow({ points }: { points: LiveDispatchPoint[] }) {

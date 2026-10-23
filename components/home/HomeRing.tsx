@@ -56,7 +56,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
 
   if (!stories || !dispatch.fleet) {
     return (
-      <section className="day-hero">
+      <section className="day-hero day-hero-screen">
         <div className="day-hero-inner">
           <h1 className="day-title">
             {dispatch.fleet
@@ -97,7 +97,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
 
   return (
     <>
-      <section className="day-hero" aria-labelledby="home-day">
+      <section className="day-hero day-hero-screen" aria-labelledby="home-day">
         <div className="day-hero-inner">
           <div className="day-hero-layout">
             <p className="day-kicker day-order-kicker">{kicker}</p>
@@ -169,7 +169,11 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
               </p>
             </div>
           </div>
+        </div>
+      </section>
 
+      <section className="day-story" aria-labelledby="home-movements">
+        <div className="day-hero-inner">
           <Movements story={story} language={language} hours={hours} />
         </div>
       </section>
@@ -210,7 +214,15 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
     { id: MOVEMENT_IDS[2], n: "03", title: tx("Abend", "Evening"), body: tx("Die Sonne ist weg, der Verbrauch hoch. Speicher geben ab und kappen die Spitze.", "The sun is gone and use is high. Storage gives power back and cuts the peak.") },
   ];
   const [highlight, setHighlight] = useState<(typeof steps)[number]["id"]>("night");
+  const [narrow, setNarrow] = useState(false);
   const items = useRef<Array<HTMLLIElement | null>>([]);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 959px)");
+    const apply = () => setNarrow(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
   useEffect(() => {
     const ratios = new Map<number, number>();
     const nodes = items.current.filter((node): node is HTMLLIElement => node !== null);
@@ -232,15 +244,16 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
           setHighlight(MOVEMENT_IDS[best] ?? "night");
         }
       },
-      { rootMargin: "-20% 0px -45% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
+      // Below 960px the sticky ring covers the upper viewport, so the active band sits in the text under it.
+      { rootMargin: narrow ? "-52% 0px -8% 0px" : "-20% 0px -45% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
     );
     for (const node of nodes) observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [narrow]);
   const active = steps.find((step) => step.id === highlight) ?? steps[0];
   return (
     <div className="day-movements">
-      <h2>{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
+      <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
       <div className="day-movement-story">
         <div className="day-movement-pin">
           <DayRing

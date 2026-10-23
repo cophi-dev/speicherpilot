@@ -1,6 +1,7 @@
-import { curveCatmullRom, curveMonotoneX, line, type CurveFactory } from "d3-shape";
-
 import { polarPoint, RING_GAP_DEG, RING_SLOTS, segmentAngles, segmentIndexForHour } from "@/lib/dayRingScale";
+
+/** Drawn samples of the monotone cubic. At least four interpolated points per hour, and fine enough for a 1280px ring at 2×. */
+const EDGE_STEP_DEG = 0.2;
 
 /** Morph duration for a factor change. Ease-in-out, and the first frame is the next animation frame. */
 export const RING_MORPH_MS = 450;
@@ -76,7 +77,9 @@ export function taperRingSamples(samples: readonly CurveSample[], zeroRadius: nu
   }
   const head: CurveSample = { angleDeg: gap, radius: zeroRadius, value: body[0].value };
   const tail: CurveSample = { angleDeg: end, radius: zeroRadius, value: body[body.length - 1].value };
-  return densify([head, ...body, tail], 0.35);
+  return sampleMonotone(
+    [head, ...body, tail].map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: sample.radius }))
+  );
 }
 export function quarterCenterDeg(index: number): number {
   const span = segmentAngles(index);
@@ -99,27 +102,20 @@ export function ringTip(value: number): string {
 }
 
 /**
- * Open centripetal Catmull-Rom through the series, alpha 0.5.
- * The curve runs from the first quarter to the last and does not close across midnight.
- * If that spline leaves the data's radius range, or crosses zero where the values do not, the radius is taken from a monotone polar spline and clamped.
+ * Open Fritsch–Carlson monotone cubic of radius over angle.
+ * The curve runs from the first quarter to the last and does not cross the midnight gap.
+ * An interpolated radius stays between the two neighbouring supports, so the edge cannot show a value the data does not have.
  */
 export function smoothPolarSamples(
   series: readonly { angleDeg: number; value: number }[],
   radiusOf: (value: number) => number,
   zeroRadius: number
 ): CurveSample[] {
+  void zeroRadius;
   const controls: Control[] = [...series]
     .sort((a, b) => a.angleDeg - b.angleDeg)
     .map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: radiusOf(sample.value) }));
-  if (controls.length < 2) return [];
-  const grid = angleGrid(controls);
-  const catmull = radiusLookup(flattenCurve(curveCatmullRom.alpha(0.5), controls));
-  let samples = grid.map((angle) => sampleAt(controls, angle, catmull));
-  if (violates(samples, controls, zeroRadius)) {
-    const monotone = radiusLookup(flattenCurve(curveMonotoneX, controls));
-    samples = grid.map((angle) => sampleAt(controls, angle, monotone));
-  }
-  return samples.map((sample) => clampSample(sample, controls, zeroRadius));
+  return sampleMonotone(controls);
 }
 
 /** One filled area between the open outer curve and the base circle. No extra stroke. */
@@ -127,10 +123,8 @@ export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: numbe
   if (samples.length < 2) return "";
   const first = samples[0];
   const last = samples[samples.length - 1];
-  const parts = [`M ${xy(first.radius, first.angleDeg)}`];
-  for (let index = 1; index < samples.length; index += 1) {
-    parts.push(`L ${xy(samples[index].radius, samples[index].angleDeg)}`);
-  }
+  const parts: string[] = [];
+  appendMonotoneEdge(parts, samples, true);
   const end = polarPoint(0, 0, zeroRadius, last.angleDeg);
   const start = polarPoint(0, 0, zeroRadius, first.angleDeg);
   const radius = fmt(zeroRadius);
@@ -140,38 +134,12 @@ export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: numbe
   return parts.join(" ");
 }
 
-/** Even steps so the outer edge anti-aliases as one curve instead of a serrated polyline. */
-function densify(samples: readonly CurveSample[], stepDeg: number): CurveSample[] {
-  if (samples.length < 2) return [...samples];
-  const out: CurveSample[] = [];
-  for (let index = 0; index < samples.length - 1; index += 1) {
-    const from = samples[index];
-    const to = samples[index + 1];
-    const span = to.angleDeg - from.angleDeg;
-    const steps = Math.max(1, Math.round(span / stepDeg));
-    for (let step = 0; step < steps; step += 1) {
-      const t = step / steps;
-      out.push({
-        angleDeg: from.angleDeg + span * t,
-        radius: from.radius + (to.radius - from.radius) * t,
-        value: from.value + (to.value - from.value) * t,
-      });
-    }
-  }
-  out.push(samples[samples.length - 1]);
-  return out;
-}
-
 /** Band between two open curves that share angles. */
 export function polarRibbonPath(outer: readonly CurveSample[], inner: readonly CurveSample[]): string {
   if (outer.length < 2 || outer.length !== inner.length) return "";
-  const parts = [`M ${xy(outer[0].radius, outer[0].angleDeg)}`];
-  for (let index = 1; index < outer.length; index += 1) {
-    parts.push(`L ${xy(outer[index].radius, outer[index].angleDeg)}`);
-  }
-  for (let index = inner.length - 1; index >= 0; index -= 1) {
-    parts.push(`L ${xy(inner[index].radius, inner[index].angleDeg)}`);
-  }
+  const parts: string[] = [];
+  appendMonotoneEdge(parts, outer, true);
+  appendMonotoneEdge(parts, [...inner].reverse(), false);
   parts.push("Z");
   return parts.join(" ");
 }
@@ -185,10 +153,8 @@ export function polarCapPath(outer: readonly CurveSample[], limitRadius: number)
   const start = polarPoint(0, 0, limitRadius, first.angleDeg);
   const large = last.angleDeg - first.angleDeg > 180 ? 1 : 0;
   const radius = fmt(limitRadius);
-  const parts = [`M ${xy(first.radius, first.angleDeg)}`];
-  for (let index = 1; index < outer.length; index += 1) {
-    parts.push(`L ${xy(outer[index].radius, outer[index].angleDeg)}`);
-  }
+  const parts: string[] = [];
+  appendMonotoneEdge(parts, outer, true);
   parts.push(`L ${fmt(end.x)} ${fmt(end.y)}`);
   parts.push(`A ${radius} ${radius} 0 ${large} 0 ${fmt(start.x)} ${fmt(start.y)}`);
   parts.push("Z");
@@ -215,129 +181,130 @@ export function conicGradient(stops: readonly { angleDeg: number; color: string 
   return `conic-gradient(from 0deg at 50% 50%, ${paint.map((stop) => `${stop.color} ${stop.angleDeg.toFixed(2)}deg`).join(", ")})`;
 }
 
-function sampleAt(controls: Control[], angle: number, lookup: (angle: number) => number): CurveSample {
-  const { left, right } = bracket(controls, angle);
+function sampleMonotone(controls: readonly Control[]): CurveSample[] {
+  if (controls.length < 2) return controls.map((control) => ({ angleDeg: control.angle, value: control.value, radius: control.radius }));
+  const slopes = fritschCarlsonSlopes(
+    controls.map((control) => control.angle),
+    controls.map((control) => control.radius)
+  );
+  const start = controls[0].angle;
+  const end = controls[controls.length - 1].angle;
+  const out: CurveSample[] = [];
+  for (let angle = start; angle < end - 1e-6; angle += EDGE_STEP_DEG) {
+    out.push(evaluateMonotone(controls, slopes, angle));
+  }
+  out.push(evaluateMonotone(controls, slopes, end));
+  return out;
+}
+
+/**
+ * Fritsch–Carlson slopes. Opposite secants get a zero tangent, and each interval
+ * is scaled until it cannot leave the range of its two supports.
+ */
+function fritschCarlsonSlopes(xs: readonly number[], ys: readonly number[]): number[] {
+  const count = xs.length;
+  const slopes = new Array<number>(count).fill(0);
+  if (count < 2) return slopes;
+  const secant: number[] = [];
+  for (let index = 0; index < count - 1; index += 1) {
+    const span = xs[index + 1] - xs[index];
+    secant.push(span === 0 ? 0 : (ys[index + 1] - ys[index]) / span);
+  }
+  slopes[0] = secant[0];
+  slopes[count - 1] = secant[count - 2];
+  for (let index = 1; index < count - 1; index += 1) {
+    if (secant[index - 1] === 0 || secant[index] === 0 || secant[index - 1] * secant[index] < 0) slopes[index] = 0;
+    else slopes[index] = (secant[index - 1] + secant[index]) / 2;
+  }
+  for (let index = 0; index < count - 1; index += 1) {
+    if (secant[index] === 0) {
+      slopes[index] = 0;
+      slopes[index + 1] = 0;
+      continue;
+    }
+    const alpha = slopes[index] / secant[index];
+    const beta = slopes[index + 1] / secant[index];
+    const sum = alpha * alpha + beta * beta;
+    if (sum > 9) {
+      const scale = 3 / Math.sqrt(sum);
+      slopes[index] = scale * alpha * secant[index];
+      slopes[index + 1] = scale * beta * secant[index];
+    }
+  }
+  return slopes;
+}
+
+function evaluateMonotone(controls: readonly Control[], slopes: readonly number[], angle: number): CurveSample {
+  const { left, right, leftIndex } = bracket(controls, angle);
   const span = right.angle - left.angle;
   const t = span === 0 ? 0 : (angle - left.angle) / span;
-  const onControl = controls.find((control) => Math.abs(control.angle - angle) < 1e-6);
-  return {
-    angleDeg: angle,
-    value: onControl ? onControl.value : left.value + (right.value - left.value) * t,
-    radius: onControl ? onControl.radius : lookup(angle),
-  };
+  const radius = span === 0 ? left.radius : hermite(left.radius, slopes[leftIndex], right.radius, slopes[leftIndex + 1], span, t);
+  const value = left.value + (right.value - left.value) * t;
+  return { angleDeg: angle, value, radius };
 }
 
-/** Keeps the drawn radius inside the data, and on the same side of zero as the raw span. */
-function clampSample(sample: CurveSample, controls: readonly Control[], zeroRadius: number): CurveSample {
-  const onControl = controls.find((control) => Math.abs(control.angle - sample.angleDeg) < 1e-6);
-  if (onControl) {
-    return { angleDeg: sample.angleDeg, value: onControl.value, radius: onControl.radius };
-  }
-  const { left, right } = bracket(controls, sample.angleDeg);
-  const radii = controls.map((control) => control.radius);
-  let radius = sample.radius;
-  if (left.value >= 0 && right.value >= 0) radius = Math.max(radius, zeroRadius);
-  if (left.value <= 0 && right.value <= 0) radius = Math.min(radius, zeroRadius);
-  return { ...sample, radius: clamp(radius, Math.min(...radii), Math.max(...radii)) };
+function hermite(y0: number, slope0: number, y1: number, slope1: number, span: number, t: number): number {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const h00 = 2 * t3 - 3 * t2 + 1;
+  const h10 = t3 - 2 * t2 + t;
+  const h01 = -2 * t3 + 3 * t2;
+  const h11 = t3 - t2;
+  return h00 * y0 + h10 * span * slope0 + h01 * y1 + h11 * span * slope1;
 }
 
-function violates(samples: readonly CurveSample[], controls: readonly Control[], zeroRadius: number): boolean {
-  const radii = controls.map((control) => control.radius);
-  const minR = Math.min(...radii);
-  const maxR = Math.max(...radii);
-  return samples.some((sample) => {
-    if (sample.radius < minR - 0.05 || sample.radius > maxR + 0.05) return true;
-    const { left, right } = bracket(controls, sample.angleDeg);
-    if (left.value >= 0 && right.value >= 0 && sample.radius < zeroRadius - 0.05) return true;
-    if (left.value <= 0 && right.value <= 0 && sample.radius > zeroRadius + 0.05) return true;
-    return false;
-  });
-}
-
-function angleGrid(controls: readonly Control[]): number[] {
-  const angles: number[] = [];
-  for (let index = 0; index < controls.length - 1; index += 1) {
-    const start = controls[index].angle;
-    const end = controls[index + 1].angle;
-    for (let step = 0; step < 8; step += 1) angles.push(start + ((end - start) * step) / 8);
-  }
-  angles.push(controls[controls.length - 1].angle);
-  return angles;
-}
-
-function flattenCurve(curve: CurveFactory, controls: readonly Control[]): CurveSample[] {
-  const out: CurveSample[] = [];
-  let currentX = 0;
-  let currentY = 0;
-  const context = {
-    beginPath() {},
-    moveTo(x: number, y: number) {
-      currentX = x;
-      currentY = y;
-      out.push({ angleDeg: x, radius: y, value: 0 });
-    },
-    lineTo(x: number, y: number) {
-      currentX = x;
-      currentY = y;
-      out.push({ angleDeg: x, radius: y, value: 0 });
-    },
-    bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number) {
-      for (let step = 1; step <= 8; step += 1) {
-        const t = step / 8;
-        out.push({ angleDeg: cubic(currentX, x1, x2, x, t), radius: cubic(currentY, y1, y2, y, t), value: 0 });
-      }
-      currentX = x;
-      currentY = y;
-    },
-    closePath() {},
-  };
-  const draw = line<Control>().x((control) => control.angle).y((control) => control.radius).curve(curve).context(context as unknown as CanvasRenderingContext2D);
-  draw(controls as Control[]);
-  return out.filter((sample, index, all) => index === 0 || sample.angleDeg > all[index - 1].angleDeg);
-}
-
-function radiusLookup(samples: readonly CurveSample[]): (angle: number) => number {
-  return (angle) => {
-    if (samples.length === 0) return 0;
-    if (angle <= samples[0].angleDeg) return samples[0].radius;
-    const last = samples[samples.length - 1];
-    if (angle >= last.angleDeg) return last.radius;
-    let lo = 0;
-    let hi = samples.length - 1;
-    while (hi - lo > 1) {
-      const mid = (lo + hi) >> 1;
-      if (samples[mid].angleDeg <= angle) lo = mid;
-      else hi = mid;
-    }
-    const left = samples[lo];
-    const right = samples[hi];
-    const span = right.angleDeg - left.angleDeg;
-    const t = span === 0 ? 0 : (angle - left.angleDeg) / span;
-    return left.radius + (right.radius - left.radius) * t;
-  };
-}
-
-function bracket(controls: readonly Control[], angle: number): { left: Control; right: Control } {
-  if (angle <= controls[0].angle) return { left: controls[0], right: controls[0] };
+function bracket(controls: readonly Control[], angle: number): { left: Control; right: Control; leftIndex: number } {
+  if (angle <= controls[0].angle) return { left: controls[0], right: controls[0], leftIndex: 0 };
   const last = controls.length - 1;
-  if (angle >= controls[last].angle) return { left: controls[last], right: controls[last] };
+  if (angle >= controls[last].angle) return { left: controls[last], right: controls[last], leftIndex: last };
   let hi = 1;
   while (hi < last && controls[hi].angle < angle) hi += 1;
-  return { left: controls[hi - 1], right: controls[hi] };
+  return { left: controls[hi - 1], right: controls[hi], leftIndex: hi - 1 };
 }
 
-function cubic(p0: number, p1: number, p2: number, p3: number, t: number): number {
-  const u = 1 - t;
-  return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
+/** One cubic per sample step. Radius follows Fritsch–Carlson, so the edge has no linear pieces and no Catmull–Rom overshoot. */
+function appendMonotoneEdge(
+  parts: string[],
+  samples: readonly { radius: number; angleDeg: number }[],
+  move: boolean
+): void {
+  if (samples.length === 0) return;
+  const forward = samples.length < 2 || samples[0].angleDeg <= samples[samples.length - 1].angleDeg;
+  const ordered = forward ? samples : [...samples].reverse();
+  const slopes = fritschCarlsonSlopes(
+    ordered.map((sample) => sample.angleDeg),
+    ordered.map((sample) => sample.radius)
+  );
+  const slopeAt = (index: number) => slopes[forward ? index : samples.length - 1 - index];
+  const first = polarPoint(0, 0, samples[0].radius, samples[0].angleDeg);
+  parts.push(`${move ? "M" : "L"} ${fmt(first.x)} ${fmt(first.y)}`);
+  for (let index = 0; index < samples.length - 1; index += 1) {
+    const left = samples[index];
+    const right = samples[index + 1];
+    if (left.angleDeg === right.angleDeg) continue;
+    parts.push(polarCubic(left.radius, slopeAt(index), left.angleDeg, right.radius, slopeAt(index + 1), right.angleDeg));
+  }
 }
 
-function xy(radius: number, angleDeg: number): string {
-  const at = polarPoint(0, 0, radius, angleDeg);
-  return `${fmt(at.x)} ${fmt(at.y)}`;
+function polarCubic(radius0: number, slope0: number, angle0: number, radius1: number, slope1: number, angle1: number): string {
+  const start = polarPoint(0, 0, radius0, angle0);
+  const end = polarPoint(0, 0, radius1, angle1);
+  const d0 = polarDerivative(radius0, slope0, angle0);
+  const d1 = polarDerivative(radius1, slope1, angle1);
+  const delta = ((angle1 - angle0) * Math.PI) / 180;
+  return `C ${fmt(start.x + (d0.x * delta) / 3)} ${fmt(start.y + (d0.y * delta) / 3)} ${fmt(end.x - (d1.x * delta) / 3)} ${fmt(end.y - (d1.y * delta) / 3)} ${fmt(end.x)} ${fmt(end.y)}`;
+}
+
+function polarDerivative(radius: number, slopePerDeg: number, angleDeg: number): { x: number; y: number } {
+  const radians = (angleDeg * Math.PI) / 180;
+  const slope = slopePerDeg * (180 / Math.PI);
+  const sine = Math.sin(radians);
+  const cosine = Math.cos(radians);
+  return { x: slope * sine + radius * cosine, y: -slope * cosine + radius * sine };
 }
 
 function fmt(value: number): string {
-  return (Math.round(value * 100) / 100).toString();
+  return (Math.round(value * 1000) / 1000).toString();
 }
 
 function clamp(value: number, min: number, max: number): number {

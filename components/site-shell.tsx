@@ -79,10 +79,12 @@ export function SiteShell({ children }: SiteShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const nightHero = pathname === "/" || pathname === "/live";
   const [overHero, setOverHero] = useState(nightHero);
+  const [atTop, setAtTop] = useState(true);
   const [trackedPath, setTrackedPath] = useState(pathname);
   if (pathname !== trackedPath) {
     setTrackedPath(pathname);
     setOverHero(nightHero);
+    setAtTop(true);
   }
 
   useEffect(() => {
@@ -175,6 +177,7 @@ export function SiteShell({ children }: SiteShellProps) {
 
   useLayoutEffect(() => {
     const update = () => {
+      setAtTop(window.scrollY <= 0);
       const hero = document.querySelector(".day-hero");
       if (!hero) {
         if (!nightHero) {
@@ -182,8 +185,10 @@ export function SiteShell({ children }: SiteShellProps) {
         }
         return;
       }
+      const header = document.querySelector(".site-header");
+      const headerBottom = header?.getBoundingClientRect().bottom ?? 64;
       const rect = hero.getBoundingClientRect();
-      setOverHero(rect.bottom > 64 && rect.top < window.innerHeight);
+      setOverHero(rect.bottom > headerBottom && rect.top < window.innerHeight);
     };
     update();
     const main = document.getElementById("inhalt");
@@ -200,6 +205,8 @@ export function SiteShell({ children }: SiteShellProps) {
     };
   }, [nightHero, pathname]);
 
+  const resolvedTheme = mounted ? resolveTheme(themePref) : "light";
+
   const tx = (de: string, en: string) => (language === "de" ? de : en);
 
   return (
@@ -211,7 +218,7 @@ export function SiteShell({ children }: SiteShellProps) {
         >
           {tx("Zum Inhalt", "Skip to content")}
         </a>
-        <header className={`site-header sticky top-0 z-40 h-16 border-b backdrop-blur ${overHero ? "is-over-hero" : "border-border bg-background/85"}`}>
+        <header className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}>
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
             <BrandLockup />
             <nav className="hidden items-center gap-7 text-sm font-medium md:flex" aria-label={tx("Hauptnavigation", "Primary")}>
@@ -229,7 +236,16 @@ export function SiteShell({ children }: SiteShellProps) {
                 );
               })}
             </nav>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-current focus-visible:ring-2 focus-visible:ring-ring"
+                aria-pressed={mounted ? resolvedTheme === "dark" : undefined}
+                aria-label={tx("Darstellung", "Appearance")}
+                onClick={() => setThemePref(resolvedTheme === "dark" ? "light" : "dark")}
+              >
+                {resolvedTheme === "dark" ? <Sun className="size-5" strokeWidth={1.5} aria-hidden /> : <Moon className="size-5" strokeWidth={1.5} aria-hidden />}
+              </button>
               <div className="num inline-flex overflow-hidden rounded-md border border-border-strong text-[12px]" role="group" aria-label={tx("Sprache", "Language")}>
                 {(["de", "en"] as const).map((code) => (
                   <button
