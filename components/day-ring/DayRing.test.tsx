@@ -1,6 +1,8 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 
-import { DayRing, DayValuesTable } from "@/components/day-ring/DayRing";
+import { DayRing, DayValuesTable, HourlyResidualTable } from "@/components/day-ring/DayRing";
+import { LanguageContext } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { ringTip, smoothDrawnSeries } from "@/lib/dayRingSmooth";
 
@@ -21,8 +23,13 @@ function series(spikeMw: number): LiveDispatchPoint[] {
   });
 }
 
+function withLanguage(node: ReactNode) {
+  return <LanguageContext.Provider value={{ language: "de", setLanguage: () => {} }}>{node}</LanguageContext.Provider>;
+}
+
 function renderRing(points: LiveDispatchPoint[], callout = ringTip(30)) {
   return render(
+    withLanguage(
     <>
       <DayRing
         points={points}
@@ -44,6 +51,7 @@ function renderRing(points: LiveDispatchPoint[], callout = ringTip(30)) {
         socLabel="Ladezustand %"
       />
     </>
+    )
   );
 }
 
@@ -211,5 +219,57 @@ describe("day ring raw numbers", () => {
     expect(container.querySelector(".day-ring-area")?.getAttribute("d")).not.toBe(start);
     expect(container.querySelector('.day-ring-tip[data-raw="30.0"] title')?.textContent).toBe("30.0");
     window.matchMedia = previousMatch;
+  });
+
+  it("labels the charge band and the shifted arc only when those marks are drawn", () => {
+    const idle = series(2000);
+    const { rerender } = render(withLanguage(<DayRing points={idle} label="Tag" description="Rohwerte" showShift chargedGwh={0} />));
+    expect(screen.getAllByText("Ladezustand").length).toBeGreaterThan(0);
+    expect(screen.queryByText("verschoben")).toBeNull();
+
+    const moved = idle.map((point, index) =>
+      index === 48 ? { ...point, chargeMw: 400 } : index === 76 ? { ...point, dischargeMw: 300 } : point
+    );
+    rerender(withLanguage(<DayRing points={moved} label="Tag" description="Rohwerte" showShift chargedGwh={1.2} />));
+    expect(screen.getAllByText("verschoben").length).toBeGreaterThan(0);
+    const socLine = document.querySelector(".day-key-leader-soc");
+    const shiftLine = document.querySelector(".day-key-leader-shift");
+    const halo = document.querySelector(".day-key-leader-halo");
+    expect(socLine).not.toBeNull();
+    expect(shiftLine).not.toBeNull();
+    expect(halo?.getAttribute("x1")).toBe(shiftLine?.getAttribute("x1"));
+    expect(halo?.getAttribute("y2")).toBe(shiftLine?.getAttribute("y2"));
+    const socRadius = Math.hypot(Number(socLine?.getAttribute("x1")), Number(socLine?.getAttribute("y1")));
+    const socEnd = Math.hypot(Number(socLine?.getAttribute("x2")), Number(socLine?.getAttribute("y2")));
+    expect(socRadius).toBeCloseTo(143, 0);
+    expect(socEnd).toBeLessThan(socRadius);
+    const shiftRadius = Math.hypot(Number(shiftLine?.getAttribute("x1")), Number(shiftLine?.getAttribute("y1")));
+    const shiftEnd = Math.hypot(Number(shiftLine?.getAttribute("x2")), Number(shiftLine?.getAttribute("y2")));
+    expect(shiftRadius).toBeCloseTo(184, 0);
+    expect(shiftEnd).toBeGreaterThan(shiftRadius - 0.05);
+
+    const button = screen.getAllByRole("button", { name: "Ladezustand erklären" })[0];
+    fireEvent.click(button);
+    expect(screen.getByText(/Dickeres Band/)).toBeInTheDocument();
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByText(/Dickeres Band/)).toBeNull();
+    expect(document.activeElement).toBe(button);
+    fireEvent.click(button);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByText(/Dickeres Band/)).toBeNull();
+    expect(document.activeElement).toBe(button);
+
+    rerender(withLanguage(<DayRing points={moved} label="Tag" description="Rohwerte" showSoc={false} showShift={false} chargedGwh={1.2} />));
+    expect(screen.queryByText("Ladezustand")).toBeNull();
+    expect(screen.queryByText("verschoben")).toBeNull();
+  });
+
+  it("keeps a 24-hour residual table for screen readers", () => {
+    const points = series(4000).map((point, index) => ({ ...point, mitMw: point.ohneMw - (index >= 68 ? 500 : 0) }));
+    render(withLanguage(<HourlyResidualTable points={points} caption="Stunden" />));
+    expect(screen.getAllByRole("row")).toHaveLength(25);
+    expect(screen.getByRole("columnheader", { name: "Stunde" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "ohne Speicher GW" })).toBeInTheDocument();
+    expect(screen.getAllByRole("cell", { name: "2,0" }).length).toBeGreaterThan(0);
   });
 });

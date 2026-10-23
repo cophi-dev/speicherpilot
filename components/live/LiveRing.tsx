@@ -1,16 +1,14 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChargedLine } from "@/components/day-ring/ChargedLine";
-import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
+import { DayRing, DayValuesTable, HourlyResidualTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { MonoNumber } from "@/components/day-ring/MonoNumber";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
-import { LineDayChart } from "@/components/day-ring/LineDayChart";
 import { StatTrio } from "@/components/day-ring/StatTrio";
-import { ViewToggle } from "@/components/day-ring/ViewToggle";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
@@ -22,7 +20,7 @@ import {
   eveningPeakStat,
   formatGw1,
   fullSurplusFactor,
-  parseRingView,
+  liveClockCaption,
   ringCalloutText,
   saturationNote,
   sliderValueText,
@@ -50,7 +48,17 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
     setPendingFactor(null);
   }
   const factor = pendingFactor ?? queryFactor;
-  const view = parseRingView(searchParams.get("ansicht"));
+  const ansicht = searchParams.get("ansicht");
+
+  useEffect(() => {
+    if (ansicht === null) {
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("ansicht");
+    const query = params.toString();
+    router.replace(query ? `/live?${query}` : "/live", { scroll: false });
+  }, [ansicht, router, searchParams]);
 
   const stories = useMemo(() => {
     if (!dispatch.day || !dispatch.fleet) {
@@ -92,10 +100,8 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
           <LiveRingBody
             story={story}
             stories={stories}
-            shown={story.points}
             fleet={dispatch.fleet}
             factor={factor}
-            view={view}
             language={language}
             saturationIndex={saturationIndex}
             saturated={saturated}
@@ -104,7 +110,6 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
               // The ring morph has to start on this frame. The URL follows on the next one.
               window.requestAnimationFrame(() => replaceQuery("x", String(next)));
             }}
-            onView={(next) => replaceQuery("ansicht", next === "uhr" ? null : next)}
           />
         ) : (
           <div>
@@ -130,27 +135,21 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
 function LiveRingBody({
   story,
   stories,
-  shown,
   fleet,
   factor,
-  view,
   language,
   saturationIndex,
   saturated,
   onFactor,
-  onView,
 }: {
   story: LiveDispatchStory;
   stories: Record<LiveDispatchFactor, LiveDispatchStory>;
-  shown: LiveDispatchPoint[];
   fleet: NonNullable<LiveDispatchInput["fleet"]>;
   factor: LiveDispatchFactor;
-  view: "uhr" | "linie";
   language: AppLanguage;
   saturationIndex: number | null;
   saturated: LiveDispatchFactor | null;
   onFactor: (factor: LiveDispatchFactor) => void;
-  onView: (view: "uhr" | "linie") => void;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const title = tx(
@@ -167,6 +166,7 @@ function LiveRingBody({
   const kicker = `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
   const callouts = buildCallouts(story, story.points, language);
   const tablePoints = useDeferredValue(story.points);
+  const caption = liveClockCaption(before, after, factor, language);
   const description = tx(
     `Residuallast am ${dateLabel}, Viertelstunde für Viertelstunde. Der Radius wächst linear mit der Leistung in GW. Der gestrichelte Kreis ist null. Dieselbe Reihe steht in der Tabelle.`,
     `Residual load on ${dateLabel}, quarter-hour by quarter-hour. Radius grows linearly with power in GW. The dashed circle is zero. The same series is in the table.`
@@ -195,39 +195,29 @@ function LiveRingBody({
         </div>
         <div className="day-order-ring">
           <figure>
-            {view === "uhr" ? (
-              <DayRing
-                points={story.points}
-                label={title}
-                description={description}
-                callouts={callouts}
-                chargedGwh={story.chargedGwh}
-                center={
-                  before !== null && after !== null ? (
-                    <>
-                      <p className="day-center-figure">
-                        <MonoNumber value={formatGw1(before, language)} /> → <MonoNumber value={formatGw1(after, language)} />
-                      </p>
-                      <p className="day-center-caption">
-                        GW {tx("Abendspitze", "evening peak")} · ×{factor}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="day-center-caption">{tx("Keine Abendspitze in dieser Reihe", "No evening peak in this series")}</p>
-                  )
-                }
-              />
-            ) : (
-              <div className="day-line-card">
-                <LineDayChart
-                  points={shown}
-                  label={description}
-                  ohneLabel={tx("ohne Speicher", "without storage")}
-                  mitLabel={tx("mit Speicher", "with storage")}
-                />
-              </div>
-            )}
-            <figcaption className="day-sr">{description}</figcaption>
+            <DayRing
+              points={story.points}
+              label={title}
+              description={description}
+              callouts={callouts}
+              chargedGwh={story.chargedGwh}
+              center={
+                before !== null && after !== null ? (
+                  <>
+                    <p className="day-center-figure">
+                      <MonoNumber value={formatGw1(before, language)} /> → <MonoNumber value={formatGw1(after, language)} />
+                    </p>
+                    <p className="day-center-caption">
+                      GW {tx("Abendspitze", "evening peak")} · ×{factor}
+                    </p>
+                  </>
+                ) : (
+                  <p className="day-center-caption">{tx("Keine Abendspitze in dieser Reihe", "No evening peak in this series")}</p>
+                )
+              }
+            />
+            <figcaption className="day-sr">{caption}</figcaption>
+            <HourlyResidualTable points={tablePoints} caption={caption} />
             <DayValuesTable
               points={tablePoints}
               caption={description}
@@ -239,17 +229,7 @@ function LiveRingBody({
               socLabel={tx("Ladezustand %", "State of charge %")}
             />
           </figure>
-          <ViewToggle
-            view={view}
-            onChange={onView}
-            uhrLabel={tx("Uhr", "Clock")}
-            linieLabel={tx("Linie", "Line")}
-            groupLabel={tx("Ansicht", "View")}
-          />
         </div>
-          <div className="day-order-legend">
-            <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
-          </div>
         <div className="day-order-controls">
           <StatTrio
             items={[
@@ -287,6 +267,9 @@ function LiveRingBody({
                 : null}
             </span>
           </p>
+        </div>
+        <div className="day-order-legend">
+          <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
         </div>
       </div>
       <div className="day-methods">
@@ -329,9 +312,15 @@ function buildCallouts(story: LiveDispatchStory, points: LiveDispatchPoint[], la
   return calloutAnchors(points).map((anchor, index) => ({
     ...anchor,
     n: index + 1,
-    text: ringCalloutText(anchor.id, anchor.point.ohneMw / 1000, language, {
-      before: story.eveningPeakBeforeGw,
-      after: story.eveningPeakAfterGw,
-    }),
+    text: ringCalloutText(
+      anchor.id,
+      anchor.point.ohneMw / 1000,
+      language,
+      {
+        before: story.eveningPeakBeforeGw,
+        after: story.eveningPeakAfterGw,
+      },
+      "GW"
+    ),
   }));
 }

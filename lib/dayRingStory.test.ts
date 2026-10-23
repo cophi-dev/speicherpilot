@@ -7,6 +7,7 @@ import {
   formatGwh,
   fullSurplusFactor,
   heroSentence,
+  liveClockCaption,
   onceRoundDeltaGw,
   ringCalloutText,
   saturationNote,
@@ -96,10 +97,13 @@ describe("day ring story on the October 2026 fixture", () => {
     expect(eveningPeakStat(stories[5].eveningPeakBeforeGw, stories[5].eveningPeakAfterGw, "en")?.note).toBe(
       "−7.4 GW vs. no storage"
     );
-    expect(ringCalloutText("midday", -6.6844, "de")).toBe("Überschuss −6,7");
-    expect(ringCalloutText("midday", -6.6844, "en")).toBe("Surplus −6.7");
-    expect(ringCalloutText("night", 3.6976, "de")).toBe("Nacht +3,7");
-    expect(ringCalloutText("night", -2.04, "en")).toBe("Night −2.0");
+    expect(ringCalloutText("midday", -6.6844, "de")).toBe("Überschuss −6,7 GW");
+    expect(ringCalloutText("midday", -6.6844, "en")).toBe("Surplus −6.7 GW");
+    expect(ringCalloutText("night", 3.6976, "de")).toBe("Nacht +3,7 GW");
+    expect(ringCalloutText("night", -2.04, "en")).toBe("Night −2.0 GW");
+    expect(ringCalloutText("evening", 38, "de", { before: 38, after: 33.7 })).toBe("Abend 38,0→33,7 GW");
+    expect(ringCalloutText("night", 15.6, "de", undefined, "kW")).toBe("Nacht +15,6 kW");
+    expect(ringCalloutText("midday", -4.7, "de", undefined, "kW")).toBe("Überschuss −4,7 kW");
     expect(weekdayIndex("2026-10-11")).toBe(7);
     expect(heroSentence({ dateBerlin: "2026-10-11", todayKey: "2026-10-21", surplusGwh: x1.surplusGwh }).de).toBe(
       "Am Sonntag hatte der Mittag Strom übrig, den der Abend gebraucht hätte."
@@ -124,5 +128,12 @@ describe("day ring story on the October 2026 fixture", () => {
       "Gestern gab es keinen Überschuss – Speicher hätten im Modell nichts zu verschieben."
     );
     expect(formatGw1(stories[1].eveningPeakBeforeGw ?? 0, "de")).toBe("47,7");
+  });
+
+  it("writes the live ring caption from the unrounded evening peaks", () => {
+    expect(liveClockCaption(38.04, 33.66, 5, "de")).toBe(
+      "Residuallast über 24 Stunden, Abendspitze 38,0 GW ohne, 33,7 GW mit Speicher ×5."
+    );
+    expect(liveClockCaption(null, null, 1, "de")).toBe("Residuallast über 24 Stunden, ohne Abendspitze.");
   });
 });
