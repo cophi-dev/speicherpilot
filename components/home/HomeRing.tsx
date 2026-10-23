@@ -329,9 +329,15 @@ function movementCallouts(story: LiveDispatchStory, language: AppLanguage): Ring
   return calloutAnchors(story.points).map((anchor, index) => ({
     ...anchor,
     n: index + 1,
-    text: ringCalloutText(anchor.id, anchor.point.ohneMw / 1000, language, {
-      before: story.eveningPeakBeforeGw,
-      after: story.eveningPeakAfterGw,
-    }),
+    text: ringCalloutText(
+      anchor.id,
+      anchor.point.ohneMw / 1000,
+      language,
+      {
+        before: story.eveningPeakBeforeGw,
+        after: story.eveningPeakAfterGw,
+      },
+      "GW"
+    ),
   }));
 }

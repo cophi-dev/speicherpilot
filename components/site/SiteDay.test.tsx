@@ -48,6 +48,10 @@ describe("site v2 heroes", () => {
     expect(screen.getByText(new RegExp(formatQuantity(story.hoursOverLimit, "de", 2)))).toBeInTheDocument();
     expect(screen.queryByText(/Rückzahlung/)).toBeNull();
     expect(screen.queryByText(/Vollzyklen/)).toBeNull();
+    const callouts = document.querySelector(".day-callout-list")?.textContent ?? "";
+    expect(callouts).toContain(`Anschluss ${formatQuantity(story.limitKw, "de", 0)} kW`);
+    expect(callouts).toMatch(/kW Rückspeisung/);
+    expect(callouts).not.toMatch(/GW/);
     expect(document.body.textContent).not.toMatch(/§ 17/);
     expect(document.body.textContent).not.toMatch(/Beurteilungsspielraum/);
   });

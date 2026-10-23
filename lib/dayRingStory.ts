@@ -99,27 +99,32 @@ export function eveningPeakStat(
   };
 }
 
-/** Callout copy. Residual-load values keep the sign from the data. */
+/**
+ * Callout copy. The number is residual load and keeps its sign:
+ * positive is above zero (other plants must supply), negative is below zero (wind and solar exceed load).
+ * `unit` is GW on the national ring and kW on a site ring.
+ */
 export function ringCalloutText(
   id: CalloutAnchor["id"] | "load",
   gw: number,
   language: AppLanguage,
-  evening?: { before: number | null; after: number | null }
+  evening?: { before: number | null; after: number | null },
+  unit: "GW" | "kW" = "GW"
 ): string {
   if (id === "midday") {
     const shown = formatSignedGw(gw, language);
-    return language === "de" ? `Überschuss ${shown}` : `Surplus ${shown}`;
+    return language === "de" ? `Überschuss ${shown} ${unit}` : `Surplus ${shown} ${unit}`;
   }
   if (id === "evening" && evening?.after != null) {
     const before = formatGw1(evening.before ?? gw, language);
     const after = formatGw1(evening.after, language);
-    return language === "de" ? `Abend ${before}→${after}` : `Evening ${before}→${after}`;
+    return language === "de" ? `Abend ${before}→${after} ${unit}` : `Evening ${before}→${after} ${unit}`;
   }
   const shown = formatSignedGw(gw, language);
   if (id === "night") {
-    return language === "de" ? `Nacht ${shown}` : `Night ${shown}`;
+    return language === "de" ? `Nacht ${shown} ${unit}` : `Night ${shown} ${unit}`;
   }
-  return language === "de" ? `Last ${shown}` : `Load ${shown}`;
+  return language === "de" ? `Last ${shown} ${unit}` : `Load ${shown} ${unit}`;
 }
 
 export function formatBerlinDayLabel(dateBerlin: string): string {

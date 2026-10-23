@@ -312,9 +312,15 @@ function buildCallouts(story: LiveDispatchStory, points: LiveDispatchPoint[], la
   return calloutAnchors(points).map((anchor, index) => ({
     ...anchor,
     n: index + 1,
-    text: ringCalloutText(anchor.id, anchor.point.ohneMw / 1000, language, {
-      before: story.eveningPeakBeforeGw,
-      after: story.eveningPeakAfterGw,
-    }),
+    text: ringCalloutText(
+      anchor.id,
+      anchor.point.ohneMw / 1000,
+      language,
+      {
+        before: story.eveningPeakBeforeGw,
+        after: story.eveningPeakAfterGw,
+      },
+      "GW"
+    ),
   }));
 }
