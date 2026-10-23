@@ -8,8 +8,18 @@
  */
 
 const QUARTER_HOUR_H = 0.25;
-const SOC_MIN_FRAC = 0.1;
-const SOC_MAX_FRAC = 0.9;
+/** Usable window of this engine: 10 % to 90 % of nameplate. */
+export const BESS_DISPATCH_SOC_MIN_FRAC = 0.1;
+export const BESS_DISPATCH_SOC_MAX_FRAC = 0.9;
+/** State of charge at the first quarter when the caller does not pass one. */
+export const BESS_DISPATCH_INITIAL_SOC_FRAC = 0.5;
+/**
+ * Round-trip efficiency this engine is run with. Callers pass it in.
+ * Not a measured value for any park.
+ */
+export const BESS_DISPATCH_ROUND_TRIP_EFFICIENCY = 0.92;
+const SOC_MIN_FRAC = BESS_DISPATCH_SOC_MIN_FRAC;
+const SOC_MAX_FRAC = BESS_DISPATCH_SOC_MAX_FRAC;
 const PRICE_FLOOR_EUR_MWH = 30;
 const PRICE_CEILING_EUR_MWH = 250;
 const EVENING_DISCHARGE_BONUS_FRAC = 0.18;
@@ -89,6 +99,12 @@ export type BessDispatchDayInput = {
   eveningFlexibilityGapMw?: number | null;
   /** Snapshot renewable share % — nudges the renewable “high” threshold upward when provided. */
   renewableShareCurrentPct?: number | null;
+  /**
+   * Day-ahead prices aligned with `timestampsIso`.
+   * When every usable slot has one, they replace the residual price proxy.
+   * Efficiency, the SoC window and the charge-before-discharge ranking stay as they are.
+   */
+  spotPriceEurPerMwh?: Array<number | null>;
 };
 
 export type SimulateBessDispatchParams = {
@@ -98,6 +114,13 @@ export type SimulateBessDispatchParams = {
   efficiency: number;
   strategy: BessDispatchStrategy;
   day: BessDispatchDayInput;
+  /** Share of nameplate at the first quarter. Defaults to 0.5. */
+  initialSocFrac?: number;
+  /**
+   * Upper bound on discharge quarter-hours. Omit it and the count stays
+   * the energy window from the opening state of charge down to the floor.
+   */
+  maxDischargeSlots?: number;
 };
 
 export type BessDispatchQuarter = {
@@ -173,6 +196,10 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
   if (!isFiniteNumber(params.efficiency) || params.efficiency <= 0 || params.efficiency > 1) {
     throw new Error("efficiency must be in (0, 1]");
   }
+  const initialSocFrac = params.initialSocFrac ?? BESS_DISPATCH_INITIAL_SOC_FRAC;
+  if (!isFiniteNumber(initialSocFrac) || initialSocFrac < 0 || initialSocFrac > 1) {
+    throw new Error("initialSocFrac must be in [0, 1]");
+  }
 
   const { day } = params;
   const n = day.timestampsIso.length;
@@ -193,7 +220,7 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
   const capacityMwh = params.energyMWh;
   const minSocMwh = SOC_MIN_FRAC * capacityMwh;
   const maxSocMwh = SOC_MAX_FRAC * capacityMwh;
-  const startSocMwh = 0.5 * capacityMwh;
+  const startSocMwh = initialSocFrac * capacityMwh;
 
   const eta = params.efficiency;
   const sqrtEta = Math.sqrt(eta);
@@ -209,6 +236,7 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
     residualLoadMw: number;
     renewableShareOfLoadPct: number | null;
     netPositionMw: number | null;
+    spotPriceEurPerMwh: number | null;
     priceProxyEurPerMwh: number;
     dischargeScore: number;
     chargeOk: boolean;
@@ -235,6 +263,8 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
     if (isEveningBerlin(hour)) {
       eveningResiduals.push(res);
     }
+    const spotRaw = day.spotPriceEurPerMwh?.[i];
+    const spotPriceEurPerMwh = typeof spotRaw === "number" && Number.isFinite(spotRaw) ? spotRaw : null;
     const load = day.loadMw[i];
     const gen = day.totalGenerationMw[i];
     let net: number | null = null;
@@ -255,6 +285,7 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
       residualLoadMw: res,
       renewableShareOfLoadPct: ren !== null && Number.isFinite(ren) ? ren : null,
       netPositionMw: net,
+      spotPriceEurPerMwh,
       priceProxyEurPerMwh: 0,
       dischargeScore: 0,
       chargeOk: false,
@@ -267,7 +298,11 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
   }
 
   const residualsAligned = rows.map((r) => r.residualLoadMw);
-  const { map: priceMap, minPrice, maxPrice, range: priceRange } = buildPriceProxy(residualsAligned);
+  const proxy = buildPriceProxy(residualsAligned);
+  const priceMap = proxy.map;
+  let minPrice = proxy.minPrice;
+  let maxPrice = proxy.maxPrice;
+  let priceRange = proxy.range;
 
   const renewSorted = [...renewValues].sort((a, b) => a - b);
   let renewHigh = percentileSorted(renewSorted, 0.7);
@@ -318,14 +353,43 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
     };
   }
 
+  const priceDriven = rows.every((row) => row.spotPriceEurPerMwh !== null);
+  if (priceDriven) {
+    const spots = rows.map((row) => row.spotPriceEurPerMwh as number);
+    minPrice = Math.min(...spots);
+    maxPrice = Math.max(...spots);
+    priceRange = Math.max(0, maxPrice - minPrice);
+    const spotStds = spots.map((_, idx) => rollingStd(spots, idx, stdWindow));
+    const maxSpotStd = Math.max(...spotStds, 1);
+    const spotEveningBonus = priceRange * EVENING_DISCHARGE_BONUS_FRAC;
+    for (const row of rows) {
+      const price = row.spotPriceEurPerMwh as number;
+      const volNorm = spotStds[row.index] / maxSpotStd;
+      rows[row.index] = {
+        ...row,
+        priceProxyEurPerMwh: price,
+        dischargeScore:
+          price +
+          (row.isEvening ? spotEveningBonus : 0) +
+          VOLATILITY_SCORE_WEIGHT * volNorm * priceRange,
+        chargeOk: true,
+      };
+    }
+  }
+
   const dischargeBatteryTarget = Math.max(0, startSocMwh - minSocMwh);
   const chargeStoredTarget = Math.max(0, maxSocMwh - startSocMwh);
 
   const batteryPerDischargeSlot = gridSlotMwh / sqrtEta;
   const storedPerChargeSlot = gridSlotMwh * sqrtEta;
 
+  const dischargeSlotCap =
+    params.maxDischargeSlots === undefined
+      ? rows.length
+      : Math.max(0, Math.floor(params.maxDischargeSlots));
   const nDischarge = Math.min(
     rows.length,
+    dischargeSlotCap,
     Math.ceil(dischargeBatteryTarget / batteryPerDischargeSlot)
   );
   const nCharge = Math.min(
@@ -344,6 +408,10 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
     .sort((a, b) => a.priceProxyEurPerMwh - b.priceProxyEurPerMwh);
 
   const chargeSet = new Set(chargeCandidates.slice(0, nCharge).map((c) => c.index));
+  if (priceDriven && priceRange <= 1e-9) {
+    dischargeSet.clear();
+    chargeSet.clear();
+  }
 
   let socMwh = startSocMwh;
   let energyChargedFromGridMwh = 0;

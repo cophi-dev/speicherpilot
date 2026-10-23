@@ -41,10 +41,10 @@ const ITEMS: {
     titleEn: "Grid-scale storage",
     badgeDe: "ÖFFENTLICHE ECKDATEN",
     badgeEn: "PUBLIC FIGURES",
-    projektDe: "Flower, Bergedorf: öffentliche Eckdaten. Kein Euro, der Vertrag ist nicht veröffentlicht.",
-    projektEn: "Flower, Bergedorf: published figures. No euro amount, the contract is not published.",
-    netzDe: "Flower, Bergedorf: Speicher vor dem Zähler. Kein veröffentlichter Tagesverlauf.",
-    netzEn: "Flower, Bergedorf: front-of-meter storage. No published daily profile.",
+    projektDe: "Großspeicher Bollingstedt (SH): öffentliche Eckdaten. Der Ring ist ein Modelltag.",
+    projektEn: "Bollingstedt large storage (SH): published figures. The ring is a model day.",
+    netzDe: "Großspeicher Bollingstedt (SH): Speicher vor dem Zähler. Bezug und Einspeisung sind dynamisch begrenzt.",
+    netzEn: "Bollingstedt large storage (SH): storage in front of the meter. Withdrawal and feed-in are limited dynamically.",
   },
 ];
 

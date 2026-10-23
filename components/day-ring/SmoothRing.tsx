@@ -8,6 +8,7 @@ import {
   booleanRuns,
   conicGradient,
   inMidnightTaper,
+  monotonePolarSamples,
   polarAreaPath,
   polarCapPath,
   polarRibbonPath,
@@ -31,6 +32,12 @@ export function SmoothRing({
   highlight,
   hatchId,
   view,
+  smoothSeries = true,
+  holeRadius = 0,
+  radiusOf: radiusOfProp,
+  zeroRadius,
+  monotone = false,
+  solidSigns = false,
 }: {
   points: LiveDispatchPoint[];
   unit: RingUnit;
@@ -41,19 +48,32 @@ export function SmoothRing({
   highlight: Highlight;
   hatchId: string;
   view: { x: number; y: number; w: number; h: number };
+  /** Three-point average. Off when a quarter at the nameplate must keep its full radius. */
+  smoothSeries?: boolean;
+  /** User-unit radius kept clear of the painted band. */
+  holeRadius?: number;
+  /** Replaces the fixed kW/GW scale. Used by the reference ring, which sizes itself in CSS px. */
+  radiusOf?: (value: number) => number;
+  zeroRadius?: number;
+  /** Monotone cubic. The reference state-of-charge ring asks for this so the curve cannot pass a real value. */
+  monotone?: boolean;
+  /** One flat colour per sign. Charge is mint, discharge is coral. */
+  solidSigns?: boolean;
 }) {
   const clipId = `ring-${useId().replace(/:/g, "")}`;
   const valueOf = (point: LiveDispatchPoint, field: "ohneMw" | "mitMw") => (unit === "kW" ? point[field] : point[field] / 1000);
   const rawOhne = points.map((point) => valueOf(point, "ohneMw"));
   const rawMit = points.map((point) => valueOf(point, "mitMw"));
-  const ohne = useMorphedSeries(smoothDrawnSeries(rawOhne));
-  const mit = useMorphedSeries(smoothDrawnSeries(rawMit));
-  const radiusOf = (value: number) => (unit === "kW" ? kwRadius(value) : ringRadius(value));
-  const zero = unit === "kW" ? kwRadius(0) : RING_R0;
+  const ohne = useMorphedSeries(smoothSeries ? smoothDrawnSeries(rawOhne) : rawOhne);
+  const mit = useMorphedSeries(smoothSeries ? smoothDrawnSeries(rawMit) : rawMit);
+  const radiusOf = radiusOfProp ?? ((value: number) => (unit === "kW" ? kwRadius(value) : ringRadius(value)));
+  const zero = zeroRadius ?? (unit === "kW" ? kwRadius(0) : RING_R0);
   const ohneSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: ohne[index] ?? 0 }));
   const mitSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: mit[index] ?? 0 }));
-  const ohneSamples = taperRingSamples(smoothPolarSamples(ohneSeries, radiusOf, zero), zero);
-  const mitSamples = taperRingSamples(smoothPolarSamples(mitSeries, radiusOf, zero), zero);
+  const smooth = (series: { angleDeg: number; value: number }[]) =>
+    monotone ? monotonePolarSamples(series, radiusOf) : smoothPolarSamples(series, radiusOf, zero);
+  const ohneSamples = taperRingSamples(smooth(ohneSeries), zero);
+  const mitSamples = taperRingSamples(smooth(mitSeries), zero);
   const colorOf = (value: number) =>
     scale === "utilisation" && limit != null && limit > 0 ? utilisationColor(value / limit) : energyColor(value);
   const gradient = conicGradient(ohneSeries.map((sample) => ({ angleDeg: sample.angleDeg, color: colorOf(sample.value) })));
@@ -87,8 +107,10 @@ export function SmoothRing({
         limit={limit}
         mode={mode}
         unit={unit}
+        holeRadius={holeRadius}
         mark
         opacity={span ? 0.3 : 1}
+        solidSigns={solidSigns}
       />
       {span ? (
         <g clipPath={`url(#${clipId}-wedge)`} aria-hidden="true">
@@ -104,8 +126,10 @@ export function SmoothRing({
             limit={limit}
             mode={mode}
             unit={unit}
+            holeRadius={holeRadius}
             mark={false}
             opacity={1}
+            solidSigns={solidSigns}
           />
         </g>
       ) : null}
@@ -139,8 +163,10 @@ function RingPaint({
   limit,
   mode,
   unit,
+  holeRadius,
   mark,
   opacity,
+  solidSigns = false,
 }: {
   clipId: string;
   ohne: CurveSample[];
@@ -153,8 +179,10 @@ function RingPaint({
   limit: number | null;
   mode: RingMode;
   unit: RingUnit;
+  holeRadius: number;
   mark: boolean;
   opacity: number;
+  solidSigns?: boolean;
 }) {
   const area = polarAreaPath(ohne, zero);
   const epsilon = unit === "kW" ? 0.2 : 0.02;
@@ -162,19 +190,34 @@ function RingPaint({
   const charge = booleanRuns(ohne.map((sample, index) => open(sample) && (mit[index]?.value ?? sample.value) > sample.value + epsilon));
   const discharge = booleanRuns(ohne.map((sample, index) => open(sample) && sample.value > (mit[index]?.value ?? sample.value) + epsilon));
   const over =
-    mode === "netz" && limit != null
+    mode === "netz" && limit != null && !solidSigns
       ? booleanRuns(ohne.map((sample) => open(sample) && sample.value > limit + epsilon))
       : [];
+  const onZero = (sample: CurveSample): CurveSample => ({ ...sample, radius: zero });
+  const chargeSign = solidSigns ? booleanRuns(ohne.map((sample) => open(sample) && sample.value < -epsilon)) : [];
+  const dischargeSign = solidSigns ? booleanRuns(ohne.map((sample) => open(sample) && sample.value > epsilon)) : [];
   return (
     <g className={mark ? "day-smooth-base" : "day-smooth-hot"} opacity={opacity < 1 ? opacity : undefined}>
       <defs>
         <mask id={clipId} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
           <path className={mark ? "day-ring-area" : undefined} d={area} fill="white" fillRule="nonzero" shapeRendering="geometricPrecision" />
+          {holeRadius > 0 ? <circle cx="0" cy="0" r={holeRadius} fill="black" /> : null}
         </mask>
       </defs>
-      <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} mask={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
-        <div style={{ width: "100%", height: "100%", background: gradient }} />
-      </foreignObject>
+      {solidSigns ? (
+        <g mask={`url(#${clipId})`}>
+          {chargeSign.map((run) => (
+            <path key={`mint${run.start}`} d={polarRibbonPath(ohne.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1).map(onZero))} fill="#9BF6E6" />
+          ))}
+          {dischargeSign.map((run) => (
+            <path key={`coral${run.start}`} d={polarRibbonPath(ohne.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1).map(onZero))} fill="#FF8A70" />
+          ))}
+        </g>
+      ) : (
+        <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} mask={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
+          <div style={{ width: "100%", height: "100%", background: gradient }} />
+        </foreignObject>
+      )}
       {showFlow
         ? charge.map((run) => (
             <path key={`c${run.start}`} d={polarRibbonPath(mit.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1))} fill="#7DFCE6" />

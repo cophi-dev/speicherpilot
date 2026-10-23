@@ -4,6 +4,7 @@ import { LanguageContext } from "@/components/language-context";
 import { SiteDay } from "@/components/site/SiteDay";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { planHamburgSupermarket } from "@/lib/hamburgSupermarket";
+import { referenceParkModelDay } from "@/lib/referenceParkModelDay";
 import { supermarketConnectionStory } from "@/lib/siteConnectionDay";
 
 class ObserverStub {
@@ -30,10 +31,18 @@ jest.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(query),
 }));
 
+const modelDay = referenceParkModelDay({
+  dateBerlin: "2026-10-22",
+  prices: Array.from({ length: 96 }, (_, index) => ({
+    unixMs: Date.parse("2026-10-22T00:00:00+02:00") + index * 15 * 60 * 1000,
+    eurPerMwh: index < 40 ? 20 : 160,
+  })),
+});
+
 function renderSite() {
   return render(
     <LanguageContext.Provider value={{ language: "de", setLanguage: () => {} }}>
-      <SiteDay />
+      <SiteDay modelDay={modelDay} />
     </LanguageContext.Provider>
   );
 }
@@ -64,13 +73,31 @@ describe("site v2 heroes", () => {
     expect(screen.getByText(/Rückzahlung/)).toBeInTheDocument();
   });
 
-  it("shows Flower as an empty ring with sourced figures and no statute", () => {
+  it("shows Bollingstedt as a labelled model day with sourced figures and no statute", () => {
     query = "view=netz&scenario=grossspeicher";
     const { container } = renderSite();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Ring bleibt leer/);
-    expect(container.querySelectorAll("circle").length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("link", { name: "Flower" })[0]).toHaveAttribute("href", expect.stringContaining("flower.se"));
-    expect(document.body.textContent).not.toMatch(/\d{2}:\d{2}/);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Bollingstedt/);
+    expect(screen.getAllByText("MODELLTAG").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/nicht die echte Fahrweise/).length).toBeGreaterThan(0);
+    expect(container.querySelector(".day-model-caption")?.textContent).toMatch(/Gestrige Day-Ahead-Preise/);
+    expect(container.querySelector(".day-model-rule")?.textContent).toMatch(/billigsten Viertelstunden/);
+    expect(screen.getByRole("link", { name: /Regel im Detail/ })).toHaveAttribute("href", "/methodik#modelltag");
+    expect(container.querySelector(".day-model-rule-link a")?.textContent).toMatch(/Regel im Detail →/);
+    expect(container.querySelector(".day-model-mark .day-model-note")).toBeNull();
+    expect(container.querySelector(".day-model-overlay .day-model-pill")?.textContent).toBe("MODELLTAG");
+    const caption = container.querySelector(".day-model-caption");
+    const rule = container.querySelector(".day-model-rule");
+    expect(caption?.compareDocumentPosition(rule!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelector(".day-ring-solid")).not.toBeNull();
+    expect(container.querySelector("[fill*='url(#']")).toBeNull();
+    expect(screen.getAllByRole("link", { name: /MaStR/ })[0]).toHaveAttribute("href", expect.stringContaining("marktstammdatenregister.de"));
+    expect(screen.getByRole("link", { name: "echte Fahrweise beim Betreiber" })).toHaveAttribute(
+      "href",
+      "https://www.eco-stor.de/grid_stability_dashboard"
+    );
+    expect(screen.getByRole("link", { name: "Rechnung in der Methodik" })).toHaveAttribute("href", "/methodik#modelltag");
+    expect(document.body.textContent).toMatch(/Bezug und Einspeisung sind dynamisch begrenzt/);
+    expect(document.body.textContent).not.toMatch(/€|Euro|Tesla/);
     expect(document.body.textContent).not.toMatch(/EnWG/);
   });
 });

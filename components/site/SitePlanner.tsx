@@ -8,7 +8,7 @@ import { ChartLegend, DispatchChart, type DispatchPoint, useNarrowScreen } from 
 import { ConnectionLight } from "@/components/connection/ConnectionLight";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
-import { FlowerReference } from "@/components/site/FlowerReference";
+import { ReferenceParkReference } from "@/components/site/ReferenceParkReference";
 import { ResultRating } from "@/components/site/ResultRating";
 import { ScenarioPicker } from "@/components/site/ScenarioPicker";
 import { NewsList } from "@/components/sim/NewsList";
@@ -322,7 +322,7 @@ export function SitePlanner() {
     over: tx("Darüber", "Above"),
   };
   const showingExample = draft.mode === "supermarkt" || draft.mode === "quartier";
-  const flowerCase = scenario === "grossspeicher";
+  const referenceCase = scenario === "grossspeicher";
 
   function chooseScenario(next: ScenarioId) {
     if (!view) {
@@ -445,8 +445,8 @@ export function SitePlanner() {
       </div>
       <ScenarioPicker scenario={scenario} view={view} language={language} onSelect={chooseScenario} />
 
-      <div className={`mt-7 grid items-start gap-6 ${flowerCase ? "" : "lg:grid-cols-[360px_minmax(0,1fr)]"}`}>
-        {flowerCase ? null : (
+      <div className={`mt-7 grid items-start gap-6 ${referenceCase ? "" : "lg:grid-cols-[360px_minmax(0,1fr)]"}`}>
+        {referenceCase ? null : (
         <form id="load-profile" className="rounded-md border border-border bg-card p-5 lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-auto" onSubmit={(event) => event.preventDefault()}>
           <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">01 {tx("Lastprofil", "Load profile")}</p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -622,8 +622,8 @@ export function SitePlanner() {
         )}
 
         <div className="flex min-w-0 flex-col gap-6 pb-24 lg:pb-0">
-          {flowerCase ? (
-            <FlowerReference language={language} view={view} />
+          {referenceCase ? (
+            <ReferenceParkReference language={language} view={view} />
           ) : !plan || !profile ? (
             <div className="rounded-md border border-dashed border-border-strong p-8" role="tabpanel" id="results-panel">
               <p>
