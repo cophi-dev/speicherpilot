@@ -2199,6 +2199,12 @@
   align-self: start;
 }
 
+@media (max-width: 959px) {
+  .day-movement-pin {
+    background: hsl(var(--background));
+  }
+}
+
 .day-movements li {
   scroll-margin-top: 5rem;
   min-height: 42vh;
@@ -2215,6 +2221,10 @@
   margin: 24px 0 0;
   padding: 0;
   list-style: none;
+}
+
+.day-movements ol {
+  padding-bottom: 30vh;
 }
 
 .day-movements li h3,
@@ -2428,7 +2438,11 @@
     grid-template-columns: minmax(280px, 1.1fr) minmax(240px, 0.8fr);
     align-items: start;
   }
-  .day-movements ol { display: block; }
+  .day-movements ol {
+    display: block;
+    padding-bottom: 40vh;
+  }
+  .day-movements li { min-height: 60vh; }
   .day-doors { grid-template-columns: 1fr 1fr; }
 }
 
