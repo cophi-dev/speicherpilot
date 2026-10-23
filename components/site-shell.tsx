@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Monitor, Moon, Sun, X } from "lucide-react";
 
 import BessAiChatOverlay from "@/components/BessAiChatOverlay";
+import { BrandLockup } from "@/components/BrandLockup";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
 type SiteShellProps = {
   children: React.ReactNode;
@@ -212,9 +213,7 @@ export function SiteShell({ children }: SiteShellProps) {
         </a>
         <header className={`site-header sticky top-0 z-40 h-16 border-b backdrop-blur ${overHero ? "is-over-hero" : "border-border bg-background/85"}`}>
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
-            <Link href="/" className="flex min-w-0 items-center gap-2.5">
-              <span className="text-[16px] font-semibold leading-none">SpeicherPilot</span>
-            </Link>
+            <BrandLockup />
             <nav className="hidden items-center gap-7 text-sm font-medium md:flex" aria-label={tx("Hauptnavigation", "Primary")}>
               {NAV.map((item) => {
                 const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

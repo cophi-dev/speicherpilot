@@ -1318,6 +1318,36 @@
   color: #e9eef2;
 }
 
+/* Logo C lockup. Clear space is padding on the link. The dark file shows in
+   dark theme and while the header sits on the dark hero. */
+.brand-lockup__frame {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.brand-lockup__frame img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.brand-lockup__frame .brand-lockup__dunkel {
+  display: none;
+}
+
+.dark .brand-lockup__frame .brand-lockup__hell,
+.site-header.is-over-hero .brand-lockup__frame .brand-lockup__hell {
+  display: none;
+}
+
+.dark .brand-lockup__frame .brand-lockup__dunkel,
+.site-header.is-over-hero .brand-lockup__frame .brand-lockup__dunkel {
+  display: block;
+}
+
 .day-hero-inner {
   max-width: 1200px;
   margin-inline: auto;
