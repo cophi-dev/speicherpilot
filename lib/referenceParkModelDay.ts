@@ -8,16 +8,15 @@ import {
   type DispatchResult,
 } from "@/lib/bessDispatchSimulator";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
+import { KW_K, KW_R0, socRingGeometry } from "@/lib/dayRingScale";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { REFERENCE_PARK } from "@/lib/referencePark";
 
 /**
- * Drawing scale for the site ring, not a second power rating.
- * Full discharge reaches 70 drawing-units. Full charge only dips to −16,
- * so the centre label keeps a clear hole. The table carries real MW.
+ * Gap outside the state-of-charge ring. The power band starts beyond it,
+ * so the centre copy stays inside the hole.
  */
-const DRAW_DISCHARGE = 70;
-const DRAW_CHARGE = 16;
+export const REFERENCE_BAND_GAP = 18;
 
 export type ReferenceParkModelDay = {
   dateBerlin: string;
@@ -112,12 +111,33 @@ export function dispatchReferencePark(input: ReferenceParkDispatchInput): Dispat
   });
 }
 
+/**
+ * Radii for the reference ring. Full nameplate power reaches either end.
+ * Nothing is drawn inside `center`, which is the state-of-charge ring's inner edge.
+ */
+export function referenceParkBandLimits(bold = false): { inner: number; zero: number; outer: number; center: number } {
+  const soc = socRingGeometry("kW", bold);
+  const center = soc.innerEdge;
+  const inner = center + soc.width + REFERENCE_BAND_GAP;
+  const zero = KW_R0;
+  const outer = zero + (zero - inner);
+  return { inner, zero, outer, center };
+}
+
+/** Drawing-units of one full nameplate swing. The utilisation scale uses this as its limit. */
+export function referenceParkFullDrawKw(): number {
+  const { zero, outer } = referenceParkBandLimits();
+  return (outer - zero) / KW_K;
+}
+
 export function referenceParkRingKw(signedMw: number, nameplateMw: number): number {
   if (!Number.isFinite(signedMw) || !(nameplateMw > 0)) {
     return 0;
   }
   const share = Math.max(-1, Math.min(1, signedMw / nameplateMw));
-  return share >= 0 ? share * DRAW_DISCHARGE : share * DRAW_CHARGE;
+  const { inner, zero, outer } = referenceParkBandLimits();
+  const radius = share >= 0 ? zero + share * (outer - zero) : zero + share * (zero - inner);
+  return (radius - zero) / KW_K;
 }
 
 export function referenceParkModelDay(input: ReferenceParkDispatchInput): ReferenceParkModelDay | null {
