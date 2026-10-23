@@ -81,10 +81,12 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
   const [menuOpen, setMenuOpen] = useState(false);
   const nightHero = pathname === "/" || pathname === "/live";
   const [overHero, setOverHero] = useState(nightHero);
+  const [atTop, setAtTop] = useState(true);
   const [trackedPath, setTrackedPath] = useState(pathname);
   if (pathname !== trackedPath) {
     setTrackedPath(pathname);
     setOverHero(nightHero);
+    setAtTop(true);
   }
 
   useEffect(() => {
@@ -177,6 +179,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
 
   useLayoutEffect(() => {
     const update = () => {
+      setAtTop(window.scrollY <= 0);
       const hero = document.querySelector(".day-hero");
       if (!hero) {
         if (!nightHero) {
@@ -217,7 +220,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
         >
           {tx("Zum Inhalt", "Skip to content")}
         </a>
-        <header className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? "is-over-hero border-transparent bg-transparent" : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}>
+        <header className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}>
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
             <BrandLockup />
             <nav className="hidden items-center gap-7 text-sm font-medium md:flex" aria-label={tx("Hauptnavigation", "Primary")}>

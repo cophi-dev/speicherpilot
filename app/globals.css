@@ -100,6 +100,7 @@
     --mint-stroke: #218c77;
     --coral: #9e2b1a;
     --coral-stroke: #af351d;
+    --ink: #101214;
   }
 
   .dark {
@@ -136,6 +137,7 @@
     --bg: #0b0d0f;
     --linie: #262b31;
     --flaeche: #121417;
+    --ink: #e9eef2;
     --mint: #7dfce6;
     --mint-stroke: #7dfce6;
     --coral: #ff8a70;
@@ -1313,7 +1315,7 @@
   min-height: 100svh;
   max-height: 100svh;
   padding-top: calc(12px + 4rem);
-  padding-bottom: 96px;
+  padding-bottom: 24px;
 }
 
 .day-hero-screen > .day-hero-inner {
@@ -1432,17 +1434,6 @@
   margin-top: 8px;
 }
 
-.day-hero-screen::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 96px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, #0a0f14, var(--bg));
-}
-
 .site-header.is-over-hero {
   background: transparent;
   border-bottom-color: transparent;
@@ -1455,7 +1446,14 @@
   --card: 204 28% 9%;
   --card-foreground: 204 20% 93%;
   --ring: 168 95% 74%;
+  -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+.site-header.is-over-hero.is-hero-scrolled {
+  background: rgba(10, 15, 20, 0.88);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 .site-header.is-over-hero .text-muted-foreground {
@@ -2234,7 +2232,7 @@
   .day-hero { padding: calc(48px + 4rem) 32px 64px; }
   .day-hero-screen {
     padding-top: calc(16px + 4rem);
-    padding-bottom: 96px;
+    padding-bottom: 24px;
   }
   .day-title { font-size: 52px; }
   .day-hero-screen .day-title { font-size: clamp(22px, 3.4svh, 44px); }
@@ -2559,8 +2557,17 @@
   padding: 8px 20px 72px;
 }
 
+/* Light mode only: hard edge under the dark plate, then 96px until the story headline. */
+html:not(.dark) .day-story {
+  padding-top: 96px;
+}
+
+.day-story .day-movements {
+  margin-top: 0;
+}
+
 .day-story .day-methods {
-  margin-top: 8px;
+  margin-top: 0;
   padding-top: 0;
   border-top: 0;
 }
@@ -2589,6 +2596,20 @@
 .day-story .day-ink-arc,
 .day-story .day-spoke {
   stroke: hsl(var(--foreground));
+}
+
+/* Inactive story segments stay on the saturated stops and only drop in opacity. */
+.day-smooth-base.is-dim {
+  opacity: 0.3;
+}
+
+html:not(.dark) .day-story .day-smooth-base.is-dim {
+  opacity: 0.45;
+}
+
+html:not(.dark) .day-story .day-ink-arc {
+  stroke: var(--ink);
+  stroke-width: 3px;
 }
 
 @media (min-width: 768px) {

@@ -76,7 +76,7 @@ export function taperRingSamples(samples: readonly CurveSample[], zeroRadius: nu
   }
   const head: CurveSample = { angleDeg: gap, radius: zeroRadius, value: body[0].value };
   const tail: CurveSample = { angleDeg: end, radius: zeroRadius, value: body[body.length - 1].value };
-  return densify([head, ...body, tail], 0.35);
+  return densify([head, ...body, tail], EDGE_STEP_DEG);
 }
 export function quarterCenterDeg(index: number): number {
   const span = segmentAngles(index);
@@ -127,10 +127,8 @@ export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: numbe
   if (samples.length < 2) return "";
   const first = samples[0];
   const last = samples[samples.length - 1];
-  const parts = [`M ${xy(first.radius, first.angleDeg)}`];
-  for (let index = 1; index < samples.length; index += 1) {
-    parts.push(`L ${xy(samples[index].radius, samples[index].angleDeg)}`);
-  }
+  const parts: string[] = [];
+  appendSmoothEdge(parts, samples, true);
   const end = polarPoint(0, 0, zeroRadius, last.angleDeg);
   const start = polarPoint(0, 0, zeroRadius, first.angleDeg);
   const radius = fmt(zeroRadius);
@@ -139,6 +137,14 @@ export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: numbe
   parts.push("Z");
   return parts.join(" ");
 }
+
+/**
+ * Outer-edge spacing in degrees.
+ * At a 1280px ring and 2× device pixels a chord this short stays under half a device pixel.
+ */
+const EDGE_STEP_DEG = 0.15;
+const GRID_STEPS = 24;
+const BEZIER_STEPS = 16;
 
 /** Even steps so the outer edge anti-aliases as one curve instead of a serrated polyline. */
 function densify(samples: readonly CurveSample[], stepDeg: number): CurveSample[] {
@@ -165,13 +171,9 @@ function densify(samples: readonly CurveSample[], stepDeg: number): CurveSample[
 /** Band between two open curves that share angles. */
 export function polarRibbonPath(outer: readonly CurveSample[], inner: readonly CurveSample[]): string {
   if (outer.length < 2 || outer.length !== inner.length) return "";
-  const parts = [`M ${xy(outer[0].radius, outer[0].angleDeg)}`];
-  for (let index = 1; index < outer.length; index += 1) {
-    parts.push(`L ${xy(outer[index].radius, outer[index].angleDeg)}`);
-  }
-  for (let index = inner.length - 1; index >= 0; index -= 1) {
-    parts.push(`L ${xy(inner[index].radius, inner[index].angleDeg)}`);
-  }
+  const parts: string[] = [];
+  appendSmoothEdge(parts, outer, true);
+  appendSmoothEdge(parts, [...inner].reverse(), false);
   parts.push("Z");
   return parts.join(" ");
 }
@@ -185,10 +187,8 @@ export function polarCapPath(outer: readonly CurveSample[], limitRadius: number)
   const start = polarPoint(0, 0, limitRadius, first.angleDeg);
   const large = last.angleDeg - first.angleDeg > 180 ? 1 : 0;
   const radius = fmt(limitRadius);
-  const parts = [`M ${xy(first.radius, first.angleDeg)}`];
-  for (let index = 1; index < outer.length; index += 1) {
-    parts.push(`L ${xy(outer[index].radius, outer[index].angleDeg)}`);
-  }
+  const parts: string[] = [];
+  appendSmoothEdge(parts, outer, true);
   parts.push(`L ${fmt(end.x)} ${fmt(end.y)}`);
   parts.push(`A ${radius} ${radius} 0 ${large} 0 ${fmt(start.x)} ${fmt(start.y)}`);
   parts.push("Z");
@@ -259,7 +259,7 @@ function angleGrid(controls: readonly Control[]): number[] {
   for (let index = 0; index < controls.length - 1; index += 1) {
     const start = controls[index].angle;
     const end = controls[index + 1].angle;
-    for (let step = 0; step < 8; step += 1) angles.push(start + ((end - start) * step) / 8);
+    for (let step = 0; step < GRID_STEPS; step += 1) angles.push(start + ((end - start) * step) / GRID_STEPS);
   }
   angles.push(controls[controls.length - 1].angle);
   return angles;
@@ -282,8 +282,8 @@ function flattenCurve(curve: CurveFactory, controls: readonly Control[]): CurveS
       out.push({ angleDeg: x, radius: y, value: 0 });
     },
     bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number) {
-      for (let step = 1; step <= 8; step += 1) {
-        const t = step / 8;
+      for (let step = 1; step <= BEZIER_STEPS; step += 1) {
+        const t = step / BEZIER_STEPS;
         out.push({ angleDeg: cubic(currentX, x1, x2, x, t), radius: cubic(currentY, y1, y2, y, t), value: 0 });
       }
       currentX = x;
@@ -331,13 +331,36 @@ function cubic(p0: number, p1: number, p2: number, p3: number, t: number): numbe
   return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
 }
 
-function xy(radius: number, angleDeg: number): string {
-  const at = polarPoint(0, 0, radius, angleDeg);
-  return `${fmt(at.x)} ${fmt(at.y)}`;
+/** Cubic through the samples so the rasterizer follows a curve instead of a staircase of chords. */
+function appendSmoothEdge(
+  parts: string[],
+  samples: readonly { radius: number; angleDeg: number }[],
+  move: boolean
+): void {
+  const pts = samples.map((sample) => polarPoint(0, 0, sample.radius, sample.angleDeg));
+  if (pts.length === 0) return;
+  parts.push(`${move ? "M" : "L"} ${fmt(pts[0].x)} ${fmt(pts[0].y)}`);
+  if (pts.length < 3) {
+    for (let index = 1; index < pts.length; index += 1) {
+      parts.push(`L ${fmt(pts[index].x)} ${fmt(pts[index].y)}`);
+    }
+    return;
+  }
+  for (let index = 0; index < pts.length - 1; index += 1) {
+    const p0 = pts[index === 0 ? 0 : index - 1];
+    const p1 = pts[index];
+    const p2 = pts[index + 1];
+    const p3 = pts[Math.min(pts.length - 1, index + 2)];
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    parts.push(`C ${fmt(c1x)} ${fmt(c1y)} ${fmt(c2x)} ${fmt(c2y)} ${fmt(p2.x)} ${fmt(p2.y)}`);
+  }
 }
 
 function fmt(value: number): string {
-  return (Math.round(value * 100) / 100).toString();
+  return (Math.round(value * 1000) / 1000).toString();
 }
 
 function clamp(value: number, min: number, max: number): number {
