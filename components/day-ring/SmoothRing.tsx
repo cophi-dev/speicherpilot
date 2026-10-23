@@ -74,39 +74,28 @@ export function SmoothRing({
           </clipPath>
         ) : null}
       </defs>
+      <clipPath id={`${clipId}-area`} clipPathUnits="userSpaceOnUse">
+        <path className="day-ring-area" d={area} fillRule="nonzero" shapeRendering="geometricPrecision" />
+      </clipPath>
       <circle className="day-zero" cx="0" cy="0" r={zero} fill="none" mask={`url(#${clipId}-zero)`} />
-      <RingPaint
-        clipId={clipId}
-        ohne={ohneSamples}
-        mit={mitSamples}
-        zero={zero}
-        gradient={gradient}
-        view={view}
-        showFlow={showFlow}
-        hatchId={hatchId}
-        limit={limit}
-        mode={mode}
-        unit={unit}
-        mark
-        dim={Boolean(span)}
-      />
+      <g clipPath={`url(#${clipId}-area)`}>
+        <g className={span ? "day-smooth-base is-dim" : "day-smooth-base"}>
+          <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId}-area)`} pointerEvents="none" aria-hidden="true">
+            <div style={{ width: "100%", height: "100%", background: gradient }} />
+          </foreignObject>
+        </g>
+        {span ? (
+          <g className="day-smooth-hot" clipPath={`url(#${clipId}-wedge)`}>
+            <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId}-area)`} pointerEvents="none" aria-hidden="true">
+              <div style={{ width: "100%", height: "100%", background: gradient }} />
+            </foreignObject>
+          </g>
+        ) : null}
+      </g>
+      <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} dim={Boolean(span)} />
       {span ? (
         <g clipPath={`url(#${clipId}-wedge)`} aria-hidden="true">
-          <RingPaint
-            clipId={`${clipId}-hot`}
-            ohne={ohneSamples}
-            mit={mitSamples}
-            zero={zero}
-            gradient={gradient}
-            view={view}
-            showFlow={showFlow}
-            hatchId={hatchId}
-            limit={limit}
-            mode={mode}
-            unit={unit}
-            mark={false}
-            dim={false}
-          />
+          <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} dim={false} />
         </g>
       ) : null}
       <g className="day-ring-tips">
@@ -128,35 +117,24 @@ export function SmoothRing({
 }
 
 function RingPaint({
-  clipId,
   ohne,
   mit,
-  zero,
-  gradient,
-  view,
   showFlow,
   hatchId,
   limit,
   mode,
   unit,
-  mark,
   dim,
 }: {
-  clipId: string;
   ohne: CurveSample[];
   mit: CurveSample[];
-  zero: number;
-  gradient: string;
-  view: { x: number; y: number; w: number; h: number };
   showFlow: boolean;
   hatchId: string;
   limit: number | null;
   mode: RingMode;
   unit: RingUnit;
-  mark: boolean;
   dim: boolean;
 }) {
-  const area = polarAreaPath(ohne, zero);
   const epsilon = unit === "kW" ? 0.2 : 0.02;
   const open = (sample: CurveSample) => !inMidnightTaper(sample.angleDeg);
   const charge = booleanRuns(ohne.map((sample, index) => open(sample) && (mit[index]?.value ?? sample.value) > sample.value + epsilon));
@@ -166,15 +144,7 @@ function RingPaint({
       ? booleanRuns(ohne.map((sample) => open(sample) && sample.value > limit + epsilon))
       : [];
   return (
-    <g className={`${mark ? "day-smooth-base" : "day-smooth-hot"}${dim ? " is-dim" : ""}`}>
-      <defs>
-        <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
-          <path className={mark ? "day-ring-area" : undefined} d={area} fillRule="nonzero" shapeRendering="geometricPrecision" />
-        </clipPath>
-      </defs>
-      <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId})`} pointerEvents="none" aria-hidden="true">
-        <div style={{ width: "100%", height: "100%", background: gradient }} />
-      </foreignObject>
+    <g className={dim ? "day-smooth-base is-dim" : "day-smooth-hot"}>
       {showFlow
         ? charge.map((run) => (
             <path key={`c${run.start}`} className="day-charge" d={polarRibbonPath(mit.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1))} fill="var(--mint-stroke)" />

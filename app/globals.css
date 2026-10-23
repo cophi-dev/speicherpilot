@@ -1419,7 +1419,7 @@
 }
 
 .day-hero-screen .day-stats {
-  gap: 8px;
+  gap: 16px;
 }
 
 .day-hero-screen .day-stats dd {
@@ -2284,6 +2284,13 @@
   .day-hero-screen .day-order-controls { grid-area: controls; }
   .day-hero-screen .day-order-ring { grid-area: ring; align-self: stretch; height: 100%; }
   .day-hero-screen .day-order-legend { grid-area: legend; }
+  .day-hero-screen .day-stats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .day-hero-screen .day-stats dt {
+    overflow-wrap: anywhere;
+  }
   .day-hero-screen .day-peaks {
     display: flex;
     flex-wrap: nowrap;
