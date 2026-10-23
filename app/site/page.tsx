@@ -1,16 +1,18 @@
 import { Suspense } from "react";
 
 import { SiteDay } from "@/components/site/SiteDay";
+import { loadReferenceParkModelDay } from "@/lib/loadReferenceParkModelDay";
 
 export const metadata = {
   title: "Speicher oder Anschluss",
-  description: "Zwei Einstiege: Speicher planen oder einen Anschluss prüfen. Beispiele Supermarkt, Quartier und die öffentliche Referenz Flower in Hamburg-Bergedorf.",
+  description: "Zwei Einstiege: Speicher planen oder einen Anschluss prüfen. Beispiele Supermarkt, Quartier und der Großspeicher Bollingstedt in Schleswig-Holstein.",
 };
 
-export default function SitePage() {
+export default async function SitePage() {
+  const modelDay = await loadReferenceParkModelDay();
   return (
     <Suspense>
-      <SiteDay />
+      <SiteDay modelDay={modelDay} />
     </Suspense>
   );
 }
