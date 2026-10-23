@@ -92,9 +92,11 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
 
   const saturated = stories ? fullSurplusFactor(stories) : null;
   const saturationIndex = saturated ? LIVE_DISPATCH_FACTORS.indexOf(saturated) : null;
+  const fleetStand = dispatch.fleet ? (language === "de" ? dispatch.fleet.updatedLabel.de : dispatch.fleet.updatedLabel.en) : "";
 
   return (
-    <section className="day-hero" aria-labelledby="live-what-if">
+    <>
+    <section className="day-hero day-hero-screen" aria-labelledby="live-what-if">
       <div className="day-hero-inner">
         {story && stories && dispatch.fleet ? (
           <LiveRingBody
@@ -129,6 +131,14 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
         )}
       </div>
     </section>
+    {story && dispatch.fleet ? (
+      <section className="day-story" aria-labelledby="live-methods">
+        <div className="day-hero-inner">
+          <LiveMethods language={language} stand={fleetStand} />
+        </div>
+      </section>
+    ) : null}
+    </>
   );
 }
 
@@ -272,39 +282,45 @@ function LiveRingBody({
           <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
         </div>
       </div>
-      <div className="day-methods">
-        <section>
-          <h2>{tx("So rechnet das Modell", "How the model counts")}</h2>
-          <p>
-            {tx(
-              "Speicher starten leer, laden nur, wenn Wind und Sonne mehr liefern als gebraucht wird, und geben ab 17 Uhr so ab, dass die höchste Stunde möglichst tief fällt.",
-              "Storage starts empty, charges only when wind and solar deliver more than is used, and from 17:00 gives power back so the highest hour falls as far as it can."
-            )}
-          </p>
-        </section>
-        <section>
-          <h2>{tx("Was es nicht ist", "What it is not")}</h2>
-          <p>
-            {tx(
-              "Keine Prognose und kein Fahrplan echter Anlagen. Ein Gedankenexperiment mit echten Daten eines Tages.",
-              "Not a forecast and not a schedule for real plants. A thought experiment with one day’s real data."
-            )}
-          </p>
-        </section>
-        <section>
-          <h2>
-            {tx("Großspeicher heute", "Large storage today")}
-            <GlossaryTip id="ladezustand" language={language} />
-          </h2>
-          <p>
-            {tx(
-              `Stand ${stand}. Der innere Ring ist der Ladezustand im Modell, keine Messung.`,
-              `As of ${stand}. The inner ring is the state of charge in the model, not a measurement.`
-            )}
-          </p>
-        </section>
-      </div>
     </>
+  );
+}
+
+function LiveMethods({ language, stand }: { language: AppLanguage; stand: string }) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  return (
+    <div className="day-methods">
+      <section>
+        <h2 id="live-methods">{tx("So rechnet das Modell", "How the model counts")}</h2>
+        <p>
+          {tx(
+            "Speicher starten leer, laden nur, wenn Wind und Sonne mehr liefern als gebraucht wird, und geben ab 17 Uhr so ab, dass die höchste Stunde möglichst tief fällt.",
+            "Storage starts empty, charges only when wind and solar deliver more than is used, and from 17:00 gives power back so the highest hour falls as far as it can."
+          )}
+        </p>
+      </section>
+      <section>
+        <h2>{tx("Was es nicht ist", "What it is not")}</h2>
+        <p>
+          {tx(
+            "Keine Prognose und kein Fahrplan echter Anlagen. Ein Gedankenexperiment mit echten Daten eines Tages.",
+            "Not a forecast and not a schedule for real plants. A thought experiment with one day’s real data."
+          )}
+        </p>
+      </section>
+      <section>
+        <h2>
+          {tx("Großspeicher heute", "Large storage today")}
+          <GlossaryTip id="ladezustand" language={language} />
+        </h2>
+        <p>
+          {tx(
+            `Stand ${stand}. Der innere Ring ist der Ladezustand im Modell, keine Messung.`,
+            `As of ${stand}. The inner ring is the state of charge in the model, not a measurement.`
+          )}
+        </p>
+      </section>
+    </div>
   );
 }
 

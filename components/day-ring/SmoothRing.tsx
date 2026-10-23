@@ -177,7 +177,7 @@ function RingPaint({
       </foreignObject>
       {showFlow
         ? charge.map((run) => (
-            <path key={`c${run.start}`} d={polarRibbonPath(mit.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1))} fill="#7DFCE6" />
+            <path key={`c${run.start}`} className="day-charge" d={polarRibbonPath(mit.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1))} fill="var(--mint-stroke)" />
           ))
         : null}
       {showFlow && mode !== "projekt"
@@ -190,7 +190,7 @@ function RingPaint({
             <path
               key={`p${run.start}`}
               d={polarRibbonPath(ohne.slice(run.start, run.end + 1), mit.slice(run.start, run.end + 1))}
-              fill="#7DFCE6"
+              fill="var(--mint-stroke)"
               opacity="0.85"
             />
           ))
