@@ -1,4 +1,6 @@
-import { BESS_DISPATCH_ROUND_TRIP_EFFICIENCY } from "@/lib/bessDispatchSimulator";
+import { readFileSync } from "node:fs";
+
+import { BESS_DISPATCH_INITIAL_SOC_FRAC } from "@/lib/bessDispatchSimulator";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
 import { kwRadius, socRingGeometry } from "@/lib/dayRingScale";
 import { quarterCenterForHour, smoothPolarSamples, taperRingSamples } from "@/lib/dayRingSmooth";
@@ -8,6 +10,7 @@ import {
   referenceParkModelDay,
   referenceParkRingKw,
 } from "@/lib/referenceParkModelDay";
+import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
 const DAY = "2026-10-22";
 
@@ -25,7 +28,7 @@ describe("Bollingstedt model day", () => {
   it("runs the park on a price spread and keeps the engine efficiency and SoC window", () => {
     const result = dispatchReferencePark({ prices: spread(), dateBerlin: DAY });
     expect(result).not.toBeNull();
-    expect(result?.params.efficiency).toBe(BESS_DISPATCH_ROUND_TRIP_EFFICIENCY);
+    expect(result?.params.efficiency).toBe(ROUND_TRIP_EFFICIENCY);
     expect(result?.params.powerMW).toBe(103.5);
     expect(result?.params.energyMWh).toBe(238.5);
     expect(result?.quarters.some((quarter) => quarter.powerMw < 0)).toBe(true);
@@ -44,10 +47,35 @@ describe("Bollingstedt model day", () => {
     expect(result?.quarters.some((quarter) => quarter.powerMw < -1e-3)).toBe(true);
   });
 
-  it("does not charge a full battery", () => {
+  it("does not charge a full battery and does not spend that opening inventory", () => {
     const result = dispatchReferencePark({ prices: spread(), dateBerlin: DAY, initialSocFrac: 1 });
     expect(result?.quarters.every((quarter) => quarter.powerMw >= -1e-6)).toBe(true);
-    expect(result?.quarters.some((quarter) => quarter.powerMw > 1e-3)).toBe(true);
+    const start = result?.params.energyMWh ?? 0;
+    const end = result?.quarters.at(-1)?.socMwh ?? 0;
+    expect(end).toBeGreaterThanOrEqual(start - 1e-6);
+    expect(result?.quarters.every((quarter) => Math.abs(quarter.powerMw) < 1e-6)).toBe(true);
+  });
+
+  it("ends at or above the opening state of charge", () => {
+    const result = dispatchReferencePark({ prices: spread(), dateBerlin: DAY });
+    const start = BESS_DISPATCH_INITIAL_SOC_FRAC * (result?.params.energyMWh ?? 0);
+    const end = result?.quarters.at(-1)?.socMwh ?? 0;
+    expect(end).toBeGreaterThanOrEqual(start - 1e-6);
+    const stored = (result?.quarters ?? []).reduce((sum, quarter, index, all) => {
+      const previous = index === 0 ? start : all[index - 1]!.socMwh;
+      return sum + Math.max(0, quarter.socMwh - previous);
+    }, 0);
+    const drawn = (result?.quarters ?? []).reduce((sum, quarter, index, all) => {
+      const previous = index === 0 ? start : all[index - 1]!.socMwh;
+      return sum + Math.max(0, previous - quarter.socMwh);
+    }, 0);
+    expect(drawn).toBeLessThanOrEqual(stored + 1e-6);
+  });
+
+  it("reads the shared efficiency and does not hardcode one", () => {
+    const source = readFileSync("lib/referenceParkModelDay.ts", "utf8");
+    expect(source).not.toMatch(/0\.92|0\.85/);
+    expect(source).toContain("ROUND_TRIP_EFFICIENCY");
   });
 
   it("holds still when every price is equal", () => {

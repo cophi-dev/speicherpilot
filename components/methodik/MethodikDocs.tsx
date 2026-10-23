@@ -8,6 +8,7 @@ import { useLanguage } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { REFERENCE_PARK } from "@/lib/referencePark";
 import { GLOSSARY } from "@/lib/glossary";
+import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 
 const CHAPTERS = [
@@ -24,6 +25,7 @@ const CHAPTERS = [
 export function MethodikDocs() {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
   useEffect(() => {
     if (typeof window.matchMedia !== "function") {
       return;
@@ -198,7 +200,7 @@ export function MethodikDocs() {
               <p>{tx("Leistung und Inhalt sind die Summe zweier Einheiten im Marktstammdatenregister: SEE925543621515 und SEE922158261037. Zusammen sind das 103,5 MW und 238,5 MWh. Die Meldung des Betreibers nennt 238 MWh.", "Power and energy are the sum of two Marktstammdatenregister units: SEE925543621515 and SEE922158261037. Together that is 103.5 MW and 238.5 MWh. The operator’s release says 238 MWh.")}</p>
               <p>{tx("2,3 h ist 238,5 MWh geteilt durch 103,5 MW. Die C-Rate 0,43 ist 103,5 geteilt durch 238,5. Beides ist eine Rechnung aus den veröffentlichten Zahlen, keine Messung.", "2.3 h is 238.5 MWh divided by 103.5 MW. The C-rate 0.43 is 103.5 divided by 238.5. Both are the published figures divided, not a measurement.")}</p>
               <p>{tx("Die flexible Netzanschlussvereinbarung mit SH Netz begrenzt Bezug und Einspeisung dynamisch. Die Grenzwerte sind nicht veröffentlicht. Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine solche Vereinbarung anbieten, mit einer festen oder einer sich ändernden Grenze für die höchste Bezugs- oder Einspeiseleistung.", "The flexible grid connection agreement with SH Netz limits withdrawal and feed-in dynamically. The limits are not published. Under section 17 (2b) of the Energy Industry Act the network operator can offer such an agreement, with a fixed or a changing limit on the highest withdrawal or feed-in power.")}</p>
-              <p>{tx("Der Ring ist ein Modelltag. Er fährt 103,5 MW und 238,5 MWh gegen die Day-Ahead-Preise von gestern in der Gebotszone DE-LU. Der Wirkungsgrad ist 92 %, der Ladezustand bleibt zwischen 10 % und 90 %, der Start liegt bei 50 %. Das sind die Annahmen der vorhandenen Dispatch-Rechnung, keine Messung am Standort. Die echte Fahrweise steht beim Betreiber und wird hier nicht übernommen.", "The ring is a model day. It runs 103.5 MW and 238.5 MWh against yesterday’s day-ahead prices in the DE-LU bidding zone. Round-trip efficiency is 92 %, the state of charge stays between 10 % and 90 %, and the day starts at 50 %. Those are the assumptions of the existing dispatch calculation, not a measurement at the site. The real operation is published by the operator and is not copied here.")}</p>
+              <p>{tx(`Der Ring ist ein Modelltag. Er fährt 103,5 MW und 238,5 MWh gegen die Day-Ahead-Preise von gestern in der Gebotszone DE-LU. Der Wirkungsgrad ist der gemeinsame Standard, ${rtePct} % Round-Trip, Spanne 80–90 %, je Richtung die Wurzel daraus. Der Ladezustand bleibt zwischen 10 % und 90 %, der Start liegt bei 50 %, und der Tag endet nicht darunter. Geladen wird in den günstigsten Viertelstunden vor der ersten Abgabe, abgegeben in den höchstbewerteten. Das sind Annahmen, keine Messung am Standort. Die echte Fahrweise steht beim Betreiber und wird hier nicht übernommen.`, `The ring is a model day. It runs 103.5 MW and 238.5 MWh against yesterday’s day-ahead prices in the DE-LU bidding zone. Round-trip efficiency is the shared standard, ${rtePct}%, span 80–90%, and each direction uses the square root. The state of charge stays between 10% and 90%, the day starts at 50%, and it does not end below that. Charge uses the cheapest quarter-hours before the first discharge, and discharge uses the highest-scoring ones. Those are assumptions, not a measurement at the site. The real operation is published by the operator and is not copied here.`)}</p>
             </section>
             <section id="quellen">
               <details className="site-fold">

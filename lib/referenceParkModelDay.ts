@@ -1,12 +1,12 @@
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import {
   BESS_DISPATCH_INITIAL_SOC_FRAC,
-  BESS_DISPATCH_ROUND_TRIP_EFFICIENCY,
   BESS_DISPATCH_SOC_MAX_FRAC,
   BESS_DISPATCH_SOC_MIN_FRAC,
   simulateBessDispatch,
   type DispatchResult,
 } from "@/lib/bessDispatchSimulator";
+import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
 import { KW_K, KW_R0, socRingGeometry } from "@/lib/dayRingScale";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
@@ -84,6 +84,16 @@ function slotsFromPrices(prices: DayAheadPricePoint[], dateBerlin: string): Slot
   return slots.length >= 4 ? slots : null;
 }
 
+/**
+ * One sentence for the ring. It names the ranking the engine actually uses:
+ * cheapest quarter-hours before the first discharge, highest score after that
+ * (price, evening bonus 17:00–21:00, volatility), and no draw on the opening inventory.
+ */
+export const REFERENCE_PARK_DISPATCH_RULE = {
+  de: "Geladen wird in den günstigsten Viertelstunden vor der ersten Abgabe und abgegeben in den höchstbewerteten, Preis plus Abendzuschlag von 17 bis 21 Uhr und ein Volatilitätsterm, höchstens die Energie, die der Tag neu geladen hat.",
+  en: "Charge uses the cheapest quarter-hours before the first discharge and discharge uses the highest-scoring ones, price plus an evening bonus from 17:00 to 21:00 and a volatility term, at most the energy this day newly stored.",
+} as const;
+
 /** Engine run for the reference park. Returns null when the price series is too short. */
 export function dispatchReferencePark(input: ReferenceParkDispatchInput): DispatchResult | null {
   const slots = slotsFromPrices(input.prices, input.dateBerlin);
@@ -92,23 +102,46 @@ export function dispatchReferencePark(input: ReferenceParkDispatchInput): Dispat
   }
   const powerMw = input.powerMw ?? REFERENCE_PARK.powerMw;
   const energyMwh = input.energyMwh ?? REFERENCE_PARK.energyMwh;
-  return simulateBessDispatch({
-    powerMW: powerMw,
-    energyMWh: energyMwh,
-    efficiency: BESS_DISPATCH_ROUND_TRIP_EFFICIENCY,
-    strategy: "arbitrage_gap",
-    initialSocFrac: input.initialSocFrac,
-    day: {
-      dateBerlin: input.dateBerlin,
-      timestampsIso: slots.map((slot) => new Date(slot.unixMs).toISOString()),
-      hourBerlin: slots.map((slot) => slot.hour),
-      loadMw: slots.map(() => null),
-      totalGenerationMw: slots.map(() => null),
-      residualLoadMw: slots.map(() => 0),
-      renewableShareOfLoadPct: slots.map(() => null),
-      spotPriceEurPerMwh: slots.map((slot) => slot.price),
-    },
-  });
+  const startMwh = (input.initialSocFrac ?? BESS_DISPATCH_INITIAL_SOC_FRAC) * energyMwh;
+  const day = {
+    dateBerlin: input.dateBerlin,
+    timestampsIso: slots.map((slot) => new Date(slot.unixMs).toISOString()),
+    hourBerlin: slots.map((slot) => slot.hour),
+    loadMw: slots.map(() => null),
+    totalGenerationMw: slots.map(() => null),
+    residualLoadMw: slots.map(() => 0),
+    renewableShareOfLoadPct: slots.map(() => null),
+    spotPriceEurPerMwh: slots.map((slot) => slot.price),
+  };
+  const run = (maxDischargeSlots?: number) =>
+    simulateBessDispatch({
+      powerMW: powerMw,
+      energyMWh: energyMwh,
+      efficiency: ROUND_TRIP_EFFICIENCY,
+      strategy: "arbitrage_gap",
+      initialSocFrac: input.initialSocFrac,
+      maxDischargeSlots,
+      day,
+    });
+
+  // Same-day close: drop whole discharge quarter-hours until the day no longer
+  // spends the opening inventory. A previous day's end would only move the gap.
+  let cap: number | undefined;
+  let result = run();
+  for (let step = 0; step <= slots.length; step += 1) {
+    const endMwh = result.quarters.at(-1)?.socMwh ?? startMwh;
+    if (endMwh + 1e-6 >= startMwh) {
+      return result;
+    }
+    const used = result.quarters.filter((quarter) => quarter.powerMw > 1e-6).length;
+    const next = used - 1;
+    if (next < 0 || (cap !== undefined && next >= cap)) {
+      return result;
+    }
+    cap = next;
+    result = run(cap);
+  }
+  return result;
 }
 
 /**
