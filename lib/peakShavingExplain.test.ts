@@ -26,7 +26,7 @@ describe("supermarket teaching day", () => {
     expect(story.peakAfterKw).toBeCloseTo(90, 4);
     expect(story.holdsLimit).toBe(true);
     expect(story.shavedKwh).toBeCloseTo(26.596, 2);
-    expect(story.socMinPct).toBeCloseTo(29.91, 1);
+    expect(story.socMinPct).toBeCloseTo(27.88, 2);
     expect(story.quarters[story.quarters.length - 1]?.socKwh).toBeCloseTo(40, 4);
     expect(story.zoomFromHour).toBe(12);
     expect(story.zoomToHour).toBe(22);

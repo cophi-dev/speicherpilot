@@ -169,8 +169,8 @@ export function ConnectionStory() {
         </div>
         <p className="num mt-8 max-w-[70ch] text-[12px] leading-relaxed text-muted-foreground">
           {tx(
-            `Modell: Speicher startet voll, 90 % Wirkungsgrad, lädt ab ${clockLabel(story.rechargeFromHour)} mit höchstens ${formatQuantity(story.rechargeCapKw, language, 0)} kW nach. Ausschnitt ${clockLabel(story.zoomFromHour)}–${clockLabel(story.zoomToHour)}. Fiktives Profil, nicht gemessen.`,
-            `Model: battery starts full, 90% round-trip efficiency, recharges from ${clockLabel(story.rechargeFromHour)} at ${formatQuantity(story.rechargeCapKw, language, 0)} kW at most. Window ${clockLabel(story.zoomFromHour)}–${clockLabel(story.zoomToHour)}. Fictional profile, not measured.`
+            `Modell: Speicher startet voll, ${formatQuantity(story.roundTripEfficiency * 100, language, 0)} % Wirkungsgrad, lädt ab ${clockLabel(story.rechargeFromHour)} mit höchstens ${formatQuantity(story.rechargeCapKw, language, 0)} kW nach. Ausschnitt ${clockLabel(story.zoomFromHour)}–${clockLabel(story.zoomToHour)}. Fiktives Profil, nicht gemessen.`,
+            `Model: battery starts full, ${formatQuantity(story.roundTripEfficiency * 100, language, 0)}% round-trip efficiency, recharges from ${clockLabel(story.rechargeFromHour)} at ${formatQuantity(story.rechargeCapKw, language, 0)} kW at most. Window ${clockLabel(story.zoomFromHour)}–${clockLabel(story.zoomToHour)}. Fictional profile, not measured.`
           )}{" "}
           <Link href="/methodik#peak-erklaert" className="underline underline-offset-[3px]">
             {tx("So ist das gerechnet", "How this is calculated")}

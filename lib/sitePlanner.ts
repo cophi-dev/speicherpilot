@@ -98,7 +98,7 @@ export type SitePlannerInput = {
   autoSize: boolean;
   manualPowerKw: number;
   manualEnergyKwh: number;
-  /** 0–1, e.g. 0.9 */
+  /** 0–1, e.g. 0.85 */
   roundTripEfficiency: number;
   capexEurPerKwh: number;
   maxCyclesPerYear: number;
@@ -222,7 +222,7 @@ export function defaultPlannerEconomics() {
     demandChargeEurPerKwYear: 120,
     energyPriceCtPerKwh: 21.4,
     feedInCtPerKwh: 8,
-    roundTripEfficiency: 0.9,
+    roundTripEfficiency: 0.85,
     capexEurPerKwh: 500,
     maxCyclesPerYear: 400,
     lifetimeYears: 15,

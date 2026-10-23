@@ -7,7 +7,7 @@ import { GlossaryTip } from "@/components/GlossaryTip";
 import { Slider } from "@/components/ui/slider";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
-import { buildMoreStorage, type MoreStoragePoint, type MoreStorageReport, type MoreStorageStep } from "@/lib/moreStorage";
+import { buildMoreStorage, MORE_STORAGE_ROUND_TRIP, type MoreStoragePoint, type MoreStorageReport, type MoreStorageStep } from "@/lib/moreStorage";
 import { parseStorageFactor, STORAGE_FACTORS, storageDayCatalog, type StorageDayPick, type StorageFactor } from "@/lib/storageDays";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
@@ -234,7 +234,7 @@ export function StorageWhatIf({
               ))}
             </div>
           <p className="num mt-4 text-[12px] text-muted-foreground">
-            {tx("Start leer, 90 % Wirkungsgrad, nur Überschuss, Entladung ab 17 Uhr", "Start empty, 90% round-trip efficiency, surplus only, discharge from 17:00")}
+            {tx(`Start leer, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % Wirkungsgrad, nur Überschuss, Entladung ab 17 Uhr`, `Start empty, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)}% round-trip efficiency, surplus only, discharge from 17:00`)}
           </p>
         </div>
       </div>
