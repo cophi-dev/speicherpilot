@@ -1695,8 +1695,9 @@
 .day-ring-key-list {
   display: none;
   gap: 4px;
-  width: min(100%, 720px);
-  margin: 16px auto 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 16px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -2064,9 +2065,8 @@
   .day-hero .site-hero-grid > div {
     overflow: visible;
   }
-  .day-callout-list,
-  .day-ring-key-list {
-    width: min(358px, calc(100vw - 16px));
+  .day-callout-list {
+    width: min(100%, 358px);
   }
   .day-order-ring > figure .day-ring-frame,
   .site-hero-grid .day-ring-frame,

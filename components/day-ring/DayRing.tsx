@@ -614,7 +614,8 @@ export function HourlyResidualTable({
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const rows = hourlyResidualGw(points);
   return (
-    <table className="day-sr">
+    <div className="day-sr">
+    <table>
       <caption>{caption}</caption>
       <thead>
         <tr>
@@ -633,6 +634,7 @@ export function HourlyResidualTable({
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
