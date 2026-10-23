@@ -81,9 +81,13 @@ describe("site v2 heroes", () => {
     expect(screen.getAllByText(/nicht die echte Fahrweise/).length).toBeGreaterThan(0);
     expect(container.querySelector(".day-model-caption")?.textContent).toMatch(/Gestrige Day-Ahead-Preise/);
     expect(container.querySelector(".day-model-rule")?.textContent).toMatch(/billigsten Viertelstunden/);
-    expect(screen.getByRole("link", { name: "Regel im Detail" })).toHaveAttribute("href", "/methodik#modelltag");
+    expect(screen.getByRole("link", { name: /Regel im Detail/ })).toHaveAttribute("href", "/methodik#modelltag");
+    expect(container.querySelector(".day-model-rule-link a")?.textContent).toMatch(/Regel im Detail →/);
     expect(container.querySelector(".day-model-mark .day-model-note")).toBeNull();
-    expect(container.querySelector(".day-model-pill")).toHaveAttribute("fill", "none");
+    expect(container.querySelector(".day-model-overlay .day-model-pill")?.textContent).toBe("MODELLTAG");
+    const caption = container.querySelector(".day-model-caption");
+    const rule = container.querySelector(".day-model-rule");
+    expect(caption?.compareDocumentPosition(rule!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(container.querySelector(".day-ring-solid")).not.toBeNull();
     expect(container.querySelector("[fill*='url(#']")).toBeNull();
     expect(screen.getAllByRole("link", { name: /MaStR/ })[0]).toHaveAttribute("href", expect.stringContaining("marktstammdatenregister.de"));
