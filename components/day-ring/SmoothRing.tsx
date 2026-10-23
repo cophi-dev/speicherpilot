@@ -33,6 +33,8 @@ export function SmoothRing({
   hatchId,
   view,
   framePx,
+  smoothSeries = true,
+  holeRadius = 0,
 }: {
   points: LiveDispatchPoint[];
   unit: RingUnit;
@@ -44,13 +46,17 @@ export function SmoothRing({
   hatchId: string;
   view: { x: number; y: number; w: number; h: number };
   framePx: number;
+  /** Three-point average. Off when a quarter at the nameplate must keep its full radius. */
+  smoothSeries?: boolean;
+  /** User-unit radius kept clear of the painted band. */
+  holeRadius?: number;
 }) {
   const clipId = `ring-${useId().replace(/:/g, "")}`;
   const valueOf = (point: LiveDispatchPoint, field: "ohneMw" | "mitMw") => (unit === "kW" ? point[field] : point[field] / 1000);
   const rawOhne = points.map((point) => valueOf(point, "ohneMw"));
   const rawMit = points.map((point) => valueOf(point, "mitMw"));
-  const ohne = useMorphedSeries(smoothDrawnSeries(rawOhne));
-  const mit = useMorphedSeries(smoothDrawnSeries(rawMit));
+  const ohne = useMorphedSeries(smoothSeries ? smoothDrawnSeries(rawOhne) : rawOhne);
+  const mit = useMorphedSeries(smoothSeries ? smoothDrawnSeries(rawMit) : rawMit);
   const radiusOf = (value: number) => (unit === "kW" ? kwRadius(value) : ringRadius(value));
   const zero = unit === "kW" ? kwRadius(0) : RING_R0;
   const ohneSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: ohne[index] ?? 0 }));
@@ -63,6 +69,7 @@ export function SmoothRing({
   const span = highlightSpan(highlight);
   const reach = Math.max(zero, ...ohneSamples.map((sample) => sample.radius), ...mitSamples.map((sample) => sample.radius)) + 48;
   const area = polarAreaPath(ohneSamples, zero);
+  const holeMask = holeRadius > 0 ? `url(#${clipId}-hole)` : undefined;
 
   return (
     <g className="day-smooth">
@@ -71,6 +78,12 @@ export function SmoothRing({
           <rect x={view.x} y={view.y} width={view.w} height={view.h} fill="white" />
           <path d={area} fill="black" fillRule="nonzero" />
         </mask>
+        {holeRadius > 0 ? (
+          <mask id={`${clipId}-hole`} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
+            <rect x={view.x} y={view.y} width={view.w} height={view.h} fill="white" />
+            <circle cx="0" cy="0" r={holeRadius} fill="black" />
+          </mask>
+        ) : null}
         {span ? (
           <clipPath id={`${clipId}-wedge`} clipPathUnits="userSpaceOnUse">
             <path d={wedgePath(span.start, span.end, reach)} />
@@ -81,26 +94,28 @@ export function SmoothRing({
         <path className="day-ring-area" d={area} fillRule="nonzero" shapeRendering="geometricPrecision" />
       </clipPath>
       <circle className="day-zero" cx="0" cy="0" r={zero} fill="none" mask={`url(#${clipId}-zero)`} />
-      <g clipPath={`url(#${clipId}-area)`}>
-        <g className={span ? "day-smooth-base is-dim" : "day-smooth-base"}>
-          <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId}-area)`} pointerEvents="none" aria-hidden="true">
-            <div style={{ width: "100%", height: "100%", background: gradient }} />
-          </foreignObject>
-        </g>
-        {span ? (
-          <g className="day-smooth-hot" clipPath={`url(#${clipId}-wedge)`}>
+      <g mask={holeMask}>
+        <g clipPath={`url(#${clipId}-area)`}>
+          <g className={span ? "day-smooth-base is-dim" : "day-smooth-base"}>
             <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId}-area)`} pointerEvents="none" aria-hidden="true">
               <div style={{ width: "100%", height: "100%", background: gradient }} />
             </foreignObject>
           </g>
+          {span ? (
+            <g className="day-smooth-hot" clipPath={`url(#${clipId}-wedge)`}>
+              <foreignObject x={view.x} y={view.y} width={view.w} height={view.h} clipPath={`url(#${clipId}-area)`} pointerEvents="none" aria-hidden="true">
+                <div style={{ width: "100%", height: "100%", background: gradient }} />
+              </foreignObject>
+            </g>
+          ) : null}
+        </g>
+        <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} minGap={pxToUser(1.5, view.w, framePx)} dim={Boolean(span)} />
+        {span ? (
+          <g clipPath={`url(#${clipId}-wedge)`} aria-hidden="true">
+            <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} minGap={pxToUser(1.5, view.w, framePx)} dim={false} />
+          </g>
         ) : null}
       </g>
-      <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} minGap={pxToUser(1.5, view.w, framePx)} dim={Boolean(span)} />
-      {span ? (
-        <g clipPath={`url(#${clipId}-wedge)`} aria-hidden="true">
-          <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} minGap={pxToUser(1.5, view.w, framePx)} dim={false} />
-        </g>
-      ) : null}
       <g className="day-ring-tips">
         {points.map((point) => {
           const value = valueOf(point, "ohneMw");
