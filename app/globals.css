@@ -1589,6 +1589,15 @@
   fill: #e9eef2;
 }
 
+.day-model-caption {
+  margin: 10px auto 0;
+  max-width: 28rem;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  color: #e9eef2;
+}
+
 .day-ring-solid .day-zero {
   stroke-dasharray: none;
 }
