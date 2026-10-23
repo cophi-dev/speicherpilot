@@ -140,6 +140,36 @@ describe("smooth day ring", () => {
     }
   });
 
+  it("keeps every Fritsch-Carlson radius between the neighbouring supports", () => {
+    const values = Array.from({ length: 96 }, (_, index) => 6 + 14 * Math.sin((index / 96) * Math.PI * 4) + ((index % 5) - 2) * 3);
+    const supports = values.map((value, index) => ({ angleDeg: quarterCenterDeg(index), radius: ringRadius(value) }));
+    const samples = day(values);
+    for (const sample of samples) {
+      let hi = 1;
+      while (hi < supports.length && supports[hi].angleDeg < sample.angleDeg) hi += 1;
+      const left = supports[Math.max(0, hi - 1)];
+      const right = supports[Math.min(supports.length - 1, hi)];
+      const low = Math.min(left.radius, right.radius);
+      const high = Math.max(left.radius, right.radius);
+      expect(sample.radius).toBeGreaterThanOrEqual(low - 1e-6);
+      expect(sample.radius).toBeLessThanOrEqual(high + 1e-6);
+    }
+    for (let hour = 0; hour < 24; hour += 1) {
+      const start = hour * 15;
+      const end = start + 15;
+      const interpolated = samples.filter((sample) => {
+        if (sample.angleDeg <= start || sample.angleDeg >= end) return false;
+        return !supports.some((support) => Math.abs(support.angleDeg - sample.angleDeg) < 1e-6);
+      });
+      expect(interpolated.length).toBeGreaterThanOrEqual(4);
+    }
+    const path = polarAreaPath(samples, RING_R0);
+    const outer = path.slice(0, path.lastIndexOf(" L "));
+    expect(outer.startsWith("M ")).toBe(true);
+    expect(outer).toMatch(/ C /);
+    expect(outer).not.toMatch(/ L /);
+  });
+
   it("holds a same-sign day on its own side of the zero circle", () => {
     const positive = day(Array.from({ length: 96 }, (_, index) => 2 + (index % 7)));
     expect(positive.every((sample) => sample.radius >= RING_R0 - 0.001)).toBe(true);
