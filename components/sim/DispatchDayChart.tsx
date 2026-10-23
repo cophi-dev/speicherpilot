@@ -340,7 +340,8 @@ export function DispatchDayChart({
               <>
                 <line x1={padLeft} x2={width - padRight} y1={yAt(limit)} y2={yAt(limit)} className="l-lim" />
                 {limitLabel ? (
-                  <text x={padLeft + 6} y={yAt(limit) - 6} className="an r lb">
+                  // 8px: the baseline is one descender (~4px) above a 4px gap, so the ink clears the line.
+                  <text x={padLeft + 6} y={yAt(limit) - 8} className="an r lb">
                     {limitLabel}
                   </text>
                 ) : null}
@@ -349,8 +350,8 @@ export function DispatchDayChart({
             <path d={step("mit")} className="l-mit" pathLength={1} />
             {mobile
               ? annotations.map((note, index) => {
-                  const mx = Math.min(Math.max(xAt(note.hour) + (note.mdx ?? 0), padLeft + 8), width - padRight - 8);
-                  const my = yAt(note.value) + (note.mdy ?? 0);
+                  const mx = Math.min(Math.max(xAt(note.hour) + (note.mdx ?? 14), padLeft + 8), width - padRight - 8);
+                  const my = yAt(note.value) + (note.mdy ?? -18);
                   return (
                     <g key={`m-${index}`} className={intro ? "mk fade2" : "mk"}>
                       <circle cx={mx} cy={my} r="8" />

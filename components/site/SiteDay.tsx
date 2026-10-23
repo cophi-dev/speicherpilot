@@ -23,7 +23,7 @@ import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 export function SiteDay() {
   const params = useSearchParams();
   const view = parsePerspective(params.get("view")) ?? "projekt";
-  const scenario = parseScenario(params.get("scenario")) ?? "supermarkt";
+  const scenario = params.has("flower") ? "grossspeicher" : (parseScenario(params.get("scenario")) ?? "supermarkt");
   const { language } = useLanguage();
   const [csv, setCsv] = useState<LoadProfile | null>(null);
   const [limitDraft, setLimitDraft] = useState("");

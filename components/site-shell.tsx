@@ -300,12 +300,16 @@ export function SiteShell({ children }: SiteShellProps) {
           }}
           seedPrompt={chatSeedPrompt}
         />
-        <footer className="border-t border-border">
+        <footer className={`site-footer border-t border-border${pathname === "/live" ? " is-live" : ""}`}>
           <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8">
             <div>
-              <p>
-                <Link href="/news" className="paper-link tap-44 inline-flex min-h-11 items-center">{tx("News", "News")}</Link>
-              </p>
+              <nav className="footer-links" aria-label={tx("Seiten", "Pages")}>
+                <Link href="/news" className="paper-link">{tx("News", "News")}</Link>
+                <span aria-hidden="true">·</span>
+                <Link href="/impressum" className="paper-link">{tx("Impressum", "Legal notice")}</Link>
+                <span aria-hidden="true">·</span>
+                <Link href="/datenschutz" className="paper-link">{tx("Datenschutz", "Privacy")}</Link>
+              </nav>
               <details className="site-fold">
               <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">{tx("Quellen", "Sources")}</summary>
               <ul className="mt-3 space-y-1.5">

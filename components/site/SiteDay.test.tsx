@@ -87,6 +87,12 @@ describe("site v2 heroes", () => {
     expect(svg).toBeNull();
   });
 
+  it("opens the Flower ring from /site?flower", () => {
+    query = "flower";
+    renderSite();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Ring bleibt leer/);
+  });
+
   it("keeps the empty Flower circle inside the viewBox", () => {
     query = "view=netz&scenario=grossspeicher";
     const { container } = renderSite();

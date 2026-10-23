@@ -139,6 +139,30 @@ describe("smooth day ring", () => {
     }
   });
 
+  it("keeps the outer edge smooth away from the midnight gap", () => {
+    const raw = Array.from({ length: 96 }, (_, index) => Math.sin((index / 96) * Math.PI * 2) * 18 + ((index * 5) % 7) - 3);
+    const drawn = taperRingSamples(day(smoothDrawnSeries(raw)), RING_R0);
+    const points = drawn.map((sample) => polarPoint(0, 0, sample.radius, sample.angleDeg));
+    let maxTurn = 0;
+    for (let index = 1; index < points.length - 1; index += 1) {
+      if (drawn[index].angleDeg < 20 || drawn[index].angleDeg > 340) continue;
+      const previous = points[index - 1];
+      const current = points[index];
+      const next = points[index + 1];
+      const leftX = current.x - previous.x;
+      const leftY = current.y - previous.y;
+      const rightX = next.x - current.x;
+      const rightY = next.y - current.y;
+      const left = Math.hypot(leftX, leftY);
+      const right = Math.hypot(rightX, rightY);
+      if (left < 1e-3 || right < 1e-3) continue;
+      const dot = (leftX * rightX + leftY * rightY) / (left * right);
+      const turn = (Math.acos(Math.min(1, Math.max(-1, dot))) * 180) / Math.PI;
+      maxTurn = Math.max(maxTurn, turn);
+    }
+    expect(maxTurn).toBeLessThan(15);
+  });
+
   it("holds a same-sign day on its own side of the zero circle", () => {
     const positive = day(Array.from({ length: 96 }, (_, index) => 2 + (index % 7)));
     expect(positive.every((sample) => sample.radius >= RING_R0 - 0.001)).toBe(true);
