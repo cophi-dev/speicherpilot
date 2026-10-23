@@ -8,7 +8,7 @@ export function LegalNotice() {
   const { language } = useLanguage();
   return (
     <article className="legal-doc">
-      <div className="legal-doc-inner">
+      <div className="legal-doc-inner prose">
         {language === "en" ? (
           <p className="legal-en">The binding text of this page is the German legal notice below.</p>
         ) : null}

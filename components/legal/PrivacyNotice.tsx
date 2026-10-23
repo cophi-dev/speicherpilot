@@ -8,7 +8,7 @@ export function PrivacyNotice() {
   const { language } = useLanguage();
   return (
     <article className="legal-doc">
-      <div className="legal-doc-inner">
+      <div className="legal-doc-inner prose">
         {language === "en" ? (
           <p className="legal-en">The binding text of this page is the German privacy notice below.</p>
         ) : null}

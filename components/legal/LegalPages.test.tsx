@@ -42,6 +42,7 @@ describe("legal pages", () => {
     expect(document.body.textContent).toContain("Stand 22.10.2026: aktiv");
     expect(document.body.textContent).toContain("eine Stunde lang abrufbar");
     expect(document.body.textContent).toContain("eine feste Frist nennt Vercel nicht");
+    expect(screen.getByRole("link", { name: "Vercel Inc." }).closest(".prose")).not.toBeNull();
     expect(screen.getByRole("link", { name: "Vercel Inc." })).toHaveAttribute("href", "https://vercel.com/legal/privacy-policy");
     expect(screen.getByRole("link", { name: "dataprivacyframework.gov" })).toHaveAttribute(
       "href",

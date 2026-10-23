@@ -2468,8 +2468,41 @@
 .site-fold summary {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
   min-height: 44px;
   cursor: pointer;
+  list-style: none;
+}
+
+.site-fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.site-fold summary > * {
+  margin: 0;
+}
+
+.site-fold summary::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms;
+}
+
+.site-fold[open] summary::after {
+  transform: translateY(-2px) rotate(225deg);
+}
+
+footer .site-fold a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .legal-footer {
@@ -2480,8 +2513,7 @@
   font-size: 14px;
 }
 
-.legal-footer a,
-.legal-doc a {
+.legal-footer a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -2491,19 +2523,30 @@
   text-underline-offset: 3px;
 }
 
+.prose a {
+  display: inline;
+  min-height: 0;
+  padding-block: 12px;
+  margin-block: -12px;
+  color: #0f6e7c;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .legal-footer a:focus-visible,
-.legal-doc a:focus-visible {
+.prose a:focus-visible {
   outline: 2px solid #0f6e7c;
   outline-offset: 3px;
 }
 
 .dark .legal-footer a,
-.dark .legal-doc a {
+.dark .prose a {
   color: #1e9cb0;
 }
 
 .dark .legal-footer a:focus-visible,
-.dark .legal-doc a:focus-visible {
+.dark .prose a:focus-visible {
   outline-color: #1e9cb0;
 }
 
