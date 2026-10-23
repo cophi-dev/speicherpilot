@@ -12,13 +12,13 @@ import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { SiteSimulator } from "@/components/site/SiteSimulator";
 import {
   BESS_DISPATCH_INITIAL_SOC_FRAC,
-  BESS_DISPATCH_ROUND_TRIP_EFFICIENCY,
   BESS_DISPATCH_SOC_MAX_FRAC,
   BESS_DISPATCH_SOC_MIN_FRAC,
 } from "@/lib/bessDispatchSimulator";
 import { connectionLight } from "@/lib/connectionLight";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
-import { referenceParkFullDrawKw, type ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
+import { REFERENCE_PARK_DISPATCH_RULE, referenceParkFullDrawKw, type ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
+import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { REFERENCE_PARK, referenceParkCRate, referenceParkHoursAtFullPower } from "@/lib/referencePark";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile, planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
@@ -297,17 +297,18 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
   const cRate = referenceParkCRate();
   const figure = formatQuantity(facts.powerMw, language, 1);
   const note = tx("Gestrige Day-Ahead-Preise · nicht die echte Fahrweise", "Yesterday’s day-ahead prices · not the real operation");
+  const rule = tx(REFERENCE_PARK_DISPATCH_RULE.de, REFERENCE_PARK_DISPATCH_RULE.en);
   const ringLabel = tx(
     `MODELLTAG. ${facts.nameDe}, ${figure} MW.`,
     `MODELLTAG. ${facts.nameEn}, ${figure} MW.`
   );
-  const efficiency = modelDay?.efficiency ?? BESS_DISPATCH_ROUND_TRIP_EFFICIENCY;
+  const efficiency = modelDay?.efficiency ?? ROUND_TRIP_EFFICIENCY;
   const socMin = modelDay?.socMinFrac ?? BESS_DISPATCH_SOC_MIN_FRAC;
   const socMax = modelDay?.socMaxFrac ?? BESS_DISPATCH_SOC_MAX_FRAC;
   const socStart = modelDay?.initialSocFrac ?? BESS_DISPATCH_INITIAL_SOC_FRAC;
   const ringDescription = tx(
-    `${note}. Annahme: Wirkungsgrad ${formatQuantity(efficiency * 100, language, 0)} %, Ladezustand von ${formatQuantity(socMin * 100, language, 0)} % bis ${formatQuantity(socMax * 100, language, 0)} %, Start bei ${formatQuantity(socStart * 100, language, 0)} %.`,
-    `${note}. Assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
+    `${note}. ${rule} Annahme: Wirkungsgrad ${formatQuantity(efficiency * 100, language, 0)} %, Ladezustand von ${formatQuantity(socMin * 100, language, 0)} % bis ${formatQuantity(socMax * 100, language, 0)} %, Start bei ${formatQuantity(socStart * 100, language, 0)} %.`,
+    `${note}. ${rule} Assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
   );
   const points = modelDay?.points ?? [];
   return (
@@ -372,6 +373,7 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               description={ringDescription}
               centerMark={{ pill: "MODELLTAG", figure, unit: "MW", note: [] }}
             />
+            <p className="day-model-rule">{rule}</p>
             <p className="day-model-caption">{note}</p>
             {points.length > 0 ? (
               <table className="day-sr">

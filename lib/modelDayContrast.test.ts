@@ -18,8 +18,11 @@ describe("MODELLTAG pill contrast", () => {
     expect(css).toContain("fill: #e2b15a");
     expect(css).toContain("stroke: #8a4b08");
     expect(css).toMatch(/\.day-model-caption\s*\{[^}]*font-size:\s*12px/);
+    expect(css).toMatch(/\.day-model-rule\s*\{[^}]*font-size:\s*12px/);
+    expect(css).toMatch(/\.day-model-rule\s*\{[^}]*font-family:[^;]*monospace/);
     expect(contrast("#e2b15a", "#0a0f14")).toBeGreaterThanOrEqual(4.5);
     expect(contrast("#e9eef2", "#0a0f14")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast("#c5ced6", "#0a0f14")).toBeGreaterThanOrEqual(4.5);
     expect(contrast("#8a4b08", "#ffffff")).toBeGreaterThanOrEqual(4.5);
     expect(contrast("#8a4b08", "#f6f6f1")).toBeGreaterThanOrEqual(4.5);
   });

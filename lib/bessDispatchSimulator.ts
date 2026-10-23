@@ -116,6 +116,11 @@ export type SimulateBessDispatchParams = {
   day: BessDispatchDayInput;
   /** Share of nameplate at the first quarter. Defaults to 0.5. */
   initialSocFrac?: number;
+  /**
+   * Upper bound on discharge quarter-hours. Omit it and the count stays
+   * the energy window from the opening state of charge down to the floor.
+   */
+  maxDischargeSlots?: number;
 };
 
 export type BessDispatchQuarter = {
@@ -378,8 +383,13 @@ export const simulateBessDispatch = (params: SimulateBessDispatchParams): Dispat
   const batteryPerDischargeSlot = gridSlotMwh / sqrtEta;
   const storedPerChargeSlot = gridSlotMwh * sqrtEta;
 
+  const dischargeSlotCap =
+    params.maxDischargeSlots === undefined
+      ? rows.length
+      : Math.max(0, Math.floor(params.maxDischargeSlots));
   const nDischarge = Math.min(
     rows.length,
+    dischargeSlotCap,
     Math.ceil(dischargeBatteryTarget / batteryPerDischargeSlot)
   );
   const nCharge = Math.min(
