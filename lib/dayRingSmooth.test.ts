@@ -1,5 +1,6 @@
 import { polarPoint, RING_GAP_DEG, ringRadius, RING_R0 } from "@/lib/dayRingScale";
 import {
+  monotonePolarSamples,
   polarAreaPath,
   quarterCenterDeg,
   ringTip,
@@ -59,6 +60,25 @@ describe("smooth day ring", () => {
     expect(path.endsWith("Z")).toBe(true);
     expect(path.match(/A /g)).toHaveLength(1);
     expect(path).toMatch(/A [\d.]+ [\d.]+ 0 1 0 /);
+  });
+
+  it("keeps a monotone cubic inside the real radii of its neighbours", () => {
+    const values = [0.2, 0.2, 0.9, 0.2, 0.55];
+    const series = values.map((value, index) => ({ angleDeg: quarterCenterDeg(index), value }));
+    const radiusOf = (value: number) => 50 + value * 20;
+    const samples = monotonePolarSamples(series, radiusOf);
+    expect(samples.length).toBeGreaterThan(values.length);
+    for (let index = 0; index < series.length - 1; index += 1) {
+      const left = radiusOf(series[index].value);
+      const right = radiusOf(series[index + 1].value);
+      const minR = Math.min(left, right);
+      const maxR = Math.max(left, right);
+      for (const sample of samples) {
+        if (sample.angleDeg <= series[index].angleDeg || sample.angleDeg >= series[index + 1].angleDeg) continue;
+        expect(sample.radius).toBeGreaterThanOrEqual(minR - 0.001);
+        expect(sample.radius).toBeLessThanOrEqual(maxR + 0.001);
+      }
+    }
   });
 
   it("puts a step from 0 to 20 on radii strictly between the two ends", () => {
