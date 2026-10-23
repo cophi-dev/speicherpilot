@@ -1,3 +1,4 @@
+import { formatQuantity } from "@/lib/formatQuantity";
 import { supermarketTeachingDay } from "@/lib/peakShavingExplain";
 import {
   connectionBadge,
@@ -55,5 +56,7 @@ describe("site connection day", () => {
     expect(mean).toBeLessThan(35);
     expect(middayMeanKw(story.points)).toBeCloseTo(mean, 6);
     expect(mean).toBeGreaterThan(night.ohneKw + 5);
+    expect(night.ohneKw).toBeCloseTo(17.08, 1);
+    expect(formatQuantity(mean, "de", 1)).toBe("29,6");
   });
 });

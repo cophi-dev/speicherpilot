@@ -80,7 +80,7 @@ describe("site v2 heroes", () => {
     const mean = middayMeanKw(story.points);
     expect(mean).not.toBeNull();
     renderSite();
-    const label = `Mittel 12–14 Uhr: ${formatQuantity(mean ?? 0, "de", 0)} kW Bezug`;
+    const label = `Mittel 12–14 Uhr: ${formatQuantity(mean ?? 0, "de", 1)} kW Bezug`;
     expect(document.body.textContent).toContain(label);
     expect(document.body.textContent).not.toContain("Mittags 17 kW Bezug");
     const svg = document.querySelector(".site-flower-ring svg");

@@ -285,7 +285,7 @@ function siteCallouts(story: SiteConnectionStory, language: AppLanguage, netz: b
     ? tx(`${clock(first.hour)}–${end} über der Grenze`, `${clock(first.hour)}–${end} over the limit`)
     : tx("vom Speicher gedeckt", "covered by storage");
   const middayValue = middayMeanKw(story.points) ?? middayPoint.ohneKw;
-  const middayKw = formatQuantity(Math.abs(middayValue), language, 0);
+  const middayKw = formatQuantity(Math.abs(middayValue), language, 1);
   const midday = middayValue < -0.05
     ? tx(`Mittel 12–14 Uhr: ${middayKw} kW Rückspeisung`, `Mean 12:00–14:00: ${middayKw} kW export`)
     : tx(`Mittel 12–14 Uhr: ${middayKw} kW Bezug`, `Mean 12:00–14:00: ${middayKw} kW import`);
