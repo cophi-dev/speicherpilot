@@ -297,8 +297,6 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
   const cRate = referenceParkCRate();
   const figure = formatQuantity(facts.powerMw, language, 1);
   const note = tx("Gestrige Day-Ahead-Preise · nicht die echte Fahrweise", "Yesterday’s day-ahead prices · not the real operation");
-  const [noteHead, noteTail] = note.split(" · ");
-  const noteLines = noteTail ? [noteHead ?? note, `· ${noteTail}`] : [note];
   const ringLabel = tx(
     `MODELLTAG. ${facts.nameDe}, ${figure} MW.`,
     `MODELLTAG. ${facts.nameEn}, ${figure} MW.`
@@ -372,8 +370,9 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               solidStrokes
               label={ringLabel}
               description={ringDescription}
-              centerMark={{ pill: "MODELLTAG", figure, unit: "MW", note: noteLines }}
+              centerMark={{ pill: "MODELLTAG", figure, unit: "MW", note: [] }}
             />
+            <p className="day-model-caption">{note}</p>
             {points.length > 0 ? (
               <table className="day-sr">
                 <caption>{tx(`${ringLabel} ${note}. Leistung in MW, plus ist Abgabe, minus ist Bezug.`, `${ringLabel} ${note}. Power in MW, plus is discharge, minus is charge.`)}</caption>
