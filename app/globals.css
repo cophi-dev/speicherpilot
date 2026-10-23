@@ -2468,8 +2468,143 @@
 .site-fold summary {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
   min-height: 44px;
   cursor: pointer;
+  list-style: none;
+}
+
+.site-fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.site-fold summary > * {
+  margin: 0;
+}
+
+.site-fold summary::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms;
+}
+
+.site-fold[open] summary::after {
+  transform: translateY(-2px) rotate(225deg);
+}
+
+footer .site-fold a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-size: 14px;
+}
+
+.legal-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #0f6e7c;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose a {
+  display: inline;
+  min-height: 0;
+  padding-block: 12px;
+  margin-block: -12px;
+  color: #0f6e7c;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-footer a:focus-visible,
+.prose a:focus-visible {
+  outline: 2px solid #0f6e7c;
+  outline-offset: 3px;
+}
+
+.dark .legal-footer a,
+.dark .prose a {
+  color: #1e9cb0;
+}
+
+.dark .legal-footer a:focus-visible,
+.dark .prose a:focus-visible {
+  outline-color: #1e9cb0;
+}
+
+.legal-doc {
+  background: #f4f3ee;
+  color: #14181c;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  padding: 48px 20px 64px;
+}
+
+.dark .legal-doc {
+  background: #0e151c;
+  color: #e9eef2;
+}
+
+.legal-doc-inner {
+  width: min(100%, 68ch);
+  margin-inline: auto;
+}
+
+.legal-doc h1 {
+  margin: 0 0 16px;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.legal-doc h2 {
+  margin: 28px 0 8px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.legal-doc p,
+.legal-doc address {
+  margin: 8px 0;
+  font-size: 16px;
+  font-style: normal;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.legal-en {
+  margin: 0 0 20px;
+  color: #3c444c;
+  font-size: 14px;
+}
+
+.dark .legal-en {
+  color: #c5ced6;
+}
+
+@media (min-width: 960px) {
+  .legal-doc h1 {
+    font-size: 44px;
+    font-weight: 300;
+  }
 }
 
 .day-paper .day-slider-track {

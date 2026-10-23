@@ -300,6 +300,12 @@ export function SiteShell({ children }: SiteShellProps) {
           seedPrompt={chatSeedPrompt}
         />
         <footer className="border-t border-border">
+          <div className="mx-auto max-w-[1200px] px-5 pt-4 md:px-8">
+            <nav className="legal-footer" aria-label={tx("Rechtliches", "Legal")}>
+              <Link href="/impressum">{tx("Impressum", "Legal notice")}</Link>
+              <Link href="/datenschutz">{tx("Datenschutz", "Privacy")}</Link>
+            </nav>
+          </div>
           <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8">
             <div>
               <details className="site-fold">
