@@ -1,4 +1,4 @@
-import { curveCatmullRom, curveMonotoneX, line, type CurveFactory } from "d3-shape";
+import { curveMonotoneX, line, type CurveFactory } from "d3-shape";
 
 import { polarPoint, RING_GAP_DEG, RING_SLOTS, segmentAngles, segmentIndexForHour } from "@/lib/dayRingScale";
 
@@ -99,27 +99,26 @@ export function ringTip(value: number): string {
 }
 
 /**
- * Open centripetal Catmull-Rom through the series, alpha 0.5.
- * The curve runs from the first quarter to the last and does not close across midnight.
- * If that spline leaves the data's radius range, or crosses zero where the values do not, the radius is taken from a monotone polar spline and clamped.
+ * Monotone cubic through the quarter values, then mapped to radius.
+ * The curve passes through every point, does not overshoot between them, and stays open across midnight.
+ * `zeroRadius` is the caller's base circle; the spline does not use it to clamp, so the edge stays smooth.
  */
 export function smoothPolarSamples(
   series: readonly { angleDeg: number; value: number }[],
   radiusOf: (value: number) => number,
   zeroRadius: number
 ): CurveSample[] {
+  void zeroRadius;
   const controls: Control[] = [...series]
     .sort((a, b) => a.angleDeg - b.angleDeg)
-    .map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: radiusOf(sample.value) }));
+    .map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: sample.value }));
   if (controls.length < 2) return [];
-  const grid = angleGrid(controls);
-  const catmull = radiusLookup(flattenCurve(curveCatmullRom.alpha(0.5), controls));
-  let samples = grid.map((angle) => sampleAt(controls, angle, catmull));
-  if (violates(samples, controls, zeroRadius)) {
-    const monotone = radiusLookup(flattenCurve(curveMonotoneX, controls));
-    samples = grid.map((angle) => sampleAt(controls, angle, monotone));
-  }
-  return samples.map((sample) => clampSample(sample, controls, zeroRadius));
+  const curved = flattenCurve(curveMonotoneX, controls).map((sample) => ({
+    angleDeg: sample.angleDeg,
+    value: sample.radius,
+    radius: radiusOf(sample.radius),
+  }));
+  return densify(curved, 0.35);
 }
 
 /** One filled area between the open outer curve and the base circle. No extra stroke. */
@@ -215,56 +214,6 @@ export function conicGradient(stops: readonly { angleDeg: number; color: string 
   return `conic-gradient(from 0deg at 50% 50%, ${paint.map((stop) => `${stop.color} ${stop.angleDeg.toFixed(2)}deg`).join(", ")})`;
 }
 
-function sampleAt(controls: Control[], angle: number, lookup: (angle: number) => number): CurveSample {
-  const { left, right } = bracket(controls, angle);
-  const span = right.angle - left.angle;
-  const t = span === 0 ? 0 : (angle - left.angle) / span;
-  const onControl = controls.find((control) => Math.abs(control.angle - angle) < 1e-6);
-  return {
-    angleDeg: angle,
-    value: onControl ? onControl.value : left.value + (right.value - left.value) * t,
-    radius: onControl ? onControl.radius : lookup(angle),
-  };
-}
-
-/** Keeps the drawn radius inside the data, and on the same side of zero as the raw span. */
-function clampSample(sample: CurveSample, controls: readonly Control[], zeroRadius: number): CurveSample {
-  const onControl = controls.find((control) => Math.abs(control.angle - sample.angleDeg) < 1e-6);
-  if (onControl) {
-    return { angleDeg: sample.angleDeg, value: onControl.value, radius: onControl.radius };
-  }
-  const { left, right } = bracket(controls, sample.angleDeg);
-  const radii = controls.map((control) => control.radius);
-  let radius = sample.radius;
-  if (left.value >= 0 && right.value >= 0) radius = Math.max(radius, zeroRadius);
-  if (left.value <= 0 && right.value <= 0) radius = Math.min(radius, zeroRadius);
-  return { ...sample, radius: clamp(radius, Math.min(...radii), Math.max(...radii)) };
-}
-
-function violates(samples: readonly CurveSample[], controls: readonly Control[], zeroRadius: number): boolean {
-  const radii = controls.map((control) => control.radius);
-  const minR = Math.min(...radii);
-  const maxR = Math.max(...radii);
-  return samples.some((sample) => {
-    if (sample.radius < minR - 0.05 || sample.radius > maxR + 0.05) return true;
-    const { left, right } = bracket(controls, sample.angleDeg);
-    if (left.value >= 0 && right.value >= 0 && sample.radius < zeroRadius - 0.05) return true;
-    if (left.value <= 0 && right.value <= 0 && sample.radius > zeroRadius + 0.05) return true;
-    return false;
-  });
-}
-
-function angleGrid(controls: readonly Control[]): number[] {
-  const angles: number[] = [];
-  for (let index = 0; index < controls.length - 1; index += 1) {
-    const start = controls[index].angle;
-    const end = controls[index + 1].angle;
-    for (let step = 0; step < 8; step += 1) angles.push(start + ((end - start) * step) / 8);
-  }
-  angles.push(controls[controls.length - 1].angle);
-  return angles;
-}
-
 function flattenCurve(curve: CurveFactory, controls: readonly Control[]): CurveSample[] {
   const out: CurveSample[] = [];
   let currentX = 0;
@@ -282,8 +231,8 @@ function flattenCurve(curve: CurveFactory, controls: readonly Control[]): CurveS
       out.push({ angleDeg: x, radius: y, value: 0 });
     },
     bezierCurveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number) {
-      for (let step = 1; step <= 8; step += 1) {
-        const t = step / 8;
+      for (let step = 1; step <= 32; step += 1) {
+        const t = step / 32;
         out.push({ angleDeg: cubic(currentX, x1, x2, x, t), radius: cubic(currentY, y1, y2, y, t), value: 0 });
       }
       currentX = x;
@@ -294,36 +243,6 @@ function flattenCurve(curve: CurveFactory, controls: readonly Control[]): CurveS
   const draw = line<Control>().x((control) => control.angle).y((control) => control.radius).curve(curve).context(context as unknown as CanvasRenderingContext2D);
   draw(controls as Control[]);
   return out.filter((sample, index, all) => index === 0 || sample.angleDeg > all[index - 1].angleDeg);
-}
-
-function radiusLookup(samples: readonly CurveSample[]): (angle: number) => number {
-  return (angle) => {
-    if (samples.length === 0) return 0;
-    if (angle <= samples[0].angleDeg) return samples[0].radius;
-    const last = samples[samples.length - 1];
-    if (angle >= last.angleDeg) return last.radius;
-    let lo = 0;
-    let hi = samples.length - 1;
-    while (hi - lo > 1) {
-      const mid = (lo + hi) >> 1;
-      if (samples[mid].angleDeg <= angle) lo = mid;
-      else hi = mid;
-    }
-    const left = samples[lo];
-    const right = samples[hi];
-    const span = right.angleDeg - left.angleDeg;
-    const t = span === 0 ? 0 : (angle - left.angleDeg) / span;
-    return left.radius + (right.radius - left.radius) * t;
-  };
-}
-
-function bracket(controls: readonly Control[], angle: number): { left: Control; right: Control } {
-  if (angle <= controls[0].angle) return { left: controls[0], right: controls[0] };
-  const last = controls.length - 1;
-  if (angle >= controls[last].angle) return { left: controls[last], right: controls[last] };
-  let hi = 1;
-  while (hi < last && controls[hi].angle < angle) hi += 1;
-  return { left: controls[hi - 1], right: controls[hi] };
 }
 
 function cubic(p0: number, p1: number, p2: number, p3: number, t: number): number {

@@ -137,9 +137,10 @@ export function ConnectionStory() {
                   <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
                   <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
                   {item.figure ? (
-                    <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
+                    <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] whitespace-nowrap md:text-[64px]">
                       {item.figure}
-                      <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
+                      {"\u202f"}
+                      <span className="text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
                     </p>
                   ) : null}
                   {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}
@@ -323,10 +324,11 @@ function StoryChart({
         : tx("Leistungspreis-Ersparnis, Modellschätzung.", "Demand-charge saving, model estimate.");
 
   return (
-    <div ref={frameRef} className="min-h-0 flex-1">
+    <div ref={frameRef} className="story-chart min-h-0 flex-1">
       <p className="sr-only" aria-live="polite">
         {summary}
       </p>
+      {stacked && step >= 1 ? <p className="story-series-label">{tx("Netzbezug", "Grid import")}</p> : null}
       {width > 0 && height > 0 ? (
         <svg role="img" aria-labelledby={titleId} width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="h-full w-full">
           <title id={titleId}>{summary}</title>
@@ -404,7 +406,7 @@ function StoryChart({
               {formatQuantity(peak.loadKw, language, 0)} kW
             </text>
           ) : null}
-          {step >= 1 && peak ? (
+          {step >= 1 && peak && !stacked ? (
             <text
               x={x(peak.hour)}
               y={y(peak.netKw) + 8 + 13}
@@ -417,7 +419,7 @@ function StoryChart({
           ) : null}
           {showSoc ? (
             <g className="story-layer">
-              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={11}>
+              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={12}>
                 {tx("LADESTAND", "CHARGE")}
               </text>
               <line x1={pad.l} x2={pad.l + plotW} y1={socY(0)} y2={socY(0)} className="stroke-gridline" />

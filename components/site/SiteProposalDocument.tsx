@@ -126,19 +126,19 @@ export function SiteProposalDocument({
         {kind === "offer" ? <Text style={styles.h2}>{tx("Wirtschaft, Modell", "Economics, model")}</Text> : <Text style={styles.h2}>{tx("Modellhinweis", "Model note")}</Text>}
         <View style={styles.line}>
           <Text>CAPEX</Text>
-          <Text>{qty(plan.capexEur)} €</Text>
+          <Text>{qty(plan.capexEur)}{"\u202f"}€</Text>
         </View>
         <View style={styles.line}>
           <Text>{tx("Leistungspreis-Ersparnis", "Demand-charge saving")}</Text>
-          <Text>{qty(plan.demandChargeSavingsEur)} €/a</Text>
+          <Text>{qty(plan.demandChargeSavingsEur)}{"\u202f"}€/a</Text>
         </View>
         <View style={styles.line}>
           <Text>{tx("Arbitrage auf 15-min-Preisen", "Arbitrage on 15-min prices")}</Text>
-          <Text>{qty(plan.arbitrageEur)} €/a</Text>
+          <Text>{qty(plan.arbitrageEur)}{"\u202f"}€/a</Text>
         </View>
         <View style={styles.line}>
           <Text>{tx("Jahresnutzen nach OPEX", "Annual benefit after OPEX")}</Text>
-          <Text>{qty(plan.annualBenefitEur)} €/a</Text>
+          <Text>{qty(plan.annualBenefitEur)}{"\u202f"}€/a</Text>
         </View>
         <View style={styles.line}>
           <Text>{tx("Amortisation", "Payback")}</Text>
@@ -146,7 +146,7 @@ export function SiteProposalDocument({
         </View>
         <View style={styles.line}>
           <Text>NPV</Text>
-          <Text>{qty(plan.npvEur)} €</Text>
+          <Text>{qty(plan.npvEur)}{"\u202f"}€</Text>
         </View>
         <View style={styles.line}>
           <Text>{tx("Erlösstapelung", "Revenue stacking")}</Text>

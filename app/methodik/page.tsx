@@ -2,7 +2,7 @@ import { MethodikDocs } from "@/components/methodik/MethodikDocs";
 
 export const metadata = {
   title: "Methodik",
-  description: "Assumptions, formulas, and limits of the SpeicherPilot site model.",
+  description: "Formeln, Quellen und Glossar zum Ring, zur Abendspitze und zur Einschätzung netzdienlich.",
 };
 
 export default function MethodikPage() {

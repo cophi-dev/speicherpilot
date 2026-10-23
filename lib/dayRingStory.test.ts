@@ -106,6 +106,17 @@ describe("day ring story on the October 2026 fixture", () => {
     );
   });
 
+  it("locks 11 October ×1 38,1 → 33,5 GW, ×5 30,7 GW / 22,8 GWh and the 4,5 GW / 7,9 GWh fleet", () => {
+    const stories = storiesFor("2026-10-11");
+    const x1 = stories[1];
+    const x5 = stories[5];
+    expect(formatGw1(x1.eveningPeakBeforeGw ?? 0, "de")).toBe("38,1");
+    expect(formatGw1(x1.eveningPeakAfterGw ?? 0, "de")).toBe("33,5");
+    expect(formatGw1(x5.eveningPeakAfterGw ?? 0, "de")).toBe("30,7");
+    expect(formatGwh(x5.chargedGwh, "de")).toBe("22,8");
+    expect(fleetSizeLabel(1, x1.powerMw, x1.energyMwh, "de")).toBe("×1: 4,5 GW · 7,9 GWh");
+  });
+
   it("keeps a ring sentence for 20 October, when the model finds no surplus", () => {
     const day = days.find((entry) => entry.dateBerlin === "2026-10-20");
     if (!day) {
