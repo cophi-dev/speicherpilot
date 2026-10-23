@@ -56,7 +56,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
 
   if (!stories || !dispatch.fleet) {
     return (
-      <section className="day-hero">
+      <section className="day-hero day-hero-screen">
         <div className="day-hero-inner">
           <h1 className="day-title">
             {dispatch.fleet
@@ -97,7 +97,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
 
   return (
     <>
-      <section className="day-hero" aria-labelledby="home-day">
+      <section className="day-hero day-hero-screen" aria-labelledby="home-day">
         <div className="day-hero-inner">
           <div className="day-hero-layout">
             <p className="day-kicker day-order-kicker">{kicker}</p>
@@ -169,7 +169,11 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
               </p>
             </div>
           </div>
+        </div>
+      </section>
 
+      <section className="day-story" aria-labelledby="home-movements">
+        <div className="day-hero-inner">
           <Movements story={story} language={language} hours={hours} />
         </div>
       </section>
@@ -249,7 +253,7 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
   const active = steps.find((step) => step.id === highlight) ?? steps[0];
   return (
     <div className="day-movements">
-      <h2>{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
+      <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
       <div className="day-movement-story">
         <div className="day-movement-pin">
           <DayRing
