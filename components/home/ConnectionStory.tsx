@@ -117,7 +117,7 @@ export function ConnectionStory() {
               <ConnectionLight light={light} language={language} neutral={step === 0} />
             </div>
           </div>
-          <ol>
+          <ol className="pb-[20vh] lg:pb-[30vh]">
             {steps.map((item, index) => {
               const active = step === index;
               const last = index === steps.length - 1;
@@ -129,7 +129,7 @@ export function ConnectionStory() {
                   }}
                   data-step={index}
                   aria-current={active ? "step" : undefined}
-                  className={`story-step flex min-h-[40vh] flex-col justify-center border-t border-border bg-card p-6 text-foreground lg:border-0 lg:bg-transparent lg:p-0 ${
+                  className={`story-step flex min-h-[40vh] flex-col justify-center border-t border-border bg-card p-6 text-foreground lg:min-h-[75vh] lg:border-0 lg:bg-transparent lg:p-0 ${
                     active ? "lg:text-foreground" : "lg:text-muted-foreground"
                   }`}
                 >
