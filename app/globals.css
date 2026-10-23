@@ -2744,7 +2744,11 @@ footer .site-fold a {
 .methodik-layout { display: grid; gap: 28px; min-width: 0; }
 .methodik article, .methodik nav { min-width: 0; max-width: 100%; }
 .methodik article { display: grid; gap: 28px; max-width: 68ch; }
-.methodik article section { display: grid; gap: 12px; }
+.methodik article section { display: grid; gap: 12px; scroll-margin-top: 5rem; }
+.methodik article p,
+.methodik article li,
+.methodik article dd { font-size: 16px; line-height: 1.65; }
+math mi { text-transform: none; font-style: italic; }
 .methodik nav ol { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .methodik nav a { color: inherit; }
 .methodik-table { max-width: 100%; }

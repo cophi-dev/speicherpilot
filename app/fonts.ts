@@ -2,7 +2,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 /** Variable names stay off Tailwind's `--font-sans` so the theme token can reference them. */
 export const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
+  subsets: ["latin", "greek"],
   weight: ["300", "400", "500", "600"],
   variable: "--font-plex-sans",
   display: "swap",

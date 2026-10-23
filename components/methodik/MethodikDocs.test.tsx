@@ -26,6 +26,10 @@ describe("methodik v2", () => {
     expect(document.body.textContent).not.toMatch(/Beurteilungsspielraum/);
     expect(document.body.textContent).not.toMatch(/EnWG/);
     expect(document.body.textContent).toContain("η");
+    expect(document.getElementById("peak-erklaert")).not.toBeNull();
+    expect(document.body.textContent).toContain("26,6 kWh");
+    expect(document.body.textContent).toContain("Modellschätzung");
+    expect(document.body.textContent).not.toMatch(/MORE_STORAGE_ROUND_TRIP|dispatchPeakFleet|GRID_SUPPORT_CONFIG|sizeStorage|SOC_MAX|planSite|autoSize/);
     const phases = document.querySelectorAll(".methodik-phases .day-ring-svg");
     expect(phases).toHaveLength(3);
     for (const ring of phases) {

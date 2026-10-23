@@ -17,6 +17,7 @@ const CHAPTERS = [
   { id: "groesse", de: "Speichergröße", en: "Storage size" },
   { id: "ampel", de: "Anschluss-Ampel", en: "Connection light" },
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
+  { id: "peak-erklaert", de: "Peak Shaving", en: "Peak shaving" },
   { id: "quellen", de: "Quellen", en: "Sources" },
 ] as const;
 
@@ -88,8 +89,8 @@ export function MethodikDocs() {
                   <tr><td>{tx("Residuallast", "Residual load")}</td><td>{tx("MW, in der Uhr GW", "MW, and GW on the clock")}</td><td>{tx("Energy-Charts, Last − Wind − Sonne", "Energy-Charts, load − wind − solar")}</td></tr>
                   <tr><td>{tx("Großspeicher", "Large storage")}</td><td>MW, MWh</td><td>battery-charts.de aus dem MaStR</td></tr>
                   <tr><td>{tx("Anschluss", "Connection")}</td><td>kW</td><td>{tx("Eingabe oder Beispiel", "Input or example")}</td></tr>
-                  <tr><td>{tx("Wirkungsgrad, live", "Efficiency, live")}</td><td>0,90 auf der Abgabe</td><td>MORE_STORAGE_ROUND_TRIP</td></tr>
-                  <tr><td>{tx("Wirkungsgrad, Standort", "Efficiency, site")}</td><td>√RTE je Richtung</td><td>planSite / sizeStorage</td></tr>
+                  <tr><td>{tx("Wirkungsgrad, live", "Efficiency, live")}</td><td>0,90 auf der Abgabe</td><td>{tx("Annahme im Großspeicher-Modell", "Assumption in the large-storage model")}</td></tr>
+                  <tr><td>{tx("Wirkungsgrad, Standort", "Efficiency, site")}</td><td>√RTE je Richtung</td><td>{tx("Annahme im Standort-Rechner", "Assumption in the site calculator")}</td></tr>
                 </tbody>
               </table></div>
               <p>{tx("Eine nationale Reihe heißt Deutschland. Sie wird nicht als Hamburg oder als Norden beschriftet. 50Hertz ist die Regelzone, nicht die Stadt. TransnetBW zeigt, dass im Norden mehr Wind steht als im Süden, und ist kein Engpass.", "A national series is called Germany. It is not labelled as Hamburg or as the north. 50Hertz is the control area, not the city. TransnetBW shows that the north has more wind than the south, and is not a congestion.")}</p>
@@ -132,12 +133,12 @@ export function MethodikDocs() {
                   </mrow>
                 </math>
               </Formula>
-              <p>{tx("Das ist dispatchPeakFleet. Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. η = 0,9 steht in MORE_STORAGE_ROUND_TRIP und wird erst bei der Abgabe angewendet. Der Standort-Rechner teilt denselben Wirkungsgrad anders auf: dort ist η_dis = √RTE auf dem Weg hinein und auf dem Weg hinaus. Die beiden Modelle werden nicht vermischt.", "That is dispatchPeakFleet. Charging happens only before 17:00 and only from surplus, limited by power and free capacity. η = 0.9 lives in MORE_STORAGE_ROUND_TRIP and is applied only on discharge. The site calculator splits the same round-trip efficiency differently: there η_dis = √RTE on the way in and on the way out. The two models are not mixed.")}</p>
+              <p>{tx("Das ist das Großspeicher-Modell. Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. η = 0,9 ist die Annahme für den Round-Trip-Wirkungsgrad und wird erst bei der Abgabe angewendet. Der Standort-Rechner teilt denselben Wirkungsgrad anders auf: dort gilt je Richtung die Wurzel aus dem Round-Trip-Wirkungsgrad, auf dem Weg hinein und auf dem Weg hinaus. Die beiden Modelle werden nicht vermischt.", "That is the large-storage model. Charging happens only before 17:00 and only from surplus, limited by power and free capacity. η = 0.9 is the assumed round-trip efficiency and is applied only on discharge. The site calculator splits the same efficiency differently: each direction uses the square root of the round-trip efficiency, on the way in and on the way out. The two models are not mixed.")}</p>
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
             </section>
             <section id="groesse">
               <h2>{tx("04 Speichergröße", "04 Storage size")}</h2>
-              <Formula label="sizeStorage">
+              <Formula label={tx("Speichergröße aus der Tagesspitze", "Storage size from the daily peak")}>
                 <math display="block">
                   <mtable>
                     <mtr>
@@ -169,7 +170,7 @@ export function MethodikDocs() {
                   </mrow>
                 </math>
               </Formula>
-              <p>{tx("P_Tag ist der höchste Überschuss eines Tages, E_Überschuss die Summe dieses Tages. P95 darüber lässt die härtesten 5 % der Tage über der Grenze. Das ist Absicht. 0,85 ist SOC_MAX − SOC_MIN, also 0,95 − 0,10. Im Beispiel-Supermarkt ist RTE = 0,9, also η_dis = √0,9. Die Handwerte 40 kW und 40 kWh umgehen diese Formel, weil autoSize dort aus ist.", "P_day is a day’s highest excess, and E_excess is that day’s sum. P95 across those days leaves the hardest 5% above the limit. That is intentional. 0.85 is SOC_MAX − SOC_MIN, that is 0.95 − 0.10. In the supermarket example RTE = 0.9, so η_dis = √0.9. The hand values 40 kW and 40 kWh bypass this formula, because autoSize is off there.")}</p>
+              <p>{tx("P_Tag ist der höchste Überschuss eines Tages, E_Überschuss die Summe dieses Tages. P95 darüber lässt die härtesten 5 % der Tage über der Grenze. Das ist Absicht. 0,85 ist das nutzbare Fenster, Obergrenze minus Untergrenze des Ladezustands, also 0,95 − 0,10. Im Beispiel-Supermarkt ist der Round-Trip-Wirkungsgrad 0,9, also gilt je Richtung √0,9. Die Handwerte 40 kW und 40 kWh umgehen diese Formel, weil die Größe dort von Hand gesetzt ist.", "P_day is a day’s highest excess, and E_excess is that day’s sum. P95 across those days leaves the hardest 5% above the limit. That is intentional. 0.85 is the usable window, the upper state-of-charge bound minus the lower bound, that is 0.95 − 0.10. In the supermarket example the round-trip efficiency is 0.9, so each direction uses √0.9. The hand values 40 kW and 40 kWh bypass this formula, because the size is set by hand there.")}</p>
             </section>
             <section id="ampel">
               <h2>{tx("05 Anschluss-Ampel", "05 Connection light")}</h2>
@@ -182,7 +183,7 @@ export function MethodikDocs() {
             </section>
             <section id="netzdienlichkeit">
               <h2>{tx("06 Einschätzung netzdienlich", "06 Grid-support estimate")}</h2>
-              <p>{tx(`Regel v1. Ein Intervall zählt als Spitze, wenn die Standortlast mindestens ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)} % der Anschlussleistung erreicht. Einschätzung netzdienlich ab ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)} % der Entladeenergie in diesen Intervallen und ohne neue Bezugsspitze. Darunter bis ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)} % heißt die Schätzung gemischt, darunter marktgetrieben. Eine neue Spitze liegt vor, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt. Die Schwellen stehen nur in GRID_SUPPORT_CONFIG und sind vorläufig.`, `Rule v1. An interval counts as a peak when site load reaches at least ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)}% of the connection. The estimate is grid-supportive from ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)}% of discharge energy in those intervals and only without a new import peak. Down to ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)}% the estimate is mixed, and below that market-driven. A new peak exists as soon as a charging interval lifts the import above the peak without storage. The thresholds live only in GRID_SUPPORT_CONFIG and are provisional.`)}</p>
+              <p>{tx(`Regel v1. Ein Intervall zählt als Spitze, wenn die Standortlast mindestens ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)} % der Anschlussleistung erreicht. Einschätzung netzdienlich ab ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)} % der Entladeenergie in diesen Intervallen und ohne neue Bezugsspitze. Darunter bis ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)} % heißt die Schätzung gemischt, darunter marktgetrieben. Eine neue Spitze liegt vor, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt. Die Schwellen stehen nur an einer Stelle im Modell und sind vorläufig.`, `Rule v1. An interval counts as a peak when site load reaches at least ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)}% of the connection. The estimate is grid-supportive from ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)}% of discharge energy in those intervals and only without a new import peak. Down to ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)}% the estimate is mixed, and below that market-driven. A new peak exists as soon as a charging interval lifts the import above the peak without storage. The thresholds live in one place in the model and are provisional.`)}</p>
               <p>{tx("Die Marke heißt netzdienlich v1 · Einschätzung, kein Befund. Die Schrift bleibt neutral, ohne Grün und ohne Rot.", "The badge reads grid-supportive v1 · estimate, not a finding. The type stays neutral, with no green and no red.")}</p>
               <blockquote>
                 <p>{tx("Ob netzdienlicher Speicherbetrieb im örtlichen Verteilnetz Netzausbau vermeidet, kann nur der Netzbetreiber beurteilen; ihm steht dabei ein Entscheidungsspielraum zu. Die Bundesnetzagentur durfte ihre Vorgaben (Positionspapier 2009, Leistungspreismodell) als angemessen ansehen.", "Whether grid-supportive storage operation avoids network expansion in the local distribution network can only be judged by the network operator; that operator has a margin of decision. The Federal Network Agency was entitled to regard its requirements (2009 position paper, capacity-price model) as appropriate.")}</p>
@@ -192,9 +193,42 @@ export function MethodikDocs() {
                 </p>
               </blockquote>
             </section>
+            <section id="peak-erklaert">
+              <h2>{tx("07 Peak Shaving, Schritt für Schritt", "07 Peak shaving, step by step")}</h2>
+              <p>{tx("Die Geschichte auf der Startseite mit Zahlen: Die Abendspitze passt nicht durch den Anschluss, der Speicher nimmt sie weg.", "The homepage story in numbers: the evening peak does not fit through the connection, and the battery takes it away.")}</p>
+              <Formula label={tx("Abgabe über der Anschlussgrenze", "Discharge above the connection limit")}>
+                <math display="block">
+                  <mrow>
+                    <msub><mi>d</mi><mi>t</mi></msub>
+                    <mo>=</mo>
+                    <mo>min</mo>
+                    <mo>(</mo>
+                    <msub><mi>L</mi><mi>t</mi></msub>
+                    <mo>−</mo>
+                    <msub><mi>P</mi><mtext>Grenze</mtext></msub>
+                    <mo>,</mo>
+                    <mi>P</mi>
+                    <mo>,</mo>
+                    <msub><mtext>SoC</mtext><mi>t</mi></msub>
+                    <mo>·</mo>
+                    <msqrt><mi>η</mi></msqrt>
+                    <mo>/</mo>
+                    <mi>Δ</mi><mi>t</mi>
+                    <mo>)</mo>
+                  </mrow>
+                </math>
+              </Formula>
+              <p>{tx("Abgegeben wird nur, wenn die Last über der Anschlussgrenze liegt. Der Ladezustand sinkt um die abgegebene Energie geteilt durch √η. Nachgeladen wird ab 19:30 Uhr mit höchstens 15 kW, und nur solange unter der Grenze Luft ist.", "Discharge happens only when load is above the connection limit. State of charge falls by the delivered energy divided by √η. Recharging starts at 19:30, at most 15 kW, and only while there is room under the limit.")}</p>
+              <p>{tx("Annahmen: Speicher 40 kW / 40 kWh, startet voll (100 %), Wirkungsgrad 0,9, Anschluss 90 kW. Winter-Werktag des fiktiven Supermarkts ohne PV.", "Assumptions: battery 40 kW / 40 kWh, starts full (100%), efficiency 0.9, connection 90 kW. A winter weekday of the fictional supermarket, without PV.")}</p>
+              <p>{tx("Spitze 119,6 kW um 17:30 Uhr. Über 90 kW von 17:00 bis 18:15 Uhr, fünf Viertelstunden. Der Speicher gibt 14,1 / 25,7 / 29,6 / 24,8 / 12,3 kW ab, zusammen 26,6 kWh.", "Peak 119.6 kW at 17:30. Above 90 kW from 17:00 to 18:15, five quarter-hours. The battery delivers 14.1 / 25.7 / 29.6 / 24.8 / 12.3 kW, 26.6 kWh in total.")}</p>
+              <p>{tx("Gegenrechnung Ladezustand: 26,6 / 0,9487 = 28,0 kWh aus dem Speicher, also 40 − 28,0 = 12,0 kWh = 30 %. Der Bezug danach liegt höchstens bei 90,0 kW, genau auf der Linie. Die Ampel steht auf knapp, nicht auf passt. Ab 19:30 Uhr lädt er mit 15 kW nach und ist zum Tagesende wieder voll (40 kWh).", "State-of-charge check: 26.6 / 0.9487 = 28.0 kWh leaves the battery, so 40 − 28.0 = 12.0 kWh = 30%. Import afterwards stays at most at 90.0 kW, exactly on the line. The light reads tight, not fits. From 19:30 it recharges at 15 kW and is full again at the end of the day (40 kWh).")}</p>
+              <p>{tx("Spitze −29,6 kW × 120 €/kW·a ≈ 3.550 €/a, Modellschätzung. Der Leistungspreis von 120 €/kW·a ist eine Annahme, kein Tarif.", "Peak −29.6 kW × 120 €/kW·a ≈ €3,550 per year, model estimate. The demand charge of 120 €/kW·a is an assumption, not a tariff.")}</p>
+              <p>{tx("Ist der Speicher zu klein, sinkt die Spitze nur teilweise. Die Seite sagt dann: Der Anschluss passt noch nicht. Liegt die Last nie über der Grenze, gibt es keine Abgabe. Ist der Speicher leer, bevor die Spitze vorbei ist, geht der Rest über die Grenze.", "If the battery is too small, the peak only falls part of the way. The page then says the connection does not fit yet. If load never crosses the limit, there is no discharge. If the battery is empty before the peak is over, the rest goes over the limit.")}</p>
+              <p>{tx("Der Lehrtag weiß, dass die Spitze kommt, und startet deshalb voll. Der Jahreslauf auf /site startet bei 50 %, lädt selbst vor und hält 10–95 % ein. Darum stimmen die Zahlen beider Ansichten nur zufällig überein, hier beide 26,6 kWh und 119,6 kW auf 90 kW. Der Leistungspreis hängt an der Jahreshöchstlast. Ein einziger verpasster Tag macht die Ersparnis kaputt. Darum rechnet /site ein ganzes Jahr und nimmt die Jahresspitze vorher und nachher. Der Lehrtag zeigt nur das Prinzip.", "The teaching day knows the peak is coming, and therefore starts full. The year run on /site starts at 50%, charges ahead on its own and stays inside 10–95%. The two views therefore match only by chance, here both at 26.6 kWh and 119.6 kW down to 90 kW. The demand charge follows the annual peak. One missed day wipes out the saving. That is why /site runs a whole year and takes the annual peak before and after. The teaching day only shows the principle.")}</p>
+            </section>
             <section id="quellen">
               <details className="site-fold">
-              <summary><h2>{tx("07 Quellen", "07 Sources")}</h2></summary>
+              <summary><h2>{tx("08 Quellen", "08 Sources")}</h2></summary>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
