@@ -30,6 +30,7 @@ export type GlossaryId =
   | "behind-the-meter"
   | "front-of-meter"
   | "fpa"
+  | "fca"
   | "grossspeicher"
   | "ladezustand";
 
@@ -276,16 +277,24 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "front-of-meter",
     term: { de: "Front-of-Meter", en: "Front of the meter" },
     text: {
-      de: "Ein Speicher direkt am Netz, ohne Last eines Betriebs dahinter. Flower in Bergedorf ist so ein Fall. Dieser Rechner kann dann keine Lastspitze eines Standorts kappen.",
-      en: "A battery on the grid itself, with no site load behind it. Flower in Bergedorf is that kind of case. This calculator then cannot shave a site peak.",
+      de: "Ein Speicher direkt am Netz, ohne Last eines Betriebs dahinter. Der Großspeicher Bollingstedt ist so ein Fall. Dieser Rechner kann dann keine Lastspitze eines Standorts kappen.",
+      en: "A battery on the grid itself, with no site load behind it. The Bollingstedt large storage is that kind of case. This calculator then cannot shave a site peak.",
     },
   },
   {
     id: "fpa",
     term: { de: "Flexibility Purchase Agreement", en: "Flexibility Purchase Agreement" },
     text: {
-      de: "Ein Vertrag, mit dem ein Vermarkter die Flexibilität des Speichers handelt. Flower und ENGIE haben ein solches Agreement, auch virtuelles Tolling genannt. Der Preis steht in den Quellen nicht.",
-      en: "A contract under which a marketer trades the battery’s flexibility. Flower and ENGIE have one, also called a virtual tolling agreement. The sources do not state the price.",
+      de: "Ein Vertrag, mit dem ein Vermarkter die Flexibilität des Speichers handelt. Manchmal heißt das auch virtuelles Tolling. Den Preis veröffentlicht so ein Vertrag nicht.",
+      en: "A contract under which a marketer trades the battery’s flexibility. It is sometimes also called virtual tolling. That kind of contract does not publish the price.",
+    },
+  },
+  {
+    id: "fca",
+    term: { de: "flexible Netzanschlussvereinbarung (FCA)", en: "flexible grid connection agreement (FCA)" },
+    text: {
+      de: "Nach § 17 Abs. 2b EnWG kann der Netzbetreiber sie anbieten. Sie setzt der höchsten Bezugs- oder Einspeiseleistung eine feste oder eine sich ändernde Grenze.",
+      en: "Under section 17 (2b) of the Energy Industry Act the network operator can offer it. It sets a fixed or a changing limit on the highest withdrawal or feed-in power.",
     },
   },
   {

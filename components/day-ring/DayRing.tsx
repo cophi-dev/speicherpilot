@@ -19,6 +19,7 @@ import {
   segmentIndexForHour,
   socRingGeometry,
 } from "@/lib/dayRingScale";
+import { ModelDayMark } from "@/components/day-ring/ModelDayMark";
 import { SmoothRing } from "@/components/day-ring/SmoothRing";
 import { useMorphedSeries } from "@/components/day-ring/useMorphedSeries";
 import { polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
@@ -76,6 +77,9 @@ export function DayRing({
   mode = "live",
   empty = false,
   spokeHour = null,
+  centerMark = null,
+  solidStrokes = false,
+  showLimit = true,
 }: {
   points: LiveDispatchPoint[];
   label: string;
@@ -95,6 +99,12 @@ export function DayRing({
   mode?: RingMode;
   empty?: boolean;
   spokeHour?: number | null;
+  /** Stamp drawn inside the ring, above the centre figure. */
+  centerMark?: { pill: string; figure: string; unit: string; note: readonly string[] } | null;
+  /** Zero circle and guides stay solid. */
+  solidStrokes?: boolean;
+  /** Connection-limit circle. Colour can still use `limit` when this is false. */
+  showLimit?: boolean;
 }) {
   const titleId = useId();
   const descId = useId();
@@ -296,7 +306,7 @@ export function DayRing({
 
   return (
     <div className="day-ring-block">
-    <div className={intro ? "day-ring-frame is-intro" : "day-ring-frame"} ref={frameRef}>
+    <div className={["day-ring-frame", intro ? "is-intro" : "", solidStrokes ? "day-ring-solid" : ""].filter(Boolean).join(" ")} ref={frameRef}>
       <svg
         className="day-ring-svg"
         viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
@@ -330,7 +340,7 @@ export function DayRing({
           />
         )}
         {!empty ? <circle className="day-guide" cx="0" cy="0" r={outer} /> : null}
-        {!empty && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
+        {!empty && showLimit && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
         {!empty && highlight ? <InkArc points={points} highlight={highlight} radiusOf={radiusOf} unit={unit} /> : null}
         {!empty && showSoc ? <SocRing points={points} bold={mode === "projekt"} unit={unit} /> : null}
         {!empty && showShift && chargedGwh > 0.05 ? <ShiftArrow points={points} /> : null}
@@ -349,6 +359,16 @@ export function DayRing({
         {callouts.map((callout, index) => (
           <CalloutLeader key={callout.id} callout={callout} unit={unit} box={beside[index]} />
         ))}
+        {centerMark ? (
+          <ModelDayMark
+            pill={centerMark.pill}
+            figure={centerMark.figure}
+            unit={centerMark.unit}
+            note={centerMark.note}
+            viewWidth={view.w}
+            framePx={framePx}
+          />
+        ) : null}
       </svg>
       {callouts.map((callout, index) => (
         <Callout key={callout.id} callout={callout} box={beside[index]} view={view} />

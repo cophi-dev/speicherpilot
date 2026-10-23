@@ -1,6 +1,7 @@
 import "server-only";
 
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { dayAheadPriceUrl, parseDayAheadPrices, type DayAheadPricePoint } from "@/lib/dayAheadPrices";
 import { buildLiveBoard, type LiveBoard, type QuarterPoint } from "@/lib/liveBoard";
 import { fetchSmardQuarterHours, SMARD_FILTER, type SmardRegion } from "@/lib/smardApi";
 
@@ -48,23 +49,18 @@ type EnergyChartsEnvelope = {
   data?: Array<{ timestamp?: string; values?: Record<string, number | null> }>;
 };
 
-async function dayAheadPrices(dateKey: string): Promise<Array<{ unixMs: number; eurPerMwh: number }> | null> {
+async function dayAheadPrices(dateKey: string): Promise<DayAheadPricePoint[] | null> {
   try {
-    const body = (await cachedJson(
-      `https://api.energy-charts.info/v2/price?bzn=DE-LU&start=${dateKey}&end=${dateKey}`
-    )) as EnergyChartsEnvelope;
-    const points: Array<{ unixMs: number; eurPerMwh: number }> = [];
-    for (const row of body.data ?? []) {
-      const price = row.values?.day_ahead_price;
-      if (!row.timestamp || price === null || price === undefined || !Number.isFinite(price)) {
-        continue;
-      }
-      points.push({ unixMs: Date.parse(row.timestamp), eurPerMwh: price });
-    }
-    return points;
+    const body = await cachedJson(dayAheadPriceUrl(dateKey));
+    return parseDayAheadPrices(body);
   } catch {
     return null;
   }
+}
+
+/** DE-LU day-ahead prices for one Berlin delivery day. Same feed as `/live`. */
+export async function loadDayAheadPricesForDate(dateKey: string): Promise<DayAheadPricePoint[] | null> {
+  return dayAheadPrices(dateKey);
 }
 
 async function nationalSignal(): Promise<Array<{ unixMs: number; sharePct: number; signal: number }> | null> {
