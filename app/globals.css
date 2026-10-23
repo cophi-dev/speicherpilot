@@ -1592,11 +1592,21 @@
 .day-model-rule {
   margin: 10px auto 0;
   max-width: 36rem;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 12px;
   line-height: 1.35;
   text-align: center;
   color: #c5ced6;
+}
+
+.day-hero .day-model-rule a {
+  color: #9bf6e6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day-hero .day-model-rule a:focus-visible {
+  outline: 2px solid #7dfce6;
+  outline-offset: 3px;
 }
 
 .day-model-caption {

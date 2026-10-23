@@ -84,14 +84,10 @@ function slotsFromPrices(prices: DayAheadPricePoint[], dateBerlin: string): Slot
   return slots.length >= 4 ? slots : null;
 }
 
-/**
- * One sentence for the ring. It names the ranking the engine actually uses:
- * cheapest quarter-hours before the first discharge, highest score after that
- * (price, evening bonus 17:00–21:00, volatility), and no draw on the opening inventory.
- */
+/** Plain sentence under the ring. The score weights live on /methodik#modelltag. */
 export const REFERENCE_PARK_DISPATCH_RULE = {
-  de: "Geladen wird in den günstigsten Viertelstunden vor der ersten Abgabe und abgegeben in den höchstbewerteten, Preis plus Abendzuschlag von 17 bis 21 Uhr und ein Volatilitätsterm, höchstens die Energie, die der Tag neu geladen hat.",
-  en: "Charge uses the cheapest quarter-hours before the first discharge and discharge uses the highest-scoring ones, price plus an evening bonus from 17:00 to 21:00 and a volatility term, at most the energy this day newly stored.",
+  de: "Modell: lädt mittags in den billigsten Viertelstunden und gibt abends (Vorrang 17–21 Uhr) in den teuersten ab, höchstens so viel, wie es an diesem Tag geladen hat.",
+  en: "Model: it charges at midday in the cheapest quarter-hours and discharges in the evening (priority 17:00–21:00) in the most expensive ones, at most as much as it charged on this day.",
 } as const;
 
 /** Engine run for the reference park. Returns null when the price series is too short. */

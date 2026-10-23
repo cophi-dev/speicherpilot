@@ -373,7 +373,10 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               description={ringDescription}
               centerMark={{ pill: "MODELLTAG", figure, unit: "MW", note: [] }}
             />
-            <p className="day-model-rule">{rule}</p>
+            <p className="day-model-rule">
+              {rule}{" "}
+              <a href="/methodik#modelltag">{tx("Regel im Detail", "Rule in detail")}</a>
+            </p>
             <p className="day-model-caption">{note}</p>
             {points.length > 0 ? (
               <table className="day-sr">

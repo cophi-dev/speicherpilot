@@ -80,7 +80,8 @@ describe("site v2 heroes", () => {
     expect(screen.getAllByText("MODELLTAG").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/nicht die echte Fahrweise/).length).toBeGreaterThan(0);
     expect(container.querySelector(".day-model-caption")?.textContent).toMatch(/Gestrige Day-Ahead-Preise/);
-    expect(container.querySelector(".day-model-rule")?.textContent).toMatch(/günstigsten Viertelstunden/);
+    expect(container.querySelector(".day-model-rule")?.textContent).toMatch(/billigsten Viertelstunden/);
+    expect(screen.getByRole("link", { name: "Regel im Detail" })).toHaveAttribute("href", "/methodik#modelltag");
     expect(container.querySelector(".day-model-mark .day-model-note")).toBeNull();
     expect(container.querySelector(".day-model-pill")).toHaveAttribute("fill", "none");
     expect(container.querySelector(".day-ring-solid")).not.toBeNull();
