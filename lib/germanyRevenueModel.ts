@@ -23,7 +23,8 @@ const SMARD_REGION = "DE";
 const SMARD_RESOLUTION = "quarterhour";
 const RECENT_SPOT_SERIES_COUNT = 2;
 const RECENT_LOOKBACK_DAYS = 7;
-const SMARD_CACHE_TTL_MS = 15 * 60 * 1000;
+/** Shared data-cache lifetime. A process-local map is not the freshness source. */
+const SMARD_PRICE_REVALIDATE_SECONDS = 900;
 const QUARTER_HOUR_MWH_FACTOR = 0.25;
 
 const smardIndexSchema = z.object({
@@ -97,9 +98,6 @@ const REDISPATCH_REFERENCES: RedispatchReference[] = [
   },
 ];
 
-let smardIndexCache: { fetchedAtMs: number; timestamps: number[] } | null = null;
-const smardSeriesCache = new Map<number, { fetchedAtMs: number; points: SmardPoint[] }>();
-
 const berlinHourFormatter = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Europe/Berlin",
   hour: "2-digit",
@@ -127,13 +125,9 @@ const buildSmardSeriesUrl = (anchorTimestampMs: number) =>
   `${SMARD_BASE_URL}/chart_data/${SMARD_MARKET_PRICE_FILTER}/${SMARD_REGION}/${SMARD_MARKET_PRICE_FILTER}_${SMARD_REGION}_${SMARD_RESOLUTION}_${anchorTimestampMs}.json`;
 
 async function fetchSmardIndex(): Promise<number[]> {
-  if (smardIndexCache && Date.now() - smardIndexCache.fetchedAtMs < SMARD_CACHE_TTL_MS) {
-    return smardIndexCache.timestamps;
-  }
-
   const response = await fetch(buildSmardIndexUrl(), {
     headers: { Accept: "application/json" },
-    next: { revalidate: 900 },
+    next: { revalidate: SMARD_PRICE_REVALIDATE_SECONDS },
   });
 
   if (!response.ok) {
@@ -145,22 +139,13 @@ async function fetchSmardIndex(): Promise<number[]> {
     throw new Error("SMARD index response had an unexpected shape");
   }
 
-  smardIndexCache = {
-    fetchedAtMs: Date.now(),
-    timestamps: parsed.data.timestamps,
-  };
   return parsed.data.timestamps;
 }
 
 async function fetchSmardSeries(anchorTimestampMs: number): Promise<SmardPoint[]> {
-  const cached = smardSeriesCache.get(anchorTimestampMs);
-  if (cached && Date.now() - cached.fetchedAtMs < SMARD_CACHE_TTL_MS) {
-    return cached.points;
-  }
-
   const response = await fetch(buildSmardSeriesUrl(anchorTimestampMs), {
     headers: { Accept: "application/json" },
-    next: { revalidate: 900 },
+    next: { revalidate: SMARD_PRICE_REVALIDATE_SECONDS },
   });
 
   if (!response.ok) {
@@ -185,7 +170,6 @@ async function fetchSmardSeries(anchorTimestampMs: number): Promise<SmardPoint[]
       };
     });
 
-  smardSeriesCache.set(anchorTimestampMs, { fetchedAtMs: Date.now(), points });
   return points;
 }
 
@@ -387,8 +371,7 @@ export async function getGermanyMarketRevenueReference(): Promise<{
 
 export const __GERMANY_REVENUE_MODEL_TESTING__ = {
   clearCaches(): void {
-    smardIndexCache = null;
-    smardSeriesCache.clear();
+    // Freshness is the fetch `next.revalidate` window, not a module variable.
   },
   getRecentSmardPoints,
 };
