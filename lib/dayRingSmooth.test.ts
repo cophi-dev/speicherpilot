@@ -1,6 +1,7 @@
 import { polarPoint, RING_GAP_DEG, ringRadius, RING_R0 } from "@/lib/dayRingScale";
 import {
   polarAreaPath,
+  polarRibbonPath,
   quarterCenterDeg,
   ringTip,
   smoothDrawnSeries,
@@ -12,6 +13,59 @@ import {
 function day(values: readonly number[]) {
   const series = values.map((value, index) => ({ angleDeg: quarterCenterDeg(index), value }));
   return smoothPolarSamples(series, ringRadius, RING_R0);
+}
+
+/** Largest direction change along one cubic edge, in degrees. The straight cap between edges is ignored. */
+function ribbonKinks(path: string): number {
+  const tokens = path.match(/[MLCZ]|-?\d+(?:\.\d+)?/g) ?? [];
+  let cursor = 0;
+  const read = () => ({ x: Number(tokens[cursor++]), y: Number(tokens[cursor++]) });
+  let worst = 0;
+  let points: Array<{ x: number; y: number }> = [];
+  const flush = () => {
+    for (let index = 1; index < points.length - 1; index += 1) {
+      const a = points[index - 1];
+      const b = points[index];
+      const c = points[index + 1];
+      const v1x = b.x - a.x;
+      const v1y = b.y - a.y;
+      const v2x = c.x - b.x;
+      const v2y = c.y - b.y;
+      const n1 = Math.hypot(v1x, v1y);
+      const n2 = Math.hypot(v2x, v2y);
+      if (n1 < 0.05 || n2 < 0.05) continue;
+      const dot = (v1x * v2x + v1y * v2y) / (n1 * n2);
+      const turn = (Math.acos(Math.max(-1, Math.min(1, dot))) * 180) / Math.PI;
+      if (turn > worst) worst = turn;
+    }
+    points = [];
+  };
+  let start = { x: 0, y: 0 };
+  while (cursor < tokens.length) {
+    const command = tokens[cursor++];
+    if (command === "M" || command === "L") {
+      flush();
+      start = read();
+      points.push(start);
+      continue;
+    }
+    if (command === "Z") break;
+    if (command !== "C") break;
+    const c1 = read();
+    const c2 = read();
+    const end = read();
+    for (const t of [0.25, 0.5, 0.75]) {
+      const u = 1 - t;
+      points.push({
+        x: u ** 3 * start.x + 3 * u ** 2 * t * c1.x + 3 * u * t ** 2 * c2.x + t ** 3 * end.x,
+        y: u ** 3 * start.y + 3 * u ** 2 * t * c1.y + 3 * u * t ** 2 * c2.y + t ** 3 * end.y,
+      });
+    }
+    points.push(end);
+    start = end;
+  }
+  flush();
+  return worst;
 }
 
 describe("smooth day ring", () => {
@@ -59,6 +113,22 @@ describe("smooth day ring", () => {
     expect(path.endsWith("Z")).toBe(true);
     expect(path.match(/A /g)).toHaveLength(1);
     expect(path).toMatch(/A [\d.]+ [\d.]+ 0 1 0 /);
+  });
+
+  it("draws a small charge bump as one curve without sawteeth", () => {
+    const values = Array.from({ length: 96 }, (_, index) => {
+      const hour = index * 0.25;
+      if (Math.abs(hour - 2.25) < 0.01) return 1;
+      if (Math.abs(hour - 2.5) < 0.01) return 1.1;
+      return 0;
+    });
+    const samples = day(smoothDrawnSeries(values));
+    const path = polarRibbonPath(
+      samples,
+      samples.map((sample) => ({ ...sample, radius: RING_R0 }))
+    );
+    const turns = ribbonKinks(path);
+    expect(turns).toBeLessThan(12);
   });
 
   it("puts a step from 0 to 20 on radii strictly between the two ends", () => {

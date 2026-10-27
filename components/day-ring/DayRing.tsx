@@ -361,12 +361,13 @@ export function DayRing({
             highlight={highlight}
             hatchId={hatchId}
             view={view}
+            framePx={framePx}
           />
         )}
         {!empty ? <circle className="day-guide" cx="0" cy="0" r={outer} /> : null}
         {!empty && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
         {!empty && highlight ? <InkArc points={points} highlight={highlight} radiusOf={radiusOf} unit={unit} /> : null}
-        {!empty && showSoc ? <SocRing points={points} bold={mode === "projekt"} unit={unit} /> : null}
+        {!empty && showSoc ? <SocRing points={points} bold={mode === "projekt"} unit={unit} framePx={framePx} viewW={view.w} /> : null}
         {!empty && showShift && chargedGwh > 0.05 ? <ShiftArrow points={points} /> : null}
         {!empty && spokeHour != null ? <Spoke hour={spokeHour} radius={radiusOf(Math.max(maxValue, limit ?? 0)) + 18} /> : null}
         {empty && !showHourTicks ? null : (
@@ -377,11 +378,11 @@ export function DayRing({
             fontSize={hourLabel.fontSize}
           />
         )}
-        {callouts.map((callout) => (
-          <CalloutMarker key={callout.id} callout={callout} unit={unit} framePx={framePx} viewW={view.w} />
-        ))}
         {callouts.map((callout, index) => (
           <CalloutLeader key={callout.id} callout={callout} unit={unit} box={beside[index]} />
+        ))}
+        {callouts.map((callout) => (
+          <CalloutMarker key={callout.id} callout={callout} unit={unit} framePx={framePx} viewW={view.w} />
         ))}
         <RingKeyLeaders
           points={points}
@@ -478,7 +479,19 @@ function Spoke({ hour, radius }: { hour: number; radius: number }) {
   return <line className="day-spoke" x1="0" y1="0" x2={at.x} y2={at.y} stroke="#E9EEF2" strokeWidth="2" />;
 }
 
-export function SocRing({ points, bold = false, unit = "GW" }: { points: LiveDispatchPoint[]; bold?: boolean; unit?: RingUnit }) {
+export function SocRing({
+  points,
+  bold = false,
+  unit = "GW",
+  framePx = 720,
+  viewW = 720,
+}: {
+  points: LiveDispatchPoint[];
+  bold?: boolean;
+  unit?: RingUnit;
+  framePx?: number;
+  viewW?: number;
+}) {
   const { radius, width } = socRingGeometry(unit, bold);
   const soc = useMorphedSeries(points.map((point) => point.soc));
   const series = points.map((point, index) => ({
@@ -486,10 +499,16 @@ export function SocRing({ points, bold = false, unit = "GW" }: { points: LiveDis
     value: soc[index] ?? point.soc,
   }));
   const inner = Math.max(1, radius - width / 2);
-  const samples = smoothPolarSamples(series, (value) => inner + Math.max(0, Math.min(1, value)) * width, inner);
+  const minBand = Math.max(pxToUser(1.5, viewW, framePx), 0.75);
+  // One Fritsch–Carlson outer edge. A per-sample floor would kink that curve into sawteeth,
+  // so the whole band is lifted until its thinnest point is at least 1.5px.
+  const raw = smoothPolarSamples(series, (value) => inner + Math.max(0, Math.min(1, value)) * width, inner);
+  const thin = raw.reduce((min, sample) => Math.min(min, sample.radius - inner), Number.POSITIVE_INFINITY);
+  const lift = Math.max(0, minBand - (Number.isFinite(thin) ? thin : 0));
+  const outer = raw.map((sample) => ({ ...sample, radius: sample.radius + lift }));
   const band = polarRibbonPath(
-    samples,
-    samples.map((sample) => ({ ...sample, radius: inner }))
+    outer,
+    outer.map((sample) => ({ ...sample, radius: inner }))
   );
   return <path className="day-soc" d={band} fill={unit === "kW" ? "#1E9CB0" : "var(--mint-stroke)"} opacity={0.9} />;
 }
@@ -523,11 +542,13 @@ export function ShiftArrow({ points }: { points: LiveDispatchPoint[] }) {
 
 function calloutMarker(callout: RingCallout, unit: RingUnit) {
   const value = unit === "kW" ? callout.point.ohneMw : callout.point.ohneMw / 1000;
-  const radius = unit === "kW" ? kwRadius(value) : ringRadius(value);
+  const edge = unit === "kW" ? kwRadius(value) : ringRadius(value);
+  const base = unit === "kW" ? kwRadius(0) : RING_R0;
+  const radius = (edge + base) / 2;
   const deg = hourToDeg(callout.point.hour) + 1.8;
   return {
     at: polarPoint(0, 0, radius, deg),
-    from: polarPoint(0, 0, radius + 16, deg),
+    from: polarPoint(0, 0, radius, deg),
   };
 }
 

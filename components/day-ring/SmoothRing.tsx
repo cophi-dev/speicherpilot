@@ -3,11 +3,12 @@
 import { useId } from "react";
 
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
-import { energyColor, kwRadius, polarPoint, RING_R0, ringRadius, utilisationColor } from "@/lib/dayRingScale";
+import { energyColor, kwRadius, polarPoint, pxToUser, RING_R0, ringRadius, utilisationColor } from "@/lib/dayRingScale";
 import {
   booleanRuns,
   conicGradient,
   inMidnightTaper,
+  clampRibbon,
   polarAreaPath,
   polarCapPath,
   polarRibbonPath,
@@ -31,6 +32,7 @@ export function SmoothRing({
   highlight,
   hatchId,
   view,
+  framePx,
 }: {
   points: LiveDispatchPoint[];
   unit: RingUnit;
@@ -41,6 +43,7 @@ export function SmoothRing({
   highlight: Highlight;
   hatchId: string;
   view: { x: number; y: number; w: number; h: number };
+  framePx: number;
 }) {
   const clipId = `ring-${useId().replace(/:/g, "")}`;
   const valueOf = (point: LiveDispatchPoint, field: "ohneMw" | "mitMw") => (unit === "kW" ? point[field] : point[field] / 1000);
@@ -92,10 +95,10 @@ export function SmoothRing({
           </g>
         ) : null}
       </g>
-      <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} dim={Boolean(span)} />
+      <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} minGap={pxToUser(1.5, view.w, framePx)} dim={Boolean(span)} />
       {span ? (
         <g clipPath={`url(#${clipId}-wedge)`} aria-hidden="true">
-          <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} dim={false} />
+          <RingPaint ohne={ohneSamples} mit={mitSamples} showFlow={showFlow} hatchId={hatchId} limit={limit} mode={mode} unit={unit} minGap={pxToUser(1.5, view.w, framePx)} dim={false} />
         </g>
       ) : null}
       <g className="day-ring-tips">
@@ -124,6 +127,7 @@ function RingPaint({
   limit,
   mode,
   unit,
+  minGap,
   dim,
 }: {
   ohne: CurveSample[];
@@ -133,6 +137,7 @@ function RingPaint({
   limit: number | null;
   mode: RingMode;
   unit: RingUnit;
+  minGap: number;
   dim: boolean;
 }) {
   const epsilon = unit === "kW" ? 0.2 : 0.02;
@@ -143,23 +148,27 @@ function RingPaint({
     mode === "netz" && limit != null
       ? booleanRuns(ohne.map((sample) => open(sample) && sample.value > limit + epsilon))
       : [];
+  const ribbon = (edge: CurveSample[], base: CurveSample[]) => {
+    const clamped = clampRibbon(edge, base, minGap);
+    return polarRibbonPath(clamped.outer, clamped.inner);
+  };
   return (
     <g className={dim ? "day-smooth-base is-dim" : "day-smooth-hot"}>
       {showFlow
         ? charge.map((run) => (
-            <path key={`c${run.start}`} className="day-charge" d={polarRibbonPath(mit.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1))} fill="var(--mint-stroke)" />
+            <path key={`c${run.start}`} className="day-charge" d={ribbon(mit.slice(run.start, run.end + 1), ohne.slice(run.start, run.end + 1))} fill="var(--mint-stroke)" />
           ))
         : null}
       {showFlow && mode !== "projekt"
         ? discharge.map((run) => (
-            <path key={`d${run.start}`} d={polarRibbonPath(ohne.slice(run.start, run.end + 1), mit.slice(run.start, run.end + 1))} fill={`url(#${hatchId})`} />
+            <path key={`d${run.start}`} d={ribbon(ohne.slice(run.start, run.end + 1), mit.slice(run.start, run.end + 1))} fill={`url(#${hatchId})`} />
           ))
         : null}
       {showFlow && mode === "projekt"
         ? discharge.map((run) => (
             <path
               key={`p${run.start}`}
-              d={polarRibbonPath(ohne.slice(run.start, run.end + 1), mit.slice(run.start, run.end + 1))}
+              d={ribbon(ohne.slice(run.start, run.end + 1), mit.slice(run.start, run.end + 1))}
               fill="var(--mint-stroke)"
               opacity="0.85"
             />

@@ -300,11 +300,31 @@
     border-bottom: 1px solid hsl(var(--border));
     margin-inline: -1.25rem;
     padding: 8px 1.25rem 12px;
-    min-height: 400px;
+  }
+
+  .connection-story ol {
+    padding-bottom: 0;
+  }
+
+  .connection-story .story-step:last-child {
+    min-height: calc(100svh + 100svh);
+  }
+
+  .connection-story .story-step-card {
+    position: sticky;
+    top: calc(4rem + var(--story-pin, 320px) + 16px);
+    z-index: 4;
+    border-top: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    padding: 24px;
   }
 }
 
 @media (min-width: 1024px) {
+  .connection-story ol {
+    padding-bottom: 0;
+  }
+
   .connection-story {
     display: grid;
     grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.9fr);
@@ -321,6 +341,21 @@
     top: 4rem;
     height: calc(100vh - 5rem);
     min-height: 540px;
+  }
+
+  .connection-story .story-step {
+    min-height: 100vh;
+  }
+
+  .connection-story .story-step:last-child {
+    min-height: calc(100vh + 100vh);
+  }
+
+  .connection-story .story-step:last-child .story-step-card {
+    position: sticky;
+    top: calc(50vh - 7rem);
+    z-index: 1;
+    background: hsl(var(--background));
   }
 
   .story-halo {
@@ -1661,6 +1696,11 @@
   font-feature-settings: "calt" 0, "liga" 0, "zero" 0;
   font-variant-ligatures: none;
   text-rendering: geometricPrecision;
+  paint-order: stroke;
+  stroke: #0a0f14;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .day-ticks line {
@@ -2454,6 +2494,7 @@
 @media (max-width: 959px) {
   .day-movement-pin {
     background: hsl(var(--background));
+    height: 42svh;
     max-height: 42svh;
   }
 
@@ -2472,9 +2513,25 @@
   }
 }
 
+.day-movements li,
+.story-step {
+  opacity: 0.35;
+}
+
+.day-movements li.is-active,
+.story-step.is-active {
+  opacity: 1;
+}
+
 .day-movements li {
   scroll-margin-top: 5rem;
-  min-height: 78vh;
+  min-height: 60svh;
+}
+
+.connection-story ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .story-step {
@@ -2491,7 +2548,21 @@
 }
 
 .day-movements ol {
-  padding-bottom: 46vh;
+  padding-bottom: 0;
+}
+
+@media (max-width: 959px) {
+  .day-movements li:last-child {
+    min-height: 100svh;
+  }
+
+  .day-movements .day-step-card {
+    position: sticky;
+    top: calc(5rem + 42svh + 16px);
+    z-index: 1;
+    background: hsl(var(--background));
+    padding-bottom: 12px;
+  }
 }
 
 .day-movements li h3,
@@ -2645,6 +2716,7 @@ html:not(.dark) .day-story {
 
 .day-story .day-ticks text {
   fill: hsl(var(--muted-foreground));
+  stroke: var(--bg);
 }
 
 .day-story .day-ink-arc,
@@ -2741,6 +2813,7 @@ html:not(.dark) .day-story .day-ink-arc {
 .day-paper .day-ticks,
 .day-paper .day-ticks text {
   fill: #14181c;
+  stroke: #f4f3ee;
 }
 
 .day-paper .day-ticks line,
@@ -2756,6 +2829,7 @@ html:not(.dark) .day-story .day-ink-arc {
 .dark .day-paper .day-ticks,
 .dark .day-paper .day-ticks text {
   fill: #e9eef2;
+  stroke: #0e151c;
 }
 
 .dark .day-paper .day-ticks line,
@@ -2777,9 +2851,18 @@ html:not(.dark) .day-story .day-ink-arc {
   }
   .day-movements ol {
     display: block;
-    padding-bottom: 72vh;
+    padding-bottom: 0;
   }
-  .day-movements li { min-height: 82vh; }
+  .day-movements li { min-height: 70vh; }
+  .day-movements li:last-child {
+    min-height: calc(70vh + 100vh);
+  }
+  .day-movements li:last-child .day-step-card {
+    position: sticky;
+    top: calc(50vh - 6rem);
+    z-index: 1;
+    background: hsl(var(--background));
+  }
   .day-doors { grid-template-columns: 1fr 1fr; }
 }
 

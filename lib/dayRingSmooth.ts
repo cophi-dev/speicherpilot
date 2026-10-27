@@ -134,6 +134,35 @@ export function polarAreaPath(samples: readonly CurveSample[], zeroRadius: numbe
   return parts.join(" ");
 }
 
+/**
+ * Keeps the two edges from crossing or pinching below `minGap` (user units).
+ * Each edge stays one radius series, so the ribbon does not grow a corner where the curves used to meet.
+ */
+export function clampRibbon(
+  outer: readonly CurveSample[],
+  inner: readonly CurveSample[],
+  minGap: number
+): { outer: CurveSample[]; inner: CurveSample[] } {
+  const nextOuter: CurveSample[] = [];
+  const nextInner: CurveSample[] = [];
+  const count = Math.min(outer.length, inner.length);
+  const gap = Math.max(0, minGap);
+  for (let index = 0; index < count; index += 1) {
+    const edge = outer[index];
+    const base = inner[index];
+    let high = Math.max(edge.radius, base.radius);
+    let low = Math.min(edge.radius, base.radius);
+    if (high - low < gap) {
+      const mid = (high + low) / 2;
+      high = mid + gap / 2;
+      low = mid - gap / 2;
+    }
+    nextOuter.push({ ...edge, radius: high });
+    nextInner.push({ ...base, angleDeg: edge.angleDeg, radius: low });
+  }
+  return { outer: nextOuter, inner: nextInner };
+}
+
 /** Band between two open curves that share angles. */
 export function polarRibbonPath(outer: readonly CurveSample[], inner: readonly CurveSample[]): string {
   if (outer.length < 2 || outer.length !== inner.length) return "";
@@ -262,7 +291,12 @@ function bracket(controls: readonly Control[], angle: number): { left: Control; 
   return { left: controls[hi - 1], right: controls[hi], leftIndex: hi - 1 };
 }
 
-/** One cubic per sample step. Radius follows Fritsch–Carlson, so the edge has no linear pieces and no Catmull–Rom overshoot. */
+/**
+ * One cubic per sample step.
+ * The samples already lie on a Fritsch–Carlson curve. A second Fritsch–Carlson pass
+ * reads tiny sign flips between those samples as corners and pulls the edge into sawteeth,
+ * so the drawn slope is the central difference of the samples. Not Catmull–Rom.
+ */
 function appendMonotoneEdge(
   parts: string[],
   samples: readonly { radius: number; angleDeg: number }[],
@@ -271,10 +305,12 @@ function appendMonotoneEdge(
   if (samples.length === 0) return;
   const forward = samples.length < 2 || samples[0].angleDeg <= samples[samples.length - 1].angleDeg;
   const ordered = forward ? samples : [...samples].reverse();
-  const slopes = fritschCarlsonSlopes(
-    ordered.map((sample) => sample.angleDeg),
-    ordered.map((sample) => sample.radius)
-  );
+  const slopes = ordered.map((sample, index) => {
+    const previous = ordered[Math.max(0, index - 1)];
+    const next = ordered[Math.min(ordered.length - 1, index + 1)];
+    const span = next.angleDeg - previous.angleDeg;
+    return span === 0 ? 0 : (next.radius - previous.radius) / span;
+  });
   const slopeAt = (index: number) => slopes[forward ? index : samples.length - 1 - index];
   const first = polarPoint(0, 0, samples[0].radius, samples[0].angleDeg);
   parts.push(`${move ? "M" : "L"} ${fmt(first.x)} ${fmt(first.y)}`);
