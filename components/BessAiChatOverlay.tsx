@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Sparkles, X } from "lucide-react";
 import { useLanguage } from "@/components/language-context";
+import { CHAT_FAILED_DE, CHAT_FAILED_EN, CHAT_NOT_CONFIGURED_DE, CHAT_NOT_CONFIGURED_EN } from "@/lib/chatNotice";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -10,12 +11,14 @@ type ChatMessage = {
 };
 
 type BessAiChatOverlayProps = {
+  configured: boolean;
   open: boolean;
   onClose: () => void;
   seedPrompt?: string | null;
 };
 
 export default function BessAiChatOverlay({
+  configured,
   open,
   onClose,
   seedPrompt,
@@ -34,6 +37,13 @@ export default function BessAiChatOverlay({
   const [input, setInput] = useState(seedPrompt ?? "");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [runtimeBlocked, setRuntimeBlocked] = useState(false);
+  const [configuredStamp, setConfiguredStamp] = useState(configured);
+  if (configuredStamp !== configured) {
+    setConfiguredStamp(configured);
+    setRuntimeBlocked(false);
+  }
+  const unavailable = !configured || runtimeBlocked;
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const suggestions =
@@ -147,14 +157,19 @@ export default function BessAiChatOverlay({
       });
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(payload?.message ?? `Request failed with status ${response.status}`);
+        const payload = (await response.json().catch(() => null)) as { code?: string; message?: string } | null;
+        if (response.status === 503 && payload?.code === "not_configured") {
+          setRuntimeBlocked(true);
+          setMessages((current) => current.filter((message) => message.role !== "user" || message.content !== next));
+          return;
+        }
+        throw new Error(language === "de" ? CHAT_FAILED_DE : CHAT_FAILED_EN);
       }
 
       const payload = (await response.json()) as { reply: string };
       setMessages((current) => current.concat({ role: "assistant", content: payload.reply }));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : language === "de" ? "Unbekannter Fehler" : "Unknown error");
+    } catch {
+      setError(language === "de" ? CHAT_FAILED_DE : CHAT_FAILED_EN);
     } finally {
       setSending(false);
     }
@@ -171,6 +186,38 @@ export default function BessAiChatOverlay({
 
   if (!open) {
     return null;
+  }
+
+  const unavailableCopy = language === "de" ? CHAT_NOT_CONFIGURED_DE : CHAT_NOT_CONFIGURED_EN;
+  if (unavailable) {
+    return (
+      <div className="fixed inset-0 z-[1300] overscroll-none bg-slate-950/45 backdrop-blur-md">
+        <div className="flex h-[100dvh] max-h-[100dvh] w-full items-stretch justify-center p-2 pb-[env(safe-area-inset-bottom,0px)] pt-[env(safe-area-inset-top,0px)] sm:items-center sm:p-6">
+          <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-300/65 bg-[#f9f8f6] shadow-[0_30px_80px_rgba(15,23,42,0.24)] sm:rounded-3xl dark:border-slate-500/35 dark:bg-slate-950">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-300/60 bg-white/80 px-4 py-3 dark:border-slate-500/35 dark:bg-slate-900/65 sm:px-7 sm:py-5">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className="inline-flex items-center gap-2 text-xs tracking-[0.16em] text-primary uppercase dark:text-emerald-200">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  SpeicherPilot Chat
+                </p>
+                <h2 className="mt-2 text-lg font-semibold leading-snug text-slate-900 dark:text-white sm:text-xl">
+                  {language === "de" ? "Chat nicht eingerichtet" : "Chat is not set up"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/70 bg-white/90 text-slate-700 transition hover:border-primary/45 hover:text-primary dark:border-slate-500/40 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-emerald-200/50 dark:hover:text-emerald-200"
+                aria-label={language === "de" ? "BESS-Chat schließen" : "Close BESS chat"}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="px-5 py-6 text-sm leading-relaxed text-slate-700 dark:text-slate-200 sm:px-7">{unavailableCopy}</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
