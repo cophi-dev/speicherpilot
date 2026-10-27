@@ -13,11 +13,6 @@ export const BESS_DISPATCH_SOC_MIN_FRAC = 0.1;
 export const BESS_DISPATCH_SOC_MAX_FRAC = 0.9;
 /** State of charge at the first quarter when the caller does not pass one. */
 export const BESS_DISPATCH_INITIAL_SOC_FRAC = 0.5;
-/**
- * Round-trip efficiency this engine is run with. Callers pass it in.
- * Not a measured value for any park.
- */
-export const BESS_DISPATCH_ROUND_TRIP_EFFICIENCY = 0.92;
 const SOC_MIN_FRAC = BESS_DISPATCH_SOC_MIN_FRAC;
 const SOC_MAX_FRAC = BESS_DISPATCH_SOC_MAX_FRAC;
 const PRICE_FLOOR_EUR_MWH = 30;
@@ -110,7 +105,7 @@ export type BessDispatchDayInput = {
 export type SimulateBessDispatchParams = {
   powerMW: number;
   energyMWh: number;
-  /** Round-trip efficiency η in (0, 1], e.g. 0.92. */
+  /** Round-trip efficiency η in (0, 1]. Callers pass it. */
   efficiency: number;
   strategy: BessDispatchStrategy;
   day: BessDispatchDayInput;

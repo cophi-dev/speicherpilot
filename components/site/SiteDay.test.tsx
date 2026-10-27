@@ -78,7 +78,7 @@ describe("site v2 heroes", () => {
   });
 
   it("shows Bollingstedt as a labelled model day with sourced figures and no statute", () => {
-    query = "view=netz&scenario=grossspeicher";
+    query = "view=projekt&scenario=grossspeicher";
     const { container } = renderSite();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Bollingstedt/);
     expect(screen.getAllByText("MODELLTAG").length).toBeGreaterThan(0);
@@ -117,5 +117,37 @@ describe("site v2 heroes", () => {
     expect(document.body.textContent).toMatch(/Bezug und Einspeisung sind dynamisch begrenzt/);
     expect(document.body.textContent).not.toMatch(/€|Euro|Tesla/);
     expect(document.body.textContent).not.toMatch(/EnWG/);
+    expect(screen.getByRole("link", { name: "Projektierer" })).toHaveAttribute("aria-current", "page");
+  });
+
+  it("gives the grid operator a Bollingstedt view without a support badge", () => {
+    query = "view=netz&scenario=grossspeicher";
+    const { container } = renderSite();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/110-kV-Netz von SH Netz/);
+    expect(screen.getByRole("heading", { level: 2, name: "Anschlussauslastung am Modelltag" })).toBeInTheDocument();
+    expect(screen.getAllByText(/Laden ist Bezug aus dem Netz/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Abgeben ist Einspeisung/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/§ 17 Abs\. 2b EnWG/)).toBeInTheDocument();
+    expect(screen.getByText(/Grenzwerte sind nicht veröffentlicht/)).toBeInTheDocument();
+    expect(screen.getByText(/Der höchste Bezug und die höchste Einspeisung im Modell liegen bei der gemeldeten Leistung von 103,5 MW/)).toBeInTheDocument();
+    expect(screen.queryByText("Der höchste Bezug im Modell liegt bei der gemeldeten Leistung von 103,5 MW.")).toBeNull();
+    expect(screen.getByText(/Auslastung der gemeldeten Leistung/)).toBeInTheDocument();
+    const storageNote = [...container.querySelectorAll(".site-note")].find((note) => note.textContent?.includes("Der Speicher steht direkt am Netz"));
+    expect(storageNote?.querySelector("button")?.getAttribute("aria-label")).toMatch(/Front-of-Meter/);
+    expect(screen.getAllByText("MODELLTAG").length).toBeGreaterThan(0);
+    expect(container.querySelector(".day-model-caption")?.textContent).toMatch(/nicht die echte Fahrweise/);
+    expect(screen.getAllByText(/103,5/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/238,5/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/110 kV/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Eigentümer/)).toBeNull();
+    expect(screen.queryByText(/C-Rate/)).toBeNull();
+    expect(screen.queryByText(/netzdienlich v1/)).toBeNull();
+    expect(container.querySelector(".site-badge")).toBeNull();
+    expect(screen.getByText(/Regel v1 braucht eine bekannte Anschlussleistung/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Regel v1 in der Methodik" })).toHaveAttribute("href", "/methodik#netzdienlichkeit");
+    expect(screen.getByRole("link", { name: "Netzbetreiber" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Projektierer" })).not.toHaveAttribute("aria-current");
+    expect(container.querySelector(".site-note button[aria-label*='flexible Netzanschlussvereinbarung']")).not.toBeNull();
+    expect(document.body.textContent).not.toMatch(/€|Euro|Tesla/);
   });
 });

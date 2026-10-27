@@ -3493,6 +3493,27 @@ footer .site-fold a {
   gap: 8px;
 }
 
+.site-keep {
+  white-space: nowrap;
+}
+
+.day-hero .site-block-title {
+  margin: 22px 0 8px;
+  color: #e9eef2;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.site-model-rest p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  font-kerning: normal;
+}
+
 .site-meta {
   display: grid;
   gap: 12px;
