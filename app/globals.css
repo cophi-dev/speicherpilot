@@ -1355,6 +1355,13 @@
 }
 
 .day-hero {
+  background: var(--bg);
+  color: var(--ink);
+  margin-top: -4rem;
+  padding: calc(32px + 4rem) 20px 48px;
+}
+
+.dark .day-hero {
   --background: 200 27% 6%;
   --foreground: 204 20% 93%;
   --muted-foreground: 206 14% 78%;
@@ -1367,8 +1374,6 @@
   --linie: #e9eef2;
   background: #0a0f14;
   color: #e9eef2;
-  margin-top: -4rem;
-  padding: calc(32px + 4rem) 20px 48px;
 }
 
 .day-hero-screen {
@@ -1536,7 +1541,7 @@
 }
 
 /* Logo C lockup. Clear space is padding on the link. The dark file shows in
-   dark theme and while the header sits on the dark hero. */
+   the dark theme. A light hero keeps the light-background file. */
 .brand-lockup__frame {
   position: relative;
   display: block;
@@ -1563,6 +1568,225 @@
 .dark .brand-lockup__frame .brand-lockup__dunkel,
 .site-header.is-over-hero .brand-lockup__frame .brand-lockup__dunkel {
   display: block;
+}
+
+/* Light theme: heroes and the header above them follow the page, not the night plate. */
+html:not(.dark) .day-hero {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+html:not(.dark) .site-header.is-over-hero {
+  color: var(--ink);
+  --background: 60 14% 96%;
+  --foreground: 210 11% 7%;
+  --muted-foreground: 210 5% 36%;
+  --border: 60 9% 84%;
+  --border-strong: 60 6% 69%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 11% 7%;
+  --ring: 185 82% 24%;
+}
+
+html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
+  background: rgb(246 246 243 / 88%);
+}
+
+html:not(.dark) .site-header.is-over-hero .text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+}
+
+html:not(.dark) .site-header.is-over-hero .bg-foreground {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
+html:not(.dark) .site-header.is-over-hero .bg-card {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+html:not(.dark) .site-header.is-over-hero .brand-lockup__frame .brand-lockup__hell {
+  display: block;
+}
+
+html:not(.dark) .site-header.is-over-hero .brand-lockup__frame .brand-lockup__dunkel {
+  display: none;
+}
+
+html:not(.dark) .day-hero .day-kicker,
+html:not(.dark) .day-hero .day-source,
+html:not(.dark) .day-hero .day-stats dt,
+html:not(.dark) .day-hero .day-stats-unit,
+html:not(.dark) .day-hero .day-stats-note,
+html:not(.dark) .day-hero .day-center-caption,
+html:not(.dark) .day-hero .day-legend-scale li,
+html:not(.dark) .day-hero .day-legend-keys li,
+html:not(.dark) .day-hero .day-legend-bar,
+html:not(.dark) .day-hero .day-slider-stops,
+html:not(.dark) .day-hero .day-peaks button,
+html:not(.dark) .day-hero .day-chip,
+html:not(.dark) .day-hero .day-callout .num,
+html:not(.dark) .day-hero .methodik-scales figcaption,
+html:not(.dark) .day-hero .site-quiet {
+  color: #3c444c;
+}
+
+html:not(.dark) .day-hero .day-chip {
+  border-color: rgb(20 24 28 / 22%);
+}
+
+html:not(.dark) .day-hero .day-model-caption,
+html:not(.dark) .day-hero .day-model-rule,
+html:not(.dark) .day-hero .site-stats dt,
+html:not(.dark) .day-hero .site-facts dt,
+html:not(.dark) .day-hero .site-block-title,
+html:not(.dark) .day-hero .site-badge,
+html:not(.dark) .day-hero .site-meta dt,
+html:not(.dark) .day-hero .site-meta dd,
+html:not(.dark) .day-hero .site-note p,
+html:not(.dark) .day-hero .day-model-overlay .day-model-figure-row {
+  color: #14181c;
+}
+
+html:not(.dark) .day-hero .day-model-figure,
+html:not(.dark) .day-hero .day-model-unit,
+html:not(.dark) .day-hero .day-model-note {
+  fill: #14181c;
+}
+
+html:not(.dark) .day-hero .day-model-pill,
+html:not(.dark) .day-hero .day-model-pill-text,
+html:not(.dark) .day-hero .day-model-overlay .day-model-pill {
+  stroke: #8a4b08;
+  fill: #8a4b08;
+  color: #8a4b08;
+  border-color: #8a4b08;
+}
+
+html:not(.dark) .day-hero .day-model-rule-link a,
+html:not(.dark) .day-hero .site-facts a,
+html:not(.dark) .day-hero .site-quiet a,
+html:not(.dark) .day-hero .site-meta a,
+html:not(.dark) .day-hero .site-note a,
+html:not(.dark) .day-hero .site-model-facts a {
+  color: #0f6e7c;
+}
+
+html:not(.dark) .day-hero .day-ticks text {
+  fill: #14181c;
+  stroke: var(--bg);
+}
+
+html:not(.dark) .day-hero .day-ticks line,
+html:not(.dark) .day-hero .day-guide {
+  stroke: rgb(20 24 28 / 55%);
+}
+
+html:not(.dark) .day-hero .day-zero {
+  stroke: rgb(20 24 28 / 45%);
+}
+
+html:not(.dark) .day-hero .day-swatch-zero {
+  border-color: rgb(20 24 28 / 55%);
+}
+
+html:not(.dark) .day-hero .day-key-leader-halo {
+  stroke: var(--bg);
+}
+
+html:not(.dark) .day-hero .day-ring-key,
+html:not(.dark) .day-hero .day-ring-key-soc,
+html:not(.dark) .day-hero .day-ring-key-list .day-ring-key-soc,
+html:not(.dark) .day-hero .day-key-leader-soc {
+  color: #0f6e7c;
+  stroke: #0f6e7c;
+}
+
+html:not(.dark) .day-hero .day-ring-key-shift,
+html:not(.dark) .day-hero .day-key-leader-shift,
+html:not(.dark) .day-hero .day-ring-key-list .day-ring-key-shift {
+  color: #14181c;
+  stroke: #14181c;
+}
+
+html:not(.dark) .day-hero .day-ring-key-list .day-ring-key-charge {
+  color: #147b66;
+}
+
+html:not(.dark) .day-hero .day-ring-key-list .day-ring-key-discharge {
+  color: #9e2b1a;
+}
+
+html:not(.dark) .day-hero .day-key-pop {
+  background: #fff;
+  color: #14181c;
+  border: 1px solid rgb(20 24 28 / 16%);
+}
+
+html:not(.dark) .day-hero .day-slider-track {
+  background-color: rgb(20 24 28 / 12%);
+}
+
+html:not(.dark) .day-hero .day-slider input::-webkit-slider-thumb,
+html:not(.dark) .day-hero .day-slider input::-moz-range-thumb {
+  border-color: var(--bg);
+  background: var(--mint);
+}
+
+html:not(.dark) .day-hero .day-slider-stops .is-current,
+html:not(.dark) .day-hero .day-peaks button[aria-pressed="true"],
+html:not(.dark) .day-hero .day-sat {
+  color: var(--ink);
+}
+
+html:not(.dark) .day-hero .day-peaks button[aria-pressed="true"] {
+  border-bottom-color: var(--mint);
+}
+
+html:not(.dark) .day-hero .site-toggle {
+  background: rgb(20 24 28 / 8%);
+}
+
+html:not(.dark) .day-hero .site-toggle a {
+  color: #3c444c;
+}
+
+html:not(.dark) .day-hero .site-toggle a[aria-current="page"] {
+  background: #14181c;
+  color: #f6f6f3;
+}
+
+html:not(.dark) .day-hero .site-chip {
+  border-color: #8a4b08;
+  color: #8a4b08;
+}
+
+html:not(.dark) .day-hero .site-chip-public {
+  border-color: #0f6e7c;
+  color: #0f6e7c;
+}
+
+html:not(.dark) .day-hero .site-badge {
+  border-color: rgb(20 24 28 / 28%);
+}
+
+html:not(.dark) .day-hero .site-note {
+  border-color: rgb(20 24 28 / 16%);
+  background: rgb(20 24 28 / 4%);
+}
+
+html:not(.dark) .day-hero .empty-ring circle,
+html:not(.dark) .day-hero .empty-ring line {
+  stroke: rgb(20 24 28 / 55%);
+}
+
+html:not(.dark) .day-hero .empty-ring text {
+  fill: #3c444c;
+}
+
+html:not(.dark) .day-hero .empty-sweep {
+  stroke: #147b66;
 }
 
 .day-hero-inner {
@@ -3006,11 +3230,6 @@
   padding: 8px 20px 32px;
 }
 
-/* Light mode only: hard edge under the dark plate, then 48px until the story headline. */
-html:not(.dark) .day-story {
-  padding-top: 48px;
-}
-
 .day-story .day-movements {
   margin-top: 0;
 }
@@ -3811,8 +4030,10 @@ math mi {
 .methodik-formula figcaption { margin-top: 8px; color: #3c444c; font-size: 13px; }
 .dark .methodik-formula { background: #121a22; }
 .dark .methodik-formula figcaption { color: #c5ced6; }
-.methodik blockquote { margin: 0; padding: 20px; border-radius: 12px; background: #0a0f14; color: #e9eef2; }
-.methodik blockquote a { color: #7dfce6; }
+.methodik blockquote { margin: 0; padding: 20px; border-radius: 12px; background: #fff; color: #14181c; border: 1px solid rgb(20 24 28 / 12%); }
+.methodik blockquote a { color: #0f6e7c; }
+.dark .methodik blockquote { background: #0a0f14; color: #e9eef2; border-color: transparent; }
+.dark .methodik blockquote a { color: #7dfce6; }
 @media (min-width: 960px) {
   .methodik-layout { grid-template-columns: 240px minmax(0, 1fr); align-items: start; }
   .methodik nav ol { display: grid; }
