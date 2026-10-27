@@ -35,6 +35,11 @@ const REQUIRED = [
   "fca",
   "grossspeicher",
   "ladezustand",
+  "negative-preise",
+  "preisnehmer",
+  "preisspanne",
+  "intraday",
+  "regelleistung",
 ] as const;
 
 describe("glossary", () => {

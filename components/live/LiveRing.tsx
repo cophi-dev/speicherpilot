@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ChargedLine } from "@/components/day-ring/ChargedLine";
@@ -239,6 +240,9 @@ function LiveRingBody({
               socLabel={tx("Ladezustand %", "State of charge %")}
             />
           </figure>
+          <p className="day-source">
+            <Link href="/#beispieltage">{tx("Tage, an denen ein Speicher viel gebracht hätte", "Days when a battery would have done a lot")}</Link>
+          </p>
         </div>
         <div className="day-order-controls">
           <StatTrio

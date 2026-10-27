@@ -118,6 +118,8 @@ describe("site v2 heroes", () => {
     expect(document.body.textContent).not.toMatch(/€|Euro|Tesla/);
     expect(document.body.textContent).not.toMatch(/EnWG/);
     expect(screen.getByRole("link", { name: "Projektierer" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("heading", { level: 2, name: "Laden und Abgeben" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Beispieltage auf der Startseite ansehen" })).toHaveAttribute("href", "/#beispieltage");
   });
 
   it("gives the grid operator a Bollingstedt view without a support badge", () => {
