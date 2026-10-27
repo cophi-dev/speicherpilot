@@ -8,6 +8,9 @@ import { chooseStorageDay } from "@/lib/liveFleetDispatch";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
 
+/** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
+export const revalidate = 1800;
+
 export default async function Home() {
   const now = new Date();
   const todayKey = formatBerlinDateKeyFromUtcDate(now);

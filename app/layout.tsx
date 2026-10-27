@@ -3,6 +3,7 @@ import "./globals.css";
 import { jetbrainsMono, plexMono, plexSans } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
 import { ThemeInitScript } from "@/components/ThemeInitScript";
+import { assessmentChatConfigured } from "@/lib/llmAvailability";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 
 const siteOrigin = getPublicSiteOrigin();
@@ -49,7 +50,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-background text-foreground">
         <ThemeInitScript />
-        <SiteShell>{children}</SiteShell>
+        <SiteShell chatConfigured={assessmentChatConfigured()}>{children}</SiteShell>
       </body>
     </html>
   );

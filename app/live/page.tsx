@@ -7,6 +7,9 @@ import { chooseStorageDay, dayIsUsable } from "@/lib/liveFleetDispatch";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadWindSolarDays } from "@/lib/loadWindSolarResidual";
 
+/** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
+export const revalidate = 1800;
+
 export const metadata = {
   title: "Was wäre, wenn Deutschland mehr Speicher hätte?",
   description:

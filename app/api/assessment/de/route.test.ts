@@ -32,8 +32,15 @@ describe("GET /api/assessment/de", () => {
     ({ GET } = await import("@/app/api/assessment/de/route"));
   });
 
+  beforeEach(() => {
+    process.env.AI_PROVIDER = "xai";
+    process.env.XAI_API_KEY = "test-key";
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
+    delete process.env.XAI_API_KEY;
+    delete process.env.AI_PROVIDER;
   });
 
   it("returns assessment payload on success", async () => {
@@ -144,6 +151,17 @@ describe("GET /api/assessment/de", () => {
     expect(response.status).toBe(200);
     expect(json.verdict).toBe("beneficial_now");
     expect(response.headers["Cache-Control"]).toBe("public, s-maxage=60, stale-while-revalidate=120");
+  });
+
+  it("does not call the model when no xAI key is set", async () => {
+    delete process.env.XAI_API_KEY;
+    const response = await GET();
+    const json = await response.json();
+    expect(response.status).toBe(503);
+    expect(json.code).toBe("not_configured");
+    expect(json.message).toMatch(/nicht eingerichtet/);
+    expect(mockedAi).not.toHaveBeenCalled();
+    expect(mockedContext).not.toHaveBeenCalled();
   });
 
   it("returns 502 when assessment fails", async () => {

@@ -1,3 +1,4 @@
+import { DAILY_SERIES_REVALIDATE_SECONDS } from "@/lib/dailySeriesCache";
 import type { QuarterPoint } from "@/lib/liveBoard";
 
 /** SMARD chart-data filters. Prices are not in this list: the day-ahead price is the DE-LU bidding zone, not a control area. */
@@ -26,7 +27,11 @@ export async function fetchSmardQuarterHours(
   fetchImpl: typeof fetch = fetch
 ): Promise<QuarterPoint[]> {
   const indexUrl = `https://www.smard.de/app/chart_data/${filter}/${region}/index_quarterhour.json`;
-  const indexResponse = await fetchImpl(indexUrl, { headers: { Accept: "application/json" } });
+  const requestInit = {
+    headers: { Accept: "application/json" },
+    next: { revalidate: DAILY_SERIES_REVALIDATE_SECONDS },
+  };
+  const indexResponse = await fetchImpl(indexUrl, requestInit);
   if (!indexResponse.ok) {
     throw new Error(`SMARD index ${region} ${filter} failed with ${indexResponse.status}`);
   }
@@ -36,7 +41,7 @@ export async function fetchSmardQuarterHours(
     return [];
   }
   const fileUrl = `https://www.smard.de/app/chart_data/${filter}/${region}/${filter}_${region}_quarterhour_${stamp}.json`;
-  const fileResponse = await fetchImpl(fileUrl, { headers: { Accept: "application/json" } });
+  const fileResponse = await fetchImpl(fileUrl, requestInit);
   if (!fileResponse.ok) {
     throw new Error(`SMARD series ${region} ${filter} failed with ${fileResponse.status}`);
   }

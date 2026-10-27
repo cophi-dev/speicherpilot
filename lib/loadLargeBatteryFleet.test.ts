@@ -1,3 +1,4 @@
+import { DAILY_SERIES_REVALIDATE_SECONDS } from "@/lib/dailySeriesCache";
 import { fleetSizeLabel, formatSignedGw, onceRoundDeltaGw } from "@/lib/dayRingStory";
 import { FLEET_SNAPSHOT_MAX_AGE_MS, readFleetSnapshot } from "@/lib/fleetSnapshot";
 import fixture from "@/lib/fixtures/residual-2026-10-11-20.json";
@@ -121,5 +122,30 @@ describe("loadLargeBatteryFleet", () => {
     expect(fleet?.energyGwh).toBeCloseTo(9, 5);
     expect(fleet?.updatedLabel.de).toBe("22. Oktober 2026");
     expect(calls.some((url) => url.includes("energy-charts.info"))).toBe(false);
+    const init = (global.fetch as jest.Mock).mock.calls[0]?.[1] as { next?: { revalidate?: number } };
+    expect(init?.next?.revalidate).toBe(DAILY_SERIES_REVALIDATE_SECONDS);
+  });
+
+  it("fetches again and keeps the previous date when the next load fails", async () => {
+    batteryCharts = "live";
+    const first = await loadLargeBatteryFleet(STAND);
+    expect(first?.updatedLabel.de).toBe("22. Oktober 2026");
+    const afterFirst = calls.length;
+
+    const current = readFleetSnapshot(STAND);
+    if (!current) {
+      throw new Error("snapshot missing");
+    }
+    const justOver = new Date(Date.parse(current.updatedAtIso) + FLEET_SNAPSHOT_MAX_AGE_MS + 1);
+    (global.fetch as jest.Mock).mockImplementation(async (input: RequestInfo | URL) => {
+      calls.push(String(input));
+      throw new Error("upstream down");
+    });
+
+    const second = await loadLargeBatteryFleet(justOver);
+    expect(calls.length).toBeGreaterThan(afterFirst);
+    expect(second?.source).toBe("battery-charts");
+    expect(second?.updatedLabel.de).toBe("22. Oktober 2026");
+    expect(second?.powerGw).toBeCloseTo(5, 5);
   });
 });

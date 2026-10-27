@@ -4,8 +4,10 @@ import { z } from "zod";
 import { unstable_cache } from "next/cache";
 
 import { getBessAssessmentFromAi } from "@/lib/aiAssessmentClient";
+import { ASSESSMENT_NOT_CONFIGURED_DE } from "@/lib/chatNotice";
 import { createLogger } from "@/lib/debug";
 import { getGermanyAssessmentContext } from "@/lib/energyChartsApi";
+import { assessmentChatConfigured } from "@/lib/llmAvailability";
 
 const log = createLogger("api:assessment:de");
 
@@ -54,6 +56,13 @@ const responseSchema = z.object({
 });
 
 export async function GET() {
+  if (!assessmentChatConfigured()) {
+    return NextResponse.json(
+      { code: "not_configured", message: ASSESSMENT_NOT_CONFIGURED_DE },
+      { status: 503, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
   try {
     const context = await getGermanyAssessmentContextCached();
     const assessment = await getBessAssessmentFromAi(context);

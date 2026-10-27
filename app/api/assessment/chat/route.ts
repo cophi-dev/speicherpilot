@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getBessChatReplyFromAi } from "@/lib/aiAssessmentClient";
+import { CHAT_NOT_CONFIGURED_DE } from "@/lib/chatNotice";
 import { createLogger } from "@/lib/debug";
 import { getGermanyAssessmentContext } from "@/lib/energyChartsApi";
+import { assessmentChatConfigured } from "@/lib/llmAvailability";
 
 const log = createLogger("api:assessment:chat");
 
@@ -19,6 +21,13 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  if (!assessmentChatConfigured()) {
+    return NextResponse.json(
+      { code: "not_configured", message: CHAT_NOT_CONFIGURED_DE },
+      { status: 503, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
   try {
     const body = (await request.json()) as unknown;
     const parsed = requestSchema.parse(body);

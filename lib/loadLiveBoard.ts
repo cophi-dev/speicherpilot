@@ -1,6 +1,7 @@
 import "server-only";
 
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { createLastGoodStore, dailySeriesFetchInit, fetchJsonWithLastGood } from "@/lib/dailySeriesCache";
 import { buildLiveBoard, type LiveBoard, type QuarterPoint } from "@/lib/liveBoard";
 import { fetchSmardQuarterHours, SMARD_FILTER, type SmardRegion } from "@/lib/smardApi";
 
@@ -10,25 +11,24 @@ export type GermanyLiveInput = {
   generationMw: number | null;
 } | null;
 
-type CacheEntry = { at: number; body: unknown };
+const lastGood = createLastGoodStore<unknown>();
 
-const cache = new Map<string, CacheEntry>();
-const CACHE_MS = 5 * 60 * 1000;
+export function clearLiveBoardCache(): void {
+  lastGood.clear();
+}
 
 async function cachedJson(url: string): Promise<unknown> {
-  const hit = cache.get(url);
-  if (hit && Date.now() - hit.at < CACHE_MS) {
-    return hit.body;
-  }
-  const response = await fetch(url, {
-    headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(12_000),
+  const body = await fetchJsonWithLastGood({
+    key: url,
+    url,
+    store: lastGood,
+    parse: (payload) => payload,
+    init: dailySeriesFetchInit(12_000),
+    isUsable: (payload) => payload !== null,
   });
-  if (!response.ok) {
-    throw new Error(`Live request failed with ${response.status}`);
+  if (body === null) {
+    throw new Error(`Live request failed for ${url}`);
   }
-  const body: unknown = await response.json();
-  cache.set(url, { at: Date.now(), body });
   return body;
 }
 

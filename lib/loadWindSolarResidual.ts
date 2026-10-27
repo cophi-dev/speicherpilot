@@ -1,38 +1,37 @@
 import "server-only";
 
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import {
+  createLastGoodStore,
+  dailySeriesFetchInit,
+  fetchJsonWithLastGood,
+} from "@/lib/dailySeriesCache";
 import { parseWindSolarDays, type ResidualDay } from "@/lib/windSolarResidual";
 
 const LOOKBACK_DAYS = 21;
-const CACHE_MS = 5 * 60 * 1000;
+const STORE_KEY = "wind-solar-days";
 
-let cache: { at: number; days: ResidualDay[] } | null = null;
+const lastGood = createLastGoodStore<ResidualDay[]>();
 
 function berlinKey(date: Date): string {
   return formatBerlinDateKeyFromUtcDate(date);
 }
 
+export function clearWindSolarDaysCache(): void {
+  lastGood.clear();
+}
+
 export async function loadWindSolarDays(now: Date): Promise<ResidualDay[]> {
-  if (cache && Date.now() - cache.at < CACHE_MS) {
-    return cache.days;
-  }
   const end = berlinKey(now);
   const start = berlinKey(new Date(now.getTime() - LOOKBACK_DAYS * 86_400_000));
-  try {
-    const response = await fetch(
-      `https://api.energy-charts.info/total_power?country=de&start=${start}&end=${end}`,
-      {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(20_000),
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`Wind and solar request failed with ${response.status}`);
-    }
-    const days = parseWindSolarDays(await response.json());
-    cache = { at: Date.now(), days };
-    return days;
-  } catch {
-    return cache?.days ?? [];
-  }
+  const url = `https://api.energy-charts.info/total_power?country=de&start=${start}&end=${end}`;
+  const days = await fetchJsonWithLastGood({
+    key: STORE_KEY,
+    url,
+    store: lastGood,
+    parse: (payload) => parseWindSolarDays(payload),
+    init: dailySeriesFetchInit(20_000),
+    isUsable: (value) => value.length > 0,
+  });
+  return days ?? [];
 }
