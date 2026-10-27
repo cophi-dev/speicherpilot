@@ -102,11 +102,6 @@ export function ringTip(value: number): string {
 }
 
 /**
- * Open Fritsch–Carlson monotone cubic of radius over angle.
- * The curve runs from the first quarter to the last and does not cross the midnight gap.
- * An interpolated radius stays between the two neighbouring supports, so the edge cannot show a value the data does not have.
- */
-/**
  * One knot per clock angle.
  * A fall-back day repeats 02:00–02:45. Two knots on one angle make the next
  * interval run from the later hour back to the earlier hour, three times:
@@ -149,6 +144,10 @@ export function smoothPolarSamples(
  * Monotone cubic through the samples. The radius stays between the neighbouring
  * control radii, so the curve cannot pass a real value.
  */
+/**
+ * Monotone cubic through the samples. The radius stays between the neighbouring
+ * control radii, so the curve cannot pass a real value.
+ */
 export function monotonePolarSamples(
   series: readonly { angleDeg: number; value: number }[],
   radiusOf: (value: number) => number
@@ -157,10 +156,8 @@ export function monotonePolarSamples(
     .sort((a, b) => a.angleDeg - b.angleDeg)
     .map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: radiusOf(sample.value) }));
   if (controls.length < 2) return [];
-  const monotone = radiusLookup(flattenCurve(curveMonotoneX, controls));
-  return angleGrid(controls).map((angle) => {
-    const sample = sampleAt(controls, angle, monotone);
-    const { left, right } = bracket(controls, angle);
+  return sampleMonotone(controls).map((sample) => {
+    const { left, right } = bracket(controls, sample.angleDeg);
     const minR = Math.min(left.radius, right.radius);
     const maxR = Math.max(left.radius, right.radius);
     return { ...sample, radius: clamp(sample.radius, minR, maxR) };
@@ -267,12 +264,10 @@ function sampleMonotone(controls: readonly Control[]): CurveSample[] {
   );
   const start = controls[0].angle;
   const end = controls[controls.length - 1].angle;
-  const out: CurveSample[] = [];
-  for (let angle = start; angle < end - 1e-6; angle += EDGE_STEP_DEG) {
-    out.push(evaluateMonotone(controls, slopes, angle));
-  }
-  out.push(evaluateMonotone(controls, slopes, end));
-  return out;
+  const angles = new Set<number>([start, end]);
+  for (const control of controls) angles.add(control.angle);
+  for (let angle = start; angle < end - 1e-6; angle += EDGE_STEP_DEG) angles.add(angle);
+  return [...angles].sort((left, right) => left - right).map((angle) => evaluateMonotone(controls, slopes, angle));
 }
 
 /**
