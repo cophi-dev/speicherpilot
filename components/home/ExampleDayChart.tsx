@@ -74,6 +74,8 @@ function ChartSvg({
   const ySoc = (value: number) => mapY(value, 0, 100, socTop, socH);
   const zeroPrice = yPriceMin <= 0 && yPriceMax >= 0 ? yPrice(0) : null;
   const zeroPower = yPower(0);
+  const labelSize = compact ? 14 : 12;
+  const unitSize = compact ? 14 : 13;
 
   let pricePath = "";
   hours.forEach((hour, index) => {
@@ -107,7 +109,7 @@ function ChartSvg({
           </pattern>
         </defs>
       )}
-      <text x={axis} y={12} fill="currentColor" fontSize={compact ? 12 : 13}>
+      <text x={axis} y={12} fill="currentColor" fontSize={unitSize}>
         {de ? "€/MWh" : "€/MWh"}
       </text>
       {priceTicks.map((tick) => (
@@ -122,7 +124,7 @@ function ChartSvg({
             strokeDasharray={tick === 0 ? undefined : "2 4"}
             opacity={tick === 0 ? 0.9 : 0.35}
           />
-          <text x={4} y={yPrice(tick) + 4} fill="currentColor" fontSize={compact ? 11 : 12}>
+          <text x={4} y={yPrice(tick) + 4} fill="currentColor" fontSize={labelSize}>
             {formatQuantity(Math.round(tick), language, 0)}
           </text>
         </g>
@@ -140,14 +142,14 @@ function ChartSvg({
           label={de ? "Geld fürs Laden" : "Paid to charge"}
         />
       ) : null}
-      <text x={axis} y={powerTop - 2} fill="currentColor" fontSize={compact ? 12 : 13}>
+      <text x={axis} y={powerTop - 2} fill="currentColor" fontSize={unitSize}>
         MW
       </text>
       <line x1={axis} x2={width - right} y1={zeroPower} y2={zeroPower} stroke="currentColor" strokeWidth="1.75" opacity="0.9" />
-      <text x={4} y={yPower(NAMEPLATE_MW) + 4} fill="currentColor" fontSize="11">
+      <text x={4} y={yPower(NAMEPLATE_MW) + 4} fill="currentColor" fontSize={labelSize}>
         {formatQuantity(NAMEPLATE_MW, language, 0)}
       </text>
-      <text x={4} y={yPower(-NAMEPLATE_MW) + 4} fill="currentColor" fontSize="11">
+      <text x={4} y={yPower(-NAMEPLATE_MW) + 4} fill="currentColor" fontSize={labelSize}>
         {formatQuantity(-NAMEPLATE_MW, language, 0)}
       </text>
       {hours.map((hour, index) => {
@@ -171,7 +173,7 @@ function ChartSvg({
           y={powerTop - 10}
           textAnchor="middle"
           fill="currentColor"
-          fontSize={compact ? 12 : 13}
+          fontSize={unitSize}
         >
           {de ? "Abgabe" : "Discharge"}
         </text>
@@ -182,7 +184,7 @@ function ChartSvg({
           y={powerTop + powerH + (compact ? 16 : 18)}
           textAnchor="middle"
           fill="currentColor"
-          fontSize={compact ? 12 : 13}
+          fontSize={unitSize}
         >
           {de ? "Laden" : "Charge"}
         </text>
@@ -211,7 +213,14 @@ function ChartSvg({
         </>
       )}
       {ticks.map((hour) => (
-        <text key={hour} x={xAt(hour)} y={height - 6} textAnchor="middle" fill="currentColor" fontSize={compact ? 11 : 12}>
+        <text
+          key={hour}
+          x={compact && hour === 24 ? width - 2 : compact && hour === 0 ? 2 : xAt(hour)}
+          y={height - 6}
+          textAnchor={compact ? (hour === 24 ? "end" : hour === 0 ? "start" : "middle") : "middle"}
+          fill="currentColor"
+          fontSize={labelSize}
+        >
           {hour}
         </text>
       ))}
@@ -226,7 +235,7 @@ function socPath(hours: number[], soc: number[], xAt: (hour: number) => number, 
 }
 
 function labelX(x: number, text: string, left: number, rightEdge: number, compact: boolean): number {
-  const half = (text.length * (compact ? 3.4 : 3.6));
+  const half = text.length * (compact ? 4.2 : 3.6);
   return r(Math.max(left + half, Math.min(rightEdge - half, x)));
 }
 
@@ -249,14 +258,14 @@ function PaidToCharge({
   width: number;
   label: string;
 }) {
-  const labelWidth = compact ? 96 : 112;
+  const labelWidth = compact ? 132 : 112;
   const textX = r(Math.max(axis, Math.min(width - right - labelWidth, x - labelWidth / 2)));
   const textY = r(priceTop - 8);
   return (
     <g>
       <line x1={x} y1={y} x2={textX + labelWidth / 2} y2={textY + 2} stroke="var(--mint)" strokeWidth="1.25" />
       <circle cx={x} cy={y} r="2.5" fill="var(--mint)" />
-      <text x={textX} y={textY} fill="currentColor" fontSize={compact ? 12 : 14}>
+      <text x={textX} y={textY} fill="currentColor" fontSize={14}>
         {label}
       </text>
     </g>

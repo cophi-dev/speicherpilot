@@ -277,7 +277,7 @@ function counterExample(): BeispieltageFile["counterExample"] {
     negativeQuarterHours: negative,
     revenueX1: rounded,
     textDe: `Ostersonntag, 5. April 2026: ${negative} negative Viertelstunden, im Modell trotzdem nur rund 13.800 €. Der höchste Preis des Tages war ${peakDe} €/MWh um ${peakClock}. Von 17 bis 21 Uhr lag der Preis zwischen ${lowDe} und ${highDe} €/MWh. Negative Preise allein heißen nicht viel Erlös.`,
-    textEn: `Easter Sunday, 5 April 2026: ${negative} negative quarter-hours, and still only about 13,800 € in the model. The day's highest price was ${peakEn} €/MWh at ${peakClock}. From 17:00 to 21:00 the price was between ${lowEn} and ${highEn} €/MWh. Negative prices alone do not mean much revenue.`,
+    textEn: `Easter Sunday, 5 April 2026: ${negative} negative quarter-hours, and still only about 13,800 € in the model. The day's highest price was ${peakEn} €/MWh\u00a0at ${peakClock}. From 17:00 to 21:00 the price was between ${lowEn} and ${highEn} €/MWh. Negative prices alone do not mean much revenue.`,
   };
 }
 

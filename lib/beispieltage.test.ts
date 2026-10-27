@@ -68,6 +68,7 @@ describe("beispieltage data", () => {
     expect(file.counterExample?.textDe).not.toMatch(/Abendpreis/);
     expect(file.counterExample?.textDe).toContain("zwischen −15 und 36 €/MWh");
     expect(file.counterExample?.textEn).not.toMatch(/€\d/);
+    expect(file.counterExample?.textEn).toContain("€/MWh\u00a0at");
   });
 
   it("puts fees next to the charging euros and keeps one euro style", () => {

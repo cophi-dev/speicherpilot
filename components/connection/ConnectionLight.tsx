@@ -28,7 +28,7 @@ export function ConnectionLight({
           {SEGMENTS.map((segment) => (
             <p
               key={segment.status}
-              className="num flex h-11 items-center justify-center border border-border bg-transparent text-[11px] tracking-[0.14em] text-foreground uppercase"
+              className="num flex h-11 items-center justify-center border border-border bg-transparent text-[12px] tracking-[0.08em] text-foreground uppercase"
             >
               {language === "de" ? segment.de : segment.en}
             </p>
@@ -70,7 +70,7 @@ export function ConnectionLight({
           return (
             <p
               key={segment.status}
-              className={`num flex h-11 items-center justify-center text-[11px] tracking-[0.14em] uppercase ${
+              className={`num flex h-11 items-center justify-center text-[12px] tracking-[0.08em] uppercase ${
                 active ? `${segment.fill} text-background` : segment.ink
               }`}
             >

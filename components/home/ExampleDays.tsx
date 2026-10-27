@@ -105,7 +105,7 @@ export function ExampleDays() {
             {". "}
             {tx("Die Fahrweise bleibt gleich. Nur die Mengen wachsen.", "The dispatch stays the same. Only the amounts grow.")}
           </p>
-          <p>
+          <p className="beispieltage-size">
             {breakdownText(day, scale, language)}
             {day.parts.chargingEur > 0 ? null : (
               <>
@@ -137,7 +137,7 @@ export function ExampleDays() {
 
         <div className="beispieltage-compare" data-model-estimate>
           <CompareBars day={day} median={medianDay} language={language} />
-          <p>{comparisonText(day, scale, FILE, language)}</p>
+          <p className="beispieltage-size">{comparisonText(day, scale, FILE, language)}</p>
         </div>
         <p className="beispieltage-rule">{language === "de" ? FILE.selectionRule.de : FILE.selectionRule.en}</p>
         {FILE.counterExample ? (

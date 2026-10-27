@@ -44,11 +44,29 @@ export function ConnectionStory() {
   useEffect(() => {
     const node = stageRef.current;
     if (!node) return;
-    const read = () => setPinPx((prev) => Math.max(prev, Math.round(node.getBoundingClientRect().height)));
+    const query = window.matchMedia("(max-width: 1023px)");
+    const read = () => {
+      const mobile = query.matches;
+      const measured = Math.round(node.getBoundingClientRect().height);
+      setNarrow(mobile);
+      // On a phone the stage is capped in CSS. A rising min-height would ignore that cap
+      // and leave only a sliver for the step text underneath.
+      if (mobile) {
+        setPinPx(measured);
+        return;
+      }
+      setPinPx((prev) => Math.max(prev, measured));
+    };
     read();
     const observer = new ResizeObserver(read);
     observer.observe(node);
-    return () => observer.disconnect();
+    query.addEventListener("change", read);
+    window.addEventListener("resize", read);
+    return () => {
+      observer.disconnect();
+      query.removeEventListener("change", read);
+      window.removeEventListener("resize", read);
+    };
   }, []);
 
   useEffect(() => {
@@ -77,14 +95,6 @@ export function ConnectionStory() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 1023px)");
-    const apply = () => setNarrow(query.matches);
-    apply();
-    query.addEventListener("change", apply);
-    return () => query.removeEventListener("change", apply);
   }, []);
 
   useEffect(() => {
@@ -139,7 +149,11 @@ export function ConnectionStory() {
 
         <div className="connection-story mt-10">
           <div className="connection-story-pin">
-            <div className="connection-story-stage" ref={stageRef} style={pinPx > 0 ? { minHeight: pinPx } : undefined}>
+            <div
+              className="connection-story-stage"
+              ref={stageRef}
+              style={pinPx > 0 && !narrow ? { minHeight: pinPx } : undefined}
+            >
               <div className="flex gap-1" aria-hidden="true">
                 {steps.map((item, index) => (
                   <span key={item.n} className={`h-1 flex-1 ${index <= step ? "bg-foreground" : "bg-border"}`} />
@@ -393,7 +407,7 @@ function StoryChart({
                 <g key={hour}>
                   <line x1={tickX} x2={tickX} y1={height - axisLabelH} y2={height - axisLabelH + 5} className="stroke-muted-foreground" strokeWidth={1} />
                   {labelHour ? (
-                    <text x={tickX} y={height - 4} textAnchor="middle" className="num fill-muted-foreground" fontSize={11} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+                    <text x={tickX} y={height - 4} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
                       {clockLabel(hour)}
                     </text>
                   ) : null}
@@ -464,7 +478,7 @@ function StoryChart({
               y={stacked ? y(Math.max(peak.netKw, story.limitKw)) - 9 : y(peak.netKw) + 8 + 13}
               textAnchor="middle"
               className="story-halo fill-foreground"
-              fontSize={stacked ? 11 : 13}
+              fontSize={stacked ? 12 : 13}
               fontFamily={stacked ? "var(--font-plex-mono), ui-monospace, monospace" : undefined}
             >
               {tx("Netzbezug", "Grid import")}
@@ -472,7 +486,7 @@ function StoryChart({
           ) : null}
           {showSoc ? (
             <g className="story-layer">
-              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={11}>
+              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={12}>
                 {tx("LADESTAND", "CHARGE")}
               </text>
               <line x1={pad.l} x2={pad.l + plotW} y1={socY(0)} y2={socY(0)} className="stroke-gridline" />
