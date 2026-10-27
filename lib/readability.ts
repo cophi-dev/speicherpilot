@@ -42,6 +42,22 @@ export function rateGridSupport(status: GridSupportStatus): TrafficLight {
   return "yellow";
 }
 
+const PUBLIC_COPY_FORBIDDEN = [/Tesla/i, /LP-Obergrenze/, /garantiert/i, /\bRendite\b/];
+
+/** Flags empty public copy and words the example days must not use. */
+export function publicCopyIssues(text: string): string[] {
+  const issues: string[] = [];
+  if (text.trim().length === 0) {
+    issues.push("empty");
+  }
+  for (const pattern of PUBLIC_COPY_FORBIDDEN) {
+    if (pattern.test(text)) {
+      issues.push(pattern.source);
+    }
+  }
+  return issues;
+}
+
 /** Whether the chosen battery actually cuts the import peak down to the limit. */
 export function rateStorage(input: { peakBeforeKw: number; peakAfterKw: number; limitKw: number }): TrafficLight {
   if (input.peakAfterKw <= input.limitKw + 1e-3 && input.peakBeforeKw > input.limitKw) {

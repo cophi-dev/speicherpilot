@@ -422,6 +422,9 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
               )}
             </p>
             <p>{tx(REFERENCE_PARK_DISPATCH_RULE.de, REFERENCE_PARK_DISPATCH_RULE.en)}</p>
+            <p>
+              <Link href="/#beispieltage">{tx("Beispieltage auf der Startseite ansehen", "See the example days on the homepage")}</Link>
+            </p>
             <h2 className="site-block-title">{tx("Flexible Anschlussvereinbarung", "Flexible connection agreement")}</h2>
             <aside className="site-note">
               <GlossaryTip id="fca" language={language} />
