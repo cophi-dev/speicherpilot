@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import { ConnectionLight } from "@/components/connection/ConnectionLight";
 import { GlossaryTip } from "@/components/GlossaryTip";
@@ -36,8 +36,45 @@ export function ConnectionStory() {
   const story = useMemo(() => supermarketTeachingDay(), []);
   const [step, setStep] = useState(0);
   const [narrow, setNarrow] = useState(false);
+  const [pinPx, setPinPx] = useState(0);
   const stepsRef = useRef<Array<HTMLLIElement | null>>([]);
+  const stageRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+
+  useEffect(() => {
+    const node = stageRef.current;
+    if (!node) return;
+    const read = () => setPinPx((prev) => Math.max(prev, Math.round(node.getBoundingClientRect().height)));
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    const sync = () => {
+      const card = stepsRef.current[stepsRef.current.length - 1]?.querySelector(".story-step-card");
+      if (!stage || !(card instanceof HTMLElement)) return;
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        stage.style.transform = "";
+        return;
+      }
+      // The chart leaves with the last card, so the pin does not stay over an empty column.
+      const top = Number.parseFloat(getComputedStyle(stage).top) || 0;
+      const slot = top + stage.getBoundingClientRect().height + 16;
+      const shift = Math.min(0, card.getBoundingClientRect().top - slot);
+      stage.style.transform = shift < -0.5 ? `translateY(${shift}px)` : "";
+    };
+    const onScroll = () => sync();
+    sync();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 1023px)");
@@ -59,7 +96,7 @@ export function ConnectionStory() {
         let best = 0;
         let bestRatio = -1;
         for (const [index, ratio] of ratios) {
-          if (ratio > bestRatio) {
+          if (ratio > bestRatio || (ratio === bestRatio && index > best)) {
             best = index;
             bestRatio = ratio;
           }
@@ -68,14 +105,14 @@ export function ConnectionStory() {
           setStep(best);
         }
       },
-      // On a phone the sticky chart covers the top of the viewport, so the active band sits in the text card.
-      { rootMargin: narrow ? "-62% 0px -12% 0px" : "-38% 0px -42% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
+      // The step changes when its text crosses the middle of the viewport.
+      { rootMargin: "-45% 0px -45% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
     );
     for (const node of nodes) {
       observer.observe(node);
     }
     return () => observer.disconnect();
-  }, [narrow]);
+  }, []);
 
   const shownPeak = step >= 1 ? story.peakAfterKw : story.peakBeforeKw;
   const light = connectionLight(shownPeak, story.limitKw);
@@ -99,7 +136,7 @@ export function ConnectionStory() {
 
         <div className="connection-story mt-10">
           <div className="connection-story-pin">
-            <div className="connection-story-stage">
+            <div className="connection-story-stage" ref={stageRef} style={pinPx > 0 ? { minHeight: pinPx } : undefined}>
               <div className="flex gap-1" aria-hidden="true">
                 {steps.map((item, index) => (
                   <span key={item.n} className={`h-1 flex-1 ${index <= step ? "bg-foreground" : "bg-border"}`} />
@@ -117,7 +154,7 @@ export function ConnectionStory() {
               <ConnectionLight light={light} language={language} neutral={step === 0} />
             </div>
           </div>
-          <ol>
+          <ol style={pinPx > 0 ? ({ "--story-pin": `${pinPx}px` } as CSSProperties) : undefined}>
             {steps.map((item, index) => {
               const active = step === index;
               const last = index === steps.length - 1;
@@ -129,39 +166,37 @@ export function ConnectionStory() {
                   }}
                   data-step={index}
                   aria-current={active ? "step" : undefined}
-                  className={`story-step flex min-h-[40vh] flex-col justify-center border-t border-border bg-card p-6 text-foreground lg:border-0 lg:bg-transparent lg:p-0 ${
-                    active ? "lg:text-foreground" : "lg:text-muted-foreground"
-                  }`}
+                  className={`story-step min-h-[60svh] text-foreground lg:min-h-[70vh]${active ? " is-active" : ""}`}
                 >
-                  <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>
-                  <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
-                  <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
-                  {item.figure ? (
-                    <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
-                      {item.figure}
-                      <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
-                    </p>
-                  ) : null}
-                  {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}
-                  {last ? (
-                    <div className="mt-8 flex flex-wrap items-center gap-3">
-                      <Link
-                        href={sitePath("projekt", "supermarkt")}
-                        className="inline-flex h-12 w-fit items-center rounded-md bg-primary px-5 text-[15px] font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      >
-                        {tx("Eigenen Markt rechnen →", "Calculate your own store →")}
-                      </Link>
-                      <button
-                        type="button"
-                        className="inline-flex h-12 w-fit items-center rounded-md px-5 text-[15px] font-medium text-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        onClick={() => stepsRef.current[0]?.scrollIntoView({ block: "center" })}
-                      >
-                        {tx("Zurück", "Back")}
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="num mt-6 text-[12px] text-muted-foreground lg:hidden">{tx("weiter scrollen ↓", "keep scrolling ↓")}</p>
-                  )}
+                  <div className="story-step-card">
+                    <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>
+                    <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
+                    <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
+                    {item.figure ? (
+                      <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
+                        {item.figure}
+                        <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
+                      </p>
+                    ) : null}
+                    {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}
+                    {last ? (
+                      <div className="mt-8 flex flex-wrap items-center gap-3">
+                        <Link
+                          href={sitePath("projekt", "supermarkt")}
+                          className="inline-flex h-12 w-fit items-center rounded-md bg-primary px-5 text-[15px] font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        >
+                          {tx("Eigenen Markt rechnen →", "Calculate your own store →")}
+                        </Link>
+                        <button
+                          type="button"
+                          className="inline-flex h-12 w-fit items-center rounded-md px-5 text-[15px] font-medium text-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          onClick={() => stepsRef.current[0]?.scrollIntoView({ block: "center" })}
+                        >
+                          {tx("Zurück", "Back")}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 </li>
               );
             })}
@@ -346,10 +381,24 @@ function StoryChart({
             </g>
           ))}
           {[12, 14, 16, 18, 20, 22].filter((hour) => hour >= from && hour <= to).map((hour) => {
+            const labelHour = hour === 12 || hour === 16 || hour === 20;
+            if (stacked) {
+              const tickX = x(hour);
+              return (
+                <g key={hour}>
+                  <line x1={tickX} x2={tickX} y1={height - axisLabelH} y2={height - axisLabelH + 5} className="stroke-muted-foreground" strokeWidth={1} />
+                  {labelHour ? (
+                    <text x={tickX} y={height - 4} textAnchor="middle" className="num fill-muted-foreground" fontSize={11} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+                      {clockLabel(hour)}
+                    </text>
+                  ) : null}
+                </g>
+              );
+            }
             const first = hour <= from + 0.01;
             const last = hour >= to - 0.01;
-            const anchor = stacked && first ? "start" : stacked && last ? "end" : "middle";
-            const labelX = stacked && first ? pad.l : stacked && last ? pad.l + plotW : x(hour);
+            const anchor = first ? "start" : last ? "end" : "middle";
+            const labelX = first ? pad.l : last ? pad.l + plotW : x(hour);
             return (
               <text key={hour} x={labelX} y={height - 6} textAnchor={anchor} className="num fill-muted-foreground" fontSize={12}>
                 {clockLabel(hour)}
@@ -407,10 +456,11 @@ function StoryChart({
           {step >= 1 && peak ? (
             <text
               x={x(peak.hour)}
-              y={y(peak.netKw) + 8 + 13}
+              y={stacked ? y(Math.max(peak.netKw, story.limitKw)) - 9 : y(peak.netKw) + 8 + 13}
               textAnchor="middle"
               className="story-halo fill-foreground"
-              fontSize={13}
+              fontSize={stacked ? 11 : 13}
+              fontFamily={stacked ? "var(--font-plex-mono), ui-monospace, monospace" : undefined}
             >
               {tx("Netzbezug", "Grid import")}
             </text>

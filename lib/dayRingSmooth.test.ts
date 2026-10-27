@@ -1,7 +1,13 @@
-import { polarPoint, RING_GAP_DEG, ringRadius, RING_R0 } from "@/lib/dayRingScale";
+import { compactRingView, polarPoint, pxToUser, RING_GAP_DEG, ringRadius, RING_R0 } from "@/lib/dayRingScale";
 import {
+  booleanRuns,
+  clampRibbon,
+  inMidnightTaper,
+  oneKnotPerClockAngle,
   polarAreaPath,
+  polarRibbonPath,
   quarterCenterDeg,
+  quarterCenterForHour,
   ringTip,
   smoothDrawnSeries,
   smoothPolarSamples,
@@ -12,6 +18,59 @@ import {
 function day(values: readonly number[]) {
   const series = values.map((value, index) => ({ angleDeg: quarterCenterDeg(index), value }));
   return smoothPolarSamples(series, ringRadius, RING_R0);
+}
+
+/** Largest direction change along one cubic edge, in degrees. The straight cap between edges is ignored. */
+function ribbonKinks(path: string): number {
+  const tokens = path.match(/[MLCZ]|-?\d+(?:\.\d+)?/g) ?? [];
+  let cursor = 0;
+  const read = () => ({ x: Number(tokens[cursor++]), y: Number(tokens[cursor++]) });
+  let worst = 0;
+  let points: Array<{ x: number; y: number }> = [];
+  const flush = () => {
+    for (let index = 1; index < points.length - 1; index += 1) {
+      const a = points[index - 1];
+      const b = points[index];
+      const c = points[index + 1];
+      const v1x = b.x - a.x;
+      const v1y = b.y - a.y;
+      const v2x = c.x - b.x;
+      const v2y = c.y - b.y;
+      const n1 = Math.hypot(v1x, v1y);
+      const n2 = Math.hypot(v2x, v2y);
+      if (n1 < 0.05 || n2 < 0.05) continue;
+      const dot = (v1x * v2x + v1y * v2y) / (n1 * n2);
+      const turn = (Math.acos(Math.max(-1, Math.min(1, dot))) * 180) / Math.PI;
+      if (turn > worst) worst = turn;
+    }
+    points = [];
+  };
+  let start = { x: 0, y: 0 };
+  while (cursor < tokens.length) {
+    const command = tokens[cursor++];
+    if (command === "M" || command === "L") {
+      flush();
+      start = read();
+      points.push(start);
+      continue;
+    }
+    if (command === "Z") break;
+    if (command !== "C") break;
+    const c1 = read();
+    const c2 = read();
+    const end = read();
+    for (const t of [0.25, 0.5, 0.75]) {
+      const u = 1 - t;
+      points.push({
+        x: u ** 3 * start.x + 3 * u ** 2 * t * c1.x + 3 * u * t ** 2 * c2.x + t ** 3 * end.x,
+        y: u ** 3 * start.y + 3 * u ** 2 * t * c1.y + 3 * u * t ** 2 * c2.y + t ** 3 * end.y,
+      });
+    }
+    points.push(end);
+    start = end;
+  }
+  flush();
+  return worst;
 }
 
 describe("smooth day ring", () => {
@@ -59,6 +118,22 @@ describe("smooth day ring", () => {
     expect(path.endsWith("Z")).toBe(true);
     expect(path.match(/A /g)).toHaveLength(1);
     expect(path).toMatch(/A [\d.]+ [\d.]+ 0 1 0 /);
+  });
+
+  it("draws a small charge bump as one curve without sawteeth", () => {
+    const values = Array.from({ length: 96 }, (_, index) => {
+      const hour = index * 0.25;
+      if (Math.abs(hour - 2.25) < 0.01) return 1;
+      if (Math.abs(hour - 2.5) < 0.01) return 1.1;
+      return 0;
+    });
+    const samples = day(smoothDrawnSeries(values));
+    const path = polarRibbonPath(
+      samples,
+      samples.map((sample) => ({ ...sample, radius: RING_R0 }))
+    );
+    const turns = ribbonKinks(path);
+    expect(turns).toBeLessThan(12);
   });
 
   it("puts a step from 0 to 20 on radii strictly between the two ends", () => {
@@ -110,13 +185,14 @@ describe("smooth day ring", () => {
     for (let index = 1; index < drawn.length; index += 1) {
       const step = drawn[index].angleDeg - drawn[index - 1].angleDeg;
       expect(step).toBeGreaterThan(0);
-      expect(step).toBeLessThanOrEqual(1);
+      expect(step).toBeLessThanOrEqual(0.25);
     }
     for (let angle = Math.ceil(gap); angle < 360 - gap; angle += 1) {
       expect(drawn.some((sample) => Math.abs(sample.angleDeg - angle) <= 0.5)).toBe(true);
     }
     const head = polarPoint(0, 0, RING_R0, gap);
     expect(path.startsWith(`M ${head.x} ${head.y}`)).toBe(true);
+    expect(path).toMatch(/ C /);
     expect(path).toMatch(/A [\d.]+ [\d.]+ 0 1 0 /);
     expect(path.endsWith("Z")).toBe(true);
     expect(path.match(/M /g)).toHaveLength(1);
@@ -139,6 +215,124 @@ describe("smooth day ring", () => {
     }
   });
 
+  it("keeps every Fritsch-Carlson radius between the neighbouring supports", () => {
+    const values = Array.from({ length: 96 }, (_, index) => 6 + 14 * Math.sin((index / 96) * Math.PI * 4) + ((index % 5) - 2) * 3);
+    const supports = values.map((value, index) => ({ angleDeg: quarterCenterDeg(index), radius: ringRadius(value) }));
+    const samples = day(values);
+    for (const sample of samples) {
+      let hi = 1;
+      while (hi < supports.length && supports[hi].angleDeg < sample.angleDeg) hi += 1;
+      const left = supports[Math.max(0, hi - 1)];
+      const right = supports[Math.min(supports.length - 1, hi)];
+      const low = Math.min(left.radius, right.radius);
+      const high = Math.max(left.radius, right.radius);
+      expect(sample.radius).toBeGreaterThanOrEqual(low - 1e-6);
+      expect(sample.radius).toBeLessThanOrEqual(high + 1e-6);
+    }
+    for (let hour = 0; hour < 24; hour += 1) {
+      const start = hour * 15;
+      const end = start + 15;
+      const interpolated = samples.filter((sample) => {
+        if (sample.angleDeg <= start || sample.angleDeg >= end) return false;
+        return !supports.some((support) => Math.abs(support.angleDeg - sample.angleDeg) < 1e-6);
+      });
+      expect(interpolated.length).toBeGreaterThanOrEqual(4);
+    }
+    const path = polarAreaPath(samples, RING_R0);
+    const outer = path.slice(0, path.lastIndexOf(" L "));
+    expect(outer.startsWith("M ")).toBe(true);
+    expect(outer).toMatch(/ C /);
+    expect(outer).not.toMatch(/ L /);
+  });
+
+  it("averages a repeated clock hour onto one knot", () => {
+    const knots = oneKnotPerClockAngle([
+      { angleDeg: quarterCenterForHour(2), value: -1.785 },
+      { angleDeg: quarterCenterForHour(2), value: 0.964 },
+    ]);
+    expect(knots).toHaveLength(1);
+    expect(knots[0].value).toBeCloseTo((-1.785 + 0.964) / 2, 5);
+  });
+
+  it("has no sharp second-difference sign change on the charge band from 00 to 04", () => {
+    // 25 October 2026 repeats 02:00–02:45. The two hours used to share one angle.
+    const early: Array<[number, number, number]> = [
+      [0, 1.057, 1.057],
+      [0.25, 1.305, 1.305],
+      [0.5, 0.639, 0.639],
+      [0.75, -0.049, 0],
+      [1, -0.127, 0],
+      [1.25, -0.248, 0],
+      [1.5, -0.541, 0],
+      [1.75, -1.466, 0],
+      [2, -1.785, 0],
+      [2.25, -1.61, 0],
+      [2.5, -1.226, 0],
+      [2.75, -0.888, 0],
+      [2, 0.964, 0.964],
+      [2.25, 1.097, 1.097],
+      [2.5, 0.003, 0.003],
+      [2.75, -0.042, 0],
+      [3, 0.447, 0.447],
+      [3.25, 0.222, 0.222],
+      [3.5, 0.292, 0.292],
+      [3.75, 0.791, 0.791],
+      [4, 2.054, 2.054],
+    ];
+    const points: Array<{ hour: number; ohne: number; mit: number }> = [];
+    for (let index = 0; index < 96; index += 1) {
+      const hour = index * 0.25;
+      const known = early.filter((row) => Math.abs(row[0] - hour) < 0.001);
+      if (known.length === 0) {
+        points.push({ hour, ohne: 1, mit: 1 });
+      } else {
+        for (const row of known) points.push({ hour, ohne: row[1], mit: row[2] });
+      }
+    }
+    const ohne = smoothDrawnSeries(points.map((point) => point.ohne));
+    const mit = smoothDrawnSeries(points.map((point) => point.mit));
+    const ohneSamples = taperRingSamples(
+      smoothPolarSamples(
+        points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: ohne[index] })),
+        ringRadius,
+        RING_R0
+      ),
+      RING_R0
+    );
+    const mitSamples = taperRingSamples(
+      smoothPolarSamples(
+        points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: mit[index] })),
+        ringRadius,
+        RING_R0
+      ),
+      RING_R0
+    );
+    const framePx = 642;
+    const view = compactRingView(ringRadius(10), framePx);
+    const toPx = framePx / view.w;
+    const open = (sample: { angleDeg: number }) => !inMidnightTaper(sample.angleDeg);
+    const runs = booleanRuns(
+      ohneSamples.map((sample, index) => open(sample) && (mitSamples[index]?.value ?? sample.value) > sample.value + 0.02)
+    );
+    const from = quarterCenterForHour(0);
+    const to = quarterCenterForHour(4);
+    const radii: Array<{ outer: number; inner: number }> = [];
+    for (const run of runs) {
+      const clamped = clampRibbon(
+        mitSamples.slice(run.start, run.end + 1),
+        ohneSamples.slice(run.start, run.end + 1),
+        pxToUser(1.5, view.w, framePx)
+      );
+      clamped.outer.forEach((sample, index) => {
+        if (sample.angleDeg < from || sample.angleDeg > to) return;
+        radii.push({ outer: sample.radius, inner: clamped.inner[index].radius });
+      });
+    }
+    expect(radii.length).toBeGreaterThan(40);
+    expect(sharpRadiusTurns(radii.map((sample) => sample.outer), toPx)).toEqual([]);
+    expect(sharpRadiusTurns(radii.map((sample) => sample.inner), toPx)).toEqual([]);
+  });
+
   it("holds a same-sign day on its own side of the zero circle", () => {
     const positive = day(Array.from({ length: 96 }, (_, index) => 2 + (index % 7)));
     expect(positive.every((sample) => sample.radius >= RING_R0 - 0.001)).toBe(true);
@@ -146,6 +340,20 @@ describe("smooth day ring", () => {
     expect(negative.every((sample) => sample.radius <= RING_R0 + 0.001)).toBe(true);
   });
 });
+
+/** Sign changes of the second difference whose amplitude exceeds `limitPx`. */
+function sharpRadiusTurns(radii: readonly number[], toPx: number, limitPx = 0.5): number[] {
+  const turns: number[] = [];
+  let previous = 0;
+  for (let index = 1; index < radii.length - 1; index += 1) {
+    const second = (radii[index + 1] - 2 * radii[index] + radii[index - 1]) * toPx;
+    if (index > 1 && second * previous < 0 && Math.max(Math.abs(second), Math.abs(previous)) > limitPx) {
+      turns.push(second);
+    }
+    previous = second;
+  }
+  return turns;
+}
 
 function at(angleDeg: number, radius: number): { x: number; y: number } {
   const rad = (angleDeg * Math.PI) / 180;

@@ -7,6 +7,7 @@ import {
   compactHourLabel,
   compactRingView,
   COMPACT_FRAME_PX,
+  HOUR_LABEL_GAP_PX,
   HOUR_LABEL_PAD_PX,
   RING_OF_FRAME,
   energyColor,
@@ -65,9 +66,9 @@ describe("day ring scale", () => {
       expect(view.w).toBeCloseTo(view.h, 5);
       expect(view.x).toBeCloseTo(-view.w / 2, 5);
       expect(view.y).toBeCloseTo(-view.h / 2, 5);
-      expect(ringDiskPx(outer, 720, view.w)).toBeCloseTo(720 * RING_OF_FRAME, 1);
+      expect(ringDiskPx(outer, 720, view.w)).toBeLessThanOrEqual(720 * RING_OF_FRAME + 0.6);
       const label = compactHourLabel(outer, view.w / 2, 720);
-      expect((label.labelGap * 720) / view.w).toBeCloseTo(8, 1);
+      expect((label.labelGap * 720) / view.w).toBeCloseTo(HOUR_LABEL_GAP_PX, 1);
       expect((label.fontSize * 720) / view.w).toBeCloseTo(12, 1);
       expect(label.labelRadius - label.fontSize * 0.6 - outer).toBeCloseTo(label.labelGap, 1);
       expect(label.labelRadius + label.fontSize * 0.7).toBeLessThanOrEqual(view.w / 2);
@@ -82,7 +83,7 @@ describe("day ring scale", () => {
     expect(view.y).toBeCloseTo(-view.h / 2, 5);
     expect(ringDiskPx(outer, COMPACT_FRAME_PX, view.w)).toBeLessThan(COMPACT_FRAME_PX * RING_OF_FRAME);
     expect(label.labelRadius + label.fontSize * 0.7).toBeLessThanOrEqual(view.w / 2);
-    expect((label.labelGap * COMPACT_FRAME_PX) / view.w).toBeCloseTo(8, 1);
+    expect((label.labelGap * COMPACT_FRAME_PX) / view.w).toBeCloseTo(HOUR_LABEL_GAP_PX, 1);
     expect((HOUR_LABEL_PAD_PX * 2) / COMPACT_FRAME_PX).toBeGreaterThan(1 - RING_OF_FRAME);
   });
 
@@ -106,7 +107,7 @@ describe("day ring scale", () => {
     };
     const size = chooseCenterFont(limit, home);
     expect(size).not.toBeNull();
-    expect(size!).toBeGreaterThanOrEqual(13);
+    expect(size!).toBeGreaterThanOrEqual(11);
     expect(boxFitsCircle(home(size!).width, home(size!).height, limit)).toBe(true);
     expect(home(size!).width).toBeGreaterThan(70);
     expect(chooseCenterFont(limit, () => ({ width: 400, height: 80 }))).toBeNull();

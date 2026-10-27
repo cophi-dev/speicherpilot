@@ -144,13 +144,14 @@ export function socRingGeometry(unit: "GW" | "kW" = "GW", bold = false): { radiu
 /** Phone width of the ring frame. The disk fills 92% of that frame's radius when the labels fit. */
 export const COMPACT_FRAME_PX = 358;
 export const RING_OF_FRAME = 0.92;
-export const HOUR_LABEL_GAP_PX = 8;
+/** 8px clear of the guide, plus 14px so the digits clear the callout markers. */
+export const HOUR_LABEL_GAP_PX = 22;
 export const HOUR_LABEL_PX = 12;
 /**
  * Screen pixels the hour label needs outside the guide.
  * 8px gap, then the anchor (0.6em), then the outer half of the 16px em box, plus 2px of clearance.
  */
-export const HOUR_LABEL_PAD_PX = 26;
+export const HOUR_LABEL_PAD_PX = 40;
 /** Secondary grey used for hour labels and the guide circle. */
 export const STEIN = "#C5CED6";
 
