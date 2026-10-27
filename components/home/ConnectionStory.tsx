@@ -120,7 +120,7 @@ export function ConnectionStory() {
   const steps = storySteps(story, deltaKw, language);
 
   return (
-    <section id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-16 md:py-24">
+    <section id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-12 md:py-16">
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">
         <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Supermarkt", "Example · supermarket")}</p>
         <h2 id={titleId} className="mt-4 flex flex-wrap items-center gap-3 text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
@@ -143,7 +143,9 @@ export function ConnectionStory() {
                 ))}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="num text-[12px] tracking-[0.14em] text-muted-foreground uppercase">{tx("Ein Tag am Netzanschluss", "One day at the connection")}</p>
+                <p className="num text-[12px] leading-7 tracking-[0.02em] text-foreground">
+                  {tx(`Was ist Peak Shaving? · Schritt ${step + 1}/3`, `What is peak shaving? · Step ${step + 1}/3`)}
+                </p>
                 <p className="num border border-warning px-2 py-1 text-[12px] font-medium tracking-[0.08em] text-warning uppercase">
                   {tx("Beispieldaten", "Example data")}
                 </p>
@@ -166,7 +168,7 @@ export function ConnectionStory() {
                   }}
                   data-step={index}
                   aria-current={active ? "step" : undefined}
-                  className={`story-step min-h-[60svh] text-foreground lg:min-h-[70vh]${active ? " is-active" : ""}`}
+                  className={`story-step min-h-[45svh] text-foreground lg:min-h-[65vh]${active ? " is-active" : ""}`}
                 >
                   <div className="story-step-card">
                     <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>

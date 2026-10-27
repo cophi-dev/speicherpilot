@@ -60,7 +60,7 @@ describe("ConnectionStory", () => {
       expect(segment.className).not.toContain("bg-warning");
     }
 
-    expect(screen.getByText("Ein Tag am Netzanschluss")).toBeInTheDocument();
+    expect(screen.getByText("Was ist Peak Shaving? · Schritt 1/3")).toBeInTheDocument();
     expect(screen.getByText("01")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Eigenen Markt rechnen →" })).toHaveAttribute(
       "href",
