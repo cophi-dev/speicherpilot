@@ -169,6 +169,41 @@ export function referenceParkRingKw(signedMw: number, nameplateMw: number): numb
   return (radius - zero) / KW_K;
 }
 
+/** How close a model quarter must come to count as the published nameplate. */
+const NAMEPLATE_TOLERANCE_MW = 0.5;
+
+export type ReferenceParkConnectionUse = {
+  maxChargeMw: number;
+  maxDischargeMw: number;
+  /** True when that direction reaches the published nameplate. */
+  chargeAtNameplate: boolean;
+  dischargeAtNameplate: boolean;
+};
+
+/**
+ * Peak withdrawal and feed-in on the model day, measured against the published
+ * nameplate. There is no published connection limit to divide by.
+ */
+export function referenceParkConnectionUse(points: LiveDispatchPoint[], nameplateMw: number): ReferenceParkConnectionUse {
+  let maxChargeMw = 0;
+  let maxDischargeMw = 0;
+  for (const point of points) {
+    if (point.chargeMw > maxChargeMw) {
+      maxChargeMw = point.chargeMw;
+    }
+    if (point.dischargeMw > maxDischargeMw) {
+      maxDischargeMw = point.dischargeMw;
+    }
+  }
+  const atNameplate = (mw: number) => nameplateMw > 0 && mw >= nameplateMw - NAMEPLATE_TOLERANCE_MW && mw <= nameplateMw + 0.05;
+  return {
+    maxChargeMw,
+    maxDischargeMw,
+    chargeAtNameplate: atNameplate(maxChargeMw),
+    dischargeAtNameplate: atNameplate(maxDischargeMw),
+  };
+}
+
 export function referenceParkModelDay(input: ReferenceParkDispatchInput): ReferenceParkModelDay | null {
   const powerMw = input.powerMw ?? REFERENCE_PARK.powerMw;
   const energyMwh = input.energyMwh ?? REFERENCE_PARK.energyMwh;

@@ -17,14 +17,14 @@ import {
 } from "@/lib/bessDispatchSimulator";
 import { connectionLight } from "@/lib/connectionLight";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
-import { REFERENCE_PARK_DISPATCH_RULE, referenceParkFullDrawKw, type ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
+import { REFERENCE_PARK_DISPATCH_RULE, referenceParkConnectionUse, referenceParkFullDrawKw, type ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { REFERENCE_PARK, referenceParkCRate, referenceParkHoursAtFullPower } from "@/lib/referencePark";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile, planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
 import { QUARTIER, planQuartier, quartierProfile } from "@/lib/quartierExample";
 import { storyFromPlan, supermarketConnectionStory, type ConnectionPoint, type SiteConnectionStory } from "@/lib/siteConnectionDay";
-import { parseLoadProfileCsv, planSite, type LoadProfile, type SitePlan } from "@/lib/sitePlanner";
+import { GRID_SUPPORT_CONFIG, parseLoadProfileCsv, planSite, type LoadProfile, type SitePlan } from "@/lib/sitePlanner";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
 export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay | null }) {
@@ -290,6 +290,252 @@ function siteCallouts(story: SiteConnectionStory, language: AppLanguage, netz: b
   ];
 }
 
+function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; modelDay: ReferenceParkModelDay | null }) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const facts = REFERENCE_PARK;
+  const figure = formatQuantity(facts.powerMw, language, 1);
+  const energy = formatQuantity(facts.energyMwh, language, 1);
+  const voltage = formatQuantity(facts.voltageKv, language, 0);
+  const efficiency = modelDay?.efficiency ?? ROUND_TRIP_EFFICIENCY;
+  const socMin = modelDay?.socMinFrac ?? BESS_DISPATCH_SOC_MIN_FRAC;
+  const socMax = modelDay?.socMaxFrac ?? BESS_DISPATCH_SOC_MAX_FRAC;
+  const socStart = modelDay?.initialSocFrac ?? BESS_DISPATCH_INITIAL_SOC_FRAC;
+  const points = modelDay?.points ?? [];
+  const use = referenceParkConnectionUse(points, facts.powerMw);
+  const peakPct = Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100);
+  const sharePct = Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100);
+  const note = tx("Modelltag · nicht die echte Fahrweise", "Model day · not the real operation");
+  const rule = tx(
+    "Laden ist Bezug aus dem Netz. Abgeben ist Einspeisung ins Netz.",
+    "Charging is withdrawal from the grid. Discharging is feed-in to the grid."
+  );
+  const ringLabel = tx(
+    `MODELLTAG. Anschluss ${facts.nameDe}, ${voltage} kV, ${figure} MW.`,
+    `MODELLTAG. Connection ${facts.nameEn}, ${voltage} kV, ${figure} MW.`
+  );
+  const ringDescription = tx(
+    `${note}. ${rule} ${REFERENCE_PARK_DISPATCH_RULE.de}`,
+    `${note}. ${rule} ${REFERENCE_PARK_DISPATCH_RULE.en}`
+  );
+  const chargeLine = connectionPeakLine(use.chargeAtNameplate, use.maxChargeMw, facts.powerMw, language, "charge");
+  const dischargeLine = connectionPeakLine(use.dischargeAtNameplate, use.maxDischargeMw, facts.powerMw, language, "discharge");
+  return (
+    <section className="day-hero site-hero" aria-labelledby="site-hero-title">
+      <div className="day-hero-inner">
+        <PerspectiveToggle view="netz" scenario="grossspeicher" language={language} />
+        <div className="site-hero-grid site-model-grid">
+          <div className="site-model-copy">
+            <p className="day-kicker">
+              {tx("Netzbetreiber · Hochspannung", "Grid operator · high voltage")}{" "}
+              <span className="site-chip site-chip-public">{tx("Modelltag", "Model day")}</span>
+            </p>
+            <h1 id="site-hero-title">{tx("Bollingstedt am 110-kV-Netz von SH Netz.", "Bollingstedt on the 110 kV grid of SH Netz.")}</h1>
+            <dl className="site-facts">
+              <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={facts.mastrUnits[0].href} source={`MaStR ${facts.mastrUnits[0].seeId}`} />
+              <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${energy} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
+              <ReferenceParkFact
+                label={<><GlossaryTip id="hs" language={language} /> {tx("Spannung", "Voltage")}</>}
+                value={`${voltage} kV`}
+                href={facts.sources[3].href}
+                source={facts.gridOperator}
+              />
+            </dl>
+          </div>
+          <div className="site-model-ring">
+            <DayRing
+              points={points}
+              unit="kW"
+              scale="utilisation"
+              limit={referenceParkFullDrawKw()}
+              showLimit={false}
+              mode="netz"
+              empty={points.length === 0}
+              showHourTicks
+              showSoc
+              showFlow={false}
+              showShift={false}
+              smoothSeries={false}
+              clearCenter
+              solidStrokes
+              referenceRing
+              label={ringLabel}
+              description={ringDescription}
+              centerMark={{ pill: "MODELLTAG", figure, unit: "MW", note: [] }}
+            />
+            <p className="day-model-caption">{note}</p>
+            <p className="day-model-rule">{rule}</p>
+            <p className="day-model-rule-link">
+              <a href="/methodik#modelltag">{tx("Regel im Detail →", "Rule in detail →")}</a>
+            </p>
+            <ReferenceParkTable
+              points={points}
+              caption={tx(
+                `${ringLabel} ${note}. Plus ist Einspeisung, minus ist Bezug.`,
+                `${ringLabel} ${note}. Plus is feed-in, minus is withdrawal.`
+              )}
+              language={language}
+            />
+          </div>
+          <div className="site-model-rest">
+            <h2 className="site-block-title" id="anschlussauslastung">{tx("Anschlussauslastung am Modelltag", "Connection use on the model day")}</h2>
+            <p>
+              {points.length > 0
+                ? tx(
+                    "Eine veröffentlichte Grenze in MW gibt es nicht. Die Auslastung der Vereinbarung lässt sich deshalb nicht rechnen.",
+                    "No limit in MW is published. Use of the agreement therefore cannot be calculated."
+                  )
+                : tx(
+                    "Der Day-Ahead-Preis von gestern ist gerade nicht geladen. Eine Auslastung gibt es dann nicht.",
+                    "Yesterday’s day-ahead price is not loaded right now. There is then no utilisation figure."
+                  )}
+            </p>
+            {points.length > 0 ? (
+              <p>
+                {chargeLine} {dischargeLine}{" "}
+                {tx(
+                  "Das ist die Auslastung der gemeldeten Leistung, nicht die Auslastung einer unveröffentlichten Grenze.",
+                  "That is use of the published power, not use of an unpublished limit."
+                )}
+              </p>
+            ) : null}
+            <h2 className="site-block-title">{tx("Laden und Abgeben", "Charging and discharging")}</h2>
+            <p>
+              <GlossaryTip id="front-of-meter" language={language} />{" "}
+              {tx(
+                "Der Speicher steht direkt am Netz. Eine Last eines Betriebs dahinter gibt es nicht.",
+                "The battery sits directly on the grid. There is no site load behind it."
+              )}
+            </p>
+            <p>
+              {tx(
+                "Laden ist Bezug aus dem Netz von SH Netz. Abgeben ist Einspeisung in dasselbe Netz. Beides im Ring ist eine Modellschätzung, nicht die gemessene Fahrweise.",
+                "Charging is withdrawal from the SH Netz grid. Discharging is feed-in to the same grid. Both on the ring are a model estimate, not the measured operation."
+              )}
+            </p>
+            <p>{tx(REFERENCE_PARK_DISPATCH_RULE.de, REFERENCE_PARK_DISPATCH_RULE.en)}</p>
+            <h2 className="site-block-title">{tx("Flexible Anschlussvereinbarung", "Flexible connection agreement")}</h2>
+            <aside className="site-note">
+              <GlossaryTip id="fca" language={language} />
+              <div>
+                <p>
+                  {tx(
+                    "Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine flexible Anschlussvereinbarung anbieten. Sie setzt der höchsten Bezugs- oder Einspeiseleistung eine Grenze, fest oder veränderlich.",
+                    "Under section 17 (2b) of the Energy Industry Act the grid operator can offer a flexible connection agreement. It sets a fixed or a changing limit on the highest withdrawal or feed-in."
+                  )}
+                </p>
+                <p>
+                  {tx(
+                    "Bei Bollingstedt sind Bezug und Einspeisung dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.",
+                    "At Bollingstedt, withdrawal and feed-in are limited dynamically. The limits are not published."
+                  )}
+                </p>
+              </div>
+            </aside>
+            <p className="site-quiet">
+              {tx(
+                `Eine Marke netzdienlich steht hier nicht. Regel v1 braucht eine bekannte Anschlussleistung und eine Standortlast: mindestens ${sharePct} % der Entladung bei mindestens ${peakPct} % Auslastung, und Laden ohne neue Bezugsspitze. Beides liegt für diesen Anschluss nicht vor.`,
+                `There is no grid-support badge here. Rule v1 needs a known connection capacity and a site load: at least ${sharePct}% of discharge at at least ${peakPct}% utilisation, and charging without a new import peak. Neither is available for this connection.`
+              )}{" "}
+              <a href="/methodik#netzdienlichkeit">{tx("Regel v1 in der Methodik", "Rule v1 in the method")}</a>
+            </p>
+            <aside className="site-note">
+              <GlossaryTip id="ladezustand" language={language} />
+              <div>
+                <p>
+                  {tx(
+                    `Annahme im Modell: Wirkungsgrad ${formatQuantity(efficiency * 100, language, 0)} %, Ladezustand von ${formatQuantity(socMin * 100, language, 0)} % bis ${formatQuantity(socMax * 100, language, 0)} %, Start bei ${formatQuantity(socStart * 100, language, 0)} %.`,
+                    `Model assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
+                  )}{" "}
+                  <a href="/methodik#modelltag">{tx("Rechnung in der Methodik", "Calculation in the method")}</a>
+                </p>
+                <p>
+                  {modelDay
+                    ? tx(`Gebotszone DE-LU, Liefertag ${germanDate(modelDay.dateBerlin)}.`, `DE-LU bidding zone, delivery day ${germanDate(modelDay.dateBerlin)}.`)
+                    : tx("Ohne Preise von gestern bleibt der Ring leer.", "Without yesterday’s prices the ring stays empty.")}
+                </p>
+              </div>
+            </aside>
+            <p className="site-quiet">
+              <a href={facts.dashboardHref}>{tx("echte Fahrweise beim Betreiber", "real operation at the operator")}</a>
+              {" · "}
+              <a href={facts.sources[3].href}>SH Netz</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function connectionPeakLine(
+  atNameplate: boolean,
+  megawatts: number,
+  nameplateMw: number,
+  language: AppLanguage,
+  direction: "charge" | "discharge"
+): string {
+  const figure = formatQuantity(nameplateMw, language, 1);
+  const value = formatQuantity(megawatts, language, 1);
+  const share = nameplateMw > 0 ? formatQuantity((megawatts / nameplateMw) * 100, language, 0) : "0";
+  if (language === "de") {
+    if (megawatts <= 0.05) {
+      return direction === "charge" ? "Im Modell gibt es an diesem Tag keinen Bezug." : "Im Modell gibt es an diesem Tag keine Einspeisung.";
+    }
+    if (atNameplate) {
+      return direction === "charge"
+        ? `Der höchste Bezug im Modell liegt bei der gemeldeten Leistung von ${figure} MW.`
+        : `Die höchste Einspeisung im Modell liegt bei der gemeldeten Leistung von ${figure} MW.`;
+    }
+    return direction === "charge"
+      ? `Der höchste Bezug im Modell liegt bei ${value} MW, das sind ${share} % der gemeldeten ${figure} MW.`
+      : `Die höchste Einspeisung im Modell liegt bei ${value} MW, das sind ${share} % der gemeldeten ${figure} MW.`;
+  }
+  if (megawatts <= 0.05) {
+    return direction === "charge" ? "The model has no withdrawal on this day." : "The model has no feed-in on this day.";
+  }
+  if (atNameplate) {
+    return direction === "charge"
+      ? `The highest withdrawal in the model is the published power of ${figure} MW.`
+      : `The highest feed-in in the model is the published power of ${figure} MW.`;
+  }
+  return direction === "charge"
+    ? `The highest withdrawal in the model is ${value} MW, ${share}% of the published ${figure} MW.`
+    : `The highest feed-in in the model is ${value} MW, ${share}% of the published ${figure} MW.`;
+}
+
+function ReferenceParkTable({ points, caption, language }: { points: LiveDispatchPoint[]; caption: string; language: AppLanguage }) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  if (points.length === 0) {
+    return null;
+  }
+  return (
+    <div className="day-sr">
+      <table>
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            <th>{tx("Zeit", "Time")}</th>
+            <th>{tx("Leistung MW", "Power MW")}</th>
+            <th>{tx("Ladezustand", "State of charge")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {points.map((point) => {
+            const signed = point.dischargeMw > 0 ? point.dischargeMw : -point.chargeMw;
+            return (
+              <tr key={point.hour}>
+                <td>{clock(point.hour)}</td>
+                <td>{signed.toFixed(1)}</td>
+                <td>{formatQuantity(point.soc * 100, language, 0)} %</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; language: AppLanguage; modelDay: ReferenceParkModelDay | null }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const facts = REFERENCE_PARK;
@@ -311,6 +557,9 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
     `${note}. ${rule} Assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
   );
   const points = modelDay?.points ?? [];
+  if (view === "netz") {
+    return <ReferenceParkGridHero language={language} modelDay={modelDay} />;
+  }
   return (
     <section className="day-hero site-hero" aria-labelledby="site-hero-title">
       <div className="day-hero-inner">
@@ -441,7 +690,7 @@ function germanDate(iso: string): string {
   return `${day}.${month}.${year}`;
 }
 
-function ReferenceParkFact({ label, value, href, source }: { label: string; value: string; href: string; source: string }) {
+function ReferenceParkFact({ label, value, href, source }: { label: ReactNode; value: string; href: string; source: string }) {
   return (
     <div>
       <dt>{label}</dt>

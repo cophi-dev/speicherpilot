@@ -7,6 +7,7 @@ import { quarterCenterForHour, smoothPolarSamples, taperRingSamples } from "@/li
 import {
   dispatchReferencePark,
   referenceParkBandLimits,
+  referenceParkConnectionUse,
   referenceParkModelDay,
   referenceParkRingKw,
 } from "@/lib/referenceParkModelDay";
@@ -76,6 +77,23 @@ describe("Bollingstedt model day", () => {
     const source = readFileSync("lib/referenceParkModelDay.ts", "utf8");
     expect(source).not.toMatch(/0\.92|0\.85/);
     expect(source).toContain("ROUND_TRIP_EFFICIENCY");
+    const engine = readFileSync("lib/bessDispatchSimulator.ts", "utf8");
+    expect(engine).not.toContain("BESS_DISPATCH_ROUND_TRIP_EFFICIENCY");
+  });
+
+  it("measures model-day peaks against the published nameplate only", () => {
+    const view = referenceParkModelDay({ prices: spread(), dateBerlin: DAY });
+    const use = referenceParkConnectionUse(view?.points ?? [], 103.5);
+    expect(use.maxChargeMw).toBeGreaterThan(0);
+    expect(use.maxDischargeMw).toBeGreaterThan(0);
+    expect(use.maxChargeMw).toBeLessThanOrEqual(103.5 + 1e-6);
+    expect(use.maxDischargeMw).toBeLessThanOrEqual(103.5 + 1e-6);
+    expect(referenceParkConnectionUse([], 103.5)).toEqual({
+      maxChargeMw: 0,
+      maxDischargeMw: 0,
+      chargeAtNameplate: false,
+      dischargeAtNameplate: false,
+    });
   });
 
   it("holds still when every price is equal", () => {
