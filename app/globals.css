@@ -3493,6 +3493,10 @@ footer .site-fold a {
   gap: 8px;
 }
 
+.site-keep {
+  white-space: nowrap;
+}
+
 .day-hero .site-block-title {
   margin: 22px 0 8px;
   color: #e9eef2;

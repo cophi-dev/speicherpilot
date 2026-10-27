@@ -329,7 +329,13 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
               {tx("Netzbetreiber · Hochspannung", "Grid operator · high voltage")}{" "}
               <span className="site-chip site-chip-public">{tx("Modelltag", "Model day")}</span>
             </p>
-            <h1 id="site-hero-title">{tx("Bollingstedt am 110-kV-Netz von SH Netz.", "Bollingstedt on the 110 kV grid of SH Netz.")}</h1>
+            <h1 id="site-hero-title">
+              {language === "de" ? (
+                <>Bollingstedt am <span className="site-keep">110-kV-Netz</span> von SH Netz.</>
+              ) : (
+                "Bollingstedt on the 110 kV grid of SH Netz."
+              )}
+            </h1>
             <dl className="site-facts">
               <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={facts.mastrUnits[0].href} source={`MaStR ${facts.mastrUnits[0].seeId}`} />
               <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${energy} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
