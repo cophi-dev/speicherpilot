@@ -594,11 +594,7 @@ export function SocRing({
   );
 }
 
-function liftSocBand(
-  raw: { angleDeg: number; radius: number }[],
-  inner: number,
-  minBand: number
-): { angleDeg: number; radius: number }[] {
+function liftSocBand<T extends { angleDeg: number; radius: number }>(raw: T[], inner: number, minBand: number): T[] {
   // One Fritsch–Carlson outer edge. A per-sample floor would kink that curve into sawteeth,
   // so the whole band is lifted until its thinnest point is at least 1.5px.
   const thin = raw.reduce((min, sample) => Math.min(min, sample.radius - inner), Number.POSITIVE_INFINITY);
