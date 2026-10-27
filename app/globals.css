@@ -4266,6 +4266,477 @@ math mi {
   }
 }
 
+.szen-hero h1 {
+  max-width: 18ch;
+  margin: 12px 0 0;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 300;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.szen-disclaimer {
+  max-width: 62ch;
+  margin: 14px 0 0;
+  color: #c5ced6;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.szen-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.szen-form,
+.szen-assumptions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.szen-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.szen-field legend,
+.szen-field label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.szen-limit-row,
+.szen-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.szen-range {
+  flex: 1 1 180px;
+  min-width: 0;
+  height: 44px;
+  margin: 0;
+  accent-color: #0f6e7c;
+  cursor: pointer;
+}
+
+.szen-input,
+.szen-field select {
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 0;
+  width: 8.5rem;
+  max-width: 100%;
+  border: 1px solid #8d97a0;
+  border-radius: 8px;
+  background: #fff;
+  color: #14181c;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 16px;
+}
+
+.szen-field select {
+  width: min(100%, 16rem);
+}
+
+.dark .szen-input,
+.dark .szen-field select {
+  border-color: #8aa0ad;
+  background: #121a22;
+  color: #e9eef2;
+}
+
+.szen-input:focus-visible,
+.szen-field select:focus-visible,
+.szen-range:focus-visible,
+.szen-choice:focus-within {
+  outline: 2px solid #0f6e7c;
+  outline-offset: 3px;
+}
+
+.dark .szen-input:focus-visible,
+.dark .szen-field select:focus-visible,
+.dark .szen-range:focus-visible,
+.dark .szen-choice:focus-within {
+  outline-color: #7dfce6;
+}
+
+.szen-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.szen-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  max-width: 100%;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #8d97a0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.szen-choice input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #0f6e7c;
+}
+
+.dark .szen-choice {
+  border-color: #8aa0ad;
+}
+
+.szen-error {
+  margin: 0;
+  color: #3f4a52;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.dark .szen-error {
+  color: #c5ced6;
+}
+
+.szen-assumption-line,
+.szen-result,
+.szen-calm,
+.szen-fixed,
+.szen-method {
+  max-width: 68ch;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.szen-result {
+  font-size: 18px;
+}
+
+.szen-calm {
+  padding: 16px;
+  border: 1px solid rgb(20 24 28 / 16%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 72%);
+}
+
+.dark .szen-calm {
+  border-color: rgb(233 238 242 / 20%);
+  background: rgb(18 26 34 / 80%);
+}
+
+.szen-fold {
+  border-top: 1px solid rgb(20 24 28 / 16%);
+  padding-top: 8px;
+}
+
+.dark .szen-fold {
+  border-top-color: rgb(233 238 242 / 18%);
+}
+
+.szen-fold summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 6px;
+}
+
+.szen-fold summary:focus-visible {
+  outline: 3px solid #0f6e7c;
+  outline-offset: 3px;
+}
+
+.dark .szen-fold summary:focus-visible {
+  outline-color: #7dfce6;
+}
+
+.szen-fixed {
+  padding-left: 1.1rem;
+}
+
+.szen-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.szen-card {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid rgb(20 24 28 / 14%);
+  border-radius: 16px;
+  background: #fff;
+  color: #14181c;
+}
+
+.szen-card h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.szen-figure {
+  margin: 8px 0;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.szen-figure-num {
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-size: 42px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.szen-card-a {
+  background: #fff;
+}
+
+.szen-card-b {
+  background: #e5f6f8;
+  border-color: #0f6e7c;
+}
+
+.szen-card-c {
+  background: #f8f1e4;
+  border-color: #8a5a12;
+}
+
+.dark .szen-card-a {
+  background: #121a22;
+  color: #e9eef2;
+  border-color: rgb(233 238 242 / 18%);
+}
+
+.dark .szen-card-b {
+  background: #10262b;
+  color: #e9eef2;
+  border-color: #7dfce6;
+}
+
+.dark .szen-card-c {
+  background: #2a2418;
+  color: #e9eef2;
+  border-color: #e2b15a;
+}
+
+.szen-chart {
+  min-width: 0;
+  margin: 0;
+}
+
+.szen-chart-plot {
+  position: relative;
+  min-width: 0;
+}
+
+.szen-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 240px;
+}
+
+.szen-chart-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.szen-html-label,
+.szen-html-note {
+  position: absolute;
+  margin: 0;
+  color: #3f4a52;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.szen-html-label {
+  transform: translate(-100%, -50%);
+}
+
+.szen-html-month,
+.szen-html-mark,
+.szen-html-note {
+  transform: translate(0, -50%);
+}
+
+.szen-html-month {
+  transform: translate(-50%, -50%);
+}
+
+.szen-html-end {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.szen-html-note {
+  max-width: min(16rem, 70%);
+  transform: none;
+}
+
+.szen-gridline {
+  stroke: rgb(20 24 28 / 12%);
+  stroke-width: 1;
+}
+
+.dark .szen-gridline {
+  stroke: rgb(233 238 242 / 16%);
+}
+
+.szen-axis {
+  fill: #3f4a52;
+  font-size: 12px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+.dark .szen-axis,
+.dark .szen-miss,
+.dark .szen-mark-label {
+  fill: #c5ced6;
+}
+
+.szen-miss,
+.szen-mark-label {
+  fill: #3f4a52;
+  font-size: 13px;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+}
+
+.szen-line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.szen-line-a { stroke: #14181c; }
+.szen-line-b { stroke: #0c5c68; stroke-dasharray: 7 5; }
+.szen-line-c { stroke: #6e4b16; stroke-dasharray: 1.5 5; }
+.szen-end { font-size: 13px; font-weight: 600; font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif; }
+.szen-end-a { fill: #14181c; color: #14181c; }
+.szen-end-b { fill: #0c5c68; color: #0c5c68; }
+.szen-end-c { fill: #6e4b16; color: #6e4b16; }
+.szen-mark { stroke: #3f4a52; stroke-width: 1.5; }
+
+.dark .szen-html-label,
+.dark .szen-html-note {
+  color: #c5ced6;
+}
+
+.dark .szen-line-a,
+.dark .szen-end-a { stroke: #e9eef2; fill: #e9eef2; color: #e9eef2; }
+.dark .szen-line-a { fill: none; }
+.dark .szen-line-b,
+.dark .szen-end-b { stroke: #7dfce6; fill: #7dfce6; color: #7dfce6; }
+.dark .szen-line-b { fill: none; }
+.dark .szen-line-c,
+.dark .szen-end-c { stroke: #e2b15a; fill: #e2b15a; color: #e2b15a; }
+.dark .szen-line-c { fill: none; }
+.dark .szen-mark { stroke: #c5ced6; }
+
+.szen-chart-caption {
+  margin-top: 6px;
+  color: #3f4a52;
+  font-size: 13px;
+}
+
+.dark .szen-chart-caption {
+  color: #c5ced6;
+}
+
+.szen-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.szen-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.szen-table th,
+.szen-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgb(20 24 28 / 12%);
+  text-align: left;
+  vertical-align: top;
+}
+
+.szen-missing-lead {
+  max-width: 68ch;
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.szen-percent {
+  white-space: nowrap;
+}
+
+.szen-missing ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 18px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.szen-missing h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.szen-method a {
+  color: #0f6e7c;
+}
+
+.dark .szen-method a {
+  color: #7dfce6;
+}
+
+.methodik-ask {
+  margin-top: 16px;
+  padding: 16px;
+  border-left: 3px solid #0f6e7c;
+  background: rgb(15 110 124 / 6%);
+}
+
+@media (max-width: 800px) {
+  .szen-cards,
+  .szen-missing ul {
+    grid-template-columns: 1fr;
+  }
+}
+
 .beispieltage.day-paper {
   padding: 28px 20px 36px;
   scroll-margin-top: 72px;

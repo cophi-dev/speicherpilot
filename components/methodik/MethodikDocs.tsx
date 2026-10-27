@@ -5,10 +5,11 @@ import { useEffect, type ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
+import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
+import { EURO_SCOPE } from "@/lib/beispieltage";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { REFERENCE_PARK } from "@/lib/referencePark";
 import { GLOSSARY } from "@/lib/glossary";
-import { EURO_SCOPE } from "@/lib/beispieltage";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 
@@ -22,6 +23,7 @@ const CHAPTERS = [
   { id: "peak-erklaert", de: "Peak Shaving", en: "Peak shaving" },
   { id: "modelltag", de: "Modelltag Bollingstedt", en: "Bollingstedt model day" },
   { id: "beispieltage", de: "Beispieltage", en: "Example days" },
+  { id: "szenarien", de: "Szenarien", en: "Scenarios" },
   { id: "quellen", de: "Quellen", en: "Sources" },
 ] as const;
 
@@ -294,9 +296,10 @@ export function MethodikDocs() {
               <h3>{tx("Was ein Profi fragt", "What a specialist asks")}</h3>
               <p>{tx("Warum nur etwa 0,35 Zyklen am Tag? Und warum liegt die Abgabe nicht bei den drei teuersten Viertelstunden? Der Kern wählt einen Teilzyklus nach einem Punktwert, Preis plus Abendzuschlag 17–21 Uhr plus Schwankung, nicht nach strengem Optimum. Das ist eine bewusste, vorsichtige Heuristik, kein Fahrplan eines echten Betreibers.", "Why only about 0.35 cycles a day? And why is discharge not in the three most expensive quarter-hours? The core picks one partial cycle by a score, price plus an evening bonus from 17:00 to 21:00 plus a swing term, not by a strict optimum. That is a deliberate, cautious heuristic, not an operator’s schedule.")}</p>
             </section>
+            <SzenarienMethodik language={language} />
             <section id="quellen">
               <details className="site-fold">
-              <summary><h2>{tx("10 Quellen", "10 Sources")}</h2></summary>
+              <summary><h2>{tx("11 Quellen", "11 Sources")}</h2></summary>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>

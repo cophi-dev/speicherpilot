@@ -33,6 +33,11 @@ export type GlossaryId =
   | "fca"
   | "grossspeicher"
   | "ladezustand"
+  | "netzgrenze"
+  | "baukostenzuschuss"
+  | "leistungspreis"
+  | "n-1"
+  | "statisch-dynamisch"
   | "negative-preise"
   | "preisnehmer"
   | "preisspanne"
@@ -298,8 +303,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "fca",
     term: { de: "flexible Netzanschlussvereinbarung (FCA)", en: "flexible grid connection agreement (FCA)" },
     text: {
-      de: "Nach § 17 Abs. 2b EnWG kann der Netzbetreiber sie anbieten. Sie setzt der höchsten Bezugs- oder Einspeiseleistung eine feste oder eine sich ändernde Grenze.",
-      en: "Under section 17 (2b) of the Energy Industry Act the network operator can offer it. It sets a fixed or a changing limit on the highest withdrawal or feed-in power.",
+      de: "Nach § 17 Abs. 2b EnWG kann der Netzbetreiber sie anbieten. Sie kann die höchste Bezugs- oder Einspeiseleistung statisch oder dynamisch begrenzen.",
+      en: "Under section 17 (2b) of the Energy Industry Act the network operator can offer it. It can limit the highest withdrawal or feed-in power, statically or dynamically.",
     },
   },
   {
@@ -316,6 +321,46 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Wie voll der Speicher ist. Im Modell starten die Großspeicher leer und füllen sich nur mit Überschuss vor 17 Uhr. Der Ring innen zeigt diesen Stand als Anteil der Nennenergie.",
       en: "How full the battery is. In the model the large storage starts empty and fills only on surplus before 17:00. The inner ring shows that level as a share of nameplate energy.",
+    },
+  },
+  {
+    id: "netzgrenze",
+    term: { de: "Netzgrenze", en: "Grid limit" },
+    text: {
+      de: "Höchste Leistung, mit der der Speicher Strom aus dem Netz nehmen oder ins Netz geben darf.",
+      en: "The highest power at which the battery may take electricity from the grid or feed it in.",
+    },
+  },
+  {
+    id: "baukostenzuschuss",
+    term: { de: "Baukostenzuschuss", en: "Construction-cost contribution" },
+    text: {
+      de: "Ein Betrag, den der Netzbetreiber für den Ausbau des Anschlusses verlangen kann. Dieses Modell rechnet ihn nicht.",
+      en: "An amount the grid operator can charge for reinforcing the connection. This model does not calculate it.",
+    },
+  },
+  {
+    id: "leistungspreis",
+    term: { de: "Leistungspreis", en: "Demand charge" },
+    text: {
+      de: "Ein Preis auf die höchste bezogene Leistung, nicht auf die Energiemenge. Dieses Modell rechnet ihn nicht.",
+      en: "A charge on the highest power drawn, not on the amount of energy. This model does not calculate it.",
+    },
+  },
+  {
+    id: "n-1",
+    term: { de: "(n−1)", en: "(n−1)" },
+    text: {
+      de: "Das Netz soll auch dann noch arbeiten, wenn ein Teil ausfällt. Das Modell rechnet das nicht.",
+      en: "The grid should keep working when one part fails. The model does not calculate that.",
+    },
+  },
+  {
+    id: "statisch-dynamisch",
+    term: { de: "statisch oder dynamisch", en: "static or dynamic" },
+    text: {
+      de: "§ 17 Abs. 2b EnWG sagt nur „statisch oder dynamisch“. Eine Definition der beiden Wörter steht dort nicht. In diesem Rechner ist die feste Grenze ganztägig. Abend- und Mittagsfenster gelten nur in diesen Stunden. Das ist eine Annahme des Modells.",
+      en: "Section 17 (2b) EnWG only says “static or dynamic”. It does not define the two words. In this calculator the fixed limit is all day. The evening and midday windows apply only in those hours. That is an assumption of the model.",
     },
   },
   {

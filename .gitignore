@@ -29,6 +29,7 @@
 
 # Intermediate JSON — committed artifact is gzip only (see npm run data:mastr)
 /data/mastr-bess-de.snapshot.json
+/data/fca/chunks/
 *.pem
 
 # debug

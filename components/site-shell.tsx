@@ -359,6 +359,9 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
               </details>
             </div>
             <p>
+              <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
+            </p>
+            <p>
               {tx(
                 "Illustratives Modell, keine Beschaffungs- oder Anlagenberatung.",
                 "Illustrative model, not procurement or plant advice."

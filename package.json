@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "jest",
     "data:mastr": "tsx --tsconfig tsconfig.json scripts/generate-mastr-repo-snapshot.ts",
+    "data:fca": "python3 scripts/build-fca-table.py",
     "morning:x": "tsx --tsconfig tsconfig.json scripts/post-morning-briefing-x.ts"
   },
   "dependencies": {
