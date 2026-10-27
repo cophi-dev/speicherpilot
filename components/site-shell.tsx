@@ -10,6 +10,8 @@ import { BrandLockup } from "@/components/BrandLockup";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
 type SiteShellProps = {
   children: React.ReactNode;
+  /** Server-evaluated. The chat client cannot see the API key. */
+  chatConfigured?: boolean;
 };
 
 type ThemePreference = "light" | "dark" | "system";
@@ -69,7 +71,7 @@ function themeLabel(pref: ThemePreference, language: AppLanguage) {
   return language === "de" ? "Hell" : "Light";
 }
 
-export function SiteShell({ children }: SiteShellProps) {
+export function SiteShell({ children, chatConfigured = false }: SiteShellProps) {
   const pathname = usePathname();
   const [themePref, setThemePref] = useState<ThemePreference>("system");
   const [mounted, setMounted] = useState(false);
@@ -288,6 +290,7 @@ export function SiteShell({ children }: SiteShellProps) {
         </header>
         <main id="inhalt">{children}</main>
         <BessAiChatOverlay
+          configured={chatConfigured}
           open={chatOpen}
           onClose={() => {
             setChatOpen(false);
