@@ -22,19 +22,6 @@ export const metadata: Metadata = {
   },
   description:
     "SpeicherPilot — battery storage & grid connection planner. Live 50Hertz wind and solar, DE-LU day-ahead prices, the Germany snapshot, and a labelled storage model.",
-  openGraph: {
-    title: "SpeicherPilot — battery storage & grid connection planner",
-    description:
-      "battery storage & grid connection planner. Live 50Hertz wind and solar, DE-LU day-ahead prices, and a labelled storage model.",
-    type: "website",
-    url: siteOrigin,
-    siteName: "SpeicherPilot",
-  },
-  twitter: {
-    card: "summary",
-    title: "SpeicherPilot — battery storage & grid connection planner",
-    description: "battery storage & grid connection planner — live 50Hertz wind and solar, DE-LU prices.",
-  },
 };
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
 /**
- * The public assessment and the chat call xAI. Daily story and flow-share
- * captions already fall back to numeric copy when no model key is set.
+ * The public assessment and the chat call xAI. The daily story already
+ * falls back to numeric copy when no model key is set.
  * OpenAI alone does not turn this chat on: that client only sends to xAI.
  */
 export function assessmentChatConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
