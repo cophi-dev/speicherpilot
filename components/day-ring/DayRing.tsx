@@ -24,6 +24,15 @@ import { SmoothRing } from "@/components/day-ring/SmoothRing";
 import { useMorphedSeries } from "@/components/day-ring/useMorphedSeries";
 import { monotonePolarSamples, polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
 import { referenceRingUser } from "@/lib/referenceRingLayout";
+import {
+  clockwiseArc,
+  dayContrast,
+  hourClock,
+  openTail,
+  openWedge,
+  shapeStroke,
+  sparklinePath,
+} from "@/lib/dayRingReadability";
 import { hourlyResidualGw, quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { useLanguage } from "@/components/language-context";
@@ -118,6 +127,8 @@ export function DayRing({
   /** Bollingstedt model day: px geometry, monotone state of charge, solid sign colours. */
   referenceRing?: boolean;
 }) {
+  const { language } = useLanguage();
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
   const titleId = useId();
   const descId = useId();
   const hatchId = useId();
@@ -133,6 +144,12 @@ export function DayRing({
     : Math.max(ringRadius(maxGw), RING_R0);
   const [framePx, setFramePx] = useState(720);
   const guideUser = referenceRing ? 240 : outer;
+  const gwSeries = unit === "GW" && !referenceRing && !empty ? points.map((point) => point.ohneMw / 1000) : [];
+  const contrast = gwSeries.length > 0 ? dayContrast(gwSeries) : null;
+  const tail = gwSeries.length > 0 ? openTail(points.map((point) => point.hour)) : null;
+  const shape = gwSeries.length > 0 ? shapeStroke(points.map((point) => ({ hour: point.hour, gw: point.ohneMw / 1000 }))) : null;
+  const quiet = Boolean(contrast?.quiet);
+  const sparse = quiet || tail !== null;
   const view = useMemo(() => compactRingView(guideUser, framePx), [guideUser, framePx]);
   const referenceLayout = referenceRing ? referenceRingUser(framePx, view.w) : null;
   const hourLabel = compactHourLabel(guideUser, view.w / 2, framePx);
@@ -349,6 +366,28 @@ export function DayRing({
   const listed = callouts.filter((_, index) => !beside[index]);
   const compact = framePx < 320;
   const blockClass = ["day-ring-block", referenceRing ? "is-reference" : "", compact ? "is-compact" : "", keyLayout.fallback ? "is-legend" : ""].filter(Boolean).join(" ");
+  const latest = points.reduce<LiveDispatchPoint | null>((best, point) => (best === null || point.hour > best.hour ? point : best), null);
+  const gwDigits = (value: number) => (Math.abs(value) >= 10 ? 0 : 1);
+  const quietNote = contrast?.quiet
+    ? shape
+      ? tx(
+          `Wenig Ausschlag, ${formatQuantity(contrast.minGw, language, gwDigits(contrast.spanGw))}–${formatQuantity(contrast.maxGw, language, gwDigits(contrast.spanGw))} GW. Die dünne Linie streckt dieselbe Reihe, die Fläche bleibt in GW.`,
+          `Little swing, ${formatQuantity(contrast.minGw, language, gwDigits(contrast.spanGw))}–${formatQuantity(contrast.maxGw, language, gwDigits(contrast.spanGw))} GW. The thin line stretches the same series. The filled area stays in GW.`
+        )
+      : tx(
+          `Wenig Ausschlag, der Tag bleibt bei ${formatQuantity(contrast.maxGw, language, gwDigits(contrast.spanGw))} GW.`,
+          `Little swing. The day stays near ${formatQuantity(contrast.maxGw, language, gwDigits(contrast.spanGw))} GW.`
+        )
+    : null;
+  const openNote = tail
+    ? tx(
+        `Veröffentlicht bis ${hourClock(tail.fromHour - 0.25)}. Der gestrichelte Bogen hat noch keine Viertelstunde.`,
+        `Published through ${hourClock(tail.fromHour - 0.25)}. The dashed arc has no quarter-hour yet.`
+      )
+    : null;
+  const ringNote = showHourTicks ? [openNote, quietNote].filter(Boolean).join(" ") : "";
+  const spark = sparse && !center && gwSeries.length > 1 ? sparklinePath([...points].sort((left, right) => left.hour - right.hour).map((point) => point.ohneMw / 1000)) : "";
+  const openLabelAt = tail ? polarPoint(0, 0, (RING_R0 + guideUser) / 2, tail.midDeg) : null;
 
   return (
     <div className={blockClass} data-unit={unit}>
@@ -392,6 +431,16 @@ export function DayRing({
             solidSigns={referenceLayout != null}
           />
         )}
+        {tail && openLabelAt ? (
+          <g className="day-open" aria-hidden="true">
+            <path className="day-open-fill" d={openWedge(guideUser, tail.startDeg, tail.endDeg)} />
+            <path className="day-open-arc" d={clockwiseArc(RING_R0, tail.startDeg, tail.endDeg)} fill="none" />
+            <text className="day-open-label" x={openLabelAt.x} y={openLabelAt.y} textAnchor="middle" dominantBaseline="central">
+              {tx("offen", "open")}
+            </text>
+          </g>
+        ) : null}
+        {shape ? <path className="day-shape" d={shape.d} fill="none" /> : null}
         {!empty ? <circle className="day-guide" cx="0" cy="0" r={guideUser} /> : null}
         {!empty && showLimit && limit != null ? <LimitCircle kw={limit} mode={mode} radiusOf={radiusOf} /> : null}
         {!empty && highlight ? <InkArc points={points} highlight={highlight} radiusOf={radiusOf} unit={unit} /> : null}
@@ -466,8 +515,24 @@ export function DayRing({
         <Callout key={callout.id} callout={callout} box={beside[index]} view={view} />
       ))}
       {center ? <div className="day-center">{center}</div> : null}
+      {!center && sparse && latest ? (
+        <div className="day-center">
+          {spark ? (
+            <svg className="day-spark" viewBox="0 0 112 28" aria-hidden="true">
+              <path d={spark} />
+            </svg>
+          ) : null}
+          <p className="day-center-figure">
+            <span className="num">{formatQuantity(latest.ohneMw / 1000, language, gwDigits(latest.ohneMw / 1000))}</span>
+          </p>
+          <p className="day-center-caption">
+            {tail ? tx(`GW bis ${hourClock(latest.hour)}`, `GW through ${hourClock(latest.hour)}`) : tx("GW, wenig Ausschlag", "GW, little swing")}
+          </p>
+        </div>
+      ) : null}
       <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} framePx={framePx} pullPx={keyLayout.pullPx} part="overlay" signs={referenceRing} />
     </div>
+    {ringNote ? <p className="day-ring-note">{ringNote}</p> : null}
     {listed.length > 0 ? (
       <ol className="day-callout-list">
         {listed.map((callout) => (

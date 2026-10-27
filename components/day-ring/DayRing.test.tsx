@@ -107,10 +107,10 @@ describe("day ring raw numbers", () => {
     const flat = series(2000);
     const spiked = series(30000);
     const { rerender, container } = render(
-      <DayRing points={flat} label="Tag" description="Rohwerte" showSoc={false} showShift={false} showHourTicks={false} />
+      withLanguage(<DayRing points={flat} label="Tag" description="Rohwerte" showSoc={false} showShift={false} showHourTicks={false} />)
     );
     const start = container.querySelector(".day-ring-area")?.getAttribute("d");
-    rerender(<DayRing points={spiked} label="Tag" description="Rohwerte" showSoc={false} showShift={false} showHourTicks={false} />);
+    rerender(withLanguage(<DayRing points={spiked} label="Tag" description="Rohwerte" showSoc={false} showShift={false} showHourTicks={false} />));
     expect(container.querySelector(".day-ring-area")?.getAttribute("d")).toBe(start);
     expect(container.querySelector('.day-ring-tip[data-raw="30.0"] title')?.textContent).toBe("30.0");
 
@@ -168,13 +168,13 @@ describe("day ring raw numbers", () => {
     };
     jest.spyOn(performance, "now").mockImplementation(() => now);
     const props = { label: "Tag", description: "Rohwerte", showSoc: false, showShift: false, showHourTicks: false };
-    const { rerender, container } = render(<DayRing points={series(2000)} {...props} />);
-    rerender(<DayRing points={series(30000)} {...props} />);
+    const { rerender, container } = render(withLanguage(<DayRing points={series(2000)} {...props} />));
+    rerender(withLanguage(<DayRing points={series(30000)} {...props} />));
     now = 40;
     act(() => {
       frames.splice(0).forEach((frame) => frame(now));
     });
-    rerender(<DayRing points={series(50000)} {...props} />);
+    rerender(withLanguage(<DayRing points={series(50000)} {...props} />));
     now = 40 + 450;
     act(() => {
       frames.splice(0).forEach((frame) => frame(now));
@@ -191,7 +191,7 @@ describe("day ring raw numbers", () => {
           return false;
         },
       }) as unknown as MediaQueryList;
-    const jumped = render(<DayRing points={series(50000)} {...props} />);
+    const jumped = render(withLanguage(<DayRing points={series(50000)} {...props} />));
     expect(jumped.container.querySelector(".day-ring-area")?.getAttribute("d")).toBe(landed);
     expect(container.querySelector('.day-ring-tip[data-raw="50.0"] title')?.textContent).toBe("50.0");
 
@@ -213,9 +213,9 @@ describe("day ring raw numbers", () => {
         },
       }) as unknown as MediaQueryList;
     const props = { label: "Tag", description: "Rohwerte", showSoc: false, showShift: false, showHourTicks: false };
-    const { rerender, container } = render(<DayRing points={series(2000)} {...props} />);
+    const { rerender, container } = render(withLanguage(<DayRing points={series(2000)} {...props} />));
     const start = container.querySelector(".day-ring-area")?.getAttribute("d");
-    rerender(<DayRing points={series(30000)} {...props} />);
+    rerender(withLanguage(<DayRing points={series(30000)} {...props} />));
     expect(container.querySelector(".day-ring-area")?.getAttribute("d")).not.toBe(start);
     expect(container.querySelector('.day-ring-tip[data-raw="30.0"] title')?.textContent).toBe("30.0");
     window.matchMedia = previousMatch;
@@ -262,6 +262,30 @@ describe("day ring raw numbers", () => {
     rerender(withLanguage(<DayRing points={moved} label="Tag" description="Rohwerte" showSoc={false} showShift={false} chargedGwh={1.2} />));
     expect(screen.queryByText("Ladezustand")).toBeNull();
     expect(screen.queryByText("verschoben")).toBeNull();
+  });
+
+  it("keeps a quiet or unfinished day readable without inventing the missing hours", () => {
+    const quiet = Array.from({ length: 16 }, (_, index) => {
+      const ohneMw = 12000 + (index % 4) * 400;
+      return { hour: index * 0.25, ohneMw, mitMw: ohneMw, chargeMw: 0, dischargeMw: 0, soc: 0 };
+    });
+    const { container } = render(withLanguage(<DayRing points={quiet} label="Morgen" description="Wenig" showShift={false} showSoc={false} />));
+    expect(container.querySelector(".day-open-arc")).not.toBeNull();
+    expect(container.querySelector(".day-open-fill")).not.toBeNull();
+    expect(container.querySelector(".day-shape")).not.toBeNull();
+    expect(container.querySelector(".day-spark")).not.toBeNull();
+    expect(screen.getByText(/Der gestrichelte Bogen hat noch keine Viertelstunde/)).toBeInTheDocument();
+    expect(screen.getByText(/Die dünne Linie streckt dieselbe Reihe/)).toBeInTheDocument();
+    expect(screen.getByText("offen")).toBeInTheDocument();
+
+    const loud = Array.from({ length: 96 }, (_, index) => {
+      const ohneMw = index < 32 ? -4000 : index < 68 ? 8000 : 36000;
+      return { hour: index * 0.25, ohneMw, mitMw: ohneMw, chargeMw: 0, dischargeMw: 0, soc: 0.2 };
+    });
+    const full = render(withLanguage(<DayRing points={loud} label="Tag" description="Viel" showShift={false} showSoc={false} />));
+    expect(full.container.querySelector(".day-open-arc")).toBeNull();
+    expect(full.container.querySelector(".day-shape")).toBeNull();
+    expect(full.container.querySelector(".day-ring-note")).toBeNull();
   });
 
   it("keeps a 24-hour residual table for screen readers", () => {

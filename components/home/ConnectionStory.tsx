@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 
 
 import { ConnectionLight } from "@/components/connection/ConnectionLight";
 import { GlossaryTip } from "@/components/GlossaryTip";
+import { useStoryStep } from "@/components/home/useStoryStep";
 import { useLanguage } from "@/components/language-context";
 import { connectionLight } from "@/lib/connectionLight";
 import { formatQuantity } from "@/lib/formatQuantity";
@@ -34,10 +35,10 @@ export function ConnectionStory() {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const story = useMemo(() => supermarketTeachingDay(), []);
-  const [step, setStep] = useState(0);
   const [narrow, setNarrow] = useState(false);
   const [pinPx, setPinPx] = useState(0);
   const stepsRef = useRef<Array<HTMLLIElement | null>>([]);
+  const step = useStoryStep(stepsRef, 3);
   const stageRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
@@ -57,36 +58,6 @@ export function ConnectionStory() {
     apply();
     query.addEventListener("change", apply);
     return () => query.removeEventListener("change", apply);
-  }, []);
-
-  useEffect(() => {
-    const ratios = new Map<number, number>();
-    const nodes = stepsRef.current.filter((node): node is HTMLLIElement => node !== null);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const index = Number((entry.target as HTMLLIElement).dataset.step);
-          ratios.set(index, entry.isIntersecting ? entry.intersectionRatio : 0);
-        }
-        let best = 0;
-        let bestRatio = -1;
-        for (const [index, ratio] of ratios) {
-          if (ratio > bestRatio || (ratio === bestRatio && index > best)) {
-            best = index;
-            bestRatio = ratio;
-          }
-        }
-        if (bestRatio > 0) {
-          setStep(best);
-        }
-      },
-      // The step changes when its text crosses the middle of the viewport.
-      { rootMargin: "-45% 0px -45% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
-    );
-    for (const node of nodes) {
-      observer.observe(node);
-    }
-    return () => observer.disconnect();
   }, []);
 
   const shownPeak = step >= 1 ? story.peakAfterKw : story.peakBeforeKw;
@@ -112,19 +83,25 @@ export function ConnectionStory() {
                     </span>
                   </span>
                 </h2>
-                <p className="connection-story-count num">{tx(`Schritt ${step + 1}/3`, `Step ${step + 1}/3`)}</p>
+                <p className="connection-story-count num" key={step}>{tx(`Schritt ${step + 1}/3`, `Step ${step + 1}/3`)}</p>
               </div>
+              <div className="step-rail" aria-hidden="true">
+                {steps.map((item, index) => (
+                  <span key={item.n} className={index === step ? "is-current" : index < step ? "is-done" : undefined}>
+                    <i />
+                    <em>{item.n}</em>
+                  </span>
+                ))}
+              </div>
+              <p className="connection-story-now" key={`now-${step}`} aria-hidden="true">
+                {steps[step]?.title}
+              </p>
               <p className="connection-story-lead max-w-[40ch] text-lg leading-snug">
                 {tx(
                   "Ein Wintertag, eine rote Linie, ein Speicher. Der Chart bleibt stehen. Mit jedem Schritt kommt eine Ebene dazu.",
                   "One winter day, one red line, one battery. The chart stays put. Each step adds a layer."
                 )}
               </p>
-              <div className="flex gap-1" aria-hidden="true">
-                {steps.map((item, index) => (
-                  <span key={item.n} className={`h-1 flex-1 ${index <= step ? "bg-foreground" : "bg-border"}`} />
-                ))}
-              </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <p className="num border border-warning px-2 py-1 text-[12px] font-medium tracking-[0.08em] text-warning uppercase">
                   {tx("Beispieldaten", "Example data")}

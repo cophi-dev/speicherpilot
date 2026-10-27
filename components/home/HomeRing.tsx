@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
+import { useStoryStep } from "@/components/home/useStoryStep";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
 import { ChargedLine } from "@/components/day-ring/ChargedLine";
 import { MonoNumber } from "@/components/day-ring/MonoNumber";
@@ -213,35 +214,9 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
     { id: MOVEMENT_IDS[1], n: "02", title: tx("Mittag", "Midday"), body: tx(`${hoursLabel} Stunden lang liefern Wind und Sonne mehr, als gebraucht wird. Speicher laden.`, `For ${hoursLabel} hours, wind and solar deliver more than is used. Storage charges.`) },
     { id: MOVEMENT_IDS[2], n: "03", title: tx("Abend", "Evening"), body: tx("Die Sonne ist weg, der Verbrauch hoch. Speicher geben ab und kappen die Spitze.", "The sun is gone and use is high. Storage gives power back and cuts the peak.") },
   ];
-  const [highlight, setHighlight] = useState<(typeof steps)[number]["id"]>("night");
   const items = useRef<Array<HTMLLIElement | null>>([]);
-  useEffect(() => {
-    const ratios = new Map<number, number>();
-    const nodes = items.current.filter((node): node is HTMLLIElement => node !== null);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const index = Number((entry.target as HTMLLIElement).dataset.step);
-          ratios.set(index, entry.isIntersecting ? entry.intersectionRatio : 0);
-        }
-        let best = 0;
-        let bestRatio = -1;
-        for (const [index, ratio] of ratios) {
-          if (ratio > bestRatio || (ratio === bestRatio && index > best)) {
-            best = index;
-            bestRatio = ratio;
-          }
-        }
-        if (bestRatio > 0) {
-          setHighlight(MOVEMENT_IDS[best] ?? "night");
-        }
-      },
-      // The step changes when its text crosses the middle of the viewport.
-      { rootMargin: "-45% 0px -45% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
-    );
-    for (const node of nodes) observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+  const stepIndex = useStoryStep(items, steps.length);
+  const highlight = MOVEMENT_IDS[stepIndex] ?? "night";
   const active = steps.find((step) => step.id === highlight) ?? steps[0];
   const stepNo = steps.findIndex((step) => step.id === highlight) + 1;
   return (
@@ -251,10 +226,18 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
           <div className="day-movement-fit">
             <div className="day-movement-head">
               <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
-              <p className="day-movement-count num">
+              <p className="day-movement-count num" key={highlight}>
                 <span className="sr-only">{tx("Schritt ", "Step ")}</span>
                 {stepNo}/3
               </p>
+              <div className="step-rail" aria-hidden="true">
+                {steps.map((item, index) => (
+                  <span key={item.id} className={index === stepIndex ? "is-current" : index < stepIndex ? "is-done" : undefined}>
+                    <i />
+                    <em>{item.title}</em>
+                  </span>
+                ))}
+              </div>
             </div>
             <DayRing
               points={story.points}

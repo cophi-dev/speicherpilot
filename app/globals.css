@@ -224,6 +224,23 @@
   .heute-note { grid-area: note; align-self: end; }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 5rem;
+  }
+
+  .connection-story .story-step,
+  .day-movements li {
+    scroll-snap-align: start;
+  }
+
+  .connection-story .story-step:last-child,
+  .day-movements li:last-child {
+    scroll-snap-stop: always;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -232,6 +249,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-snap-type: none;
   }
 }
 
@@ -304,7 +325,81 @@
 }
 
 .story-layer {
-  transition: opacity 200ms ease, stroke 200ms ease;
+  transition: opacity 480ms ease, stroke 480ms ease;
+}
+
+.step-rail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.step-rail span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.step-rail i {
+  display: block;
+  height: 3px;
+  flex: 1 1 24px;
+  border-radius: 999px;
+  background: hsl(var(--border));
+  transform: scaleX(0.28);
+  transform-origin: left center;
+  transition: transform 480ms ease, background 480ms ease;
+}
+
+.step-rail em {
+  font-style: normal;
+}
+
+.step-rail .is-done i,
+.step-rail .is-current i {
+  transform: scaleX(1);
+  background: hsl(var(--foreground));
+}
+
+.step-rail .is-current {
+  color: hsl(var(--foreground));
+}
+
+.connection-story-now {
+  margin: 0;
+  max-width: 24ch;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+@keyframes story-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .connection-story-count,
+  .connection-story-now,
+  .day-movement-count,
+  .story-step.is-active .story-step-card,
+  .day-movements li.is-active .day-step-card,
+  .day-movement-active-title {
+    animation: story-arrive 420ms ease;
+  }
 }
 
 @keyframes clock-in {
@@ -338,7 +433,7 @@
   }
 
   .connection-story .story-step:last-child {
-    min-height: 70svh;
+    min-height: 120svh;
   }
 
   .connection-story .story-step-card {
@@ -375,15 +470,15 @@
   }
 
   .connection-story .story-step {
-    min-height: 65vh;
+    min-height: 88vh;
   }
 
   .connection-story .story-step:first-child {
-    min-height: 80vh;
+    min-height: 100vh;
   }
 
   .connection-story .story-step:last-child {
-    min-height: 90vh;
+    min-height: 145vh;
   }
 
   .story-halo {
@@ -1716,6 +1811,63 @@
   vector-effect: non-scaling-stroke;
 }
 
+.day-shape {
+  stroke: currentColor;
+  stroke-width: 2.25px;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.day-open-fill {
+  fill: currentColor;
+  opacity: 0.06;
+}
+
+.day-open-arc {
+  stroke: #c5ced6;
+  stroke-width: 2px;
+  stroke-dasharray: 5 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.day-open-label {
+  fill: #c5ced6;
+  font-size: 12px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  letter-spacing: 0.12em;
+}
+
+.day-ring-note {
+  max-width: 46ch;
+  margin: 10px auto 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.day-hero .day-ring-note {
+  color: #c5ced6;
+}
+
+.day-spark {
+  display: block;
+  width: 112px;
+  height: 28px;
+  margin: 0 auto 6px;
+  overflow: visible;
+}
+
+.day-spark path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
 .day-ticks {
   font-family: var(--font-jetbrains), ui-monospace, monospace;
 }
@@ -2711,7 +2863,7 @@
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
-  width: min(100%, 640px, calc(100svh - 4rem - 5.5rem));
+  width: min(100%, 640px, calc(100svh - 4rem - 8rem));
   flex: 0 0 auto;
   margin-inline: auto;
 }
@@ -2722,6 +2874,11 @@
   align-items: baseline;
   column-gap: 12px;
   flex: 0 0 auto;
+}
+
+.day-movement-head .step-rail {
+  grid-column: 1 / -1;
+  margin-top: 8px;
 }
 
 .day-movement-head h2 {
@@ -2832,7 +2989,8 @@
 
 .day-movements li,
 .story-step {
-  opacity: 0.35;
+  opacity: 0.38;
+  transition: opacity 480ms ease;
 }
 
 .day-movements li.is-active,
@@ -2875,7 +3033,7 @@
   }
 
   .day-movements li:last-child {
-    min-height: 55svh;
+    min-height: 120svh;
   }
 
   .day-movements .day-step-card {
@@ -3049,6 +3207,11 @@ html:not(.dark) .day-story {
 }
 
 /* Inactive story segments stay on the saturated stops and only drop in opacity. */
+.day-smooth-base,
+.day-smooth-hot {
+  transition: opacity 480ms ease;
+}
+
 .day-smooth-base.is-dim {
   opacity: 0.3;
 }
@@ -3196,16 +3359,16 @@ html:not(.dark) .day-story .day-ink-arc {
     display: block;
     padding-bottom: 0;
   }
-  .day-movements li { min-height: 55vh; }
-  .day-movements li:first-child { min-height: 60vh; }
-  .day-movements li:last-child { min-height: 60vh; }
+  .day-movements li { min-height: 85vh; }
+  .day-movements li:first-child { min-height: 95vh; }
+  .day-movements li:last-child { min-height: 140vh; }
   .day-doors { grid-template-columns: 1fr 1fr; }
 }
 
 /* Below ~760px the 44px title wraps, so the square ring has to leave room for two lines. */
 @media (min-width: 960px) and (max-height: 760px) {
   .day-movement-fit {
-    width: min(100%, 640px, calc(100svh - 4rem - 136px));
+    width: min(100%, 640px, calc(100svh - 4rem - 176px));
   }
 }
 
