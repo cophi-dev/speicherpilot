@@ -316,7 +316,7 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
       <div className="day-hero-inner">
         <PerspectiveToggle view={view} scenario="grossspeicher" language={language} />
         <div className="site-hero-grid site-model-grid">
-          <div>
+          <div className="site-model-copy">
             <p className="day-kicker">{tx("Standort · öffentliche Referenz", "Site · public reference")} <span className="site-chip site-chip-public">{tx("Öffentliche Eckdaten", "Public key figures")}</span></p>
             <h1 id="site-hero-title">{tx("Großspeicher Bollingstedt am Hochspannungsnetz.", "Bollingstedt large storage on the high-voltage grid.")}</h1>
             <dl className="site-facts">
@@ -324,34 +324,6 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${formatQuantity(facts.energyMwh, language, 1)} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
               <ReferenceParkFact label={tx("Volle Leistung", "Full power")} value={`${formatQuantity(hours, language, 1)} h`} href={facts.sources[2].href} source={facts.sources[2].publisher} />
             </dl>
-            <ul className="site-model-facts">
-              <li>{tx(`${facts.placeDe}, ${facts.districtDe} (${facts.state}). ${facts.project}.`, `${facts.placeEn}, ${facts.districtEn} (${facts.state}). ${facts.project}.`)}</li>
-              <li>{tx(`Hochspannung (${facts.voltageKv} kV), Anschluss bei ${facts.gridOperator}.`, `High voltage (${facts.voltageKv} kV), connected to ${facts.gridOperator}.`)}</li>
-              <li>{tx("In Betrieb seit 2025 (MaStR: 13.03.2025).", "In operation since 2025 (MaStR: 13 March 2025).")}</li>
-              <li>{tx(`Betreiber ${facts.operator}. Eigentümer ${facts.owner} seit 25.08.2026.`, `Operator ${facts.operator}. Owner ${facts.owner} since 25 August 2026.`)}</li>
-              <li>{tx(`Die Betreiber-Meldung nennt ${facts.operatorEnergyMwh} MWh. C-Rate ${formatQuantity(cRate, language, 2)}.`, `The operator’s release says ${facts.operatorEnergyMwh} MWh. C-rate ${formatQuantity(cRate, language, 2)}.`)}</li>
-              <li className="flex flex-wrap items-center gap-2">
-                {tx("Bezug und Einspeisung sind dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.", "Withdrawal and feed-in are limited dynamically. The limits are not published.")}
-                <GlossaryTip id="fca" language={language} />
-              </li>
-            </ul>
-            <p className="site-quiet">
-              {modelDay
-                ? tx(`Gebotszone DE-LU, Liefertag ${germanDate(modelDay.dateBerlin)}.`, `DE-LU bidding zone, delivery day ${germanDate(modelDay.dateBerlin)}.`)
-                : tx("Der Day-Ahead-Preis von gestern ist gerade nicht geladen. Der Ring hat dann keinen Verlauf.", "Yesterday’s day-ahead price is not loaded right now. The ring then has no profile.")}
-            </p>
-            <p className="site-quiet">
-              {tx(
-                `Annahme: Wirkungsgrad ${formatQuantity(efficiency * 100, language, 0)} %, Ladezustand von ${formatQuantity(socMin * 100, language, 0)} % bis ${formatQuantity(socMax * 100, language, 0)} %, Start bei ${formatQuantity(socStart * 100, language, 0)} %.`,
-                `Assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
-              )}{" "}
-              <a href="/methodik#modelltag">{tx("Rechnung in der Methodik", "Calculation in the method")}</a>
-            </p>
-            <p className="site-quiet">
-              <a href={facts.dashboardHref}>{tx("echte Fahrweise beim Betreiber", "real operation at the operator")}</a>
-              {" · "}
-              <a href={facts.sources[3].href}>SH Netz</a>
-            </p>
           </div>
           <div className="site-model-ring">
             <DayRing
@@ -403,6 +375,58 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
                 </tbody>
               </table>
             ) : null}
+          </div>
+          <div className="site-model-rest">
+            <dl className="site-meta">
+              <div>
+                <dt>{tx("Standort", "Site")}</dt>
+                <dd>{tx(`${facts.placeDe}, ${facts.districtDe} (${facts.state}). ${facts.project}.`, `${facts.placeEn}, ${facts.districtEn} (${facts.state}). ${facts.project}.`)}</dd>
+              </div>
+              <div>
+                <dt>{tx("In Betrieb", "In operation")}</dt>
+                <dd>{tx("seit 2025 (MaStR: 13.03.2025).", "since 2025 (MaStR: 13 March 2025).")}</dd>
+              </div>
+              <div>
+                <dt>{tx("Betreiber", "Operator")}</dt>
+                <dd>
+                  {tx(
+                    `${facts.operator}. Eigentümer ${facts.owner} seit 25.08.2026. Die Betreiber-Meldung nennt ${facts.operatorEnergyMwh} MWh. C-Rate ${formatQuantity(cRate, language, 2)}.`,
+                    `${facts.operator}. Owner ${facts.owner} since 25 August 2026. The operator’s release says ${facts.operatorEnergyMwh} MWh. C-rate ${formatQuantity(cRate, language, 2)}.`
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>{tx("Anschluss", "Connection")}</dt>
+                <dd>
+                  {tx(
+                    `Hochspannung (${facts.voltageKv} kV), ${facts.gridOperator}. Bezug und Einspeisung sind dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.`,
+                    `High voltage (${facts.voltageKv} kV), ${facts.gridOperator}. Withdrawal and feed-in are limited dynamically. The limits are not published.`
+                  )}
+                </dd>
+              </div>
+            </dl>
+            <aside className="site-note">
+              <GlossaryTip id="fca" language={language} />
+              <div>
+                <p>
+                  {tx(
+                    `Annahme: Wirkungsgrad ${formatQuantity(efficiency * 100, language, 0)} %, Ladezustand von ${formatQuantity(socMin * 100, language, 0)} % bis ${formatQuantity(socMax * 100, language, 0)} %, Start bei ${formatQuantity(socStart * 100, language, 0)} %.`,
+                    `Assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
+                  )}{" "}
+                  <a href="/methodik#modelltag">{tx("Rechnung in der Methodik", "Calculation in the method")}</a>
+                </p>
+                <p>
+                  {modelDay
+                    ? tx(`Gebotszone DE-LU, Liefertag ${germanDate(modelDay.dateBerlin)}.`, `DE-LU bidding zone, delivery day ${germanDate(modelDay.dateBerlin)}.`)
+                    : tx("Der Day-Ahead-Preis von gestern ist gerade nicht geladen. Der Ring hat dann keinen Verlauf.", "Yesterday’s day-ahead price is not loaded right now. The ring then has no profile.")}
+                </p>
+              </div>
+            </aside>
+            <p className="site-quiet">
+              <a href={facts.dashboardHref}>{tx("echte Fahrweise beim Betreiber", "real operation at the operator")}</a>
+              {" · "}
+              <a href={facts.sources[3].href}>SH Netz</a>
+            </p>
           </div>
         </div>
       </div>

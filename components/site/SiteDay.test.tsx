@@ -100,6 +100,20 @@ describe("site v2 heroes", () => {
       "https://www.eco-stor.de/grid_stability_dashboard"
     );
     expect(screen.getByRole("link", { name: "Rechnung in der Methodik" })).toHaveAttribute("href", "/methodik#modelltag");
+    expect(container.querySelector(".day-ring-key-charge")?.textContent).toMatch(/Laden/);
+    expect(container.querySelector(".day-ring-key-discharge")?.textContent).toMatch(/Abgeben/);
+    expect(container.querySelector(".day-ring-key-soc")?.textContent).toMatch(/Ladezustand/);
+    const meta = container.querySelector(".site-meta")?.textContent ?? "";
+    expect(meta).toMatch(/Standort/);
+    expect(meta).toMatch(/In Betrieb/);
+    expect(meta).toMatch(/Betreiber/);
+    expect(meta).toMatch(/Anschluss/);
+    expect(container.querySelector(".site-note button")?.getAttribute("aria-label")).toMatch(/flexible Netzanschlussvereinbarung/);
+    const title = screen.getByRole("heading", { level: 1 });
+    const facts = container.querySelector(".site-facts");
+    const ring = container.querySelector(".site-model-ring");
+    expect(title.compareDocumentPosition(facts!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(facts!.compareDocumentPosition(ring!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(document.body.textContent).toMatch(/Bezug und Einspeisung sind dynamisch begrenzt/);
     expect(document.body.textContent).not.toMatch(/€|Euro|Tesla/);
     expect(document.body.textContent).not.toMatch(/EnWG/);

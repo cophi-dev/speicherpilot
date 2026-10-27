@@ -348,7 +348,7 @@ export function DayRing({
 
   const listed = callouts.filter((_, index) => !beside[index]);
   const compact = framePx < 320;
-  const blockClass = ["day-ring-block", compact ? "is-compact" : "", keyLayout.fallback ? "is-legend" : ""].filter(Boolean).join(" ");
+  const blockClass = ["day-ring-block", referenceRing ? "is-reference" : "", compact ? "is-compact" : "", keyLayout.fallback ? "is-legend" : ""].filter(Boolean).join(" ");
 
   return (
     <div className={blockClass} data-unit={unit}>
@@ -466,7 +466,7 @@ export function DayRing({
         <Callout key={callout.id} callout={callout} box={beside[index]} view={view} />
       ))}
       {center ? <div className="day-center">{center}</div> : null}
-      <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} framePx={framePx} pullPx={keyLayout.pullPx} part="overlay" />
+      <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} framePx={framePx} pullPx={keyLayout.pullPx} part="overlay" signs={referenceRing} />
     </div>
     {listed.length > 0 ? (
       <ol className="day-callout-list">
@@ -478,7 +478,7 @@ export function DayRing({
         ))}
       </ol>
     ) : null}
-    <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} framePx={framePx} pullPx={keyLayout.pullPx} part="list" />
+    <RingKeyLabels points={points} showSoc={socVisible} showShift={shiftVisible} unit={unit} bold={mode === "projekt"} view={view} framePx={framePx} pullPx={keyLayout.pullPx} part="list" signs={referenceRing} />
     </div>
   );
 }

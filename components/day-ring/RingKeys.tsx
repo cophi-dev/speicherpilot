@@ -43,6 +43,9 @@ function ringKeyCopy(language: "de" | "en") {
     return {
       soc: "Ladezustand",
       shift: "verschoben",
+      charge: "Laden",
+      discharge: "Abgeben",
+      legend: "Legende",
       socExplain: "Ladezustand erklären",
       shiftExplain: "verschoben erklären",
       socText: "Ladezustand: wie voll der Modellspeicher zu jeder Stunde ist (0–100 %). Dickeres Band = vollerer Speicher.",
@@ -53,6 +56,9 @@ function ringKeyCopy(language: "de" | "en") {
   return {
     soc: "State of charge",
     shift: "shifted",
+    charge: "Charge",
+    discharge: "Discharge",
+    legend: "Legend",
     socExplain: "Explain state of charge",
     shiftExplain: "Explain shifted energy",
     socText: "State of charge: how full the model storage is at each hour (0–100%). A thicker band means a fuller battery.",
@@ -296,6 +302,7 @@ export function RingKeyLabels({
   framePx,
   pullPx,
   part,
+  signs = false,
 }: {
   points: LiveDispatchPoint[];
   showSoc: boolean;
@@ -306,28 +313,44 @@ export function RingKeyLabels({
   framePx: number;
   pullPx: number;
   part: "overlay" | "list";
+  /** Mint charge and coral discharge wedges, reference ring only. */
+  signs?: boolean;
 }) {
   const marks = keyMarks(points, showSoc, showShift, unit, bold, view.w, framePx, pullPx);
-  if (!marks.soc && !marks.shift) {
+  if (!marks.soc && !marks.shift && !signs) {
     return null;
   }
-  return <RingKeyLabelsInner marks={marks} view={view} part={part} />;
+  return <RingKeyLabelsInner marks={marks} view={view} part={part} signs={signs} />;
 }
 
 function RingKeyLabelsInner({
   marks,
   view,
   part,
+  signs,
 }: {
   marks: ReturnType<typeof keyMarks>;
   view: ViewBox;
   part: "overlay" | "list";
+  signs: boolean;
 }) {
   const { language } = useLanguage();
   const copy = ringKeyCopy(language);
   if (part === "list") {
     return (
-      <ul className="day-ring-key-list">
+      <ul className="day-ring-key-list" aria-label={signs ? copy.legend : undefined}>
+        {signs ? (
+          <>
+            <li className="day-ring-key-charge">
+              <span className="day-key-swatch" aria-hidden="true" />
+              <span>{copy.charge}</span>
+            </li>
+            <li className="day-ring-key-discharge">
+              <span className="day-key-swatch" aria-hidden="true" />
+              <span>{copy.discharge}</span>
+            </li>
+          </>
+        ) : null}
         {marks.soc ? (
           <li className="day-ring-key-soc">
             <span className="day-key-swatch" aria-hidden="true" />
