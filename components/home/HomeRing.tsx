@@ -248,6 +248,11 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
       <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
       <div className="day-movement-story">
         <div className="day-movement-pin">
+          <p className="day-movement-live">
+            {tx("Ein Tag in drei Bewegungen", "One day in three movements")}
+            {" · "}
+            {steps.findIndex((step) => step.id === highlight) + 1}/3
+          </p>
           <DayRing
             points={story.points}
             label={active.title}
@@ -257,6 +262,11 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
             showHourTicks={false}
             chargedGwh={0}
           />
+          <div className="day-movement-active" aria-hidden="true">
+            <p className="num day-movement-n">{active.n}</p>
+            <p className="day-movement-active-title">{active.title}</p>
+            <p>{active.body}</p>
+          </div>
         </div>
         <ol>
           {steps.map((step, index) => (
