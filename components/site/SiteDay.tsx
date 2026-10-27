@@ -352,28 +352,30 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               <a href="/methodik#modelltag">{tx("Regel im Detail →", "Rule in detail →")}</a>
             </p>
             {points.length > 0 ? (
-              <table className="day-sr">
-                <caption>{tx(`${ringLabel} ${note}. Leistung in MW, plus ist Abgabe, minus ist Bezug.`, `${ringLabel} ${note}. Power in MW, plus is discharge, minus is charge.`)}</caption>
-                <thead>
-                  <tr>
-                    <th>{tx("Zeit", "Time")}</th>
-                    <th>{tx("Leistung MW", "Power MW")}</th>
-                    <th>{tx("Ladezustand", "State of charge")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {points.map((point) => {
-                    const signed = point.dischargeMw > 0 ? point.dischargeMw : -point.chargeMw;
-                    return (
-                      <tr key={point.hour}>
-                        <td>{clock(point.hour)}</td>
-                        <td>{signed.toFixed(1)}</td>
-                        <td>{formatQuantity(point.soc * 100, language, 0)} %</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="day-sr">
+                <table>
+                  <caption>{tx(`${ringLabel} ${note}. Leistung in MW, plus ist Abgabe, minus ist Bezug.`, `${ringLabel} ${note}. Power in MW, plus is discharge, minus is charge.`)}</caption>
+                  <thead>
+                    <tr>
+                      <th>{tx("Zeit", "Time")}</th>
+                      <th>{tx("Leistung MW", "Power MW")}</th>
+                      <th>{tx("Ladezustand", "State of charge")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {points.map((point) => {
+                      const signed = point.dischargeMw > 0 ? point.dischargeMw : -point.chargeMw;
+                      return (
+                        <tr key={point.hour}>
+                          <td>{clock(point.hour)}</td>
+                          <td>{signed.toFixed(1)}</td>
+                          <td>{formatQuantity(point.soc * 100, language, 0)} %</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             ) : null}
           </div>
           <div className="site-model-rest">
