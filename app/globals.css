@@ -302,6 +302,12 @@
     padding: 8px 1.25rem 12px;
   }
 
+  .connection-story-stage .connection-story-chart {
+    height: auto;
+    min-height: 300px;
+    flex: 1 1 auto;
+  }
+
   .connection-story ol {
     padding-bottom: 0;
   }
@@ -2700,8 +2706,8 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 12px;
-    height: calc(100svh - 4rem - 120px);
-    max-height: calc(100svh - 4rem - 120px);
+    height: calc(100svh - 4rem - 96px);
+    max-height: calc(100svh - 4rem - 96px);
     background: hsl(var(--background));
     overflow: hidden;
   }
@@ -2739,8 +2745,15 @@
   }
 
   .day-movement-pin .day-ring-frame {
-    width: min(100%, calc(100vw - 40px), calc(100svh - 22rem));
-    max-height: calc(100svh - 22rem);
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    margin-inline: 0;
+  }
+
+  .day-movement-pin .day-ring-svg {
+    transform: scale(1.18);
+    transform-origin: center center;
   }
 
   .day-movement-pin .day-callout-list,

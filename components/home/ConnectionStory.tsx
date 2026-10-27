@@ -60,10 +60,13 @@ export function ConnectionStory() {
         stage.style.transform = "";
         return;
       }
-      // The chart leaves with the last card, so the pin does not stay over an empty column.
+      // The chart can follow the last card, but only until the section line would leave the header.
       const top = Number.parseFloat(getComputedStyle(stage).top) || 0;
       const slot = top + stage.getBoundingClientRect().height + 16;
-      const shift = Math.min(0, card.getBoundingClientRect().top - slot);
+      const brow = stage.querySelector("p");
+      const browOffset = brow instanceof HTMLElement ? brow.offsetTop : 0;
+      const maxLift = Math.max(0, browOffset - 8);
+      const shift = Math.max(Math.min(0, card.getBoundingClientRect().top - slot), -maxLift);
       stage.style.transform = shift < -0.5 ? `translateY(${shift}px)` : "";
     };
     const onScroll = () => sync();
