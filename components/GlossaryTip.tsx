@@ -83,7 +83,7 @@ export function GlossaryTip({ id, language }: { id: GlossaryId; language: Langua
     >
       <button
         type="button"
-        className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-[12px] leading-none text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="relative inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-[12px] leading-none text-muted-foreground before:absolute before:top-1/2 before:left-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-transparent before:content-[''] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-expanded={open}
         aria-describedby={open ? tipId : undefined}
         aria-label={language === "de" ? `Begriff erklären: ${term}` : `Explain term: ${term}`}

@@ -6,7 +6,7 @@ export function SzenarienMethodik({ language }: { language: AppLanguage }) {
   const eta = Math.sqrt(ROUND_TRIP_EFFICIENCY);
   return (
     <section id="szenarien">
-      <h2>{tx("09 Szenarien", "09 Scenarios")}</h2>
+      <h2>{tx("10 Szenarien", "10 Scenarios")}</h2>
       <p>
         {tx(
           "Der Rechner auf /szenarien vergleicht drei Wege für denselben Speicher am selben Netzknoten: Anschluss voll, flexible Anschlussvereinbarung, verzögerter Anschluss. Die Hauptzahlen sind Prozent und Monate. Euro steht nur im Aufklappblock, als Modellschätzung und obere Modellgrenze.",

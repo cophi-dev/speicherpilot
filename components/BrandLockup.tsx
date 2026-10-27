@@ -32,8 +32,8 @@ type BrandLockupProps = {
 
 /**
  * Approved Logo-C lockup. The two theme files stay separate documents so their
- * gradient ids never collide. Which one is visible is decided in CSS: `.dark`,
- * and the header sitting on the dark hero (`.is-over-hero`).
+ * gradient ids never collide. Which one is visible is decided in CSS: `.dark`
+ * shows the dark-background file, including while the header sits on a dark hero.
  */
 export function BrandLockup({ height = HEADER_LOCKUP_HEIGHT }: BrandLockupProps) {
   const asset = lockupAsset(height);

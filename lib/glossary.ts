@@ -37,7 +37,12 @@ export type GlossaryId =
   | "baukostenzuschuss"
   | "leistungspreis"
   | "n-1"
-  | "statisch-dynamisch";
+  | "statisch-dynamisch"
+  | "negative-preise"
+  | "preisnehmer"
+  | "preisspanne"
+  | "intraday"
+  | "regelleistung";
 
 export type GlossaryEntry = {
   id: GlossaryId;
@@ -356,6 +361,46 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "§ 17 Abs. 2b EnWG sagt nur „statisch oder dynamisch“. Eine Definition der beiden Wörter steht dort nicht. In diesem Rechner ist die feste Grenze ganztägig. Abend- und Mittagsfenster gelten nur in diesen Stunden. Das ist eine Annahme des Modells.",
       en: "Section 17 (2b) EnWG only says “static or dynamic”. It does not define the two words. In this calculator the fixed limit is all day. The evening and midday windows apply only in those hours. That is an assumption of the model.",
+    },
+  },
+  {
+    id: "negative-preise",
+    term: { de: "negative Preise", en: "negative prices" },
+    text: {
+      de: "Manchmal ist Strom an der Börse so reichlich, dass der Preis unter null fällt. Dann bekommt, wer Strom abnimmt, Geld.",
+      en: "Sometimes electricity is so plentiful on the exchange that the price falls below zero. Then whoever takes power is paid.",
+    },
+  },
+  {
+    id: "preisnehmer",
+    term: { de: "Preisnehmer", en: "price taker" },
+    text: {
+      de: "Das Modell nimmt die Preise, wie sie waren. Dass ein großer Speicher selbst die Preise verändert, kommt darin nicht vor.",
+      en: "The model takes the prices as they were. It does not include a large battery changing those prices itself.",
+    },
+  },
+  {
+    id: "preisspanne",
+    term: { de: "Preisspanne", en: "price spread" },
+    text: {
+      de: "Unterschied zwischen dem höchsten und dem niedrigsten Preis eines Tages, in Euro pro Megawattstunde.",
+      en: "The gap between the highest and the lowest price of a day, in euro per megawatt-hour.",
+    },
+  },
+  {
+    id: "intraday",
+    term: { de: "Intraday", en: "intraday" },
+    text: {
+      de: "Handel am selben Tag, nach der Day-Ahead-Auktion. Das Modell rechnet ihn nicht mit.",
+      en: "Trading on the same day, after the day-ahead auction. The model does not include it.",
+    },
+  },
+  {
+    id: "regelleistung",
+    term: { de: "Regelleistung", en: "balancing power" },
+    text: {
+      de: "Leistung, die der Netzbetreiber kurzfristig abruft, um das Netz im Gleichgewicht zu halten. Speicher können sie anbieten. Das Modell rechnet sie nicht mit.",
+      en: "Power the grid operator calls at short notice to keep the grid in balance. Batteries can offer it. The model does not include it.",
     },
   },
 ];

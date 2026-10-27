@@ -40,6 +40,11 @@ const REQUIRED = [
   "leistungspreis",
   "n-1",
   "statisch-dynamisch",
+  "negative-preise",
+  "preisnehmer",
+  "preisspanne",
+  "intraday",
+  "regelleistung",
 ] as const;
 
 describe("glossary", () => {

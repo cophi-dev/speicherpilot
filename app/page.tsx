@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { ExampleDaysIsland } from "@/components/home/ExampleDaysIsland";
 import { MarketingHome } from "@/components/home/MarketingHome";
 import NewsPreviewSection from "@/components/NewsPreviewSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,6 +38,7 @@ export default async function Home() {
           fallback: Boolean(chosen?.fallback),
         }}
       />
+      <ExampleDaysIsland />
       <NewsPreviewSection place="home" />
     </Suspense>
   );

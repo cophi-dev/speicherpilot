@@ -44,44 +44,29 @@ export function ConnectionStory() {
   useEffect(() => {
     const node = stageRef.current;
     if (!node) return;
-    const read = () => setPinPx((prev) => Math.max(prev, Math.round(node.getBoundingClientRect().height)));
+    const query = window.matchMedia("(max-width: 1023px)");
+    const read = () => {
+      const mobile = query.matches;
+      const measured = Math.round(node.getBoundingClientRect().height);
+      setNarrow(mobile);
+      // On a phone the stage is capped in CSS. A rising min-height would ignore that cap
+      // and leave only a sliver for the step text underneath.
+      if (mobile) {
+        setPinPx(measured);
+        return;
+      }
+      setPinPx((prev) => Math.max(prev, measured));
+    };
     read();
     const observer = new ResizeObserver(read);
     observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    const sync = () => {
-      const card = stepsRef.current[stepsRef.current.length - 1]?.querySelector(".story-step-card");
-      if (!stage || !(card instanceof HTMLElement)) return;
-      if (window.matchMedia("(min-width: 1024px)").matches) {
-        stage.style.transform = "";
-        return;
-      }
-      // The chart leaves with the last card, so the pin does not stay over an empty column.
-      const top = Number.parseFloat(getComputedStyle(stage).top) || 0;
-      const slot = top + stage.getBoundingClientRect().height + 16;
-      const shift = Math.min(0, card.getBoundingClientRect().top - slot);
-      stage.style.transform = shift < -0.5 ? `translateY(${shift}px)` : "";
-    };
-    const onScroll = () => sync();
-    sync();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    query.addEventListener("change", read);
+    window.addEventListener("resize", read);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      observer.disconnect();
+      query.removeEventListener("change", read);
+      window.removeEventListener("resize", read);
     };
-  }, []);
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 1023px)");
-    const apply = () => setNarrow(query.matches);
-    apply();
-    query.addEventListener("change", apply);
-    return () => query.removeEventListener("change", apply);
   }, []);
 
   useEffect(() => {
@@ -120,30 +105,41 @@ export function ConnectionStory() {
   const steps = storySteps(story, deltaKw, language);
 
   return (
-    <section id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-16 md:py-24">
+    <section id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-12 md:py-16">
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">
         <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Supermarkt", "Example · supermarket")}</p>
-        <h2 id={titleId} className="mt-4 flex flex-wrap items-center gap-3 text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
-          {tx("Was ist Peak Shaving?", "What is peak shaving?")}
-          <GlossaryTip id="peak-shaving" language={language} />
-        </h2>
-        <p className="mt-4 max-w-[40ch] text-lg leading-snug">
-          {tx(
-            "Ein Wintertag, eine rote Linie, ein Speicher. Der Chart bleibt stehen. Mit jedem Schritt kommt eine Ebene dazu.",
-            "One winter day, one red line, one battery. The chart stays put. Each step adds a layer."
-          )}
-        </p>
 
-        <div className="connection-story mt-10">
+        <div className="connection-story mt-4">
           <div className="connection-story-pin">
-            <div className="connection-story-stage" ref={stageRef} style={pinPx > 0 ? { minHeight: pinPx } : undefined}>
+            <div
+              className="connection-story-stage"
+              ref={stageRef}
+              style={pinPx > 0 && !narrow ? { minHeight: pinPx } : undefined}
+            >
+              <div className="connection-story-head">
+                <h2 id={titleId} className="text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
+                  {language === "de" ? "Was ist Peak " : "What is peak "}
+                  <span className="whitespace-nowrap">
+                    {language === "de" ? "Shaving?" : "shaving?"}
+                    <span className="ms-2 inline align-middle">
+                      <GlossaryTip id="peak-shaving" language={language} />
+                    </span>
+                  </span>
+                </h2>
+                <p className="connection-story-count num">{tx(`Schritt ${step + 1}/3`, `Step ${step + 1}/3`)}</p>
+              </div>
+              <p className="connection-story-lead max-w-[40ch] text-lg leading-snug">
+                {tx(
+                  "Ein Wintertag, eine rote Linie, ein Speicher. Der Chart bleibt stehen. Mit jedem Schritt kommt eine Ebene dazu.",
+                  "One winter day, one red line, one battery. The chart stays put. Each step adds a layer."
+                )}
+              </p>
               <div className="flex gap-1" aria-hidden="true">
                 {steps.map((item, index) => (
                   <span key={item.n} className={`h-1 flex-1 ${index <= step ? "bg-foreground" : "bg-border"}`} />
                 ))}
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="num text-[12px] tracking-[0.14em] text-muted-foreground uppercase">{tx("Ein Tag am Netzanschluss", "One day at the connection")}</p>
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 <p className="num border border-warning px-2 py-1 text-[12px] font-medium tracking-[0.08em] text-warning uppercase">
                   {tx("Beispieldaten", "Example data")}
                 </p>
@@ -166,7 +162,7 @@ export function ConnectionStory() {
                   }}
                   data-step={index}
                   aria-current={active ? "step" : undefined}
-                  className={`story-step min-h-[60svh] text-foreground lg:min-h-[70vh]${active ? " is-active" : ""}`}
+                  className={`story-step min-h-[45svh] text-foreground lg:min-h-[65vh]${active ? " is-active" : ""}`}
                 >
                   <div className="story-step-card">
                     <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>
@@ -388,7 +384,7 @@ function StoryChart({
                 <g key={hour}>
                   <line x1={tickX} x2={tickX} y1={height - axisLabelH} y2={height - axisLabelH + 5} className="stroke-muted-foreground" strokeWidth={1} />
                   {labelHour ? (
-                    <text x={tickX} y={height - 4} textAnchor="middle" className="num fill-muted-foreground" fontSize={11} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+                    <text x={tickX} y={height - 4} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
                       {clockLabel(hour)}
                     </text>
                   ) : null}
@@ -459,7 +455,7 @@ function StoryChart({
               y={stacked ? y(Math.max(peak.netKw, story.limitKw)) - 9 : y(peak.netKw) + 8 + 13}
               textAnchor="middle"
               className="story-halo fill-foreground"
-              fontSize={stacked ? 11 : 13}
+              fontSize={stacked ? 12 : 13}
               fontFamily={stacked ? "var(--font-plex-mono), ui-monospace, monospace" : undefined}
             >
               {tx("Netzbezug", "Grid import")}
@@ -467,7 +463,7 @@ function StoryChart({
           ) : null}
           {showSoc ? (
             <g className="story-layer">
-              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={11}>
+              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={12}>
                 {tx("LADESTAND", "CHARGE")}
               </text>
               <line x1={pad.l} x2={pad.l + plotW} y1={socY(0)} y2={socY(0)} className="stroke-gridline" />
