@@ -93,7 +93,7 @@ export function liveResultLabel(day: Beispieltag, scale: BeispielScale, language
   if (language === "de") {
     return `Modellerlös ×${scale} am ${when}: rund ${shown} Euro, Modellschätzung`;
   }
-  return `Model revenue ×${scale} on ${when}: about €${shown}, model estimate`;
+  return `Model revenue ×${scale} on ${when}: about ${shown} €, model estimate`;
 }
 
 export function scaleSizeLabel(scale: BeispielScale, language: AppLanguage, powerMw: number, energyMwh: number): string {
@@ -112,7 +112,7 @@ export function scaleSizeLabel(scale: BeispielScale, language: AppLanguage, powe
 export function thousandsLabel(revenueX1: number, language: AppLanguage): string {
   const thousands = Math.round(revenueX1 / 1000);
   const text = formatQuantity(thousands, language, 0);
-  return language === "de" ? `${text} Tsd.` : `${text}k`;
+  return language === "de" ? `${text} Tsd. €` : `${text}k €`;
 }
 
 export function breakdownText(day: Beispieltag, scale: BeispielScale, language: AppLanguage): string {
@@ -121,14 +121,14 @@ export function breakdownText(day: Beispieltag, scale: BeispielScale, language: 
   if (day.parts.chargingEur > 0) {
     const low = formatQuantity(Math.round(day.stats.minEurPerMwh), language, 0);
     if (language === "de") {
-      return `Davon vom Laden: rund ${charge} €. Der Preis lag mittags bei ${low} €/MWh, der Speicher bekommt dann Geld fürs Abnehmen von Strom. Vom Abgeben am Abend: rund ${discharge} €.`;
+      return `Davon vom Laden: rund ${charge} €, ohne Netzentgelte, Umlagen, Steuern. Der Preis lag mittags bei ${low} €/MWh, der Speicher bekommt dann Geld fürs Abnehmen von Strom. Vom Abgeben am Abend: rund ${discharge} €.`;
     }
-    return `Of that, from charging: about €${charge}. At midday the price was €${low}/MWh, so the battery is paid to take power. From discharging in the evening: about €${discharge}.`;
+    return `Of that, from charging: about ${charge} €, without grid fees, levies and taxes. At midday the price was ${low} €/MWh, so the battery is paid to take power. From discharging in the evening: about ${discharge} €.`;
   }
   if (language === "de") {
-    return `Laden kostet rund ${charge} €. Abgeben am Abend bringt rund ${discharge} €. Der Rest ist der Modellerlös.`;
+    return `Laden kostet rund ${charge} €, ohne Netzentgelte, Umlagen, Steuern. Abgeben am Abend bringt rund ${discharge} €. Der Rest ist der Modellerlös.`;
   }
-  return `Charging costs about €${charge}. Discharging in the evening brings about €${discharge}. The rest is the model revenue.`;
+  return `Charging costs about ${charge} €, without grid fees, levies and taxes. Discharging in the evening brings about ${discharge} €. The rest is the model revenue.`;
 }
 
 export function comparisonText(day: Beispieltag, scale: BeispielScale, file: BeispieltageFile, language: AppLanguage): string {
@@ -145,7 +145,7 @@ export function comparisonText(day: Beispieltag, scale: BeispielScale, file: Bei
   if (language === "de") {
     return `Zum Vergleich: ein normaler Tag (${medianWhen}) kommt im selben Modell auf rund ${shownMedian} €. Der ${when.replace(" 2026", "")} liegt beim ${factor}-Fachen. Rang ${day.rankByModelRevenueX1} von 365 Tagen.`;
   }
-  return `For comparison: an ordinary day (${medianDay.textEn.title}) comes to about €${shownMedian} in the same model. ${day.textEn.title} is ${factor} times that. Rank ${day.rankByModelRevenueX1} of 365 days.`;
+  return `For comparison: an ordinary day (${medianDay.textEn.title}) comes to about ${shownMedian} € in the same model. ${day.textEn.title} is ${factor} times that. Rank ${day.rankByModelRevenueX1} of 365 days.`;
 }
 
 export const HINTS: readonly { de: string; en: string; tips: Array<"preisnehmer" | "intraday" | "regelleistung" | "vollzyklen" | "soc" | "modellschaetzung"> }[] = [

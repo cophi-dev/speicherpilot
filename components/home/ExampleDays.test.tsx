@@ -113,6 +113,13 @@ describe("ExampleDays", () => {
         expect(text).toMatch(/0,35|Teilzyklus/);
         expect(text).toMatch(/Modellschätzung/);
         expect(text).toContain("85 %");
+        expect(text).toContain("ohne Netzentgelte, Umlagen, Steuern");
+        if (scale === 10) {
+          expect(text).toContain(`${formatQuantity(day.chargedFromGridMwh * scale, "de", 0)} MWh`);
+        }
+        if (scale === 10 && day.dateBerlin === "2026-05-01") {
+          expect(text).not.toContain("1.034,8 MWh");
+        }
         expect(euroNodes(section as HTMLElement)).toBe(true);
       }
     }

@@ -686,6 +686,16 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
                 </dd>
               </div>
             </dl>
+            <h2 className="site-block-title">{tx("Laden und Abgeben", "Charging and discharging")}</h2>
+            <p>
+              {tx(
+                "Laden ist Bezug aus dem Netz von SH Netz. Abgeben ist Einspeisung in dasselbe Netz. Beides im Ring ist eine Modellschätzung, nicht die gemessene Fahrweise.",
+                "Charging is withdrawal from the SH Netz grid. Discharging is feed-in to the same grid. Both on the ring are a model estimate, not the measured operation."
+              )}
+            </p>
+            <p>
+              <Link href="/#beispieltage">{tx("Beispieltage auf der Startseite ansehen", "See the example days on the homepage")}</Link>
+            </p>
             <aside className="site-note">
               <GlossaryTip id="fca" language={language} />
               <div>

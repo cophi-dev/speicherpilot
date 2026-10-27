@@ -52,12 +52,12 @@ function ChartSvg({
   const width = compact ? 390 : 960;
   const axis = compact ? 44 : 52;
   const right = 8;
-  const priceTop = compact ? 22 : 18;
-  const priceH = compact ? 124 : 168;
-  const powerTop = priceTop + priceH + (compact ? 8 : 20);
-  const powerH = compact ? 108 : 148;
-  const socTop = powerTop + powerH + (compact ? 6 : 16);
-  const socH = compact ? 26 : 88;
+  const priceTop = compact ? 36 : 28;
+  const priceH = compact ? 112 : 156;
+  const powerTop = priceTop + priceH + (compact ? 26 : 28);
+  const powerH = compact ? 96 : 136;
+  const socTop = powerTop + powerH + (compact ? 22 : 40);
+  const socH = compact ? 26 : 72;
   const height = socTop + socH + (compact ? 22 : 28);
   const plot = width - axis - right;
   const de = language === "de";
@@ -66,13 +66,13 @@ function ChartSvg({
   const minPrice = Math.min(...day.prices);
   const maxPrice = Math.max(...day.prices);
   const pad = Math.max(4, (maxPrice - minPrice) * 0.06);
-  const yPriceMin = minPrice - pad;
-  const yPriceMax = maxPrice + pad;
+  const yPriceMin = Math.min(0, minPrice - pad);
+  const yPriceMax = Math.max(0, maxPrice + pad);
   const yPrice = (value: number) => mapY(value, yPriceMin, yPriceMax, priceTop, priceH);
   const powerLimit = NAMEPLATE_MW * 1.25;
   const yPower = (value: number) => mapY(value, -powerLimit, powerLimit, powerTop, powerH);
   const ySoc = (value: number) => mapY(value, 0, 100, socTop, socH);
-  const zeroPrice = yPriceMin < 0 && yPriceMax > 0 ? yPrice(0) : null;
+  const zeroPrice = yPriceMin <= 0 && yPriceMax >= 0 ? yPrice(0) : null;
   const zeroPower = yPower(0);
 
   let pricePath = "";
@@ -133,6 +133,10 @@ function ChartSvg({
           x={xAt(hours[paidIndex] ?? 0)}
           y={yPrice(day.prices[paidIndex] ?? minPrice)}
           compact={compact}
+          priceTop={priceTop}
+          axis={axis}
+          right={right}
+          width={width}
           label={de ? "Geld fürs Laden" : "Paid to charge"}
         />
       ) : null}
@@ -162,12 +166,24 @@ function ChartSvg({
         return <rect key={`b-${day.slotStartIso[index]}`} x={x} y={Math.min(y0, y1)} width={r(barWidth)} height={r(Math.abs(y1 - y0))} fill={fill} />;
       })}
       {dischargeIndex >= 0 ? (
-        <text x={xAt(hours[dischargeIndex] ?? 0)} y={powerTop + 14} fill="currentColor" fontSize={compact ? 12 : 14}>
+        <text
+          x={labelX(xAt(hours[dischargeIndex] ?? 0), de ? "Abgabe" : "Discharge", axis, width - right, compact)}
+          y={powerTop - 10}
+          textAnchor="middle"
+          fill="currentColor"
+          fontSize={compact ? 12 : 13}
+        >
           {de ? "Abgabe" : "Discharge"}
         </text>
       ) : null}
       {chargeIndex >= 0 ? (
-        <text x={xAt(hours[chargeIndex] ?? 0)} y={powerTop + powerH - 6} fill="currentColor" fontSize={compact ? 12 : 14}>
+        <text
+          x={labelX(xAt(hours[chargeIndex] ?? 0), de ? "Laden" : "Charge", axis, width - right, compact)}
+          y={powerTop + powerH + (compact ? 16 : 18)}
+          textAnchor="middle"
+          fill="currentColor"
+          fontSize={compact ? 12 : 13}
+        >
           {de ? "Laden" : "Charge"}
         </text>
       ) : null}
@@ -188,8 +204,8 @@ function ChartSvg({
           <text x={4} y={ySoc(50) + 4} fill="currentColor" fontSize="12">
             50 %
           </text>
-          <text x={4} y={socTop + 12} fill="currentColor" fontSize="13">
-            {de ? "Ladezustand" : "Charge"}
+          <text x={axis} y={socTop - 6} fill="currentColor" fontSize="13">
+            {de ? "Ladezustand" : "State of charge"}
           </text>
           <path d={socPath(hours, soc, xAt, ySoc)} fill="none" stroke="currentColor" strokeWidth="2" />
         </>
@@ -209,12 +225,36 @@ function socPath(hours: number[], soc: number[], xAt: (hour: number) => number, 
     .join(" ");
 }
 
-function PaidToCharge({ x, y, compact, label }: { x: number; y: number; compact: boolean; label: string }) {
-  const textX = r(Math.max(48, x - (compact ? 92 : 118)));
-  const textY = r(Math.max(14, y - (compact ? 16 : 22)));
+function labelX(x: number, text: string, left: number, rightEdge: number, compact: boolean): number {
+  const half = (text.length * (compact ? 3.4 : 3.6));
+  return r(Math.max(left + half, Math.min(rightEdge - half, x)));
+}
+
+function PaidToCharge({
+  x,
+  y,
+  compact,
+  priceTop,
+  axis,
+  right,
+  width,
+  label,
+}: {
+  x: number;
+  y: number;
+  compact: boolean;
+  priceTop: number;
+  axis: number;
+  right: number;
+  width: number;
+  label: string;
+}) {
+  const labelWidth = compact ? 96 : 112;
+  const textX = r(Math.max(axis, Math.min(width - right - labelWidth, x - labelWidth / 2)));
+  const textY = r(priceTop - 8);
   return (
     <g>
-      <line x1={x} y1={y} x2={textX + (compact ? 70 : 90)} y2={textY + 2} stroke="var(--mint)" strokeWidth="1.25" />
+      <line x1={x} y1={y} x2={textX + labelWidth / 2} y2={textY + 2} stroke="var(--mint)" strokeWidth="1.25" />
       <circle cx={x} cy={y} r="2.5" fill="var(--mint)" />
       <text x={textX} y={textY} fill="currentColor" fontSize={compact ? 12 : 14}>
         {label}

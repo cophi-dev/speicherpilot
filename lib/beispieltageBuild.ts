@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import path from "path";
 
 import { parseDayAheadPrices, type DayAheadPricePoint } from "@/lib/dayAheadPrices";
+import { formatQuantity } from "@/lib/formatQuantity";
 import { dispatchReferencePark } from "@/lib/referenceParkModelDay";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { beispieltageFileSchema, type BeispieltageFile, type Beispieltag } from "@/lib/beispieltageSchema";
@@ -229,20 +230,54 @@ export function rankAndMedian(rows: readonly YearRevenue[]): { rank: Map<string,
   };
 }
 
+function berlinParts(unixMs: number): { hour: number; clock: string } {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Berlin",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(unixMs));
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0") % 24;
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? "0");
+  return { hour: hour + minute / 60, clock: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}` };
+}
+
 function counterExample(): BeispieltageFile["counterExample"] {
   const prices = loadDayPrices("2026-04-05");
   const revenue = dayRevenueX1(prices, "2026-04-05");
-  if (revenue === null) {
+  const first = prices[0];
+  if (revenue === null || !first) {
     throw new Error("easter dispatch failed");
   }
   const negative = prices.filter((point) => point.eurPerMwh < 0).length;
   const rounded = Math.round(revenue);
+  let peak = first;
+  let eveningMin = Number.POSITIVE_INFINITY;
+  let eveningMax = Number.NEGATIVE_INFINITY;
+  for (const point of prices) {
+    if (point.eurPerMwh > peak.eurPerMwh) {
+      peak = point;
+    }
+    const { hour } = berlinParts(point.unixMs);
+    if (hour >= 17 && hour < 21) {
+      eveningMin = Math.min(eveningMin, point.eurPerMwh);
+      eveningMax = Math.max(eveningMax, point.eurPerMwh);
+    }
+  }
+  const peakClock = berlinParts(peak.unixMs).clock;
+  const deNumber = (value: number) => formatQuantity(Math.round(value), "de", 0).replaceAll("-", "−");
+  const peakDe = deNumber(peak.eurPerMwh);
+  const peakEn = formatQuantity(Math.round(peak.eurPerMwh), "en", 0);
+  const lowDe = deNumber(eveningMin);
+  const highDe = deNumber(eveningMax);
+  const lowEn = formatQuantity(Math.round(eveningMin), "en", 0);
+  const highEn = formatQuantity(Math.round(eveningMax), "en", 0);
   return {
     dateBerlin: "2026-04-05",
     negativeQuarterHours: negative,
     revenueX1: rounded,
-    textDe: `Ostersonntag, 5. April 2026: ${negative} negative Viertelstunden, im Modell trotzdem nur rund 13.800 €. Der Abendpreis lag bei 36 €/MWh. Negative Preise allein heißen nicht viel Erlös.`,
-    textEn: `Easter Sunday, 5 April 2026: ${negative} negative quarter-hours, and still only about €13,800 in the model. The evening price was €36/MWh. Negative prices alone do not mean much revenue.`,
+    textDe: `Ostersonntag, 5. April 2026: ${negative} negative Viertelstunden, im Modell trotzdem nur rund 13.800 €. Der höchste Preis des Tages war ${peakDe} €/MWh um ${peakClock}. Von 17 bis 21 Uhr lag der Preis zwischen ${lowDe} und ${highDe} €/MWh. Negative Preise allein heißen nicht viel Erlös.`,
+    textEn: `Easter Sunday, 5 April 2026: ${negative} negative quarter-hours, and still only about 13,800 € in the model. The day's highest price was ${peakEn} €/MWh at ${peakClock}. From 17:00 to 21:00 the price was between ${lowEn} and ${highEn} €/MWh. Negative prices alone do not mean much revenue.`,
   };
 }
 
@@ -277,8 +312,8 @@ export function buildBeispieltageFile(year = yearRevenuesFromRaw()): Beispieltag
     },
     scales: [1, 2, 5, 10] as [1, 2, 5, 10],
     selectionRule: {
-      de: "Warum diese Tage? 1. Der Tag mit dem höchsten Modellerlös. 2. Der beste Tag ohne negative Preise. 3. Der jüngste Tag aus den ersten zehn, aus einer anderen Jahreszeit. 4. Der mittlere Tag als Vergleich.",
-      en: "Why these days? 1. The day with the highest model revenue. 2. The best day without negative prices. 3. The most recent of the first ten, from another season. 4. The middle day as a comparison.",
+      de: "Warum diese Tage? 1. Der Tag mit dem höchsten Modellerlös. 2. Der beste Tag ohne negative Preise. 3. Der beste Herbsttag. 4. Der mittlere Tag als Vergleich.",
+      en: "Why these days? 1. The day with the highest model revenue. 2. The best day without negative prices. 3. The best autumn day. 4. The middle day as a comparison.",
     },
     medianDayRevenueX1: medianEur,
     counterExample: counterExample(),

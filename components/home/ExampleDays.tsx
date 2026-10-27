@@ -122,7 +122,7 @@ export function ExampleDays() {
                 label: tx("Preisspanne des Tages", "Price spread of the day"),
               },
               {
-                value: formatQuantity(day.chargedFromGridMwh * scale, language, 1),
+                value: formatQuantity(day.chargedFromGridMwh * scale, language, scale >= 10 ? 0 : 1),
                 unit: "MWh",
                 label: tx("geladene Menge", "energy charged"),
               },
@@ -223,7 +223,7 @@ function DayCards({
             <span className="beispieltage-mini" aria-hidden="true">
               <span style={{ width: `${Math.max(8, (item.revenueEur.x1 / MAX_X1) * 100)}%` }} />
             </span>
-            <span className="beispieltage-card-figure">{thousandsLabel(item.revenueEur.x1, language)}</span>
+            <span className="beispieltage-card-figure" data-model-estimate>{thousandsLabel(item.revenueEur.x1, language)}</span>
           </button>
         );
       })}

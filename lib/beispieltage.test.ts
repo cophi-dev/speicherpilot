@@ -3,10 +3,12 @@ import { publicCopyIssues } from "@/lib/readability";
 import {
   berlinClock,
   beispieltage,
+  breakdownText,
   dayAheadPoints,
   EURO_SCOPE,
   HINTS,
   loadBeispieltage,
+  thousandsLabel,
 } from "@/lib/beispieltage";
 import { berlinWeekdayName } from "@/lib/beispieltageBuild";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
@@ -59,6 +61,25 @@ describe("beispieltage data", () => {
     expect(EURO_SCOPE.de).toContain("Beispieltagen");
     expect(EURO_SCOPE.de).toContain("Modellschätzung");
     expect(EURO_SCOPE.de).not.toMatch(/nur im aufklappbaren/);
+    expect(file.selectionRule.de).toContain("Der beste Herbsttag");
+    expect(file.selectionRule.de).not.toMatch(/jüngste/);
+    expect(file.selectionRule.en).toContain("best autumn day");
+    expect(file.counterExample?.textDe).toContain("21:00");
+    expect(file.counterExample?.textDe).not.toMatch(/Abendpreis/);
+    expect(file.counterExample?.textDe).toContain("zwischen −15 und 36 €/MWh");
+    expect(file.counterExample?.textEn).not.toMatch(/€\d/);
+  });
+
+  it("puts fees next to the charging euros and keeps one euro style", () => {
+    const paid = beispieltage.days[0]!;
+    const costly = beispieltage.days[1]!;
+    expect(breakdownText(paid, 1, "de")).toMatch(/vom Laden: rund [\d.]+ €, ohne Netzentgelte, Umlagen, Steuern/);
+    expect(breakdownText(costly, 1, "de")).toContain("ohne Netzentgelte, Umlagen, Steuern");
+    expect(breakdownText(paid, 1, "en")).toContain("without grid fees, levies and taxes");
+    expect(breakdownText(paid, 1, "en")).not.toMatch(/€\d/);
+    expect(thousandsLabel(paid.revenueEur.x1, "de")).toBe("67 Tsd. €");
+    expect(thousandsLabel(paid.revenueEur.x1, "en")).toBe("67k €");
+    expect(thousandsLabel(paid.revenueEur.x1, "en")).not.toMatch(/€\d/);
   });
 
   it("recomputes each day with the repository core", () => {

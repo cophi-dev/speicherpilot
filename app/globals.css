@@ -1442,6 +1442,19 @@
   line-height: 1.25;
 }
 
+.day-hero-screen .day-order-ring > .day-source {
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+  margin-top: 6px;
+  padding: 2px 8px;
+  background: #0a0f14;
+}
+
+.day-hero-screen .day-ring-svg {
+  pointer-events: none;
+}
+
 .day-hero-screen .day-source {
   margin-top: 6px;
   font-size: 12px;
