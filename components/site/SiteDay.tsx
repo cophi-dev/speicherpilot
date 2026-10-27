@@ -317,8 +317,7 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
     `${note}. ${rule} ${REFERENCE_PARK_DISPATCH_RULE.de}`,
     `${note}. ${rule} ${REFERENCE_PARK_DISPATCH_RULE.en}`
   );
-  const chargeLine = connectionPeakLine(use.chargeAtNameplate, use.maxChargeMw, facts.powerMw, language, "charge");
-  const dischargeLine = connectionPeakLine(use.dischargeAtNameplate, use.maxDischargeMw, facts.powerMw, language, "discharge");
+  const useLine = connectionUseSentence(use, facts.powerMw, language);
   return (
     <section className="day-hero site-hero" aria-labelledby="site-hero-title">
       <div className="day-hero-inner">
@@ -397,7 +396,7 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
             </p>
             {points.length > 0 ? (
               <p>
-                {chargeLine} {dischargeLine}{" "}
+                {useLine}{" "}
                 {tx(
                   "Das ist die Auslastung der gemeldeten Leistung, nicht die Auslastung einer unveröffentlichten Grenze.",
                   "That is use of the published power, not use of an unpublished limit."
@@ -405,13 +404,17 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
               </p>
             ) : null}
             <h2 className="site-block-title">{tx("Laden und Abgeben", "Charging and discharging")}</h2>
-            <p>
-              <GlossaryTip id="front-of-meter" language={language} />{" "}
-              {tx(
-                "Der Speicher steht direkt am Netz. Eine Last eines Betriebs dahinter gibt es nicht.",
-                "The battery sits directly on the grid. There is no site load behind it."
-              )}
-            </p>
+            <aside className="site-note">
+              <GlossaryTip id="front-of-meter" language={language} />
+              <div>
+                <p>
+                  {tx(
+                    "Der Speicher steht direkt am Netz. Eine Last eines Betriebs dahinter gibt es nicht.",
+                    "The battery sits directly on the grid. There is no site load behind it."
+                  )}
+                </p>
+              </div>
+            </aside>
             <p>
               {tx(
                 "Laden ist Bezug aus dem Netz von SH Netz. Abgeben ist Einspeisung in dasselbe Netz. Beides im Ring ist eine Modellschätzung, nicht die gemessene Fahrweise.",
@@ -473,40 +476,58 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
   );
 }
 
-function connectionPeakLine(
-  atNameplate: boolean,
-  megawatts: number,
+function connectionUseSentence(
+  use: ReturnType<typeof referenceParkConnectionUse>,
   nameplateMw: number,
-  language: AppLanguage,
-  direction: "charge" | "discharge"
+  language: AppLanguage
 ): string {
   const figure = formatQuantity(nameplateMw, language, 1);
-  const value = formatQuantity(megawatts, language, 1);
-  const share = nameplateMw > 0 ? formatQuantity((megawatts / nameplateMw) * 100, language, 0) : "0";
+  const idle = (mw: number) => mw <= 0.05;
   if (language === "de") {
-    if (megawatts <= 0.05) {
-      return direction === "charge" ? "Im Modell gibt es an diesem Tag keinen Bezug." : "Im Modell gibt es an diesem Tag keine Einspeisung.";
+    if (idle(use.maxChargeMw) && idle(use.maxDischargeMw)) {
+      return "Im Modell gibt es an diesem Tag keinen Bezug und keine Einspeisung.";
     }
-    if (atNameplate) {
-      return direction === "charge"
-        ? `Der höchste Bezug im Modell liegt bei der gemeldeten Leistung von ${figure} MW.`
-        : `Die höchste Einspeisung im Modell liegt bei der gemeldeten Leistung von ${figure} MW.`;
+    if (use.chargeAtNameplate && use.dischargeAtNameplate) {
+      return `Der höchste Bezug und die höchste Einspeisung im Modell liegen bei der gemeldeten Leistung von ${figure} MW.`;
     }
-    return direction === "charge"
-      ? `Der höchste Bezug im Modell liegt bei ${value} MW, das sind ${share} % der gemeldeten ${figure} MW.`
-      : `Die höchste Einspeisung im Modell liegt bei ${value} MW, das sind ${share} % der gemeldeten ${figure} MW.`;
+    return `Im Modell liegen ${dePeak("Bezug", use.chargeAtNameplate, use.maxChargeMw, nameplateMw)} und ${dePeak("Einspeisung", use.dischargeAtNameplate, use.maxDischargeMw, nameplateMw)}.`;
   }
+  if (idle(use.maxChargeMw) && idle(use.maxDischargeMw)) {
+    return "The model has no withdrawal and no feed-in on this day.";
+  }
+  if (use.chargeAtNameplate && use.dischargeAtNameplate) {
+    return `The highest withdrawal and the highest feed-in in the model are the published power of ${figure} MW.`;
+  }
+  return `In the model, ${enPeak("withdrawal", use.chargeAtNameplate, use.maxChargeMw, nameplateMw)} and ${enPeak("feed-in", use.dischargeAtNameplate, use.maxDischargeMw, nameplateMw)}.`;
+}
+
+function dePeak(label: "Bezug" | "Einspeisung", atNameplate: boolean, megawatts: number, nameplateMw: number): string {
+  const figure = formatQuantity(nameplateMw, "de", 1);
   if (megawatts <= 0.05) {
-    return direction === "charge" ? "The model has no withdrawal on this day." : "The model has no feed-in on this day.";
+    return label === "Bezug" ? "kein Bezug" : "keine Einspeisung";
   }
   if (atNameplate) {
-    return direction === "charge"
-      ? `The highest withdrawal in the model is the published power of ${figure} MW.`
-      : `The highest feed-in in the model is the published power of ${figure} MW.`;
+    const article = label === "Bezug" ? "der höchste Bezug" : "die höchste Einspeisung";
+    return `${article} bei der gemeldeten Leistung von ${figure} MW`;
   }
-  return direction === "charge"
-    ? `The highest withdrawal in the model is ${value} MW, ${share}% of the published ${figure} MW.`
-    : `The highest feed-in in the model is ${value} MW, ${share}% of the published ${figure} MW.`;
+  const value = formatQuantity(megawatts, "de", 1);
+  const share = formatQuantity((megawatts / nameplateMw) * 100, "de", 0);
+  const article = label === "Bezug" ? "der höchste Bezug" : "die höchste Einspeisung";
+  return `${article} bei ${value} MW, das sind ${share} % der gemeldeten ${figure} MW`;
+}
+
+function enPeak(label: "withdrawal" | "feed-in", atNameplate: boolean, megawatts: number, nameplateMw: number): string {
+  const figure = formatQuantity(nameplateMw, "en", 1);
+  if (megawatts <= 0.05) {
+    return label === "withdrawal" ? "there is no withdrawal" : "there is no feed-in";
+  }
+  const name = label === "withdrawal" ? "the highest withdrawal" : "the highest feed-in";
+  if (atNameplate) {
+    return `${name} is the published power of ${figure} MW`;
+  }
+  const value = formatQuantity(megawatts, "en", 1);
+  const share = formatQuantity((megawatts / nameplateMw) * 100, "en", 0);
+  return `${name} is ${value} MW, ${share}% of the published ${figure} MW`;
 }
 
 function ReferenceParkTable({ points, caption, language }: { points: LiveDispatchPoint[]; caption: string; language: AppLanguage }) {

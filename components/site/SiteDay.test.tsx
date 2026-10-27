@@ -129,7 +129,11 @@ describe("site v2 heroes", () => {
     expect(screen.getAllByText(/Abgeben ist Einspeisung/).length).toBeGreaterThan(0);
     expect(screen.getByText(/§ 17 Abs\. 2b EnWG/)).toBeInTheDocument();
     expect(screen.getByText(/Grenzwerte sind nicht veröffentlicht/)).toBeInTheDocument();
+    expect(screen.getByText(/Der höchste Bezug und die höchste Einspeisung im Modell liegen bei der gemeldeten Leistung von 103,5 MW/)).toBeInTheDocument();
+    expect(screen.queryByText("Der höchste Bezug im Modell liegt bei der gemeldeten Leistung von 103,5 MW.")).toBeNull();
     expect(screen.getByText(/Auslastung der gemeldeten Leistung/)).toBeInTheDocument();
+    const storageNote = [...container.querySelectorAll(".site-note")].find((note) => note.textContent?.includes("Der Speicher steht direkt am Netz"));
+    expect(storageNote?.querySelector("button")?.getAttribute("aria-label")).toMatch(/Front-of-Meter/);
     expect(screen.getAllByText("MODELLTAG").length).toBeGreaterThan(0);
     expect(container.querySelector(".day-model-caption")?.textContent).toMatch(/nicht die echte Fahrweise/);
     expect(screen.getAllByText(/103,5/).length).toBeGreaterThan(0);
