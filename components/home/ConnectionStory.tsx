@@ -103,9 +103,14 @@ export function ConnectionStory() {
           <div className="connection-story-pin">
             <div className="connection-story-stage" ref={stageRef} style={pinPx > 0 ? { minHeight: pinPx } : undefined}>
               <div className="connection-story-head">
-                <h2 id={titleId} className="flex flex-wrap items-center gap-3 text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
-                  {tx("Was ist Peak Shaving?", "What is peak shaving?")}
-                  <GlossaryTip id="peak-shaving" language={language} />
+                <h2 id={titleId} className="text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
+                  {language === "de" ? "Was ist Peak " : "What is peak "}
+                  <span className="whitespace-nowrap">
+                    {language === "de" ? "Shaving?" : "shaving?"}
+                    <span className="ms-2 inline align-middle">
+                      <GlossaryTip id="peak-shaving" language={language} />
+                    </span>
+                  </span>
                 </h2>
                 <p className="connection-story-count num">{tx(`Schritt ${step + 1}/3`, `Step ${step + 1}/3`)}</p>
               </div>
