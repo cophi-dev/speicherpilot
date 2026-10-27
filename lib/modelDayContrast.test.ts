@@ -37,5 +37,11 @@ describe("MODELLTAG pill contrast", () => {
     expect(contrast("#9bf6e6", "#0a0f14")).toBeGreaterThanOrEqual(4.5);
     expect(contrast("#8a4b08", "#ffffff")).toBeGreaterThanOrEqual(4.5);
     expect(contrast("#8a4b08", "#f6f6f1")).toBeGreaterThanOrEqual(4.5);
+    expect(css).toMatch(/html:not\(\.dark\) \.day-hero\s*\{[^}]*background:\s*var\(--bg\)/);
+    expect(css).toMatch(/html:not\(\.dark\) \.day-hero\s*\{[^}]*color:\s*var\(--ink\)/);
+    expect(contrast("#14181c", "#f6f6f3")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast("#3c444c", "#f6f6f3")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast("#0f6e7c", "#f6f6f3")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast("#8a4b08", "#f6f6f3")).toBeGreaterThanOrEqual(4.5);
   });
 });
