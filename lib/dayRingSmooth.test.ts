@@ -1,8 +1,13 @@
-import { polarPoint, RING_GAP_DEG, ringRadius, RING_R0 } from "@/lib/dayRingScale";
+import { compactRingView, polarPoint, pxToUser, RING_GAP_DEG, ringRadius, RING_R0 } from "@/lib/dayRingScale";
 import {
+  booleanRuns,
+  clampRibbon,
+  inMidnightTaper,
+  oneKnotPerClockAngle,
   polarAreaPath,
   polarRibbonPath,
   quarterCenterDeg,
+  quarterCenterForHour,
   ringTip,
   smoothDrawnSeries,
   smoothPolarSamples,
@@ -240,6 +245,94 @@ describe("smooth day ring", () => {
     expect(outer).not.toMatch(/ L /);
   });
 
+  it("averages a repeated clock hour onto one knot", () => {
+    const knots = oneKnotPerClockAngle([
+      { angleDeg: quarterCenterForHour(2), value: -1.785 },
+      { angleDeg: quarterCenterForHour(2), value: 0.964 },
+    ]);
+    expect(knots).toHaveLength(1);
+    expect(knots[0].value).toBeCloseTo((-1.785 + 0.964) / 2, 5);
+  });
+
+  it("has no sharp second-difference sign change on the charge band from 00 to 04", () => {
+    // 25 October 2026 repeats 02:00–02:45. The two hours used to share one angle.
+    const early: Array<[number, number, number]> = [
+      [0, 1.057, 1.057],
+      [0.25, 1.305, 1.305],
+      [0.5, 0.639, 0.639],
+      [0.75, -0.049, 0],
+      [1, -0.127, 0],
+      [1.25, -0.248, 0],
+      [1.5, -0.541, 0],
+      [1.75, -1.466, 0],
+      [2, -1.785, 0],
+      [2.25, -1.61, 0],
+      [2.5, -1.226, 0],
+      [2.75, -0.888, 0],
+      [2, 0.964, 0.964],
+      [2.25, 1.097, 1.097],
+      [2.5, 0.003, 0.003],
+      [2.75, -0.042, 0],
+      [3, 0.447, 0.447],
+      [3.25, 0.222, 0.222],
+      [3.5, 0.292, 0.292],
+      [3.75, 0.791, 0.791],
+      [4, 2.054, 2.054],
+    ];
+    const points: Array<{ hour: number; ohne: number; mit: number }> = [];
+    for (let index = 0; index < 96; index += 1) {
+      const hour = index * 0.25;
+      const known = early.filter((row) => Math.abs(row[0] - hour) < 0.001);
+      if (known.length === 0) {
+        points.push({ hour, ohne: 1, mit: 1 });
+      } else {
+        for (const row of known) points.push({ hour, ohne: row[1], mit: row[2] });
+      }
+    }
+    const ohne = smoothDrawnSeries(points.map((point) => point.ohne));
+    const mit = smoothDrawnSeries(points.map((point) => point.mit));
+    const ohneSamples = taperRingSamples(
+      smoothPolarSamples(
+        points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: ohne[index] })),
+        ringRadius,
+        RING_R0
+      ),
+      RING_R0
+    );
+    const mitSamples = taperRingSamples(
+      smoothPolarSamples(
+        points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: mit[index] })),
+        ringRadius,
+        RING_R0
+      ),
+      RING_R0
+    );
+    const framePx = 642;
+    const view = compactRingView(ringRadius(10), framePx);
+    const toPx = framePx / view.w;
+    const open = (sample: { angleDeg: number }) => !inMidnightTaper(sample.angleDeg);
+    const runs = booleanRuns(
+      ohneSamples.map((sample, index) => open(sample) && (mitSamples[index]?.value ?? sample.value) > sample.value + 0.02)
+    );
+    const from = quarterCenterForHour(0);
+    const to = quarterCenterForHour(4);
+    const radii: Array<{ outer: number; inner: number }> = [];
+    for (const run of runs) {
+      const clamped = clampRibbon(
+        mitSamples.slice(run.start, run.end + 1),
+        ohneSamples.slice(run.start, run.end + 1),
+        pxToUser(1.5, view.w, framePx)
+      );
+      clamped.outer.forEach((sample, index) => {
+        if (sample.angleDeg < from || sample.angleDeg > to) return;
+        radii.push({ outer: sample.radius, inner: clamped.inner[index].radius });
+      });
+    }
+    expect(radii.length).toBeGreaterThan(40);
+    expect(sharpRadiusTurns(radii.map((sample) => sample.outer), toPx)).toEqual([]);
+    expect(sharpRadiusTurns(radii.map((sample) => sample.inner), toPx)).toEqual([]);
+  });
+
   it("holds a same-sign day on its own side of the zero circle", () => {
     const positive = day(Array.from({ length: 96 }, (_, index) => 2 + (index % 7)));
     expect(positive.every((sample) => sample.radius >= RING_R0 - 0.001)).toBe(true);
@@ -247,6 +340,20 @@ describe("smooth day ring", () => {
     expect(negative.every((sample) => sample.radius <= RING_R0 + 0.001)).toBe(true);
   });
 });
+
+/** Sign changes of the second difference whose amplitude exceeds `limitPx`. */
+function sharpRadiusTurns(radii: readonly number[], toPx: number, limitPx = 0.5): number[] {
+  const turns: number[] = [];
+  let previous = 0;
+  for (let index = 1; index < radii.length - 1; index += 1) {
+    const second = (radii[index + 1] - 2 * radii[index] + radii[index - 1]) * toPx;
+    if (index > 1 && second * previous < 0 && Math.max(Math.abs(second), Math.abs(previous)) > limitPx) {
+      turns.push(second);
+    }
+    previous = second;
+  }
+  return turns;
+}
 
 function at(angleDeg: number, radius: number): { x: number; y: number } {
   const rad = (angleDeg * Math.PI) / 180;

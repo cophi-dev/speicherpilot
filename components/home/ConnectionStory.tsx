@@ -456,7 +456,7 @@ function StoryChart({
           {step >= 1 && peak ? (
             <text
               x={x(peak.hour)}
-              y={stacked ? y(peak.netKw) - 6 : y(peak.netKw) + 8 + 13}
+              y={stacked ? y(Math.max(peak.netKw, story.limitKw)) - 9 : y(peak.netKw) + 8 + 13}
               textAnchor="middle"
               className="story-halo fill-foreground"
               fontSize={stacked ? 11 : 13}

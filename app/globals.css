@@ -273,8 +273,8 @@
 
 .story-halo {
   paint-order: stroke;
-  stroke: hsl(var(--card));
-  stroke-width: 3px;
+  stroke: hsl(var(--background));
+  stroke-width: 4px;
   stroke-linejoin: round;
 }
 

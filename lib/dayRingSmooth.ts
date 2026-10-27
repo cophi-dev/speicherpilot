@@ -106,15 +106,42 @@ export function ringTip(value: number): string {
  * The curve runs from the first quarter to the last and does not cross the midnight gap.
  * An interpolated radius stays between the two neighbouring supports, so the edge cannot show a value the data does not have.
  */
+/**
+ * One knot per clock angle.
+ * A fall-back day repeats 02:00–02:45. Two knots on one angle make the next
+ * interval run from the later hour back to the earlier hour, three times:
+ * a peak, then a steep drop. The repeated hour is averaged before the cubic.
+ */
+export function oneKnotPerClockAngle(
+  series: readonly { angleDeg: number; value: number }[]
+): { angleDeg: number; value: number }[] {
+  const groups = new Map<number, { angleDeg: number; sum: number; count: number }>();
+  for (const sample of series) {
+    const key = Math.round(sample.angleDeg * 1000);
+    const group = groups.get(key);
+    if (group) {
+      group.sum += sample.value;
+      group.count += 1;
+    } else {
+      groups.set(key, { angleDeg: sample.angleDeg, sum: sample.value, count: 1 });
+    }
+  }
+  return [...groups.values()]
+    .sort((left, right) => left.angleDeg - right.angleDeg)
+    .map((group) => ({ angleDeg: group.angleDeg, value: group.sum / group.count }));
+}
+
 export function smoothPolarSamples(
   series: readonly { angleDeg: number; value: number }[],
   radiusOf: (value: number) => number,
   zeroRadius: number
 ): CurveSample[] {
   void zeroRadius;
-  const controls: Control[] = [...series]
-    .sort((a, b) => a.angleDeg - b.angleDeg)
-    .map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: radiusOf(sample.value) }));
+  const controls: Control[] = oneKnotPerClockAngle(series).map((sample) => ({
+    angle: sample.angleDeg,
+    value: sample.value,
+    radius: radiusOf(sample.value),
+  }));
   return sampleMonotone(controls);
 }
 
