@@ -79,7 +79,8 @@ describe("germanyRevenueModel", () => {
       "2026-05-12T19:00:00.000Z",
     ]);
 
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchMock.mock.calls[0][1]?.next?.revalidate).toBe(900);
     expect(points.map((point) => point.timestampIso)).toEqual([
       "2026-05-11T10:00:00.000Z",
       "2026-05-11T18:00:00.000Z",
@@ -130,7 +131,7 @@ describe("germanyRevenueModel", () => {
     const points = await __GERMANY_REVENUE_MODEL_TESTING__.getRecentSmardPoints();
     const { marketReference, marketContext } = await getGermanyMarketRevenueReference();
 
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
     expect(points).toHaveLength(4);
     expect(marketReference.spotPriceStatus).toBe("live");
     expect(marketReference.sampledDays).toBe(2);
@@ -140,6 +141,18 @@ describe("germanyRevenueModel", () => {
     expect(marketContext?.averageHighPriceEurPerMwh).toBeCloseTo(200, 6);
     expect(marketContext?.negativePriceSharePct).toBeCloseTo(25, 6);
     expect(marketContext?.eveningPeakPremiumEurPerMwh).toBeCloseTo(195, 6);
+  });
+
+  it("does not call a failed SMARD read a live price", async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockRejectedValue(new Error("SMARD down"));
+    mockedCurtailment.mockResolvedValue(null);
+
+    const { marketReference, marketContext } = await getGermanyMarketRevenueReference();
+
+    expect(marketReference.spotPriceStatus).toBe("fallback_unavailable");
+    expect(marketReference.derivedSpotSpreadEurPerMwh).toBe(0);
+    expect(marketContext).toBeNull();
   });
 
   it("selects the published redispatch reference period for the Berlin date", () => {
