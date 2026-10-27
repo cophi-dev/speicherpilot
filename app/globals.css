@@ -2763,6 +2763,8 @@
 }
 
 .day-movement-pin .day-ring-key-list,
+.day-movement-pin .day-ring-block.is-compact .day-ring-key-list,
+.day-movement-pin .day-ring-block.is-legend .day-ring-key-list,
 .day-movement-pin .day-callout-list {
   display: none;
 }
@@ -2770,27 +2772,42 @@
 @media (max-width: 959px) {
   .day-movement-pin {
     top: 4rem;
-    justify-content: space-between;
-    gap: 12px;
-    height: calc(100svh - 4rem - 124px);
-    max-height: calc(100svh - 4rem - 124px);
+    display: grid;
+    /* Heading, then three equal bands: above the ring, between ring and step, below the step. */
+    grid-template-rows: auto 1fr auto 1fr auto 1fr;
+    align-content: start;
+    gap: 0;
+    height: calc(100svh - 4rem);
+    max-height: calc(100svh - 4rem);
     background: hsl(var(--background));
     overflow: hidden;
   }
 
   .day-movement-fit {
+    display: contents;
     width: 100%;
+  }
+
+  .day-movement-head {
+    grid-row: 1;
+  }
+
+  .day-movement-pin .day-ring-block {
+    grid-row: 3;
+    align-self: start;
   }
 
   .day-movement-pin .day-ring-frame {
     width: min(100%, calc(100svh - 4rem - 96px - 220px));
+    margin-inline: 0;
   }
 
   .day-movement-active {
     display: block;
+    grid-row: 5;
+    align-self: start;
     flex: 0 0 auto;
-    /* Pull the step copy toward the painted ring. 60px is inside the 50–70px brief and leaves the ink-to-text band under 130px. */
-    margin-bottom: 60px;
+    margin-bottom: 0;
   }
 
   .day-movement-active p {
