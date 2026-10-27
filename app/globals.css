@@ -300,6 +300,7 @@
     border-bottom: 1px solid hsl(var(--border));
     margin-inline: -1.25rem;
     padding: 8px 1.25rem 12px;
+    min-height: 420px;
   }
 }
 
@@ -2256,34 +2257,45 @@
     margin-inline: calc((100% - min(358px, 100vw - 16px)) / 2);
   }
   .day-hero-screen .day-order-ring > figure .day-ring-frame {
-    width: min(100cqw, 100cqh, 720px);
-    height: min(100cqw, 100cqh, 720px);
-    max-width: min(100cqw, 100cqh, 720px);
-    margin-inline: auto;
+    width: min(358px, calc(100vw - 32px));
+    height: min(358px, calc(100vw - 32px));
+    max-width: min(358px, calc(100vw - 32px));
+    max-height: none;
+    margin-inline: calc((100% - min(358px, calc(100vw - 32px))) / 2);
   }
 }
 
 @media (max-width: 959px) {
-  .day-hero-screen .day-hero-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(148px, 0.8fr);
-    grid-template-areas:
-      "kicker kicker"
-      "title title"
-      "slider ring"
-      "controls ring"
-      "legend legend";
-    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-    align-items: stretch;
-    column-gap: 12px;
-    row-gap: 8px;
+  .day-hero-screen {
+    height: auto;
+    max-height: none;
+    min-height: 100svh;
   }
-  .day-hero-screen .day-order-kicker { grid-area: kicker; }
-  .day-hero-screen .day-order-title { grid-area: title; }
-  .day-hero-screen .day-order-slider { grid-area: slider; }
-  .day-hero-screen .day-order-controls { grid-area: controls; }
-  .day-hero-screen .day-order-ring { grid-area: ring; align-self: stretch; height: 100%; }
-  .day-hero-screen .day-order-legend { grid-area: legend; }
+  .day-hero-screen .day-hero-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+  .day-hero-screen .day-order-ring {
+    flex: 0 0 auto;
+    height: auto;
+    align-self: stretch;
+  }
+  .day-hero-screen .day-order-ring > figure,
+  .day-hero-screen .day-ring-block {
+    flex: 0 0 auto;
+    height: auto;
+    justify-content: flex-start;
+  }
+  .day-hero-screen .day-order-ring > figure {
+    container-type: normal;
+  }
+  .day-hero-screen .day-ring-frame {
+    width: min(520px, 100%);
+    height: min(520px, 100%);
+    max-width: min(520px, 100%);
+    max-height: none;
+  }
   .day-hero-screen .day-stats {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
@@ -2330,6 +2342,15 @@
     align-items: stretch;
     row-gap: 8px;
     grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  }
+  .day-hero-screen .day-ring-block {
+    justify-content: flex-start;
+  }
+  .day-hero-screen .day-ring-frame {
+    width: min(100cqw, 720px, calc(100cqh + 30px));
+    height: min(100cqw, 720px, calc(100cqh + 30px));
+    max-width: min(100cqw, 720px, calc(100cqh + 30px));
+    max-height: min(100cqw, 720px, calc(100cqh + 30px));
   }
   .day-hero-screen .day-order-ring {
     height: 100%;
@@ -2417,6 +2438,17 @@
   top: 5rem;
   z-index: 2;
   align-self: start;
+  max-height: calc(100svh - 5rem);
+}
+
+.day-movement-pin .day-ring-block {
+  max-height: calc(100svh - 5rem);
+}
+
+.day-movement-pin .day-ring-frame {
+  width: min(100%, 640px, calc(100svh - 18rem));
+  max-height: calc(100svh - 18rem);
+  margin-inline: auto;
 }
 
 @media (max-width: 959px) {
@@ -2427,7 +2459,7 @@
 
 .day-movements li {
   scroll-margin-top: 5rem;
-  min-height: 42vh;
+  min-height: 78vh;
 }
 
 .story-step {
@@ -2444,7 +2476,7 @@
 }
 
 .day-movements ol {
-  padding-bottom: 30vh;
+  padding-bottom: 46vh;
 }
 
 .day-movements li h3,
@@ -2730,9 +2762,9 @@ html:not(.dark) .day-story .day-ink-arc {
   }
   .day-movements ol {
     display: block;
-    padding-bottom: 40vh;
+    padding-bottom: 72vh;
   }
-  .day-movements li { min-height: 60vh; }
+  .day-movements li { min-height: 82vh; }
   .day-doors { grid-template-columns: 1fr 1fr; }
 }
 
