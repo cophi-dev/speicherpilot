@@ -428,8 +428,8 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
               <div>
                 <p>
                   {tx(
-                    "Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine flexible Anschlussvereinbarung anbieten. Sie setzt der höchsten Bezugs- oder Einspeiseleistung eine Grenze, fest oder veränderlich.",
-                    "Under section 17 (2b) of the Energy Industry Act the grid operator can offer a flexible connection agreement. It sets a fixed or a changing limit on the highest withdrawal or feed-in."
+                    "Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine flexible Anschlussvereinbarung anbieten. Sie setzt der höchsten Bezugs- oder Einspeiseleistung eine Grenze, statisch oder dynamisch.",
+                    "Under section 17 (2b) of the Energy Industry Act the grid operator can offer a flexible connection agreement. It sets a static or a dynamic limit on the highest withdrawal or feed-in."
                   )}
                 </p>
                 <p>
@@ -437,6 +437,9 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
                     "Bei Bollingstedt sind Bezug und Einspeisung dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.",
                     "At Bollingstedt, withdrawal and feed-in are limited dynamically. The limits are not published."
                   )}
+                </p>
+                <p>
+                  <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
                 </p>
               </div>
             </aside>
@@ -704,6 +707,8 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
               <a href={facts.dashboardHref}>{tx("echte Fahrweise beim Betreiber", "real operation at the operator")}</a>
               {" · "}
               <a href={facts.sources[3].href}>SH Netz</a>
+              {" · "}
+              <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
             </p>
           </div>
         </div>

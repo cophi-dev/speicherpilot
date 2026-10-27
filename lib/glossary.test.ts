@@ -35,6 +35,11 @@ const REQUIRED = [
   "fca",
   "grossspeicher",
   "ladezustand",
+  "netzgrenze",
+  "baukostenzuschuss",
+  "leistungspreis",
+  "n-1",
+  "statisch-dynamisch",
 ] as const;
 
 describe("glossary", () => {

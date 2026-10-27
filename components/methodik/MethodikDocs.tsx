@@ -8,6 +8,7 @@ import { useLanguage } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { REFERENCE_PARK } from "@/lib/referencePark";
 import { GLOSSARY } from "@/lib/glossary";
+import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 
@@ -20,6 +21,7 @@ const CHAPTERS = [
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
   { id: "peak-erklaert", de: "Peak Shaving", en: "Peak shaving" },
   { id: "modelltag", de: "Modelltag Bollingstedt", en: "Bollingstedt model day" },
+  { id: "szenarien", de: "Szenarien", en: "Scenarios" },
   { id: "quellen", de: "Quellen", en: "Sources" },
 ] as const;
 
@@ -257,9 +259,10 @@ export function MethodikDocs() {
               <p>{tx(`Der Ring ist ein Modelltag. Er fährt 103,5 MW und 238,5 MWh gegen die Day-Ahead-Preise von gestern in der Gebotszone DE-LU. Der Wirkungsgrad ist der gemeinsame Standard, ${rtePct} % Round-Trip, Spanne 80–90 %, je Richtung die Wurzel daraus. Der Ladezustand bleibt zwischen 10 % und 90 %, der Start liegt bei 50 %, und der Tag endet nicht darunter. Modell: lädt mittags in den billigsten Viertelstunden und gibt abends (Vorrang 17–21 Uhr) in den teuersten ab, höchstens so viel, wie es an diesem Tag geladen hat. Das sind Annahmen, keine Messung am Standort. Die echte Fahrweise steht beim Betreiber und wird hier nicht übernommen.`, `The ring is a model day. It runs 103.5 MW and 238.5 MWh against yesterday’s day-ahead prices in the DE-LU bidding zone. Round-trip efficiency is the shared standard, ${rtePct}%, span 80–90%, and each direction uses the square root. The state of charge stays between 10% and 90%, the day starts at 50%, and it does not end below that. Model: it charges at midday in the cheapest quarter-hours and discharges in the evening (priority 17:00–21:00) in the most expensive ones, at most as much as it charged on this day. Those are assumptions, not a measurement at the site. The real operation is published by the operator and is not copied here.`)}</p>
               <p>{tx("Modellannahme für die Auswahl. Der Score einer Viertelstunde ist der Day-Ahead-Preis plus Abendzuschlag plus Volatilitätsterm. Der Abendzuschlag gilt von 17 bis 21 Uhr und ist 0,18 mal die Preisspanne des Tages, sonst null. Der Volatilitätsterm ist 0,12 mal die normierte Streuung mal dieselbe Preisspanne. Die normierte Streuung ist die Standardabweichung der Preise über die letzten vier Viertelstunden, geteilt durch die größte Standardabweichung des Tages. Abgegeben wird bei den höchsten Scores, geladen davor bei den niedrigsten Preisen.", "Model assumption for the choice. A quarter-hour’s score is the day-ahead price plus an evening bonus plus a volatility term. The evening bonus applies from 17:00 to 21:00 and is 0.18 times the day’s price range, otherwise zero. The volatility term is 0.12 times the normalised spread times that same price range. The normalised spread is the standard deviation of prices over the last four quarter-hours, divided by the day’s largest standard deviation. Discharge uses the highest scores, and charging before that uses the lowest prices.")}</p>
             </section>
+            <SzenarienMethodik language={language} />
             <section id="quellen">
               <details className="site-fold">
-              <summary><h2>{tx("09 Quellen", "09 Sources")}</h2></summary>
+              <summary><h2>{tx("10 Quellen", "10 Sources")}</h2></summary>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
