@@ -268,7 +268,32 @@
   flex-direction: column;
   gap: 12px;
   background: hsl(var(--background));
+  padding-top: 12px;
   padding-bottom: 12px;
+}
+
+.connection-story-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 16px;
+}
+
+.connection-story-head h2 {
+  margin: 0;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+}
+
+.connection-story-count {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.connection-story-lead {
+  margin: 0;
 }
 
 .story-halo {
@@ -297,11 +322,11 @@
 
 @media (max-width: 1023px) {
   .connection-story-stage {
-    --story-read: max(280px, 42svh);
+    --story-read: max(200px, 28svh);
     gap: 8px;
     border-bottom: 1px solid hsl(var(--border));
     margin-inline: -1.25rem;
-    padding: 8px 1.25rem 10px;
+    padding: 12px 1.25rem 12px;
     height: auto;
     max-height: calc(100svh - 4rem - var(--story-read));
     overflow: hidden;
@@ -309,8 +334,8 @@
 
   .connection-story-stage .connection-story-chart {
     /* Stay compact so the steps below have a real reading band, including on a short phone. */
-    height: clamp(128px, 18svh, 190px);
-    max-height: calc(100svh - 4rem - var(--story-read) - 168px);
+    height: clamp(120px, 18svh, 190px);
+    max-height: calc(100svh - 4rem - var(--story-read) - 320px);
     min-height: 0;
     flex: 0 0 auto;
   }
@@ -2686,26 +2711,52 @@
 .day-movement-story {
   display: grid;
   gap: 20px;
-  margin-top: 24px;
+  margin-top: 0;
 }
 
 .day-movement-pin {
   position: sticky;
-  top: 5rem;
+  top: 4rem;
   z-index: 2;
   align-self: start;
-  max-height: calc(100svh - 5rem);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  height: calc(100svh - 4rem);
+  max-height: calc(100svh - 4rem);
+  padding-top: 12px;
 }
 
-.day-movement-live {
+.day-movement-fit {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: min(100%, 640px, calc(100svh - 4rem - 5.5rem));
   flex: 0 0 auto;
-  height: 28px;
-  margin: 0 0 8px;
-  color: hsl(var(--foreground));
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  margin-inline: auto;
+}
+
+.day-movement-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 12px;
+  flex: 0 0 auto;
+}
+
+.day-movement-head h2 {
+  margin: 0;
+}
+
+.day-movement-count {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
   font-size: 12px;
-  line-height: 28px;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.08em;
+  line-height: 1;
 }
 
 .day-movement-active {
@@ -2713,54 +2764,91 @@
 }
 
 .day-movement-pin .day-ring-block {
-  max-height: calc(100svh - 5rem);
+  display: block;
+  flex: 0 0 auto;
+  min-height: 0;
+  max-height: none;
+  width: 100%;
 }
 
 .day-movement-pin .day-ring-frame {
-  width: min(100%, 640px, calc(100svh - 9rem));
-  max-height: calc(100svh - 9rem);
-  margin-inline: auto;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 1;
+  margin-inline: 0;
+}
+
+.day-movement-pin .day-ring-svg {
+  width: 100%;
+  height: auto;
+  transform: none;
+}
+
+.day-movement-pin .day-ring-key-list,
+.day-movement-pin .day-ring-block.is-compact .day-ring-key-list,
+.day-movement-pin .day-ring-block.is-legend .day-ring-key-list,
+.day-movement-pin .day-callout-list {
+  display: none;
 }
 
 @media (max-width: 959px) {
   .day-movement-pin {
-    --movement-read: max(280px, 46svh);
     top: 4rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 8px;
-    height: auto;
-    max-height: calc(100svh - 4rem - var(--movement-read));
+    display: grid;
+    /* Heading, then three equal bands: above the ring, between ring and step, below the step. */
+    grid-template-rows: auto 1fr auto 1fr auto 1fr;
+    align-content: start;
+    gap: 0;
+    height: calc(100svh - 4rem);
+    max-height: calc(100svh - 4rem);
     background: hsl(var(--background));
     overflow: hidden;
   }
 
-  .day-movement-active {
-    display: none;
+  .day-movement-fit {
+    display: contents;
+    width: 100%;
+  }
+
+  .day-movement-head {
+    grid-row: 1;
   }
 
   .day-movement-pin .day-ring-block {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: none;
+    grid-row: 3;
+    align-self: start;
   }
 
   .day-movement-pin .day-ring-frame {
-    width: min(100%, calc(100svh - 4rem - var(--movement-read) - 44px));
-    max-width: 100%;
-    height: auto;
-    aspect-ratio: 1;
-    margin-inline: auto;
+    width: min(100%, calc(100svh - 4rem - 96px - 220px));
+    margin-inline: 0;
   }
 
-  .day-movement-pin .day-ring-svg {
-    transform: none;
+  .day-movement-active {
+    display: block;
+    grid-row: 5;
+    align-self: start;
+    flex: 0 0 auto;
+    margin-bottom: 0;
   }
 
-  .day-movement-pin .day-callout-list,
-  .day-movement-pin .day-ring-key-list {
-    display: none;
+  .day-movement-active p {
+    margin: 6px 0 0;
+    max-width: 36ch;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.45;
+  }
+
+  .day-movement-active .day-movement-n {
+    margin-top: 0;
+  }
+
+  .day-movement-active-title {
+    color: hsl(var(--foreground));
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.3;
   }
 }
 
@@ -2813,13 +2901,13 @@
   }
 
   .day-movements .day-step-card {
-    position: relative;
-    width: auto;
-    height: auto;
-    margin: 0;
-    padding: 4px 0 0;
-    overflow: visible;
-    clip: auto;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
   }
 }
 
@@ -3114,11 +3202,17 @@ html:not(.dark) .day-story .day-ink-arc {
   }
   .day-movement-pin {
     top: 4rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     height: calc(100svh - 4rem);
     max-height: calc(100svh - 4rem);
+  }
+  .day-movement-head {
+    display: block;
+  }
+  .day-movement-count {
+    position: absolute;
+    top: 43px;
+    left: calc(100% + 20px);
   }
   .day-movements ol {
     display: block;
@@ -3128,6 +3222,13 @@ html:not(.dark) .day-story .day-ink-arc {
   .day-movements li:first-child { min-height: 60vh; }
   .day-movements li:last-child { min-height: 60vh; }
   .day-doors { grid-template-columns: 1fr 1fr; }
+}
+
+/* Below ~760px the 44px title wraps, so the square ring has to leave room for two lines. */
+@media (min-width: 960px) and (max-height: 760px) {
+  .day-movement-fit {
+    width: min(100%, 640px, calc(100svh - 4rem - 136px));
+  }
 }
 
 @media (min-width: 1100px) {

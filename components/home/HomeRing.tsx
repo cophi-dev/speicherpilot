@@ -243,25 +243,29 @@ function Movements({ story, language, hours }: { story: LiveDispatchStory; langu
     return () => observer.disconnect();
   }, []);
   const active = steps.find((step) => step.id === highlight) ?? steps[0];
+  const stepNo = steps.findIndex((step) => step.id === highlight) + 1;
   return (
     <div className="day-movements">
-      <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
       <div className="day-movement-story">
         <div className="day-movement-pin">
-          <p className="day-movement-live">
-            {tx("Ein Tag in drei Bewegungen", "One day in three movements")}
-            {" · "}
-            {steps.findIndex((step) => step.id === highlight) + 1}/3
-          </p>
-          <DayRing
-            points={story.points}
-            label={active.title}
-            description={active.body}
-            highlight={highlight}
-            showShift={false}
-            showHourTicks={false}
-            chargedGwh={0}
-          />
+          <div className="day-movement-fit">
+            <div className="day-movement-head">
+              <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
+              <p className="day-movement-count num">
+                <span className="sr-only">{tx("Schritt ", "Step ")}</span>
+                {stepNo}/3
+              </p>
+            </div>
+            <DayRing
+              points={story.points}
+              label={active.title}
+              description={active.body}
+              highlight={highlight}
+              showShift={false}
+              showHourTicks={false}
+              chargedGwh={0}
+            />
+          </div>
           <div className="day-movement-active" aria-hidden="true">
             <p className="num day-movement-n">{active.n}</p>
             <p className="day-movement-active-title">{active.title}</p>

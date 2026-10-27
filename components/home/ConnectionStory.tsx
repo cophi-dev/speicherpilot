@@ -70,34 +70,6 @@ export function ConnectionStory() {
   }, []);
 
   useEffect(() => {
-    const stage = stageRef.current;
-    const sync = () => {
-      const card = stepsRef.current[stepsRef.current.length - 1]?.querySelector(".story-step-card");
-      if (!stage || !(card instanceof HTMLElement)) return;
-      if (window.matchMedia("(min-width: 1024px)").matches) {
-        stage.style.transform = "";
-        return;
-      }
-      // The chart can follow the last card, but only until the section line would leave the header.
-      const top = Number.parseFloat(getComputedStyle(stage).top) || 0;
-      const slot = top + stage.getBoundingClientRect().height + 16;
-      const brow = stage.querySelector("p");
-      const browOffset = brow instanceof HTMLElement ? brow.offsetTop : 0;
-      const maxLift = Math.max(0, browOffset - 8);
-      const shift = Math.max(Math.min(0, card.getBoundingClientRect().top - slot), -maxLift);
-      stage.style.transform = shift < -0.5 ? `translateY(${shift}px)` : "";
-    };
-    const onScroll = () => sync();
-    sync();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-
-  useEffect(() => {
     const ratios = new Map<number, number>();
     const nodes = stepsRef.current.filter((node): node is HTMLLIElement => node !== null);
     const observer = new IntersectionObserver(
@@ -136,33 +108,38 @@ export function ConnectionStory() {
     <section id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-12 md:py-16">
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">
         <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Supermarkt", "Example · supermarket")}</p>
-        <h2 id={titleId} className="mt-4 flex flex-wrap items-center gap-3 text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
-          {tx("Was ist Peak Shaving?", "What is peak shaving?")}
-          <GlossaryTip id="peak-shaving" language={language} />
-        </h2>
-        <p className="mt-4 max-w-[40ch] text-lg leading-snug">
-          {tx(
-            "Ein Wintertag, eine rote Linie, ein Speicher. Der Chart bleibt stehen. Mit jedem Schritt kommt eine Ebene dazu.",
-            "One winter day, one red line, one battery. The chart stays put. Each step adds a layer."
-          )}
-        </p>
 
-        <div className="connection-story mt-10">
+        <div className="connection-story mt-4">
           <div className="connection-story-pin">
             <div
               className="connection-story-stage"
               ref={stageRef}
               style={pinPx > 0 && !narrow ? { minHeight: pinPx } : undefined}
             >
+              <div className="connection-story-head">
+                <h2 id={titleId} className="text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
+                  {language === "de" ? "Was ist Peak " : "What is peak "}
+                  <span className="whitespace-nowrap">
+                    {language === "de" ? "Shaving?" : "shaving?"}
+                    <span className="ms-2 inline align-middle">
+                      <GlossaryTip id="peak-shaving" language={language} />
+                    </span>
+                  </span>
+                </h2>
+                <p className="connection-story-count num">{tx(`Schritt ${step + 1}/3`, `Step ${step + 1}/3`)}</p>
+              </div>
+              <p className="connection-story-lead max-w-[40ch] text-lg leading-snug">
+                {tx(
+                  "Ein Wintertag, eine rote Linie, ein Speicher. Der Chart bleibt stehen. Mit jedem Schritt kommt eine Ebene dazu.",
+                  "One winter day, one red line, one battery. The chart stays put. Each step adds a layer."
+                )}
+              </p>
               <div className="flex gap-1" aria-hidden="true">
                 {steps.map((item, index) => (
                   <span key={item.n} className={`h-1 flex-1 ${index <= step ? "bg-foreground" : "bg-border"}`} />
                 ))}
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="num text-[12px] leading-7 tracking-[0.02em] text-foreground">
-                  {tx(`Was ist Peak Shaving? · Schritt ${step + 1}/3`, `What is peak shaving? · Step ${step + 1}/3`)}
-                </p>
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 <p className="num border border-warning px-2 py-1 text-[12px] font-medium tracking-[0.08em] text-warning uppercase">
                   {tx("Beispieldaten", "Example data")}
                 </p>
