@@ -24,7 +24,8 @@ describe("methodik v2", () => {
     expect(document.body.textContent).toContain("Entscheidungsspielraum");
     expect(document.body.textContent).toContain("als angemessen ansehen");
     expect(document.body.textContent).not.toMatch(/Beurteilungsspielraum/);
-    expect(document.body.textContent).not.toMatch(/EnWG/);
+    expect(document.body.textContent).toContain("§ 17 Abs. 2b EnWG");
+    expect(document.body.textContent).toContain("238,5");
     expect(document.body.textContent).toContain("η");
     expect(document.getElementById("peak-erklaert")).not.toBeNull();
     expect(document.getElementById("wirkungsgrad")?.tagName).toBe("H3");

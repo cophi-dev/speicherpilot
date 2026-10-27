@@ -10,9 +10,16 @@ import { UtilisationLegend } from "@/components/day-ring/UtilisationLegend";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { SiteSimulator } from "@/components/site/SiteSimulator";
+import {
+  BESS_DISPATCH_INITIAL_SOC_FRAC,
+  BESS_DISPATCH_SOC_MAX_FRAC,
+  BESS_DISPATCH_SOC_MIN_FRAC,
+} from "@/lib/bessDispatchSimulator";
 import { connectionLight } from "@/lib/connectionLight";
-import { FLOWER_BERGEDORF } from "@/lib/flowerBergedorf";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
+import { REFERENCE_PARK_DISPATCH_RULE, referenceParkFullDrawKw, type ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
+import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
+import { REFERENCE_PARK, referenceParkCRate, referenceParkHoursAtFullPower } from "@/lib/referencePark";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile, planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
 import { QUARTIER, planQuartier, quartierProfile } from "@/lib/quartierExample";
@@ -20,7 +27,7 @@ import { storyFromPlan, supermarketConnectionStory, type ConnectionPoint, type S
 import { parseLoadProfileCsv, planSite, type LoadProfile, type SitePlan } from "@/lib/sitePlanner";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
-export function SiteDay() {
+export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay | null }) {
   const params = useSearchParams();
   const view = parsePerspective(params.get("view")) ?? "projekt";
   const scenario = parseScenario(params.get("scenario")) ?? "supermarkt";
@@ -64,7 +71,7 @@ export function SiteDay() {
   return (
     <div className="site-v2">
       {scenario === "grossspeicher" ? (
-        <FlowerHero view={view} language={language} />
+        <ReferenceParkHero view={view} language={language} modelDay={modelDay} />
       ) : active ? (
         <ExampleHero view={view} scenario={scenario} language={language} plan={active.plan} story={active.story} example={!uploaded} />
       ) : null}
@@ -283,32 +290,158 @@ function siteCallouts(story: SiteConnectionStory, language: AppLanguage, netz: b
   ];
 }
 
-function FlowerHero({ view, language }: { view: Perspective; language: AppLanguage }) {
+function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; language: AppLanguage; modelDay: ReferenceParkModelDay | null }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const facts = FLOWER_BERGEDORF;
+  const facts = REFERENCE_PARK;
+  const hours = referenceParkHoursAtFullPower();
+  const cRate = referenceParkCRate();
+  const figure = formatQuantity(facts.powerMw, language, 1);
+  const note = tx("Gestrige Day-Ahead-Preise · nicht die echte Fahrweise", "Yesterday’s day-ahead prices · not the real operation");
+  const rule = tx(REFERENCE_PARK_DISPATCH_RULE.de, REFERENCE_PARK_DISPATCH_RULE.en);
+  const ringLabel = tx(
+    `MODELLTAG. ${facts.nameDe}, ${figure} MW.`,
+    `MODELLTAG. ${facts.nameEn}, ${figure} MW.`
+  );
+  const efficiency = modelDay?.efficiency ?? ROUND_TRIP_EFFICIENCY;
+  const socMin = modelDay?.socMinFrac ?? BESS_DISPATCH_SOC_MIN_FRAC;
+  const socMax = modelDay?.socMaxFrac ?? BESS_DISPATCH_SOC_MAX_FRAC;
+  const socStart = modelDay?.initialSocFrac ?? BESS_DISPATCH_INITIAL_SOC_FRAC;
+  const ringDescription = tx(
+    `${note}. ${rule} Annahme: Wirkungsgrad ${formatQuantity(efficiency * 100, language, 0)} %, Ladezustand von ${formatQuantity(socMin * 100, language, 0)} % bis ${formatQuantity(socMax * 100, language, 0)} %, Start bei ${formatQuantity(socStart * 100, language, 0)} %.`,
+    `${note}. ${rule} Assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
+  );
+  const points = modelDay?.points ?? [];
   return (
     <section className="day-hero site-hero" aria-labelledby="site-hero-title">
       <div className="day-hero-inner">
         <PerspectiveToggle view={view} scenario="grossspeicher" language={language} />
-        <div className="site-hero-grid">
-          <div>
+        <div className="site-hero-grid site-model-grid">
+          <div className="site-model-copy">
             <p className="day-kicker">{tx("Standort · öffentliche Referenz", "Site · public reference")} <span className="site-chip site-chip-public">{tx("Öffentliche Eckdaten", "Public key figures")}</span></p>
-            <h1 id="site-hero-title">{tx("Für Flower ist kein Tagesverlauf veröffentlicht. Der Ring bleibt leer.", "Flower has published no daily profile. The ring stays empty.")}</h1>
+            <h1 id="site-hero-title">{tx("Großspeicher Bollingstedt am Hochspannungsnetz.", "Bollingstedt large storage on the high-voltage grid.")}</h1>
             <dl className="site-facts">
-              <FlowerFact label={tx("Leistung", "Power")} value={`${formatQuantity(facts.powerMw, language, 0)} MW`} href={facts.sources[0].href} source={facts.sources[0].publisher} />
-              <FlowerFact label={tx("Energie", "Energy")} value={`${formatQuantity(facts.energyMwh, language, 0)} MWh`} href={facts.sources[0].href} source={facts.sources[0].publisher} />
-              <FlowerFact label={tx("Ort", "Place")} value={language === "de" ? facts.placeDe : facts.placeEn} href={facts.sources[1].href} source={facts.sources[1].publisher} />
+              <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={facts.mastrUnits[0].href} source={`MaStR ${facts.mastrUnits[0].seeId}`} />
+              <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${formatQuantity(facts.energyMwh, language, 1)} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
+              <ReferenceParkFact label={tx("Volle Leistung", "Full power")} value={`${formatQuantity(hours, language, 1)} h`} href={facts.sources[2].href} source={facts.sources[2].publisher} />
             </dl>
-            <p className="site-quiet">{tx("Keine Spannung, kein Anschluss, kein Erlös. Was die Quellen nicht nennen, steht hier nicht.", "No voltage, no connection, no revenue. What the sources do not state is not shown here.")}</p>
           </div>
-          <DayRing points={[]} unit="kW" scale="utilisation" mode="netz" empty showHourTicks={false} label={tx("Leerer Ring", "Empty ring")} description={tx("Kein veröffentlichter Tagesverlauf.", "No published daily profile.")} showSoc={false} showFlow={false} showShift={false} />
+          <div className="site-model-ring">
+            <DayRing
+              points={points}
+              unit="kW"
+              scale="utilisation"
+              limit={referenceParkFullDrawKw()}
+              showLimit={false}
+              mode="netz"
+              empty={points.length === 0}
+              showHourTicks
+              showSoc
+              showFlow={false}
+              showShift={false}
+              smoothSeries={false}
+              clearCenter
+              solidStrokes
+              referenceRing
+              label={ringLabel}
+              description={ringDescription}
+              centerMark={{ pill: "MODELLTAG", figure, unit: "MW", note: [] }}
+            />
+            <p className="day-model-caption">{note}</p>
+            <p className="day-model-rule">{rule}</p>
+            <p className="day-model-rule-link">
+              <a href="/methodik#modelltag">{tx("Regel im Detail →", "Rule in detail →")}</a>
+            </p>
+            {points.length > 0 ? (
+              <div className="day-sr">
+                <table>
+                  <caption>{tx(`${ringLabel} ${note}. Leistung in MW, plus ist Abgabe, minus ist Bezug.`, `${ringLabel} ${note}. Power in MW, plus is discharge, minus is charge.`)}</caption>
+                  <thead>
+                    <tr>
+                      <th>{tx("Zeit", "Time")}</th>
+                      <th>{tx("Leistung MW", "Power MW")}</th>
+                      <th>{tx("Ladezustand", "State of charge")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {points.map((point) => {
+                      const signed = point.dischargeMw > 0 ? point.dischargeMw : -point.chargeMw;
+                      return (
+                        <tr key={point.hour}>
+                          <td>{clock(point.hour)}</td>
+                          <td>{signed.toFixed(1)}</td>
+                          <td>{formatQuantity(point.soc * 100, language, 0)} %</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+          </div>
+          <div className="site-model-rest">
+            <dl className="site-meta">
+              <div>
+                <dt>{tx("Standort", "Site")}</dt>
+                <dd>{tx(`${facts.placeDe}, ${facts.districtDe} (${facts.state}). ${facts.project}.`, `${facts.placeEn}, ${facts.districtEn} (${facts.state}). ${facts.project}.`)}</dd>
+              </div>
+              <div>
+                <dt>{tx("In Betrieb", "In operation")}</dt>
+                <dd>{tx("seit 2025 (MaStR: 13.03.2025).", "since 2025 (MaStR: 13 March 2025).")}</dd>
+              </div>
+              <div>
+                <dt>{tx("Betreiber", "Operator")}</dt>
+                <dd>
+                  {tx(
+                    `${facts.operator}. Eigentümer ${facts.owner} seit 25.08.2026. Die Betreiber-Meldung nennt ${facts.operatorEnergyMwh} MWh. C-Rate ${formatQuantity(cRate, language, 2)}.`,
+                    `${facts.operator}. Owner ${facts.owner} since 25 August 2026. The operator’s release says ${facts.operatorEnergyMwh} MWh. C-rate ${formatQuantity(cRate, language, 2)}.`
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>{tx("Anschluss", "Connection")}</dt>
+                <dd>
+                  {tx(
+                    `Hochspannung (${facts.voltageKv} kV), ${facts.gridOperator}. Bezug und Einspeisung sind dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.`,
+                    `High voltage (${facts.voltageKv} kV), ${facts.gridOperator}. Withdrawal and feed-in are limited dynamically. The limits are not published.`
+                  )}
+                </dd>
+              </div>
+            </dl>
+            <aside className="site-note">
+              <GlossaryTip id="fca" language={language} />
+              <div>
+                <p>
+                  {tx(
+                    `Annahme: Wirkungsgrad ${formatQuantity(efficiency * 100, language, 0)} %, Ladezustand von ${formatQuantity(socMin * 100, language, 0)} % bis ${formatQuantity(socMax * 100, language, 0)} %, Start bei ${formatQuantity(socStart * 100, language, 0)} %.`,
+                    `Assumption: round-trip efficiency ${formatQuantity(efficiency * 100, language, 0)}%, state of charge from ${formatQuantity(socMin * 100, language, 0)}% to ${formatQuantity(socMax * 100, language, 0)}%, start at ${formatQuantity(socStart * 100, language, 0)}%.`
+                  )}{" "}
+                  <a href="/methodik#modelltag">{tx("Rechnung in der Methodik", "Calculation in the method")}</a>
+                </p>
+                <p>
+                  {modelDay
+                    ? tx(`Gebotszone DE-LU, Liefertag ${germanDate(modelDay.dateBerlin)}.`, `DE-LU bidding zone, delivery day ${germanDate(modelDay.dateBerlin)}.`)
+                    : tx("Der Day-Ahead-Preis von gestern ist gerade nicht geladen. Der Ring hat dann keinen Verlauf.", "Yesterday’s day-ahead price is not loaded right now. The ring then has no profile.")}
+                </p>
+              </div>
+            </aside>
+            <p className="site-quiet">
+              <a href={facts.dashboardHref}>{tx("echte Fahrweise beim Betreiber", "real operation at the operator")}</a>
+              {" · "}
+              <a href={facts.sources[3].href}>SH Netz</a>
+            </p>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function FlowerFact({ label, value, href, source }: { label: string; value: string; href: string; source: string }) {
+function germanDate(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  return `${day}.${month}.${year}`;
+}
+
+function ReferenceParkFact({ label, value, href, source }: { label: string; value: string; href: string; source: string }) {
   return (
     <div>
       <dt>{label}</dt>
@@ -410,7 +543,7 @@ function ExampleCards({ language, view, scenario }: { language: AppLanguage; vie
   const cards: Array<{ id: ScenarioId; kicker: string; title: string; body: string }> = [
     { id: "supermarkt", kicker: tx("Beispieldaten", "Example data"), title: tx("Supermarkt", "Supermarket"), body: tx("Fiktives Profil. Bleibt der Anschluss unter der Grenze?", "Fictional profile. Does the connection stay under the limit?") },
     { id: "quartier", kicker: tx("Beispieldaten", "Example data"), title: tx("Quartier", "Neighbourhood"), body: tx("150 Haushalte. Hält die Ortsnetzstation ihre Planleistung?", "150 households. Does the local substation hold its planning rating?") },
-    { id: "grossspeicher", kicker: tx("Öffentliche Eckdaten", "Public key figures"), title: tx("Großspeicher Flower", "Flower large storage"), body: tx("Bergedorf. Kein Tagesverlauf, nur veröffentlichte Zahlen.", "Bergedorf. No daily profile, only published figures.") },
+    { id: "grossspeicher", kicker: tx("Öffentliche Eckdaten", "Public key figures"), title: tx("Großspeicher Bollingstedt", "Bollingstedt large storage"), body: tx("Schleswig-Holstein. Modelltag, nicht die echte Fahrweise.", "Schleswig-Holstein. Model day, not the real operation.") },
   ];
   return (
     <section className="day-paper">

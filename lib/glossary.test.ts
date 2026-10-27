@@ -32,6 +32,7 @@ const REQUIRED = [
   "behind-the-meter",
   "front-of-meter",
   "fpa",
+  "fca",
   "grossspeicher",
   "ladezustand",
 ] as const;

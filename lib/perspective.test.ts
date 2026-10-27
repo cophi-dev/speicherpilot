@@ -13,7 +13,7 @@ describe("perspective urls", () => {
     expect(parseScenario("supermarkt")).toBe("supermarkt");
     expect(parseScenario("quartier")).toBe("quartier");
     expect(parseScenario("grossspeicher")).toBe("grossspeicher");
-    expect(parseScenario("flower")).toBeNull();
+    expect(parseScenario("unbekannt")).toBeNull();
   });
 
   it("puts the choice only in the query string", () => {
