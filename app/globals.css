@@ -337,8 +337,9 @@
 
 .step-rail span {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   min-width: 0;
   color: hsl(var(--muted-foreground));
   font-family: var(--font-plex-mono), ui-monospace, monospace;
@@ -349,7 +350,7 @@
 .step-rail i {
   display: block;
   height: 3px;
-  flex: 1 1 24px;
+  width: 100%;
   border-radius: 999px;
   background: hsl(var(--border));
   transform: scaleX(0.28);
@@ -359,6 +360,9 @@
 
 .step-rail em {
   font-style: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .step-rail .is-done i,
@@ -479,6 +483,11 @@
 
   .connection-story .story-step:last-child {
     min-height: 145vh;
+  }
+
+  .connection-story .story-step-card {
+    position: sticky;
+    top: 42vh;
   }
 
   .story-halo {
@@ -3362,6 +3371,11 @@ html:not(.dark) .day-story .day-ink-arc {
   .day-movements li { min-height: 85vh; }
   .day-movements li:first-child { min-height: 95vh; }
   .day-movements li:last-child { min-height: 140vh; }
+  /* The card stays in view while the last step's extra height holds the ring. */
+  .day-movements .day-step-card {
+    position: sticky;
+    top: 42vh;
+  }
   .day-doors { grid-template-columns: 1fr 1fr; }
 }
 
