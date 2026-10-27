@@ -10,6 +10,7 @@ import { ScenarioChart } from "@/components/szenarien/ScenarioChart";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   CORE_TO_OPTIMIZER,
+  formatInputNumber,
   limitValueText,
   monthName,
   parseDecimal,
@@ -156,10 +157,16 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
   const power = parseDecimal(raw.power);
   const limit = parseDecimal(raw.limit);
   const percent = power && power > 0 && limit !== null ? Math.round((limit / power) * 100) : 50;
-  const sliderPercent = Math.min(200, Math.max(0, percent));
+  const sliderPercent = Math.min(100, Math.max(0, percent));
   const valueText = power && power > 0 && limit !== null && limit >= 0 ? limitValueText(limit, power, language) : tx("Grenze nicht gesetzt", "Limit not set");
   const errors = validated.errors;
   const showResult = Boolean(copy && series && validated.inputs);
+  const assumptionError = Boolean(errors.power || errors.energy || errors.ratio);
+  const [assumptionsHeld, setAssumptionsHeld] = useState(false);
+  const assumptionsOpen = assumptionError || assumptionsHeld;
+  const frontErrors = [errors.power, errors.energy, errors.ratio, errors.limit, errors.delay].filter(
+    (item, index, list): item is string => Boolean(item) && list.indexOf(item) === index
+  );
   const hero = failed
     ? LOAD_ERROR
     : copy?.hero ?? tx("Szenarien rechnen für einen Speicher an einem Netzknoten.", "Run scenarios for one battery at one grid node.");
@@ -194,6 +201,7 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
               language={language}
               error={errors.limit}
               sliderPercent={sliderPercent}
+              shownPercent={percent}
               valueText={valueText}
               onLimit={(value) => patch({ limit: value })}
               onPercent={(nextPercent) => {
@@ -201,7 +209,7 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
                   return;
                 }
                 const next = (power * nextPercent) / 100;
-                patch({ limit: formatInput(next, language) });
+                patch({ limit: formatInputNumber(next, language) });
               }}
             />
             <fieldset className="szen-field">
@@ -238,8 +246,25 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
           <p className="szen-assumption-line">
             {assumptionLine(raw, language)} {tx("Beispielgröße, nicht die echten Werte von Bollingstedt.", "Example size, not the real Bollingstedt figures.")}
           </p>
-          <details className="szen-fold">
-            <summary>{tx("Annahmen ändern", "Change assumptions")}</summary>
+          <details
+            id="szen-assumptions"
+            className="szen-fold"
+            open={assumptionsOpen}
+            onToggle={(event) => {
+              if (!assumptionError) {
+                setAssumptionsHeld(event.currentTarget.open);
+              }
+            }}
+          >
+            <summary
+              onClick={(event) => {
+                if (assumptionError) {
+                  event.preventDefault();
+                }
+              }}
+            >
+              {tx("Annahmen ändern", "Change assumptions")}
+            </summary>
             <div className="szen-assumptions">
               <NumberField
                 id="szen-power"
@@ -255,8 +280,10 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
                 label={tx("Kapazität", "Capacity")}
                 suffix="MWh"
                 value={raw.energy}
-                error={errors.energy === errors.power ? undefined : errors.energy}
-                describedBy={errors.energy === errors.power ? "szen-power-error" : errors.ratio ? "szen-ratio-error" : undefined}
+                error={errors.energy && errors.energy !== errors.power ? errors.energy : undefined}
+                describedBy={
+                  errors.power && errors.energy === errors.power ? "szen-power-error" : errors.ratio ? "szen-ratio-error" : undefined
+                }
                 onChange={(value) => patch({ energy: value })}
               />
               {errors.ratio ? (
@@ -300,13 +327,16 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
             </div>
           </details>
 
-          <p className="szen-result">
-            {showResult && copy
-              ? copy.result
-              : errors.power || errors.limit || errors.delay || errors.ratio
-                ? tx("Die Rechnung wartet auf eine gültige Eingabe.", "The calculation is waiting for a valid input.")
-                : null}
-          </p>
+          {frontErrors.length > 0 ? (
+            <div className="szen-front-errors">
+              {frontErrors.map((text) => (
+                <p key={text} className="szen-error szen-front-error">
+                  {text}
+                </p>
+              ))}
+            </div>
+          ) : null}
+          <p className="szen-result">{showResult && copy ? copy.result : null}</p>
           <div className="sr-only" aria-live="polite">
             {live}
           </div>
@@ -329,24 +359,29 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
                 <article className="szen-card szen-card-a">
                   <h2>{tx("Anschluss voll", "Full connection")}</h2>
                   <p className="szen-figure">
-                    <span className="szen-figure-num">100</span> <span className="szen-unit">%</span>
+                    <span className="szen-figure-num">100</span>
+                    <span className="szen-unit">{"\u00A0%"}</span>
                   </p>
                   <p>{copy.cardA}</p>
                 </article>
                 <article className="szen-card szen-card-b">
                   <h2>
-                    {tx("flexible Anschlussvereinbarung", "flexible connection agreement")} <GlossaryTip id="fca" language={language} /> <GlossaryTip id="modellschaetzung" language={language} />
+                    {tx("flexible Anschlussvereinbarung", "flexible connection agreement")} <GlossaryTip id="fca" language={language} />
                   </h2>
                   <p className="szen-figure">
-                    <span className="szen-figure-num">{formatQuantity(Math.round(series.remainPct), language, 0)}</span> <span className="szen-unit">%</span>
+                    <span className="szen-figure-num">{formatQuantity(Math.round(series.remainPct), language, 0)}</span>
+                    <span className="szen-unit">{"\u00A0%"}</span>
                   </p>
                   <p>{copy.cardB}</p>
                 </article>
                 <article className="szen-card szen-card-c">
                   <h2>{tx("verzögerter Anschluss", "delayed connection")}</h2>
                   <p className="szen-figure">
-                    <span className="szen-figure-num">{formatQuantity(validated.inputs.delayMonths, language, 0)}</span>{" "}
-                    <span className="szen-unit">{tx("Monate", "months")}</span>
+                    <span className="szen-figure-num">{formatQuantity(validated.inputs.delayMonths, language, 0)}</span>
+                    <span className="szen-unit">
+                      {"\u00A0"}
+                      {validated.inputs.delayMonths === 1 ? tx("Monat", "month") : tx("Monate", "months")}
+                    </span>
                   </p>
                   <p>{copy.cardC}</p>
                 </article>
@@ -357,7 +392,17 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
                 percentC={series.percentC}
                 breakevenMonth={series.breakevenMonth}
                 label={copy.chart}
-                neverText={Math.abs(series.lossPct) < 1e-6 && validated.inputs.delayMonths > 0 ? copy.edges.at(-1) ?? null : null}
+                caption={tx(
+                  "Prozent eines Jahres Modellerlös von A, über 36 Monate. A durchgezogen, B gestrichelt, C gepunktet.",
+                  "Percent of one year of A’s model revenue, over 36 months. A solid, B dashed, C dotted."
+                )}
+                neverText={
+                  series.cumulativeB.every((value) => Math.abs(value) < 1e-4) && series.cumulativeC.every((value) => Math.abs(value) < 1e-4)
+                    ? tx("B und C erlösen nichts. Kein Gleichstand.", "B and C earn nothing. No crossover.")
+                    : Math.abs(series.lossPct) < 1e-6 && validated.inputs.delayMonths > 0
+                      ? copy.edges.at(-1) ?? null
+                      : null
+                }
                 missText={tx("nicht innerhalb von 36 Monaten", "not within 36 months")}
                 markLabel={tx("Gleichstand", "Crossover")}
               />
@@ -378,9 +423,9 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
                       {series.percentA.slice(1).map((value, index) => (
                         <tr key={index + 1}>
                           <th>{index + 1}</th>
-                          <td>{formatQuantity(value, language, 0)} %</td>
-                          <td>{formatQuantity(series.percentB[index + 1] ?? 0, language, 0)} %</td>
-                          <td>{formatQuantity(series.percentC[index + 1] ?? 0, language, 0)} %</td>
+                          <td>{formatQuantity(value, language, 0)}{"\u00A0%"}</td>
+                          <td>{formatQuantity(series.percentB[index + 1] ?? 0, language, 0)}{"\u00A0%"}</td>
+                          <td>{formatQuantity(series.percentC[index + 1] ?? 0, language, 0)}{"\u00A0%"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -388,7 +433,9 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
                 </div>
               </details>
               <details className="szen-fold">
-                <summary>{tx("Euro, Modellschätzung", "Euro, model estimate")}</summary>
+                <summary>
+                  {tx("Euro, Modellschätzung", "Euro, model estimate")} <GlossaryTip id="modellschaetzung" language={language} />
+                </summary>
                 <div className="szen-euro">
                   <p>
                     {tx(
@@ -398,8 +445,14 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
                   </p>
                   <p>
                     {tx(
-                      `Vergleich nur am Beispielspeicher 103,5 MW / 238,5 MWh, letzte 12 Monate, volle Leistung: dieser Optimierer ${euro(EXAMPLE_OPT, language)}, der vorsichtige Kern der Beispieltage ${euro(EXAMPLE_CORE, language)}. Der Optimierer liegt ${formatQuantity(CORE_TO_OPTIMIZER, language, 2)}-mal darüber. Das ist kein Umrechnungsfaktor für Ihre Eingabe.`,
-                      `Comparison only for the example battery of 103.5 MW / 238.5 MWh, the last 12 months, full power: this optimiser ${euro(EXAMPLE_OPT, language)}, the cautious core of the example days ${euro(EXAMPLE_CORE, language)}. The optimiser sits ${formatQuantity(CORE_TO_OPTIMIZER, language, 2)} times above it. That is not a conversion factor for your input.`
+                      `Vergleich nur am Beispielspeicher 103,5 MW / 238,5 MWh, letzte 12 Monate, volle Leistung. Die direkte Rechnung ergibt ${formatQuantity(EXAMPLE_OPT, language, 0)} €, Modellschätzung, obere Modellgrenze. Der vorsichtige Kern der Beispieltage ergibt ${formatQuantity(roundToThousands(EXAMPLE_CORE), language, 0)} €, Modellschätzung. Der Optimierer liegt ${formatQuantity(CORE_TO_OPTIMIZER, language, 2)}-mal darüber. Das gilt nur für dieses Beispiel und ist kein Umrechnungsfaktor für Ihre Eingabe.`,
+                      `Comparison only for the example battery of 103.5 MW / 238.5 MWh, the last 12 months, full power. The direct calculation is ${formatQuantity(EXAMPLE_OPT, language, 0)} €, a model estimate, the upper model bound. The cautious core of the example days is ${formatQuantity(roundToThousands(EXAMPLE_CORE), language, 0)} €, a model estimate. The optimiser sits ${formatQuantity(CORE_TO_OPTIMIZER, language, 2)} times above it. That holds only for this example and is not a conversion factor for your input.`
+                    )}
+                  </p>
+                  <p>
+                    {tx(
+                      "Jahr A in der Tabelle ist nicht diese direkte Summe. Die Tabelle interpoliert und rundet auf Tausend. Für den Beispielspeicher wird daraus 9.689.000 €, Modellschätzung. Der Abstand ist der Interpolationsfehler.",
+                      "Year A in the table is not that direct sum. The table interpolates and rounds to thousands. For the example battery that becomes €9,689,000, a model estimate. The gap is the interpolation error."
                     )}
                   </p>
                   <EuroTable language={language} series={series} />
@@ -410,14 +463,27 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
 
           <section className="szen-missing" aria-labelledby="szen-missing-title">
             <h2 id="szen-missing-title">{tx("Was hier fehlt", "What is missing here")}</h2>
-            <ul>
-              {MISSING.map((item) => (
-                <li key={item.id}>
-                  {item.tip ? <GlossaryTip id={item.tip} language={language} /> : null}
-                  {item.tip2 ? <GlossaryTip id={item.tip2} language={language} /> : null} {tx(item.de, item.en)}
-                </li>
-              ))}
-            </ul>
+            <p className="szen-missing-lead">
+              <GlossaryTip id="n-1" language={language} />{" "}
+              {tx("Netzseite fehlt.", "The grid side is missing.")}{" "}
+              <GlossaryTip id="baukostenzuschuss" language={language} /> <GlossaryTip id="leistungspreis" language={language} />{" "}
+              {tx(
+                "Baukostenzuschuss, Leistungspreis und Netzentgelte fehlen. AgNes ist ein Entwurf, Stand 27.10.2026.",
+                "Construction-cost contribution, demand charge and grid fees are missing. AgNes is a draft, as of 27 October 2026."
+              )}{" "}
+              <GlossaryTip id="statisch-dynamisch" language={language} />
+            </p>
+            <details className="szen-fold">
+              <summary>{tx("Alle Lücken", "Every gap")}</summary>
+              <ul>
+                {MISSING.map((item) => (
+                  <li key={item.id}>
+                    {item.tip ? <GlossaryTip id={item.tip} language={language} /> : null}
+                    {item.tip2 ? <GlossaryTip id={item.tip2} language={language} /> : null} {tx(item.de, item.en)}
+                  </li>
+                ))}
+              </ul>
+            </details>
           </section>
           <p className="szen-method">
             <a href="/methodik#szenarien">{tx("So ist gerechnet", "How this is calculated")}</a>
@@ -473,17 +539,12 @@ function assumptionLine(raw: FcaRaw, language: AppLanguage): string {
   return `${raw.power} MW, ${raw.energy} MWh, ${language === "de" ? "Start" : "start"} ${monthName(raw.startMonth, language)}, ${year}.`;
 }
 
-function formatInput(value: number, language: AppLanguage): string {
-  const digits = Math.abs(value - Math.round(value)) < 1e-6 ? 0 : 2;
-  const text = value.toFixed(digits);
-  return language === "de" ? text.replace(".", ",") : text;
-}
-
 function LimitField({
   raw,
   language,
   error,
   sliderPercent,
+  shownPercent,
   valueText,
   onLimit,
   onPercent,
@@ -492,6 +553,7 @@ function LimitField({
   language: AppLanguage;
   error?: string;
   sliderPercent: number;
+  shownPercent: number;
   valueText: string;
   onLimit: (value: string) => void;
   onPercent: (percent: number) => void;
@@ -509,18 +571,18 @@ function LimitField({
           className="szen-range"
           type="range"
           min={0}
-          max={200}
+          max={100}
           step={1}
           value={sliderPercent}
           aria-valuemin={0}
-          aria-valuemax={200}
+          aria-valuemax={100}
           aria-valuenow={sliderPercent}
           aria-valuetext={valueText}
           aria-describedby={errorId}
           aria-label={tx("Netzgrenze in Prozent der Leistung", "Grid limit as a percent of power")}
           onChange={(event) => onPercent(Number(event.target.value))}
         />
-        <span className="szen-percent">{sliderPercent} %</span>
+        <span className="szen-percent">{shownPercent}{"\u00A0%"}</span>
         <input
           id="szen-limit"
           className="szen-input"

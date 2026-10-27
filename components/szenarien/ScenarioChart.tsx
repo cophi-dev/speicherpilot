@@ -4,17 +4,18 @@ type ScenarioChartProps = {
   percentC: number[];
   breakevenMonth: number | null;
   label: string;
+  caption: string;
   neverText: string | null;
   missText: string;
   markLabel: string;
 };
 
 const WIDTH = 640;
-const HEIGHT = 300;
-const LEFT = 44;
+const HEIGHT = 420;
+const LEFT = 56;
 const RIGHT = 36;
-const TOP = 16;
-const BOTTOM = 32;
+const TOP = 28;
+const BOTTOM = 36;
 
 function niceMax(values: number[]): number {
   const peak = Math.max(100, ...values.filter((value) => Number.isFinite(value)));
@@ -36,7 +37,15 @@ function path(series: number[], max: number): string {
     .join(" ");
 }
 
-export function ScenarioChart({ percentA, percentB, percentC, breakevenMonth, label, neverText, missText, markLabel }: ScenarioChartProps) {
+function leftOf(x: number): string {
+  return `${(x / WIDTH) * 100}%`;
+}
+
+function topOf(y: number): string {
+  return `${(y / HEIGHT) * 100}%`;
+}
+
+export function ScenarioChart({ percentA, percentB, percentC, breakevenMonth, label, caption, neverText, missText, markLabel }: ScenarioChartProps) {
   const max = niceMax([...percentA, ...percentB, ...percentC]);
   const ticks = Array.from({ length: max / 50 + 1 }, (_, index) => index * 50);
   const endA = yAt(percentA[36] ?? 0, max);
@@ -50,7 +59,7 @@ export function ScenarioChart({ percentA, percentB, percentC, breakevenMonth, la
   const placed = new Map<string, number>();
   let last = -Infinity;
   for (const labelPoint of labels) {
-    const y = Math.max(labelPoint.y, last + 16);
+    const y = Math.max(labelPoint.y, last + 18);
     placed.set(labelPoint.id, y);
     last = y;
   }
@@ -58,46 +67,44 @@ export function ScenarioChart({ percentA, percentB, percentC, breakevenMonth, la
 
   return (
     <figure className="szen-chart">
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={label}>
-        {ticks.map((tick) => (
-          <g key={tick}>
-            <line className="szen-gridline" x1={LEFT} x2={WIDTH - RIGHT} y1={yAt(tick, max)} y2={yAt(tick, max)} />
-            <text className="szen-axis" x={LEFT - 8} y={yAt(tick, max) + 4} textAnchor="end">
+      <div className="szen-chart-plot">
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={label}>
+          {ticks.map((tick) => (
+            <line key={tick} className="szen-gridline" x1={LEFT} x2={WIDTH - RIGHT} y1={yAt(tick, max)} y2={yAt(tick, max)} />
+          ))}
+          <path className="szen-line szen-line-a" d={path(percentA, max)} />
+          <path className="szen-line szen-line-b" d={path(percentB, max)} />
+          <path className="szen-line szen-line-c" d={path(percentC, max)} />
+          {mark !== null ? <line className="szen-mark" x1={mark} x2={mark} y1={TOP} y2={HEIGHT - BOTTOM} /> : null}
+        </svg>
+        <div className="szen-chart-labels" aria-hidden="true">
+          {ticks.map((tick) => (
+            <span key={tick} className="szen-html-label szen-html-axis" style={{ left: leftOf(LEFT - 8), top: topOf(yAt(tick, max)) }}>
               {tick}
-            </text>
-          </g>
-        ))}
-        {[0, 12, 24, 36].map((month) => (
-          <text key={month} className="szen-axis" x={xAt(month)} y={HEIGHT - 8} textAnchor="middle">
-            {month}
-          </text>
-        ))}
-        <path className="szen-line szen-line-a" d={path(percentA, max)} />
-        <path className="szen-line szen-line-b" d={path(percentB, max)} />
-        <path className="szen-line szen-line-c" d={path(percentC, max)} />
-        <text className="szen-end szen-end-a" x={WIDTH - RIGHT + 6} y={(placed.get("A") ?? endA) + 4}>
-          A
-        </text>
-        <text className="szen-end szen-end-b" x={WIDTH - RIGHT + 6} y={(placed.get("B") ?? endB) + 4}>
-          B
-        </text>
-        <text className="szen-end szen-end-c" x={WIDTH - RIGHT + 6} y={(placed.get("C") ?? endC) + 4}>
-          C
-        </text>
-        {mark !== null ? (
-          <>
-            <line className="szen-mark" x1={mark} x2={mark} y1={TOP} y2={HEIGHT - BOTTOM} />
-            <text className="szen-mark-label" x={mark + 4} y={TOP + 14}>
+            </span>
+          ))}
+          {[0, 12, 24, 36].map((month) => (
+            <span key={month} className="szen-html-label szen-html-month" style={{ left: leftOf(xAt(month)), top: topOf(HEIGHT - 16) }}>
+              {month}
+            </span>
+          ))}
+          {(["A", "B", "C"] as const).map((id) => (
+            <span key={id} className={`szen-html-label szen-html-end szen-end-${id.toLowerCase()}`} style={{ left: leftOf(WIDTH - 6), top: topOf(placed.get(id) ?? 0) }}>
+              {id}
+            </span>
+          ))}
+          {mark !== null ? (
+            <span className="szen-html-label szen-html-mark" style={{ left: leftOf(mark + 6), top: topOf(TOP + 8) }}>
               {markLabel}
-            </text>
-          </>
-        ) : (
-          <text className="szen-miss" x={LEFT + 8} y={TOP + 28}>
-            {neverText ?? missText}
-          </text>
-        )}
-      </svg>
-      <figcaption className="szen-chart-caption">Prozent eines Jahres Modellerlös von A, über 36 Monate. A durchgezogen, B gestrichelt, C gepunktet.</figcaption>
+            </span>
+          ) : (
+            <span className="szen-html-note" style={{ left: leftOf(LEFT + 8), top: topOf(TOP + 4) }}>
+              {neverText ?? missText}
+            </span>
+          )}
+        </div>
+      </div>
+      <figcaption className="szen-chart-caption">{caption}</figcaption>
     </figure>
   );
 }

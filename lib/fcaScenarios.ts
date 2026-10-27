@@ -65,13 +65,92 @@ export function defaultRaw(language: AppLanguage = "de"): FcaRaw {
   };
 }
 
+function groupedInteger(value: string, separator: string): boolean {
+  const groups = value.split(separator);
+  if (groups.length === 0 || groups.some((group) => !/^\d+$/.test(group))) {
+    return false;
+  }
+  if (groups.length === 1) {
+    return groups[0].length > 0;
+  }
+  return groups[0].length >= 1 && groups[0].length <= 3 && groups.slice(1).every((group) => group.length === 3);
+}
+
+/**
+ * Reads a decimal. Comma is the German decimal mark, dot the English one.
+ * A grouped thousands mark is accepted in either sign (`1.000` and `1,000` are 1000).
+ * `1.000` is never read as 1. A dot in a URL value stays the decimal mark when the
+ * fraction is not a group of three (`103.5`).
+ */
 export function parseDecimal(raw: string): number | null {
-  const trimmed = raw.trim().replace(/\s/g, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) {
+  const trimmed = raw.trim().replace(/\s/g, "");
+  if (!trimmed || /e/i.test(trimmed)) {
     return null;
   }
-  const value = Number(trimmed);
-  return Number.isFinite(value) ? value : null;
+  const negative = trimmed.startsWith("-");
+  const body = negative ? trimmed.slice(1) : trimmed;
+  if (!body || body.startsWith("+") || body.startsWith("-")) {
+    return null;
+  }
+  const lastDot = body.lastIndexOf(".");
+  const lastComma = body.lastIndexOf(",");
+  let normalized = "";
+  if (lastDot >= 0 && lastComma >= 0) {
+    const decimalIsDot = lastDot > lastComma;
+    const parts = body.split(decimalIsDot ? "." : ",");
+    if (parts.length !== 2) {
+      return null;
+    }
+    const [intPart, fraction] = parts;
+    if (!groupedInteger(intPart, decimalIsDot ? "," : ".") || !/^\d+$/.test(fraction)) {
+      return null;
+    }
+    const thousand = decimalIsDot ? "," : ".";
+    normalized = `${intPart.split(thousand).join("")}.${fraction}`;
+  } else if (lastComma >= 0 && /^\d{1,3}(,\d{3})+$/.test(body)) {
+    normalized = body.split(",").join("");
+  } else if (lastComma >= 0 && /^\d+,\d+$/.test(body)) {
+    normalized = body.replace(",", ".");
+  } else if (lastDot >= 0 && /^\d{1,3}(\.\d{3})+$/.test(body) && !/^0\.\d{3}$/.test(body)) {
+    normalized = body.split(".").join("");
+  } else if (/^\d+(\.\d+)?$/.test(body)) {
+    normalized = body;
+  } else {
+    return null;
+  }
+  const value = Number(normalized);
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+  return negative ? -value : value;
+}
+
+export function serializeDecimal(value: number): string {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+  const negative = value < 0;
+  const rounded = Math.round(Math.abs(value) * 1_000_000) / 1_000_000;
+  const text = rounded.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+  return negative ? `-${text}` : text;
+}
+
+export function formatInputNumber(value: number, language: AppLanguage): string {
+  const text = serializeDecimal(value);
+  return language === "de" ? text.replace(".", ",") : text;
+}
+
+function queryNumber(raw: string): string {
+  const value = parseDecimal(raw);
+  return value === null ? raw.trim() : serializeDecimal(value);
+}
+
+function displayNumber(param: string | null, fallback: string, language: AppLanguage): string {
+  if (param === null) {
+    return fallback;
+  }
+  const value = parseDecimal(param);
+  return value === null ? param : formatInputNumber(value, language);
 }
 
 export function parseForm(value: string | null): FcaForm {
@@ -96,11 +175,11 @@ export function parseStartMonth(value: string | null): number {
 export function rawFromQuery(params: URLSearchParams, language: AppLanguage = "de"): FcaRaw {
   const base = defaultRaw(language);
   return {
-    power: params.get("p") ?? base.power,
-    energy: params.get("e") ?? base.energy,
-    limit: params.get("g") ?? base.limit,
+    power: displayNumber(params.get("p"), base.power, language),
+    energy: displayNumber(params.get("e"), base.energy, language),
+    limit: displayNumber(params.get("g"), base.limit, language),
     form: parseForm(params.get("form")),
-    delay: params.get("v") ?? base.delay,
+    delay: displayNumber(params.get("v"), base.delay, language),
     startMonth: parseStartMonth(params.get("start")),
     year: parseYear(params.get("jahr")),
   };
@@ -108,11 +187,11 @@ export function rawFromQuery(params: URLSearchParams, language: AppLanguage = "d
 
 export function queryFromRaw(raw: FcaRaw): string {
   const params = new URLSearchParams();
-  params.set("p", raw.power.trim().replace(",", "."));
-  params.set("e", raw.energy.trim().replace(",", "."));
-  params.set("g", raw.limit.trim().replace(",", "."));
+  params.set("p", queryNumber(raw.power));
+  params.set("e", queryNumber(raw.energy));
+  params.set("g", queryNumber(raw.limit));
   params.set("form", raw.form);
-  params.set("v", raw.delay.trim().replace(",", "."));
+  params.set("v", queryNumber(raw.delay));
   params.set("start", String(raw.startMonth));
   params.set("jahr", raw.year);
   return params.toString();
@@ -286,7 +365,9 @@ export function scenarioSeries(table: FcaTable, inputs: FcaInputs): ScenarioSeri
   const lossFree = Math.abs(lossPct) < 1e-6;
   if (!(lossFree && inputs.delayMonths > 0)) {
     for (let month = 1; month <= FCA_HORIZON; month += 1) {
-      if (cumulativeC[month] + 1e-6 >= cumulativeB[month]) {
+      const caughtUp = cumulativeC[month] + 1e-6 >= cumulativeB[month];
+      const bothZero = Math.abs(cumulativeC[month]) < 1e-4 && Math.abs(cumulativeB[month]) < 1e-4;
+      if (caughtUp && !bothZero) {
         breakevenMonth = month;
         break;
       }
@@ -337,7 +418,25 @@ function roundPct(value: number): number {
 
 function mwPhrase(value: number, language: AppLanguage): string {
   const digits = Number.isInteger(value) ? 0 : 2;
-  return `${formatQuantity(value, language, digits)} MW`;
+  return `${formatQuantity(value, language, digits)}\u00A0MW`;
+}
+
+function pctPhrase(value: number, language: AppLanguage): string {
+  return `${formatQuantity(roundPct(value), language, 0)}\u00A0%`;
+}
+
+function windowPhrase(form: FcaForm, language: AppLanguage): string {
+  if (form === "abend") {
+    return language === "de" ? "im Abendfenster" : "in the evening window";
+  }
+  if (form === "mittag") {
+    return language === "de" ? "im Mittagsfenster" : "in the midday window";
+  }
+  return "";
+}
+
+function bothIdle(series: ScenarioSeries): boolean {
+  return series.cumulativeB.every((value) => Math.abs(value) < 1e-4) && series.cumulativeC.every((value) => Math.abs(value) < 1e-4);
 }
 
 export type ScenarioCopy = {
@@ -353,17 +452,20 @@ export type ScenarioCopy = {
 
 export function scenarioCopy(inputs: FcaInputs, series: ScenarioSeries, language: AppLanguage): ScenarioCopy {
   const de = language === "de";
-  const remain = roundPct(series.remainPct);
-  const loss = roundPct(series.lossPct);
-  const delay = roundPct(series.delayPct);
+  const remain = pctPhrase(series.remainPct, language);
+  const loss = pctPhrase(series.lossPct, language);
+  const delay = pctPhrase(series.delayPct, language);
   const limit = mwPhrase(inputs.limitMw, language);
-  const share = roundPct((Math.min(inputs.limitMw, inputs.powerMw) / inputs.powerMw) * 100);
+  const share = pctPhrase((Math.min(inputs.limitMw, inputs.powerMw) / inputs.powerMw) * 100, language);
+  const window = windowPhrase(inputs.form, language);
+  const windowBit = window ? ` ${window}` : "";
+  const idle = bothIdle(series);
   const zeroText = de
     ? "Mit einer Grenze von 0 MW kann der Speicher im Modell nichts handeln."
     : "With a limit of 0 MW the battery cannot trade anything in the model.";
   const unboundText = de
-    ? "Die Grenze liegt über der Speicherleistung. Sie bremst nichts."
-    : "The limit is above the battery power. It does not slow anything down.";
+    ? `Die Grenze liegt über der Speicherleistung. Sie bremst${windowBit} nichts.`
+    : `The limit is above the battery power. It does not slow anything down${windowBit}.`;
   const noDelayText = de
     ? "Ohne Verzögerung gibt es keine Mehrkosten durch Warten."
     : "With no delay there is no extra model cost from waiting.";
@@ -373,6 +475,9 @@ export function scenarioCopy(inputs: FcaInputs, series: ScenarioSeries, language
   const neverText = de
     ? "Die flexible Variante verliert im Modell nichts, Warten lohnt sich im Modell nie."
     : "The flexible case loses nothing in the model, so waiting never pays in the model.";
+  const idleText = de
+    ? "B und C erlösen im Modell nichts. Es gibt keinen Gleichstand."
+    : "B and C earn nothing in the model. There is no crossover.";
   const edges: string[] = [];
   if (series.zeroLimit) {
     edges.push(zeroText);
@@ -389,35 +494,40 @@ export function scenarioCopy(inputs: FcaInputs, series: ScenarioSeries, language
   if (Math.abs(series.lossPct) < 1e-6 && inputs.delayMonths > 0) {
     edges.push(neverText);
   }
+  if (idle) {
+    edges.push(idleText);
+  }
 
   const hero = series.zeroLimit
     ? zeroText
     : !series.limitBinds
       ? unboundText
       : de
-        ? `Mit ${limit} Grenze bleiben im Modell rund ${formatQuantity(remain, language, 0)} % des Erlöses.`
-        : `With a ${limit} limit, about ${formatQuantity(remain, language, 0)}% of model revenue remains.`;
+        ? `Mit ${limit} Grenze${windowBit} bleiben im Modell rund ${remain} des Erlöses.`
+        : `With a ${limit} limit${windowBit}, about ${remain} of model revenue remains.`;
 
   let wait = "";
   if (inputs.delayMonths === 0) {
-    wait = de ? "Ohne Verzögerung gibt es keine Mehrkosten durch Warten." : "With no delay there is no extra model cost from waiting.";
+    wait = noDelayText;
+  } else if (inputs.delayMonths === 1) {
+    wait = de
+      ? `Wer 1 Monat wartet, verliert im Modell rund ${delay} eines Jahres.`
+      : `Waiting 1 month loses about ${delay} of one model year.`;
   } else if (inputs.delayMonths === 12) {
     wait = de ? "Wer 12 Monate wartet, verliert im Modell ein ganzes Jahr Erlös." : "Waiting 12 months loses one whole year of model revenue.";
   } else if (inputs.delayMonths >= FCA_HORIZON) {
-    wait = de
-      ? "Nach 36 Monaten hat der verzögerte Anschluss im Modell noch nichts erlöst."
-      : "After 36 months the delayed connection has still earned nothing in the model.";
+    wait = longWaitText;
   } else {
     wait = de
-      ? `Wer ${inputs.delayMonths} Monate wartet, verliert im Modell rund ${formatQuantity(delay, language, 0)} % eines Jahres.`
-      : `Waiting ${inputs.delayMonths} months loses about ${formatQuantity(delay, language, 0)}% of one model year.`;
+      ? `Wer ${inputs.delayMonths} Monate wartet, verliert im Modell rund ${delay} eines Jahres.`
+      : `Waiting ${inputs.delayMonths} months loses about ${delay} of one model year.`;
   }
 
   let place = "";
-  if (Math.abs(series.lossPct) < 1e-6 && inputs.delayMonths > 0) {
-    place = de
-      ? "Die flexible Variante verliert im Modell nichts, Warten lohnt sich im Modell nie."
-      : "The flexible case loses nothing in the model, so waiting never pays in the model.";
+  if (idle) {
+    place = idleText;
+  } else if (Math.abs(series.lossPct) < 1e-6 && inputs.delayMonths > 0) {
+    place = neverText;
   } else if (series.breakevenMonth === null) {
     place = de
       ? "Bei diesen Annahmen liegt die flexible Variante nach 36 Monaten noch vorn. Der Gleichstand liegt nicht innerhalb von 36 Monaten."
@@ -431,26 +541,26 @@ export function scenarioCopy(inputs: FcaInputs, series: ScenarioSeries, language
   }
 
   const limitClause = de
-    ? `Mit einer Grenze von ${limit} (${formatQuantity(share, language, 0)} % der Leistung) bleiben im Modell rund ${formatQuantity(remain, language, 0)} % des Erlöses.`
-    : `With a limit of ${limit} (${formatQuantity(share, language, 0)}% of power), about ${formatQuantity(remain, language, 0)}% of model revenue remains.`;
+    ? `Mit einer Grenze von ${limit}${windowBit} (${share} der Leistung) bleiben im Modell rund ${remain} des Erlöses.`
+    : `With a limit of ${limit}${windowBit} (${share} of power), about ${remain} of model revenue remains.`;
 
   const result = [series.zeroLimit ? zeroText : !series.limitBinds ? unboundText : limitClause, wait, place].filter(Boolean).join(" ");
 
   const cardC = inputs.delayMonths >= FCA_HORIZON
-    ? de
-      ? "Nach 36 Monaten hat der verzögerte Anschluss im Modell noch nichts erlöst."
-      : "After 36 months the delayed connection has still earned nothing in the model."
+    ? longWaitText
     : inputs.delayMonths === 0
-      ? de
-        ? "Ohne Verzögerung gibt es keine Mehrkosten durch Warten."
-        : "With no delay there is no extra model cost from waiting."
-      : inputs.delayMonths === 12
+      ? noDelayText
+      : inputs.delayMonths === 1
         ? de
-          ? "Verzögert um 12 Monate: entgeht im Modell ein ganzes Jahr Erlös (100 % eines Jahres)."
-          : "Delayed by 12 months: one whole year of model revenue is missed (100% of a year)."
-        : de
-          ? `Verzögert um ${inputs.delayMonths} Monate: entgeht im Modell rund ${formatQuantity(delay, language, 0)} % eines Jahres.`
-          : `Delayed by ${inputs.delayMonths} months: about ${formatQuantity(delay, language, 0)}% of one model year is missed.`;
+          ? `Verzögert um 1 Monat: entgeht im Modell rund ${delay} eines Jahres.`
+          : `Delayed by 1 month: about ${delay} of one model year is missed.`
+        : inputs.delayMonths === 12
+          ? de
+            ? "Verzögert um 12 Monate: entgeht im Modell ein ganzes Jahr Erlös (100\u00A0% eines Jahres)."
+            : "Delayed by 12 months: one whole year of model revenue is missed (100\u00A0% of a year)."
+          : de
+            ? `Verzögert um ${inputs.delayMonths} Monate: entgeht im Modell rund ${delay} eines Jahres.`
+            : `Delayed by ${inputs.delayMonths} months: about ${delay} of one model year is missed.`;
 
   const chart = de
     ? `${result} Linie A ist durchgezogen, Linie B gestrichelt, Linie C gepunktet. Die Achse ist Prozent eines Jahres Modellerlös von A.`
@@ -462,10 +572,10 @@ export function scenarioCopy(inputs: FcaInputs, series: ScenarioSeries, language
       ? "Das ist eine Modellrechnung. Es ist keine Prüfung des Netzanschlusses und keine Aussage, ob der Netzknoten den Speicher aufnehmen kann. Das beurteilt der Netzbetreiber."
       : "This is a model calculation. It is not a check of the grid connection and not a statement about whether the node can take the battery. The grid operator decides that.",
     result,
-    cardA: de ? "Anschluss voll: 100 % Modellerlös (Bezugswert)." : "Full connection: 100% model revenue (reference).",
+    cardA: de ? "Anschluss voll: 100\u00A0% Modellerlös (Bezugswert)." : "Full connection: 100\u00A0% model revenue (reference).",
     cardB: de
-      ? `Flexibel: ${formatQuantity(remain, language, 0)} % des Modellerlöses bleiben, Verlust ${formatQuantity(loss, language, 0)} %.`
-      : `Flexible: ${formatQuantity(remain, language, 0)}% of model revenue remains, loss ${formatQuantity(loss, language, 0)}%.`,
+      ? `Flexibel: ${remain} des Modellerlöses bleiben, Verlust ${loss}.`
+      : `Flexible: ${remain} of model revenue remains, loss ${loss}.`,
     cardC,
     chart,
     edges,

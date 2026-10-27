@@ -2,7 +2,9 @@ import { spawnSync } from "node:child_process";
 
 import tableJson from "@/data/fca/fca-table.json";
 import { fcaTableSchema, type FcaTable } from "@/lib/fcaTableSchema";
+import reference from "@/lib/fixtures/fca-lp-reference.json";
 import {
+  parseDecimal,
   interpolateMonths,
   limitValueText,
   queryFromRaw,
@@ -95,6 +97,26 @@ describe("FCA input checks", () => {
   it("names the slider value in words", () => {
     expect(limitValueText(51.75, 103.5, "de")).toBe("50 Prozent, 51,75 Megawatt");
   });
+
+  it("reads a thousands separator as 1000 and keeps URL decimals with a dot", () => {
+    expect(parseDecimal("1.000")).toBe(1000);
+    expect(parseDecimal("1,000")).toBe(1000);
+    expect(parseDecimal("1,5")).toBe(1.5);
+    expect(parseDecimal("1.5")).toBe(1.5);
+    expect(parseDecimal("103.5")).toBe(103.5);
+    expect(parseDecimal("1.000,5")).toBe(1000.5);
+    expect(parseDecimal("0.500")).toBe(0.5);
+    expect(parseDecimal("1e2")).toBeNull();
+    expect(parseDecimal("abc")).toBeNull();
+    const parsed = validateRaw(raw({ power: "103,5", limit: "1.000" })).inputs;
+    expect(parsed?.limitMw).toBe(1000);
+    expect(scenarioCopy(parsed!, scenarioSeries(syntheticTable(), parsed!)!, "de").hero).not.toContain("1 MW");
+    expect(queryFromRaw(raw({ power: "1.000", energy: "2.000", limit: "500" }))).toContain("p=1000");
+    expect(queryFromRaw(raw({ power: "1.000" }))).not.toContain("p=1.000");
+    expect(rawFromQuery(new URLSearchParams("p=103.5&e=238.5&g=51.75"), "de").power).toBe("103,5");
+    expect(rawFromQuery(new URLSearchParams("p=103.5"), "en").power).toBe("103.5");
+    expect(rawFromQuery(new URLSearchParams("p=abc"), "de").power).toBe("abc");
+  });
 });
 
 describe("FCA scenarios", () => {
@@ -133,6 +155,21 @@ describe("FCA scenarios", () => {
     expect(january?.cumulativeA[12]).toBeCloseTo(june?.cumulativeA[12] ?? NaN, 6);
     expect(january?.delayEur).not.toBeCloseTo(june?.delayEur ?? NaN, 0);
     expect(JSON.stringify(half)).not.toMatch(/NaN/);
+
+    const evening = scenarioSeries(table, { ...full, limitMw: 0, form: "abend" });
+    const eveningCopy = scenarioCopy({ ...full, limitMw: 0, form: "abend" }, evening!, "de");
+    expect(eveningCopy.hero).toMatch(/im Abendfenster/);
+    expect(eveningCopy.hero).not.toMatch(/nichts handeln/);
+    expect(eveningCopy.result).toMatch(/im Abendfenster/);
+
+    const idle = scenarioSeries(table, { ...full, limitMw: 0, delayMonths: 36 });
+    expect(scenarioCopy({ ...full, limitMw: 0, delayMonths: 36 }, idle!, "de").result).not.toMatch(/Gleichstand im Monat/);
+    expect(scenarioCopy({ ...full, limitMw: 0, delayMonths: 36 }, idle!, "de").result).toMatch(/keinen Gleichstand/);
+    expect(scenarioCopy({ ...full, limitMw: 0 }, zero!, "de").result).not.toMatch(/Gleichstand im Monat 1\b/);
+
+    const oneMonth = scenarioSeries(table, { ...full, delayMonths: 1 });
+    expect(scenarioCopy({ ...full, delayMonths: 1 }, oneMonth!, "de").result).toMatch(/Wer 1 Monat wartet/);
+    expect(scenarioCopy({ ...full, delayMonths: 1 }, oneMonth!, "de").result).not.toMatch(/1 Monate/);
   });
 
   it("interpolates a point between the nodes", () => {
@@ -185,41 +222,48 @@ describe("FCA reference table", () => {
   });
 });
 
+const highsProbe = spawnSync("python3", ["-c", "import highspy"], { encoding: "utf8" });
+const highsReady = highsProbe.status === 0;
+if (!highsReady) {
+  console.warn("highspy fehlt: der HiGHS-Referenzlauf wird übersprungen. Installation: pip install -r scripts/requirements-fca.txt");
+}
+
 describe("HiGHS reference", () => {
-  it("matches the hand calculation and three published days", () => {
+  it("keeps the stored reference values", () => {
+    expect(reference.hand.eta1["10"]).toBe(720);
+    expect(reference.hand.eta1["4"]).toBe(360);
+    expect(reference.hand.eta1["0"]).toBe(0);
+    expect(reference.hand.eta["10"]).toBeCloseTo(650.79, 2);
+    expect(reference.hand.eta["4"]).toBe(300);
+    expect(reference.hand.homogeneity).toBe(0);
+    expect(reference.days).toHaveLength(9);
+    expect(reference.days[0]).toEqual({ date: "2026-05-01", limitMw: 103.5, eur: 149589 });
+  });
+
+  const live = highsReady ? it : it.skip;
+  live("recomputes the stored reference when highspy is installed", () => {
     const hand = spawnSync("python3", ["scripts/fca_lp.py", "hand"], { encoding: "utf8" });
     expect(hand.status).toBe(0);
     const handJson = JSON.parse(hand.stdout) as { eta1: Record<string, number>; eta: Record<string, number>; homogeneity: number };
-    expect(handJson.eta1["10"]).toBe(720);
-    expect(handJson.eta1["4"]).toBe(360);
-    expect(handJson.eta1["0"]).toBe(0);
-    expect(handJson.eta["10"]).toBeCloseTo(650.79, 2);
-    expect(handJson.eta["4"]).toBe(300);
+    expect(handJson.eta1["10"]).toBe(reference.hand.eta1["10"]);
+    expect(handJson.eta1["4"]).toBe(reference.hand.eta1["4"]);
+    expect(handJson.eta1["0"]).toBe(reference.hand.eta1["0"]);
+    expect(handJson.eta["10"]).toBeCloseTo(reference.hand.eta["10"], 2);
+    expect(handJson.eta["4"]).toBe(reference.hand.eta["4"]);
     expect(handJson.homogeneity).toBeLessThan(1e-6);
 
-    const cases: Array<[string, number, number]> = [
-      ["2026-05-01", 103.5, 149589],
-      ["2026-05-01", 51.75, 108136],
-      ["2026-05-01", 25.9, 66743],
-      ["2026-06-24", 103.5, 101073],
-      ["2026-06-24", 51.75, 78372],
-      ["2026-06-24", 25.9, 52169],
-      ["2026-04-14", 103.5, 25454],
-      ["2026-04-14", 51.75, 16180],
-      ["2026-04-14", 25.9, 9243],
-    ];
-    for (const [date, limit, expected] of cases) {
-      const run = spawnSync("python3", ["scripts/fca_lp.py", "day", date, "103.5", "238.5", String(limit)], { encoding: "utf8" });
+    for (const entry of reference.days) {
+      const run = spawnSync("python3", ["scripts/fca_lp.py", "day", entry.date, "103.5", "238.5", String(entry.limitMw)], { encoding: "utf8" });
       expect(run.status).toBe(0);
       const got = (JSON.parse(run.stdout) as { eur: number }).eur;
-      expect(Math.abs(got - expected)).toBeLessThanOrEqual(1);
+      expect(Math.abs(got - entry.eur)).toBeLessThanOrEqual(1);
     }
 
     const sample = spawnSync("python3", ["scripts/fca_lp.py", "sample"], { encoding: "utf8" });
     expect(sample.status).toBe(0);
     const sampleJson = JSON.parse(sample.stdout) as { days: number; worstMono: number; worstConcave: number; negative: boolean };
-    expect(sampleJson.days).toBe(20);
-    expect(sampleJson.negative).toBe(false);
+    expect(sampleJson.days).toBe(reference.sample.days);
+    expect(sampleJson.negative).toBe(reference.sample.negative);
     expect(sampleJson.worstMono).toBeGreaterThanOrEqual(-1e-4);
     expect(sampleJson.worstConcave).toBeGreaterThanOrEqual(-1e-3);
   }, 120000);

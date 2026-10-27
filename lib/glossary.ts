@@ -354,8 +354,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "statisch-dynamisch",
     term: { de: "statisch oder dynamisch", en: "static or dynamic" },
     text: {
-      de: "Statisch heißt eine feste Grenze über den ganzen Tag. Dynamisch heißt eine Grenze nur in bestimmten Zeiten. Beides nennt § 17 Abs. 2b EnWG.",
-      en: "Static means a fixed limit for the whole day. Dynamic means a limit only at certain times. Section 17 (2b) of the Energy Industry Act names both.",
+      de: "§ 17 Abs. 2b EnWG sagt nur „statisch oder dynamisch“. Eine Definition der beiden Wörter steht dort nicht. In diesem Rechner ist die feste Grenze ganztägig. Abend- und Mittagsfenster gelten nur in diesen Stunden. Das ist eine Annahme des Modells.",
+      en: "Section 17 (2b) EnWG only says “static or dynamic”. It does not define the two words. In this calculator the fixed limit is all day. The evening and midday windows apply only in those hours. That is an assumption of the model.",
     },
   },
 ];

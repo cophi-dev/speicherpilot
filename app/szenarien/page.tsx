@@ -9,7 +9,6 @@ export const metadata: Metadata = {
     "Modellrechnung für einen Speicher an einem Netzknoten: voller Anschluss, flexible Anschlussvereinbarung und verzögerter Anschluss. Keine Aussage zur Aufnahmefähigkeit.",
   openGraph: {
     title: "Szenarien rechnen",
-    description: "Modellrechnung für einen Speicher an einem Netzknoten. Kein Bild.",
     images: [],
   },
   twitter: {

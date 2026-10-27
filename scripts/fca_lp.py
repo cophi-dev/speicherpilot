@@ -2,6 +2,9 @@
 """Daily storage LP used by the scenario tests.
 
 Same formulation as scripts/build-fca-table.py. The page does not import this.
+Needs HiGHS: pip install -r scripts/requirements-fca.txt
+Without that package, `npm test` skips the live reference run and keeps the
+stored values in lib/fixtures/fca-lp-reference.json.
 """
 
 from __future__ import annotations

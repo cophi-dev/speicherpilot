@@ -33,6 +33,8 @@ describe("Szenarienrechner", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).not.toMatch(/Netzanschlussprüfung/);
     expect(screen.getByText(/keine Prüfung des Netzanschlusses/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Netzgrenze in Prozent/)).toHaveAttribute("aria-valuetext", "50 Prozent, 51,75 Megawatt");
+    expect(screen.getByLabelText(/Netzgrenze in Prozent/)).toHaveAttribute("aria-valuemax", "100");
+    expect(document.getElementById("szen-energy")?.hasAttribute("aria-describedby")).toBe(false);
     expect(screen.getByRole("img").getAttribute("aria-label")).toMatch(/Linie A ist durchgezogen/);
     expect(document.querySelector(".szen-line-a")).toBeTruthy();
     expect(document.querySelector(".szen-line-b")).toBeTruthy();
@@ -88,8 +90,30 @@ describe("Szenarienrechner", () => {
     expect(document.body.textContent).not.toMatch(/NaN/);
     broken.unmount();
 
-    renderRechner("e=1");
+    const ratio = renderRechner("e=1");
     expect(screen.getByRole("alert").textContent).toMatch(/0,5 bis 6 Stunden/);
+    expect(document.getElementById("szen-assumptions")).toHaveAttribute("open");
     expect(screen.queryByRole("img")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/Die Rechnung wartet/);
+    ratio.unmount();
+
+    const urlError = renderRechner("p=abc");
+    expect(document.getElementById("szen-assumptions")).toHaveAttribute("open");
+    expect(document.querySelector(".szen-front-errors")?.textContent).toMatch(/Leistung und Kapazität müssen größer als 0 sein/);
+    const describedBy = document.getElementById("szen-energy")?.getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy ?? "")).not.toBeNull();
+    expect(document.body.textContent).not.toMatch(/Die Rechnung wartet/);
+    expect(document.body.textContent).not.toMatch(/NaN/);
+    urlError.unmount();
+
+    query = "g=0&form=abend";
+    render(
+      <LanguageContext.Provider value={{ language: "en", setLanguage: () => {} }}>
+        <SzenarienRechner table={table} />
+      </LanguageContext.Provider>
+    );
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/evening window/);
+    expect(document.querySelector(".szen-chart-caption")?.textContent).toMatch(/Percent of one year/);
   });
 });

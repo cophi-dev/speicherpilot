@@ -1,0 +1,5 @@
+# Offline-Tabelle und optionaler HiGHS-Referenztest für /szenarien.
+# Die Seite selbst rechnet das lineare Programm nicht.
+# Installation: pip install -r scripts/requirements-fca.txt
+highspy==1.15.1
+numpy>=1.26

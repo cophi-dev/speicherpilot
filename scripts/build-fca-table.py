@@ -4,6 +4,7 @@
 Solves the daily linear programme from the scenario spec with HiGHS and writes
 normalised monthly revenue (€ per MW) for two price years and three limit shapes.
 The page only interpolates this file. It does not call the repo dispatch core.
+Needs HiGHS: pip install -r scripts/requirements-fca.txt
 """
 
 from __future__ import annotations

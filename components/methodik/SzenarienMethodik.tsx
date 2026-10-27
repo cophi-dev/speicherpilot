@@ -15,8 +15,8 @@ export function SzenarienMethodik({ language }: { language: AppLanguage }) {
       </p>
       <p>
         {tx(
-          "Die Tageswerte kommen aus einem kleinen linearen Programm mit perfekter Preisvorschau und mehreren Zyklen. Es ist nicht der vorsichtige Kern der Beispieltage. Am Beispielspeicher 103,5 MW / 238,5 MWh und in den letzten 12 Monaten bis 26.10.2026 liegt die Jahressumme des Optimierers bei 9.712.347 €, die des Kerns bei 3.778.603 €. Faktor 2,57. Darum stehen auf der Seite keine Euro-Hauptzahlen.",
-          "The daily values come from a small linear programme with perfect foresight and several cycles. It is not the cautious core of the example days. For the example battery of 103.5 MW / 238.5 MWh and the last 12 months to 26 October 2026, the optimiser’s year is €9,712,347 and the core’s year is €3,778,603. Factor 2.57. That is why the page has no euro headline figures."
+          "Die Tageswerte kommen aus einem kleinen linearen Programm mit perfekter Preisvorschau und mehreren Zyklen. Es ist nicht der vorsichtige Kern der Beispieltage. Am Beispielspeicher 103,5 MW / 238,5 MWh und in den letzten 12 Monaten bis 26.10.2026 liegt die Jahressumme des Optimierers bei 9.712.347 €, Modellschätzung, die des Kerns bei 3.778.603 €, Modellschätzung. Faktor 2,57. Darum stehen auf der Seite keine Euro-Hauptzahlen.",
+          "The daily values come from a small linear programme with perfect foresight and several cycles. It is not the cautious core of the example days. For the example battery of 103.5 MW / 238.5 MWh and the last 12 months to 26 October 2026, the optimiser’s year is €9,712,347, a model estimate, and the core’s year is €3,778,603, a model estimate. Factor 2.57. That is why the page has no euro headline figures."
         )}
       </p>
       <div className="methodik-table">
@@ -64,7 +64,7 @@ export function SzenarienMethodik({ language }: { language: AppLanguage }) {
               <td>{tx("bilinear in h und g", "bilinear in h and g")}</td>
               <td>—</td>
               <td>{tx("Tabelle im Repo", "table in the repo")}</td>
-              <td>{tx("gemessen etwa −0,44 % bei h = 2,304 und g = 0,37, Ziel unter 1 %", "measured about −0.44% at h = 2.304 and g = 0.37, target under 1%")}</td>
+              <td>{tx("Am Punkt h = 2,304 und g = 0,37 gemessen −0,44 %. Über die geprüften Punkte liegen die Prozentwerte bis 0,2 Prozentpunkte daneben, der Euro-Absolutwert bis etwa 1,1 %. Die Sehne liegt unter dem direkten Wert.", "At h = 2.304 and g = 0.37 the measured gap is −0.44%. Across the checked points the percent figures are off by up to 0.2 percentage points, and the absolute euro figure by about 1.1%. The chord sits under the direct value.")}</td>
             </tr>
             <tr>
               <td>{tx("Monatserlös", "Monthly revenue")}</td>
@@ -156,8 +156,8 @@ export function SzenarienMethodik({ language }: { language: AppLanguage }) {
         <li>
           <a href="https://www.bundesnetzagentur.de/SharedDocs/Pressemitteilungen/DE/2026/20260806_Agnes.html">{tx("Bundesnetzagentur, Pressemitteilung 06.08.2026", "Bundesnetzagentur, press release 6 August 2026")}</a>
           {tx(
-            ". Konsultation des Festlegungsentwurfs bis 18.09.2026, Erlass für Ende 2026 geplant. Der Entwurf selbst ist nicht gelesen. Kein Tenor, kein Preis, kein Stichtag. Stand 27.10.2026.",
-            ". Consultation on the draft determination until 18 September 2026, adoption planned for the end of 2026. The draft itself was not read. No operative part, no price, no cutoff date. As of 27 October 2026."
+            ". Konsultation des Festlegungsentwurfs bis 18.09.2026, Erlass für Ende 2026 geplant. Inhalte des Entwurfs werden hier nicht dargestellt; Stand 27.10.2026. Kein Tenor, kein Preis, kein Stichtag.",
+            ". Consultation on the draft determination until 18 September 2026, adoption planned for the end of 2026. The contents of the draft are not set out here; as of 27 October 2026. No operative part, no price, no cutoff date."
           )}
         </li>
         <li>

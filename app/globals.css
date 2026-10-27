@@ -4066,6 +4066,16 @@ math mi {
   align-items: center;
   cursor: pointer;
   font-size: 16px;
+  border-radius: 6px;
+}
+
+.szen-fold summary:focus-visible {
+  outline: 3px solid #0f6e7c;
+  outline-offset: 3px;
+}
+
+.dark .szen-fold summary:focus-visible {
+  outline-color: #7dfce6;
 }
 
 .szen-fixed {
@@ -4098,6 +4108,7 @@ math mi {
 .szen-figure {
   margin: 8px 0;
   font-size: 18px;
+  white-space: nowrap;
 }
 
 .szen-figure-num {
@@ -4145,11 +4156,55 @@ math mi {
   margin: 0;
 }
 
+.szen-chart-plot {
+  position: relative;
+  min-width: 0;
+}
+
 .szen-chart svg {
   display: block;
   width: 100%;
   height: auto;
-  min-height: 220px;
+  min-height: 240px;
+}
+
+.szen-chart-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.szen-html-label,
+.szen-html-note {
+  position: absolute;
+  margin: 0;
+  color: #3f4a52;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.szen-html-label {
+  transform: translate(-100%, -50%);
+}
+
+.szen-html-month,
+.szen-html-mark,
+.szen-html-note {
+  transform: translate(0, -50%);
+}
+
+.szen-html-month {
+  transform: translate(-50%, -50%);
+}
+
+.szen-html-end {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.szen-html-note {
+  max-width: min(16rem, 70%);
+  transform: none;
 }
 
 .szen-gridline {
@@ -4190,20 +4245,25 @@ math mi {
 .szen-line-a { stroke: #14181c; }
 .szen-line-b { stroke: #0c5c68; stroke-dasharray: 7 5; }
 .szen-line-c { stroke: #6e4b16; stroke-dasharray: 1.5 5; }
-.szen-end { font-size: 14px; font-weight: 600; font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif; }
-.szen-end-a { fill: #14181c; }
-.szen-end-b { fill: #0c5c68; }
-.szen-end-c { fill: #6e4b16; }
+.szen-end { font-size: 13px; font-weight: 600; font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif; }
+.szen-end-a { fill: #14181c; color: #14181c; }
+.szen-end-b { fill: #0c5c68; color: #0c5c68; }
+.szen-end-c { fill: #6e4b16; color: #6e4b16; }
 .szen-mark { stroke: #3f4a52; stroke-width: 1.5; }
 
+.dark .szen-html-label,
+.dark .szen-html-note {
+  color: #c5ced6;
+}
+
 .dark .szen-line-a,
-.dark .szen-end-a { stroke: #e9eef2; fill: #e9eef2; }
+.dark .szen-end-a { stroke: #e9eef2; fill: #e9eef2; color: #e9eef2; }
 .dark .szen-line-a { fill: none; }
 .dark .szen-line-b,
-.dark .szen-end-b { stroke: #7dfce6; fill: #7dfce6; }
+.dark .szen-end-b { stroke: #7dfce6; fill: #7dfce6; color: #7dfce6; }
 .dark .szen-line-b { fill: none; }
 .dark .szen-line-c,
-.dark .szen-end-c { stroke: #e2b15a; fill: #e2b15a; }
+.dark .szen-end-c { stroke: #e2b15a; fill: #e2b15a; color: #e2b15a; }
 .dark .szen-line-c { fill: none; }
 .dark .szen-mark { stroke: #c5ced6; }
 
@@ -4234,6 +4294,17 @@ math mi {
   border-bottom: 1px solid rgb(20 24 28 / 12%);
   text-align: left;
   vertical-align: top;
+}
+
+.szen-missing-lead {
+  max-width: 68ch;
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.szen-percent {
+  white-space: nowrap;
 }
 
 .szen-missing ul {

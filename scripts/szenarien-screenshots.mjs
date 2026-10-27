@@ -9,7 +9,7 @@ const cases = [
   ["g0", "g=0"],
   ["g-ueber-p", "g=200"],
   ["v36", "v=36"],
-  ["fehler", "g=-1"],
+  ["url-fehler", "p=abc"],
 ];
 
 const themes = ["light", "dark"];
@@ -30,8 +30,8 @@ for (const theme of themes) {
       await page.waitForFunction(
         (mode) => {
           const text = document.body.innerText;
-          if (mode === "fehler") {
-            return text.includes("Bitte eine Zahl von 0 oder größer eingeben.");
+          if (mode === "url-fehler") {
+            return text.includes("Leistung und Kapazität müssen größer als 0 sein.") && !text.includes("Die Rechnung wartet");
           }
           return text.includes("im Modell") && !text.includes("konnte nicht geladen");
         },
