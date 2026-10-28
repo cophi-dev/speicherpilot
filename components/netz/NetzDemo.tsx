@@ -37,6 +37,7 @@ import {
   limitsItems,
   lineKind,
   newLineExplanation,
+  newLineHeading,
   NODE_LABEL,
   odblAttribution,
   odblNotice,
@@ -275,6 +276,8 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
           allCables: newLineIds.every((id) => data.lines.find((line) => line.id === id)?.kind === "cs"),
         })
       : null;
+  const lineHeading = lineNote ? newLineHeading(language, newLineIds) : null;
+  const normalOnly = einordnung?.id === "zu-viel";
   const sentences = plainText({
     language,
     basis: !storageOn,
@@ -288,8 +291,9 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
     lineMax: state.lineMax,
     baseLine: base.lineMax,
     tip,
+    normalOnly,
   });
-  const status = statusSentences(language, derived);
+  const status = statusSentences(language, derived, normalOnly);
   const guide = readResultGuide(language);
   const tipLine =
     einordnung?.id === "grenze"
@@ -422,7 +426,9 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
             {einordnung ? (
               <div className={styles.einordnung}>
                 <p>
-                  <span className={styles.einChip}>{einordnung.chip}</span>
+                  <span className={einordnung.id === "netzdienlich" ? `${styles.einChip} ${styles.einChipGut}` : styles.einChip}>
+                    {einordnung.chip}
+                  </span>
                 </p>
                 <p>{einordnung.sentence}</p>
                 {tipLine ? <p>{tipLine}</p> : null}
@@ -438,7 +444,7 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
           </div>
           <div className={styles.mapBlock}>
             <h2 id="netz-ergebnis">{tx("Ergebnis", "Result")}</h2>
-            <details className={styles.howto} open>
+            <details className={styles.howto}>
               <summary>{guide.title}</summary>
               <dl>
                 <dt>{guide.limitQuestion}</dt>
@@ -683,7 +689,12 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
           </p>
           {storageOn && stateN1 ? (
             <>
-              {lineNote ? <p className={styles.lineNote}>{lineNote}</p> : null}
+              {lineNote && lineHeading ? (
+                <div className={styles.lineNote}>
+                  <p className={styles.lineTitle}>{lineHeading}</p>
+                  <p>{lineNote}</p>
+                </div>
+              ) : null}
               <div className={styles.tableWrap}>
                 <ElementTable title={tx("Neu betroffen", "Newly affected")} tokens={stateN1.newlyFailed} data={data} language={language} />
                 <ElementTable title={tx("Nicht mehr betroffen", "No longer affected")} tokens={stateN1.noLongerFailed} data={data} language={language} />

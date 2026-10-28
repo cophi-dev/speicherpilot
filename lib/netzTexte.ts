@@ -61,7 +61,7 @@ export function kvFromPu(pu: number): number {
   return pu * NOMINAL_KV;
 }
 
-export function statusSentences(language: AppLanguage, derived: DerivedLimits): string[] {
+export function statusSentences(language: AppLanguage, derived: DerivedLimits, normalOnly = false): string[] {
   if (!derived.converged) {
     return [
       language === "de"
@@ -71,7 +71,15 @@ export function statusSentences(language: AppLanguage, derived: DerivedLimits): 
   }
   const sentences: string[] = [];
   if (derived.ok) {
-    sentences.push(language === "de" ? "Innerhalb der angenommenen Grenzen." : "Within the assumed limits.");
+    sentences.push(
+      normalOnly
+        ? language === "de"
+          ? "Im Normalbetrieb innerhalb der angenommenen Grenzen."
+          : "Within the assumed limits in normal operation."
+        : language === "de"
+          ? "Innerhalb der angenommenen Grenzen."
+          : "Within the assumed limits."
+    );
   }
   if (derived.voltage) {
     sentences.push(
@@ -121,6 +129,7 @@ export function plainText(input: {
   lineMax?: number;
   baseLine?: number;
   tip: number;
+  normalOnly?: boolean;
 }): string[] {
   const { language } = input;
   const fall = pair(language, CASE_LABEL[input.fall]);
@@ -134,17 +143,19 @@ export function plainText(input: {
         : `Without storage, in the test grid at ${fall}, all voltages stay between ${formatPu(input.vmin, language)} and ${formatPu(input.vmax, language)} p.u., and the highest line loading is ${formatPct(input.lineMax, language)} %.`
     );
   } else if (!input.derived.converged) {
-    sentences.push(
-      language === "de"
-        ? `Mit ${formatQuantity(input.pMw, language, 0)} MW ${direction} an ${node} findet der Lastfluss keinen Betriebspunkt.`
-        : `With ${formatQuantity(input.pMw, language, 0)} MW ${direction} at ${node}, the load flow finds no operating point.`
-    );
     sentences.push(tipSentence(language, input.tip));
   } else if (input.derived.ok && input.lineMax != null && input.baseLine != null) {
+    const within = input.normalOnly
+      ? language === "de"
+        ? "im Normalbetrieb alles innerhalb der angenommenen Grenzen"
+        : "everything in the test grid stays within the assumed limits in normal operation"
+      : language === "de"
+        ? "alles innerhalb der angenommenen Grenzen"
+        : "everything in the test grid stays within the assumed limits";
     sentences.push(
       language === "de"
-        ? `Mit ${formatQuantity(input.pMw, language, 0)} MW ${direction} an ${node} bleibt im Testnetz alles innerhalb der angenommenen Grenzen. Die höchste Leitungsauslastung liegt bei ${formatPct(input.lineMax, language)} % (ohne Speicher ${formatPct(input.baseLine, language)} %). ${tipSentence(language, input.tip)}`
-        : `With ${formatQuantity(input.pMw, language, 0)} MW ${direction} at ${node}, everything in the test grid stays within the assumed limits. The highest line loading is ${formatPct(input.lineMax, language)} % (without storage ${formatPct(input.baseLine, language)} %). ${tipSentence(language, input.tip)}`
+        ? `Mit ${formatQuantity(input.pMw, language, 0)} MW ${direction} an ${node} bleibt im Testnetz ${within}. Die höchste Leitungsauslastung liegt bei ${formatPct(input.lineMax, language)} % (ohne Speicher ${formatPct(input.baseLine, language)} %). ${tipSentence(language, input.tip)}`
+        : `With ${formatQuantity(input.pMw, language, 0)} MW ${direction} at ${node}, ${within}. The highest line loading is ${formatPct(input.lineMax, language)} % (without storage ${formatPct(input.baseLine, language)} %). ${tipSentence(language, input.tip)}`
     );
   } else if (input.vmin != null && input.vmax != null && input.lineMax != null) {
     const parts: string[] = [];
@@ -295,10 +306,10 @@ export function scenarioEinordnung(input: {
     return {
       id: "grenze",
       chip: chipText(language, "grenze"),
-      sentence:
+        sentence:
         language === "de"
-          ? "Am Ende eines langen Abgangs gibt es hier keinen Betriebspunkt mehr, der letzte lösbare Punkt steht in der Zeile darunter."
-          : "At the end of a long feeder there is no operating point left. The last point that still solves is in the line below.",
+          ? "Am Ende eines langen Abgangs gibt es bei dieser Leistung keinen Betriebspunkt mehr."
+          : "At the end of a long feeder there is no operating point at this power.",
     };
   }
   if (fittingMode(input.fall, input.richtung)) {
@@ -307,22 +318,37 @@ export function scenarioEinordnung(input: {
     if (input.derived.ok && withoutCount != null && withCount != null && withCount <= withoutCount) {
       const without = formatQuantity(withoutCount, language, 0);
       const withStorage = formatQuantity(withCount, language, 0);
+      const counts =
+        language === "de"
+          ? ` Ausfälle ohne Speicher: ${without}, mit Speicher: ${withStorage}.`
+          : ` Outages without storage: ${without}, with storage: ${withStorage}.`;
+      const lead =
+        input.richtung === "laden"
+          ? language === "de"
+            ? "Der Speicher nimmt Überschuss auf: das entlastet das Netz (Modell)."
+            : "The storage takes in surplus: that eases the grid (model)."
+          : language === "de"
+            ? "Der Speicher gibt in der Spitze ab: das entlastet das Netz (Modell)."
+            : "The storage feeds out at the peak: that eases the grid (model).";
       return {
         id: "netzdienlich",
         chip: chipText(language, "netzdienlich"),
-        sentence:
-          language === "de"
-            ? `Der Speicher nimmt Überschuss auf bzw. gibt in der Spitze ab: das entlastet das Netz (Modell). Ausfälle ohne Speicher: ${without}, mit Speicher: ${withStorage}.`
-            : `The storage takes in surplus, or feeds it out at the peak: that eases the grid (model). Outages without storage: ${without}, with storage: ${withStorage}.`,
+        sentence: `${lead}${counts}`,
       };
     }
+    const counts =
+      withoutCount != null && withCount != null
+        ? language === "de"
+          ? ` Ausfälle ohne Speicher: ${formatQuantity(withoutCount, language, 0)}, mit Speicher: ${formatQuantity(withCount, language, 0)}.`
+          : ` Outages without storage: ${formatQuantity(withoutCount, language, 0)}, with storage: ${formatQuantity(withCount, language, 0)}.`
+        : "";
     return {
       id: "zu-viel",
       chip: chipText(language, "zu-viel"),
       sentence:
         language === "de"
-          ? "Zu viel Leistung kippt auch den guten Fall."
-          : "Too much power also tips the helpful case.",
+          ? `Zu viel Leistung kippt auch den guten Fall.${counts}`
+          : `Too much power also tips the helpful case.${counts}`,
     };
   }
   if (input.fall === "hL" && input.richtung === "laden") {
@@ -363,7 +389,7 @@ export function readResultGuide(language: AppLanguage): {
   const outageMin = formatQuantity(OUTAGE_VOLTAGE_MIN, language, 3);
   if (language === "de") {
     return {
-      title: "So liest du das Ergebnis",
+      title: "So liest du das Ergebnis (3 Fragen)",
       limitQuestion: "Wird eine Grenze verletzt?",
       limitLead: `Die Spannung muss zwischen ${min} und ${max} p.u. bleiben`,
       limitTail: ` (im Ausfall ${outageMin} bis ${max}). Keine Leitung über 100 % Auslastung.`,
@@ -375,7 +401,7 @@ export function readResultGuide(language: AppLanguage): {
     };
   }
   return {
-    title: "How to read the result",
+    title: "How to read the result (3 questions)",
     limitQuestion: "Is a limit crossed?",
     limitLead: `Voltage must stay between ${min} and ${max} p.u.`,
     limitTail: ` (in an outage ${outageMin} to ${max}). No line above 100 % loading.`,
@@ -385,6 +411,18 @@ export function readResultGuide(language: AppLanguage): {
     outageQuestion: "What happens in an outage?",
     outageTail: `: one of the ${N1_CASES} lines or transformers drops out at a time, and the grid must keep supplying. The count is how many of the ${N1_CASES} outages break a limit.`,
   };
+}
+
+export function newLineHeading(language: AppLanguage, lineIds: number[]): string {
+  const sorted = [...lineIds].sort((a, b) => a - b);
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  const contiguous =
+    first != null && last != null && last > first && sorted.length === last - first + 1 && sorted.every((id, index) => id === first + index);
+  if (contiguous) {
+    return language === "de" ? `Warum fallen Leitungen ${first} bis ${last} neu auf?` : `Why do lines ${first} to ${last} show up as new?`;
+  }
+  return language === "de" ? "Warum fallen die neuen Leitungen auf?" : "Why do the new lines show up?";
 }
 
 function isLineSet3438(ids: number[]): boolean {

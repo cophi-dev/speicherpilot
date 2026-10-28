@@ -431,16 +431,18 @@
 }
 
 .howto dt {
-  margin-top: 6px;
-  font-size: 13px;
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 1.35;
-  color: #c5d0da;
+  color: #e1e6ea;
 }
 
 .howto dd {
-  margin: 2px 0 8px;
+  margin: 2px 0 10px;
   font-size: 14px;
   line-height: 1.4;
+  color: #c5d0da;
 }
 
 .einordnung {
@@ -460,16 +462,31 @@
   max-width: 100%;
   min-height: 28px;
   padding: 4px 10px;
-  border: 1px solid #7dfce6;
+  border: 1px solid rgba(225, 230, 234, 0.55);
   border-radius: 999px;
-  color: #7dfce6;
+  color: #e1e6ea;
   font-size: 13px;
   line-height: 1.35;
 }
 
+.einChipGut {
+  border-color: #7dfce6;
+  color: #7dfce6;
+}
+
 .lineNote {
-  max-width: 70ch;
+  margin: 16px 0;
+  padding-left: 12px;
+  border-left: 1px solid rgba(225, 230, 234, 0.55);
+}
+
+.lineTitle {
   margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.lineNote p:last-child {
+  margin: 0;
 }
 
 .plain p {
@@ -606,6 +623,10 @@
 
   .banner {
     letter-spacing: 0.06em;
+  }
+
+  .einChip {
+    font-size: 14px;
   }
 
   .mapFrame {
