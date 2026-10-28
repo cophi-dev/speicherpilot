@@ -2459,12 +2459,35 @@ html:not(.dark) .day-hero .empty-sweep {
 
 .day-ring-key-list li {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
   min-height: 44px;
+  overflow-wrap: anywhere;
   color: #7dfce6;
   font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-size: 12px;
   line-height: 1.3;
+}
+
+.day-ring-key-list,
+.day-ring-key-soc,
+.methodik,
+.methodik article,
+.day-paper {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.site-header :focus-visible {
+  outline: 2px solid #14181c;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.dark .site-header :focus-visible {
+  outline-color: #f4f3ee;
 }
 
 .day-ring-key-list .day-ring-key-shift { color: #e9eef2; }

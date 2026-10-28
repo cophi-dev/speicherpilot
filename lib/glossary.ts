@@ -38,6 +38,15 @@ export type GlossaryId =
   | "netzgrenze"
   | "baukostenzuschuss"
   | "leistungspreis"
+  | "lastfluss"
+  | "spannung-pu"
+  | "auslastung"
+  | "hosting-capacity"
+  | "testnetz"
+  | "starklast"
+  | "schwachlast-pv"
+  | "trennstelle"
+  | "stufensteller"
   | "n-1"
   | "statisch-dynamisch"
   | "negative-preise"
@@ -366,11 +375,83 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     },
   },
   {
+    id: "lastfluss",
+    term: { de: "Lastfluss", en: "Load flow" },
+    text: {
+      de: "Die Rechnung, die für ein Netz mit gegebenen Lasten und Einspeisungen die Spannung an jedem Knoten und den Strom in jeder Leitung bestimmt.",
+      en: "The calculation that finds the voltage at every node and the current in every line for given loads and generation.",
+    },
+  },
+  {
+    id: "spannung-pu",
+    term: { de: "Spannung in p.u.", en: "Voltage in p.u." },
+    text: {
+      de: "Die Spannung als Anteil der Nennspannung. 1,00 p.u. sind in einem 20-kV-Netz 20 kV, 1,055 p.u. sind 21,1 kV.",
+      en: "Voltage as a fraction of the nominal voltage. 1.00 p.u. is 20 kV in a 20 kV grid; 1.055 p.u. is 21.1 kV.",
+    },
+  },
+  {
+    id: "auslastung",
+    term: { de: "Auslastung", en: "Loading" },
+    text: {
+      de: "Der Strom in einer Leitung oder einem Transformator in Prozent des Dauerstroms, den er tragen darf. Über 100 % gilt hier als Grenzverletzung.",
+      en: "The current in a line or transformer as a percentage of the continuous current it may carry. Above 100 % counts as a limit violation here.",
+    },
+  },
+  {
+    id: "hosting-capacity",
+    term: { de: "Kipppunkt (Hosting Capacity)", en: "Tipping point (hosting capacity)" },
+    text: {
+      de: "Die größte Leistung an einem Knoten, bei der im Normalbetrieb im Testnetz noch alle angenommenen Grenzen halten. Er sagt nichts über (n−1).",
+      en: "The largest power at a node at which all assumed limits still hold in normal operation in the test grid. It says nothing about (n−1).",
+    },
+  },
+  {
+    id: "testnetz",
+    term: { de: "Testnetz", en: "Test grid" },
+    text: {
+      de: "Ein öffentliches Beispielnetz für Rechnungen und Vergleiche. Es bildet kein bestimmtes reales Netz ab.",
+      en: "A public example grid for calculations and comparisons. It does not represent a specific real grid.",
+    },
+  },
+  {
+    id: "starklast",
+    term: { de: "Starklast", en: "Peak load" },
+    text: {
+      de: "Ein Lastfall mit hohem Verbrauch und ohne dezentrale Erzeugung.",
+      en: "A load case with high consumption and no distributed generation.",
+    },
+  },
+  {
+    id: "schwachlast-pv",
+    term: { de: "Schwachlast mit viel Sonne und Wind", en: "Low load with much sun and wind" },
+    text: {
+      de: "Ein Lastfall mit niedrigem Verbrauch und hoher Einspeisung; der Strom fließt Richtung Hochspannung zurück.",
+      en: "A load case with low consumption and high feed-in; power flows back towards the high-voltage grid.",
+    },
+  },
+  {
+    id: "trennstelle",
+    term: { de: "Trennstelle", en: "Tie switch" },
+    text: {
+      de: "Ein offener Schalter, der ein Netz im Normalbetrieb in Stränge teilt. Im Störungsfall kann er geschlossen werden.",
+      en: "An open switch that splits a grid into feeders in normal operation. It can be closed after a fault.",
+    },
+  },
+  {
+    id: "stufensteller",
+    term: { de: "Stufensteller", en: "Tap changer" },
+    text: {
+      de: "Die Einstellung am Transformator, die das Übersetzungsverhältnis in kleinen Stufen ändert und damit die Spannung hebt oder senkt. Im Testnetz ist er je Fall fest.",
+      en: "The setting on a transformer that changes the ratio in small steps and so raises or lowers the voltage. It is fixed per case in the test grid.",
+    },
+  },
+  {
     id: "n-1",
     term: { de: "(n−1)", en: "(n−1)" },
     text: {
-      de: "Das Netz soll auch dann noch arbeiten, wenn ein Teil ausfällt. Das Modell rechnet das nicht.",
-      en: "The grid should keep working when one part fails. The model does not calculate that.",
+      de: "Das Netz soll auch dann noch arbeiten, wenn ein Teil ausfällt. Auf /netz wird das im Testnetz für Einzelausfälle gerechnet, in den anderen Rechnern nicht.",
+      en: "The grid should keep working when one part fails. On /netz this is calculated for single outages in the test grid, and not in the other calculators.",
     },
   },
   {
