@@ -62,10 +62,10 @@ describe("day ring story on the October 2026 fixture", () => {
     const x1 = stories[1];
     expect(x1.eveningPeakBeforeGw).not.toBeNull();
     expect(formatGw1(x1.eveningPeakBeforeGw ?? 0, "de")).toBe("38,1");
-    expect(formatGw1(x1.eveningPeakAfterGw ?? 0, "de")).toBe("33,5");
-    expect(onceRoundDeltaGw(x1.eveningPeakBeforeGw ?? 0, x1.eveningPeakAfterGw ?? 0)).toBe(4.5);
-    expect(formatGwh(x1.chargedGwh, "de")).toBe("7,9");
-    expect(chargedWouldHave(x1.chargedGwh, 1, "de")).toBe("7,9 GWh hätten die heutigen Großspeicher geladen");
+    expect(formatGw1(x1.eveningPeakAfterGw ?? 0, "de")).toBe("34,0");
+    expect(onceRoundDeltaGw(x1.eveningPeakBeforeGw ?? 0, x1.eveningPeakAfterGw ?? 0)).toBe(4);
+    expect(formatGwh(x1.chargedGwh, "de")).toBe("6,3");
+    expect(chargedWouldHave(x1.chargedGwh, 1, "de")).toBe("6,3 GWh hätten die heutigen Großspeicher geladen");
     expect(chargedWouldHave(stories[5].chargedGwh, 5, "de")).toBe(
       "22,8 GWh hätte die 5-fache Großspeicher-Flotte geladen"
     );
@@ -74,7 +74,7 @@ describe("day ring story on the October 2026 fixture", () => {
       "×5: 22,6 GW · 39,3 GWh (5 × 4,52 GW)"
     );
     expect(fleetSizeLabel(5, stories[5].powerMw, stories[5].energyMwh, "de")).not.toContain("22,5");
-    expect(formatGw1(stories[2].eveningPeakAfterGw ?? 0, "de")).toBe("31,8");
+    expect(formatGw1(stories[2].eveningPeakAfterGw ?? 0, "de")).toBe("32,3");
     expect(formatGw1(stories[5].eveningPeakAfterGw ?? 0, "de")).toBe("30,9");
     expect(formatGw1(stories[10].eveningPeakAfterGw ?? 0, "de")).toBe("30,9");
     expect(formatGwh(stories[5].chargedGwh, "de")).toBe("22,8");
@@ -87,8 +87,8 @@ describe("day ring story on the October 2026 fixture", () => {
     );
     expect(sliderValueText(5, stories[5].eveningPeakAfterGw, "de")).toBe("×5, Abendspitze 30,9 GW");
     expect(eveningPeakStat(x1.eveningPeakBeforeGw, x1.eveningPeakAfterGw, "de")).toEqual({
-      value: "33,5",
-      note: "−4,5 GW gegenüber ohne Speicher",
+      value: "34,0",
+      note: "−4,0 GW gegenüber ohne Speicher",
     });
     expect(eveningPeakStat(stories[5].eveningPeakBeforeGw, stories[5].eveningPeakAfterGw, "de")).toEqual({
       value: "30,9",

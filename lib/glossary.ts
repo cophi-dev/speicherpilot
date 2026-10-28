@@ -265,8 +265,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "modellschaetzung",
     term: { de: "Modellschätzung", en: "Model estimate" },
     text: {
-      de: "Eine Rechnung für den deutschen Großspeicher-Bestand, kein Messwert. Der Speicher startet leer, lädt nur wenn Wind plus Sonne über der Last liegt, und gibt ab 17 Uhr auf die Abendspitze ab. Was der Abend nicht aufnimmt, bleibt im Ladezustand. Der Wirkungsgrad ist 85 %.",
-      en: "A calculation for Germany’s large-storage fleet, not a measurement. The battery starts empty, charges only while wind plus solar exceeds load, and releases onto the evening peak from 17:00. What the evening does not take stays in the state of charge. Round-trip efficiency is 85%.",
+      de: "Eine Rechnung für den deutschen Großspeicher-Bestand, kein Messwert. Die Nennenergie ist die Größe der Flotte. Nutzbar sind 10–90 % davon. Ein Tag ohne Vortag startet bei 10 %. Geladen wird nur, wenn Wind plus Sonne über der Last liegt, und nur vor 17 Uhr. Ab 17 Uhr geht Energie auf die Abendspitze. 85 % Wirkungsgrad gelten nur auf der Abgabe.",
+      en: "A calculation for Germany’s large-storage fleet, not a measurement. Nameplate energy is the fleet size. The usable window is 10–90% of that. A day with no previous day starts at 10%. Charging happens only while wind plus solar exceeds load, and only before 17:00. From 17:00 energy goes onto the evening peak. The 85% round-trip applies only on discharge.",
     },
   },
   {

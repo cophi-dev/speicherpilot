@@ -24,8 +24,8 @@ describe("live strip", () => {
   it("never prints a missing generation value as zero", () => {
     const readings = buildLiveReadings({
       slots: [
-        slot("2026-10-28T06:15:00+01:00", {}),
-        slot("2026-10-28T07:30:00+01:00", { wind: null, solar: null, loadMw: 60_000 }),
+        slot("2026-10-28T08:15:00+01:00", { loadMw: 65_700 }),
+        slot("2026-10-28T08:30:00+01:00", { wind: null, solar: null, loadMw: 72_600 }),
       ],
       offshorePresent: true,
       powerStale: false,
@@ -39,7 +39,9 @@ describe("live strip", () => {
     const solar = readings.readings.find((reading) => reading.id === "solar");
     const load = readings.readings.find((reading) => reading.id === "load");
     const frequency = readings.readings.find((reading) => reading.id === "frequency");
-    expect(load?.value).toBeCloseTo(60, 5);
+    expect(load?.value).toBeCloseTo(65.7, 1);
+    expect(load?.provisional).toBe(true);
+    expect(load?.value).not.toBeCloseTo(72.6, 1);
     expect(wind?.value).toBeCloseTo(2, 5);
     expect(wind?.value).not.toBe(0);
     expect(solar?.value).toBe(0);

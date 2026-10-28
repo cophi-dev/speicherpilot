@@ -1,22 +1,31 @@
-import { CARRIER_IDS, type ChartPoint } from "@/lib/powerMix";
+import { CARRIER_IDS, type CarrierId, type ChartPoint } from "@/lib/powerMix";
 import { CARRIER_COPY } from "@/lib/powerBoard";
 import { niceAxis } from "@/lib/niceTicks";
 
-const WIDTH = 720;
-const HEIGHT = 340;
-const PAD = { l: 48, r: 108, t: 18, b: 32 };
+export type ChartFrame = {
+  width: number;
+  height: number;
+  pad: { l: number; r: number; t: number; b: number };
+  font: number;
+};
 
-function yOf(value: number, min: number, max: number): number {
-  const plot = HEIGHT - PAD.t - PAD.b;
-  return PAD.t + ((max - value) / (max - min)) * plot;
+export function chartFrame(compact: boolean): ChartFrame {
+  return compact
+    ? { width: 360, height: 250, pad: { l: 40, r: 10, t: 16, b: 32 }, font: 12 }
+    : { width: 720, height: 320, pad: { l: 52, r: 132, t: 16, b: 32 }, font: 13 };
 }
 
-function xOf(unix: number, min: number, max: number): number {
-  const plot = WIDTH - PAD.l - PAD.r;
+export function chartX(unix: number, min: number, max: number, frame: ChartFrame): number {
+  const plot = frame.width - frame.pad.l - frame.pad.r;
   if (max === min) {
-    return PAD.l + plot / 2;
+    return frame.pad.l + plot / 2;
   }
-  return PAD.l + ((unix - min) / (max - min)) * plot;
+  return frame.pad.l + ((unix - min) / (max - min)) * plot;
+}
+
+function yOf(value: number, min: number, max: number, frame: ChartFrame): number {
+  const plot = frame.height - frame.pad.t - frame.pad.b;
+  return frame.pad.t + ((max - value) / (max - min)) * plot;
 }
 
 function runs(indexes: number[]): number[][] {
@@ -36,22 +45,33 @@ function runs(indexes: number[]): number[][] {
   return groups;
 }
 
-function bandPath(xs: number[], lower: number[], upper: number[], indexes: number[], min: number, max: number): string {
+function bandPath(
+  xs: number[],
+  lower: number[],
+  upper: number[],
+  indexes: number[],
+  min: number,
+  max: number,
+  frame: ChartFrame
+): string {
   if (indexes.length === 0) {
     return "";
   }
-  const forward = indexes
-    .map((index) => `${xOf(xs[index], xs[0], xs[xs.length - 1]).toFixed(1)},${yOf(upper[index], min, max).toFixed(1)}`)
-    .join(" ");
-  const back = [...indexes]
-    .reverse()
-    .map((index) => `${xOf(xs[index], xs[0], xs[xs.length - 1]).toFixed(1)},${yOf(lower[index], min, max).toFixed(1)}`)
-    .join(" ");
+  const x = (index: number) => chartX(xs[index], xs[0], xs[xs.length - 1], frame);
+  const forward = indexes.map((index) => `${x(index).toFixed(1)},${yOf(upper[index], min, max, frame).toFixed(1)}`).join(" ");
+  const back = [...indexes].reverse().map((index) => `${x(index).toFixed(1)},${yOf(lower[index], min, max, frame).toFixed(1)}`).join(" ");
   const [first] = indexes;
-  return `M ${xOf(xs[first], xs[0], xs[xs.length - 1]).toFixed(1)},${yOf(lower[first], min, max).toFixed(1)} L ${forward} L ${back} Z`;
+  return `M ${x(first).toFixed(1)},${yOf(lower[first], min, max, frame).toFixed(1)} L ${forward} L ${back} Z`;
 }
 
-function linePath(points: ChartPoint[], pick: (point: ChartPoint) => number | null, min: number, max: number, xs: number[]): string {
+function linePath(
+  points: ChartPoint[],
+  pick: (point: ChartPoint) => number | null,
+  min: number,
+  max: number,
+  xs: number[],
+  frame: ChartFrame
+): string {
   const parts: string[] = [];
   let open = false;
   points.forEach((point, index) => {
@@ -62,9 +82,26 @@ function linePath(points: ChartPoint[], pick: (point: ChartPoint) => number | nu
     }
     const cmd = open ? "L" : "M";
     open = true;
-    parts.push(`${cmd} ${xOf(xs[index], xs[0], xs[xs.length - 1]).toFixed(1)} ${yOf(value, min, max).toFixed(1)}`);
+    parts.push(`${cmd} ${chartX(xs[index], xs[0], xs[xs.length - 1], frame).toFixed(1)} ${yOf(value, min, max, frame).toFixed(1)}`);
   });
   return parts.join(" ");
+}
+
+const LEGEND: Array<{ id: CarrierId | "load" | "residual" | "trade"; de: string; en: string }> = [
+  ...CARRIER_IDS.map((id) => ({ id, ...CARRIER_COPY[id] })),
+  { id: "load", de: "Last", en: "Load" },
+  { id: "residual", de: "Residuallast", en: "Residual load" },
+  { id: "trade", de: "Handel", en: "Trade" },
+];
+
+function keptTicks(points: ChartPoint[], compact: boolean): Set<number> {
+  const indexes = points.map((point, index) => (point.tick ? index : -1)).filter((index) => index >= 0);
+  if (!compact || indexes.length <= 4) {
+    return new Set(indexes);
+  }
+  const last = indexes.length - 1;
+  const picks = [0, Math.round(last / 3), Math.round((2 * last) / 3), last];
+  return new Set(picks.map((pick) => indexes[pick]));
 }
 
 export function MixChart({
@@ -73,13 +110,16 @@ export function MixChart({
   title,
   description,
   language,
+  compact = false,
 }: {
   points: ChartPoint[];
   unit: "GW" | "GWh";
   title: string;
   description: string;
   language: "de" | "en";
+  compact?: boolean;
 }) {
+  const frame = chartFrame(compact);
   const titleId = "mix-chart-title";
   const descId = "mix-chart-desc";
   if (points.length === 0) {
@@ -95,7 +135,7 @@ export function MixChart({
         complete = false;
         break;
       }
-      stack += value;
+      stack += Math.max(0, value);
     }
     if (complete) {
       values.push(stack);
@@ -106,7 +146,7 @@ export function MixChart({
       }
     }
   }
-  const axis = niceAxis(Math.min(...values), Math.max(...values), 4);
+  const axis = niceAxis(Math.min(...values), Math.max(...values), 6);
   const xs = points.map((point) => point.unix);
   const completeIndex = points.map((point) => CARRIER_IDS.every((id) => point.carriers[id] !== null));
   const lower = CARRIER_IDS.map(() => points.map(() => 0));
@@ -118,87 +158,123 @@ export function MixChart({
     let cursor = 0;
     CARRIER_IDS.forEach((id, carrier) => {
       lower[carrier][index] = cursor;
-      cursor += points[index].carriers[id] ?? 0;
+      cursor += Math.max(0, points[index].carriers[id] ?? 0);
       upper[carrier][index] = cursor;
     });
   }
   const completeRuns = runs(points.map((_, index) => index).filter((index) => completeIndex[index]));
+  const show = keptTicks(points, compact);
   const labels: Array<{ y: number; text: string }> = [];
-  const lastComplete = completeIndex.lastIndexOf(true);
-  if (lastComplete >= 0) {
-    CARRIER_IDS.forEach((id, carrier) => {
-      const y1 = yOf(lower[carrier][lastComplete], axis.min, axis.max);
-      const y2 = yOf(upper[carrier][lastComplete], axis.min, axis.max);
-      if (Math.abs(y1 - y2) >= 14) {
-        labels.push({ y: (y1 + y2) / 2, text: language === "de" ? CARRIER_COPY[id].de : CARRIER_COPY[id].en });
-      }
-    });
-  }
-  const lastOf = (pick: (point: ChartPoint) => number | null, text: string) => {
+  if (!compact) {
+    const lastComplete = completeIndex.lastIndexOf(true);
+    const ranked: Array<{ y: number; text: string; rank: number }> = [];
+    const push = (y: number, text: string, rank: number) => ranked.push({ y, text, rank });
     for (let index = points.length - 1; index >= 0; index -= 1) {
-      const value = pick(points[index]);
-      if (value !== null) {
-        labels.push({ y: yOf(value, axis.min, axis.max), text });
-        return;
+      const load = points[index].load;
+      if (load !== null) {
+        push(yOf(load, axis.min, axis.max, frame), language === "de" ? "Last" : "Load", 0);
+        break;
       }
     }
-  };
-  lastOf((point) => point.load, language === "de" ? "Last" : "Load");
-  lastOf((point) => point.residual, language === "de" ? "Residuallast" : "Residual");
-  lastOf((point) => point.trade, language === "de" ? "Handel" : "Trade");
-  labels.sort((left, right) => left.y - right.y);
-  let cursor = PAD.t;
-  for (const label of labels) {
-    if (label.y < cursor) {
-      label.y = cursor;
+    for (let index = points.length - 1; index >= 0; index -= 1) {
+      const residual = points[index].residual;
+      if (residual !== null) {
+        push(yOf(residual, axis.min, axis.max, frame), language === "de" ? "Residuallast" : "Residual", 1);
+        break;
+      }
     }
-    cursor = label.y + 13;
+    for (let index = points.length - 1; index >= 0; index -= 1) {
+      const trade = points[index].trade;
+      if (trade !== null) {
+        push(yOf(trade, axis.min, axis.max, frame), language === "de" ? "Handel" : "Trade", 2);
+        break;
+      }
+    }
+    if (lastComplete >= 0) {
+      CARRIER_IDS.forEach((id, carrier) => {
+        const y1 = yOf(lower[carrier][lastComplete], axis.min, axis.max, frame);
+        const y2 = yOf(upper[carrier][lastComplete], axis.min, axis.max, frame);
+        const band = Math.abs(y1 - y2);
+        if (band >= 16) {
+          const name = language === "de" ? CARRIER_COPY[id].de : CARRIER_COPY[id].en;
+          push((y1 + y2) / 2, name, 10 + (1000 - band));
+        }
+      });
+    }
+    ranked.sort((left, right) => left.rank - right.rank || left.y - right.y);
+    const placed: number[] = [];
+    for (const label of ranked) {
+      if (placed.some((y) => Math.abs(y - label.y) < frame.font + 14)) {
+        continue;
+      }
+      placed.push(label.y);
+      labels.push(label);
+    }
   }
+  const loadPath = linePath(points, (point) => point.load, axis.min, axis.max, xs, frame);
+  const residualPath = linePath(points, (point) => point.residual, axis.min, axis.max, xs, frame);
 
   return (
-    <svg className="mix-chart" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-labelledby={`${titleId} ${descId}`}>
-      <title id={titleId}>{title}</title>
-      <desc id={descId}>{description}</desc>
-      {axis.ticks.map((tick) => (
-        <g key={tick}>
-          <line className="mix-guide" x1={PAD.l} x2={WIDTH - PAD.r} y1={yOf(tick, axis.min, axis.max)} y2={yOf(tick, axis.min, axis.max)} />
-          <text className="mix-axis" x={PAD.l - 6} y={yOf(tick, axis.min, axis.max)} textAnchor="end" dominantBaseline="middle">
-            {tick}
-          </text>
-        </g>
-      ))}
-      <text className="mix-axis" x={PAD.l} y={12}>
-        {unit}
-      </text>
-      {CARRIER_IDS.map((id, carrier) =>
-        completeRuns.map((group) => (
-          <path key={`${id}-${group[0]}`} className={`mix-carrier mix-carrier-${carrier + 1}`} d={bandPath(xs, lower[carrier], upper[carrier], group, axis.min, axis.max)} />
-        ))
-      )}
-      <path className="mix-trade" d={tradePath(points, axis.min, axis.max, xs)} />
-      <path className="mix-load" d={linePath(points, (point) => point.load, axis.min, axis.max, xs)} fill="none" />
-      <path className="mix-residual" d={linePath(points, (point) => point.residual, axis.min, axis.max, xs)} fill="none" />
-      {points.map((point, index) =>
-        point.tick ? (
-          <text key={point.unix} className="mix-axis" x={xOf(xs[index], xs[0], xs[xs.length - 1])} y={HEIGHT - 8} textAnchor="middle">
-            {point.tick}
-          </text>
-        ) : null
-      )}
-      {labels.map((label) => (
-        <text key={label.text} className="mix-direct" x={WIDTH - PAD.r + 8} y={label.y} dominantBaseline="middle">
-          {label.text}
+    <figure className="mix-figure">
+      <svg className={compact ? "mix-chart is-compact" : "mix-chart"} viewBox={`0 0 ${frame.width} ${frame.height}`} role="img" aria-labelledby={`${titleId} ${descId}`}>
+        <title id={titleId}>{title}</title>
+        <desc id={descId}>{description}</desc>
+        {axis.ticks.map((tick) => (
+          <g key={tick}>
+            <line
+              className={tick === 0 ? "mix-zero" : "mix-guide"}
+              x1={frame.pad.l}
+              x2={frame.width - frame.pad.r}
+              y1={yOf(tick, axis.min, axis.max, frame)}
+              y2={yOf(tick, axis.min, axis.max, frame)}
+            />
+            <text className="mix-axis" fontSize={frame.font} x={frame.pad.l - 6} y={yOf(tick, axis.min, axis.max, frame)} textAnchor="end" dominantBaseline="middle">
+              {tick}
+            </text>
+          </g>
+        ))}
+        <text className="mix-axis" fontSize={frame.font} x={frame.pad.l} y={12}>
+          {unit}
         </text>
-      ))}
-    </svg>
+        {CARRIER_IDS.map((id, carrier) =>
+          completeRuns.map((group) => (
+            <path key={`${id}-${group[0]}`} className={`mix-carrier mix-fill-${id}`} d={bandPath(xs, lower[carrier], upper[carrier], group, axis.min, axis.max, frame)} />
+          ))
+        )}
+        <path className="mix-trade" d={tradePath(points, axis.min, axis.max, xs, frame)} />
+        <path className="mix-load" d={loadPath} fill="none" />
+        <path className="mix-residual-edge" d={residualPath} fill="none" />
+        <path className="mix-residual" d={residualPath} fill="none" />
+        {points.map((point, index) =>
+          point.tick && show.has(index) ? (
+            <text key={`${point.unix}-${point.tick}`} className="mix-axis" fontSize={frame.font} x={chartX(xs[index], xs[0], xs[xs.length - 1], frame)} y={frame.height - 8} textAnchor="middle">
+              {point.tick}
+            </text>
+          ) : null
+        )}
+        {labels.map((label) => (
+          <text key={label.text} className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={label.y} dominantBaseline="middle">
+            {label.text}
+          </text>
+        ))}
+      </svg>
+      <ul className="mix-legend">
+        {LEGEND.map((item) => (
+          <li key={item.id}>
+            <span className={`mix-dot mix-fill-${item.id}`} aria-hidden="true" />
+            {language === "de" ? item.de : item.en}
+          </li>
+        ))}
+      </ul>
+    </figure>
   );
 }
 
-function tradePath(points: ChartPoint[], min: number, max: number, xs: number[]): string {
+function tradePath(points: ChartPoint[], min: number, max: number, xs: number[], frame: ChartFrame): string {
   const indexes = points.map((point, index) => (point.trade === null ? -1 : index)).filter((index) => index >= 0);
   const lower = points.map(() => 0);
   const upper = points.map((point) => point.trade ?? 0);
   return runs(indexes)
-    .map((group) => bandPath(xs, lower, upper, group, min, max))
+    .map((group) => bandPath(xs, lower, upper, group, min, max, frame))
     .join(" ");
 }

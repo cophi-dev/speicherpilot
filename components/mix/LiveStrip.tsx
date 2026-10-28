@@ -51,6 +51,7 @@ export function LiveStrip({ stand, readings }: { stand: string; readings: StripR
                 {reading.time ? " · " : null}
                 {note}
                 {reading.id === "frequency" ? tx(". Kein Wert eines Netzbetreibers.", ". Not a grid-operator value.") : null}
+                {reading.provisional ? <span className="live-stale">{tx(" vorläufig, Erzeugung fehlt", " provisional, generation missing")}</span> : null}
                 {reading.stale ? <span className="live-stale">{tx(" zuletzt gültig", " last valid")}</span> : null}
               </dd>
             </div>

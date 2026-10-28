@@ -91,6 +91,21 @@ function shareText(value: number | null, language: AppLanguage): string {
   return `${formatQuantity(value * 100, language, 1)} %`;
 }
 
+function stampOpenEnd(points: ChartPoint[], until: string | null, range: MixRange): ChartPoint[] {
+  if (!until || points.length === 0) {
+    return points;
+  }
+  const last = points[points.length - 1];
+  const gap = range === "monat" ? 2 * 86_400 : 18 * 3600;
+  for (const point of points) {
+    if (point !== last && point.tick && last.unix - point.unix < gap) {
+      point.tick = null;
+    }
+  }
+  last.tick = `jetzt/${until}`;
+  return points;
+}
+
 function textPair(build: (language: AppLanguage) => string): Copy {
   return { de: build("de"), en: build("en") };
 }
@@ -116,6 +131,7 @@ function quietCopy(input: {
   load: Copy;
   wind: Copy;
   share: Copy;
+  basis: Copy;
   minGw: Copy;
   minTime: string;
   maxGw: Copy;
@@ -123,8 +139,8 @@ function quietCopy(input: {
   surplus: Copy;
   surplusGwh: number;
 }): { de: [string, string]; en: [string, string] } {
-  const firstDe = `Wind und Sonne haben ${input.share.de} der Last gedeckt, ${input.wind.de} von ${input.load.de}. Die Residuallast lag zwischen ${input.minGw.de} GW um ${input.minTime} und ${input.maxGw.de} GW um ${input.maxTime}.`;
-  const firstEn = `Wind and solar covered ${input.share.en} of load, ${input.wind.en} of ${input.load.en}. Residual load ran from ${input.minGw.en} GW at ${input.minTime} to ${input.maxGw.en} GW at ${input.maxTime}.`;
+  const firstDe = `Wind und Sonne haben ${input.share.de} der Last gedeckt, ${input.wind.de} von ${input.basis.de}. Die Residuallast lag zwischen ${input.minGw.de} GW um ${input.minTime} und ${input.maxGw.de} GW um ${input.maxTime}.`;
+  const firstEn = `Wind and solar covered ${input.share.en} of load, ${input.wind.en} of ${input.basis.en}. Residual load ran from ${input.minGw.en} GW at ${input.minTime} to ${input.maxGw.en} GW at ${input.maxTime}.`;
   const secondDe =
     input.surplusGwh <= 0
       ? "Im Überschuss-Modell ist nichts zu laden."
@@ -176,7 +192,6 @@ export function buildPowerBoard(input: {
   const bounds = rangeBounds(input.endDate, input.range);
   const window = slotsInRange(input.slots, bounds.start, bounds.end);
   const figures = periodFigures(window, input.offshorePresent);
-  const points = aggregateSlots(window, input.range, input.offshorePresent);
   const unit = chartUnit(input.range);
   const open = input.endDate === input.todayKey;
   const last = window[window.length - 1];
@@ -184,11 +199,14 @@ export function buildPowerBoard(input: {
     open && last && !(last.hourBerlin === 23 && last.minuteBerlin === 45)
       ? uniqueQuarterLabels([last.timestampIso])[0] ?? null
       : null;
+  const points = stampOpenEnd(aggregateSlots(window, input.range, input.offshorePresent), until, input.range);
   const minTime = figures.residualMinIso ? uniqueQuarterLabels([figures.residualMinIso])[0] ?? "" : "";
   const maxTime = figures.residualMaxIso ? uniqueQuarterLabels([figures.residualMaxIso])[0] ?? "" : "";
   const load = textPair((language) => gwh(figures.loadGwh, language));
+  const basisLoad = textPair((language) => gwh(figures.completeLoadGwh, language));
   const wind = textPair((language) => gwh(figures.windSolarGwh, language));
   const share = textPair((language) => shareText(figures.windSolarShare, language));
+  const sameBasis = figures.loadQuarters === figures.completeQuarters;
   const surplus = textPair((language) => gwh(figures.surplusGwh, language));
   const minGw = textPair((language) => gw(figures.residualMinMw, language));
   const maxGw = textPair((language) => gw(figures.residualMaxMw, language));
@@ -200,9 +218,39 @@ export function buildPowerBoard(input: {
     value: textPair((language) => gwh(figures.carrierGwh[id], language)),
   }));
   rows.push(
-    { id: "load", label: both("Last", "Load"), value: load },
-    { id: "windSolar", label: both("Wind und Sonne", "Wind and solar"), value: wind },
-    { id: "share", label: both("Anteil Wind und Sonne an der Last", "Wind and solar share of load"), value: share },
+    {
+      id: "load",
+      label: both(`Last (${figures.loadQuarters} Viertelstunden)`, `Load (${figures.loadQuarters} quarter-hours)`),
+      value: load,
+    },
+    ...(sameBasis
+      ? []
+      : [
+          {
+            id: "completeLoad",
+            label: both(
+              `Last mit Wind und Sonne (${figures.completeQuarters} Viertelstunden)`,
+              `Load with wind and solar (${figures.completeQuarters} quarter-hours)`
+            ),
+            value: basisLoad,
+          },
+        ]),
+    {
+      id: "windSolar",
+      label: both(
+        `Wind und Sonne (${figures.completeQuarters} Viertelstunden)`,
+        `Wind and solar (${figures.completeQuarters} quarter-hours)`
+      ),
+      value: wind,
+    },
+    {
+      id: "share",
+      label: both(
+        `Anteil an der Last (${figures.completeQuarters} Viertelstunden)`,
+        `Share of load (${figures.completeQuarters} quarter-hours)`
+      ),
+      value: share,
+    },
     { id: "surplus", label: both("Überschuss Wind und Sonne", "Wind and solar surplus"), value: surplus },
     {
       id: "residualMax",
@@ -232,6 +280,7 @@ export function buildPowerBoard(input: {
     dayFigures.surplusGwh !== null
       ? quietCopy({
           load: textPair((language) => gwh(dayFigures.loadGwh, language)),
+          basis: textPair((language) => gwh(dayFigures.completeLoadGwh, language)),
           wind: textPair((language) => gwh(dayFigures.windSolarGwh, language)),
           share: textPair((language) => shareText(dayFigures.windSolarShare, language)),
           minGw: textPair((language) => gw(dayFigures.residualMinMw, language)),

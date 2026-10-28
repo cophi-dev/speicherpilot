@@ -9,6 +9,8 @@ export type StripReading = {
   /** Berlin HH:MM of this reading, or null when nothing was published. */
   time: string | null;
   stale: boolean;
+  /** A later load quarter exists without wind and solar. It is not the current reading. */
+  provisional: boolean;
 };
 
 export type FrequencySample = {
@@ -49,11 +51,16 @@ export function priceForQuarter(prices: DayAheadPricePoint[], quarterStart: numb
 }
 
 export function buildLiveReadings(input: LiveStripInput): { stand: string; readings: StripReading[] } {
-  const loadSlot = latestSlot(input.slots, (slot) => slot.loadMw !== null);
-  const windSlot = latestSlot(input.slots, (slot) => windMw(slot, input.offshorePresent) !== null);
-  const solarSlot = latestSlot(input.slots, (slot) => slot.carriers.solar !== null);
-  const residualSlot = latestSlot(input.slots, (slot) => residualMw(slot, input.offshorePresent) !== null);
-  const shareSlot = latestSlot(input.slots, (slot) => slot.renewableSharePct !== null);
+  const paired = (slot: PowerSlot) =>
+    slot.loadMw !== null && windMw(slot, input.offshorePresent) !== null && slot.carriers.solar !== null;
+  const loadSlot = latestSlot(input.slots, paired);
+  const laterLoadOnly = input.slots.some(
+    (slot) => slot.loadMw !== null && !paired(slot) && (loadSlot === null || slot.unixSeconds > loadSlot.unixSeconds)
+  );
+  const windSlot = loadSlot;
+  const solarSlot = loadSlot;
+  const residualSlot = loadSlot;
+  const shareSlot = loadSlot?.renewableSharePct != null ? loadSlot : null;
   const quarter = quarterStartMs(input.now);
   const price = priceForQuarter(input.prices, quarter);
   const wind = windSlot ? windMw(windSlot, input.offshorePresent) : null;
@@ -66,6 +73,7 @@ export function buildLiveReadings(input: LiveStripInput): { stand: string; readi
       unit: "GW",
       time: loadSlot ? clock(loadSlot.timestampIso) : null,
       stale: input.powerStale && loadSlot !== null,
+      provisional: laterLoadOnly,
     },
     {
       id: "wind",
@@ -73,6 +81,7 @@ export function buildLiveReadings(input: LiveStripInput): { stand: string; readi
       unit: "GW",
       time: windSlot && wind !== null ? clock(windSlot.timestampIso) : null,
       stale: input.powerStale && wind !== null,
+      provisional: false,
     },
     {
       id: "solar",
@@ -80,6 +89,7 @@ export function buildLiveReadings(input: LiveStripInput): { stand: string; readi
       unit: "GW",
       time: solarSlot && solarSlot.carriers.solar !== null ? clock(solarSlot.timestampIso) : null,
       stale: input.powerStale && solarSlot?.carriers.solar != null,
+      provisional: false,
     },
     {
       id: "residual",
@@ -87,6 +97,7 @@ export function buildLiveReadings(input: LiveStripInput): { stand: string; readi
       unit: "GW",
       time: residualSlot && residual !== null ? clock(residualSlot.timestampIso) : null,
       stale: input.powerStale && residual !== null,
+      provisional: false,
     },
     {
       id: "renewableShare",
@@ -94,6 +105,7 @@ export function buildLiveReadings(input: LiveStripInput): { stand: string; readi
       unit: "%",
       time: shareSlot && shareSlot.renewableSharePct !== null ? clock(shareSlot.timestampIso) : null,
       stale: input.powerStale && shareSlot?.renewableSharePct != null,
+      provisional: false,
     },
     {
       id: "price",
@@ -101,6 +113,7 @@ export function buildLiveReadings(input: LiveStripInput): { stand: string; readi
       unit: "EUR/MWh",
       time: price ? clock(price.unixMs) : clock(quarter),
       stale: input.priceStale && price !== null,
+      provisional: false,
     },
     {
       id: "frequency",
@@ -108,6 +121,7 @@ export function buildLiveReadings(input: LiveStripInput): { stand: string; readi
       unit: "Hz",
       time: input.frequency ? clock(input.frequency.unixMs) : null,
       stale: input.frequencyStale && input.frequency !== null,
+      provisional: false,
     },
   ];
 

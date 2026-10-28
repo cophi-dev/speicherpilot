@@ -234,7 +234,7 @@ export function StorageWhatIf({
               ))}
             </div>
           <p className="num mt-4 text-[12px] text-muted-foreground">
-            {tx(`Start leer, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % Wirkungsgrad, nur Überschuss, Entladung ab 17 Uhr`, `Start empty, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)}% round-trip efficiency, surplus only, discharge from 17:00`)}
+            {tx(`Start bei 10 % der Nennenergie, nutzbar 10–90 %, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % auf der Abgabe, nur Überschuss, Entladung ab 17 Uhr`, `Start at 10% of nameplate, usable 10–90%, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)}% on discharge, surplus only, discharge from 17:00`)}
           </p>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { addBerlinCalendarDays, getBerlinDateKeyFromUnixSeconds } from "@/lib/berlinCalendar";
+import { addBerlinCalendarDays, getBerlinDateKeyFromUnixSeconds, getBerlinIsoWeekdayForDateKey } from "@/lib/berlinCalendar";
 import { berlinClockParts, uniqueQuarterLabels } from "@/lib/quarterMarks";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 
@@ -366,6 +366,12 @@ export function slotsInRange(slots: PowerSlot[], start: string, end: string): Po
 
 export type PeriodFigures = {
   loadGwh: number | null;
+  /** Quarter-hours with a published load, including ones that still lack generation. */
+  loadQuarters: number;
+  /** Load summed only on quarter-hours where wind and solar are published too. */
+  completeLoadGwh: number | null;
+  /** Quarter-hours where load, wind and solar are all published. Share uses this count. */
+  completeQuarters: number;
   windSolarGwh: number | null;
   /** Wind plus solar divided by load, on quarters where all of those series exist. */
   windSolarShare: number | null;
@@ -388,8 +394,10 @@ function addEnergy(sum: number | null, mw: number | null): number | null {
 export function periodFigures(slots: PowerSlot[], offshorePresent: boolean): PeriodFigures {
   const carrierGwh = emptyCarriers();
   let loadGwh: number | null = null;
+  let loadQuarters = 0;
+  let completeLoadGwh: number | null = null;
+  let completeQuarters = 0;
   let windSolarGwh: number | null = null;
-  let shareLoadGwh: number | null = null;
   let surplusGwh: number | null = null;
   let tradeGwh: number | null = null;
   let residualMaxMw: number | null = null;
@@ -401,6 +409,9 @@ export function periodFigures(slots: PowerSlot[], offshorePresent: boolean): Per
     for (const id of CARRIER_IDS) {
       carrierGwh[id] = addEnergy(carrierGwh[id], slot.carriers[id]);
     }
+    if (slot.loadMw !== null) {
+      loadQuarters += 1;
+    }
     loadGwh = addEnergy(loadGwh, slot.loadMw);
     tradeGwh = addEnergy(tradeGwh, slot.tradeMw);
     const wind = windMw(slot, offshorePresent);
@@ -408,7 +419,8 @@ export function periodFigures(slots: PowerSlot[], offshorePresent: boolean): Per
     if (wind !== null && solar !== null) {
       windSolarGwh = addEnergy(windSolarGwh, wind + solar);
       if (slot.loadMw !== null) {
-        shareLoadGwh = addEnergy(shareLoadGwh, slot.loadMw);
+        completeQuarters += 1;
+        completeLoadGwh = addEnergy(completeLoadGwh, slot.loadMw);
         surplusGwh = addEnergy(surplusGwh, Math.max(0, wind + solar - slot.loadMw));
         const residual = slot.loadMw - wind - solar;
         if (residualMaxMw === null || residual > residualMaxMw) {
@@ -424,10 +436,13 @@ export function periodFigures(slots: PowerSlot[], offshorePresent: boolean): Per
   }
 
   const share =
-    windSolarGwh !== null && shareLoadGwh !== null && shareLoadGwh > 0 ? windSolarGwh / shareLoadGwh : null;
+    windSolarGwh !== null && completeLoadGwh !== null && completeLoadGwh > 0 ? windSolarGwh / completeLoadGwh : null;
 
   return {
     loadGwh,
+    loadQuarters,
+    completeLoadGwh,
+    completeQuarters,
     windSolarGwh,
     windSolarShare: share,
     surplusGwh,
@@ -458,6 +473,14 @@ function mean(values: Array<number | null>): number | null {
   return published.reduce((sum, value) => sum + value, 0) / published.length;
 }
 
+const WEEKDAY_SHORT = ["", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+export function berlinDayTick(dateKey: string): string {
+  const weekday = WEEKDAY_SHORT[getBerlinIsoWeekdayForDateKey(dateKey)] ?? "";
+  const [, month, day] = dateKey.split("-");
+  return `${weekday} ${day}.${month}.`;
+}
+
 function ticksFor(points: ChartPoint[], range: MixRange): ChartPoint[] {
   if (points.length === 0) {
     return points;
@@ -467,7 +490,7 @@ function ticksFor(points: ChartPoint[], range: MixRange): ChartPoint[] {
     for (const point of marked) {
       const parts = berlinClockParts(point.unix * 1000);
       if (parts.hm.endsWith(":00") && Number(parts.hm.slice(0, 2)) % 6 === 0) {
-        point.tick = point.label;
+        point.tick = parts.hm;
       }
     }
   } else if (range === "woche") {
@@ -475,18 +498,23 @@ function ticksFor(points: ChartPoint[], range: MixRange): ChartPoint[] {
     for (const point of marked) {
       const day = getBerlinDateKeyFromUnixSeconds(point.unix);
       if (day !== lastDay) {
-        point.tick = point.label;
+        point.tick = berlinDayTick(day);
         lastDay = day;
       }
     }
   } else {
-    const step = Math.max(1, Math.ceil(marked.length / 6));
-    for (let index = 0; index < marked.length; index += step) {
-      marked[index].tick = marked[index].label;
+    const seen = new Set<string>();
+    for (const point of marked) {
+      const day = getBerlinDateKeyFromUnixSeconds(point.unix);
+      if (seen.has(day) || getBerlinIsoWeekdayForDateKey(day) !== 7) {
+        continue;
+      }
+      seen.add(day);
+      point.tick = berlinDayTick(day);
     }
   }
-  if (marked[marked.length - 1].tick === null) {
-    marked[marked.length - 1].tick = marked[marked.length - 1].label;
+  if (!marked.some((point) => point.tick) && marked.length > 0) {
+    marked[0].tick = marked[0].label;
   }
   return marked;
 }

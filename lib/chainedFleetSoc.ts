@@ -1,7 +1,10 @@
-import { MORE_STORAGE_DISCHARGE_HOUR, MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 
 const QUARTER_HOUR_H = 0.25;
+
+/** Same hour and round-trip as `MORE_STORAGE_DISCHARGE_HOUR` and `MORE_STORAGE_ROUND_TRIP`. */
+const DISCHARGE_HOUR = 17;
+const ROUND_TRIP = 0.85;
 
 /** Usable window of nameplate energy. The chain starts at the bottom of this window. */
 export const CHAIN_SOC_MIN = 0.1;
@@ -33,7 +36,7 @@ function eveningDischarge(slots: ResidualSlot[], powerMw: number, deliverableMwh
       index,
       residual: slot.loadMw - slot.windMw - slot.solarMw,
     }))
-    .filter((slot) => slots[slot.index].hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR && slot.residual > 0);
+    .filter((slot) => slots[slot.index].hourBerlin >= DISCHARGE_HOUR && slot.residual > 0);
   if (evening.length === 0 || deliverableMwh <= 1e-9) {
     return dischargeMw;
   }
@@ -90,7 +93,7 @@ export function chainFleetSoc(days: ResidualDay[], powerMw: number, energyMwh: n
     const socAtSlot = slots.map(() => socMwh);
     for (let index = 0; index < slots.length; index += 1) {
       const slot = slots[index];
-      if (slot.hourBerlin < MORE_STORAGE_DISCHARGE_HOUR) {
+      if (slot.hourBerlin < DISCHARGE_HOUR) {
         const surplusMw = Math.max(0, slot.windMw + slot.solarMw - slot.loadMw);
         const roomMw = Math.max(0, maxMwh - socMwh) / QUARTER_HOUR_H;
         const charge = Math.min(surplusMw, Math.max(0, powerMw), roomMw);
@@ -100,20 +103,20 @@ export function chainFleetSoc(days: ResidualDay[], powerMw: number, energyMwh: n
       }
       socAtSlot[index] = socMwh;
     }
-    const deliverableMwh = Math.max(0, socMwh - minMwh) * MORE_STORAGE_ROUND_TRIP;
+    const deliverableMwh = Math.max(0, socMwh - minMwh) * ROUND_TRIP;
     const dischargeMw = eveningDischarge(slots, Math.max(0, powerMw), deliverableMwh);
     const dayStart = points.length === 0 ? minMwh : points[points.length - 1].socMwh;
     socMwh = dayStart;
     for (let index = 0; index < slots.length; index += 1) {
       const slot = slots[index];
       let used = 0;
-      if (slot.hourBerlin < MORE_STORAGE_DISCHARGE_HOUR) {
+      if (slot.hourBerlin < DISCHARGE_HOUR) {
         socMwh = socAtSlot[index];
       } else {
-        const roomMw = (Math.max(0, socMwh - minMwh) * MORE_STORAGE_ROUND_TRIP) / QUARTER_HOUR_H;
+        const roomMw = (Math.max(0, socMwh - minMwh) * ROUND_TRIP) / QUARTER_HOUR_H;
         used = Math.min(dischargeMw[index], Math.max(0, powerMw), roomMw);
         if (used > 0) {
-          socMwh -= (used * QUARTER_HOUR_H) / MORE_STORAGE_ROUND_TRIP;
+          socMwh -= (used * QUARTER_HOUR_H) / ROUND_TRIP;
           dischargedMwh += used * QUARTER_HOUR_H;
         }
       }

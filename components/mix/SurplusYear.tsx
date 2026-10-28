@@ -24,7 +24,8 @@ export function SurplusYear({ data }: { data: SurplusMonthsFile }) {
       <div className="mix-year" aria-hidden="true">
         {data.months.map((row) => (
           <div key={row.month}>
-            <i style={{ height: `${Math.max(2, (row.surplusDays / max) * 72)}px` }} />
+            <b>{row.surplusDays}</b>
+            <i style={{ height: `${Math.max(2, (row.surplusDays / max) * 64)}px` }} />
             <span>{monthLabel(row.month)}</span>
           </div>
         ))}

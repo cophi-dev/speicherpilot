@@ -8,6 +8,7 @@ import {
   scaleFleet,
   socEdge,
 } from "@/lib/liveFleetDispatch";
+import { chainFleetSoc } from "@/lib/chainedFleetSoc";
 import { MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 
@@ -94,7 +95,7 @@ describe("live fleet dispatch", () => {
     expect(JSON.stringify(story)).not.toMatch(/€|Eur|grossRevenue/);
     expect(story.rte).toBe(MORE_STORAGE_ROUND_TRIP);
     expect(LIVE_DISPATCH_RTE).toBe(MORE_STORAGE_ROUND_TRIP);
-    expect(story.points[0]?.soc).toBe(0);
+    expect(story.points[0]?.soc).toBeCloseTo(0.1, 5);
   });
 
   it("lowers the evening peak by several gigawatts when stored energy covers the window", () => {
@@ -132,9 +133,10 @@ describe("live fleet dispatch", () => {
       energyMwh: 8_000,
       factor: 1,
     });
-    expect(limited.chargedGwh).toBeGreaterThan(limited.dischargedGwh);
-    expect(limited.endSocGwh).toBeGreaterThan(1);
-    expect(limited.dischargedGwh).toBeCloseTo((limited.chargedGwh - limited.endSocGwh) * LIVE_DISPATCH_RTE, 5);
+    expect(limited.chargedGwh).toBeGreaterThan(0);
+    expect(limited.endSocGwh).toBeGreaterThan(0.1 * limited.energyMwh / 1000);
+    const limitedStart = 0.1 * limited.energyMwh / 1000;
+    expect(limited.dischargedGwh).toBeCloseTo((limitedStart + limited.chargedGwh - limited.endSocGwh) * LIVE_DISPATCH_RTE, 4);
     expect(limited.points[limited.points.length - 1]?.soc).toBeCloseTo(limited.endSocGwh / (limited.energyMwh / 1000), 5);
 
     const plateau = dayFromResidual("2026-10-20", (hour) => {
@@ -149,9 +151,9 @@ describe("live fleet dispatch", () => {
       energyMwh: 40_000,
       factor: 1,
     });
-    expect(covered.endSocGwh).toBeLessThan(0.05);
-    expect(covered.dischargedGwh).toBeCloseTo((covered.chargedGwh - covered.endSocGwh) * LIVE_DISPATCH_RTE, 5);
-    expect(covered.dischargedGwh).toBeCloseTo(covered.chargedGwh * LIVE_DISPATCH_RTE - covered.endSocGwh * LIVE_DISPATCH_RTE, 5);
+    const coveredStart = 0.1 * covered.energyMwh / 1000;
+    expect(covered.endSocGwh).toBeGreaterThanOrEqual(coveredStart - 0.01);
+    expect(covered.dischargedGwh).toBeCloseTo((coveredStart + covered.chargedGwh - covered.endSocGwh) * LIVE_DISPATCH_RTE, 4);
   });
 
   it("leaves the peak unchanged when there is no surplus to charge", () => {
@@ -168,7 +170,7 @@ describe("live fleet dispatch", () => {
     expect(story.eveningPeakAfterGw).toBeCloseTo(story.eveningPeakBeforeGw ?? 0, 5);
   });
 
-  it("starts empty and reaches a full battery when surplus exceeds capacity", () => {
+  it("starts at 10 % of nameplate and reaches the 90 % ceiling when surplus exceeds the usable window", () => {
     const day = dayFromResidual("2026-10-20", duck);
     const story = buildLiveDispatchStory({
       day,
@@ -181,9 +183,26 @@ describe("live fleet dispatch", () => {
     expect(edges.has("empty")).toBe(true);
     expect(edges.has("full")).toBe(true);
     for (const point of story.points) {
-      expect(point.soc).toBeGreaterThanOrEqual(0);
-      expect(point.soc).toBeLessThanOrEqual(1);
+      expect(point.soc).toBeGreaterThanOrEqual(0.1 - 1e-9);
+      expect(point.soc).toBeLessThanOrEqual(0.9 + 1e-9);
     }
+  });
+
+  it("matches the chained state of charge for the same day and factor", () => {
+    const day = dayFromResidual("2026-10-25", duck);
+    const powerMw = 4_500;
+    const energyMwh = 8_000;
+    const story = buildLiveDispatchStory({ day, fallback: false, powerMw, energyMwh, factor: 1 });
+    const chain = chainFleetSoc([day], powerMw, energyMwh);
+    expect(story.chargedGwh).toBeCloseTo(chain.chargedMwh / 1000, 5);
+    expect(story.dischargedGwh).toBeCloseTo(chain.dischargedMwh / 1000, 5);
+    expect(story.endSocGwh).toBeCloseTo(chain.endSocMwh / 1000, 5);
+    expect(story.points).toHaveLength(chain.points.length);
+    story.points.forEach((point, index) => {
+      expect(point.chargeMw).toBeCloseTo(chain.points[index].chargeMw, 4);
+      expect(point.dischargeMw).toBeCloseTo(chain.points[index].dischargeMw, 4);
+      expect(point.soc).toBeCloseTo(chain.points[index].soc, 5);
+    });
   });
 
   it("picks the latest day that has both surplus and an evening", () => {

@@ -31,7 +31,7 @@ function posterFooter(storage: MoreStorageReport): string {
     fleet?.source === "battery-charts"
       ? `Battery Charts (RWTH, aus MaStR), ${asOf}`
       : `Energy-Charts, Datengrundlage ${fleet?.datasource ?? ""}, ${asOf}`;
-  return `Daten: Energy-Charts (Fraunhofer ISE), Last/Wind/Solar DE, ${date}, ¼h · Großspeicher heute ${power} GW / ${energy} GWh: ${source} · Modell: Start leer, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % Wirkungsgrad, nur Wind+Sonne > Last`;
+  return `Daten: Energy-Charts (Fraunhofer ISE), Last/Wind/Solar DE, ${date}, ¼h · Großspeicher heute ${power} GW / ${energy} GWh: ${source} · Modell: Start 10 % der Nennenergie, nutzbar 10–90 %, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % auf der Abgabe, nur Wind+Sonne > Last`;
 }
 
 function SeriesChart({

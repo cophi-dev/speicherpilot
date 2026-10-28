@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
-import { MixChart } from "@/components/mix/MixChart";
+import { chartFrame, chartX, MixChart } from "@/components/mix/MixChart";
 import { SurplusYear } from "@/components/mix/SurplusYear";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { LiveDispatchFactor } from "@/lib/liveFleetDispatch";
@@ -24,6 +24,7 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
   const rawFactor = searchParams.get("x");
   const factor = rawFactor ? parseLiveFactor(rawFactor) : missingFactor;
   const samples = model.soc[factor] ?? [];
+  const compact = useNarrow();
   const heading = tx("Erzeugung und Last", "Generation and load");
   const onFactor = (next: LiveDispatchFactor) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -70,11 +71,12 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
           title={heading}
           description={model.description[language]}
           language={language}
+          compact={compact}
         />
         <h3 className="mix-period">{model.periodTitle[language]}{model.until ? ` · ${tx("bis", "until")} ${model.until}` : ""}</h3>
         <dl className="mix-stats">
           {model.rows
-            .filter((row) => ["load", "windSolar", "share", "residualMax", "residualMin"].includes(row.id))
+            .filter((row) => ["load", "completeLoad", "windSolar", "share", "residualMax", "residualMin"].includes(row.id))
             .map((row) => (
               <div key={row.id}>
                 <dt>{row.label[language]}</dt>
@@ -94,14 +96,17 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
             <tbody>
               {model.rows.map((row) => (
                 <tr key={row.id}>
-                  <th scope="row">{row.label[language]}</th>
+                  <th scope="row">
+                    {DOT[row.id] ? <span className={`mix-dot mix-fill-${DOT[row.id]}`} aria-hidden="true" /> : null}
+                    {row.label[language]}
+                  </th>
                   <td>{row.value[language]}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <SocLine model={model} samples={samples} factor={factor} onFactor={onFactor} />
+        <SocLine model={model} samples={samples} points={model.points} factor={factor} compact={compact} onFactor={onFactor} />
         {SURPLUS_MONTHS ? <SurplusYear data={SURPLUS_MONTHS} /> : null}
         <p className="mix-source">
           {tx(
@@ -114,15 +119,45 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
   );
 }
 
+const DOT: Record<string, string> = {
+  lignite: "lignite",
+  hardCoal: "hardCoal",
+  gas: "gas",
+  biomass: "biomass",
+  hydro: "hydro",
+  windOffshore: "windOffshore",
+  windOnshore: "windOnshore",
+  solar: "solar",
+  other: "other",
+  load: "load",
+  trade: "trade",
+};
+
+function useNarrow(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const query = window.matchMedia("(max-width: 420px)");
+      query.addEventListener("change", onChange);
+      return () => query.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia("(max-width: 420px)").matches,
+    () => false
+  );
+}
+
 function SocLine({
   model,
   samples,
+  points,
   factor,
+  compact,
   onFactor,
 }: {
   model: PowerBoardModel;
   samples: SocSample[];
+  points: PowerBoardModel["points"];
   factor: LiveDispatchFactor;
+  compact: boolean;
   onFactor: (factor: LiveDispatchFactor) => void;
 }) {
   const { language } = useLanguage();
@@ -134,7 +169,8 @@ function SocLine({
         `Assumed ${model.fleet.power[language]} and ${model.fleet.energy[language]} times ${factor}. Start of the period at ${formatQuantity(model.startSocPct, language, 0)}%. Usable 10 to 90%. ${formatQuantity(BOARD_ROUND_TRIP * 100, language, 0)}% round-trip on discharge. Model estimate.`
       )
     : tx("Die Flotte ist gerade nicht geladen.", "The fleet is not loaded just now.");
-  const path = useMemo(() => socPath(samples), [samples]);
+  const path = useMemo(() => socPath(samples, points, compact), [samples, points, compact]);
+  const frame = chartFrame(compact);
   return (
     <div className="mix-soc">
       <h3>{tx("Ladezustand der angenommenen Flotte", "State of charge of the assumed fleet")}</h3>
@@ -148,19 +184,31 @@ function SocLine({
           onChange={onFactor}
         />
       ) : null}
-      {samples.length > 0 ? (
-        <svg className="mix-soc-chart" viewBox="0 0 720 160" role="img" aria-label={caption}>
-          <line className="mix-guide" x1="48" x2="640" y1={socY(90)} y2={socY(90)} />
-          <line className="mix-guide" x1="48" x2="640" y1={socY(10)} y2={socY(10)} />
-          <text className="mix-axis" x="42" y={socY(90)} textAnchor="end" dominantBaseline="middle">
+      {samples.length > 0 && points.length > 0 ? (
+        <svg className={compact ? "mix-soc-chart is-compact" : "mix-soc-chart"} viewBox={`0 0 ${frame.width} 168`} role="img" aria-label={caption}>
+          {points.map((point) =>
+            point.tick ? (
+              <line key={point.unix} className="mix-guide" x1={chartX(point.unix, points[0].unix, points[points.length - 1].unix, frame)} x2={chartX(point.unix, points[0].unix, points[points.length - 1].unix, frame)} y1="12" y2="120" />
+            ) : null
+          )}
+          <line className="mix-guide" x1={frame.pad.l} x2={frame.width - frame.pad.r} y1={socY(90)} y2={socY(90)} />
+          <line className="mix-guide" x1={frame.pad.l} x2={frame.width - frame.pad.r} y1={socY(10)} y2={socY(10)} />
+          <text className="mix-axis" fontSize={frame.font} x={frame.pad.l - 6} y={socY(90)} textAnchor="end" dominantBaseline="middle">
             90 %
           </text>
-          <text className="mix-axis" x="42" y={socY(10)} textAnchor="end" dominantBaseline="middle">
+          <text className="mix-axis" fontSize={frame.font} x={frame.pad.l - 6} y={socY(10)} textAnchor="end" dominantBaseline="middle">
             10 %
           </text>
           <path className="mix-soc-line" d={path} fill="none" />
+          {points.map((point) =>
+            point.tick ? (
+              <text key={`${point.unix}-tick`} className="mix-axis" fontSize={frame.font} x={chartX(point.unix, points[0].unix, points[points.length - 1].unix, frame)} y="148" textAnchor="middle">
+                {point.tick}
+              </text>
+            ) : null
+          )}
           {end ? (
-            <text className="mix-direct" x="648" y={socY(end.socPct)} dominantBaseline="middle">
+            <text className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={socY(end.socPct)} dominantBaseline="middle">
               {`${formatQuantity(end.socPct, language, 0)} % · ${formatQuantity(end.socGwh, language, 1)} GWh`}
             </text>
           ) : null}
@@ -173,20 +221,21 @@ function SocLine({
 }
 
 function socY(pct: number): number {
-  const top = 16;
-  const bottom = 140;
+  const top = 12;
+  const bottom = 120;
   return top + ((100 - pct) / 100) * (bottom - top);
 }
 
-function socPath(samples: SocSample[]): string {
-  if (samples.length === 0) {
+function socPath(samples: SocSample[], points: PowerBoardModel["points"], compact: boolean): string {
+  if (samples.length === 0 || points.length === 0) {
     return "";
   }
-  const min = samples[0].unix;
-  const max = samples[samples.length - 1].unix;
+  const frame = chartFrame(compact);
+  const min = points[0].unix;
+  const max = points[points.length - 1].unix;
   return samples
     .map((sample, index) => {
-      const x = max === min ? 360 : 48 + ((sample.unix - min) / (max - min)) * 560;
+      const x = chartX(sample.unix, min, max, frame);
       return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${socY(sample.socPct).toFixed(1)}`;
     })
     .join(" ");
