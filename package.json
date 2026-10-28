@@ -10,6 +10,7 @@
     "test": "jest",
     "data:mastr": "tsx --tsconfig tsconfig.json scripts/generate-mastr-repo-snapshot.ts",
     "data:fca": "python3 scripts/build-fca-table.py",
+    "data:netz": "python3 scripts/netz/build_netz_demo.py data/netz/netz-demo.json && python3 scripts/netz/pruefe_netz_demo.py data/netz/netz-demo.json",
     "morning:x": "tsx --tsconfig tsconfig.json scripts/post-morning-briefing-x.ts"
   },
   "dependencies": {

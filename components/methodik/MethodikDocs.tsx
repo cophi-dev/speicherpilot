@@ -5,6 +5,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
+import { NetzMethodik } from "@/components/methodik/NetzMethodik";
 import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { EURO_SCOPE } from "@/lib/beispieltage";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
@@ -24,6 +25,7 @@ const CHAPTERS = [
   { id: "modelltag", de: "Modelltag Bollingstedt", en: "Bollingstedt model day" },
   { id: "beispieltage", de: "Beispieltage", en: "Example days" },
   { id: "szenarien", de: "Szenarien", en: "Scenarios" },
+  { id: "netz", de: "Netzwirkung im Testnetz", en: "Grid effect in a test grid" },
   { id: "quellen", de: "Quellen", en: "Sources" },
 ] as const;
 
@@ -112,7 +114,7 @@ export function MethodikDocs() {
             </section>
             <section id="grossspeicher">
               <h2>{tx("03 Großspeicher-Modell", "03 Large-storage model")}</h2>
-              <div className="methodik-phases" aria-hidden="true">
+              <div className="methodik-phases" inert>
                 <Phase label={tx("Laden", "Charge")} highlight="midday" />
                 <Phase label={tx("Halten", "Hold")} highlight={null} />
                 <Phase label={tx("Abgeben", "Discharge")} highlight="evening" />
@@ -305,9 +307,10 @@ export function MethodikDocs() {
               <p>{tx("Warum nur etwa 0,35 Zyklen am Tag? Und warum liegt die Abgabe nicht bei den drei teuersten Viertelstunden? Der Kern wählt einen Teilzyklus nach einem Punktwert, Preis plus Abendzuschlag 17–21 Uhr plus Schwankung, nicht nach strengem Optimum. Das ist eine bewusste, vorsichtige Heuristik, kein Fahrplan eines echten Betreibers.", "Why only about 0.35 cycles a day? And why is discharge not in the three most expensive quarter-hours? The core picks one partial cycle by a score, price plus an evening bonus from 17:00 to 21:00 plus a swing term, not by a strict optimum. That is a deliberate, cautious heuristic, not an operator’s schedule.")}</p>
             </section>
             <SzenarienMethodik language={language} />
+            <NetzMethodik language={language} />
             <section id="quellen">
               <details className="site-fold">
-              <summary><h2>{tx("11 Quellen", "11 Sources")}</h2></summary>
+              <summary><h2>{tx("12 Quellen", "12 Sources")}</h2></summary>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
@@ -316,6 +319,10 @@ export function MethodikDocs() {
                 <li><a href="https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html">BGH · PM 129/2025</a></li>
                 <li><a href={REFERENCE_PARK.mastrUnits[0].href}>MaStR {REFERENCE_PARK.mastrUnits[0].seeId}</a> · <a href={REFERENCE_PARK.mastrUnits[1].href}>MaStR {REFERENCE_PARK.mastrUnits[1].seeId}</a> · <a href={REFERENCE_PARK.sources[2].href}>ECO STOR</a> · <a href={REFERENCE_PARK.sources[3].href}>SH Netz</a></li>
                 <li><a href="https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Umwelt/UGR/private-haushalte/Tabellen/stromverbrauch-haushalte.html">Destatis</a> · {tx("Haushaltsstrom, Stand 27. September 2023", "Household electricity, as of 27 September 2023")}</li>
+                <li><a href="https://doi.org/10.3390/en13123290">Meinecke et al. 2020, SimBench</a> · {tx("Open Access, CC BY, MDPI", "Open access, CC BY, MDPI")}</li>
+                <li><a href="https://doi.org/10.1109/TPWRS.2018.2829021">Thurner et al. 2018, pandapower</a> · BSD-3-Clause</li>
+                <li><a href="https://doi.org/10.34890/752">Meinecke et al., CIRED 2019</a></li>
+                <li><a href="https://simbench.de">SimBench</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a> · {tx("Universität Kassel, TU Dortmund, RWTH Aachen, Fraunhofer IEE", "University of Kassel, TU Dortmund, RWTH Aachen, Fraunhofer IEE")}</li>
               </ul>
               <p>{tx(`Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Bollingstedt zeigt die veröffentlichten Eckdaten. Der Tagesverlauf, wenn er gezeigt wird, ist ein Modelltag und nicht die echte Fahrweise. ${EURO_SCOPE.de} Kein Angebot, keine Anschlusszusage.`, `The example supermarket and the example neighbourhood are fictional and marked as example data. Bollingstedt shows the published key figures. The daily profile, when one is shown, is a model day and not the real operation. ${EURO_SCOPE.en} Not a quote and not a connection offer.`)}</p>
               </details>

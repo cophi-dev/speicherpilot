@@ -23,6 +23,7 @@ A later step will add a site calculator and a grid-connection check. Those route
 | [Energy-Charts](https://api.energy-charts.info) / Fraunhofer ISE | `total_power` (generation, load, residual load, renewable share) and `installed_power` (battery fleet) |
 | [Netztransparenz](https://www.netztransparenz.de) | Optional designated curtailment and redispatch prices when API credentials are configured |
 | [Marktstammdatenregister (MaStR)](https://www.marktstammdatenregister.de) | Storage-project locations in the map snapshot (`npm run data:mastr`) |
+| [SimBench](https://simbench.de) `1-MV-semiurb--0-no_sw`, ODbL 1.0 | Precomputed teaching-grid scenarios on `/netz` (`npm run data:netz`, Python, not part of the Next build) |
 
 Energy-Charts often publishes load one or two quarter-hours before generation. The live card waits for a timestamp where generation is numeric. If generation is missing entirely, the card shows “no data” instead of 0 GW and a deficit equal to load.
 

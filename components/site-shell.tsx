@@ -358,6 +358,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
             <p className="flex flex-col items-start gap-3">
               <Link href="/blog">{tx("Blog", "Blog")}</Link>
               <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
+              <Link href="/netz">{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</Link>
             </p>
             <p>
               {tx(
