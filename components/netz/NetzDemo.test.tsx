@@ -55,6 +55,58 @@ describe("NetzDemo", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Grid effect in a test grid");
     expect(screen.getByRole("status").textContent).toMatch(/Within the assumed limits/);
     expect(screen.getByText("MODEL")).toBeInTheDocument();
+    expect(screen.getByText("stress test")).toBeInTheDocument();
+  });
+
+  it("names the four reading cases and explains new lines on the feeder", () => {
+    const guide = renderDemo({ fall: "hL", richtung: "laden", knoten: "B", pMw: 5 });
+    expect(screen.getByText("So liest du das Ergebnis")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "(n-1)" })).toHaveAttribute("href", "/methodik#netz");
+    expect(screen.getByText(/zwischen 0,965 und 1,055/)).toBeInTheDocument();
+    expect(screen.getByText(/im Ausfall 0,915 bis 1,055/)).toBeInTheDocument();
+    expect(screen.getByText("Belastungstest")).toBeInTheDocument();
+    expect(screen.getByText(/lädt in der Spitzenlast nicht/)).toBeInTheDocument();
+    expect(screen.getByText(/5 MW sind bei 20 kV etwa 144 A/)).toBeInTheDocument();
+    expect(screen.getByText(/Wenn der Speicher lädt, fließt seine ganze Leistung/)).toBeInTheDocument();
+    guide.unmount();
+
+    const helpful = renderDemo({ fall: "lPV", richtung: "laden", knoten: "C", pMw: 5 });
+    expect(screen.getByText("netzdienlich")).toBeInTheDocument();
+    expect(screen.getByText(/Ausfälle ohne Speicher: 20, mit Speicher: 5/)).toBeInTheDocument();
+    expect(screen.queryByText(/144 A/)).not.toBeInTheDocument();
+    helpful.unmount();
+
+    const limit = renderDemo({ fall: "hL", richtung: "laden", knoten: "D", pMw: 20 });
+    const status = screen.getByRole("status");
+    expect(screen.getByText("Grenze")).toBeInTheDocument();
+    expect(screen.getByText(/der letzte lösbare Punkt steht in der Zeile darunter/)).toBeInTheDocument();
+    const text = status.textContent ?? "";
+    const chipAt = text.indexOf("der letzte lösbare Punkt steht in der Zeile darunter");
+    const tipAt = text.indexOf("Dieser Knoten hält im Normalbetrieb");
+    expect(chipAt).toBeGreaterThan(-1);
+    expect(tipAt).toBeGreaterThan(chipAt);
+    limit.unmount();
+
+    const heavy = renderDemo({ fall: "lPV", richtung: "laden", knoten: "C", pMw: 10 });
+    expect(screen.getByText("zu viel des Guten")).toBeInTheDocument();
+    expect(screen.getByText("Zu viel Leistung kippt auch den guten Fall.")).toBeInTheDocument();
+    expect(screen.queryByText(/auf dem Weg zwischen Umspannwerk und Speicher/)).not.toBeInTheDocument();
+    heavy.unmount();
+
+    const counter = renderDemo({ fall: "lPV", richtung: "entladen", knoten: "B", pMw: 5 });
+    expect(screen.getByText("Gegenprobe")).toBeInTheDocument();
+    expect(screen.getByText(/Wenn der Speicher einspeist, fließt seine ganze Leistung/)).toBeInTheDocument();
+    expect(screen.getByText(/144 A/)).toBeInTheDocument();
+    counter.unmount();
+
+    const partial = renderDemo({ fall: "hL", richtung: "laden", knoten: "B", pMw: 2 });
+    expect(screen.getByText(/auf dem Weg zwischen Umspannwerk und Speicher/)).toBeInTheDocument();
+    expect(screen.queryByText(/144 A/)).not.toBeInTheDocument();
+    partial.unmount();
+
+    renderDemo({ fall: "hL", richtung: "laden", knoten: "B", pMw: 0 });
+    expect(screen.queryByText("Belastungstest")).not.toBeInTheDocument();
+    expect(screen.queryByText(/144 A/)).not.toBeInTheDocument();
   });
 
   it("renders every stored state with a status text", () => {

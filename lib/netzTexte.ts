@@ -1,6 +1,7 @@
 import type { AppLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
+  N1_CASES,
   NOMINAL_KV,
   TIP_CAP_MW,
   VOLTAGE_BAND,
@@ -253,6 +254,184 @@ export function lineKind(kind: string, language: AppLanguage): string {
     return language === "de" ? "Freileitung" : "overhead line";
   }
   return kind;
+}
+
+/** Untergrenze der Spannung im Einzelausfall, wie in der Methodik. Nur für den Lesetext. */
+const OUTAGE_VOLTAGE_MIN = 0.915;
+const LINES_34_TO_38 = [34, 35, 36, 37, 38] as const;
+
+export type ScenarioChipId = "netzdienlich" | "zu-viel" | "belastungstest" | "gegenprobe" | "grenze";
+
+const CHIP_LABEL: Record<ScenarioChipId, { de: string; en: string }> = {
+  netzdienlich: { de: "netzdienlich", en: "grid-serving" },
+  "zu-viel": { de: "zu viel des Guten", en: "too much of a good thing" },
+  belastungstest: { de: "Belastungstest", en: "stress test" },
+  gegenprobe: { de: "Gegenprobe", en: "cross-check" },
+  grenze: { de: "Grenze", en: "limit" },
+};
+
+function chipText(language: AppLanguage, id: ScenarioChipId): string {
+  return pair(language, CHIP_LABEL[id]);
+}
+
+function fittingMode(fall: NetzFall, richtung: NetzRichtung): boolean {
+  return (fall === "lPV" && richtung === "laden") || (fall === "hL" && richtung === "entladen");
+}
+
+export function scenarioEinordnung(input: {
+  language: AppLanguage;
+  fall: NetzFall;
+  richtung: NetzRichtung;
+  pMw: number;
+  derived: DerivedLimits;
+  outagesWithout: number | null;
+  outagesWith: number | null;
+}): { id: ScenarioChipId; chip: string; sentence: string } | null {
+  if (input.pMw <= 0) {
+    return null;
+  }
+  const { language } = input;
+  if (!input.derived.converged) {
+    return {
+      id: "grenze",
+      chip: chipText(language, "grenze"),
+      sentence:
+        language === "de"
+          ? "Am Ende eines langen Abgangs gibt es hier keinen Betriebspunkt mehr, der letzte lösbare Punkt steht in der Zeile darunter."
+          : "At the end of a long feeder there is no operating point left. The last point that still solves is in the line below.",
+    };
+  }
+  if (fittingMode(input.fall, input.richtung)) {
+    const withoutCount = input.outagesWithout;
+    const withCount = input.outagesWith;
+    if (input.derived.ok && withoutCount != null && withCount != null && withCount <= withoutCount) {
+      const without = formatQuantity(withoutCount, language, 0);
+      const withStorage = formatQuantity(withCount, language, 0);
+      return {
+        id: "netzdienlich",
+        chip: chipText(language, "netzdienlich"),
+        sentence:
+          language === "de"
+            ? `Der Speicher nimmt Überschuss auf bzw. gibt in der Spitze ab: das entlastet das Netz (Modell). Ausfälle ohne Speicher: ${without}, mit Speicher: ${withStorage}.`
+            : `The storage takes in surplus, or feeds it out at the peak: that eases the grid (model). Outages without storage: ${without}, with storage: ${withStorage}.`,
+      };
+    }
+    return {
+      id: "zu-viel",
+      chip: chipText(language, "zu-viel"),
+      sentence:
+        language === "de"
+          ? "Zu viel Leistung kippt auch den guten Fall."
+          : "Too much power also tips the helpful case.",
+    };
+  }
+  if (input.fall === "hL" && input.richtung === "laden") {
+    return {
+      id: "belastungstest",
+      chip: chipText(language, "belastungstest"),
+      sentence:
+        language === "de"
+          ? "Ein Speicher, der netzdienlich fährt, lädt in der Spitzenlast nicht. Dieses Szenario zeigt, wo die Grenze liegt, wenn er nach dem Markt lädt, zum Beispiel bei niedrigem Preis zur falschen Zeit."
+          : "Storage that runs in a grid-serving way does not charge at peak load. This scenario shows where the limit lies when it charges with the market, for example at a low price at the wrong time.",
+    };
+  }
+  if (input.fall === "lPV" && input.richtung === "entladen") {
+    return {
+      id: "gegenprobe",
+      chip: chipText(language, "gegenprobe"),
+      sentence:
+        language === "de"
+          ? "Falsche Richtung bei Überschuss: zeigt, dass der Ort und der Strang das Ergebnis mitbestimmen, nicht nur die Richtung."
+          : "Wrong direction during surplus: the place and the feeder shape the result, not only the direction.",
+    };
+  }
+  return null;
+}
+
+export function readResultGuide(language: AppLanguage): {
+  title: string;
+  limitQuestion: string;
+  limitLead: string;
+  limitTail: string;
+  whereQuestion: string;
+  where: string;
+  outageQuestion: string;
+  outageTail: string;
+} {
+  const min = formatQuantity(VOLTAGE_BAND.min, language, 3);
+  const max = formatQuantity(VOLTAGE_BAND.max, language, 3);
+  const outageMin = formatQuantity(OUTAGE_VOLTAGE_MIN, language, 3);
+  if (language === "de") {
+    return {
+      title: "So liest du das Ergebnis",
+      limitQuestion: "Wird eine Grenze verletzt?",
+      limitLead: `Die Spannung muss zwischen ${min} und ${max} `,
+      limitTail: ` bleiben (im Ausfall ${outageMin} bis ${max}). Keine Leitung über 100 % Auslastung.`,
+      whereQuestion: "Wo?",
+      where:
+        "Der Knoten oder die Leitung mit dem Engpass. Der Strom nimmt den Weg vom Umspannwerk (Sammelschiene) zum Speicher, deshalb fällt zuerst dieser Weg auf.",
+      outageQuestion: "Was passiert beim Ausfall?",
+      outageTail: `: Es fällt je eine der ${N1_CASES} Leitungen oder Trafos aus, das Netz muss weiter versorgen. Gezählt wird, bei wie vielen von ${N1_CASES} Ausfällen eine Grenze reißt.`,
+    };
+  }
+  return {
+    title: "How to read the result",
+    limitQuestion: "Is a limit crossed?",
+    limitLead: `Voltage must stay between ${min} and ${max} `,
+    limitTail: ` (in an outage ${outageMin} to ${max}). No line above 100 % loading.`,
+    whereQuestion: "Where?",
+    where:
+      "The node or the line with the bottleneck. The current takes the path from the substation (busbar) to the storage, so that path shows up first.",
+    outageQuestion: "What happens in an outage?",
+    outageTail: `: one of the ${N1_CASES} lines or transformers drops out at a time, and the grid must keep supplying. The count is how many of the ${N1_CASES} outages break a limit.`,
+  };
+}
+
+function isLineSet3438(ids: number[]): boolean {
+  if (ids.length !== LINES_34_TO_38.length) {
+    return false;
+  }
+  const sorted = [...ids].sort((a, b) => a - b);
+  return LINES_34_TO_38.every((id, index) => sorted[index] === id);
+}
+
+function directionVerb(text: string, richtung: NetzRichtung, language: AppLanguage): string {
+  if (richtung === "laden") {
+    return text;
+  }
+  return language === "de" ? text.replace("lädt", "einspeist") : text.replace("charges", "feeds in");
+}
+
+export function newLineExplanation(input: {
+  language: AppLanguage;
+  richtung: NetzRichtung;
+  lineIds: number[];
+  onPath: boolean;
+  allCables: boolean;
+}): string | null {
+  if (input.lineIds.length === 0 || !input.onPath) {
+    return null;
+  }
+  const { language, richtung } = input;
+  if (isLineSet3438(input.lineIds) && input.allCables) {
+    const text =
+      language === "de"
+        ? "Die Leitungen, die neu auffallen, liegen genau auf dem Weg zwischen Umspannwerk und Speicher. Wenn der Speicher lädt, fließt seine ganze Leistung über diese Kabel (5 MW sind bei 20 kV etwa 144 A, die Kabel sind für 220 A ausgelegt). Fällt eine davon aus, muss der Nachbarstrang die Versorgung über die offene Trennstelle übernehmen, und der schafft die zusätzliche Leistung nicht. Das ist kein Fehler im Modell, sondern genau die Frage bei einem neuen Anschluss: Hält der Ausweichweg?"
+        : "The lines that show up as new lie exactly on the path between the substation and the storage. When the storage charges, all of its power flows over these cables (5 MW at 20 kV is about 144 A, and the cables are rated for 220 A). If one of them fails, the neighbouring feeder has to carry the supply across the open tie switch, and it cannot take the extra power. That is not a fault in the model. It is the question that comes with a new connection: does the backup path hold?";
+    return directionVerb(text, richtung, language);
+  }
+  const cable = input.allCables
+    ? language === "de"
+      ? "diese Kabel"
+      : "these cables"
+    : language === "de"
+      ? "diese Leitungen"
+      : "these lines";
+  const text =
+    language === "de"
+      ? `Die Leitungen, die neu auffallen, liegen genau auf dem Weg zwischen Umspannwerk und Speicher. Wenn der Speicher lädt, fließt seine ganze Leistung über ${cable}. Fällt eine davon aus, muss der Nachbarstrang die Versorgung über die offene Trennstelle übernehmen, und der schafft die zusätzliche Leistung nicht. Das ist kein Fehler im Modell, sondern genau die Frage bei einem neuen Anschluss: Hält der Ausweichweg?`
+      : `The lines that show up as new lie exactly on the path between the substation and the storage. When the storage charges, all of its power flows over ${cable}. If one of them fails, the neighbouring feeder has to carry the supply across the open tie switch, and it cannot take the extra power. That is not a fault in the model. It is the question that comes with a new connection: does the backup path hold?`;
+  return directionVerb(text, richtung, language);
 }
 
 export function deltaText(current: number, base: number, language: AppLanguage, digits: number): string {
