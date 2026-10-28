@@ -2,6 +2,7 @@ import { findFirstUnixSecondForBerlinDateKey } from "@/lib/berlinCalendar";
 import { buildPowerBoard } from "@/lib/powerBoard";
 import {
   aggregateSlots,
+  exportOnSurplusGwh,
   parsePowerPayload,
   periodFigures,
   residualMw,
@@ -60,6 +61,20 @@ describe("power mix", () => {
     expect(figures.tradeGwh).toBeCloseTo((-1_000 * 0.25) / 1000, 6);
     expect(figures.surplusGwh).toBe(0);
     expect(figures.surplusGwh).not.toBeNull();
+    expect(exportOnSurplusGwh(slots, true)).toBe(0);
+  });
+
+  it("sums export only on quarter-hours where wind and solar exceed load", () => {
+    const parsed = parsePowerPayload(
+      v2([
+        { ...base, wind_onshore: 8_000, solar: 6_000, load_incl_self_consumption: 10_000, cross_border_electricity_trading: -4_000 },
+        { ...base, wind_onshore: 8_000, solar: 6_000, load_incl_self_consumption: 10_000, cross_border_electricity_trading: 2_000 },
+        base,
+      ])
+    );
+    const slots = parsed!.slots;
+    expect(periodFigures(slots, true).surplusGwh).toBeCloseTo((5_000 * 0.25 * 2) / 1000, 6);
+    expect(exportOnSurplusGwh(slots, true)).toBeCloseTo((4_000 * 0.25) / 1000, 6);
   });
 
   it("keeps 100 unique time marks on the clock-change day", () => {

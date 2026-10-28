@@ -107,9 +107,10 @@ export function BlogArticle({ post }: { post: BlogPost }) {
       );
       return;
     }
-    prose.push(
-      <section key={index} className="blog-source-section" aria-labelledby={headingId || undefined}>
-        <p id={`${headingId}-einleitung`}>{block.intro}</p>
+    flush();
+    sheet.push(
+      <section key={index} className="blog-breakout blog-source-section" aria-labelledby={headingId || undefined}>
+        <p className="blog-measure" id={`${headingId}-einleitung`}>{block.intro}</p>
         <table className="blog-sources">
           <thead>
             <tr>
@@ -134,7 +135,7 @@ export function BlogArticle({ post }: { post: BlogPost }) {
             )}
           </tbody>
         </table>
-        {block.note ? <p>{block.note}</p> : null}
+        {block.note ? <p className="blog-measure">{block.note}</p> : null}
       </section>
     );
   });

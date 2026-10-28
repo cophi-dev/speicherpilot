@@ -73,6 +73,7 @@ export function DayRing({
   showSoc = true,
   showShift = true,
   showHourTicks = true,
+  showGwScale = false,
   chargedGwh = 0,
   center = null,
   unit = "GW",
@@ -97,6 +98,8 @@ export function DayRing({
   showSoc?: boolean;
   showShift?: boolean;
   showHourTicks?: boolean;
+  /** Tick marks and numbers for the linear GW radius. Live explanation rings only. */
+  showGwScale?: boolean;
   chargedGwh?: number;
   center?: ReactNode;
   unit?: RingUnit;
@@ -423,6 +426,7 @@ export function DayRing({
             fontSize={hourLabel.fontSize}
           />
         )}
+        {!empty && showGwScale && unit === "GW" ? <GwScale maxGw={maxGw} fontSize={hourLabel.fontSize} /> : null}
         {callouts.map((callout, index) => (
           <CalloutLeader key={callout.id} callout={callout} unit={unit} box={beside[index]} />
         ))}
@@ -736,6 +740,41 @@ function sameBoxes(prev: Array<CalloutBox | null>, next: Array<CalloutBox | null
     }
     return Math.abs(box.x - other.x) < 0.5 && Math.abs(box.y - other.y) < 0.5 && Math.abs(box.w - other.w) < 0.5 && Math.abs(box.h - other.h) < 0.5;
   });
+}
+
+function GwScale({ maxGw, fontSize }: { maxGw: number; fontSize: number }) {
+  const step = maxGw > 35 ? 20 : 10;
+  const marks = [0];
+  const top = Math.max(step, Math.ceil(Math.max(maxGw, step) / step) * step);
+  for (let gw = step; gw <= top && gw <= 80; gw += step) {
+    if (ringRadius(gw) > ringRadius(0) + fontSize) {
+      marks.push(gw);
+    }
+  }
+  const angle = 128;
+  const last = marks[marks.length - 1] ?? 0;
+  const unitAt = polarPoint(0, 0, ringRadius(last) + fontSize * 2.3, angle);
+  return (
+    <g className="day-ticks" fontSize={fontSize} aria-hidden="true">
+      {marks.map((gw) => {
+        const radius = ringRadius(gw);
+        const tickA = polarPoint(0, 0, Math.max(1, radius - fontSize * 0.15), angle);
+        const tickB = polarPoint(0, 0, radius + fontSize * 0.35, angle);
+        const label = polarPoint(0, 0, radius + fontSize * 1.2, angle);
+        return (
+          <g key={gw}>
+            <line x1={tickA.x} y1={tickA.y} x2={tickB.x} y2={tickB.y} strokeWidth="1.5" />
+            <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="central">
+              {String(gw)}
+            </text>
+          </g>
+        );
+      })}
+      <text x={unitAt.x} y={unitAt.y} textAnchor="middle" dominantBaseline="central">
+        GW
+      </text>
+    </g>
+  );
 }
 
 function HourTicks({

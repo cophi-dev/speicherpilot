@@ -150,6 +150,30 @@ export function dayHasSurplus(surplusGwh: number): boolean {
   return surplusGwh > SURPLUS_EPS_GWH;
 }
 
+/**
+ * Quiet-day headline.
+ * A day that is still being published must not claim the whole day missed surplus.
+ */
+export function quietDayTitle(input: { dateBerlin: string; todayKey: string; dayOpen: boolean }): { de: string; en: string } {
+  if (input.dateBerlin === input.todayKey && input.dayOpen) {
+    return {
+      de: "Bisher hat Wind plus Sonne die Last nicht überstiegen.",
+      en: "So far, wind plus solar have not exceeded load.",
+    };
+  }
+  if (input.dateBerlin === input.todayKey) {
+    return {
+      de: "Heute hat Wind plus Sonne die Last nicht überstiegen.",
+      en: "Today, wind plus solar did not exceed load.",
+    };
+  }
+  const date = formatBerlinDayLabel(input.dateBerlin);
+  return {
+    de: `Am ${date} hat Wind plus Sonne die Last nicht überstiegen.`,
+    en: `On ${date}, wind plus solar did not exceed load.`,
+  };
+}
+
 export function heroSentence(input: { dateBerlin: string; todayKey: string; surplusGwh: number }): { de: string; en: string } {
   const nameDe = weekdayName(input.dateBerlin, "de");
   const nameEn = weekdayName(input.dateBerlin, "en");

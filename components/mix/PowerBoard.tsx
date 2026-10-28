@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
-import { chartFrame, chartX, MixChart } from "@/components/mix/MixChart";
+import { markNavigationPending } from "@/components/NavigationProgress";
+import { chartFrame, chartX, MixChart, spacedTicks, tickPlacement, useChartWidth } from "@/components/mix/MixChart";
 import { SurplusYear } from "@/components/mix/SurplusYear";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { LiveDispatchFactor } from "@/lib/liveFleetDispatch";
@@ -25,17 +26,46 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
   const factor = rawFactor ? parseLiveFactor(rawFactor) : missingFactor;
   const samples = model.soc[factor] ?? [];
   const compact = useNarrow();
+  const { hostRef: chartHost, width: chartWidth } = useChartWidth<HTMLDivElement>();
+  const [pending, startTransition] = useTransition();
+  const focusRange = useRef<string | null>(null);
   const heading = tx("Erzeugung und Last", "Generation and load");
+  const readout = model.surplusReadout;
   const onFactor = (next: LiveDispatchFactor) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("x", String(next));
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   };
+  const onRange = (href: string, id: string) => {
+    const y = window.scrollY;
+    focusRange.current = id;
+    markNavigationPending();
+    const keep = () => {
+      if (Math.abs(window.scrollY - y) > 1) {
+        window.scrollTo(0, y);
+      }
+    };
+    startTransition(() => {
+      router.replace(href, { scroll: false });
+    });
+    keep();
+    const timer = window.setInterval(keep, 50);
+    window.setTimeout(() => window.clearInterval(timer), 1200);
+  };
+
+  useEffect(() => {
+    const id = focusRange.current;
+    if (!id) {
+      return;
+    }
+    document.querySelector<HTMLButtonElement>(`[data-range="${id}"]`)?.focus();
+    focusRange.current = null;
+  }, [model.range]);
 
   return (
     <section className="day-paper mix-board" aria-labelledby="mix-heading">
-      <div className="day-hero-inner mix-inner">
+      <div className="day-hero-inner mix-inner" ref={chartHost}>
         {model.quiet ? (
           <div className="mix-finding">
             <p>{model.quiet[language][0]}</p>
@@ -57,13 +87,20 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
           {model.aggregation[language]}
           {model.until ? tx(` Bisher bis ${model.until}.`, ` So far until ${model.until}.`) : null}
         </p>
-        <nav className="mix-range" aria-label={tx("Zeitraum", "Period")}>
+        <nav className="mix-range" aria-label={tx("Zeitraum", "Period")} aria-busy={pending || undefined}>
           {model.links.map((link) => (
-            <Link key={link.id} href={link.href} aria-current={link.current ? "true" : undefined}>
+            <button
+              key={link.id}
+              type="button"
+              data-range={link.id}
+              aria-current={link.current ? "true" : undefined}
+              onClick={() => onRange(link.href, link.id)}
+            >
               {link.label[language]}
-            </Link>
+            </button>
           ))}
         </nav>
+        <SurplusLine readout={readout} language={language} />
         {model.stale ? <p className="live-stale">{tx("Zuletzt gültige Reihe. Der Abruf ist gerade nicht gelungen.", "Last valid series. The request did not succeed just now.")}</p> : null}
         <MixChart
           points={model.points}
@@ -72,6 +109,11 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
           description={model.description[language]}
           language={language}
           compact={compact}
+          surplusLabel={
+            readout.hasSurplus
+              ? tx(`Überschuss ${readout.surplus[language]}`, `Surplus ${readout.surplus[language]}`)
+              : null
+          }
         />
         <h3 className="mix-period">{model.periodTitle[language]}{model.until ? ` · ${tx("bis", "until")} ${model.until}` : ""}</h3>
         <dl className="mix-stats">
@@ -106,7 +148,7 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
             </tbody>
           </table>
         </div>
-        <SocLine model={model} samples={samples} points={model.points} factor={factor} compact={compact} onFactor={onFactor} />
+        <SocLine model={model} samples={samples} points={model.points} factor={factor} compact={compact} chartWidth={chartWidth} onFactor={onFactor} />
         {SURPLUS_MONTHS ? <SurplusYear data={SURPLUS_MONTHS} /> : null}
         <p className="mix-source">
           {tx(
@@ -145,12 +187,43 @@ function useNarrow(): boolean {
   );
 }
 
+function SurplusLine({
+  readout,
+  language,
+}: {
+  readout: PowerBoardModel["surplusReadout"];
+  language: "de" | "en";
+}) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  if (!readout.known) {
+    return <p className="mix-surplus-line">{tx("Überschuss nicht veröffentlicht.", "Surplus is not published.")}</p>;
+  }
+  if (!readout.hasSurplus) {
+    return <p className="mix-surplus-line">{tx("Kein Überschuss.", "No surplus.")}</p>;
+  }
+  const charged = readout.charged
+    ? tx(
+        `Speicher ×1 hätte ${readout.charged[language]} geladen`,
+        `Storage ×1 would have charged ${readout.charged[language]}`
+      )
+    : tx("Speicher ×1 ist gerade nicht geladen", "Storage ×1 is not loaded");
+  return (
+    <p className="mix-surplus-line">
+      {tx(
+        `Überschuss ${readout.surplus[language]}, Export in diesen Viertelstunden ${readout.exportDuring[language]}, ${charged}. Die geladene Menge ist eine Modellschätzung.`,
+        `Surplus ${readout.surplus[language]}, export in these quarter-hours ${readout.exportDuring[language]}, ${charged}. The charged amount is a model estimate.`
+      )}
+    </p>
+  );
+}
+
 function SocLine({
   model,
   samples,
   points,
   factor,
   compact,
+  chartWidth,
   onFactor,
 }: {
   model: PowerBoardModel;
@@ -158,6 +231,7 @@ function SocLine({
   points: PowerBoardModel["points"];
   factor: LiveDispatchFactor;
   compact: boolean;
+  chartWidth: number;
   onFactor: (factor: LiveDispatchFactor) => void;
 }) {
   const { language } = useLanguage();
@@ -169,8 +243,8 @@ function SocLine({
         `Assumed ${model.fleet.power[language]} and ${model.fleet.energy[language]} times ${factor}. Start of the period at ${formatQuantity(model.startSocPct, language, 0)}%. Usable 10 to 90%. ${formatQuantity(BOARD_ROUND_TRIP * 100, language, 0)}% round-trip on discharge. Model estimate.`
       )
     : tx("Die Flotte ist gerade nicht geladen.", "The fleet is not loaded just now.");
-  const path = useMemo(() => socPath(samples, points, compact), [samples, points, compact]);
-  const frame = chartFrame(compact);
+  const path = useMemo(() => socPath(samples, points, compact, chartWidth), [samples, points, compact, chartWidth]);
+  const frame = chartFrame(compact, chartWidth);
   return (
     <div className="mix-soc">
       <h3>{tx("Ladezustand der angenommenen Flotte", "State of charge of the assumed fleet")}</h3>
@@ -200,13 +274,21 @@ function SocLine({
             10 %
           </text>
           <path className="mix-soc-line" d={path} fill="none" />
-          {points.map((point) =>
-            point.tick ? (
-              <text key={`${point.unix}-tick`} className="mix-axis" fontSize={frame.font} x={chartX(point.unix, points[0].unix, points[points.length - 1].unix, frame)} y="148" textAnchor="middle">
-                {point.tick}
-              </text>
-            ) : null
-          )}
+          {spacedTicks(
+            points.flatMap((point) => {
+              if (!point.tick) {
+                return [];
+              }
+              const placed = tickPlacement(chartX(point.unix, points[0].unix, points[points.length - 1].unix, frame), frame);
+              return [{ unix: point.unix, text: point.tick, x: placed.x, anchor: placed.anchor }];
+            }),
+            56,
+            frame.font
+          ).map((tick) => (
+            <text key={`${tick.unix}-tick`} className="mix-axis" fontSize={frame.font} x={tick.x} y="148" textAnchor={tick.anchor}>
+              {tick.text}
+            </text>
+          ))}
           {end ? (
             <text className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={socY(end.socPct)} dominantBaseline="middle">
               {`${formatQuantity(end.socPct, language, 0)} % · ${formatQuantity(end.socGwh, language, 1)} GWh`}
@@ -226,11 +308,11 @@ function socY(pct: number): number {
   return top + ((100 - pct) / 100) * (bottom - top);
 }
 
-function socPath(samples: SocSample[], points: PowerBoardModel["points"], compact: boolean): string {
+function socPath(samples: SocSample[], points: PowerBoardModel["points"], compact: boolean, chartWidth: number): string {
   if (samples.length === 0 || points.length === 0) {
     return "";
   }
-  const frame = chartFrame(compact);
+  const frame = chartFrame(compact, chartWidth);
   const min = points[0].unix;
   const max = points[points.length - 1].unix;
   return samples
