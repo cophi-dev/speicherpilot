@@ -455,6 +455,34 @@ export function periodFigures(slots: PowerSlot[], offshorePresent: boolean): Per
   };
 }
 
+/**
+ * Export energy on quarter-hours where wind plus solar already exceeds load.
+ * Trade is positive for import and negative for export. This sums the published series.
+ * It does not run a new dispatch.
+ */
+export function exportOnSurplusGwh(slots: PowerSlot[], offshorePresent: boolean): number | null {
+  let sum = 0;
+  let sawSurplus = false;
+  let sawTrade = false;
+  for (const slot of slots) {
+    const wind = windMw(slot, offshorePresent);
+    const solar = solarMw(slot);
+    if (wind === null || solar === null || slot.loadMw === null || wind + solar <= slot.loadMw) {
+      continue;
+    }
+    sawSurplus = true;
+    if (slot.tradeMw === null) {
+      continue;
+    }
+    sawTrade = true;
+    sum += (Math.max(0, -slot.tradeMw) * QUARTER_HOUR_H) / 1000;
+  }
+  if (!sawSurplus) {
+    return 0;
+  }
+  return sawTrade ? sum : null;
+}
+
 export type ChartPoint = {
   unix: number;
   label: string;

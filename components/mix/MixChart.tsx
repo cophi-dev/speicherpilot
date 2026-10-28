@@ -1,3 +1,5 @@
+import { useId, useLayoutEffect, useRef, useState, type RefObject } from "react";
+
 import { CARRIER_IDS, type CarrierId, type ChartPoint } from "@/lib/powerMix";
 import { CARRIER_COPY } from "@/lib/powerBoard";
 import { niceAxis } from "@/lib/niceTicks";
@@ -9,10 +11,66 @@ export type ChartFrame = {
   font: number;
 };
 
-export function chartFrame(compact: boolean): ChartFrame {
-  return compact
-    ? { width: 360, height: 250, pad: { l: 40, r: 10, t: 16, b: 32 }, font: 12 }
-    : { width: 720, height: 320, pad: { l: 52, r: 132, t: 16, b: 32 }, font: 13 };
+export function chartFrame(compact: boolean, width?: number): ChartFrame {
+  if (compact) {
+    const drawn = Math.max(300, Math.round(width && width > 0 ? width : 360));
+    return { width: drawn, height: 260, pad: { l: 40, r: 14, t: 16, b: 42 }, font: 12 };
+  }
+  const drawn = Math.max(640, Math.round(width && width > 0 ? width : 960));
+  return {
+    width: drawn,
+    height: Math.max(320, Math.min(420, Math.round(drawn * 0.32))),
+    pad: { l: 56, r: 156, t: 18, b: 36 },
+    font: 14,
+  };
+}
+
+/** Drop a clock mark whose ink would sit within `gap` px of the open "jetzt" label. */
+export function spacedTicks<T extends { x: number; text: string; anchor?: "start" | "middle" | "end" }>(
+  items: T[],
+  gap = 56,
+  font = 14
+): T[] {
+  const open = [...items].reverse().find((item) => item.text.startsWith("jetzt/"));
+  if (!open) {
+    return items;
+  }
+  const width = (item: T) => item.text.length * font * 0.62;
+  const left = (item: T) => (item.anchor === "end" ? item.x - width(item) : item.anchor === "start" ? item.x : item.x - width(item) / 2);
+  const right = (item: T) => left(item) + width(item);
+  const openLeft = left(open);
+  return items.filter((item) => item === open || openLeft - right(item) >= gap);
+}
+
+/** Keep the first and last time marks inside the view box. */
+export function tickPlacement(x: number, frame: ChartFrame): { x: number; anchor: "start" | "middle" | "end" } {
+  if (x >= frame.width - frame.pad.r - 2) {
+    return { x: Math.min(x, frame.width - 3), anchor: "end" };
+  }
+  if (x <= frame.pad.l + 36) {
+    return { x: Math.max(x, 2), anchor: "start" };
+  }
+  return { x, anchor: "middle" };
+}
+
+export function useChartWidth<T extends HTMLElement = HTMLDivElement>(): { hostRef: RefObject<T | null>; width: number } {
+  const hostRef = useRef<T>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const node = hostRef.current;
+    if (!node) {
+      return;
+    }
+    const read = () => {
+      const next = Math.round(node.clientWidth);
+      setWidth((prev) => (prev === next ? prev : next));
+    };
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return { hostRef, width };
 }
 
 export function chartX(unix: number, min: number, max: number, frame: ChartFrame): number {
@@ -87,12 +145,22 @@ function linePath(
   return parts.join(" ");
 }
 
-const LEGEND: Array<{ id: CarrierId | "load" | "residual" | "trade"; de: string; en: string }> = [
+const LEGEND: Array<{ id: CarrierId | "load" | "residual" | "trade" | "surplus"; de: string; en: string }> = [
   ...CARRIER_IDS.map((id) => ({ id, ...CARRIER_COPY[id] })),
   { id: "load", de: "Last", en: "Load" },
+  { id: "surplus", de: "Überschuss", en: "Surplus" },
   { id: "residual", de: "Residuallast", en: "Residual load" },
   { id: "trade", de: "Handel", en: "Trade" },
 ];
+
+function windSolarGw(point: ChartPoint): number | null {
+  const onshore = point.carriers.windOnshore;
+  const solar = point.carriers.solar;
+  if (onshore === null || solar === null) {
+    return null;
+  }
+  return onshore + solar + (point.carriers.windOffshore ?? 0);
+}
 
 function keptTicks(points: ChartPoint[], compact: boolean): Set<number> {
   const indexes = points.map((point, index) => (point.tick ? index : -1)).filter((index) => index >= 0);
@@ -111,6 +179,7 @@ export function MixChart({
   description,
   language,
   compact = false,
+  surplusLabel = null,
 }: {
   points: ChartPoint[];
   unit: "GW" | "GWh";
@@ -118,8 +187,12 @@ export function MixChart({
   description: string;
   language: "de" | "en";
   compact?: boolean;
+  /** Measured surplus for the whole window, already formatted, or null when there is none. */
+  surplusLabel?: string | null;
 }) {
-  const frame = chartFrame(compact);
+  const { hostRef, width } = useChartWidth<HTMLElement>();
+  const hatchId = useId().replace(/:/g, "");
+  const frame = chartFrame(compact, width);
   const titleId = "mix-chart-title";
   const descId = "mix-chart-desc";
   if (points.length === 0) {
@@ -140,7 +213,7 @@ export function MixChart({
     if (complete) {
       values.push(stack);
     }
-    for (const value of [point.load, point.residual, point.trade]) {
+    for (const value of [point.load, point.residual, point.trade, windSolarGw(point)]) {
       if (value !== null) {
         values.push(value);
       }
@@ -211,14 +284,59 @@ export function MixChart({
       labels.push(label);
     }
   }
-  const loadPath = linePath(points, (point) => point.load, axis.min, axis.max, xs, frame);
-  const residualPath = linePath(points, (point) => point.residual, axis.min, axis.max, xs, frame);
+  const openIndex = points.findIndex((point) => point.tick?.startsWith("jetzt/"));
+  const hideOpenBar = unit === "GWh" && openIndex >= 0;
+  const drawn = hideOpenBar
+    ? points.map((point, index) =>
+        index === openIndex
+          ? {
+              ...point,
+              carriers: Object.fromEntries(CARRIER_IDS.map((id) => [id, null])) as ChartPoint["carriers"],
+              load: null,
+              residual: null,
+              trade: null,
+            }
+          : point
+      )
+    : points;
+  const loadPath = linePath(drawn, (point) => point.load, axis.min, axis.max, xs, frame);
+  const residualPath = linePath(drawn, (point) => point.residual, axis.min, axis.max, xs, frame);
+  const windSeries = points.map((point) => windSolarGw(point) ?? 0);
+  const loadSeries = points.map((point) => point.load ?? 0);
+  const surplusIndexes = points
+    .map((point, index) => {
+      const wind = windSolarGw(point);
+      return wind !== null && point.load !== null && wind > point.load ? index : -1;
+    })
+    .filter((index) => index >= 0 && !(hideOpenBar && index === openIndex));
+  const surplusPath = runs(surplusIndexes)
+    .map((group) => bandPath(xs, loadSeries, windSeries, group, axis.min, axis.max, frame))
+    .join(" ");
+  const surplusMark = surplusLabel ? surplusMarkAt(surplusIndexes, xs, loadSeries, windSeries, axis.min, axis.max, frame, surplusLabel) : null;
+  const timeTicks = spacedTicks(
+    points.flatMap((point, index) => {
+      if (!point.tick || !show.has(index)) {
+        return [];
+      }
+      const placed = tickPlacement(chartX(xs[index], xs[0], xs[xs.length - 1], frame), frame);
+      return [{ index, text: point.tick, x: placed.x, anchor: placed.anchor }];
+    }),
+    56,
+    frame.font
+  );
+  const openX = openIndex >= 0 ? chartX(xs[openIndex], xs[0], xs[xs.length - 1], frame) : 0;
+  const openLabel = openIndex >= 0 ? openDayLabel(points[openIndex]?.tick ?? "", language) : null;
 
   return (
-    <figure className="mix-figure">
+    <figure className="mix-figure" ref={hostRef}>
       <svg className={compact ? "mix-chart is-compact" : "mix-chart"} viewBox={`0 0 ${frame.width} ${frame.height}`} role="img" aria-labelledby={`${titleId} ${descId}`}>
         <title id={titleId}>{title}</title>
         <desc id={descId}>{description}</desc>
+        <defs>
+          <pattern id={hatchId} patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="#0A5C48" strokeWidth="1.5" />
+          </pattern>
+        </defs>
         {axis.ticks.map((tick) => (
           <g key={tick}>
             <line
@@ -237,21 +355,47 @@ export function MixChart({
           {unit}
         </text>
         {CARRIER_IDS.map((id, carrier) =>
-          completeRuns.map((group) => (
-            <path key={`${id}-${group[0]}`} className={`mix-carrier mix-fill-${id}`} d={bandPath(xs, lower[carrier], upper[carrier], group, axis.min, axis.max, frame)} />
-          ))
+          completeRuns.map((group) => {
+            const kept = hideOpenBar ? group.filter((index) => index !== openIndex) : group;
+            if (kept.length === 0) {
+              return null;
+            }
+            return (
+              <path key={`${id}-${kept[0]}`} className={`mix-carrier mix-fill-${id}`} d={bandPath(xs, lower[carrier], upper[carrier], kept, axis.min, axis.max, frame)} />
+            );
+          })
         )}
-        <path className="mix-trade" d={tradePath(points, axis.min, axis.max, xs, frame)} />
+        <path className="mix-trade" d={tradePath(drawn, axis.min, axis.max, xs, frame)} />
+        {surplusPath ? (
+          <>
+            <path className="mix-surplus-wash" d={surplusPath} />
+            <path className="mix-surplus" d={surplusPath} fill={`url(#${hatchId})`} stroke="#0A5C48" />
+          </>
+        ) : null}
         <path className="mix-load" d={loadPath} fill="none" />
         <path className="mix-residual-edge" d={residualPath} fill="none" />
         <path className="mix-residual" d={residualPath} fill="none" />
-        {points.map((point, index) =>
-          point.tick && show.has(index) ? (
-            <text key={`${point.unix}-${point.tick}`} className="mix-axis" fontSize={frame.font} x={chartX(xs[index], xs[0], xs[xs.length - 1], frame)} y={frame.height - 8} textAnchor="middle">
-              {point.tick}
+        {openIndex >= 0 ? (
+          <line className="mix-open-mark" x1={openX} x2={openX} y1={frame.pad.t} y2={frame.height - frame.pad.b} />
+        ) : null}
+        {timeTicks.map((tick) => (
+          <text key={`${tick.index}-${tick.text}`} className="mix-axis" fontSize={frame.font} x={tick.x} y={frame.height - 10} textAnchor={tick.anchor}>
+            {tick.text}
+          </text>
+        ))}
+        {openLabel ? (
+          <text className="mix-surplus-label" fontSize={frame.font} x={Math.min(openX, frame.width - 8)} y={frame.pad.t + frame.font + 4} textAnchor="end">
+            {openLabel}
+          </text>
+        ) : null}
+        {surplusMark ? (
+          <>
+            <line className="mix-surplus-leader" x1={surplusMark.x} x2={surplusMark.x} y1={surplusMark.y + 3} y2={surplusMark.leaderY} />
+            <text className="mix-surplus-label" fontSize={frame.font} x={surplusMark.x} y={surplusMark.y} textAnchor={surplusMark.anchor}>
+              {surplusLabel}
             </text>
-          ) : null
-        )}
+          </>
+        ) : null}
         {labels.map((label) => (
           <text key={label.text} className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={label.y} dominantBaseline="middle">
             {label.text}
@@ -268,6 +412,42 @@ export function MixChart({
       </ul>
     </figure>
   );
+}
+
+function surplusMarkAt(
+  indexes: number[],
+  xs: number[],
+  load: number[],
+  wind: number[],
+  min: number,
+  max: number,
+  frame: ChartFrame,
+  label: string
+): { x: number; y: number; anchor: "start" | "middle" | "end"; leaderY: number } | null {
+  const groups = runs(indexes);
+  const group = groups.sort((left, right) => right.length - left.length)[0];
+  if (!group || group.length === 0) {
+    return null;
+  }
+  const index = group[Math.floor(group.length / 2)];
+  const rawX = chartX(xs[index], xs[0], xs[xs.length - 1], frame);
+  const yLoad = yOf(load[index], min, max, frame);
+  const yWind = yOf(wind[index], min, max, frame);
+  const leaderY = Math.min(yLoad, yWind);
+  const y = Math.max(frame.pad.t + frame.font, leaderY - 16);
+  const widthGuess = label.length * frame.font * 0.62;
+  if (rawX + widthGuess > frame.width - 8) {
+    return { x: Math.min(frame.width - 6, Math.max(rawX, frame.pad.l + widthGuess)), y, anchor: "end", leaderY };
+  }
+  if (rawX - widthGuess / 2 < frame.pad.l) {
+    return { x: frame.pad.l + 4, y, anchor: "start", leaderY };
+  }
+  return { x: rawX, y, anchor: "middle", leaderY };
+}
+
+function openDayLabel(tick: string, language: "de" | "en"): string {
+  const time = tick.startsWith("jetzt/") ? tick.slice("jetzt/".length) : tick;
+  return language === "de" ? `heute, bis ${time}` : `today, until ${time}`;
 }
 
 function tradePath(points: ChartPoint[], min: number, max: number, xs: number[], frame: ChartFrame): string {

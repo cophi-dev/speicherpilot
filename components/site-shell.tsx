@@ -7,6 +7,7 @@ import { Menu, Monitor, Moon, Sun, X } from "lucide-react";
 
 import BessAiChatOverlay from "@/components/BessAiChatOverlay";
 import { BrandLockup } from "@/components/BrandLockup";
+import { NavigationProgress } from "@/components/NavigationProgress";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
 type SiteShellProps = {
   children: React.ReactNode;
@@ -222,6 +223,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
         >
           {tx("Zum Inhalt", "Skip to content")}
         </a>
+        <NavigationProgress label={tx("Seite wird geladen.", "Loading the page.")} />
         <header className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}>
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
             <BrandLockup />

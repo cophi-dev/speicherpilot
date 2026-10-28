@@ -2,10 +2,10 @@
 
 import type { ConnectionLight as ConnectionLightModel, ConnectionLightStatus } from "@/lib/connectionLight";
 
-const SEGMENTS: Array<{ status: Exclude<ConnectionLightStatus, "missing">; de: string; en: string; fill: string; ink: string }> = [
-  { status: "ok", de: "PASST", en: "FITS", fill: "bg-success", ink: "text-success" },
-  { status: "tight", de: "KNAPP", en: "TIGHT", fill: "bg-warning", ink: "text-warning" },
-  { status: "over", de: "PASST NICHT", en: "DOES NOT FIT", fill: "bg-destructive", ink: "text-destructive" },
+const SEGMENTS: Array<{ status: Exclude<ConnectionLightStatus, "missing">; de: string; en: string; fill: string }> = [
+  { status: "ok", de: "PASST", en: "FITS", fill: "#1E7A5F" },
+  { status: "tight", de: "KNAPP", en: "TIGHT", fill: "#A84E0A" },
+  { status: "over", de: "PASST NICHT", en: "DOES NOT FIT", fill: "#B3261E" },
 ];
 
 export function ConnectionLight({
@@ -28,7 +28,8 @@ export function ConnectionLight({
           {SEGMENTS.map((segment) => (
             <p
               key={segment.status}
-              className="num flex h-11 items-center justify-center border border-border bg-transparent text-[12px] tracking-[0.08em] text-foreground uppercase"
+              className="connection-light-seg num flex h-11 items-center justify-center border bg-transparent uppercase"
+              style={{ color: segment.fill, borderColor: segment.fill }}
             >
               {language === "de" ? segment.de : segment.en}
             </p>
@@ -70,9 +71,14 @@ export function ConnectionLight({
           return (
             <p
               key={segment.status}
-              className={`num flex h-11 items-center justify-center text-[12px] tracking-[0.08em] uppercase ${
-                active ? `${segment.fill} text-background` : segment.ink
-              }`}
+              data-status={segment.status}
+              data-active={active ? "true" : "false"}
+              className="connection-light-seg num flex h-11 items-center justify-center border uppercase"
+              style={
+                active
+                  ? { background: segment.fill, color: "#fff", borderColor: segment.fill }
+                  : { background: "transparent", color: segment.fill, borderColor: segment.fill }
+              }
             >
               {label}
             </p>

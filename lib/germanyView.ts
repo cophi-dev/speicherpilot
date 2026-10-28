@@ -2,7 +2,7 @@ import "server-only";
 
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { buildLiveReadings, type StripReading } from "@/lib/liveStrip";
-import { choosePublishedDay, dayIsUsable, type LiveDispatchInput, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
+import { choosePublishedDay, chooseStorageDay, dayIsUsable, type LiveDispatchInput, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
 import { loadDayAheadDay, loadFreiburgFrequency, loadGermanyPower } from "@/lib/loadGermanyPower";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { buildPowerBoard, type PowerBoardModel } from "@/lib/powerBoard";
@@ -13,6 +13,8 @@ import type { ResidualDay } from "@/lib/windSolarResidual";
 export type GermanyView = {
   todayKey: string;
   dispatch: LiveDispatchInput;
+  /** Last complete day that can charge on surplus. Homepage explanations use this, not the open day. */
+  exampleDispatch: LiveDispatchInput;
   until: string | null;
   board: PowerBoardModel;
   stand: string;
@@ -65,6 +67,7 @@ export async function loadGermanyView(
   const chosen = tagged && dayIsUsable(tagged)
     ? { day: tagged, fallback: tagged.dateBerlin !== todayKey }
     : choosePublishedDay(days, todayKey);
+  const example = chooseStorageDay(days, todayKey);
   const endDate = chosen?.day.dateBerlin ?? todayKey;
   const publicFleet = fleetPublic(fleet);
   const readings = buildLiveReadings({
@@ -94,6 +97,11 @@ export async function loadGermanyView(
       fleet: publicFleet,
       day: chosen?.day ?? null,
       fallback: Boolean(chosen?.fallback),
+    },
+    exampleDispatch: {
+      fleet: publicFleet,
+      day: example?.day ?? null,
+      fallback: Boolean(example?.fallback),
     },
     until: untilOf(chosen?.day ?? null, todayKey),
     board,

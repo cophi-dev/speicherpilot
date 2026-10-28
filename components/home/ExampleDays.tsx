@@ -92,12 +92,16 @@ export function ExampleDays() {
             <ModelChip label={tx("Modellschätzung", "Model estimate")} />
           </div>
           <div className="beispieltage-result-row">
-            <p className="beispieltage-euro">
-              <span className="beispieltage-approx">≈</span>{" "}
-              <MonoNumber value={shown} />
-              <span> €</span>
-              {scale >= 5 ? <span className="beispieltage-note"> {tx("(rechnerisch)", "(arithmetic)")}</span> : null}
-            </p>
+            <div>
+              <p className="beispieltage-euro">
+                <span className="beispieltage-approx">≈</span>{" "}
+                <MonoNumber value={shown} />
+                <span> €</span>
+              </p>
+              {scale >= 5 ? (
+                <p className="beispieltage-cap">{tx("Obergrenze, ohne Preiswirkung", "Upper bound, no price effect")}</p>
+              ) : null}
+            </div>
             <ScalePicker scale={scale} language={language} onChoose={setScale} />
           </div>
           <p className="beispieltage-size">
@@ -105,6 +109,14 @@ export function ExampleDays() {
             {". "}
             {tx("Die Fahrweise bleibt gleich. Nur die Mengen wachsen.", "The dispatch stays the same. Only the amounts grow.")}
           </p>
+          {scale >= 5 ? (
+            <p className="beispieltage-size">
+              {tx(
+                "Obergrenze, ohne Preiswirkung. Die Preisnehmer-Annahme gilt für einen Speicher, nicht für ×5 oder ×10. Eine Preiswirkung ist nicht modelliert. Modellschätzung.",
+                "Upper bound, with no price effect. The price-taker assumption applies to one battery, not to ×5 or ×10. A price effect is not modelled. Model estimate."
+              )}
+            </p>
+          ) : null}
           <p className="beispieltage-size">
             {breakdownText(day, scale, language)}
             {day.parts.chargingEur > 0 ? null : (

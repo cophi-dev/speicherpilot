@@ -7,11 +7,13 @@ import {
   aggregateSlots,
   CARRIER_IDS,
   chartUnit,
+  exportOnSurplusGwh,
   isQuietDay,
   lastSurplusDate,
   periodFigures,
   rangeBounds,
   slotsInRange,
+  SURPLUS_DAY_GWH,
   type CarrierId,
   type ChartPoint,
   type MixRange,
@@ -46,6 +48,17 @@ export type SocSample = {
   socGwh: number;
 };
 
+export type SurplusReadout = {
+  /** False when wind, solar or load was not published for the window. */
+  known: boolean;
+  hasSurplus: boolean;
+  surplus: Copy;
+  /** Export during the surplus quarter-hours. Null copy when trade was not published. */
+  exportDuring: Copy;
+  /** Fleet ×1 charge from the existing chain. Null when the fleet is not loaded. */
+  charged: Copy | null;
+};
+
 export type PowerBoardModel = {
   range: MixRange;
   unit: "GW" | "GWh";
@@ -55,6 +68,7 @@ export type PowerBoardModel = {
   links: Array<{ id: MixRange; href: string; label: Copy; current: boolean }>;
   points: ChartPoint[];
   rows: BoardRow[];
+  surplusReadout: SurplusReadout;
   quiet: { de: [string, string]; en: [string, string] } | null;
   lastSurplus: { href: string; label: string } | null;
   fleet: { power: Copy; energy: Copy; powerGw: number; energyGwh: number } | null;
@@ -343,16 +357,21 @@ export function buildPowerBoard(input: {
   }
 
   const soc = {} as Record<LiveDispatchFactor, SocSample[]>;
+  let chargedGwh: number | null = null;
   for (const factor of LIVE_DISPATCH_FACTORS) {
     const chain =
       fleet === null
-        ? []
-        : chainFleetSoc(residualDays, fleet.powerGw * factor * 1000, fleet.energyGwh * factor * 1000).points;
+        ? null
+        : chainFleetSoc(residualDays, fleet.powerGw * factor * 1000, fleet.energyGwh * factor * 1000);
+    if (factor === 1) {
+      chargedGwh = chain ? chain.chargedMwh / 1000 : null;
+    }
+    const chainPoints = chain?.points ?? [];
     soc[factor] =
-      chain.length === 0
+      chainPoints.length === 0
         ? []
         : points.map((point) => {
-            const sample = socAt(chain, point.unix, bucketEnd(point.unix, input.range));
+            const sample = socAt(chainPoints, point.unix, bucketEnd(point.unix, input.range));
             return (
               sample ?? {
                 unix: point.unix,
@@ -362,6 +381,15 @@ export function buildPowerBoard(input: {
             );
           });
   }
+
+  const exportDuringGwh = exportOnSurplusGwh(window, input.offshorePresent);
+  const surplusReadout: SurplusReadout = {
+    known: figures.surplusGwh !== null,
+    hasSurplus: figures.surplusGwh !== null && figures.surplusGwh > SURPLUS_DAY_GWH,
+    surplus,
+    exportDuring: textPair((language) => gwh(exportDuringGwh, language)),
+    charged: fleet ? textPair((language) => gwh(chargedGwh, language)) : null,
+  };
 
   const description = both(
     `Erzeugung nach Träger, Last, Residuallast und Handelssaldo, ${unit}. ${aggregation.de}`,
@@ -382,6 +410,7 @@ export function buildPowerBoard(input: {
     })),
     points,
     rows,
+    surplusReadout,
     quiet,
     lastSurplus: surplusDate
       ? { href: boardHref(input.path, "tag", surplusDate), label: dateLabel(surplusDate) }

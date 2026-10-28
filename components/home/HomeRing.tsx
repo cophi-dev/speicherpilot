@@ -17,10 +17,12 @@ import {
   fleetSizeLabel,
   formatBerlinDayLabel,
   eveningPeakStat,
+  formatGwh,
   formatGw1,
   dayHasSurplus,
   fullSurplusFactor,
   heroSentence,
+  quietDayTitle,
   ringCalloutText,
   saturationNote,
   surplusHours,
@@ -37,33 +39,25 @@ import { sitePath } from "@/lib/perspective";
 
 export function HomeRing({
   dispatch,
+  exampleDispatch,
   todayKey,
   until,
   leading,
 }: {
   dispatch: LiveDispatchInput;
+  /** Last complete day with surplus, used by the explanation blocks. The hero stays on `dispatch`. */
+  exampleDispatch?: LiveDispatchInput | null;
   todayKey: string;
   until: string | null;
   leading?: ReactNode;
 }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const stories = useMemo(() => {
-    if (!dispatch.day || !dispatch.fleet) {
-      return null;
-    }
-    const built = {} as Record<LiveDispatchFactor, LiveDispatchStory>;
-    for (const step of LIVE_DISPATCH_FACTORS) {
-      built[step] = buildLiveDispatchStory({
-        day: dispatch.day,
-        fallback: dispatch.fallback,
-        powerMw: dispatch.fleet.powerMw,
-        energyMwh: dispatch.fleet.energyMwh,
-        factor: step,
-      });
-    }
-    return built;
-  }, [dispatch.day, dispatch.fallback, dispatch.fleet]);
+  const stories = useMemo(() => buildFactorStories(dispatch), [dispatch]);
+  const exampleStories = useMemo(
+    () => buildFactorStories(exampleDispatch?.day ? exampleDispatch : dispatch),
+    [dispatch, exampleDispatch]
+  );
 
   if (!stories || !dispatch.fleet) {
     return (
@@ -86,18 +80,15 @@ export function HomeRing({
   }
 
   const story = stories[1];
+  const explained = exampleStories?.[1] ?? story;
   const quiet = !dayHasSurplus(story.surplusGwh);
   const sentence = heroSentence({ dateBerlin: story.dateBerlin, todayKey, surplusGwh: story.surplusGwh });
-  const title = quiet
-    ? story.dateBerlin === todayKey
-      ? tx("Heute hat Wind plus Sonne die Last nicht überstiegen.", "Today, wind plus solar did not exceed load.")
-      : tx(
-          `Am ${formatBerlinDayLabel(story.dateBerlin)} hat Wind plus Sonne die Last nicht überstiegen.`,
-          `On ${formatBerlinDayLabel(story.dateBerlin)}, wind plus solar did not exceed load.`
-        )
-    : language === "de"
-      ? sentence.de
-      : sentence.en;
+  const quietTitle = quietDayTitle({
+    dateBerlin: story.dateBerlin,
+    todayKey,
+    dayOpen: story.dateBerlin === todayKey && (until !== null || !story.eveningPublished),
+  });
+  const title = quiet ? (language === "de" ? quietTitle.de : quietTitle.en) : language === "de" ? sentence.de : sentence.en;
   const before = story.eveningPeakBeforeGw;
   const after = story.eveningPeakAfterGw;
   const peak = eveningPeakStat(before, after, language);
@@ -115,7 +106,6 @@ export function HomeRing({
     `Residual load on ${dateLabel}, quarter-hour by quarter-hour. Radius grows linearly with power in GW.`
   );
   const callouts = movementCallouts(story, language);
-  const saturated = fullSurplusFactor(stories);
   const fleetName = dispatch.fleet.source === "battery-charts" ? "battery-charts.de" : "Energy-Charts";
   const stand = language === "de" ? dispatch.fleet.updatedLabel.de : dispatch.fleet.updatedLabel.en;
 
@@ -199,7 +189,7 @@ export function HomeRing({
 
       <section className="day-story" aria-labelledby="home-movements">
         <div className="day-hero-inner">
-          <Movements story={story} language={language} hours={hours} quiet={quiet} />
+          <Movements story={explained} language={language} />
         </div>
       </section>
 
@@ -209,7 +199,7 @@ export function HomeRing({
           <p className="day-paper-lead">
             {tx("Dieselbe Residuallast, die Flotte mal zwei, mal fünf, mal zehn.", "The same residual load, with the fleet times two, five and ten.")}
           </p>
-          <FactorMorph stories={stories} language={language} saturated={saturated} />
+          <FactorMorph stories={exampleStories ?? stories} language={language} saturated={fullSurplusFactor(exampleStories ?? stories)} />
           <div className="day-doors">
             <Link className="day-door" href={sitePath("projekt")}>
               <span className="day-kicker">{tx("Für Projektierer", "For developers")}</span>
@@ -230,9 +220,12 @@ export function HomeRing({
 
 const MOVEMENT_IDS = ["night", "midday", "evening"] as const;
 
-function Movements({ story, language, hours, quiet }: { story: LiveDispatchStory; language: AppLanguage; hours: number; quiet: boolean }) {
+function Movements({ story, language }: { story: LiveDispatchStory; language: AppLanguage }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const quiet = !dayHasSurplus(story.surplusGwh);
+  const hours = surplusHours(story);
   const hoursLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
+  const exampleDate = `${weekdayShort(story.dateBerlin, language)} ${formatBerlinDayLabel(story.dateBerlin)}`;
   const steps = [
     { id: MOVEMENT_IDS[0], n: "01", title: tx("Nacht", "Night"), body: tx("Wind allein reicht nicht. Kraftwerke und Import füllen die Lücke.", "Wind alone is not enough. Power plants and imports fill the gap.") },
     { id: MOVEMENT_IDS[1], n: "02", title: tx("Mittag", "Midday"), body: quiet
@@ -283,15 +276,24 @@ function Movements({ story, language, hours, quiet }: { story: LiveDispatchStory
                 {stepNo}/3
               </p>
             </div>
-            <DayRing
-              points={story.points}
-              label={active.title}
-              description={active.body}
-              highlight={highlight}
-              showShift={false}
-              showHourTicks={false}
-              chargedGwh={0}
-            />
+            <div className="day-movement-ring">
+              <p className="day-kicker day-movement-kicker">
+                {tx(`Beispieltag: ${exampleDate}`, `Example day: ${exampleDate}`)}
+                {story.fallback && !quiet ? tx(" · letzter Tag mit Überschuss", " · last day with surplus") : null}
+              </p>
+              <DayRing
+                points={story.points}
+                label={active.title}
+                description={`${active.body} ${tx("Uhrzeiten 0, 6, 12 und 18 Uhr. Skala in GW.", "Hours 0, 6, 12 and 18. Scale in GW.")}`}
+                highlight={highlight}
+                showShift={false}
+                showHourTicks
+                showGwScale
+                chargedGwh={story.chargedGwh}
+                center={movementCenter(story, highlight, language)}
+              />
+              <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
+            </div>
           </div>
           <div className="day-movement-active" aria-hidden="true">
             <p className="num day-movement-n">{active.n}</p>
@@ -335,8 +337,17 @@ function FactorMorph({
   const [factor, setFactor] = useState<LiveDispatchFactor>(1);
   const story = stories[factor];
   const after = story.eveningPeakAfterGw;
+  const before = story.eveningPeakBeforeGw;
+  const exampleDate = `${weekdayShort(story.dateBerlin, language)} ${formatBerlinDayLabel(story.dateBerlin)}`;
+  const quiet = !dayHasSurplus(story.surplusGwh);
+  const chargedLabel = formatGwh(story.chargedGwh, language);
+  const surplusLabel = formatGwh(story.surplusGwh, language);
   return (
     <div className="day-morph">
+      <p className="day-kicker">
+        {tx(`Beispieltag: ${exampleDate}`, `Example day: ${exampleDate}`)}
+        {story.fallback && !quiet ? tx(" · letzter Tag mit Überschuss", " · last day with surplus") : null}
+      </p>
       <div className="day-factor-switch" role="group" aria-label={tx("Flottenfaktor", "Fleet factor")}>
         {LIVE_DISPATCH_FACTORS.map((item) => (
           <button
@@ -352,25 +363,118 @@ function FactorMorph({
       <DayRing
         points={story.points}
         label={tx(`Großspeicher ×${factor}`, `Large storage ×${factor}`)}
-        description={tx("Abendspitze mit dieser Flotte", "Evening peak with this fleet")}
+        description={tx(
+          `Abendspitze mit dieser Flotte. Uhrzeiten 0, 6, 12 und 18 Uhr. Skala in GW. Stufe ×${factor}.`,
+          `Evening peak with this fleet. Hours 0, 6, 12 and 18. Scale in GW. Step ×${factor}.`
+        )}
         showShift={false}
-        showHourTicks={false}
-        chargedGwh={0}
-        center={<span className="num">{after === null ? "—" : formatGw1(after, language)}</span>}
+        showHourTicks
+        showGwScale
+        chargedGwh={story.chargedGwh}
+        center={
+          before !== null && after !== null ? (
+            <>
+              <p className="day-center-figure day-center-core">
+                <MonoNumber value={formatGw1(after, language)} />
+              </p>
+              <p className="day-center-caption">{tx(`GW Abendspitze · ×${factor}`, `GW evening peak · ×${factor}`)}</p>
+            </>
+          ) : (
+            <>
+              <p className="day-center-figure day-center-core">{tx("keine Angabe", "not available")}</p>
+              <p className="day-center-caption">{tx("Abendspitze fehlt in der Reihe", "Evening peak is missing from the series")}</p>
+            </>
+          )
+        }
       />
+      <p className="day-factor-scale">{tx("Stufen ×1, ×2, ×5 und ×10. Abendspitze nach dem Speicher.", "Steps ×1, ×2, ×5 and ×10. Evening peak after storage.")}</p>
       <dl className="day-factor-values">
         {LIVE_DISPATCH_FACTORS.map((item) => {
           const peak = stories[item].eveningPeakAfterGw;
           return (
             <div key={item} className={item === factor ? "is-active" : undefined}>
               <dt>×{item}</dt>
-              <dd className="num">{peak === null ? "—" : `${formatGw1(peak, language)} GW`}</dd>
+              <dd className="num">{peak === null ? tx("keine Angabe", "n/a") : `${formatGw1(peak, language)} GW`}</dd>
             </div>
           );
         })}
       </dl>
+      <p className="day-factor-note">
+        {quiet
+          ? tx("Kein Überschuss an diesem Tag. Im Modell ist nichts zu laden.", "No surplus on this day. In the model there is nothing to charge.")
+          : tx(
+              `Geladen: ${chargedLabel} GWh von ${surplusLabel} GWh Überschuss. Modellschätzung.`,
+              `Charged: ${chargedLabel} GWh of ${surplusLabel} GWh surplus. Model estimate.`
+            )}
+      </p>
       {saturated !== null && factor >= saturated ? <p className="day-factor-note">{saturationNote(saturated, language)}</p> : null}
     </div>
+  );
+}
+
+function buildFactorStories(input: LiveDispatchInput | null | undefined): Record<LiveDispatchFactor, LiveDispatchStory> | null {
+  if (!input?.day || !input.fleet) {
+    return null;
+  }
+  const built = {} as Record<LiveDispatchFactor, LiveDispatchStory>;
+  for (const step of LIVE_DISPATCH_FACTORS) {
+    built[step] = buildLiveDispatchStory({
+      day: input.day,
+      fallback: input.fallback,
+      powerMw: input.fleet.powerMw,
+      energyMwh: input.fleet.energyMwh,
+      factor: step,
+    });
+  }
+  return built;
+}
+
+function movementCenter(story: LiveDispatchStory, highlight: (typeof MOVEMENT_IDS)[number], language: AppLanguage) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  if (highlight === "midday") {
+    return (
+      <>
+        <p className="day-center-figure day-center-core">
+          <MonoNumber value={formatGwh(story.surplusGwh, language)} />
+        </p>
+        <p className="day-center-caption">
+          {dayHasSurplus(story.surplusGwh)
+            ? tx(`GWh Überschuss · geladen ${formatGwh(story.chargedGwh, language)} GWh`, `GWh surplus · charged ${formatGwh(story.chargedGwh, language)} GWh`)
+            : tx("GWh Überschuss", "GWh surplus")}
+        </p>
+      </>
+    );
+  }
+  if (highlight === "evening") {
+    const before = story.eveningPeakBeforeGw;
+    const after = story.eveningPeakAfterGw;
+    if (before === null || after === null) {
+      return (
+        <>
+          <p className="day-center-figure day-center-core">{tx("keine Angabe", "n/a")}</p>
+          <p className="day-center-caption">{tx("Abendspitze fehlt", "Evening peak missing")}</p>
+        </>
+      );
+    }
+    return (
+      <>
+        <p className="day-center-figure day-center-core">
+          <MonoNumber value={formatGw1(before, language)} /> → <MonoNumber value={formatGw1(after, language)} />
+        </p>
+        <p className="day-center-caption">{tx("GW Abendspitze", "GW evening peak")}</p>
+      </>
+    );
+  }
+  const night = story.points.filter((point) => point.hour < 6 || point.hour >= 22);
+  const pool = night.length > 0 ? night : story.points;
+  const peak = pool.reduce((best, point) => (point.ohneMw > best.ohneMw ? point : best), pool[0]);
+  return (
+    <>
+      <p className="day-center-figure day-center-core">
+        <MonoNumber value={peak ? formatGw1(peak.ohneMw / 1000, language) : "—"} />
+      </p>
+      <p className="day-center-caption">{tx("GW Residuallast", "GW residual load")}</p>
+    </>
   );
 }
 
