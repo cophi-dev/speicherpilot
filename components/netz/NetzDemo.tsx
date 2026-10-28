@@ -443,10 +443,7 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
               <dl>
                 <dt>{guide.limitQuestion}</dt>
                 <dd>
-                  {guide.limitLead}
-                  <WithTip id="spannung-pu" language={language}>
-                    p.u.
-                  </WithTip>
+                  {guide.limitLead} <GlossaryTip id="spannung-pu" language={language} />
                   {guide.limitTail}
                 </dd>
                 <dt>{guide.whereQuestion}</dt>

@@ -365,8 +365,8 @@ export function readResultGuide(language: AppLanguage): {
     return {
       title: "So liest du das Ergebnis",
       limitQuestion: "Wird eine Grenze verletzt?",
-      limitLead: `Die Spannung muss zwischen ${min} und ${max} `,
-      limitTail: ` bleiben (im Ausfall ${outageMin} bis ${max}). Keine Leitung über 100 % Auslastung.`,
+      limitLead: `Die Spannung muss zwischen ${min} und ${max} p.u. bleiben`,
+      limitTail: ` (im Ausfall ${outageMin} bis ${max}). Keine Leitung über 100 % Auslastung.`,
       whereQuestion: "Wo?",
       where:
         "Der Knoten oder die Leitung mit dem Engpass. Der Strom nimmt den Weg vom Umspannwerk (Sammelschiene) zum Speicher, deshalb fällt zuerst dieser Weg auf.",
@@ -377,7 +377,7 @@ export function readResultGuide(language: AppLanguage): {
   return {
     title: "How to read the result",
     limitQuestion: "Is a limit crossed?",
-    limitLead: `Voltage must stay between ${min} and ${max} `,
+    limitLead: `Voltage must stay between ${min} and ${max} p.u.`,
     limitTail: ` (in an outage ${outageMin} to ${max}). No line above 100 % loading.`,
     whereQuestion: "Where?",
     where:
