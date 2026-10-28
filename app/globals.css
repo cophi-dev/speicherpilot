@@ -5033,6 +5033,185 @@ math mi {
   .beispieltage-hints li { padding: 2px 0; }
 }
 
+.blog { overflow-x: clip; }
+.blog-hero h1 {
+  max-width: 18ch;
+  margin: 12px 0 0;
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1.1;
+}
+.blog-hero-lead,
+.blog-stand {
+  max-width: 60ch;
+  margin: 12px 0 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.blog-stand {
+  font-size: 16px;
+  line-height: 1.65;
+}
+.blog-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 16px 0 0;
+  color: #3c444c;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.blog-meta time { letter-spacing: 0; }
+html:not(.dark) .day-hero .blog-meta,
+html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
+.dark .blog-meta,
+.dark .day-hero .blog-stand { color: #c5ced6; }
+.blog-hero .blog-figure { margin-top: 28px; }
+.blog-figure { margin: 0; max-width: 100%; }
+.blog-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+.blog-sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  min-width: 0;
+}
+.blog-prose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  max-width: 60ch;
+}
+.blog-source-section { min-width: 0; max-width: 100%; }
+.blog-prose h2,
+.blog-prose h3,
+.blog-sources tr { scroll-margin-top: 5rem; }
+.blog-prose h2 { margin: 20px 0 0; }
+.blog-prose h2:first-child { margin-top: 0; }
+.blog-prose p,
+.blog-prose ul,
+.blog-prose ol { margin: 0; }
+.blog-prose ul { list-style: disc; padding-left: 1.25rem; }
+.blog-prose ol { list-style: decimal; padding-left: 1.25rem; }
+.blog-prose li + li { margin-top: 8px; }
+.blog-prose strong { font-weight: 600; }
+.blog-callout {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid rgb(20 24 28 / 12%);
+  border-radius: 12px;
+  background: #fff;
+  color: #14181c;
+}
+.blog-callout h3 {
+  margin: 0;
+  font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.blog-callout ul { margin: 0; }
+.dark .blog-callout {
+  border-color: transparent;
+  background: #0a0f14;
+  color: #e9eef2;
+}
+.blog-table-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+.blog-table-scroll:focus-visible {
+  outline: 2px solid #0f6e7c;
+  outline-offset: 3px;
+}
+.dark .blog-table-scroll:focus-visible { outline-color: #7dfce6; }
+.blog-table-scroll table {
+  width: 100%;
+  min-width: 48rem;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.blog-table-scroll th:nth-child(1),
+.blog-table-scroll td:nth-child(1) { width: 3.5rem; white-space: nowrap; }
+.blog-table-scroll th:nth-child(3),
+.blog-table-scroll td:nth-child(3) { white-space: nowrap; }
+.blog-table-scroll th,
+.blog-table-scroll td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgb(20 24 28 / 12%);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.dark .blog-table-scroll th,
+.dark .blog-table-scroll td { border-bottom-color: rgb(233 238 242 / 18%); }
+.blog-source-links {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.blog-back { margin: 0; max-width: 60ch; }
+.blog-list {
+  display: grid;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.blog-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  position: relative;
+}
+.blog-card h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.blog-card-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.blog-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.blog-card:has(.blog-card-link:focus-visible) {
+  outline: 2px solid #0f6e7c;
+  outline-offset: 3px;
+}
+.dark .blog-card:has(.blog-card-link:focus-visible) { outline-color: #7dfce6; }
+.blog-subtitle {
+  max-width: 60ch;
+  margin: 0;
+  color: #3c444c;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.dark .blog-subtitle { color: #c5ced6; }
+.blog-card .blog-meta { margin: 0; }
+@media (min-width: 960px) {
+  .blog-hero h1 { font-size: 56px; }
+}
+
 @media print {
   header,
   footer,
