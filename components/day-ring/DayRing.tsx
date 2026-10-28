@@ -25,6 +25,7 @@ import { useMorphedSeries } from "@/components/day-ring/useMorphedSeries";
 import { monotonePolarSamples, polarRibbonPath, quarterCenterForHour, smoothPolarSamples } from "@/lib/dayRingSmooth";
 import { referenceRingUser } from "@/lib/referenceRingLayout";
 import { hourlyResidualGw, quarterLabel, type CalloutAnchor } from "@/lib/dayRingStory";
+import { uniqueQuarterLabels } from "@/lib/quarterMarks";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { useLanguage } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
@@ -825,6 +826,7 @@ export function DayValuesTable({
   dischargeLabel: string;
   socLabel: string;
 }) {
+  const labels = pointLabels(points);
   return (
     <div className="day-sr">
     <table>
@@ -840,9 +842,9 @@ export function DayValuesTable({
         </tr>
       </thead>
       <tbody>
-        {points.map((point) => (
-          <tr key={point.hour}>
-            <td>{quarterLabel(point.hour)}</td>
+        {points.map((point, index) => (
+          <tr key={point.timestampIso ?? `${point.hour}-${index}`}>
+            <td>{labels[index]}</td>
             <td>{(point.ohneMw / 1000).toFixed(3)}</td>
             <td>{(point.mitMw / 1000).toFixed(3)}</td>
             <td>{point.chargeMw.toFixed(1)}</td>
@@ -854,6 +856,13 @@ export function DayValuesTable({
     </table>
     </div>
   );
+}
+
+function pointLabels(points: LiveDispatchPoint[]): string[] {
+  if (points.every((point) => point.timestampIso)) {
+    return uniqueQuarterLabels(points.map((point) => point.timestampIso ?? ""));
+  }
+  return points.map((point) => quarterLabel(point.hour));
 }
 
 function dimmed(hour: number, highlight: Highlight): boolean {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -38,7 +38,7 @@ import {
   type LiveDispatchStory,
 } from "@/lib/liveFleetDispatch";
 
-export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
+export function LiveRing({ dispatch, until, leading }: { dispatch: LiveDispatchInput; until?: string | null; leading?: ReactNode }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const router = useRouter();
@@ -99,8 +99,10 @@ export function LiveRing({ dispatch }: { dispatch: LiveDispatchInput }) {
     <>
     <section className="day-hero day-hero-screen" aria-labelledby="live-what-if">
       <div className="day-hero-inner">
+        {leading}
         {story && stories && dispatch.fleet ? (
           <LiveRingBody
+            until={until ?? null}
             story={story}
             stories={stories}
             fleet={dispatch.fleet}
@@ -152,6 +154,7 @@ function LiveRingBody({
   saturationIndex,
   saturated,
   onFactor,
+  until,
 }: {
   story: LiveDispatchStory;
   stories: Record<LiveDispatchFactor, LiveDispatchStory>;
@@ -161,6 +164,7 @@ function LiveRingBody({
   saturationIndex: number | null;
   saturated: LiveDispatchFactor | null;
   onFactor: (factor: LiveDispatchFactor) => void;
+  until: string | null;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const title = tx(
@@ -174,7 +178,9 @@ function LiveRingBody({
   const hours = surplusHours(story);
   const hourLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
-  const kicker = `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
+  const kicker = until
+    ? `${tx("Live · Was wäre wenn", "Live · What if")} · ${tx(`bisher bis ${until}`, `so far until ${until}`)}`
+    : `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
   const callouts = buildCallouts(story, story.points, language);
   const tablePoints = useDeferredValue(story.points);
   const caption = liveClockCaption(before, after, factor, language);

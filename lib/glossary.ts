@@ -23,6 +23,8 @@ export type GlossaryId =
   | "abregelung"
   | "deutschland-live"
   | "residuallast"
+  | "handelssaldo"
+  | "netzfrequenz"
   | "modellschaetzung"
   | "kupferplatte"
   | "quartier"
@@ -233,6 +235,22 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Die nationale Reihe. Sie wird nie als Hamburg oder als Norden beschriftet. Fehlt die Erzeugung, bleibt das Feld leer, statt aus 0 GW ein Defizit zu rechnen.",
       en: "The national series. It is never labelled as Hamburg or as the north. If generation is missing, the field stays empty instead of turning 0 GW into a deficit.",
+    },
+  },
+  {
+    id: "handelssaldo",
+    term: { de: "Handelssaldo", en: "Cross-border balance" },
+    text: {
+      de: "Strom über die Grenze, Reihe von Energy-Charts. Positiv heißt Import nach Deutschland, negativ heißt Export. Kein Erlös.",
+      en: "Power across the border, the Energy-Charts series. Positive means import into Germany, negative means export. Not revenue.",
+    },
+  },
+  {
+    id: "netzfrequenz",
+    term: { de: "Netzfrequenz", en: "Grid frequency" },
+    text: {
+      de: "Messung in Freiburg, veröffentlicht von Energy-Charts. Das ist kein Wert eines Netzbetreibers. Etwa 30 Minuten Verzögerung.",
+      en: "A measurement in Freiburg, published by Energy-Charts. It is not a grid-operator value. About 30 minutes of delay.",
     },
   },
   {

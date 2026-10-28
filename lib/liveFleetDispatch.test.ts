@@ -1,6 +1,7 @@
 import {
   buildLiveDispatchStory,
   chooseDispatchDay,
+  choosePublishedDay,
   chooseStorageDay,
   LIVE_DISPATCH_RTE,
   roundPeakDeltaGw,
@@ -195,5 +196,12 @@ describe("live fleet dispatch", () => {
     expect(chooseStorageDay([morning, yesterday, older], "2026-10-21")?.day.dateBerlin).toBe("2026-10-19");
     expect(chooseStorageDay([morning, yesterday, older], "2026-10-21")?.fallback).toBe(true);
     expect(chooseStorageDay([older], "2026-10-19")?.fallback).toBe(false);
+  });
+
+  it("shows today even when an older day had surplus", () => {
+    const older = dayFromResidual("2026-10-19", duck);
+    const today = dayFromResidual("2026-10-21", () => 30_000);
+    expect(choosePublishedDay([older, today], "2026-10-21")?.day.dateBerlin).toBe("2026-10-21");
+    expect(choosePublishedDay([older, today], "2026-10-21")?.fallback).toBe(false);
   });
 });

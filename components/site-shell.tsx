@@ -20,6 +20,7 @@ const NAV = [
   { href: "/", de: "Start", en: "Start" },
   { href: "/site", de: "Standort", en: "Site" },
   { href: "/live", de: "Live", en: "Live" },
+  { href: "/szenarien", de: "Szenarien rechnen", en: "Run scenarios" },
   { href: "/methodik", de: "Methodik", en: "Method" },
   { href: "/blog", de: "Blog", en: "Blog" },
 ] as const;
@@ -332,17 +333,12 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
               <ul className="mt-3 space-y-1.5">
                 <li>
                   <a className="text-primary underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
-                    Energy-Charts
+                    Energy-Charts (Fraunhofer ISE), CC BY 4.0
                   </a>
                 </li>
                 <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://www.ise.fraunhofer.de/" target="_blank" rel="noreferrer">
-                    Fraunhofer ISE
-                  </a>
-                </li>
-                <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://www.netztransparenz.de/" target="_blank" rel="noreferrer">
-                    Netztransparenz
+                  <a className="text-primary underline underline-offset-[3px]" href="https://www.smard.de/" target="_blank" rel="noreferrer">
+                    Bundesnetzagentur | SMARD.de
                   </a>
                 </li>
                 <li>

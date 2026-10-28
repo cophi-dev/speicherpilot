@@ -49,6 +49,44 @@ export function createLastGoodStore<T>(): LastGoodStore<T> {
  * The store is used only when this attempt fails or the payload is unusable.
  * Callers must keep the payload's own date visible and must not relabel it as today.
  */
+export type LastGoodState<T> = {
+  value: T | null;
+  /** True when a failed attempt, including HTTP 429, fell back to an older success. */
+  stale: boolean;
+};
+
+export async function fetchJsonWithLastGoodState<T>(options: {
+  key: string;
+  url: string;
+  store: LastGoodStore<T>;
+  parse: (payload: unknown) => T | null;
+  init: RequestInit;
+  isUsable?: (value: T) => boolean;
+}): Promise<LastGoodState<T>> {
+  const isUsable = options.isUsable ?? (() => true);
+  const cached = () => options.store.get(options.key);
+  try {
+    const response = await fetch(options.url, options.init);
+    if (!response.ok) {
+      const previous = cached();
+      return { value: previous ?? null, stale: previous !== undefined };
+    }
+    const parsed = options.parse(await response.json());
+    if (parsed !== null && isUsable(parsed)) {
+      options.store.set(options.key, parsed);
+      return { value: parsed, stale: false };
+    }
+    const previous = cached();
+    if (previous !== undefined) {
+      return { value: previous, stale: true };
+    }
+    return { value: parsed, stale: false };
+  } catch {
+    const previous = cached();
+    return { value: previous ?? null, stale: previous !== undefined };
+  }
+}
+
 export async function fetchJsonWithLastGood<T>(options: {
   key: string;
   url: string;
@@ -57,19 +95,6 @@ export async function fetchJsonWithLastGood<T>(options: {
   init: RequestInit;
   isUsable?: (value: T) => boolean;
 }): Promise<T | null> {
-  const isUsable = options.isUsable ?? (() => true);
-  try {
-    const response = await fetch(options.url, options.init);
-    if (!response.ok) {
-      throw new Error(`request failed with ${response.status}`);
-    }
-    const parsed = options.parse(await response.json());
-    if (parsed !== null && isUsable(parsed)) {
-      options.store.set(options.key, parsed);
-      return parsed;
-    }
-    return options.store.get(options.key) ?? parsed;
-  } catch {
-    return options.store.get(options.key) ?? null;
-  }
+  const result = await fetchJsonWithLastGoodState(options);
+  return result.value;
 }

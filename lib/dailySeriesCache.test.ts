@@ -6,6 +6,7 @@ import {
   createLastGoodStore,
   dailySeriesFetchInit,
   fetchJsonWithLastGood,
+  fetchJsonWithLastGoodState,
 } from "@/lib/dailySeriesCache";
 
 describe("daily series revalidation", () => {
@@ -61,6 +62,36 @@ describe("daily series revalidation", () => {
       expect(second).toEqual({ dateBerlin: "2026-10-22" });
       expect(second).not.toEqual({ dateBerlin: "2026-10-27" });
       expect(empty).toBeNull();
+    } finally {
+      global.fetch = original;
+    }
+  });
+
+  it("keeps the last payload and marks it stale on HTTP 429", async () => {
+    const store = createLastGoodStore<{ n: number }>();
+    const original = global.fetch;
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ n: 4 }) })
+      .mockResolvedValueOnce({ ok: false, status: 429, json: async () => ({}) }) as typeof fetch;
+    try {
+      const first = await fetchJsonWithLastGoodState({
+        key: "row",
+        url: "https://example.test/row",
+        store,
+        parse: (payload) => payload as { n: number },
+        init: dailySeriesFetchInit(1_000),
+      });
+      const second = await fetchJsonWithLastGoodState({
+        key: "row",
+        url: "https://example.test/row",
+        store,
+        parse: (payload) => payload as { n: number },
+        init: dailySeriesFetchInit(1_000),
+      });
+      expect(first).toEqual({ value: { n: 4 }, stale: false });
+      expect(second).toEqual({ value: { n: 4 }, stale: true });
+      expect(second.value).not.toEqual({ n: 0 });
     } finally {
       global.fetch = original;
     }

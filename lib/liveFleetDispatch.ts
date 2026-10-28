@@ -52,6 +52,8 @@ export function scaleFleet(powerMw: number, energyMwh: number, factor: number) {
 
 export type LiveDispatchPoint = {
   hour: number;
+  /** Start of the quarter-hour. The table keys and labels use this, not the clock hour. */
+  timestampIso?: string;
   ohneMw: number;
   mitMw: number;
   chargeMw: number;
@@ -88,6 +90,22 @@ export type LiveDispatchStory = {
 
 export function dayIsUsable(day: ResidualDay | null | undefined): day is ResidualDay {
   return Boolean(day && day.slots.length >= MIN_SLOTS);
+}
+
+/** Newest day that already has a series, including today up to the last published quarter-hour. */
+export function choosePublishedDay(
+  days: ResidualDay[],
+  todayKey: string
+): { day: ResidualDay; fallback: boolean } | null {
+  const usable = days.filter(dayIsUsable).sort((left, right) => (left.dateBerlin < right.dateBerlin ? 1 : -1));
+  const today = usable.find((day) => day.dateBerlin === todayKey);
+  if (today) {
+    return { day: today, fallback: false };
+  }
+  if (usable[0]) {
+    return { day: usable[0], fallback: usable[0].dateBerlin !== todayKey };
+  }
+  return null;
 }
 
 function hasEvening(day: ResidualDay | null | undefined): boolean {
@@ -152,7 +170,7 @@ export function buildLiveDispatchStory(input: {
   const scaled = scaleFleet(input.powerMw, input.energyMwh, input.factor);
   const run = dispatchPeakFleet(input.day.slots, scaled.powerMw, scaled.energyMwh);
   let socMwh = 0;
-  const points: LiveDispatchPoint[] = run.points.map((point) => {
+  const points: LiveDispatchPoint[] = run.points.map((point, index) => {
     if (point.chargeMw > 0) {
       socMwh += point.chargeMw * QUARTER_HOUR_H;
     }
@@ -160,8 +178,10 @@ export function buildLiveDispatchStory(input: {
       socMwh -= (point.dischargeMw * QUARTER_HOUR_H) / rte;
     }
     socMwh = Math.min(scaled.energyMwh, Math.max(0, socMwh));
+    const slot = input.day.slots[index];
     return {
       hour: point.hour,
+      timestampIso: slot?.timestampIso,
       ohneMw: point.residualMw,
       mitMw: point.residualMw + point.chargeMw - point.dischargeMw,
       chargeMw: point.chargeMw,
