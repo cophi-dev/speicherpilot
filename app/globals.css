@@ -5053,9 +5053,6 @@ math mi {
   line-height: 1.65;
 }
 .blog-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
   margin: 16px 0 0;
   color: #3c444c;
   font-family: var(--font-plex-mono), ui-monospace, monospace;
@@ -5063,7 +5060,9 @@ math mi {
   font-weight: 500;
   letter-spacing: 0.04em;
 }
-.blog-meta time { letter-spacing: 0; }
+.blog-meta-sep {
+  white-space: pre;
+}
 html:not(.dark) .day-hero .blog-meta,
 html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .dark .blog-meta,
@@ -5075,6 +5074,24 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   width: 100%;
   height: auto;
   max-width: 100%;
+}
+@media (max-width: 767px) {
+  .blog-hero .blog-figure {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+  .blog-hero .blog-figure img {
+    position: absolute;
+    width: 190%;
+    max-width: none;
+    height: auto;
+    left: 50%;
+    top: 50%;
+    object-fit: cover;
+    object-position: right center;
+    transform: translate(-67%, -47%);
+  }
 }
 .blog-sheet {
   display: grid;

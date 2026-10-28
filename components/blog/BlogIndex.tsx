@@ -8,7 +8,7 @@ export function BlogIndex({ posts }: { posts: readonly BlogPost[] }) {
     <div className="blog" lang="de">
       <header className="day-hero blog-hero" aria-labelledby="blog-title">
         <div className="day-hero-inner">
-          <p className="day-kicker">SpeicherPilot</p>
+          <p className="day-kicker">Blog</p>
           <h1 id="blog-title">Blog</h1>
         </div>
       </header>
@@ -27,7 +27,7 @@ export function BlogIndex({ posts }: { posts: readonly BlogPost[] }) {
                   <p className="blog-subtitle">{post.description}</p>
                   <p className="blog-meta">
                     <time dateTime={post.published}>{post.publishedLabel}</time>
-                    <span aria-hidden="true"> · </span>
+                    <span className="blog-meta-sep" aria-hidden="true"> · </span>
                     <span>{readingLabel(post.readingMinutes)}</span>
                   </p>
                   <BlogFigure figure={heroFigure(post)} />

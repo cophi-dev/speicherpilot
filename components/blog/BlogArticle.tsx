@@ -156,7 +156,7 @@ export function BlogArticle({ post }: { post: BlogPost }) {
           <p className="blog-hero-lead">{post.description}</p>
           <p className="blog-meta">
             <time dateTime={post.published}>{post.publishedLabel}</time>
-            <span aria-hidden="true"> · </span>
+            <span className="blog-meta-sep" aria-hidden="true"> · </span>
             <span>{readingLabel(post.readingMinutes)}</span>
           </p>
           <p className="blog-stand">{post.standLine}</p>
