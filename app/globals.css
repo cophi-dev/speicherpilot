@@ -5265,6 +5265,157 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   .blog-hero h1 { font-size: 56px; }
 }
 
+.live-strip {
+  flex: 0 0 auto;
+  margin: 0 0 8px;
+  color: inherit;
+}
+.live-strip-stand {
+  margin: 0 0 6px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.live-strip dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.2rem, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+.live-strip dt {
+  font-size: 12px;
+  line-height: 1.3;
+}
+.live-strip-value {
+  margin: 0;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 16px;
+  font-weight: 560;
+}
+.live-strip-meta {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #3c444c;
+}
+.day-hero .live-strip-meta,
+.dark .live-strip-meta {
+  color: #d5dde4;
+}
+.live-stale {
+  font-weight: 650;
+}
+.mix-board {
+  --mix-lignite: #3a332e;
+  --mix-hardCoal: #6e675f;
+  --mix-gas: #a3988e;
+  --mix-biomass: #2f8f78;
+  --mix-hydro: #7ec4b0;
+  --mix-windOffshore: #3d9e94;
+  --mix-windOnshore: #0f5c54;
+  --mix-solar: #c4922e;
+  --mix-other: #8d867e;
+  --mix-load: #14181c;
+  --mix-trade: #5c6b73;
+  --mix-ink: #14181c;
+  --mix-muted: #3c444c;
+  --mix-guide: rgb(20 24 28 / 18%);
+  overflow-x: clip;
+}
+.dark .mix-board {
+  --mix-lignite: #5c534c;
+  --mix-hardCoal: #8a8178;
+  --mix-gas: #c4bbb2;
+  --mix-biomass: #8fd0b8;
+  --mix-hydro: #d4f3ea;
+  --mix-windOffshore: #7ed8cc;
+  --mix-windOnshore: #1f8f84;
+  --mix-solar: #e2b15a;
+  --mix-other: #d9d3cb;
+  --mix-load: #f4f7f8;
+  --mix-trade: #b7c4cc;
+  --mix-ink: #e9eef2;
+  --mix-muted: #d5dde4;
+  --mix-guide: rgb(233 238 242 / 22%);
+}
+.mix-inner { max-width: 1100px; margin: 0 auto; }
+.mix-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; }
+.mix-head h2, .mix-soc h3, .mix-period { margin: 0; }
+.mix-finding p { max-width: 68ch; margin: 0 0 8px; font-size: 18px; line-height: 1.45; }
+.mix-last { margin: 8px 0 16px; }
+.mix-last a:focus-visible, .mix-range a:focus-visible { outline: 2px solid #0f6e7c; outline-offset: 3px; }
+.mix-agg { max-width: 68ch; margin: 8px 0 14px; color: var(--mix-muted); }
+.mix-range { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.mix-range a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--mix-guide);
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+.mix-range a[aria-current="true"] { background: var(--mix-ink); color: #f6f6f3; }
+.dark .mix-range a[aria-current="true"] { color: #0e151c; }
+.mix-chart, .mix-soc-chart { display: block; width: 100%; height: auto; min-height: 220px; }
+.mix-guide { stroke: var(--mix-guide); stroke-width: 1; }
+.mix-zero { stroke: var(--mix-ink); stroke-width: 1.4; }
+.mix-axis, .mix-direct { fill: var(--mix-ink); font-family: var(--font-plex-mono), ui-monospace, monospace; }
+.mix-carrier { stroke: none; }
+.mix-fill-lignite { fill: var(--mix-lignite); background: var(--mix-lignite); }
+.mix-fill-hardCoal { fill: var(--mix-hardCoal); background: var(--mix-hardCoal); }
+.mix-fill-gas { fill: var(--mix-gas); background: var(--mix-gas); }
+.mix-fill-biomass { fill: var(--mix-biomass); background: var(--mix-biomass); }
+.mix-fill-hydro { fill: var(--mix-hydro); background: var(--mix-hydro); }
+.mix-fill-windOffshore { fill: var(--mix-windOffshore); background: var(--mix-windOffshore); }
+.mix-fill-windOnshore { fill: var(--mix-windOnshore); background: var(--mix-windOnshore); }
+.mix-fill-solar { fill: var(--mix-solar); background: var(--mix-solar); }
+.mix-fill-other { fill: var(--mix-other); background: var(--mix-other); }
+.mix-fill-load { fill: var(--mix-load); background: var(--mix-load); }
+.mix-fill-trade { fill: var(--mix-trade); background: var(--mix-trade); }
+.mix-fill-residual { background: var(--mix-ink); }
+.mix-load { stroke: var(--mix-load); stroke-width: 2.25; }
+.mix-residual-edge { stroke: #14181c; stroke-width: 4.5; stroke-dasharray: 7 4; }
+.mix-residual { stroke: #f7f4ee; stroke-width: 2; stroke-dasharray: 7 4; }
+.dark .mix-residual-edge { stroke: #061014; }
+.dark .mix-residual { stroke: #f4fbfa; }
+.mix-trade { fill: var(--mix-trade); opacity: 0.35; }
+.mix-soc-line { stroke: #7dfce6; stroke-width: 2.25; }
+.mix-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 12px; }
+.mix-legend li { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; }
+.mix-dot { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 2px; vertical-align: -1px; }
+.mix-soc-chart.is-compact .mix-direct { display: none; }
+.mix-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 16px 0;
+}
+.mix-stats dt { font-size: 13px; color: var(--mix-muted); }
+.mix-stats dd { margin: 2px 0 0; font-family: var(--font-plex-mono), ui-monospace, monospace; font-size: 18px; }
+.mix-period { margin: 8px 0; }
+.mix-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mix-table caption { caption-side: bottom; margin-top: 8px; text-align: left; color: var(--mix-muted); }
+.mix-table th, .mix-table td { padding: 7px 0; border-bottom: 1px solid var(--mix-guide); text-align: left; vertical-align: top; }
+.mix-table td, .mix-table thead th:last-child { text-align: right; font-family: var(--font-plex-mono), ui-monospace, monospace; }
+.mix-soc { margin-top: 28px; }
+.mix-soc p, .mix-source { max-width: 72ch; }
+.mix-source { margin-top: 18px; color: var(--mix-muted); font-size: 13px; }
+.mix-year { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; align-items: end; margin: 12px 0 4px; }
+.mix-year > div { display: flex; flex-direction: column; justify-content: flex-end; min-height: 96px; }
+.mix-year b { font-size: 12px; font-family: var(--font-plex-mono), ui-monospace, monospace; text-align: center; color: var(--mix-ink); }
+.mix-year i { display: block; background: var(--mix-windOnshore); border-radius: 2px 2px 0 0; min-height: 2px; }
+.mix-year span { display: block; margin-top: 4px; font-size: 12px; text-align: center; color: var(--mix-ink); }
+.mix-year-block { margin-top: 28px; }
+.mix-year-block .mix-table { width: auto; }
+.mix-year-block .mix-table th, .mix-year-block .mix-table td { padding-right: 18px; overflow-wrap: anywhere; }
+.dark .day-paper .day-slider-label,
+.dark .day-paper .day-slider-stops { color: #d5dde4; }
+@media (min-width: 800px) {
+  .mix-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 @media print {
   header,
   footer,

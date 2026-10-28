@@ -24,6 +24,8 @@ const REQUIRED = [
   "wind-auf-see",
   "abregelung",
   "deutschland-live",
+  "handelssaldo",
+  "netzfrequenz",
   "residuallast",
   "modellschaetzung",
   "kupferplatte",

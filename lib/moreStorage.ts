@@ -1,3 +1,4 @@
+import { chainFleetSoc } from "@/lib/chainedFleetSoc";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { LargeBatteryFleet } from "@/lib/largeBatteryFleet";
 import { niceAxis } from "@/lib/niceTicks";
@@ -9,8 +10,6 @@ export const MORE_STORAGE_ROUND_TRIP = 0.85;
 
 /** Discharge starts at this Berlin hour. Earlier slots only charge. */
 export const MORE_STORAGE_DISCHARGE_HOUR = 17;
-
-const QUARTER_HOUR_H = 0.25;
 
 export const MORE_STORAGE_STEPS = [
   { id: "today", factor: 1 },
@@ -160,60 +159,20 @@ type Dispatch = {
 
 export function dispatchPeakFleet(slots: ResidualSlot[], powerMw: number, energyMwh: number): Dispatch {
   const residualMw = slots.map((slot) => slot.loadMw - slot.windMw - slot.solarMw);
-  const surplusMw = residualMw.map((residual) => Math.max(0, -residual));
-  let socMwh = 0;
-  const chargeMw = slots.map((slot, index) => {
-    if (slot.hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR) {
-      return 0;
-    }
-    const roomMw = Math.max(0, (energyMwh - socMwh) / QUARTER_HOUR_H);
-    const charge = Math.min(surplusMw[index], powerMw, roomMw);
-    socMwh += charge * QUARTER_HOUR_H;
-    return charge;
-  });
-  const deliverableMwh = socMwh * MORE_STORAGE_ROUND_TRIP;
+  const run = chainFleetSoc([{ dateBerlin: "day", slots }], powerMw, energyMwh);
+  const byIso = new Map(run.points.map((point) => [point.timestampIso, point]));
+  const chargeMw = slots.map((slot) => byIso.get(slot.timestampIso)?.chargeMw ?? 0);
+  const dischargeMw = slots.map((slot) => byIso.get(slot.timestampIso)?.dischargeMw ?? 0);
   const evening = slots
     .map((slot, index) => ({ index, residual: residualMw[index] }))
     .filter((slot) => slots[slot.index].hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR);
-  const positive = evening.filter((slot) => slot.residual > 0);
-  const dischargeMw = slots.map(() => 0);
   let eveningPeakGw: number | null = null;
   let peakReductionGw: number | null = null;
-
-  if (evening.length > 0 && positive.length === 0) {
-    eveningPeakGw = Math.max(...evening.map((slot) => slot.residual)) / 1000;
-    peakReductionGw = 0;
-  } else if (positive.length > 0) {
-    const peakMw = Math.max(...positive.map((slot) => slot.residual));
-    eveningPeakGw = peakMw / 1000;
-    let lo = 0;
-    let hi = peakMw;
-    const feasible = (levelMw: number) => {
-      let needMwh = 0;
-      for (const slot of positive) {
-        const cutMw = Math.max(0, slot.residual - levelMw);
-        if (cutMw > powerMw + 1e-6) {
-          return false;
-        }
-        needMwh += cutMw * QUARTER_HOUR_H;
-      }
-      return needMwh <= deliverableMwh + 1e-6;
-    };
-    if (feasible(hi)) {
-      for (let step = 0; step < 48; step += 1) {
-        const mid = (lo + hi) / 2;
-        if (feasible(mid)) {
-          hi = mid;
-        } else {
-          lo = mid;
-        }
-      }
-      for (const slot of positive) {
-        dischargeMw[slot.index] = Math.max(0, slot.residual - hi);
-      }
-    }
-    const shaved = positive.map((slot) => slot.residual - dischargeMw[slot.index]);
-    peakReductionGw = Math.max(0, peakMw - Math.max(...shaved)) / 1000;
+  if (evening.length > 0) {
+    const before = Math.max(...evening.map((slot) => slot.residual));
+    const after = Math.max(...evening.map((slot) => slot.residual - dischargeMw[slot.index]));
+    eveningPeakGw = before / 1000;
+    peakReductionGw = Math.max(0, before - after) / 1000;
   }
 
   return {
@@ -223,7 +182,7 @@ export function dispatchPeakFleet(slots: ResidualSlot[], powerMw: number, energy
       chargeMw: chargeMw[index],
       dischargeMw: dischargeMw[index],
     })),
-    storedMwh: socMwh,
+    storedMwh: run.chargedMwh,
     peakReductionGw,
     eveningPeakGw,
   };
@@ -273,13 +232,13 @@ function footnote(fleet: LargeBatteryFleet): Copy {
   const rte = Math.round(MORE_STORAGE_ROUND_TRIP * 100);
   if (fleet.source === "battery-charts") {
     return {
-      de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh, Stand ${fleet.updatedLabel.de}. Das sind ${duration.de} Stunden bei voller Leistung. Battery Charts, ISEA und PGS, RWTH Aachen, aus dem Marktstammdatenregister, CC BY 4.0. Großspeicher heißt dort mindestens 1.000 kWh oder 1.000 kW. Die Tagesreihe ist Last, Wind und Sonne, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Modell: Start leer, ${rte} % Wirkungsgrad, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
-      en: `Large storage today ${power.en} GW / ${energy.en} GWh, as of ${fleet.updatedLabel.en}. That is ${duration.en} hours at full power. Battery Charts, ISEA and PGS, RWTH Aachen, from the Marktstammdatenregister, CC BY 4.0. Large storage there means at least 1,000 kWh or 1,000 kW. The day series is load, wind and solar, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Model: start empty, ${rte}% round-trip efficiency, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
+      de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh, Stand ${fleet.updatedLabel.de}. Das sind ${duration.de} Stunden bei voller Leistung. Battery Charts, ISEA und PGS, RWTH Aachen, aus dem Marktstammdatenregister, CC BY 4.0. Großspeicher heißt dort mindestens 1.000 kWh oder 1.000 kW. Die Tagesreihe ist Last, Wind und Sonne, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Modell: Start bei 10 % der Nennenergie, nutzbar 10–90 %, ${rte} % Wirkungsgrad auf der Abgabe, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
+      en: `Large storage today ${power.en} GW / ${energy.en} GWh, as of ${fleet.updatedLabel.en}. That is ${duration.en} hours at full power. Battery Charts, ISEA and PGS, RWTH Aachen, from the Marktstammdatenregister, CC BY 4.0. Large storage there means at least 1,000 kWh or 1,000 kW. The day series is load, wind and solar, Energy-Charts, Fraunhofer ISE, CC BY 4.0. Model: start at 10% of nameplate, usable 10–90%, ${rte}% round-trip on discharge, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
     };
   }
   return {
-    de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh im Jahr ${fleet.year}, Stand ${fleet.updatedLabel.de}. Energy-Charts / Fraunhofer ISE, Datengrundlage ${fleet.datasource}, CC BY 4.0. Die Tagesreihe ist Last, Wind und Sonne. Modell: Start leer, ${rte} % Wirkungsgrad, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
-    en: `Large storage today ${power.en} GW / ${energy.en} GWh in ${fleet.year}, as of ${fleet.updatedLabel.en}. Energy-Charts / Fraunhofer ISE, data basis ${fleet.datasource}, CC BY 4.0. The day series is load, wind and solar. Model: start empty, ${rte}% round-trip efficiency, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
+    de: `Großspeicher heute ${power.de} GW / ${energy.de} GWh im Jahr ${fleet.year}, Stand ${fleet.updatedLabel.de}. Energy-Charts / Fraunhofer ISE, Datengrundlage ${fleet.datasource}, CC BY 4.0. Die Tagesreihe ist Last, Wind und Sonne. Modell: Start bei 10 % der Nennenergie, nutzbar 10–90 %, ${rte} % Wirkungsgrad auf der Abgabe, Laden nur bei Wind plus Sonne über der Last, Abgabe ab 17 Uhr auf die Abendspitze. Modellschätzung, nicht gemessen.`,
+    en: `Large storage today ${power.en} GW / ${energy.en} GWh in ${fleet.year}, as of ${fleet.updatedLabel.en}. Energy-Charts / Fraunhofer ISE, data basis ${fleet.datasource}, CC BY 4.0. The day series is load, wind and solar. Model: start at 10% of nameplate, usable 10–90%, ${rte}% round-trip on discharge, charge only while wind plus solar exceeds load, release from 17:00 onto the evening peak. A model estimate, not a measurement.`,
   };
 }
 

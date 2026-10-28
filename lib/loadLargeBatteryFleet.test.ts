@@ -63,7 +63,7 @@ describe("loadLargeBatteryFleet", () => {
     }) as typeof fetch;
   });
 
-  it("shows 4,5 GW / 7,9 GWh / −4,5 from the snapshot when Battery Charts fails", async () => {
+  it("shows 4,5 GW / 7,9 GWh / −4,0 from the snapshot when Battery Charts fails", async () => {
     const fleet = await loadLargeBatteryFleet(STAND);
     const day = days.find((entry) => entry.dateBerlin === "2026-10-11");
     if (!fleet || !day) {
@@ -88,7 +88,7 @@ describe("loadLargeBatteryFleet", () => {
     expect(fleet.powerGw).toBeCloseTo(4.51554022, 5);
     expect(fleet.energyGwh).toBeCloseTo(7.86001657, 5);
     expect(fleetSizeLabel(1, story.powerMw, story.energyMwh, "de")).toBe("×1: 4,5 GW · 7,9 GWh");
-    expect(formatSignedGw(-onceRoundDeltaGw(before, after), "de")).toBe("−4,5");
+    expect(formatSignedGw(-onceRoundDeltaGw(before, after), "de")).toBe("−4,0");
     expect(calls.some((url) => url.includes("energy-charts.info"))).toBe(false);
     expect(fleet.source === "energy-charts" ? ". Battery Charts ist gerade nicht geladen." : "").toBe("");
   });

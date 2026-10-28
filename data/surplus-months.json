@@ -1,0 +1,67 @@
+{
+  "generatedOn": "2026-10-28",
+  "source": "Energy-Charts (Fraunhofer ISE), CC BY 4.0",
+  "thresholdGwh": 0.05,
+  "months": [
+    {
+      "month": "2025-11",
+      "days": 30,
+      "surplusDays": 0
+    },
+    {
+      "month": "2025-12",
+      "days": 31,
+      "surplusDays": 0
+    },
+    {
+      "month": "2026-01",
+      "days": 31,
+      "surplusDays": 1
+    },
+    {
+      "month": "2026-02",
+      "days": 28,
+      "surplusDays": 2
+    },
+    {
+      "month": "2026-03",
+      "days": 31,
+      "surplusDays": 3
+    },
+    {
+      "month": "2026-04",
+      "days": 30,
+      "surplusDays": 16
+    },
+    {
+      "month": "2026-05",
+      "days": 31,
+      "surplusDays": 19
+    },
+    {
+      "month": "2026-06",
+      "days": 30,
+      "surplusDays": 25
+    },
+    {
+      "month": "2026-07",
+      "days": 31,
+      "surplusDays": 29
+    },
+    {
+      "month": "2026-08",
+      "days": 31,
+      "surplusDays": 25
+    },
+    {
+      "month": "2026-09",
+      "days": 30,
+      "surplusDays": 21
+    },
+    {
+      "month": "2026-10",
+      "days": 28,
+      "surplusDays": 8
+    }
+  ]
+}

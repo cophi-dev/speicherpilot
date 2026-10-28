@@ -48,7 +48,7 @@ function ringKeyCopy(language: "de" | "en") {
       legend: "Legende",
       socExplain: "Ladezustand erklären",
       shiftExplain: "verschoben erklären",
-      socText: "Ladezustand: wie voll der Modellspeicher zu jeder Stunde ist (0–100 %). Dickeres Band = vollerer Speicher.",
+      socText: "Ladezustand: Anteil der Nennenergie. Nutzbar sind 10–90 %. Dickeres Band = vollerer Speicher.",
       shiftText:
         "verschoben: Energie, die der Modellspeicher in der Stunde mit der stärksten Ladung aufnimmt und am Abend zur Spitze wieder abgibt.",
     };
@@ -61,7 +61,7 @@ function ringKeyCopy(language: "de" | "en") {
     legend: "Legend",
     socExplain: "Explain state of charge",
     shiftExplain: "Explain shifted energy",
-    socText: "State of charge: how full the model storage is at each hour (0–100%). A thicker band means a fuller battery.",
+    socText: "State of charge: share of nameplate energy. The usable window is 10–90%. A thicker band means a fuller battery.",
     shiftText:
       "Shifted: energy the model storage takes in during the hour of strongest charging and gives back at the evening peak.",
   };

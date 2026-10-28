@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import { DayRing, DayValuesTable, HourlyResidualTable } from "@/components/day-ring/DayRing";
+import { findFirstUnixSecondForBerlinDateKey } from "@/lib/berlinCalendar";
 import { LanguageContext } from "@/components/language-context";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 import { ringTip, smoothDrawnSeries } from "@/lib/dayRingSmooth";
@@ -262,6 +263,48 @@ describe("day ring raw numbers", () => {
     rerender(withLanguage(<DayRing points={moved} label="Tag" description="Rohwerte" showSoc={false} showShift={false} chargedGwh={1.2} />));
     expect(screen.queryByText("Ladezustand")).toBeNull();
     expect(screen.queryByText("verschoben")).toBeNull();
+  });
+
+  it("labels the clock-change day by real time, with 100 distinct quarter-hours", () => {
+    const start = findFirstUnixSecondForBerlinDateKey("2026-10-25");
+    const end = findFirstUnixSecondForBerlinDateKey("2026-10-26");
+    const points: LiveDispatchPoint[] = [];
+    for (let unix = start; unix < end; unix += 900) {
+      const iso = new Date(unix * 1000).toISOString();
+      const date = new Date(unix * 1000);
+      const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hourCycle: "h23" }).format(date));
+      const minute = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", minute: "2-digit" }).format(date));
+      points.push({
+        hour: hour + minute / 60,
+        timestampIso: iso,
+        ohneMw: 20_000,
+        mitMw: 20_000,
+        chargeMw: 0,
+        dischargeMw: 0,
+        soc: 0.2,
+      });
+    }
+    expect(points).toHaveLength(100);
+    render(
+      withLanguage(
+        <DayValuesTable
+          points={points}
+          caption="Zeitumstellung"
+          timeLabel="Zeit"
+          ohneLabel="Residuallast GW"
+          mitLabel="mit Speicher GW"
+          chargeLabel="Laden MW"
+          dischargeLabel="Abgabe MW"
+          socLabel="Ladezustand %"
+        />
+      )
+    );
+    const times = screen.getAllByRole("row").slice(1).map((row) => row.querySelector("td")?.textContent ?? "");
+    expect(times).toHaveLength(100);
+    expect(new Set(times).size).toBe(100);
+    const two = times.filter((label) => label.startsWith("02:00"));
+    expect(two).toHaveLength(2);
+    expect(two[0]).not.toBe(two[1]);
   });
 
   it("keeps a 24-hour residual table for screen readers", () => {

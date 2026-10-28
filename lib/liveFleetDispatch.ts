@@ -1,3 +1,4 @@
+import { chainFleetSoc, CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import type { LargeBatteryFleetSource } from "@/lib/largeBatteryFleet";
 import { dispatchPeakFleet, MORE_STORAGE_DISCHARGE_HOUR, MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
 import { windSolarSurplusMwh, type ResidualDay } from "@/lib/windSolarResidual";
@@ -52,6 +53,8 @@ export function scaleFleet(powerMw: number, energyMwh: number, factor: number) {
 
 export type LiveDispatchPoint = {
   hour: number;
+  /** Start of the quarter-hour. The table keys and labels use this, not the clock hour. */
+  timestampIso?: string;
   ohneMw: number;
   mitMw: number;
   chargeMw: number;
@@ -88,6 +91,22 @@ export type LiveDispatchStory = {
 
 export function dayIsUsable(day: ResidualDay | null | undefined): day is ResidualDay {
   return Boolean(day && day.slots.length >= MIN_SLOTS);
+}
+
+/** Newest day that already has a series, including today up to the last published quarter-hour. */
+export function choosePublishedDay(
+  days: ResidualDay[],
+  todayKey: string
+): { day: ResidualDay; fallback: boolean } | null {
+  const usable = days.filter(dayIsUsable).sort((left, right) => (left.dateBerlin < right.dateBerlin ? 1 : -1));
+  const today = usable.find((day) => day.dateBerlin === todayKey);
+  if (today) {
+    return { day: today, fallback: false };
+  }
+  if (usable[0]) {
+    return { day: usable[0], fallback: usable[0].dateBerlin !== todayKey };
+  }
+  return null;
 }
 
 function hasEvening(day: ResidualDay | null | undefined): boolean {
@@ -150,29 +169,25 @@ export function buildLiveDispatchStory(input: {
 }): LiveDispatchStory {
   const rte = LIVE_DISPATCH_RTE;
   const scaled = scaleFleet(input.powerMw, input.energyMwh, input.factor);
+  const chain = chainFleetSoc([input.day], scaled.powerMw, scaled.energyMwh);
   const run = dispatchPeakFleet(input.day.slots, scaled.powerMw, scaled.energyMwh);
-  let socMwh = 0;
-  const points: LiveDispatchPoint[] = run.points.map((point) => {
-    if (point.chargeMw > 0) {
-      socMwh += point.chargeMw * QUARTER_HOUR_H;
-    }
-    if (point.dischargeMw > 0) {
-      socMwh -= (point.dischargeMw * QUARTER_HOUR_H) / rte;
-    }
-    socMwh = Math.min(scaled.energyMwh, Math.max(0, socMwh));
+  const socByIso = new Map(chain.points.map((point) => [point.timestampIso, point.soc]));
+  const points: LiveDispatchPoint[] = run.points.map((point, index) => {
+    const slot = input.day.slots[index];
+    const soc = slot ? socByIso.get(slot.timestampIso) : undefined;
     return {
       hour: point.hour,
+      timestampIso: slot?.timestampIso,
       ohneMw: point.residualMw,
       mitMw: point.residualMw + point.chargeMw - point.dischargeMw,
       chargeMw: point.chargeMw,
       dischargeMw: point.dischargeMw,
-      soc: scaled.energyMwh > 0 ? socMwh / scaled.energyMwh : 0,
+      soc: soc ?? CHAIN_SOC_MIN,
     };
   });
   const before = run.eveningPeakGw;
   const after = before === null || run.peakReductionGw === null ? null : before - run.peakReductionGw;
-  const dischargedMwh = run.points.reduce((sum, point) => sum + point.dischargeMw * QUARTER_HOUR_H, 0);
-  const endSocGwh = ((points[points.length - 1]?.soc ?? 0) * scaled.energyMwh) / 1000;
+  const endSocGwh = chain.endSocMwh / 1000;
   const surplusMwh = input.day.slots.reduce((sum, slot) => {
     if (slot.hourBerlin >= MORE_STORAGE_DISCHARGE_HOUR) {
       return sum;
@@ -187,8 +202,8 @@ export function buildLiveDispatchStory(input: {
     points,
     eveningPeakBeforeGw: before,
     eveningPeakAfterGw: after,
-    dischargedGwh: dischargedMwh / 1000,
-    chargedGwh: run.storedMwh / 1000,
+    dischargedGwh: chain.dischargedMwh / 1000,
+    chargedGwh: chain.chargedMwh / 1000,
     endSocGwh,
     surplusGwh: surplusMwh / 1000,
     powerMw: scaled.powerMw,
@@ -197,12 +212,12 @@ export function buildLiveDispatchStory(input: {
   };
 }
 
-/** SoC at empty (0 %) or full nameplate (100 %). The peak model starts empty and can fill. */
+/** Floor (10 % of nameplate) or ceiling (90 %). The usable window, not 0–100. */
 export function socEdge(socPct: number): "empty" | "full" | "between" {
-  if (socPct <= 0.05) {
+  if (socPct <= CHAIN_SOC_MIN * 100 + 0.05) {
     return "empty";
   }
-  if (socPct >= 99.95) {
+  if (socPct >= CHAIN_SOC_MAX * 100 - 0.05) {
     return "full";
   }
   return "between";

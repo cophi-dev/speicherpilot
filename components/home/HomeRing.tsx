@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
@@ -18,6 +18,7 @@ import {
   formatBerlinDayLabel,
   eveningPeakStat,
   formatGw1,
+  dayHasSurplus,
   fullSurplusFactor,
   heroSentence,
   ringCalloutText,
@@ -34,7 +35,17 @@ import {
 } from "@/lib/liveFleetDispatch";
 import { sitePath } from "@/lib/perspective";
 
-export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; todayKey: string }) {
+export function HomeRing({
+  dispatch,
+  todayKey,
+  until,
+  leading,
+}: {
+  dispatch: LiveDispatchInput;
+  todayKey: string;
+  until: string | null;
+  leading?: ReactNode;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const stories = useMemo(() => {
@@ -75,8 +86,18 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
   }
 
   const story = stories[1];
+  const quiet = !dayHasSurplus(story.surplusGwh);
   const sentence = heroSentence({ dateBerlin: story.dateBerlin, todayKey, surplusGwh: story.surplusGwh });
-  const title = language === "de" ? sentence.de : sentence.en;
+  const title = quiet
+    ? story.dateBerlin === todayKey
+      ? tx("Heute hat Wind plus Sonne die Last nicht überstiegen.", "Today, wind plus solar did not exceed load.")
+      : tx(
+          `Am ${formatBerlinDayLabel(story.dateBerlin)} hat Wind plus Sonne die Last nicht überstiegen.`,
+          `On ${formatBerlinDayLabel(story.dateBerlin)}, wind plus solar did not exceed load.`
+        )
+    : language === "de"
+      ? sentence.de
+      : sentence.en;
   const before = story.eveningPeakBeforeGw;
   const after = story.eveningPeakAfterGw;
   const peak = eveningPeakStat(before, after, language);
@@ -84,8 +105,11 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
   const charged = chargedWouldHaveParts(story.chargedGwh, 1, language);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
   const kicker = story.dateBerlin === todayKey
-    ? tx(`Heute · Deutschland · ${dateLabel}`, `Today · Germany · ${dateLabel}`)
-    : tx(`Letzter Überschusstag · Deutschland · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`, `Last surplus day · Germany · ${weekdayShort(story.dateBerlin, "en")} ${dateLabel}`);
+    ? tx(
+        until ? `Heute · Deutschland · bisher bis ${until}` : `Heute · Deutschland · ${dateLabel}`,
+        until ? `Today · Germany · so far until ${until}` : `Today · Germany · ${dateLabel}`
+      )
+    : tx(`${weekdayShort(story.dateBerlin, language)} ${dateLabel}`, `${weekdayShort(story.dateBerlin, "en")} ${dateLabel}`);
   const description = tx(
     `Residuallast am ${dateLabel}, Viertelstunde für Viertelstunde. Der Radius wächst linear mit der Leistung in GW.`,
     `Residual load on ${dateLabel}, quarter-hour by quarter-hour. Radius grows linearly with power in GW.`
@@ -99,6 +123,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
     <>
       <section className="day-hero day-hero-screen" aria-labelledby="home-day">
         <div className="day-hero-inner">
+          {leading}
           <div className="day-hero-layout">
             <p className="day-kicker day-order-kicker">{kicker}</p>
             <h1 id="home-day" className="day-title day-order-title">{title}</h1>
@@ -174,7 +199,7 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
 
       <section className="day-story" aria-labelledby="home-movements">
         <div className="day-hero-inner">
-          <Movements story={story} language={language} hours={hours} />
+          <Movements story={story} language={language} hours={hours} quiet={quiet} />
         </div>
       </section>
 
@@ -205,12 +230,14 @@ export function HomeRing({ dispatch, todayKey }: { dispatch: LiveDispatchInput; 
 
 const MOVEMENT_IDS = ["night", "midday", "evening"] as const;
 
-function Movements({ story, language, hours }: { story: LiveDispatchStory; language: AppLanguage; hours: number }) {
+function Movements({ story, language, hours, quiet }: { story: LiveDispatchStory; language: AppLanguage; hours: number; quiet: boolean }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const hoursLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
   const steps = [
     { id: MOVEMENT_IDS[0], n: "01", title: tx("Nacht", "Night"), body: tx("Wind allein reicht nicht. Kraftwerke und Import füllen die Lücke.", "Wind alone is not enough. Power plants and imports fill the gap.") },
-    { id: MOVEMENT_IDS[1], n: "02", title: tx("Mittag", "Midday"), body: tx(`${hoursLabel} Stunden lang liefern Wind und Sonne mehr, als gebraucht wird. Speicher laden.`, `For ${hoursLabel} hours, wind and solar deliver more than is used. Storage charges.`) },
+    { id: MOVEMENT_IDS[1], n: "02", title: tx("Mittag", "Midday"), body: quiet
+      ? tx("Wind und Sonne bleiben unter der Last. Im Überschuss-Modell ist nichts zu laden.", "Wind and solar stay below load. In the surplus model there is nothing to charge.")
+      : tx(`${hoursLabel} Stunden lang liefern Wind und Sonne mehr, als gebraucht wird. Speicher laden.`, `For ${hoursLabel} hours, wind and solar deliver more than is used. Storage charges.`) },
     { id: MOVEMENT_IDS[2], n: "03", title: tx("Abend", "Evening"), body: tx("Die Sonne ist weg, der Verbrauch hoch. Speicher geben ab und kappen die Spitze.", "The sun is gone and use is high. Storage gives power back and cuts the peak.") },
   ];
   const [highlight, setHighlight] = useState<(typeof steps)[number]["id"]>("night");
