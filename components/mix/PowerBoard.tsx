@@ -8,7 +8,7 @@ import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
 import { markNavigationPending } from "@/components/NavigationProgress";
-import { chartFrame, chartX, MixChart, tickPlacement, useChartWidth } from "@/components/mix/MixChart";
+import { chartFrame, chartX, MixChart, spacedTicks, tickPlacement, useChartWidth } from "@/components/mix/MixChart";
 import { SurplusYear } from "@/components/mix/SurplusYear";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { LiveDispatchFactor } from "@/lib/liveFleetDispatch";
@@ -274,17 +274,21 @@ function SocLine({
             10 %
           </text>
           <path className="mix-soc-line" d={path} fill="none" />
-          {points.map((point) => {
-            if (!point.tick) {
-              return null;
-            }
-            const placed = tickPlacement(chartX(point.unix, points[0].unix, points[points.length - 1].unix, frame), frame);
-            return (
-              <text key={`${point.unix}-tick`} className="mix-axis" fontSize={frame.font} x={placed.x} y="148" textAnchor={placed.anchor}>
-                {point.tick}
-              </text>
-            );
-          })}
+          {spacedTicks(
+            points.flatMap((point) => {
+              if (!point.tick) {
+                return [];
+              }
+              const placed = tickPlacement(chartX(point.unix, points[0].unix, points[points.length - 1].unix, frame), frame);
+              return [{ unix: point.unix, text: point.tick, x: placed.x, anchor: placed.anchor }];
+            }),
+            56,
+            frame.font
+          ).map((tick) => (
+            <text key={`${tick.unix}-tick`} className="mix-axis" fontSize={frame.font} x={tick.x} y="148" textAnchor={tick.anchor}>
+              {tick.text}
+            </text>
+          ))}
           {end ? (
             <text className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={socY(end.socPct)} dominantBaseline="middle">
               {`${formatQuantity(end.socPct, language, 0)} % · ${formatQuantity(end.socGwh, language, 1)} GWh`}

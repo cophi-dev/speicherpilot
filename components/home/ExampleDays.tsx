@@ -92,12 +92,16 @@ export function ExampleDays() {
             <ModelChip label={tx("Modellschätzung", "Model estimate")} />
           </div>
           <div className="beispieltage-result-row">
-            <p className="beispieltage-euro">
-              <span className="beispieltage-approx">≈</span>{" "}
-              <MonoNumber value={shown} />
-              <span> €</span>
-              {scale >= 5 ? <span className="beispieltage-note"> {tx("Obergrenze, ohne Preiswirkung", "Upper bound, no price effect")}</span> : null}
-            </p>
+            <div>
+              <p className="beispieltage-euro">
+                <span className="beispieltage-approx">≈</span>{" "}
+                <MonoNumber value={shown} />
+                <span> €</span>
+              </p>
+              {scale >= 5 ? (
+                <p className="beispieltage-cap">{tx("Obergrenze, ohne Preiswirkung", "Upper bound, no price effect")}</p>
+              ) : null}
+            </div>
             <ScalePicker scale={scale} language={language} onChoose={setScale} />
           </div>
           <p className="beispieltage-size">

@@ -54,8 +54,9 @@ describe("ConnectionStory", () => {
     expect(meter).toHaveAttribute("aria-valuetext", "Spitze 120 kW, Anschluss 90 kW: passt nicht.");
     expect(meter).toHaveTextContent("PASST NICHT");
     const segments = meter.querySelectorAll("p");
-    expect(segments[0]?.className).not.toContain("bg-success");
-    expect(segments[2]?.className).toContain("bg-destructive");
+    expect(segments[2]).toHaveAttribute("data-status", "over");
+    expect(segments[2]).toHaveAttribute("data-active", "true");
+    expect(segments[2]).toHaveStyle({ background: "#B3261E", color: "#fff" });
     expect(screen.getByText(/Anschlussauslastung gegen das Anschlusslimit/)).toBeInTheDocument();
     expect(screen.getByText("Beispieldaten")).toBeInTheDocument();
 
