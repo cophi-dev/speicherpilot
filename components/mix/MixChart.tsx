@@ -1,3 +1,5 @@
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+
 import { CARRIER_IDS, type CarrierId, type ChartPoint } from "@/lib/powerMix";
 import { CARRIER_COPY } from "@/lib/powerBoard";
 import { niceAxis } from "@/lib/niceTicks";
@@ -9,10 +11,49 @@ export type ChartFrame = {
   font: number;
 };
 
-export function chartFrame(compact: boolean): ChartFrame {
-  return compact
-    ? { width: 360, height: 250, pad: { l: 40, r: 10, t: 16, b: 32 }, font: 12 }
-    : { width: 720, height: 320, pad: { l: 52, r: 132, t: 16, b: 32 }, font: 13 };
+export function chartFrame(compact: boolean, width?: number): ChartFrame {
+  if (compact) {
+    const drawn = Math.max(300, Math.round(width && width > 0 ? width : 360));
+    return { width: drawn, height: 260, pad: { l: 40, r: 14, t: 16, b: 42 }, font: 12 };
+  }
+  const drawn = Math.max(640, Math.round(width && width > 0 ? width : 960));
+  return {
+    width: drawn,
+    height: Math.max(320, Math.min(420, Math.round(drawn * 0.32))),
+    pad: { l: 56, r: 156, t: 18, b: 36 },
+    font: 14,
+  };
+}
+
+/** Keep the first and last time marks inside the view box. */
+export function tickPlacement(x: number, frame: ChartFrame): { x: number; anchor: "start" | "middle" | "end" } {
+  if (x >= frame.width - frame.pad.r - 2) {
+    return { x: Math.min(x, frame.width - 3), anchor: "end" };
+  }
+  if (x <= frame.pad.l + 36) {
+    return { x: Math.max(x, 2), anchor: "start" };
+  }
+  return { x, anchor: "middle" };
+}
+
+export function useChartWidth<T extends HTMLElement = HTMLDivElement>(): { hostRef: RefObject<T | null>; width: number } {
+  const hostRef = useRef<T>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const node = hostRef.current;
+    if (!node) {
+      return;
+    }
+    const read = () => {
+      const next = Math.round(node.clientWidth);
+      setWidth((prev) => (prev === next ? prev : next));
+    };
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return { hostRef, width };
 }
 
 export function chartX(unix: number, min: number, max: number, frame: ChartFrame): number {
@@ -87,12 +128,22 @@ function linePath(
   return parts.join(" ");
 }
 
-const LEGEND: Array<{ id: CarrierId | "load" | "residual" | "trade"; de: string; en: string }> = [
+const LEGEND: Array<{ id: CarrierId | "load" | "residual" | "trade" | "surplus"; de: string; en: string }> = [
   ...CARRIER_IDS.map((id) => ({ id, ...CARRIER_COPY[id] })),
   { id: "load", de: "Last", en: "Load" },
+  { id: "surplus", de: "Überschuss", en: "Surplus" },
   { id: "residual", de: "Residuallast", en: "Residual load" },
   { id: "trade", de: "Handel", en: "Trade" },
 ];
+
+function windSolarGw(point: ChartPoint): number | null {
+  const onshore = point.carriers.windOnshore;
+  const solar = point.carriers.solar;
+  if (onshore === null || solar === null) {
+    return null;
+  }
+  return onshore + solar + (point.carriers.windOffshore ?? 0);
+}
 
 function keptTicks(points: ChartPoint[], compact: boolean): Set<number> {
   const indexes = points.map((point, index) => (point.tick ? index : -1)).filter((index) => index >= 0);
@@ -111,6 +162,7 @@ export function MixChart({
   description,
   language,
   compact = false,
+  surplusLabel = null,
 }: {
   points: ChartPoint[];
   unit: "GW" | "GWh";
@@ -118,8 +170,11 @@ export function MixChart({
   description: string;
   language: "de" | "en";
   compact?: boolean;
+  /** Measured surplus for the whole window, already formatted, or null when there is none. */
+  surplusLabel?: string | null;
 }) {
-  const frame = chartFrame(compact);
+  const { hostRef, width } = useChartWidth<HTMLElement>();
+  const frame = chartFrame(compact, width);
   const titleId = "mix-chart-title";
   const descId = "mix-chart-desc";
   if (points.length === 0) {
@@ -140,7 +195,7 @@ export function MixChart({
     if (complete) {
       values.push(stack);
     }
-    for (const value of [point.load, point.residual, point.trade]) {
+    for (const value of [point.load, point.residual, point.trade, windSolarGw(point)]) {
       if (value !== null) {
         values.push(value);
       }
@@ -213,9 +268,21 @@ export function MixChart({
   }
   const loadPath = linePath(points, (point) => point.load, axis.min, axis.max, xs, frame);
   const residualPath = linePath(points, (point) => point.residual, axis.min, axis.max, xs, frame);
+  const windSeries = points.map((point) => windSolarGw(point) ?? 0);
+  const loadSeries = points.map((point) => point.load ?? 0);
+  const surplusIndexes = points
+    .map((point, index) => {
+      const wind = windSolarGw(point);
+      return wind !== null && point.load !== null && wind > point.load ? index : -1;
+    })
+    .filter((index) => index >= 0);
+  const surplusPath = runs(surplusIndexes)
+    .map((group) => bandPath(xs, loadSeries, windSeries, group, axis.min, axis.max, frame))
+    .join(" ");
+  const surplusMark = surplusLabel ? surplusMarkAt(surplusIndexes, xs, loadSeries, windSeries, axis.min, axis.max, frame, surplusLabel) : null;
 
   return (
-    <figure className="mix-figure">
+    <figure className="mix-figure" ref={hostRef}>
       <svg className={compact ? "mix-chart is-compact" : "mix-chart"} viewBox={`0 0 ${frame.width} ${frame.height}`} role="img" aria-labelledby={`${titleId} ${descId}`}>
         <title id={titleId}>{title}</title>
         <desc id={descId}>{description}</desc>
@@ -242,16 +309,26 @@ export function MixChart({
           ))
         )}
         <path className="mix-trade" d={tradePath(points, axis.min, axis.max, xs, frame)} />
+        {surplusPath ? <path className="mix-surplus" d={surplusPath} /> : null}
         <path className="mix-load" d={loadPath} fill="none" />
         <path className="mix-residual-edge" d={residualPath} fill="none" />
         <path className="mix-residual" d={residualPath} fill="none" />
-        {points.map((point, index) =>
-          point.tick && show.has(index) ? (
-            <text key={`${point.unix}-${point.tick}`} className="mix-axis" fontSize={frame.font} x={chartX(xs[index], xs[0], xs[xs.length - 1], frame)} y={frame.height - 8} textAnchor="middle">
+        {points.map((point, index) => {
+          if (!point.tick || !show.has(index)) {
+            return null;
+          }
+          const placed = tickPlacement(chartX(xs[index], xs[0], xs[xs.length - 1], frame), frame);
+          return (
+            <text key={`${point.unix}-${point.tick}`} className="mix-axis" fontSize={frame.font} x={placed.x} y={frame.height - 10} textAnchor={placed.anchor}>
               {point.tick}
             </text>
-          ) : null
-        )}
+          );
+        })}
+        {surplusMark ? (
+          <text className="mix-surplus-label" fontSize={frame.font} x={surplusMark.x} y={surplusMark.y} textAnchor={surplusMark.anchor}>
+            {surplusLabel}
+          </text>
+        ) : null}
         {labels.map((label) => (
           <text key={label.text} className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={label.y} dominantBaseline="middle">
             {label.text}
@@ -268,6 +345,36 @@ export function MixChart({
       </ul>
     </figure>
   );
+}
+
+function surplusMarkAt(
+  indexes: number[],
+  xs: number[],
+  load: number[],
+  wind: number[],
+  min: number,
+  max: number,
+  frame: ChartFrame,
+  label: string
+): { x: number; y: number; anchor: "start" | "middle" | "end" } | null {
+  const groups = runs(indexes);
+  const group = groups.sort((left, right) => right.length - left.length)[0];
+  if (!group || group.length === 0) {
+    return null;
+  }
+  const index = group[Math.floor(group.length / 2)];
+  const rawX = chartX(xs[index], xs[0], xs[xs.length - 1], frame);
+  const yLoad = yOf(load[index], min, max, frame);
+  const yWind = yOf(wind[index], min, max, frame);
+  const y = Math.min(frame.height - frame.pad.b - 8, Math.max(frame.pad.t + frame.font, (yLoad + yWind) / 2));
+  const widthGuess = label.length * frame.font * 0.62;
+  if (rawX + widthGuess > frame.width - 8) {
+    return { x: Math.min(frame.width - 6, Math.max(rawX, frame.pad.l + widthGuess)), y, anchor: "end" };
+  }
+  if (rawX - widthGuess / 2 < frame.pad.l) {
+    return { x: frame.pad.l + 4, y, anchor: "start" };
+  }
+  return { x: rawX, y, anchor: "middle" };
 }
 
 function tradePath(points: ChartPoint[], min: number, max: number, xs: number[], frame: ChartFrame): string {

@@ -10,6 +10,7 @@ import type { PowerBoardModel } from "@/lib/powerBoard";
 
 export function MarketingHome({
   dispatch,
+  exampleDispatch,
   todayKey,
   until,
   stand,
@@ -17,6 +18,7 @@ export function MarketingHome({
   board,
 }: {
   dispatch: LiveDispatchInput;
+  exampleDispatch: LiveDispatchInput;
   todayKey: string;
   until: string | null;
   stand: string;
@@ -27,6 +29,7 @@ export function MarketingHome({
     <div>
       <HomeRing
         dispatch={dispatch}
+        exampleDispatch={exampleDispatch}
         todayKey={todayKey}
         until={until}
         leading={<LiveStrip stand={stand} readings={readings} />}

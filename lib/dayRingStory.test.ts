@@ -7,6 +7,7 @@ import {
   formatGwh,
   fullSurplusFactor,
   heroSentence,
+  quietDayTitle,
   liveClockCaption,
   onceRoundDeltaGw,
   ringCalloutText,
@@ -135,5 +136,15 @@ describe("day ring story on the October 2026 fixture", () => {
       "Residuallast über 24 Stunden, Abendspitze 38,0 GW ohne, 33,7 GW mit Speicher ×5."
     );
     expect(liveClockCaption(null, null, 1, "de")).toBe("Residuallast über 24 Stunden, ohne Abendspitze.");
+  });
+
+  it("does not claim a still-open day already missed surplus", () => {
+    expect(quietDayTitle({ dateBerlin: "2026-10-28", todayKey: "2026-10-28", dayOpen: true }).de).toBe(
+      "Bisher hat Wind plus Sonne die Last nicht überstiegen."
+    );
+    expect(quietDayTitle({ dateBerlin: "2026-10-28", todayKey: "2026-10-28", dayOpen: false }).de).toBe(
+      "Heute hat Wind plus Sonne die Last nicht überstiegen."
+    );
+    expect(quietDayTitle({ dateBerlin: "2026-10-27", todayKey: "2026-10-28", dayOpen: false }).de).toContain("27.10.2026");
   });
 });

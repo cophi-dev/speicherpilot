@@ -45,20 +45,19 @@ function renderStory() {
 }
 
 describe("ConnectionStory", () => {
-  it("keeps the traffic light neutral on the first step and links the supermarket project", async () => {
+  it("shows the connection light on the first step and links the supermarket project", async () => {
     const scroll = jest.fn();
     Element.prototype.scrollIntoView = scroll;
     renderStory();
 
     const meter = screen.getByRole("meter");
-    expect(meter).toHaveAttribute("aria-valuetext", "Anschluss-Ampel, noch ohne Bewertung.");
-    expect(meter).not.toHaveTextContent(/Spitze/);
-    for (const segment of meter.querySelectorAll("p")) {
-      expect(segment.className).toContain("border");
-      expect(segment.className).not.toContain("bg-destructive");
-      expect(segment.className).not.toContain("bg-success");
-      expect(segment.className).not.toContain("bg-warning");
-    }
+    expect(meter).toHaveAttribute("aria-valuetext", "Spitze 120 kW, Anschluss 90 kW: passt nicht.");
+    expect(meter).toHaveTextContent("PASST NICHT");
+    const segments = meter.querySelectorAll("p");
+    expect(segments[0]?.className).not.toContain("bg-success");
+    expect(segments[2]?.className).toContain("bg-destructive");
+    expect(screen.getByText(/Anschlussauslastung gegen das Anschlusslimit/)).toBeInTheDocument();
+    expect(screen.getByText("Beispieldaten")).toBeInTheDocument();
 
     expect(screen.getByRole("heading", { level: 2, name: /Was ist Peak Shaving/ })).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(1);

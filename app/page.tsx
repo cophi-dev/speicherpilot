@@ -23,6 +23,7 @@ export default async function Home({
         todayKey={view.todayKey}
         until={view.until}
         dispatch={view.dispatch}
+        exampleDispatch={view.exampleDispatch}
         stand={view.stand}
         readings={view.readings}
         board={view.board}

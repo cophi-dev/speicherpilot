@@ -90,10 +90,16 @@ export function chartAriaLabel(day: Beispieltag, language: AppLanguage): string 
 export function liveResultLabel(day: Beispieltag, scale: BeispielScale, language: AppLanguage): string {
   const shown = formatModelEuro(displayEuro(day.revenueEur[scaleKey(scale)], scale), language);
   const when = shortBerlinDate(day.dateBerlin, language);
+  if (scale >= 5) {
+    if (language === "de") {
+      return `Modellerlös ×${scale} am ${when}: rund ${shown} Euro, Obergrenze ohne Preiswirkung, Modellschätzung`;
+    }
+    return `Model revenue ×${scale} on ${when}: about ${shown} euro, upper bound with no price effect, model estimate`;
+  }
   if (language === "de") {
     return `Modellerlös ×${scale} am ${when}: rund ${shown} Euro, Modellschätzung`;
   }
-  return `Model revenue ×${scale} on ${when}: about ${shown} €, model estimate`;
+  return `Model revenue ×${scale} on ${when}: about ${shown} euro, model estimate`;
 }
 
 export function scaleSizeLabel(scale: BeispielScale, language: AppLanguage, powerMw: number, energyMwh: number): string {
@@ -150,9 +156,14 @@ export function comparisonText(day: Beispieltag, scale: BeispielScale, file: Bei
 
 export const HINTS: readonly { de: string; en: string; tips: Array<"preisnehmer" | "intraday" | "regelleistung" | "vollzyklen" | "soc" | "modellschaetzung"> }[] = [
   {
-    de: "Preisnehmer: nur malgenommen, keine Prognose.",
-    en: "Price taker: just multiplied, not a forecast.",
+    de: "Preisnehmer: nur malgenommen, keine Prognose. Das gilt für einen Speicher, nicht für Flotten ×5 und ×10.",
+    en: "Price taker: just multiplied, not a forecast. That applies to one battery, not to fleets at ×5 and ×10.",
     tips: ["preisnehmer"],
+  },
+  {
+    de: "Bei ×5 und ×10 ist der Euro-Wert eine Obergrenze ohne Preiswirkung. Preiswirkung ist nicht modelliert. Modellschätzung.",
+    en: "At ×5 and ×10 the euro figure is an upper bound with no price effect. A price effect is not modelled. Model estimate.",
+    tips: ["modellschaetzung"],
   },
   {
     de: "Nur Day-Ahead. Intraday und Regelleistung fehlen.",

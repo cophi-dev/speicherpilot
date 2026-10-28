@@ -91,15 +91,21 @@ export function ConnectionStory() {
         }
       },
       // The step changes when its text crosses the middle of the viewport.
-      { rootMargin: "-45% 0px -45% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
+      {
+        // On a phone the stage covers the middle of the window. Read the step in the band under it.
+        rootMargin: narrow
+          ? `-${Math.round((pinPx || 320) + 12)}px 0px -${Math.max(80, Math.round(window.innerHeight - (pinPx || 320) - 200))}px 0px`
+          : "-45% 0px -45% 0px",
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+      }
     );
     for (const node of nodes) {
       observer.observe(node);
     }
     return () => observer.disconnect();
-  }, []);
+  }, [narrow, pinPx]);
 
-  const shownPeak = step >= 1 ? story.peakAfterKw : story.peakBeforeKw;
+  const shownPeak = step === 0 ? story.peakBeforeKw : story.peakAfterKw;
   const light = connectionLight(shownPeak, story.limitKw);
   const deltaKw = Math.max(0, story.peakBeforeKw - story.peakAfterKw);
   const steps = storySteps(story, deltaKw, language);
@@ -147,7 +153,13 @@ export function ConnectionStory() {
               <div className="connection-story-chart flex h-[240px] min-h-[240px] overflow-hidden rounded-md border border-border bg-card lg:h-auto lg:min-h-0 lg:flex-1 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent">
                 <StoryChart story={story} step={step} language={language} stacked={narrow} />
               </div>
-              <ConnectionLight light={light} language={language} neutral={step === 0} />
+              <ConnectionLight light={light} language={language} />
+              <p className="connection-light-note">
+                {tx(
+                  "Die Ampel zeigt die Anschlussauslastung gegen das Anschlusslimit. Grün unter 90 %, gelb bis 100 %, rot darüber. Modell, Beispieldaten.",
+                  "The light compares connection use with the connection limit. Green below 90%, yellow up to 100%, red above. Model, example data."
+                )}
+              </p>
             </div>
           </div>
           <ol style={pinPx > 0 ? ({ "--story-pin": `${pinPx}px` } as CSSProperties) : undefined}>
