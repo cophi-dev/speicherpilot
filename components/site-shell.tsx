@@ -21,6 +21,7 @@ const NAV = [
   { href: "/site", de: "Standort", en: "Site" },
   { href: "/live", de: "Live", en: "Live" },
   { href: "/methodik", de: "Methodik", en: "Method" },
+  { href: "/blog", de: "Blog", en: "Blog" },
 ] as const;
 
 function resolveTheme(pref: ThemePreference): "light" | "dark" {
@@ -358,7 +359,8 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
                 </p>
               </details>
             </div>
-            <p>
+            <p className="flex flex-col items-start gap-3">
+              <Link href="/blog">{tx("Blog", "Blog")}</Link>
               <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
             </p>
             <p>
