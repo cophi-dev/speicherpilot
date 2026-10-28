@@ -19,62 +19,67 @@ type Row = {
   uncertainty: string;
 };
 
+type SourceLink = { href: string; text: string };
+
 type SourceRow = {
   name: string;
   use: string;
   licence: string;
   credit: string;
-  href: string;
-  link: string;
+  links: SourceLink[];
   retrieved: string;
 };
 
-function ScrollTable({
-  label,
-  hint,
+function FitTable({
+  className,
   caption,
   headers,
+  cols,
   rows,
 }: {
-  label: string;
-  hint: string;
+  className: string;
   caption: string;
   headers: string[];
+  cols?: string[];
   rows: string[][];
 }) {
   return (
-    <>
-      <div className="methodik-scroll" role="region" tabIndex={0} aria-label={label}>
-        <table>
-          <caption className="sr-only">{caption}</caption>
-          <thead>
-            <tr>
-              {headers.map((header) => (
-                <th key={header} scope="col">
-                  {header}
+    <table className={`methodik-fit ${className}`}>
+      <caption className="sr-only">{caption}</caption>
+      {cols ? (
+        <colgroup>
+          {cols.map((col) => (
+            <col key={col} className={col} />
+          ))}
+        </colgroup>
+      ) : null}
+      <thead>
+        <tr>
+          {headers.map((header) => (
+            <th key={header} scope="col">
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row[0]}>
+            {row.map((cell, index) =>
+              index === 0 ? (
+                <th key={cell} scope="row">
+                  {cell}
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row[0]}>
-                {row.map((cell, index) =>
-                  index === 0 ? (
-                    <th key={cell} scope="row">
-                      {cell}
-                    </th>
-                  ) : (
-                    <td key={`${row[0]}-${index}`}>{cell}</td>
-                  )
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="methodik-swipe">{hint}</p>
-    </>
+              ) : (
+                <td key={`${row[0]}-${index}`} data-label={headers[index]}>
+                  {cell}
+                </td>
+              )
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -92,8 +97,6 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
   const peak = Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100);
   const share = Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100);
   const hour = String(MORE_STORAGE_DISCHARGE_HOUR);
-  const hint = tx("← wischen →", "← swipe →");
-  const tableLabel = tx("Tabelle, seitlich wischen", "Table, swipe sideways");
 
   const assumptions: Row[] = [
     {
@@ -104,7 +107,10 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
         "Standard in allen Rechenkernen. Gemeint ist AC zu AC, einschließlich Wechselrichter, Trafo und Hilfsenergie.",
         "Default in every calculation core. That means AC to AC, including the inverter, the transformer and auxiliary energy."
       ),
-      uncertainty: tx("Spanne 80–90 %.", "Range 80–90%."),
+      uncertainty: tx(
+        "Planungsspanne 80–90 % (eigene Annahme). Quellen für AC-AC: PNNL 2022, 82,6–88 %, NLR ATB 2025, 85 %.",
+        "Planning range 80–90% (our own assumption). AC-AC sources: PNNL 2022, 82.6–88%; NLR ATB 2025, 85%."
+      ),
     },
     {
       assumption: tx("Nutzbarer Ladezustand", "Usable state of charge"),
@@ -157,8 +163,8 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
       value: `${power} / ${energy}`,
       unit: "GW / GWh",
       why: tx(
-        `Battery Charts aus dem Marktstammdatenregister, Stand ${snapshot.standLabel}. Die Seite rundet ${powerExact} GW und ${energyExact} GWh.`,
-        `Battery Charts from the Marktstammdatenregister, as of ${snapshot.standLabel}. The page rounds ${powerExact} GW and ${energyExact} GWh.`
+        `Battery Charts aus dem Marktstammdatenregister, Stand ${snapshot.standLabel}. Die Seite rundet ${powerExact} GW und ${energyExact} GWh. Die Startseite kann bei Live-Abruf einen neueren Stand zeigen.`,
+        `Battery Charts from the Marktstammdatenregister, as of ${snapshot.standLabel}. The page rounds ${powerExact} GW and ${energyExact} GWh. The homepage can show a newer stand when it loads live data.`
       ),
       uncertainty: tx("Der Bestand ändert sich mit dem Register.", "The stock changes with the register."),
     },
@@ -190,8 +196,8 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
       value: band,
       unit: "p.u.",
       why: tx(
-        "Normalbetrieb der Mittelspannung im Testnetz. Quelle: SimBench und Meinecke et al., CIRED 2019.",
-        "Normal operation of medium voltage in the test grid. Source: SimBench and Meinecke et al., CIRED 2019."
+        "Normalbetrieb der Mittelspannung im Testnetz. Quelle: Meinecke et al., CIRED 2019, Paper 0139, Abbildung 2 und Text (Sollwerte 1,015 / 1,035 p.u., 2 % Anhebung, 5 % zusätzlicher Abfall im Einzelausfall). Die Grenzen sind aus der Abbildung abgelesen.",
+        "Normal operation of medium voltage in the test grid. Source: Meinecke et al., CIRED 2019, paper 0139, figure 2 and the text (setpoints 1.015 / 1.035 p.u., 2% rise, 5% extra drop in a single outage). The limits were read from the figure."
       ),
       uncertainty: tx(
         "Im Einzelausfall gilt 0,915–1,055 p.u.",
@@ -229,24 +235,25 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
       ),
       licence: "CC BY 4.0",
       credit: "energy-charts.info",
-      href: "https://api.energy-charts.info/llms.txt",
-      link: tx("API-Lizenz", "API licence"),
+      links: [
+        { href: "https://api.energy-charts.info/", text: "Data License" },
+        { href: "https://api.energy-charts.info/llms.txt", text: "llms.txt" },
+      ],
       retrieved: tx(
-        "Abruf 28.10.2026. Lizenzfeld: „CC BY 4.0, attribution: energy-charts.info“. Betreiber: Fraunhofer ISE.",
-        "Retrieved 28 October 2026. Licence field: “CC BY 4.0, attribution: energy-charts.info”. Operator: Fraunhofer ISE."
+        "28.10.2026. Lizenzfeld der API-Antwort: „CC BY 4.0 (creativecommons.org/licenses/by/4.0), attribution: energy-charts.info“. Betreiber: Fraunhofer ISE.",
+        "28 October 2026. Licence field of the API response: “CC BY 4.0 (creativecommons.org/licenses/by/4.0), attribution: energy-charts.info”. Operator: Fraunhofer ISE."
       ),
     },
     {
       name: "SMARD",
       use: tx(
-        "Day-Ahead-Preise der Gebotszone DE-LU, abgerufen über Energy-Charts.",
-        "Day-ahead prices of the DE-LU bidding zone, retrieved via Energy-Charts."
+        "Day-Ahead-Preise der Gebotszone DE-LU, abgerufen über Energy-Charts. Preise unverändert übernommen. Erlöse daraus sind eine eigene Modellrechnung.",
+        "Day-ahead prices of the DE-LU bidding zone, retrieved via Energy-Charts. Prices are used unchanged. Revenue figures derived from them are our own model calculation."
       ),
       licence: "CC BY 4.0",
       credit: "Bundesnetzagentur | SMARD.de",
-      href: "https://www.smard.de/home/datennutzung",
-      link: tx("Datennutzung", "Data use"),
-      retrieved: tx("Abruf 28.10.2026.", "Retrieved 28 October 2026."),
+      links: [{ href: "https://www.smard.de/home/datennutzung", text: tx("Datennutzung", "Data use") }],
+      retrieved: tx("28.10.2026.", "28 October 2026."),
     },
     {
       name: tx("Marktstammdatenregister", "Marktstammdatenregister"),
@@ -259,14 +266,16 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
         "Data licence Germany – attribution – Version 2.0"
       ),
       credit: tx(
-        "Bundesnetzagentur, „Datenlizenz Deutschland – Namensnennung – Version 2.0“, www.govdata.de/dl-de/by-2-0, Datensatz marktstammdatenregister.de/MaStR",
-        "Bundesnetzagentur, “Data licence Germany – attribution – Version 2.0”, www.govdata.de/dl-de/by-2-0, dataset marktstammdatenregister.de/MaStR"
+        "Bundesnetzagentur, Marktstammdatenregister, „Datenlizenz Deutschland – Namensnennung – Version 2.0“ (dl-de/by-2-0, www.govdata.de/dl-de/by-2-0), Datensatz: https://www.marktstammdatenregister.de/MaStR/Datendownload. Daten verändert: ausgewertet und summiert (Flotte über Battery Charts, ISEA/PGS RWTH Aachen).",
+        "Bundesnetzagentur, Marktstammdatenregister, “Data licence Germany – attribution – Version 2.0” (dl-de/by-2-0, www.govdata.de/dl-de/by-2-0), dataset: https://www.marktstammdatenregister.de/MaStR/Datendownload. Data changed: evaluated and summed (fleet via Battery Charts, ISEA/PGS RWTH Aachen)."
       ),
-      href: "https://www.marktstammdatenregister.de/MaStR/Startseite/Impressum",
-      link: tx("Impressum", "Legal notice"),
+      links: [
+        { href: "https://www.marktstammdatenregister.de/MaStR/Datendownload", text: tx("Datendownload", "Data download") },
+        { href: "https://www.marktstammdatenregister.de/MaStR/Startseite/Impressum", text: tx("Impressum", "Legal notice") },
+      ],
       retrieved: tx(
-        "Abruf 28.10.2026. Gesamtdatenauszug auf der Download-Seite zuletzt 28.10.2026.",
-        "Retrieved 28 October 2026. The full export on the download page was last updated on 28 October 2026."
+        "28.10.2026. Gesamtdatenauszug auf der Download-Seite zuletzt 28.10.2026. Die Flottenzahl auf dieser Seite ist der Battery-Charts-Stand 21.10.2026, nicht dieser Auszug.",
+        "28 October 2026. The full export on the download page was last updated on 28 October 2026. The fleet figure on this page is the Battery Charts stand of 21 October 2026, not this export."
       ),
     },
     {
@@ -277,12 +286,11 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
       ),
       licence: "CC BY 4.0",
       credit: tx(
-        "„Die Grafiken und Daten dieser Seite sind lizensiert unter CC BY 4.0 und dürfen unter Nennung der Urheber und Lizenz verwendet werden.“ Zitat der Seite: battery-charts.de und Figgener et al. 2023, DOI 10.48550/arXiv.2203.06762. ISEA und PGS, RWTH Aachen.",
-        "“The graphics and data on this page are licensed under CC BY 4.0 and may be used if the authors and the licence are named.” The page asks for battery-charts.de and Figgener et al. 2023, DOI 10.48550/arXiv.2203.06762. ISEA and PGS, RWTH Aachen."
+        "Auf der Seite „Über uns“ steht: „Die Grafiken und Daten dieser Seite sind lizensiert unter CC BY 4.0 und dürfen unter Nennung der Urheber und Lizenz verwendet werden.“ (Der Satz steht im Abschnitt Revenue-Index; wir lesen ihn auch für Battery Charts. Das ist unsere Auslegung.) Zitierwunsch der Seite: battery-charts.de/battery-charts und J. Figgener et al., The development of battery storage systems in Germany: A market review (status 2023), 2023, DOI 10.48550/arXiv.2203.06762.",
+        "The About page says: “The graphics and data on this page are licensed under CC BY 4.0 and may be used if the authors and the licence are named.” (The sentence is in the Revenue Index section; we also read it as covering Battery Charts. That is our reading.) The page asks to cite battery-charts.de/battery-charts and J. Figgener et al., The development of battery storage systems in Germany: A market review (status 2023), 2023, DOI 10.48550/arXiv.2203.06762."
       ),
-      href: "https://battery-charts.de/de/ueber-uns/",
-      link: tx("Über uns", "About"),
-      retrieved: tx("Abruf 28.10.2026.", "Retrieved 28 October 2026."),
+      links: [{ href: "https://battery-charts.de/de/ueber-uns/", text: tx("Über uns", "About") }],
+      retrieved: tx("28.10.2026.", "28 October 2026."),
     },
     {
       name: "SimBench",
@@ -292,12 +300,22 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
       ),
       licence: "ODbL 1.0 + DbCL 1.0",
       credit: tx(
-        "„The database called SimBench is made available under the Open Database License. Any rights in individual contents of the database are licensed under the Database Contents License.“ University of Kassel, TU Dortmund, RWTH Aachen University and Fraunhofer Institute for Energy Economics and Energy System Technology (IEE).",
-        "“The database called SimBench is made available under the Open Database License. Any rights in individual contents of the database are licensed under the Database Contents License.” University of Kassel, TU Dortmund, RWTH Aachen University and Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)."
+        "„The database called SimBench is made available under the Open Database License: http://opendatacommons.org/licenses/odbl/1.0/. Any rights in individual contents of the database are licensed under the Database Contents License: http://opendatacommons.org/licenses/dbcl/1.0/“ University of Kassel, TU Dortmund, RWTH Aachen University and Fraunhofer Institute for Energy Economics and Energy System Technology (IEE).",
+        "“The database called SimBench is made available under the Open Database License: http://opendatacommons.org/licenses/odbl/1.0/. Any rights in individual contents of the database are licensed under the Database Contents License: http://opendatacommons.org/licenses/dbcl/1.0/” University of Kassel, TU Dortmund, RWTH Aachen University and Fraunhofer Institute for Energy Economics and Energy System Technology (IEE)."
       ),
-      href: "https://simbench.readthedocs.io/en/stable/about/license.html",
-      link: tx("Lizenz", "Licence"),
-      retrieved: tx("Abruf 28.10.2026.", "Retrieved 28 October 2026."),
+      links: [{ href: "https://simbench.readthedocs.io/en/stable/about/license.html", text: tx("Lizenz", "Licence") }],
+      retrieved: tx("28.10.2026.", "28 October 2026."),
+    },
+    {
+      name: "simbench",
+      use: tx(
+        "Python-Paket simbench 1.6.3, aus scripts/requirements-netz.txt. Es liefert das Testnetz an das Erzeugungsskript.",
+        "Python package simbench 1.6.3, from scripts/requirements-netz.txt. It supplies the test grid to the generation script."
+      ),
+      licence: "BSD-3-Clause",
+      credit: "Copyright 2019-2026 University of Kassel, TU Dortmund, RWTH Aachen University, Fraunhofer IEE und weitere",
+      links: [{ href: "https://simbench.readthedocs.io/en/stable/about/license.html", text: tx("Lizenz", "Licence") }],
+      retrieved: tx("28.10.2026.", "28 October 2026."),
     },
     {
       name: "pandapower",
@@ -308,9 +326,8 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
       licence: "BSD-3-Clause",
       credit:
         "Copyright (c) 2016-2026 University of Kassel, Fraunhofer Institute for Energy Economics and Energy System Technology (IEE) Kassel and individual contributors.",
-      href: "https://pandapower.readthedocs.io/en/stable/about/license.html",
-      link: tx("Lizenz", "Licence"),
-      retrieved: tx("Abruf 28.10.2026.", "Retrieved 28 October 2026."),
+      links: [{ href: "https://pandapower.readthedocs.io/en/stable/about/license.html", text: tx("Lizenz", "Licence") }],
+      retrieved: tx("28.10.2026.", "28 October 2026."),
     },
   ];
 
@@ -327,7 +344,7 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
     tx("Lizenz", "Licence"),
     tx("Namensnennung", "Attribution"),
     tx("Link", "Link"),
-    tx("Abruf", "Retrieved"),
+    tx("Lizenz geprüft", "Licence checked"),
   ];
 
   return (
@@ -350,11 +367,11 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
           <GlossaryTip id="testnetz" language={language} />
           .
         </p>
-        <ScrollTable
-          label={tableLabel}
-          hint={hint}
+        <FitTable
+          className="methodik-assumptions"
           caption={tx("Annahmen auf einen Blick", "Assumptions at a glance")}
           headers={headers}
+          cols={["c-assumption", "c-value", "c-unit", "c-why", "c-uncertainty"]}
           rows={assumptions.map((row) => [row.assumption, row.value, row.unit, row.why, row.uncertainty])}
         />
       </section>
@@ -362,39 +379,44 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
         <h2>{tx("02 Quellen und Lizenzen", "02 Sources and licences")}</h2>
         <p>
           {tx(
-            "Keine Energy-Charts-Bilder sind eingebettet. Wir nutzen nur Daten. Die Namensnennung steht so, wie die Quelle sie auf ihrer Seite verlangt. Stand des Abrufs: 28.10.2026.",
-            "No Energy-Charts pictures are embedded. We use only data. The attribution is the wording the source asks for on its own page. Retrieved on 28 October 2026."
+            "Keine Energy-Charts-Bilder sind eingebettet. Wir nutzen nur Daten. Die Namensnennung steht so, wie die Quelle sie verlangt oder in ihrer Lizenz vorgibt. Die Lizenztexte wurden am 28.10.2026 geprüft.",
+            "No Energy-Charts pictures are embedded. We use only data. The attribution is the way the source requests it or its licence prescribes. Licence texts checked on 28 October 2026."
           )}
         </p>
-        <div className="methodik-scroll" role="region" tabIndex={0} aria-label={tableLabel}>
-          <table>
-            <caption className="sr-only">{tx("Quellen und Lizenzen", "Sources and licences")}</caption>
-            <thead>
-              <tr>
-                {sourceHeaders.map((header) => (
-                  <th key={header} scope="col">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sources.map((row) => (
-                <tr key={row.name}>
-                  <th scope="row">{row.name}</th>
-                  <td>{row.use}</td>
-                  <td>{row.licence}</td>
-                  <td>{row.credit}</td>
-                  <td>
-                    <a href={row.href}>{row.link}</a>
-                  </td>
-                  <td>{row.retrieved}</td>
-                </tr>
+        <table className="methodik-fit methodik-sources">
+          <caption className="sr-only">{tx("Quellen und Lizenzen", "Sources and licences")}</caption>
+          <colgroup>
+            <col className="c-name" />
+          </colgroup>
+          <thead>
+            <tr>
+              {sourceHeaders.map((header) => (
+                <th key={header} scope="col">
+                  {header}
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="methodik-swipe">{hint}</p>
+            </tr>
+          </thead>
+          <tbody>
+            {sources.map((row) => (
+              <tr key={row.name}>
+                <th scope="row">{row.name}</th>
+                <td data-label={sourceHeaders[1]}>{row.use}</td>
+                <td data-label={sourceHeaders[2]}>{row.licence}</td>
+                <td data-label={sourceHeaders[3]}>{row.credit}</td>
+                <td data-label={sourceHeaders[4]}>
+                  {row.links.map((link, linkIndex) => (
+                    <span key={link.href}>
+                      {linkIndex > 0 ? " · " : null}
+                      <a href={link.href}>{link.text}</a>
+                    </span>
+                  ))}
+                </td>
+                <td data-label={sourceHeaders[5]}>{row.retrieved}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
       <section id="grenzen">
         <h2>{tx("03 Grenzen des Modells", "03 Limits of the model")}</h2>

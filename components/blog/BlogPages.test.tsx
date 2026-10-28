@@ -46,8 +46,9 @@ describe("blog pages", () => {
     expect(document.body.textContent).not.toContain("ARTIKELTEXT");
     expect(screen.queryByRole("button", { name: /teilen|share/i })).toBeNull();
 
-    expect(screen.getAllByRole("region", { name: "Abbildung, seitlich wischen" })).toHaveLength(3);
-    expect(screen.getAllByText("← wischen →")).toHaveLength(3);
+    expect(screen.getAllByRole("region", { name: "Abbildung, seitlich wischen" })).toHaveLength(2);
+    expect(screen.getAllByText("← wischen →")).toHaveLength(4);
+    expect(screen.getByRole("img", { name: BLOG_FIGURES.a1.alt }).closest("[role='region']")).toBeNull();
     expect(screen.getByRole("img", { name: BLOG_FIGURES.a1.alt })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: BLOG_FIGURES.b.alt })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: BLOG_FIGURES.c.alt })).toBeInTheDocument();

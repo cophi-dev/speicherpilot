@@ -134,9 +134,7 @@ export function ConnectionStory() {
       {
         // Percentages do not depend on window.innerHeight, which changes when the
         // iPhone address bar shows or hides. layoutEpoch rebuilds the observer then.
-        rootMargin: !narrow || phone
-          ? "-40% 0px -45% 0px"
-          : `-${Math.round((pinPx || 320) + 12)}px 0px -30% 0px`,
+        rootMargin: phone ? "-30% 0px -50% 0px" : !narrow ? "-45% 0px -45% 0px" : `-${Math.round((pinPx || 320) + 12)}px 0px -30% 0px`,
         threshold: [0, 0.25, 0.5, 0.75, 1],
       }
     );
@@ -218,7 +216,10 @@ export function ConnectionStory() {
                   className={`story-step min-h-[45svh] text-foreground lg:min-h-[65vh]${active ? " is-active" : ""}`}
                 >
                   <div className="story-step-card">
-                    <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>
+                    <p className="story-step-kicker">
+                      <span className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</span>
+                      <StepPill index={index} total={steps.length} story={story} language={language} />
+                    </p>
                     <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
                     <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
                     {item.figure ? (
@@ -265,6 +266,29 @@ export function ConnectionStory() {
         </p>
       </div>
     </section>
+  );
+}
+
+function StepPill({
+  index,
+  total,
+  story,
+  language,
+}: {
+  index: number;
+  total: number;
+  story: PeakShavingExplain;
+  language: "de" | "en";
+}) {
+  const peak = index === 0 ? story.peakBeforeKw : story.peakAfterKw;
+  const light = connectionLight(peak, story.limitKw);
+  const verdict = language === "de" ? light.label.de : light.label.en;
+  const stepNo = String(index + 1).padStart(2, "0");
+  const totalNo = String(total).padStart(2, "0");
+  return (
+    <span className="story-pill" data-status={light.status}>
+      {stepNo} / {totalNo} · {verdict}
+    </span>
   );
 }
 
@@ -374,7 +398,7 @@ function StoryChart({
   const height = Math.max(0, box.height);
   const tight = stacked && height > 0 && height < 200;
   const pad = { l: 56, r: stacked ? 12 : 84, t: tight ? 16 : stacked ? 14 : 16 };
-  const axisLabelH = tight ? 16 : 22;
+  const axisLabelH = stacked ? 24 : 22;
   const socH = showSoc ? (tight ? 34 : 64) : 0;
   const socGap = showSoc ? (tight ? 6 : 22) : 0;
   const plotBottom = height - axisLabelH - socH - socGap;
@@ -432,20 +456,23 @@ function StoryChart({
                 className={tick === 0 ? "stroke-border-strong" : "stroke-gridline"}
                 strokeWidth={1}
               />
-              <text x={pad.l - 8} y={Math.max(12, y(tick) + 4)} textAnchor="end" className="num fill-muted-foreground" fontSize={12}>
-                {tick === axis.ticks[axis.ticks.length - 1] ? `${formatQuantity(tick, language, 0)} kW` : formatQuantity(tick, language, 0)}
-              </text>
+              {stacked && showSoc && tick === 0 ? null : (
+                <text x={pad.l - 8} y={Math.max(12, y(tick) + 4)} textAnchor="end" className="num fill-muted-foreground" fontSize={12}>
+                  {tick === axis.ticks[axis.ticks.length - 1] ? `${formatQuantity(tick, language, 0)} kW` : formatQuantity(tick, language, 0)}
+                </text>
+              )}
             </g>
           ))}
           {[12, 14, 16, 18, 20, 22].filter((hour) => hour >= from && hour <= to).map((hour) => {
             const labelHour = hour === 12 || hour === 16 || hour === 20;
             if (stacked) {
               const tickX = x(hour);
+              const axisY = height - axisLabelH;
               return (
                 <g key={hour}>
-                  <line x1={tickX} x2={tickX} y1={height - axisLabelH} y2={height - axisLabelH + 5} className="stroke-muted-foreground" strokeWidth={1} />
+                  <line x1={tickX} x2={tickX} y1={axisY} y2={axisY + 4} className="stroke-muted-foreground" strokeWidth={1} />
                   {labelHour ? (
-                    <text x={tickX} y={height - 4} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+                    <text x={tickX} y={axisY + 16} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
                       {clockLabel(hour)}
                     </text>
                   ) : null}
@@ -506,7 +533,7 @@ function StoryChart({
             </text>
           ) : null}
           {peak ? (
-            <text x={x(peak.hour) + 8} y={Math.max(pad.t + 10, y(peak.loadKw) - (tight ? 4 : 10))} className="num fill-foreground" fontSize={tight ? 11 : 13}>
+            <text x={x(peak.hour) + 8} y={Math.max(pad.t + 12, y(peak.loadKw) - (tight ? 4 : 10))} className="num fill-foreground" fontSize={tight ? 12 : 13}>
               {formatQuantity(peak.loadKw, language, 0)} kW
             </text>
           ) : null}
@@ -524,7 +551,7 @@ function StoryChart({
           ) : null}
           {showSoc ? (
             <g className="story-layer">
-              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={12}>
+              <text x={pad.l} y={stacked ? socTop : socTop - 8} className="num fill-primary" fontSize={12}>
                 {tx("LADESTAND", "CHARGE")}
               </text>
               <line x1={pad.l} x2={pad.l + plotW} y1={socY(0)} y2={socY(0)} className="stroke-gridline" />

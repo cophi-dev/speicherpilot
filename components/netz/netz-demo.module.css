@@ -398,8 +398,8 @@
 .plain {
   align-self: start;
   position: sticky;
-  top: 88px;
-  max-height: 60vh;
+  top: 125px;
+  max-height: calc(100svh - 141px);
   margin: 0;
   padding: 14px 16px;
   overflow: auto;
