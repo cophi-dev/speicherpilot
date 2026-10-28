@@ -36,6 +36,8 @@ import {
   kvFromPu,
   limitsItems,
   lineKind,
+  newLineExplanation,
+  newLineHeading,
   NODE_LABEL,
   odblAttribution,
   odblNotice,
@@ -46,6 +48,8 @@ import {
   outageSkipped,
   pair,
   plainText,
+  readResultGuide,
+  scenarioEinordnung,
   statusSentences,
 } from "@/lib/netzTexte";
 
@@ -146,6 +150,25 @@ function parseElement(token: string): { kind: "line" | "trafo"; id: number } | n
   return { kind: match[1] === "trafo" ? "trafo" : "line", id: Number(match[2]) };
 }
 
+function feederLineIds(data: NetzDemoFile, bus: number): Set<number> {
+  const parentOf = new Map(data.tree.map((item) => [item.bus, item.parent]));
+  const buses: number[] = [];
+  const seen = new Set<number>();
+  let current: number | null = bus;
+  while (current != null && !seen.has(current)) {
+    seen.add(current);
+    buses.push(current);
+    const parent = parentOf.get(current);
+    current = parent === undefined ? null : parent;
+  }
+  const edge = new Set<string>();
+  for (let index = 0; index < buses.length - 1; index += 1) {
+    edge.add(`${buses[index]}:${buses[index + 1]}`);
+    edge.add(`${buses[index + 1]}:${buses[index]}`);
+  }
+  return new Set(data.lines.filter((line) => edge.has(`${line.a}:${line.b}`)).map((line) => line.id));
+}
+
 function elementRows(tokens: string[], data: NetzDemoFile, language: AppLanguage) {
   return tokens
     .map(parseElement)
@@ -227,6 +250,34 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
   }, [storageOn, picture, selection.knoten, selection.pMw, node.bus]);
   const baseN1 = checkedOutages(base);
   const stateN1 = checkedOutages(state);
+  const einordnung =
+    selection.pMw > 0
+      ? scenarioEinordnung({
+          language,
+          fall: selection.fall,
+          richtung: selection.richtung,
+          pMw: selection.pMw,
+          derived,
+          outagesWithout: baseN1?.failed ?? null,
+          outagesWith: stateN1?.failed ?? null,
+        })
+      : null;
+  const newLineIds = (stateN1?.newlyFailed ?? [])
+    .map(parseElement)
+    .flatMap((item) => (item?.kind === "line" ? [item.id] : []));
+  const pathIds = feederLineIds(data, node.bus);
+  const lineNote =
+    storageOn && newLineIds.length > 0
+      ? newLineExplanation({
+          language,
+          richtung: selection.richtung,
+          lineIds: newLineIds,
+          onPath: newLineIds.every((id) => pathIds.has(id)),
+          allCables: newLineIds.every((id) => data.lines.find((line) => line.id === id)?.kind === "cs"),
+        })
+      : null;
+  const lineHeading = lineNote ? newLineHeading(language, newLineIds) : null;
+  const normalOnly = einordnung?.id === "zu-viel";
   const sentences = plainText({
     language,
     basis: !storageOn,
@@ -240,8 +291,15 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
     lineMax: state.lineMax,
     baseLine: base.lineMax,
     tip,
+    normalOnly,
   });
-  const status = statusSentences(language, derived);
+  const status = statusSentences(language, derived, normalOnly);
+  const guide = readResultGuide(language);
+  const tipLine =
+    einordnung?.id === "grenze"
+      ? sentences.find((sentence) => sentence.startsWith("Dieser Knoten hält") || sentence.startsWith("This node holds"))
+      : undefined;
+  const body = tipLine ? sentences.filter((sentence) => sentence !== tipLine) : sentences;
   const nodeName = `${tx("Knoten", "Node")} ${node.id}, ${pair(language, NODE_LABEL[node.id])}`;
 
   const topLines =
@@ -365,16 +423,44 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
             <p className={styles.note}>{tx("Gerechnet sind 2, 5, 10 und 20 MW. Dazwischen wird nicht interpoliert.", "Calculated powers are 2, 5, 10 and 20 MW. Values in between are not interpolated.")}</p>
           </form>
           <div className={styles.plain} role="status" aria-live="polite" aria-atomic="true">
+            {einordnung ? (
+              <div className={styles.einordnung}>
+                <p>
+                  <span className={einordnung.id === "netzdienlich" ? `${styles.einChip} ${styles.einChipGut}` : styles.einChip}>
+                    {einordnung.chip}
+                  </span>
+                </p>
+                <p>{einordnung.sentence}</p>
+                {tipLine ? <p>{tipLine}</p> : null}
+              </div>
+            ) : null}
             {status.map((sentence) => (
               <p key={sentence}>{sentence}</p>
             ))}
-            {sentences.map((sentence) => (
+            {body.map((sentence) => (
               <p key={sentence}>{sentence}</p>
             ))}
           </div>
           </div>
           <div className={styles.mapBlock}>
             <h2 id="netz-ergebnis">{tx("Ergebnis", "Result")}</h2>
+            <details className={styles.howto}>
+              <summary>{guide.title}</summary>
+              <dl>
+                <dt>{guide.limitQuestion}</dt>
+                <dd>
+                  {guide.limitLead} <GlossaryTip id="spannung-pu" language={language} />
+                  {guide.limitTail}
+                </dd>
+                <dt>{guide.whereQuestion}</dt>
+                <dd>{guide.where}</dd>
+                <dt>{guide.outageQuestion}</dt>
+                <dd>
+                  <a href="/methodik#netz">(n-1)</a> <GlossaryTip id="n-1" language={language} />
+                  {guide.outageTail}
+                </dd>
+              </dl>
+            </details>
             <div className={styles.toolbar}>
               <Choice
                 name="netz-bild"
@@ -602,10 +688,18 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
             {outageModel(language)} <GlossaryTip id="trennstelle" language={language} />
           </p>
           {storageOn && stateN1 ? (
-            <div className={styles.tableWrap}>
-              <ElementTable title={tx("Neu betroffen", "Newly affected")} tokens={stateN1.newlyFailed} data={data} language={language} />
-              <ElementTable title={tx("Nicht mehr betroffen", "No longer affected")} tokens={stateN1.noLongerFailed} data={data} language={language} />
-            </div>
+            <>
+              {lineNote && lineHeading ? (
+                <div className={styles.lineNote}>
+                  <p className={styles.lineTitle}>{lineHeading}</p>
+                  <p>{lineNote}</p>
+                </div>
+              ) : null}
+              <div className={styles.tableWrap}>
+                <ElementTable title={tx("Neu betroffen", "Newly affected")} tokens={stateN1.newlyFailed} data={data} language={language} />
+                <ElementTable title={tx("Nicht mehr betroffen", "No longer affected")} tokens={stateN1.noLongerFailed} data={data} language={language} />
+              </div>
+            </>
           ) : null}
         </section>
 
