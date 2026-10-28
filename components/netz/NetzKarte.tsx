@@ -19,7 +19,9 @@ const VOLTAGE_FILL = {
   high: "#FF8F1F",
 } as const;
 
-const TIP_FILL = ["#4DA3FF", "#8CA3BA", "#E1E6EA", "#E6D2A8", "#7DFCE6"] as const;
+const TIP_FILL = ["#4A5560", "#7C8894", "#B4BEC7", "#E1E6EA"] as const;
+const TIP_RADIUS = [3, 4, 5, 6] as const;
+const TIE_GRAY = "rgb(102, 115, 127)";
 
 function voltageBand(pu: number): keyof typeof VOLTAGE_FILL {
   if (pu < 0.965) return "low";
@@ -29,12 +31,11 @@ function voltageBand(pu: number): keyof typeof VOLTAGE_FILL {
   return "high";
 }
 
-function tipBand(mw: number): 0 | 1 | 2 | 3 | 4 {
+function tipBand(mw: number): 0 | 1 | 2 | 3 {
   if (mw < 2) return 0;
   if (mw < 5) return 1;
   if (mw < 10) return 2;
-  if (mw < 20) return 3;
-  return 4;
+  return 3;
 }
 
 function layout(data: NetzDemoFile): Map<number, Point> {
@@ -77,12 +78,9 @@ function layout(data: NetzDemoFile): Map<number, Point> {
   return points;
 }
 
-function lineStroke(loading: number | undefined, open: boolean): { stroke: string; width: number; dash?: string } {
-  if (open) {
-    return { stroke: "#8CA3BA", width: 1.4, dash: "5 4" };
-  }
+function lineStroke(loading: number | undefined): { stroke: string; width: number; dash?: string } {
   if (loading == null) {
-    return { stroke: "rgb(102, 115, 127)", width: 1.3 };
+    return { stroke: TIE_GRAY, width: 1.3 };
   }
   if (loading > 100) {
     return { stroke: "#FFFFFF", width: 2.8, dash: "6 4" };
@@ -90,7 +88,7 @@ function lineStroke(loading: number | undefined, open: boolean): { stroke: strin
   if (loading >= 80) {
     return { stroke: "#E1E6EA", width: 2.3 };
   }
-  return { stroke: "rgb(102, 115, 127)", width: 1.3 };
+  return { stroke: TIE_GRAY, width: 1.3 };
 }
 
 function NodeMark({
@@ -100,24 +98,34 @@ function NodeMark({
   shape,
   ring,
   storage,
+  radius = 4.6,
 }: {
   x: number;
   y: number;
   fill: string;
-  shape: "circle" | "down" | "up" | "square" | "diamond";
+  shape: "circle" | "down" | "up";
   ring: boolean;
   storage: boolean;
+  radius?: number;
 }) {
   return (
     <g>
       {storage ? <circle cx={x} cy={y} r={11} fill="none" stroke="#7DFCE6" strokeWidth={2} /> : null}
       {ring ? <circle cx={x} cy={y} r={8} fill="none" stroke="#FFFFFF" strokeWidth={1.6} /> : null}
-      {shape === "circle" ? <circle cx={x} cy={y} r={4.2} fill={fill} /> : null}
-      {shape === "square" ? <rect x={x - 4} y={y - 4} width={8} height={8} fill={fill} /> : null}
-      {shape === "down" ? <polygon points={`${x},${y + 5} ${x - 5},${y - 4} ${x + 5},${y - 4}`} fill={fill} /> : null}
-      {shape === "up" ? <polygon points={`${x},${y - 5} ${x - 5},${y + 4} ${x + 5},${y + 4}`} fill={fill} /> : null}
-      {shape === "diamond" ? <polygon points={`${x},${y - 5.5} ${x + 5},${y} ${x},${y + 5.5} ${x - 5},${y}`} fill={fill} /> : null}
+      {shape === "circle" ? <circle cx={x} cy={y} r={radius} fill={fill} /> : null}
+      {shape === "down" ? <polygon points={`${x},${y + 6} ${x - 6},${y - 4} ${x + 6},${y - 4}`} fill={fill} /> : null}
+      {shape === "up" ? <polygon points={`${x},${y - 6} ${x - 6},${y + 4} ${x + 6},${y + 4}`} fill={fill} /> : null}
     </g>
+  );
+}
+
+function TieMark({ x, y }: { x: number; y: number }) {
+  return (
+    <path
+      d={`M ${x - 6} ${y - 6} L ${x + 6} ${y + 6} M ${x + 6} ${y - 6} L ${x - 6} ${y + 6}`}
+      stroke={TIE_GRAY}
+      strokeWidth={1.6}
+    />
   );
 }
 
@@ -178,7 +186,7 @@ export function NetzKarte({
     const to = points.get(node.bus);
     if (!from || !to) continue;
     const edge = edgeOf.get(`${Math.min(node.parent, node.bus)}-${Math.max(node.parent, node.bus)}`);
-    const paint = lineStroke(mode === "spannung" ? loadingById.get(edge?.id ?? -1) : undefined, false);
+    const paint = lineStroke(mode === "spannung" ? loadingById.get(edge?.id ?? -1) : undefined);
     closed.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y, ...paint, key: `c-${node.bus}` });
   }
   const open = data.lines.filter((line) => line.openEnd);
@@ -205,14 +213,8 @@ export function NetzKarte({
         const from = points.get(line.a);
         const to = points.get(line.b);
         if (!from || !to) return null;
-        const midX = (from.x + to.x) / 2;
-        const midY = (from.y + to.y) / 2;
-        return (
-          <g key={`o-${line.id}`}>
-            <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="#8CA3BA" strokeWidth={1.4} strokeDasharray="5 4" />
-            <path d={`M ${midX - 3} ${midY - 3} L ${midX + 3} ${midY + 3} M ${midX + 3} ${midY - 3} L ${midX - 3} ${midY + 3}`} stroke="#E1E6EA" strokeWidth={1.2} />
-          </g>
-        );
+        const end = to.depth > from.depth || (to.depth === from.depth && line.b > line.a) ? to : from;
+        return <TieMark key={`o-${line.id}`} x={end.x + 12} y={end.y} />;
       })}
       {data.tree.map((node) => {
         const point = points.get(node.bus);
@@ -221,8 +223,7 @@ export function NetzKarte({
         if (mode === "kipp") {
           const tip = tipByBus.get(node.bus) ?? 0;
           const band = tipBand(tip);
-          const shape = band === 0 ? "down" : band === 1 ? "square" : band === 3 ? "diamond" : "circle";
-          return <NodeMark key={node.bus} x={point.x} y={point.y} fill={TIP_FILL[band]} shape={shape} ring={band === 4} storage={storage} />;
+          return <NodeMark key={node.bus} x={point.x} y={point.y} fill={TIP_FILL[band]} shape="circle" ring={false} storage={storage} radius={TIP_RADIUS[band]} />;
         }
         const pu = voltageByBus.get(node.bus);
         if (pu == null) {
@@ -248,9 +249,8 @@ export const VOLTAGE_LEGEND = [
 ];
 
 export const TIP_LEGEND = [
-  { fill: TIP_FILL[0], shape: "down" as const, de: "unter 2 MW", en: "below 2 MW" },
-  { fill: TIP_FILL[1], shape: "square" as const, de: "2 bis unter 5 MW", en: "2 to below 5 MW" },
-  { fill: TIP_FILL[2], shape: "circle" as const, de: "5 bis unter 10 MW", en: "5 to below 10 MW" },
-  { fill: TIP_FILL[3], shape: "diamond" as const, de: "10 bis unter 20 MW", en: "10 to below 20 MW" },
-  { fill: TIP_FILL[4], shape: "circle" as const, de: "20 MW und mehr", en: "20 MW and more" },
+  { fill: TIP_FILL[0], shape: "circle" as const, radius: TIP_RADIUS[0], de: "unter 2 MW", en: "below 2 MW" },
+  { fill: TIP_FILL[1], shape: "circle" as const, radius: TIP_RADIUS[1], de: "2 bis unter 5 MW", en: "2 to below 5 MW" },
+  { fill: TIP_FILL[2], shape: "circle" as const, radius: TIP_RADIUS[2], de: "5 bis unter 10 MW", en: "5 to below 10 MW" },
+  { fill: TIP_FILL[3], shape: "circle" as const, radius: TIP_RADIUS[3], de: "10 MW und mehr", en: "10 MW and more" },
 ];

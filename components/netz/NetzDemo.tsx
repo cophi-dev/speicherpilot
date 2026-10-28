@@ -73,9 +73,10 @@ function Choice<T extends string | number>({
   name: string;
   legend: ReactNode;
   value: T;
-  options: Array<{ value: T; label: string }>;
+  options: Array<{ value: T; label: string; tip?: GlossaryId }>;
   onChange: (value: T) => void;
 }) {
+  const { language } = useLanguage();
   return (
     <fieldset className={styles.field}>
       <legend>{legend}</legend>
@@ -83,7 +84,12 @@ function Choice<T extends string | number>({
         {options.map((option) => (
           <label key={String(option.value)} className={styles.seg}>
             <input type="radio" name={name} value={String(option.value)} checked={value === option.value} onChange={() => onChange(option.value)} />
-            {option.label}
+            <span>{option.label}</span>
+            {option.tip ? (
+              <span className={styles.segTip}>
+                <GlossaryTip id={option.tip} language={language} />
+              </span>
+            ) : null}
           </label>
         ))}
       </div>
@@ -91,45 +97,44 @@ function Choice<T extends string | number>({
   );
 }
 
-function Mark({ fill, shape }: { fill: string; shape: "circle" | "down" | "up" | "square" | "diamond" }) {
+function Mark({ fill, shape, radius = 5 }: { fill: string; shape: "circle" | "down" | "up" | "cross"; radius?: number }) {
   if (shape === "down") {
     return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><polygon points="7,12 2,3 12,3" fill={fill} /></svg>;
   }
   if (shape === "up") {
     return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><polygon points="7,2 12,11 2,11" fill={fill} /></svg>;
   }
-  if (shape === "square") {
-    return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="2" width="10" height="10" fill={fill} /></svg>;
+  if (shape === "cross") {
+    return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3 L11 11 M11 3 L3 11" stroke={fill} strokeWidth="1.6" /></svg>;
   }
-  if (shape === "diamond") {
-    return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><polygon points="7,1 13,7 7,13 1,7" fill={fill} /></svg>;
-  }
-  return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5" fill={fill} /></svg>;
+  return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r={Math.min(6, radius)} fill={fill} /></svg>;
 }
 
 function Histogram({ values, mark, language }: { values: number[]; mark: number; language: AppLanguage }) {
-  const bins = Array.from({ length: 13 }, () => 0);
+  const bins = Array.from({ length: 10 }, () => 0);
   for (const value of values) {
-    const index = value >= 12 ? 12 : Math.max(0, Math.min(11, Math.floor(value)));
-    bins[index] += 1;
+    bins[Math.min(9, Math.max(0, Math.floor(value)))] += 1;
   }
   const peak = Math.max(...bins, 1);
-  const markIndex = mark >= 12 ? 12 : Math.max(0, Math.min(11, Math.floor(mark)));
-  const low = Math.min(...values);
-  const high = Math.max(...values);
+  const markIndex = Math.min(9, Math.max(0, Math.floor(mark)));
   const here = mark >= 100 ? (language === "de" ? "mindestens 100 MW" : "at least 100 MW") : `${formatTip(mark, language)} MW`;
-  const caption =
-    language === "de"
-      ? `Spanne ${formatTip(low, language)} bis ${formatTip(high, language)} MW. Dieser Knoten: ${here}.`
-      : `Range ${formatTip(low, language)} to ${formatTip(high, language)} MW. This node: ${here}.`;
+  const caption = language === "de" ? `Kipppunkt von 0 bis 10 MW. Dieser Knoten: ${here}.` : `Tipping point from 0 to 10 MW. This node: ${here}.`;
   return (
     <figure className={styles.hist}>
-      <svg role="img" aria-label={caption} viewBox="0 0 208 72">
+      <svg role="img" aria-label={caption} viewBox="0 0 160 78">
         {bins.map((count, index) => {
-          const height = (count / peak) * 60;
-          return <rect key={index} x={index * 16 + 2} y={68 - height} width={12} height={Math.max(height, 0)} rx={2} fill={index === markIndex ? "#7DFCE6" : "#8CA3BA"} />;
+          const height = (count / peak) * 56;
+          return <rect key={index} x={index * 16 + 2} y={64 - height} width={12} height={Math.max(height, 0)} rx={2} fill={index === markIndex ? "#7DFCE6" : "#8CA3BA"} />;
         })}
+        <text x={markIndex * 16 + 8} y={10} textAnchor="middle" fill="#7DFCE6" fontSize="11" fontFamily="ui-monospace, monospace">
+          {mark >= 100 ? "100" : formatTip(mark, language)}
+        </text>
       </svg>
+      <div className={styles.axis} aria-hidden="true">
+        <span>0</span>
+        <span>5</span>
+        <span>10 MW</span>
+      </div>
       <figcaption>{caption}</figcaption>
     </figure>
   );
@@ -146,7 +151,6 @@ function elementRows(tokens: string[], data: NetzDemoFile, language: AppLanguage
     .map(parseElement)
     .filter((item): item is { kind: "line" | "trafo"; id: number } => item != null)
     .sort((a, b) => a.id - b.id || a.kind.localeCompare(b.kind))
-    .slice(0, 5)
     .map((item) => {
       if (item.kind === "trafo") {
         const trafo = data.trafos.find((entry) => entry.id === item.id);
@@ -167,10 +171,10 @@ function elementRows(tokens: string[], data: NetzDemoFile, language: AppLanguage
     });
 }
 
-function Kpi({ label, value, delta }: { label: ReactNode; value: string; delta: string }) {
+function Kpi({ label, value, delta, nowrap = false }: { label: ReactNode; value: string; delta: string; nowrap?: boolean }) {
   return (
     <div className={styles.kpi}>
-      <span>{label}</span>
+      <span className={nowrap ? styles.kpiLabelNowrap : styles.kpiLabel}>{label}</span>
       <b>{value}</b>
       <small>{delta}</small>
     </div>
@@ -298,18 +302,18 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
         </header>
 
         <div className={styles.work}>
+          <div className={styles.side}>
           <form className={styles.inputs} onSubmit={(event) => event.preventDefault()}>
             <Choice
               name="netz-fall"
               legend={tx("Lastfall", "Load case")}
               value={selection.fall}
-              options={(["hL", "lPV"] as NetzFall[]).map((fall) => ({ value: fall, label: pair(language, CASE_LABEL[fall]) }))}
+              options={[
+                { value: "hL" as NetzFall, label: pair(language, CASE_LABEL.hL), tip: "starklast" },
+                { value: "lPV" as NetzFall, label: pair(language, CASE_LABEL.lPV), tip: "schwachlast-pv" },
+              ]}
               onChange={(fall) => update({ ...selection, fall })}
             />
-            <p className={styles.terms}>
-              <WithTip id="starklast" language={language}>{pair(language, CASE_LABEL.hL)}</WithTip>
-              <WithTip id="schwachlast-pv" language={language}>{pair(language, CASE_LABEL.lPV)}</WithTip>
-            </p>
             <Choice
               name="netz-richtung"
               legend={tx("Richtung", "Direction")}
@@ -346,8 +350,16 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
             />
             <p className={styles.note}>{tx("Gerechnet sind 2, 5, 10 und 20 MW. Dazwischen wird nicht interpoliert.", "Calculated powers are 2, 5, 10 and 20 MW. Values in between are not interpolated.")}</p>
           </form>
-
-          <section className={styles.result} aria-labelledby="netz-ergebnis">
+          <div className={styles.plain} role="status" aria-live="polite" aria-atomic="true">
+            {status.map((sentence) => (
+              <p key={sentence}>{sentence}</p>
+            ))}
+            {sentences.map((sentence) => (
+              <p key={sentence}>{sentence}</p>
+            ))}
+          </div>
+          </div>
+          <div className={styles.mapBlock}>
             <h2 id="netz-ergebnis">{tx("Ergebnis", "Result")}</h2>
             <div className={styles.toolbar}>
               <Choice
@@ -371,12 +383,18 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
                 onChange={setMapMode}
               />
             </div>
+            {!derived.converged ? (
+              <h3 className={styles.alarm}><span aria-hidden="true">×</span> {tx("Kein Betriebspunkt", "No operating point")}</h3>
+            ) : !derived.ok ? (
+              <h3 className={styles.alarm}><span aria-hidden="true">▲</span> {tx("Grenze verletzt", "Limit violated")}</h3>
+            ) : null}
             <p className={styles.caption}>
               {storageOn
                 ? tx(`Speicher an ${nodeName}, ${selection.pMw} MW ${pair(language, DIRECTION_LABEL[selection.richtung])}.`, `Storage at ${nodeName}, ${selection.pMw} MW ${pair(language, DIRECTION_LABEL[selection.richtung])}.`)
                 : tx(`Ohne Speicher. Gewählter Knoten: ${nodeName}.`, `Without storage. Selected node: ${nodeName}.`)}
             </p>
             {picture === "karte" ? (
+              <>
               <div className={styles.mapRow}>
                 <div className={styles.strandCol} aria-hidden="true">
                   {STRAND_LABELS.map((strand, index) => (
@@ -385,18 +403,25 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
                     </span>
                   ))}
                 </div>
-                <div className={styles.mapFrame}>
-                  <NetzKarte
-                    data={data}
-                    state={state}
-                    mode={mapMode}
-                    tipping={tips}
-                    storageBus={storageOn ? node.bus : null}
-                    title={mapTitle}
-                    description={mapDescription}
-                  />
+                <div className={styles.mapScroll} role="region" tabIndex={0} aria-label={tx("Strangbild, seitlich wischen", "Feeder diagram, swipe sideways")}>
+                  <div className={styles.mapFrame}>
+                    <NetzKarte
+                      data={data}
+                      state={state}
+                      mode={mapMode}
+                      tipping={tips}
+                      storageBus={storageOn ? node.bus : null}
+                      title={mapTitle}
+                      description={mapDescription}
+                    />
+                  </div>
                 </div>
               </div>
+              <p className={styles.swipeHint}>{tx("← wischen →", "← swipe →")}</p>
+              <button type="button" className={styles.tableLink} onClick={() => setPicture("tabelle")}>
+                {tx("Als Tabelle ansehen", "View as a table")}
+              </button>
+              </>
             ) : (
               <div className={styles.tableWrap}>
                 <table>
@@ -461,7 +486,7 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
             <ul className={styles.legend}>
               {(mapMode === "kipp" ? TIP_LEGEND : VOLTAGE_LEGEND).map((item) => (
                 <li key={item.de}>
-                  <Mark fill={item.fill} shape={item.shape} />
+                  <Mark fill={item.fill} shape={item.shape} radius={"radius" in item ? item.radius : 5} />
                   {pair(language, item)}
                 </li>
               ))}
@@ -469,52 +494,15 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
                 <>
                   <li><Mark fill="rgb(102, 115, 127)" shape="circle" />{tx("Leitung unter 80 %", "Line below 80 %")}</li>
                   <li><Mark fill="#E1E6EA" shape="circle" />{tx("Leitung 80 bis 100 %", "Line 80 to 100 %")}</li>
-                  <li><Mark fill="#FFFFFF" shape="diamond" />{tx("Leitung über 100 %, gestrichelt", "Line above 100 %, dashed")}</li>
-                  <li><Mark fill="#8CA3BA" shape="diamond" />{tx("offene Trennstelle, Kreuz", "open tie switch, cross")}</li>
+                  <li><Mark fill="#FFFFFF" shape="circle" />{tx("Leitung über 100 %, gestrichelt", "Line above 100 %, dashed")}</li>
+                  <li><Mark fill="rgb(102, 115, 127)" shape="cross" />{tx("offene Trennstelle", "open tie switch")}</li>
                 </>
-              ) : null}
+              ) : (
+                <li><Mark fill="rgb(102, 115, 127)" shape="cross" />{tx("offene Trennstelle", "open tie switch")}</li>
+              )}
             </ul>
-            {derived.converged && mapMode === "spannung" ? (
-              <div className={styles.tableWrap}>
-                <table>
-                  <caption>
-                    {tx("Textalternative: fünf höchste Leitungen und die Spannungsränder", "Text alternative: five highest lines and the voltage edges")}
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">{tx("Leitung", "Line")}</th>
-                      <th scope="col">{tx("Art", "Kind")}</th>
-                      <th scope="col">{tx("Länge", "Length")}</th>
-                      <th scope="col">{tx("Auslastung", "Loading")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topLines.map((item) => (
-                      <tr key={item.line.id}>
-                        <th scope="row">{item.line.id}</th>
-                        <td>{lineKind(item.line.kind, language)}</td>
-                        <td>{formatQuantity(item.line.km, language, 2)} km</td>
-                        <td>{formatPct(item.loading, language)} %</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <p className={styles.note}>
-                  {tx(
-                    `Niedrigste Spannung an Knoten ${data.mvBusIds[minIndex]}: ${formatPu(state.u?.[minIndex] ?? 0, language)} p.u. Höchste Spannung an Knoten ${data.mvBusIds[maxIndex]}: ${formatPu(state.u?.[maxIndex] ?? 0, language)} p.u.`,
-                    `Lowest voltage at node ${data.mvBusIds[minIndex]}: ${formatPu(state.u?.[minIndex] ?? 0, language)} p.u. Highest voltage at node ${data.mvBusIds[maxIndex]}: ${formatPu(state.u?.[maxIndex] ?? 0, language)} p.u.`
-                  )}
-                </p>
-              </div>
-            ) : null}
-            <p className={styles.odbl}>
-              {odblNotice(language)} {odblAttribution(language)}{" "}
-              <a href="https://simbench.de">simbench.de</a>
-              {" · "}
-              <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a>
-              {" · "}
-              <a href="/methodik#netz">{tx("Methodik", "Method")}</a>
-            </p>
+          </div>
+          <div className={styles.metrics}>
             <div className={styles.kpis}>
               <Kpi
                 label={tx(`Spannung min, p.u. und kV (Bezug ${NOMINAL_KV} kV)`, `Voltage min, p.u. and kV (base ${NOMINAL_KV} kV)`)}
@@ -534,6 +522,7 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
                 }
                 value={numberOrDash(state.lineMax, 1, "%")}
                 delta={deltaOrDash(state.lineMax, base.lineMax, 1)}
+                nowrap
               />
               <Kpi label={tx("Höchster Transformator", "Highest transformer")} value={numberOrDash(state.trafoMax, 1, "%")} delta={deltaOrDash(state.trafoMax, base.trafoMax, 1)} />
               <Kpi
@@ -549,15 +538,40 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
                 `Two transformers, ${formatQuantity(data.trafos[0]?.snMva ?? 40, language, 0)} MVA each. The figure is the higher loading of the two.`
               )}
             </p>
-            <div className={styles.plain} role="status" aria-live="polite" aria-atomic="true">
-              {status.map((sentence) => (
-                <p key={sentence}>{sentence}</p>
-              ))}
-              {sentences.map((sentence) => (
-                <p key={sentence}>{sentence}</p>
-              ))}
-            </div>
-          </section>
+            {derived.converged && mapMode === "spannung" ? (
+              <div className={styles.tableWrap}>
+                <table>
+                  <caption>
+                    {tx("Textalternative: fünf höchste Leitungen und die Spannungsränder", "Text alternative: five highest lines and the voltage edges")}
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">{tx("Leitung", "Line")}</th>
+                      <th scope="col">{tx("Art", "Kind")}</th>
+                      <th scope="col" className={styles.numCell}>{tx("Länge", "Length")}</th>
+                      <th scope="col" className={styles.numCell}>{tx("Auslastung", "Loading")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topLines.map((item) => (
+                      <tr key={item.line.id}>
+                        <th scope="row">{item.line.id}</th>
+                        <td>{lineKind(item.line.kind, language)}</td>
+                        <td className={styles.numCell}>{formatQuantity(item.line.km, language, 2)} km</td>
+                        <td className={styles.numCell}>{formatPct(item.loading, language)} %</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className={styles.note}>
+                  {tx(
+                    `Niedrigste Spannung an Knoten ${data.mvBusIds[minIndex]}: ${formatPu(state.u?.[minIndex] ?? 0, language)} p.u. Höchste Spannung an Knoten ${data.mvBusIds[maxIndex]}: ${formatPu(state.u?.[maxIndex] ?? 0, language)} p.u.`,
+                    `Lowest voltage at node ${data.mvBusIds[minIndex]}: ${formatPu(state.u?.[minIndex] ?? 0, language)} p.u. Highest voltage at node ${data.mvBusIds[maxIndex]}: ${formatPu(state.u?.[maxIndex] ?? 0, language)} p.u.`
+                  )}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <section className={styles.block} aria-labelledby="netz-n1">
@@ -667,35 +681,55 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
 
 function ElementTable({ title, tokens, data, language }: { title: string; tokens: string[]; data: NetzDemoFile; language: AppLanguage }) {
   const rows = elementRows(tokens, data, language);
-  const shown = Math.min(5, tokens.length);
+  const preview = rows.slice(0, 5);
   return (
-    <table>
-      <caption>
-        {title}
-        {tokens.length > 5 ? ` · ${shown} / ${tokens.length}` : ""}
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col">{language === "de" ? "Betriebsmittel" : "Element"}</th>
-          <th scope="col">{language === "de" ? "Art" : "Kind"}</th>
-          <th scope="col">{language === "de" ? "Länge" : "Length"}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.length === 0 ? (
-          <tr>
-            <td colSpan={3}>{language === "de" ? "Keine." : "None."}</td>
-          </tr>
-        ) : (
-          rows.map((row) => (
-            <tr key={row.key}>
-              <th scope="row">{row.name}</th>
-              <td>{row.detail}</td>
-              <td>{row.length}</td>
+    <div className={styles.tableWrap}>
+      <table>
+        <caption>{title}</caption>
+        <ElementHead language={language} />
+        <tbody>
+          {preview.length === 0 ? (
+            <tr>
+              <td colSpan={3}>{language === "de" ? "Keine." : "None."}</td>
             </tr>
-          ))
-        )}
-      </tbody>
-    </table>
+          ) : (
+            preview.map((row) => <ElementRow key={row.key} row={row} />)
+          )}
+        </tbody>
+      </table>
+      {rows.length > 5 ? (
+        <details>
+          <summary>{language === "de" ? `Alle ${rows.length} anzeigen` : `Show all ${rows.length}`}</summary>
+          <table>
+            <ElementHead language={language} />
+            <tbody>
+              {rows.map((row) => <ElementRow key={`all-${row.key}`} row={row} />)}
+            </tbody>
+          </table>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+function ElementHead({ language }: { language: AppLanguage }) {
+  return (
+    <thead>
+      <tr>
+        <th scope="col">{language === "de" ? "Betriebsmittel" : "Element"}</th>
+        <th scope="col" className={styles.colWide}>{language === "de" ? "Art" : "Kind"}</th>
+        <th scope="col" className={styles.colWide}>{language === "de" ? "Länge" : "Length"}</th>
+      </tr>
+    </thead>
+  );
+}
+
+function ElementRow({ row }: { row: { key: string; name: string; detail: string; length: string } }) {
+  return (
+    <tr>
+      <th scope="row">{row.name}</th>
+      <td className={styles.colWide}>{row.detail}</td>
+      <td className={styles.colWide}>{row.length}</td>
+    </tr>
   );
 }

@@ -227,14 +227,14 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
         <header className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}>
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
             <BrandLockup />
-            <nav className="hidden items-center gap-7 text-sm font-medium md:flex" aria-label={tx("Hauptnavigation", "Primary")}>
+            <nav className="hidden min-h-6 items-center gap-7 text-sm font-medium md:flex" aria-label={tx("Hauptnavigation", "Primary")}>
               {NAV.map((item) => {
                 const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={active ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}
+                    className={`inline-flex min-h-6 items-center ${active ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     aria-current={active ? "page" : undefined}
                   >
                     {language === "de" ? item.de : item.en}
@@ -357,10 +357,10 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
                 </p>
               </details>
             </div>
-            <p className="flex flex-col items-start gap-3">
-              <Link href="/blog">{tx("Blog", "Blog")}</Link>
-              <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
-              <Link href="/netz">{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</Link>
+            <p className="flex flex-col items-start gap-1">
+              <Link className="inline-flex min-h-8 items-center" href="/blog">{tx("Blog", "Blog")}</Link>
+              <Link className="inline-flex min-h-8 items-center" href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
+              <Link className="inline-flex min-h-8 items-center" href="/netz">{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</Link>
             </p>
             <p>
               {tx(

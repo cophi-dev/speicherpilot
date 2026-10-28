@@ -206,8 +206,8 @@ export function outageMemory(language: AppLanguage, baseFailed: number): string 
 
 export function outageModel(language: AppLanguage): string {
   return language === "de"
-    ? "Gerechnet wird der Ausfall je einer Leitung oder eines Transformators; bei einer Insel wird die beste einzelne offene Trennstelle geschlossen."
-    : "The calculation removes one line or one transformer at a time; if an island forms, the best single open tie switch is closed.";
+    ? "Gerechnet wird der Ausfall je einer Leitung oder eines Transformators. Ist das Ergebnis verletzt, sucht der Code die beste einzelne Zusatzschaltung: eine offene Trennstelle schließen. Liegt es danach noch außerhalb, kann er zusätzlich eine Leitung in der entstandenen Schleife öffnen."
+    : "The calculation removes one line or one transformer at a time. If the result violates the limits, the code looks for the best single extra switching step: closing one open tie switch. If it is still outside, it can also open one line in the loop that then appears.";
 }
 
 export function limitsItems(language: AppLanguage): string[] {
@@ -217,9 +217,9 @@ export function limitsItems(language: AppLanguage): string[] {
       "Es gibt zwei Lastfälle: Starklast und Schwachlast mit Sonne und Wind. Der Stufensteller des Transformators ist je Fall fest eingestellt, es gibt keine Spannungsregelung.",
       "Der Speicher wird nur mit Wirkleistung gerechnet, bei einem Leistungsfaktor von 1, ohne Wirkungsgrad, ohne Ladezustand und ohne Blindleistungsregelung.",
       "Kurzschlussströme werden hier nicht gerechnet; dafür fehlen im Testnetz die Daten des vorgelagerten Netzes. Spannungsqualität (Flicker, Oberschwingungen) und Zeitverläufe werden nicht gerechnet.",
-      "(n-1) ist ein vereinfachtes Lehrmodell: ein Einzelausfall und eine Umschaltung.",
+      "(n-1) ist ein vereinfachtes Lehrmodell: ein Einzelausfall. Danach kann der Code eine offene Trennstelle schließen. Ist das Ergebnis noch verletzt, kann er zusätzlich eine Leitung in der entstandenen Schleife öffnen. Es bleibt die beste dieser Einzelschaltungen.",
       "Das Ergebnis ist kein Netzanschlussbescheid und keine Zusage.",
-      "Die Zahlen wurden vorab mit pandapower berechnet und mit einem zweiten, unabhängigen Rechner gegengeprüft.",
+      "Normalbetrieb und Kipppunkte wurden vorab mit pandapower berechnet und mit einem zweiten, unabhängigen Rechner gegengeprüft. (n-1) ist stichprobenartig geprüft.",
     ];
   }
   return [
@@ -227,9 +227,9 @@ export function limitsItems(language: AppLanguage): string[] {
     "There are two load cases: peak load, and low load with sun and wind. The transformer tap is fixed for each case. There is no voltage control.",
     "Storage is calculated with active power only, at a power factor of 1, without efficiency, without state of charge and without reactive-power control.",
     "Short-circuit currents are not calculated here; the test grid lacks the data of the upstream grid. Voltage quality (flicker, harmonics) and time series are not calculated.",
-    "(n-1) is a simplified teaching model: one single outage and one switching action.",
+    "(n-1) is a simplified teaching model: one single outage. The code can then close one open tie switch. If the result is still violated, it can also open one line in the loop that appears. The best of these single switching steps is kept.",
     "The result is not a grid-connection decision and not a commitment.",
-    "The figures were calculated in advance with pandapower and checked with a second, independent solver.",
+    "Normal operation and tipping points were calculated in advance with pandapower and checked with a second, independent solver. (n-1) was checked on a sample.",
   ];
 }
 
