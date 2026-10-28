@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { GlossaryTip } from "@/components/GlossaryTip";
@@ -211,6 +211,20 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
   const tip = tippingMw(data, selection.fall, selection.richtung, node.bus);
   const tips = data.tipping[`${selection.fall}|${selection.richtung}`] ?? [];
   const storageOn = selection.pMw > 0;
+  const mapScrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const scroll = mapScrollRef.current;
+    if (!scroll || !storageOn || picture !== "karte") return;
+    if (typeof window.matchMedia !== "function" || !window.matchMedia("(max-width: 860px)").matches) return;
+    const svg = scroll.querySelector("svg");
+    const ring = scroll.querySelector('circle[stroke="#7DFCE6"]');
+    if (!svg || !ring) return;
+    const cx = Number(ring.getAttribute("cx"));
+    const viewWidth = Number(svg.viewBox.baseVal.width) || MAP_VIEW.width;
+    const scale = svg.getBoundingClientRect().width / viewWidth;
+    if (!Number.isFinite(cx) || !Number.isFinite(scale)) return;
+    scroll.scrollLeft = cx * scale - 60;
+  }, [storageOn, picture, selection.knoten, selection.pMw, node.bus]);
   const baseN1 = checkedOutages(base);
   const stateN1 = checkedOutages(state);
   const sentences = plainText({
@@ -403,7 +417,7 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
                     </span>
                   ))}
                 </div>
-                <div className={styles.mapScroll} role="region" tabIndex={0} aria-label={tx("Strangbild, seitlich wischen", "Feeder diagram, swipe sideways")}>
+                <div ref={mapScrollRef} className={styles.mapScroll} role="region" tabIndex={0} aria-label={tx("Strangbild, seitlich wischen", "Feeder diagram, swipe sideways")}>
                   <div className={styles.mapFrame}>
                     <NetzKarte
                       data={data}

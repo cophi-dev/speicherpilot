@@ -60,7 +60,7 @@ export function BlogArticle({ post }: { post: BlogPost }) {
   post.blocks.forEach((block, index) => {
     if (block.type === "figure") {
       flush();
-      sheet.push(<BlogFigure key={`figure-${block.figure}`} figure={BLOG_FIGURES[block.figure]} />);
+      sheet.push(<BlogFigure key={`figure-${block.figure}`} figure={BLOG_FIGURES[block.figure]} swipe />);
       return;
     }
     if (block.type === "h2") {

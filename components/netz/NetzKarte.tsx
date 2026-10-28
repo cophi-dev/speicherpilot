@@ -2,10 +2,12 @@ import type { NetzDemoFile, NetzState } from "@/lib/netzDemo";
 
 import styles from "./netz-demo.module.css";
 
-const VIEW_W = 760;
+const VIEW_W = 800;
 const VIEW_H = 448;
 const PAD_L = 28;
-const PAD_R = 18;
+/* Node D ends strand S1 at the last column. The storage ring (r 11) needs
+   room inside the viewBox so the circle is not cut off at the card edge. */
+const PAD_R = 58;
 const PAD_T = 28;
 const ROW = 44;
 

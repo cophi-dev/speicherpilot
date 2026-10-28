@@ -36,21 +36,27 @@ export function ConnectionStory() {
   const story = useMemo(() => supermarketTeachingDay(), []);
   const [step, setStep] = useState(0);
   const [narrow, setNarrow] = useState(false);
+  const [phone, setPhone] = useState(false);
   const [pinPx, setPinPx] = useState(0);
+  const [layoutEpoch, setLayoutEpoch] = useState(0);
   const stepsRef = useRef<Array<HTMLLIElement | null>>([]);
   const stageRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const titleId = useId();
 
   useEffect(() => {
     const node = stageRef.current;
     if (!node) return;
     const query = window.matchMedia("(max-width: 1023px)");
+    const phoneQuery = window.matchMedia("(max-width: 767px)");
     const read = () => {
       const mobile = query.matches;
+      const isPhone = phoneQuery.matches;
       const measured = Math.round(node.getBoundingClientRect().height);
       setNarrow(mobile);
-      // On a phone the stage is capped in CSS. A rising min-height would ignore that cap
-      // and leave only a sliver for the step text underneath.
+      setPhone(isPhone);
+      // On a narrow screen the stage height is whatever CSS allows. Do not grow a
+      // min-height past that, or the steps lose their reading band.
       if (mobile) {
         setPinPx(measured);
         return;
@@ -61,13 +67,47 @@ export function ConnectionStory() {
     const observer = new ResizeObserver(read);
     observer.observe(node);
     query.addEventListener("change", read);
+    phoneQuery.addEventListener("change", read);
     window.addEventListener("resize", read);
     return () => {
       observer.disconnect();
       query.removeEventListener("change", read);
+      phoneQuery.removeEventListener("change", read);
       window.removeEventListener("resize", read);
     };
   }, []);
+
+  useEffect(() => {
+    const bump = () => setLayoutEpoch((value) => value + 1);
+    window.addEventListener("resize", bump);
+    const viewport = window.visualViewport;
+    viewport?.addEventListener("resize", bump);
+    return () => {
+      window.removeEventListener("resize", bump);
+      viewport?.removeEventListener("resize", bump);
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = sectionRef.current;
+    if (!root) {
+      return;
+    }
+    const measure = () => {
+      const cards = root.querySelectorAll<HTMLElement>(".story-step-card");
+      let max = 0;
+      cards.forEach((card) => {
+        max = Math.max(max, Math.ceil(card.getBoundingClientRect().height));
+      });
+      if (max > 0) {
+        root.style.setProperty("--story-card", `${max}px`);
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    root.querySelectorAll(".story-step-card").forEach((card) => observer.observe(card));
+    return () => observer.disconnect();
+  }, [language, phone]);
 
   useEffect(() => {
     const ratios = new Map<number, number>();
@@ -92,10 +132,9 @@ export function ConnectionStory() {
       },
       // The step changes when its text crosses the middle of the viewport.
       {
-        // On a phone the stage covers the middle of the window. Read the step in the band under it.
-        rootMargin: narrow
-          ? `-${Math.round((pinPx || 320) + 12)}px 0px -${Math.max(80, Math.round(window.innerHeight - (pinPx || 320) - 200))}px 0px`
-          : "-45% 0px -45% 0px",
+        // Percentages do not depend on window.innerHeight, which changes when the
+        // iPhone address bar shows or hides. layoutEpoch rebuilds the observer then.
+        rootMargin: phone ? "-30% 0px -50% 0px" : !narrow ? "-45% 0px -45% 0px" : `-${Math.round((pinPx || 320) + 12)}px 0px -30% 0px`,
         threshold: [0, 0.25, 0.5, 0.75, 1],
       }
     );
@@ -103,7 +142,7 @@ export function ConnectionStory() {
       observer.observe(node);
     }
     return () => observer.disconnect();
-  }, [narrow, pinPx]);
+  }, [narrow, phone, pinPx, layoutEpoch]);
 
   const shownPeak = step === 0 ? story.peakBeforeKw : story.peakAfterKw;
   const light = connectionLight(shownPeak, story.limitKw);
@@ -111,7 +150,7 @@ export function ConnectionStory() {
   const steps = storySteps(story, deltaKw, language);
 
   return (
-    <section id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-12 md:py-16">
+    <section ref={sectionRef} id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-12 md:py-16">
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">
         <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Supermarkt", "Example · supermarket")}</p>
 
@@ -177,7 +216,10 @@ export function ConnectionStory() {
                   className={`story-step min-h-[45svh] text-foreground lg:min-h-[65vh]${active ? " is-active" : ""}`}
                 >
                   <div className="story-step-card">
-                    <p className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</p>
+                    <p className="story-step-kicker">
+                      <span className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</span>
+                      <StepPill index={index} total={steps.length} story={story} language={language} />
+                    </p>
                     <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
                     <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
                     {item.figure ? (
@@ -187,6 +229,9 @@ export function ConnectionStory() {
                       </p>
                     ) : null}
                     {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}
+                    <div className="story-card-chart">
+                      <StoryChart story={story} step={index} language={language} stacked live={false} />
+                    </div>
                     {last ? (
                       <div className="mt-8 flex flex-wrap items-center gap-3">
                         <Link
@@ -221,6 +266,29 @@ export function ConnectionStory() {
         </p>
       </div>
     </section>
+  );
+}
+
+function StepPill({
+  index,
+  total,
+  story,
+  language,
+}: {
+  index: number;
+  total: number;
+  story: PeakShavingExplain;
+  language: "de" | "en";
+}) {
+  const peak = index === 0 ? story.peakBeforeKw : story.peakAfterKw;
+  const light = connectionLight(peak, story.limitKw);
+  const verdict = language === "de" ? light.label.de : light.label.en;
+  const stepNo = String(index + 1).padStart(2, "0");
+  const totalNo = String(total).padStart(2, "0");
+  return (
+    <span className="story-pill" data-status={light.status}>
+      {stepNo} / {totalNo} · {verdict}
+    </span>
   );
 }
 
@@ -299,11 +367,13 @@ function StoryChart({
   step,
   language,
   stacked,
+  live = true,
 }: {
   story: PeakShavingExplain;
   step: number;
   language: "de" | "en";
   stacked: boolean;
+  live?: boolean;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -324,14 +394,15 @@ function StoryChart({
 
   const axis = axisFor(story.peakBeforeKw);
   const showSoc = step >= 1;
-  const pad = { l: 56, r: stacked ? 12 : 84, t: stacked ? 20 : 16 };
   const width = Math.max(0, box.width);
   const height = Math.max(0, box.height);
-  const axisLabelH = 22;
-  const socH = showSoc ? 64 : 0;
-  const socGap = showSoc ? 22 : 0;
+  const tight = stacked && height > 0 && height < 200;
+  const pad = { l: 56, r: stacked ? 12 : 84, t: tight ? 16 : stacked ? 14 : 16 };
+  const axisLabelH = stacked ? 24 : 22;
+  const socH = showSoc ? (tight ? 34 : 64) : 0;
+  const socGap = showSoc ? (tight ? 6 : 22) : 0;
   const plotBottom = height - axisLabelH - socH - socGap;
-  const plotH = Math.max(40, plotBottom - pad.t);
+  const plotH = Math.max(24, plotBottom - pad.t);
   const plotW = Math.max(40, width - pad.l - pad.r);
   const from = story.zoomFromHour;
   const to = story.zoomToHour;
@@ -367,9 +438,11 @@ function StoryChart({
 
   return (
     <div ref={frameRef} className="min-h-0 flex-1">
-      <p className="sr-only" aria-live="polite">
-        {summary}
-      </p>
+      {live ? (
+        <p className="sr-only" aria-live="polite">
+          {summary}
+        </p>
+      ) : null}
       {width > 0 && height > 0 ? (
         <svg role="img" aria-labelledby={titleId} width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="h-full w-full">
           <title id={titleId}>{summary}</title>
@@ -383,20 +456,23 @@ function StoryChart({
                 className={tick === 0 ? "stroke-border-strong" : "stroke-gridline"}
                 strokeWidth={1}
               />
-              <text x={pad.l - 8} y={y(tick) + 4} textAnchor="end" className="num fill-muted-foreground" fontSize={12}>
-                {tick === axis.ticks[axis.ticks.length - 1] ? `${formatQuantity(tick, language, 0)} kW` : formatQuantity(tick, language, 0)}
-              </text>
+              {stacked && showSoc && tick === 0 ? null : (
+                <text x={pad.l - 8} y={Math.max(12, y(tick) + 4)} textAnchor="end" className="num fill-muted-foreground" fontSize={12}>
+                  {tick === axis.ticks[axis.ticks.length - 1] ? `${formatQuantity(tick, language, 0)} kW` : formatQuantity(tick, language, 0)}
+                </text>
+              )}
             </g>
           ))}
           {[12, 14, 16, 18, 20, 22].filter((hour) => hour >= from && hour <= to).map((hour) => {
             const labelHour = hour === 12 || hour === 16 || hour === 20;
             if (stacked) {
               const tickX = x(hour);
+              const axisY = height - axisLabelH;
               return (
                 <g key={hour}>
-                  <line x1={tickX} x2={tickX} y1={height - axisLabelH} y2={height - axisLabelH + 5} className="stroke-muted-foreground" strokeWidth={1} />
+                  <line x1={tickX} x2={tickX} y1={axisY} y2={axisY + 4} className="stroke-muted-foreground" strokeWidth={1} />
                   {labelHour ? (
-                    <text x={tickX} y={height - 4} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+                    <text x={tickX} y={axisY + 16} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
                       {clockLabel(hour)}
                     </text>
                   ) : null}
@@ -451,17 +527,17 @@ function StoryChart({
             className="story-layer"
             style={{ stroke: step >= 1 ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))" }}
           />
-          {afternoon ? (
+          {afternoon && !tight ? (
             <text x={x(afternoon.hour)} y={y(afternoon.loadKw) - 12} className="fill-foreground" fontSize={13}>
               {tx("Last", "Load")}
             </text>
           ) : null}
           {peak ? (
-            <text x={x(peak.hour) + 8} y={y(peak.loadKw) - 10} className="num fill-foreground" fontSize={13}>
+            <text x={x(peak.hour) + 8} y={Math.max(pad.t + 12, y(peak.loadKw) - (tight ? 4 : 10))} className="num fill-foreground" fontSize={tight ? 12 : 13}>
               {formatQuantity(peak.loadKw, language, 0)} kW
             </text>
           ) : null}
-          {step >= 1 && peak ? (
+          {step >= 1 && peak && !tight ? (
             <text
               x={x(peak.hour)}
               y={stacked ? y(Math.max(peak.netKw, story.limitKw)) - 9 : y(peak.netKw) + 8 + 13}
@@ -475,7 +551,7 @@ function StoryChart({
           ) : null}
           {showSoc ? (
             <g className="story-layer">
-              <text x={pad.l} y={socTop - 8} className="num fill-primary" fontSize={12}>
+              <text x={pad.l} y={stacked ? socTop : socTop - 8} className="num fill-primary" fontSize={12}>
                 {tx("LADESTAND", "CHARGE")}
               </text>
               <line x1={pad.l} x2={pad.l + plotW} y1={socY(0)} y2={socY(0)} className="stroke-gridline" />

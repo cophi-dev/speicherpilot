@@ -71,6 +71,7 @@ describe("ConnectionStory", () => {
 
     const items = screen.getAllByRole("listitem");
     expect(items).toHaveLength(3);
+    expect(document.querySelectorAll(".story-card-chart")).toHaveLength(3);
     expect(screen.getByText("Die Spitze passt nicht durch")).toBeInTheDocument();
     expect(screen.getByText(/lädt er mit höchstens/)).toBeInTheDocument();
     expect(screen.getByText("03")).toBeInTheDocument();

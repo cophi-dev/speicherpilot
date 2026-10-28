@@ -117,6 +117,7 @@
 .side {
   grid-column: 1;
   grid-row: 1 / span 2;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -124,6 +125,7 @@
 }
 
 .inputs {
+  align-self: start;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -289,7 +291,7 @@
 .mapFrame {
   position: relative;
   width: 100%;
-  aspect-ratio: 760 / 448;
+  aspect-ratio: 800 / 448;
   background-color: #0c1218;
   background-image:
     linear-gradient(rgba(225, 230, 234, 0.07) 1px, transparent 1px),
@@ -396,8 +398,8 @@
 .plain {
   align-self: start;
   position: sticky;
-  top: 88px;
-  max-height: 60vh;
+  top: 125px;
+  max-height: calc(100svh - 141px);
   margin: 0;
   padding: 14px 16px;
   overflow: auto;
@@ -546,7 +548,7 @@
 
   .mapFrame {
     width: 720px;
-    aspect-ratio: 760 / 448;
+    aspect-ratio: 800 / 448;
   }
 
   .mapSvg {
