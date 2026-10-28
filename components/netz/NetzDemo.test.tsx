@@ -41,6 +41,7 @@ describe("NetzDemo", () => {
 
   it("explains a missing operating point and a skipped outage check", () => {
     const stopped = renderDemo({ fall: "hL", richtung: "laden", knoten: "D", pMw: 20 });
+    expect(document.querySelector('svg[viewBox="0 0 800 448"]')).not.toBeNull();
     expect(screen.getByRole("status").textContent).toMatch(/Der Lastfluss konvergiert nicht/);
     expect(screen.getByRole("status").textContent).toMatch(/kein Zahlenwert/);
     stopped.unmount();

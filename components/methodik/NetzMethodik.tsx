@@ -37,7 +37,7 @@ export function NetzMethodik({ language }: { language: AppLanguage }) {
 
   return (
     <section id="netz">
-      <h2>{tx("11 Netzwirkung im Testnetz", "11 Grid effect in a test grid")}</h2>
+      <h2>{tx("14 Netzwirkung im Testnetz", "14 Grid effect in a test grid")}</h2>
       <p>
         {tx(
           "Die Seite /netz schlägt einen vorab gerechneten Lastfluss nach. Sie rechnet nichts im Browser. Ein Speicher sitzt an einem von vier Knoten, mit 2, 5, 10 oder 20 MW, laden oder entladen.",

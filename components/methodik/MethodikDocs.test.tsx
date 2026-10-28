@@ -49,5 +49,25 @@ describe("methodik v2", () => {
       expect(band?.getAttribute("d") ?? "").toMatch(/^M /);
     }
     expect(document.body.textContent).not.toMatch(/1,5 MVA|1\.5 MVA|Fair Grid/);
+    expect(document.body.textContent).not.toMatch(/Netzanschlussprüfung|Tesla/);
+    expect(screen.getByRole("heading", { name: "01 Annahmen auf einen Blick" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "02 Quellen und Lizenzen" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "03 Grenzen des Modells" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Annahme" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Lizenz" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Namensnennung" })).toBeInTheDocument();
+    expect(document.body.textContent).toContain("Bundesnetzagentur | SMARD.de");
+    expect(document.body.textContent).toContain("Datenlizenz Deutschland – Namensnennung – Version 2.0");
+    expect(document.body.textContent).toContain("ODbL 1.0");
+    expect(document.body.textContent).toContain("energy-charts.info");
+    expect(document.body.textContent).toContain("BSD-3-Clause");
+    expect(document.body.textContent).toContain("Szenarien rechnen");
+    const annahmen = document.getElementById("annahmen");
+    const was = document.getElementById("was");
+    expect(annahmen).not.toBeNull();
+    expect(was).not.toBeNull();
+    expect(annahmen && was && (annahmen.compareDocumentPosition(was) & Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
+    expect(document.querySelector("#annahmen th[scope='col']")).not.toBeNull();
+    expect(document.querySelector("#annahmen th[scope='row']")).not.toBeNull();
   });
 });

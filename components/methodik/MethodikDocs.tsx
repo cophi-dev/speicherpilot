@@ -5,6 +5,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
+import { MethodikUeberblick } from "@/components/methodik/MethodikUeberblick";
 import { NetzMethodik } from "@/components/methodik/NetzMethodik";
 import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { EURO_SCOPE } from "@/lib/beispieltage";
@@ -15,6 +16,9 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 
 const CHAPTERS = [
+  { id: "annahmen", de: "Annahmen auf einen Blick", en: "Assumptions at a glance" },
+  { id: "lizenzen", de: "Quellen und Lizenzen", en: "Sources and licences" },
+  { id: "grenzen", de: "Grenzen des Modells", en: "Limits of the model" },
   { id: "was", de: "Was gerechnet wird", en: "What is calculated" },
   { id: "einheiten", de: "Daten und Einheiten", en: "Data and units" },
   { id: "grossspeicher", de: "Großspeicher-Modell", en: "Large-storage model" },
@@ -83,13 +87,14 @@ export function MethodikDocs() {
             </ol>
           </nav>
           <article>
+            <MethodikUeberblick language={language} />
             <section id="was">
-              <h2>{tx("01 Was gerechnet wird", "01 What is calculated")}</h2>
+              <h2>{tx("04 Was gerechnet wird", "04 What is calculated")}</h2>
               <p>{tx("Zwei Sichten, ein Kern. Der Projektierer sieht Größe, Zyklen und die abgegebene Energie eines Tages. Der Netzbetreiber sieht Kilowatt am Anschluss, die Ampel und die Einschätzung netzdienlich. Keine Zahl steht in beiden Helden.", "Two views, one core. The developer sees size, cycles and the energy delivered on one day. The grid operator sees kilowatts at the connection, the traffic light and the grid-support estimate. No figure appears in both heroes.")}</p>
               <p>{tx("Die nationale Uhr auf /live und der Startseite ist die Residuallast Deutschlands in Polarform. Der Standort-Ring ist dieselbe Form in Kilowatt. Die GW-Skala kommt auf /site nicht vor.", "The national clock on /live and the homepage is Germany’s residual load in polar form. The site ring is the same form in kilowatts. The GW scale does not appear on /site.")}</p>
             </section>
             <section id="einheiten">
-              <h2>{tx("02 Daten und Einheiten", "02 Data and units")}</h2>
+              <h2>{tx("05 Daten und Einheiten", "05 Data and units")}</h2>
               <div className="methodik-table"><table>
                 <thead>
                   <tr><th>{tx("Größe", "Quantity")}</th><th>{tx("Einheit", "Unit")}</th><th>{tx("Quelle", "Source")}</th></tr>
@@ -113,7 +118,7 @@ export function MethodikDocs() {
               <p>{tx("Im Streifen oben gilt: Last etwa 70 Minuten später, Erzeugung etwa 85 Minuten, Frequenz etwa 30 Minuten. Jede Zahl nennt die Uhrzeit ihres eigenen Werts. Die Frequenz ist die Messung in Freiburg, kein Wert eines Netzbetreibers. Der Day-Ahead-Preis ist der Marktpreis der laufenden Viertelstunde in Euro je Megawattstunde, Bundesnetzagentur | SMARD.de über Energy-Charts, CC BY 4.0. Das ist kein Erlös. SMARD-Viertelstunden in Megawattstunden wären mal 4 zu nehmen, wenn sie als Leistung gelesen würden. Das passiert hier nicht: die Leistung kommt in Megawatt von Energy-Charts. Anteil Erneuerbare im Streifen ist die Reihe „Renewable share of load“, nicht nur Wind und Sonne. Fehlt ein Wert, steht „nicht veröffentlicht“. Bei einem Fehler oder HTTP 429 bleibt der zuletzt gültige Abruf stehen und ist mit „zuletzt gültig“ markiert.", "On the strip at the top: load is about 70 minutes late, generation about 85 minutes, frequency about 30 minutes. Each number names the time of its own value. Frequency is the Freiburg measurement, not a grid-operator value. The day-ahead price is the market price of the current quarter-hour in euro per megawatt-hour, Bundesnetzagentur | SMARD.de via Energy-Charts, CC BY 4.0. That is not revenue. A SMARD quarter-hour in megawatt-hours would be multiplied by 4 if it were read as power. That does not happen here: power comes from Energy-Charts in megawatts. Renewable share on the strip is the series “Renewable share of load”, not wind and solar alone. A missing value says “not published”. On an error or HTTP 429 the last valid response stays and is marked “last valid”.")}</p>
             </section>
             <section id="grossspeicher">
-              <h2>{tx("03 Großspeicher-Modell", "03 Large-storage model")}</h2>
+              <h2>{tx("06 Großspeicher-Modell", "06 Large-storage model")}</h2>
               <div className="methodik-phases" inert>
                 <Phase label={tx("Laden", "Charge")} highlight="midday" />
                 <Phase label={tx("Halten", "Hold")} highlight={null} />
@@ -164,7 +169,7 @@ export function MethodikDocs() {
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
             </section>
             <section id="groesse">
-              <h2>{tx("04 Speichergröße", "04 Storage size")}</h2>
+              <h2>{tx("07 Speichergröße", "07 Storage size")}</h2>
               <Formula label={tx("Speichergröße aus der Tagesspitze", "Storage size from the daily peak")}>
                 <math display="block">
                   <mtable>
@@ -210,7 +215,7 @@ export function MethodikDocs() {
               </p>
             </section>
             <section id="ampel">
-              <h2>{tx("05 Anschluss-Ampel", "05 Connection light")}</h2>
+              <h2>{tx("08 Anschluss-Ampel", "08 Connection light")}</h2>
               <div className="methodik-gauges">
                 <Gauge pct={70} label={tx("passt", "fits")} />
                 <Gauge pct={95} label={tx("knapp", "tight")} />
@@ -219,7 +224,7 @@ export function MethodikDocs() {
               <p>{tx("Unter 90 % der Anschlussleistung passt es. Ab 90 % bis zur Grenze ist es knapp. Darüber passt es nicht. Fehlt die Anschlussleistung, bleibt der Punkt grau und es gibt keine rote Linie. Die Farbe steht nie allein: der Text nennt den Zustand.", "Below 90% of the connection it fits. From 90% up to the limit it is tight. Above that it does not fit. If the connection capacity is missing, the dot stays grey and there is no red line. Colour never stands alone: the text names the state.")}</p>
             </section>
             <section id="netzdienlichkeit">
-              <h2>{tx("06 Einschätzung netzdienlich", "06 Grid-support estimate")}</h2>
+              <h2>{tx("09 Einschätzung netzdienlich", "09 Grid-support estimate")}</h2>
               <p>{tx(`Regel v1. Ein Intervall zählt als Spitze, wenn die Standortlast mindestens ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)} % der Anschlussleistung erreicht. Einschätzung netzdienlich ab ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)} % der Entladeenergie in diesen Intervallen und ohne neue Bezugsspitze. Darunter bis ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)} % heißt die Schätzung gemischt, darunter marktgetrieben. Eine neue Spitze liegt vor, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt. Die Schwellen stehen nur an einer Stelle im Modell und sind vorläufig.`, `Rule v1. An interval counts as a peak when site load reaches at least ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)}% of the connection. The estimate is grid-supportive from ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)}% of discharge energy in those intervals and only without a new import peak. Down to ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)}% the estimate is mixed, and below that market-driven. A new peak exists as soon as a charging interval lifts the import above the peak without storage. The thresholds live in one place in the model and are provisional.`)}</p>
               <p>{tx("Die Marke heißt netzdienlich v1 · Einschätzung, kein Befund. Die Schrift bleibt neutral, ohne Grün und ohne Rot.", "The badge reads grid-supportive v1 · estimate, not a finding. The type stays neutral, with no green and no red.")}</p>
               <blockquote>
@@ -231,7 +236,7 @@ export function MethodikDocs() {
               </blockquote>
             </section>
             <section id="peak-erklaert">
-              <h2>{tx("07 Peak Shaving, Schritt für Schritt", "07 Peak shaving, step by step")}</h2>
+              <h2>{tx("10 Peak Shaving, Schritt für Schritt", "10 Peak shaving, step by step")}</h2>
               <p>{tx("Die Geschichte auf der Startseite mit Zahlen: Die Abendspitze passt nicht durch den Anschluss, der Speicher nimmt sie weg.", "The homepage story in numbers: the evening peak does not fit through the connection, and the battery takes it away.")}</p>
               <Formula label={tx("Abgabe über der Anschlussgrenze", "Discharge above the connection limit")}>
                 <math display="block">
@@ -264,7 +269,7 @@ export function MethodikDocs() {
               <p>{tx("Der Lehrtag weiß, dass die Spitze kommt, und startet deshalb voll. Der Jahreslauf auf /site startet bei 50 %, lädt selbst vor und hält 10–95 % ein. Darum stimmen die Zahlen beider Ansichten nur zufällig überein, hier beide 26,6 kWh und 119,6 kW auf 90 kW. Der Leistungspreis hängt an der Jahreshöchstlast. Ein einziger verpasster Tag macht die Ersparnis kaputt. Darum rechnet /site ein ganzes Jahr und nimmt die Jahresspitze vorher und nachher. Der Lehrtag zeigt nur das Prinzip.", "The teaching day knows the peak is coming, and therefore starts full. The year run on /site starts at 50%, charges ahead on its own and stays inside 10–95%. The two views therefore match only by chance, here both at 26.6 kWh and 119.6 kW down to 90 kW. The demand charge follows the annual peak. One missed day wipes out the saving. That is why /site runs a whole year and takes the annual peak before and after. The teaching day only shows the principle.")}</p>
             </section>
             <section id="modelltag">
-              <h2>{tx("08 Modelltag Bollingstedt", "08 Bollingstedt model day")}</h2>
+              <h2>{tx("11 Modelltag Bollingstedt", "11 Bollingstedt model day")}</h2>
               <p>{tx("Leistung und Inhalt sind die Summe zweier Einheiten im Marktstammdatenregister: SEE925543621515 und SEE922158261037. Zusammen sind das 103,5 MW und 238,5 MWh. Die Meldung des Betreibers nennt 238 MWh.", "Power and energy are the sum of two Marktstammdatenregister units: SEE925543621515 and SEE922158261037. Together that is 103.5 MW and 238.5 MWh. The operator’s release says 238 MWh.")}</p>
               <p>{tx("2,3 h ist 238,5 MWh geteilt durch 103,5 MW. Die C-Rate 0,43 ist 103,5 geteilt durch 238,5. Beides ist eine Rechnung aus den veröffentlichten Zahlen, keine Messung.", "2.3 h is 238.5 MWh divided by 103.5 MW. The C-rate 0.43 is 103.5 divided by 238.5. Both are the published figures divided, not a measurement.")}</p>
               <p>{tx("Die flexible Netzanschlussvereinbarung mit SH Netz begrenzt Bezug und Einspeisung dynamisch. Die Grenzwerte sind nicht veröffentlicht. Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine solche Vereinbarung anbieten, mit einer festen oder einer sich ändernden Grenze für die höchste Bezugs- oder Einspeiseleistung.", "The flexible grid connection agreement with SH Netz limits withdrawal and feed-in dynamically. The limits are not published. Under section 17 (2b) of the Energy Industry Act the network operator can offer such an agreement, with a fixed or a changing limit on the highest withdrawal or feed-in power.")}</p>
@@ -272,7 +277,7 @@ export function MethodikDocs() {
               <p>{tx("Modellannahme für die Auswahl. Der Score einer Viertelstunde ist der Day-Ahead-Preis plus Abendzuschlag plus Volatilitätsterm. Der Abendzuschlag gilt von 17 bis 21 Uhr und ist 0,18 mal die Preisspanne des Tages, sonst null. Der Volatilitätsterm ist 0,12 mal die normierte Streuung mal dieselbe Preisspanne. Die normierte Streuung ist die Standardabweichung der Preise über die letzten vier Viertelstunden, geteilt durch die größte Standardabweichung des Tages. Abgegeben wird bei den höchsten Scores, geladen davor bei den niedrigsten Preisen.", "Model assumption for the choice. A quarter-hour’s score is the day-ahead price plus an evening bonus plus a volatility term. The evening bonus applies from 17:00 to 21:00 and is 0.18 times the day’s price range, otherwise zero. The volatility term is 0.12 times the normalised spread times that same price range. The normalised spread is the standard deviation of prices over the last four quarter-hours, divided by the day’s largest standard deviation. Discharge uses the highest scores, and charging before that uses the lowest prices.")}</p>
             </section>
             <section id="beispieltage">
-              <h2>{tx("09 Beispieltage", "09 Example days")}</h2>
+              <h2>{tx("12 Beispieltage", "12 Example days")}</h2>
               <p>{tx("Vier Tage aus dem Fenster 27.10.2025 bis 26.10.2026 stehen auf der Startseite. Dieselbe Rechnung wie der Modelltag: 103,5 MW und 238,5 MWh, Wirkungsgrad 0,85 hin und zurück, je Richtung die Wurzel daraus (0,922). Ladezustand 10 bis 90 %, Start 50 %, Ende nicht darunter. Das ist eine Modellschätzung und keine Abrechnung, keine Prognose und nicht die Fahrweise von Bollingstedt.", "Four days from the window 27 October 2025 to 26 October 2026 are on the homepage. The same calculation as the model day: 103.5 MW and 238.5 MWh, round-trip efficiency 0.85, the square root of that in each direction (0.922). State of charge 10 to 90%, start 50%, and the day does not end below that. This is a model estimate, not a bill, not a forecast and not the operation at Bollingstedt.")}</p>
               <p>{tx("Warum diese Tage? 1. Der Tag mit dem höchsten Modellerlös. 2. Der beste Tag ohne negative Preise. 3. Der beste Herbsttag. 4. Der mittlere Tag als Vergleich.", "Why these days? 1. The day with the highest model revenue. 2. The best day without negative prices. 3. The best autumn day. 4. The middle day as a comparison.")}</p>
               <Formula label={tx("Modellerlös eines Tages, Euro", "Model revenue of one day, euro")}>
@@ -311,7 +316,7 @@ export function MethodikDocs() {
             <NetzMethodik language={language} />
             <section id="quellen">
               <details className="site-fold">
-              <summary><h2>{tx("12 Quellen", "12 Sources")}</h2></summary>
+              <summary><h2>{tx("15 Quellen", "15 Sources")}</h2></summary>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
