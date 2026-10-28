@@ -5142,43 +5142,79 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   background: #0a0f14;
   color: #e9eef2;
 }
-.blog-table-scroll {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-}
-.blog-table-scroll:focus-visible {
-  outline: 2px solid #0f6e7c;
-  outline-offset: 3px;
-}
-.dark .blog-table-scroll:focus-visible { outline-color: #7dfce6; }
-.blog-table-scroll table {
+.blog-sources {
   width: 100%;
-  min-width: 48rem;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.45;
 }
-.blog-table-scroll th:nth-child(1),
-.blog-table-scroll td:nth-child(1) { width: 3.5rem; white-space: nowrap; }
-.blog-table-scroll th:nth-child(3),
-.blog-table-scroll td:nth-child(3) { white-space: nowrap; }
-.blog-table-scroll th,
-.blog-table-scroll td {
-  padding: 8px 10px;
+.blog-sources tr { scroll-margin-top: 5rem; }
+.blog-sources th[scope="col"] {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.blog-sources th,
+.blog-sources td {
+  padding: 8px 10px 8px 0;
   border-bottom: 1px solid rgb(20 24 28 / 12%);
   text-align: left;
   vertical-align: top;
   overflow-wrap: anywhere;
 }
-.dark .blog-table-scroll th,
-.dark .blog-table-scroll td { border-bottom-color: rgb(233 238 242 / 18%); }
-.blog-source-links {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.blog-sources th[scope="row"] { width: 3.5rem; font-weight: 500; }
+.dark .blog-sources th,
+.dark .blog-sources td { border-bottom-color: rgb(233 238 242 / 18%); }
+@media (max-width: 767px) {
+  .blog-sources thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .blog-sources,
+  .blog-sources tbody,
+  .blog-sources tr,
+  .blog-sources th,
+  .blog-sources td {
+    display: block;
+    width: auto;
+    min-width: 0;
+  }
+  .blog-sources tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    align-items: baseline;
+    padding: 12px 0;
+  }
+  .blog-sources th[scope="row"] {
+    order: 1;
+    width: auto;
+    padding: 0;
+    border: 0;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: 12px;
+  }
+  .blog-sources .blog-source-stand {
+    order: 2;
+    padding: 0;
+    border: 0;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: 12px;
+  }
+  .blog-sources .blog-source-title {
+    order: 3;
+    flex-basis: 100%;
+    padding: 0;
+    border: 0;
+  }
 }
 .blog-back { margin: 0; max-width: 60ch; }
 .blog-list {

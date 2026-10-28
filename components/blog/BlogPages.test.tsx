@@ -77,7 +77,9 @@ describe("blog pages", () => {
       expect(document.getElementById(id as string)).toBeTruthy();
       expect(cite.getAttribute("aria-label")?.length).toBeGreaterThan(3);
     }
+    expect(screen.getByRole("columnheader", { name: "Nr." })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Quelle" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Stand" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Link" })).toBeNull();
   });
 });

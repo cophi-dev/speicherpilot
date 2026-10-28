@@ -110,37 +110,30 @@ export function BlogArticle({ post }: { post: BlogPost }) {
     prose.push(
       <section key={index} className="blog-source-section" aria-labelledby={headingId || undefined}>
         <p id={`${headingId}-einleitung`}>{block.intro}</p>
-        <div className="blog-table-scroll" tabIndex={0} role="region" aria-labelledby={`${headingId}-einleitung`}>
-          <table>
-            <thead>
-              <tr>
-                {block.headers.map((header) => (
-                  <th key={header} scope="col">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {block.rows.map((row) => (
-                <tr key={row.id} id={row.id.toLowerCase()}>
+        <table className="blog-sources">
+          <thead>
+            <tr>
+              <th scope="col">Nr.</th>
+              <th scope="col">Quelle</th>
+              <th scope="col">Stand</th>
+            </tr>
+          </thead>
+          <tbody>
+            {block.rows.flatMap((row) =>
+              row.links.map((link, linkIndex) => (
+                <tr key={`${row.id}-${link.href}`} id={linkIndex === 0 ? row.id.toLowerCase() : undefined}>
                   <th scope="row">{row.id}</th>
-                  <td>{row.quelle}</td>
-                  <td>{row.stand}</td>
-                  <td>
-                    <ul className="blog-source-links">
-                      {row.links.map((link) => (
-                        <li key={link.href}>
-                          <a href={link.href}>{link.text}</a>
-                        </li>
-                      ))}
-                    </ul>
+                  <td className="blog-source-title">
+                    <a href={link.href} target="_blank" rel="noreferrer">
+                      {link.text}
+                    </a>
                   </td>
+                  <td className="blog-source-stand">{row.stand}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
         {block.note ? <p>{block.note}</p> : null}
       </section>
     );
