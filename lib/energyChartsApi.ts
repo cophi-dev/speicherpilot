@@ -310,6 +310,10 @@ const isRenewableGenerationSeries = (name: string): boolean =>
   !/battery/i.test(name) &&
   RENEWABLE_GENERATION_SERIES_REGEX.test(name);
 
+const isWindOnshoreSeries = (name: string): boolean => /^wind\s*onshore\b/i.test(name.trim());
+const isWindOffshoreSeries = (name: string): boolean => /^wind\s*offshore\b/i.test(name.trim());
+const isSolarSeries = (name: string): boolean => /^solar$/i.test(name.trim());
+
 const isConventionalGenerationSeries = (name: string): boolean =>
   !EXCLUDED_FROM_DOMESTIC_GENERATION.has(name) &&
   !/battery/i.test(name) &&
@@ -435,6 +439,14 @@ export type GermanyDispatchSlot = {
   totalGenerationMw: number;
   /** Renewable generation in MW for this slot, null when unavailable. */
   renewableGenerationMw: number | null;
+  /** Wind on land in MW, null when unavailable. */
+  windOnshoreMw: number | null;
+  /** Wind offshore in MW, null when unavailable. */
+  windOffshoreMw: number | null;
+  /** Solar in MW, null when unavailable. */
+  solarMw: number | null;
+  /** Wind on land + offshore + solar in MW, null when any part is unavailable. */
+  windSolarMw: number | null;
   /** Signed cross-border trading in MW: positive = net imports, negative = net exports. */
   crossBorderElectricityTradingMw: number | null;
   /** Optional quarter-hour curtailed renewable power from Netztransparenz, MW. */
@@ -1176,6 +1188,19 @@ const buildGermanyDispatchSlotsForIndices = (
     const renewableGenerationMwForSlot =
       renewableMw ?? (renewableMwFromShare !== null ? renewableMwFromShare : null);
 
+    const windOnshoreMw = sumSeriesAtIndex(totalPower.production_types, isWindOnshoreSeries, index);
+    const windOffshoreMw = sumSeriesAtIndex(totalPower.production_types, isWindOffshoreSeries, index);
+    const solarMw = sumSeriesAtIndex(totalPower.production_types, isSolarSeries, index);
+    const windSolarMw =
+      windOnshoreMw !== null &&
+      windOffshoreMw !== null &&
+      solarMw !== null &&
+      Number.isFinite(windOnshoreMw) &&
+      Number.isFinite(windOffshoreMw) &&
+      Number.isFinite(solarMw)
+        ? windOnshoreMw + windOffshoreMw + solarMw
+        : null;
+
     if (residualMw === null || !Number.isFinite(residualMw)) {
       continue;
     }
@@ -1187,6 +1212,10 @@ const buildGermanyDispatchSlotsForIndices = (
       loadMw,
       totalGenerationMw: sumDomesticGenerationMw(totalPower.production_types, index),
       renewableGenerationMw: renewableGenerationMwForSlot,
+      windOnshoreMw,
+      windOffshoreMw,
+      solarMw,
+      windSolarMw,
       crossBorderElectricityTradingMw:
         crossBorderTradingSeries !== undefined
           ? valueAtIndexWithFallback(crossBorderTradingSeries.data, index, 0)

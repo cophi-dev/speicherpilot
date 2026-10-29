@@ -24,9 +24,11 @@ export function FactorSlider({
 
   return (
     <div className="day-slider-block">
-      <label className="day-slider-label" htmlFor={inputId}>
-        {label}
-      </label>
+      {label ? (
+        <label className="day-slider-label" htmlFor={inputId}>
+          {label}
+        </label>
+      ) : null}
       <div className="day-slider">
         <div
           className="day-slider-track"
@@ -36,6 +38,7 @@ export function FactorSlider({
         <input
           id={inputId}
           type="range"
+          aria-label={label || valueText}
           min={0}
           max={LIVE_DISPATCH_FACTORS.length - 1}
           step={1}

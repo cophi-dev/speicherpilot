@@ -219,7 +219,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
       <div className="relative min-h-screen bg-background text-foreground">
         <a
           href="#inhalt"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[80] focus:bg-card focus:px-3 focus:py-2"
+          className="site-shell-skip sr-only focus:not-sr-only"
         >
           {tx("Zum Inhalt", "Skip to content")}
         </a>

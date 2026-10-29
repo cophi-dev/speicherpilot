@@ -17,11 +17,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: {
-    default: "SpeicherPilot — battery storage & grid connection planner",
+    default: "SpeicherPilot — Speicher und Netz verständlich",
     template: "%s | SpeicherPilot",
   },
   description:
-    "SpeicherPilot — battery storage & grid connection planner. Live 50Hertz wind and solar, DE-LU day-ahead prices, the Germany snapshot, and a labelled storage model.",
+    "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien — auf Deutsch.",
 };
 
 export default function RootLayout({

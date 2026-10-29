@@ -9,6 +9,10 @@ function mkSlot(hour: number, genMw: number, loadMw: number, renewableMw: number
     loadMw,
     totalGenerationMw: genMw,
     renewableGenerationMw: renewableMw,
+    windOnshoreMw: null,
+    windOffshoreMw: null,
+    solarMw: null,
+    windSolarMw: null,
     crossBorderElectricityTradingMw: null,
   };
 }

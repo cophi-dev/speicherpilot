@@ -157,7 +157,7 @@ function ExampleHero({
         <div className="site-hero-grid">
           <div>
             <p className="day-kicker">
-              {netz ? tx("Standort · Anschluss prüfen", "Site · check the connection") : tx("Standort · Speicher planen", "Site · plan storage")}
+              {netz ? tx("Standort · Szenarien rechnen", "Site · run scenarios") : tx("Standort · Speicher planen", "Site · plan storage")}
               {example ? <span className="site-chip">{tx("Beispieldaten", "Example data")}</span> : null}
             </p>
             <h1 id="site-hero-title">{sentence}</h1>

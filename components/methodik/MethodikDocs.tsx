@@ -5,7 +5,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
-import { MethodikUeberblick } from "@/components/methodik/MethodikUeberblick";
+import { MethodikUeberblick, type MethodikFleetStand } from "@/components/methodik/MethodikUeberblick";
 import { NetzMethodik } from "@/components/methodik/NetzMethodik";
 import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { EURO_SCOPE } from "@/lib/beispieltage";
@@ -14,6 +14,7 @@ import { REFERENCE_PARK } from "@/lib/referencePark";
 import { GLOSSARY } from "@/lib/glossary";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
+import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 
 const CHAPTERS = [
   { id: "annahmen", de: "Annahmen auf einen Blick", en: "Assumptions at a glance" },
@@ -22,6 +23,7 @@ const CHAPTERS = [
   { id: "was", de: "Was gerechnet wird", en: "What is calculated" },
   { id: "einheiten", de: "Daten und Einheiten", en: "Data and units" },
   { id: "grossspeicher", de: "Großspeicher-Modell", en: "Large-storage model" },
+  { id: "live", de: "Überschuss und Grenzhandel", en: "Surplus and border trade" },
   { id: "groesse", de: "Speichergröße", en: "Storage size" },
   { id: "ampel", de: "Anschluss-Ampel", en: "Connection light" },
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
@@ -33,7 +35,7 @@ const CHAPTERS = [
   { id: "quellen", de: "Quellen", en: "Sources" },
 ] as const;
 
-export function MethodikDocs() {
+export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
@@ -87,7 +89,7 @@ export function MethodikDocs() {
             </ol>
           </nav>
           <article>
-            <MethodikUeberblick language={language} />
+            <MethodikUeberblick language={language} fleet={fleet} />
             <section id="was">
               <h2>{tx("04 Was gerechnet wird", "04 What is calculated")}</h2>
               <p>{tx("Zwei Sichten, ein Kern. Der Projektierer sieht Größe, Zyklen und die abgegebene Energie eines Tages. Der Netzbetreiber sieht Kilowatt am Anschluss, die Ampel und die Einschätzung netzdienlich. Keine Zahl steht in beiden Helden.", "Two views, one core. The developer sees size, cycles and the energy delivered on one day. The grid operator sees kilowatts at the connection, the traffic light and the grid-support estimate. No figure appears in both heroes.")}</p>
@@ -167,6 +169,29 @@ export function MethodikDocs() {
               <p>{tx("Ein fester Wert gilt für alle Leistungen und Ladezustände. In Wirklichkeit ist der Wirkungsgrad bei Teillast schlechter, und Hilfsenergie fällt auch im Stillstand an. Das Großspeicher-Modell bucht den ganzen Verlust bei der Abgabe. Der Standort-Rechner teilt ihn je zur Hälfte auf, als Wurzel aus dem Round-Trip auf dem Weg hinein und auf dem Weg hinaus. Die Summe ist gleich, nur der Ladezustand dazwischen sieht anders aus. Die beiden Modelle werden nicht vermischt.", "One fixed value applies at every power and state of charge. In practice efficiency is worse at part load, and auxiliary energy is used even while the battery is idle. The large-storage model books the whole loss on discharge. The site calculator splits it in half, as the square root of the round trip on the way in and on the way out. The sum is the same; only the state of charge in between looks different. The two models are not mixed.")}</p>
               <p>{tx("Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. η = 0,85 wird erst bei der Abgabe angewendet. Nutzbar sind 80 % der Nennenergie. Aus 7,86 GWh Nennenergie werden damit höchstens 6,29 GWh Ladung und 5,34 GWh Abgabe.", "Charging happens only before 17:00 and only from surplus, limited by power and free capacity. η = 0.85 is applied only on discharge. The usable share is 80% of nameplate. From 7.86 GWh nameplate that is at most 6.29 GWh charged and 5.34 GWh delivered.")}</p>
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
+            </section>
+            <section id="live">
+              <h2>{tx("06b Überschuss, Export, Abregelung", "06b Surplus, export, curtailment")}</h2>
+              <p>{tx("Überschuss Wind und Sonne ist die Summe von max(0, Wind an Land + Wind auf See + Sonne − Last) mal 0,25 h über den Tag. Dieselbe Definition wie der Ring und Abschnitt 06.", "Wind-and-solar surplus is the sum of max(0, onshore wind + offshore wind + solar − load) times 0.25 h over the day. Same definition as the ring and section 06.")}</p>
+              <p>{tx("Export beobachtet integriert nur negative Grenzhandels-Leistung (Export) aus Energy-Charts total_power (Last inkl. Eigenverbrauch, 15 Min.). Die Modellschätzung je Viertelstunde: simuliert = max(0, beobachtet − Ladung aus Überschuss). Entladung ab 17 Uhr ändert den Export nicht.", "Observed export integrates only negative cross-border power (export) from Energy-Charts total_power (load including self-consumption, 15 min). The model estimate each quarter-hour: simulated = max(0, observed − charging from surplus). Discharge from 17:00 does not change export.")}</p>
+              <p>
+                {language === "de" ? (
+                  <>
+                    Gemessene EE-Abregelung bundesweit gibt es nur quartalsweise (
+                    <a href={SMARD_QUARTERLY_TOPIC_URL}>Bundesnetzagentur/SMARD</a>, 2. Quartal 2026 am 12.10.2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("de")}). Tageswerte veröffentlicht niemand. Abregelung fließt nicht in
+                    die Aufnahme.
+                  </>
+                ) : (
+                  <>
+                    Measured renewable curtailment for all of Germany is published only quarterly (
+                    <a href={SMARD_QUARTERLY_TOPIC_URL}>Bundesnetzagentur/SMARD</a>, Q2 2026 on 12 Oct 2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("en")}). No daily figures exist. Curtailment is not included in
+                    absorption.
+                  </>
+                )}
+              </p>
+              <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, Stand siehe Seite). Nutzbar sind 10–90 % Nennenergie, Start bei 0 im nutzbaren Fenster, Laden nur vor 17 Uhr, Wirkungsgrad 85 % auf der Abgabe. ×2, ×5 und ×10 vervielfachen Leistung und Energie; ab ×5 gilt „Obergrenze ohne Preiswirkung“. Unsicherheit: Kupferplatte, keine Engpässe, keine Preiswirkung.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, as-of on the page). Usable is 10–90% of nameplate, starting at 0 in the usable window, charging only before 17:00, 85% round-trip on discharge. ×2, ×5 and ×10 scale power and energy; from ×5 the label is upper bound without price effect. Uncertainty: copper plate, no bottlenecks, no price effect.")}</p>
             </section>
             <section id="groesse">
               <h2>{tx("07 Speichergröße", "07 Storage size")}</h2>

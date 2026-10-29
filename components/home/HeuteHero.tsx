@@ -47,7 +47,9 @@ export function HeuteHero({ heute }: { heute: HeuteImNetz }) {
           <div className="heute-copy">
             <p className="num text-[12px] tracking-[0.14em] text-muted-foreground uppercase">
               {tx("Heute im Netz", "Today on the grid")}
-              <span className="text-muted-foreground"> · battery storage & grid connection planner</span>
+              {language === "de" ? (
+                <span className="text-muted-foreground"> · Speicher und Netz in Zahlen</span>
+              ) : null}
             </p>
             <h1 id="heute-title" className="mt-4 text-foreground">
               {figure ? (
@@ -85,8 +87,8 @@ export function HeuteHero({ heute }: { heute: HeuteImNetz }) {
             >
               {tx("Eigenen Standort rechnen →", "Size your own site →")}
             </Link>
-            <Link href="/site?view=netz" className="text-sm font-medium underline underline-offset-[3px]">
-              {tx("Anschluss prüfen", "Check a connection")}
+            <Link href="/szenarien" className="text-sm font-medium underline underline-offset-[3px]">
+              {tx("Szenarien rechnen", "Run scenarios")}
             </Link>
             <Link href="/live" className="text-sm text-muted-foreground underline underline-offset-[3px]">
               {tx("Alle Zahlen", "All figures")}
