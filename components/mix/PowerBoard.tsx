@@ -16,7 +16,15 @@ import { parseLiveFactor } from "@/lib/liveFleetDispatch";
 import { BOARD_ROUND_TRIP, type PowerBoardModel, type SocSample } from "@/lib/powerBoard";
 import { SURPLUS_MONTHS } from "@/lib/surplusMonths";
 
-export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardModel; missingFactor?: LiveDispatchFactor }) {
+export function PowerBoard({
+  model,
+  missingFactor = 1,
+  hideSocLine = false,
+}: {
+  model: PowerBoardModel;
+  missingFactor?: LiveDispatchFactor;
+  hideSocLine?: boolean;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const router = useRouter();
@@ -148,7 +156,9 @@ export function PowerBoard({ model, missingFactor = 1 }: { model: PowerBoardMode
             </tbody>
           </table>
         </div>
-        <SocLine model={model} samples={samples} points={model.points} factor={factor} compact={compact} chartWidth={chartWidth} onFactor={onFactor} />
+        {hideSocLine ? null : (
+          <SocLine model={model} samples={samples} points={model.points} factor={factor} compact={compact} chartWidth={chartWidth} onFactor={onFactor} />
+        )}
         {SURPLUS_MONTHS ? <SurplusYear data={SURPLUS_MONTHS} /> : null}
         <p className="mix-source">
           {tx(

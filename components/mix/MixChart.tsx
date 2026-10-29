@@ -396,8 +396,8 @@ export function MixChart({
             </text>
           </>
         ) : null}
-        {labels.map((label) => (
-          <text key={label.text} className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={label.y} dominantBaseline="middle">
+        {labels.map((label, index) => (
+          <text key={`${label.text}-${label.y}-${index}`} className="mix-direct" fontSize={frame.font} x={frame.width - frame.pad.r + 8} y={label.y} dominantBaseline="middle">
             {label.text}
           </text>
         ))}

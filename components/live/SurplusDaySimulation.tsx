@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { GlossaryTip } from "@/components/GlossaryTip";
-import { useLanguage } from "@/components/language-context";
+import { useLanguage, type AppLanguage } from "@/components/language-context";
+import {
+  DispatchDayChart,
+  niceChartScale,
+  SimLegend,
+  type ChartAnnotation,
+  type ChartSample,
+} from "@/components/sim/DispatchDayChart";
 import {
   formatQuarterlyCurtailmentGwh,
   formatSignedDeltaGwh,
@@ -12,7 +19,14 @@ import {
 } from "@/lib/eeCurtailmentQuarterly";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
-import type { SurplusDayReport } from "@/lib/surplusDaySimulation";
+import {
+  SURPLUS_DAY_RTE,
+  surplusEveningPeaksGw,
+  surplusQuartersToChartSamples,
+  type SurplusChartSample,
+  type SurplusDayQuarter,
+  type SurplusDayReport,
+} from "@/lib/surplusDaySimulation";
 
 function gwh(value: number | null, language: "de" | "en", digits = 2) {
   if (value === null || !Number.isFinite(value)) {
@@ -24,6 +38,101 @@ function gwh(value: number | null, language: "de" | "en", digits = 2) {
 function formatBerlinLabel(dateBerlin: string) {
   const dateParts = dateBerlin.split("-");
   return dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}` : dateBerlin;
+}
+
+function formatGw(value: number, language: AppLanguage) {
+  const shown = Math.round(value * 10) / 10;
+  return formatQuantity(shown, language, Number.isInteger(shown) ? 0 : 1);
+}
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setReduced(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+  return reduced;
+}
+
+function lerpSamples(from: SurplusChartSample[], to: SurplusChartSample[], amount: number): SurplusChartSample[] {
+  return to.map((point, index) => {
+    const prev = from[index] ?? point;
+    const mix = (start: number, end: number) => start + (end - start) * amount;
+    return {
+      hour: point.hour,
+      ohne: point.ohne,
+      mit: mix(prev.mit, point.mit),
+      charge: mix(prev.charge, point.charge),
+      discharge: mix(prev.discharge, point.discharge),
+      soc: mix(prev.soc, point.soc),
+    };
+  });
+}
+
+function chartNotes(
+  samples: ChartSample[],
+  factor: LiveDispatchFactor,
+  dischargedGwh: number,
+  language: AppLanguage
+): ChartAnnotation[] {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const notes: ChartAnnotation[] = [];
+  let peak = -1;
+  let peakValue = Number.NEGATIVE_INFINITY;
+  samples.forEach((sample, index) => {
+    if (sample.hour >= 17 && sample.ohne > peakValue) {
+      peakValue = sample.ohne;
+      peak = index;
+    }
+  });
+  let mitPeak = -1;
+  let mitValue = Number.NEGATIVE_INFINITY;
+  samples.forEach((sample, index) => {
+    if (sample.hour >= 17 && sample.mit > mitValue) {
+      mitValue = sample.mit;
+      mitPeak = index;
+    }
+  });
+  if (peak >= 0) {
+    const sample = samples[peak];
+    notes.push({
+      hour: sample.hour + 0.125,
+      value: sample.ohne,
+      text: `${formatGw(sample.ohne, language)} GW ${tx("ohne Speicher", "without storage")}`,
+      anchor: "middle",
+      dy: -8,
+      mdx: -16,
+      mdy: -10,
+    });
+  }
+  if (mitPeak >= 0) {
+    const sample = samples[mitPeak];
+    notes.push({
+      hour: sample.hour + 0.125,
+      value: sample.mit,
+      text: `${formatGw(sample.mit, language)} GW ${tx("mit", "with")} ×${factor}`,
+      anchor: "middle",
+      dy: -8,
+      mdx: 18,
+      mdy: -10,
+      strong: true,
+    });
+  }
+  if (dischargedGwh > 0.001) {
+    notes.push({
+      hour: 19.5,
+      value: samples[Math.max(mitPeak, 0)]?.mit ?? 0,
+      text: `${formatQuantity(dischargedGwh, language, 1)} GWh ${tx("abgegeben", "discharged")}`,
+      dx: 8,
+      dy: 16,
+      mdx: 12,
+      mdy: 14,
+    });
+  }
+  return notes;
 }
 
 function Metric({
@@ -59,6 +168,57 @@ export function SurplusDaySimulation({
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const step = report?.factors[factor] ?? null;
   const observed = report?.observed ?? null;
+  const reduced = usePrefersReducedMotion();
+
+  const samplesByFactor = useMemo(() => {
+    if (!report) {
+      return null;
+    }
+    const built = {} as Record<LiveDispatchFactor, SurplusChartSample[]>;
+    for (const rowFactor of LIVE_DISPATCH_FACTORS) {
+      built[rowFactor] = surplusQuartersToChartSamples(report.factors[rowFactor].quarters);
+    }
+    return built;
+  }, [report]);
+
+  const target = useMemo(() => samplesByFactor?.[factor] ?? [], [samplesByFactor, factor]);
+  const [shown, setShown] = useState<SurplusChartSample[]>(target);
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
+
+  useEffect(() => {
+    if (target.length === 0) {
+      setShown([]);
+      return;
+    }
+    const from = shownRef.current;
+    if (reduced || from.length !== target.length) {
+      setShown(target);
+      return;
+    }
+    const started = performance.now();
+    let frame = requestAnimationFrame(function tick(now: number) {
+      const amount = Math.min(1, (now - started) / 150);
+      setShown(lerpSamples(from, target, amount));
+      if (amount < 1) {
+        frame = requestAnimationFrame(tick);
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [target, reduced]);
+
+  const scale = useMemo(() => {
+    if (!samplesByFactor) {
+      return null;
+    }
+    const values: number[] = [0];
+    for (const rows of Object.values(samplesByFactor)) {
+      for (const row of rows) {
+        values.push(row.ohne, row.mit, row.discharge, -row.charge);
+      }
+    }
+    return niceChartScale(values);
+  }, [samplesByFactor]);
 
   const lastSurplusLink =
     observed?.lastSurplusDateBerlin ? (
@@ -74,6 +234,9 @@ export function SurplusDaySimulation({
   const dateLabel = formatBerlinLabel(observed.dateBerlin);
   const noSurplus = observed.windSolarSurplusGwh <= 0.000_5;
   const quarterlyGwh = formatQuarterlyCurtailmentGwh(language);
+  const peaks = surplusEveningPeaksGw(step.quarters);
+  const chartSamples: ChartSample[] = shown;
+  const evening = peaks.beforeGw !== null && peaks.afterGw !== null;
 
   const curtailmentDetail =
     language === "de" ? (
@@ -105,19 +268,24 @@ export function SurplusDaySimulation({
           "Cross-border trading is not complete in the series for this day."
         );
 
+  const tableCaption = tx(
+    `Viertelstunden am ${dateLabel}: Export beobachtet und simuliert, Ladung aus Überschuss, Abgabe und Ladezustand. Modellschätzung.`,
+    `Quarter-hours on ${dateLabel}: export observed and simulated, charging from surplus, discharge and state of charge. Model estimate.`
+  );
+
   return (
     <section className="day-paper mix-board mix-surplus" aria-labelledby="surplus-day-heading">
       <div className="day-hero-inner mix-inner">
         <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
-          {tx("Deutschland", "Germany")} · {dateLabel} ({tx("ganzer Tag", "full day")})
+          {tx("Deutschland", "Germany")} · {dateLabel} ({tx("letzter ganzer Tag", "last full day")})
         </p>
         <div className="mix-head">
           <h2 id="surplus-day-heading">{tx("Überschuss, Export und Speicher", "Surplus, export and storage")}</h2>
         </div>
         <p className="mix-agg max-w-[68ch]">
           {tx(
-            "Wo Wind und Sonne über der Last liegen, entsteht Überschuss. Ein Teil geht über die Grenze. Die Tabelle zeigt, wie viel die modellierte Flotte bei ×1 bis ×10 aufnehmen könnte und wie sich der Export in der Modellschätzung verringert.",
-            "Where wind and solar sit above load, surplus appears. Some leaves via the border. The table shows how much the modeled fleet at ×1 to ×10 could absorb and how export falls in the model estimate."
+            "Wo Wind und Sonne über der Last liegen, entsteht Überschuss. Ein Teil geht über die Grenze. Die Grafik und Tabelle zeigen, wie viel die modellierte Flotte bei ×1 bis ×10 aufnehmen könnte und wie sich Residuallast und Export in der Modellschätzung verändern.",
+            "Where wind and solar sit above load, surplus appears. Some leaves via the border. The chart and table show how much the modeled fleet at ×1 to ×10 could absorb and how residual load and export change in the model estimate."
           )}{" "}
           <GlossaryTip id="modellschaetzung" language={language} />
         </p>
@@ -169,6 +337,53 @@ export function SurplusDaySimulation({
                 onChange={onFactor}
               />
             </div>
+            {scale && chartSamples.length > 0 ? (
+              <div className="mix-surplus-chart sim-chart">
+                <p className="sim-kicker mix-surplus-chart-kicker">
+                  {tx("Residuallast und Export", "Residual load and export")} · {dateLabel}
+                  <span className="sim-chip sim-chip-gap">{tx("Modell, Obergrenze ohne Preiswirkung", "Model, upper bound without price effect")}</span>
+                </p>
+                <SimLegend
+                  items={[
+                    { swatch: "ohne", label: tx("ohne Speicher", "without storage") },
+                    { swatch: "mit", label: tx("mit Speicher", "with storage") },
+                    { swatch: "charge", label: tx("lädt aus Überschuss", "charges from surplus") },
+                    { swatch: "discharge", label: tx("gibt ab", "discharges") },
+                    { swatch: "hatch", label: tx("Abend entlastet", "Evening relief") },
+                  ]}
+                />
+                <DispatchDayChart
+                  samples={chartSamples}
+                  unit="GW"
+                  y0={scale.y0}
+                  y1={scale.y1}
+                  yTicks={scale.yTicks}
+                  hatch="graphite"
+                  tipLoad={tx("Residuallast", "Residual load")}
+                  ariaLabel={
+                    evening
+                      ? tx(
+                          `Residuallast und Export am ${dateLabel} mit ×${factor}. Abendspitze ${formatGw(peaks.beforeGw!, language)} auf ${formatGw(peaks.afterGw!, language)} GW. Modellschätzung.`,
+                          `Residual load and export on ${dateLabel} at ×${factor}. Evening peak ${formatGw(peaks.beforeGw!, language)} to ${formatGw(peaks.afterGw!, language)} GW. Model estimate.`
+                        )
+                      : tx(`Residuallast und Export am ${dateLabel}. Modellschätzung.`, `Residual load and export on ${dateLabel}. Model estimate.`)
+                  }
+                  tag={tx("MODELL", "MODEL")}
+                  annotations={chartNotes(chartSamples, factor, step.dischargedGwh, language)}
+                  chargedNote={tx(
+                    `Aufnahme ${gwh(step.absorbedGwh, language)} vor 17 Uhr. Abgabe ${gwh(step.dischargedGwh, language)}. Wirkungsgrad ${formatQuantity(SURPLUS_DAY_RTE * 100, language, 0)} % auf der Abgabe.`,
+                    `Absorption ${gwh(step.absorbedGwh, language)} before 17:00. Discharge ${gwh(step.dischargedGwh, language)}. ${formatQuantity(SURPLUS_DAY_RTE * 100, language, 0)}% round-trip on discharge.`
+                  )}
+                  intro={false}
+                  language={language}
+                  fitLabels
+                />
+                <details className="mix-surplus-sr-table">
+                  <summary>{tx("Tabellarische Daten für Screenreader", "Tabular data for screen readers")}</summary>
+                  <QuarterTable quarters={step.quarters} caption={tableCaption} language={language} />
+                </details>
+              </div>
+            ) : null}
             <div className="mix-table-wrap mix-surplus-table-wrap">
               <table className="mix-table mix-surplus-table">
                 <caption className="sr-only">
@@ -256,5 +471,44 @@ export function SurplusDaySimulation({
         ) : null}
       </div>
     </section>
+  );
+}
+
+function QuarterTable({
+  quarters,
+  caption,
+  language,
+}: {
+  quarters: SurplusDayQuarter[];
+  caption: string;
+  language: AppLanguage;
+}) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  return (
+    <table className="mix-table mix-surplus-quarter-table">
+      <caption>{caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{tx("Zeit", "Time")}</th>
+          <th scope="col">{tx("Überschuss MW", "Surplus MW")}</th>
+          <th scope="col">{tx("Laden MW", "Charge MW")}</th>
+          <th scope="col">{tx("Export beob.", "Export obs.")}</th>
+          <th scope="col">{tx("Export sim.", "Export sim.")}</th>
+          <th scope="col">{tx("Ladezustand %", "SoC %")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {quarters.map((row) => (
+          <tr key={row.timestampIso}>
+            <td>{row.timestampIso.slice(11, 16)}</td>
+            <td className="num tabular-nums">{formatQuantity(row.surplusMw, language, 0)}</td>
+            <td className="num tabular-nums">{formatQuantity(row.chargeMw, language, 0)}</td>
+            <td className="num tabular-nums">{formatQuantity(row.exportObservedMw, language, 0)}</td>
+            <td className="num tabular-nums">{formatQuantity(row.exportSimulatedMw, language, 0)}</td>
+            <td className="num tabular-nums">{formatQuantity(row.socFraction * 100, language, 0)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

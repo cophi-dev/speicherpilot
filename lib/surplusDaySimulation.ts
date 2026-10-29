@@ -1,6 +1,7 @@
 import type { GermanyDispatchSlot, GermanyDispatchSlotsResponse } from "@/lib/energyChartsApi";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
+import { berlinClockParts } from "@/lib/quarterMarks";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
@@ -17,6 +18,26 @@ export type SurplusDayObserved = {
   lastSurplusDateBerlin: string | null;
 };
 
+export type SurplusDayQuarter = {
+  timestampIso: string;
+  hourBerlin: number;
+  /** Berlin-local hour as decimal (0–24) for charts. */
+  hour: number;
+  /** max(0, wind on land + offshore + solar − load), MW. */
+  surplusMw: number;
+  chargeMw: number;
+  /** Grid discharge after round-trip (MW). */
+  dischargeMw: number;
+  exportObservedMw: number;
+  exportSimulatedMw: number;
+  /** Stored energy after the slot (MWh). */
+  socMwh: number;
+  /** Share of usable nameplate capacity (0–1). */
+  socFraction: number;
+  /** Residual load load − wind − solar (MW), for evening peak chart. */
+  residualMw: number;
+};
+
 export type SurplusDayFactorResult = {
   factor: LiveDispatchFactor;
   nameplateEnergyMwh: number;
@@ -31,6 +52,7 @@ export type SurplusDayFactorResult = {
   simulatedExportGwh: number | null;
   exportDeltaGwh: number | null;
   saturationNote: boolean;
+  quarters: SurplusDayQuarter[];
 };
 
 export type SurplusDayReport = {
@@ -75,6 +97,23 @@ export function isPublishedFullBerlinDay(flow: GermanyDispatchSlotsResponse): bo
 
 function usableCapMwh(nameplateMwh: number): number {
   return Math.max(0, nameplateMwh * (CHAIN_SOC_MAX - CHAIN_SOC_MIN));
+}
+
+function hourFractionFromIso(timestampIso: string): number {
+  const { hm } = berlinClockParts(timestampIso);
+  const hour = Number(hm.slice(0, 2));
+  const minute = Number(hm.slice(3, 5));
+  return hour + minute / 60;
+}
+
+function residualMwForSlot(slot: GermanyDispatchSlot, residualSlot: ResidualSlot | null): number {
+  if (residualSlot) {
+    return residualSlot.loadMw - residualSlot.windMw - residualSlot.solarMw;
+  }
+  if (slot.windSolarMw !== null && slot.windSolarMw !== undefined && Number.isFinite(slot.windSolarMw)) {
+    return slot.loadMw - slot.windSolarMw;
+  }
+  return slot.residualLoadMw;
 }
 
 function toResidualSlots(slots: GermanyDispatchSlot[]): ResidualSlot[] {
@@ -161,6 +200,7 @@ export function evaluateSurplusDayFactor(
       ? eveningDischargeMw(residualSlots, powerMw, capMwh * ROUND_TRIP_EFFICIENCY)
       : [];
 
+  const quarters: SurplusDayQuarter[] = [];
   let residualIndex = 0;
   for (const slot of slots) {
     const exportObsMw =
@@ -172,6 +212,7 @@ export function evaluateSurplusDayFactor(
     observedExportMwh += exportObsMw * QUARTER_HOUR_H;
 
     let chargeMw = 0;
+    let dischargeMw = 0;
     if (slot.hourBerlin < DISCHARGE_HOUR && capMwh > 0 && powerMw > 0) {
       const surplusMw = windSolarSurplusMwhForSlot(slot) / QUARTER_HOUR_H;
       const headroomMw = Math.max(0, capMwh - socMwh) / QUARTER_HOUR_H;
@@ -181,7 +222,8 @@ export function evaluateSurplusDayFactor(
       absorbedMwh += chargeMwh;
     }
 
-    simulatedExportMwh += Math.max(0, exportObsMw - chargeMw) * QUARTER_HOUR_H;
+    const exportSimMw = Math.max(0, exportObsMw - chargeMw);
+    simulatedExportMwh += exportSimMw * QUARTER_HOUR_H;
 
     const residualSlot =
       slot.windOnshoreMw !== null &&
@@ -195,12 +237,29 @@ export function evaluateSurplusDayFactor(
       const plannedMw = dischargePlan[residualIndex] ?? 0;
       const roomMw = (Math.max(0, socMwh) * ROUND_TRIP_EFFICIENCY) / QUARTER_HOUR_H;
       const usedMw = Math.min(plannedMw, powerMw, roomMw);
+      dischargeMw = usedMw;
       if (usedMw > 0) {
         const fromBatteryMwh = (usedMw * QUARTER_HOUR_H) / ROUND_TRIP_EFFICIENCY;
         socMwh = Math.max(0, socMwh - fromBatteryMwh);
         dischargedToGridMwh += usedMw * QUARTER_HOUR_H;
       }
     }
+
+    const surplusMw = windSolarSurplusMwhForSlot(slot) / QUARTER_HOUR_H;
+    quarters.push({
+      timestampIso: slot.timestampIso,
+      hourBerlin: slot.hourBerlin,
+      hour: hourFractionFromIso(slot.timestampIso),
+      surplusMw,
+      chargeMw,
+      dischargeMw,
+      exportObservedMw: exportObsMw,
+      exportSimulatedMw: exportSimMw,
+      socMwh,
+      socFraction: capMwh > 0 ? Math.max(0, Math.min(1, socMwh / capMwh)) : 0,
+      residualMw: residualMwForSlot(slot, residualSlot),
+    });
+
     if (residualSlot) {
       residualIndex += 1;
     }
@@ -222,7 +281,42 @@ export function evaluateSurplusDayFactor(
     simulatedExportGwh: simulatedExportMwh / 1000,
     exportDeltaGwh: (simulatedExportMwh - observedExportMwh) / 1000,
     saturationNote: factor >= 5,
+    quarters,
   };
+}
+
+export function surplusEveningPeaksGw(quarters: SurplusDayQuarter[]): {
+  beforeGw: number | null;
+  afterGw: number | null;
+} {
+  const evening = quarters.filter((row) => row.hourBerlin >= DISCHARGE_HOUR);
+  if (evening.length === 0) {
+    return { beforeGw: null, afterGw: null };
+  }
+  const before = Math.max(...evening.map((row) => row.residualMw));
+  const after = Math.max(...evening.map((row) => row.residualMw - row.dischargeMw));
+  return { beforeGw: before / 1000, afterGw: after / 1000 };
+}
+
+export type SurplusChartSample = {
+  hour: number;
+  ohne: number;
+  mit: number;
+  charge: number;
+  discharge: number;
+  soc: number;
+};
+
+/** Residual load with/without discharge and export in GW for DispatchDayChart. */
+export function surplusQuartersToChartSamples(quarters: SurplusDayQuarter[]): SurplusChartSample[] {
+  return quarters.map((row) => ({
+    hour: row.hour,
+    ohne: row.residualMw / 1000,
+    mit: (row.residualMw - row.dischargeMw) / 1000,
+    charge: row.chargeMw / 1000,
+    discharge: row.dischargeMw / 1000,
+    soc: row.socFraction,
+  }));
 }
 
 export function surplusSaturationFactor(report: SurplusDayReport): LiveDispatchFactor | null {
@@ -267,6 +361,7 @@ export function buildSurplusDayReport(
     simulatedExportGwh: observed.observedExportGwh,
     exportDeltaGwh: 0,
     saturationNote: factor >= 5,
+    quarters: [],
   });
 
   if (!fleet || fleet.powerMw <= 0 || fleet.energyMwh <= 0) {

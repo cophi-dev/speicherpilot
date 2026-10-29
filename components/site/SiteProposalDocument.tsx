@@ -73,7 +73,7 @@ export function SiteProposalDocument({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.kicker}>SpeicherPilot · {kind === "connection" ? tx("Anschlussprüfung", "Connection check") : tx("Angebot", "Offer")}</Text>
+        <Text style={styles.kicker}>SpeicherPilot · {kind === "connection" ? tx("Szenariobericht", "Scenario report") : tx("Angebot", "Offer")}</Text>
         <Text style={styles.title}>{kind === "connection" ? tx("Netzanschluss", "Grid connection") : tx("Speicher und Netzanschluss", "Storage and grid connection")}</Text>
         <Text style={styles.p}>
           {tx(

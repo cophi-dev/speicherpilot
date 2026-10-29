@@ -21,6 +21,7 @@ const NAV = [
   { href: "/", de: "Start", en: "Start" },
   { href: "/site", de: "Standort", en: "Site" },
   { href: "/live", de: "Live", en: "Live" },
+  { href: "/netz", de: "Netz", en: "Grid" },
   { href: "/szenarien", de: "Szenarien rechnen", en: "Run scenarios" },
   { href: "/methodik", de: "Methodik", en: "Method" },
   { href: "/blog", de: "Blog", en: "Blog" },

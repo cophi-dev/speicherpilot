@@ -305,14 +305,26 @@ export function SitePlanner() {
   const annualKwh = profile ? profile.samplesKw.reduce((sum, kw) => sum + kw, 0) * (profile.intervalMinutes / 60) : 0;
 
   const day = plan ? (dayPick === "peak" ? plan.peakDay : plan.medianDay) : null;
+  const interval = profile?.intervalMinutes ?? 15;
   const points: DispatchPoint[] = day
-    ? day.loadKw.map((load, index) => ({
-        label: day.loadKw.length > 24 && index % 4 !== 0 ? "" : String(Math.round((index * (profile?.intervalMinutes ?? 15)) / 60)).padStart(2, "0"),
-        load,
-        grid: day.gridKw[index] ?? load,
-        bess: (day.dischargeKw[index] ?? 0) - (day.chargeKw[index] ?? 0),
-        pv: day.pvKw[index] ?? 0,
-      }))
+    ? day.loadKw.map((load, index) => {
+        const totalMinutes = index * interval;
+        const hour = Math.floor(totalMinutes / 60);
+        const minute = totalMinutes % 60;
+        const showTick = day.loadKw.length <= 24 || index % 4 === 0;
+        const label = showTick
+          ? minute === 0
+            ? String(hour).padStart(2, "0")
+            : `${hour}.${minute / 15}`
+          : "";
+        return {
+          label,
+          load,
+          grid: day.gridKw[index] ?? load,
+          bess: (day.dischargeKw[index] ?? 0) - (day.chargeKw[index] ?? 0),
+          pv: day.pvKw[index] ?? 0,
+        };
+      })
     : [];
   const dsoPoints = points.map((point) => ({ ...point, uncontrolled: point.load - point.pv }));
 
@@ -615,7 +627,7 @@ export function SitePlanner() {
             disabled={!plan || pdfBusy}
             onClick={() => void exportPdf(view === "netz" ? "connection" : "offer")}
           >
-            {pdfBusy ? tx("PDF wird gebaut", "Building PDF") : view === "netz" ? tx("Anschlussprüfung als PDF", "Connection check as PDF") : tx("Angebot als PDF", "Offer as PDF")}
+            {pdfBusy ? tx("PDF wird gebaut", "Building PDF") : view === "netz" ? tx("Szenario als PDF", "Scenario as PDF") : tx("Angebot als PDF", "Offer as PDF")}
           </button>
           <p className="mt-2 text-center text-[12px] text-muted-foreground">{tx("Daten bleiben im Browser", "Data stays in the browser")}</p>
         </form>
@@ -932,7 +944,7 @@ export function SitePlanner() {
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={exportCsv}>CSV</button>
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => window.print()}>{tx("Drucken", "Print")}</button>
                 <button type="button" className="h-10 rounded-md border border-border px-3 text-sm" onClick={() => void exportPdf(view === "netz" ? "offer" : "connection")}>
-                  {view === "netz" ? tx("Angebot als PDF", "Offer as PDF") : tx("Anschlussprüfung als PDF", "Connection check as PDF")}
+                  {view === "netz" ? tx("Angebot als PDF", "Offer as PDF") : tx("Szenario als PDF", "Scenario as PDF")}
                 </button>
               </div>
             </>
@@ -951,7 +963,7 @@ export function SitePlanner() {
             </button>
           ) : (
             <button type="button" className="h-10 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground disabled:opacity-60" disabled={pdfBusy} onClick={() => void exportPdf(view === "netz" ? "connection" : "offer")}>
-              {view === "netz" ? tx("Anschlussprüfung als PDF", "Connection PDF") : tx("Angebot als PDF", "Offer as PDF")}
+              {view === "netz" ? tx("Szenario als PDF", "Scenario as PDF") : tx("Angebot als PDF", "Offer as PDF")}
             </button>
           )}
         </div>
