@@ -5,6 +5,9 @@ import { buildLiveReadings, type StripReading } from "@/lib/liveStrip";
 import { choosePublishedDay, chooseStorageDay, dayIsUsable, type LiveDispatchInput, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
 import { loadDayAheadDay, loadFreiburgFrequency, loadGermanyPower } from "@/lib/loadGermanyPower";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
+import { getGermanyEnergyFlowForBerlinRange } from "@/lib/energyChartsApi";
+import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
+import { buildSurplusDayReport, type SurplusDayReport } from "@/lib/surplusDaySimulation";
 import { buildPowerBoard, type PowerBoardModel } from "@/lib/powerBoard";
 import { parseMixRange, residualDaysFromSlots } from "@/lib/powerMix";
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
@@ -19,6 +22,7 @@ export type GermanyView = {
   board: PowerBoardModel;
   stand: string;
   readings: StripReading[];
+  surplusDay: SurplusDayReport | null;
 };
 
 function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): LiveFleetPublic | null {
@@ -91,6 +95,25 @@ export async function loadGermanyView(
     stale: power.stale,
     tag: chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
   });
+
+  let surplusDay: SurplusDayReport | null = null;
+  if (parseMixRange(requestedRange) === "tag" && publicFleet) {
+    try {
+      const flow = await getGermanyEnergyFlowForBerlinRange(
+        resolveGermanyEnergyFlowBerlinRangeForDate(endDate, now),
+        now
+      );
+      if (flow) {
+        surplusDay = buildSurplusDayReport(flow, {
+          powerMw: publicFleet.powerMw,
+          energyMwh: publicFleet.energyMwh,
+        });
+      }
+    } catch {
+      surplusDay = null;
+    }
+  }
+
   return {
     todayKey,
     dispatch: {
@@ -107,5 +130,6 @@ export async function loadGermanyView(
     board,
     stand: readings.stand,
     readings: readings.readings,
+    surplusDay,
   };
 }

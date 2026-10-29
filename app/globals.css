@@ -5809,6 +5809,37 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .mix-board .mix-inner { max-width: min(1400px, 94vw); margin: 0 auto; }
 .mix-surplus-line { max-width: 78ch; margin: 0 0 14px; font-size: 17px; line-height: 1.5; }
+.mix-surplus-grid {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+.mix-surplus-metric {
+  border: 1px solid var(--mix-guide);
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-height: 88px;
+}
+.mix-surplus-metric-label {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mix-muted);
+}
+.mix-surplus-metric-value {
+  margin: 6px 0 0;
+  font-size: clamp(22px, 4vw, 28px);
+  line-height: 1.1;
+}
+.mix-surplus-metric-detail {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--mix-muted);
+  line-height: 1.35;
+}
+.mix-surplus .mix-head h2 { font-size: clamp(26px, 4vw, 34px); font-weight: 500; }
 .mix-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; }
 .mix-head h2, .mix-soc h3, .mix-period { margin: 0; }
 .mix-finding p { max-width: 68ch; margin: 0 0 8px; font-size: 18px; line-height: 1.45; }

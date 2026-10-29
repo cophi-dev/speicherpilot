@@ -1,0 +1,38 @@
+{
+  "dateBerlin": "2026-10-28",
+  "generatedAt": "2026-10-29T08:14:27.140Z",
+  "surplusGwh": 0,
+  "exportObservedGwh": 0.01275,
+  "curtailmentGwh": null,
+  "curtailmentStatus": "unavailable_not_configured",
+  "factors": {
+    "x1": {
+      "absorbedGwh": 11.861624999999979,
+      "exportObservedGwh": 0.01275,
+      "exportSimulatedGwh": 0.01275,
+      "exportDeltaGwh": 0,
+      "curtailmentRemainingGwh": null
+    },
+    "x2": {
+      "absorbedGwh": 16.437449999999952,
+      "exportObservedGwh": 0.01275,
+      "exportSimulatedGwh": 0.01275,
+      "exportDeltaGwh": 0,
+      "curtailmentRemainingGwh": null
+    },
+    "x5": {
+      "absorbedGwh": 16.437449999999952,
+      "exportObservedGwh": 0.01275,
+      "exportSimulatedGwh": 0.01275,
+      "exportDeltaGwh": 0,
+      "curtailmentRemainingGwh": null
+    },
+    "x10": {
+      "absorbedGwh": 16.437449999999952,
+      "exportObservedGwh": 0.01275,
+      "exportSimulatedGwh": 0.01275,
+      "exportDeltaGwh": 0,
+      "curtailmentRemainingGwh": null
+    }
+  }
+}

@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Residual-load what-if chart (moreStorage). The national surplus/export simulation lives in
+ * {@link SurplusDaySimulation} on `/live`.
+ */
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 

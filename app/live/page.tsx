@@ -28,6 +28,7 @@ export default async function LivePage({
         stand={view.stand}
         readings={view.readings}
         board={view.board}
+        surplusDay={view.surplusDay}
       />
     </Suspense>
   );
