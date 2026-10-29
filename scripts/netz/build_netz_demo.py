@@ -332,7 +332,7 @@ def feasible(net, mv):
 
 
 def hosting(net, mv, bus, mode, hi=100.0, tol=0.1):
-    """Größte Leistung im Raster tol, bei der der Normalbetrieb noch hält. Bisektion, Obergrenze hi."""
+    """Größte Leistung im Raster tol, bei der der Normalbetrieb noch hält. Bisektion, obere Schranke hi."""
     handle = add_storage(net, bus, mode, 1e-6)
     table = net[handle[0]]
 

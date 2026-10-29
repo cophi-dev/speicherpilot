@@ -5,9 +5,13 @@ import {
   beispieltage,
   breakdownText,
   dayAheadPoints,
+  displayEuro,
   EURO_SCOPE,
   HINTS,
+  fleetEuroHiddenHint,
+  liveResultLabel,
   loadBeispieltage,
+  showsFleetEuroRevenue,
   thousandsLabel,
 } from "@/lib/beispieltage";
 import { berlinWeekdayName } from "@/lib/beispieltageBuild";
@@ -28,6 +32,25 @@ function at(dateBerlin: string, clock: string): { price: number; power: number }
   }
   return { price: day.prices[index] ?? Number.NaN, power: day.dispatch.powerMw[index] ?? Number.NaN };
 }
+
+describe("fleet euro display", () => {
+  it("shows euro revenue only at ×1", () => {
+    expect(showsFleetEuroRevenue(1)).toBe(true);
+    expect(showsFleetEuroRevenue(2)).toBe(false);
+    expect(showsFleetEuroRevenue(5)).toBe(false);
+    expect(showsFleetEuroRevenue(10)).toBe(false);
+  });
+
+  it("keeps ×1 display rounding and hides scaled amounts in labels", () => {
+    const day = beispieltage.days[0]!;
+    expect(displayEuro(day.revenueEur.x1, 1)).toBe(67000);
+    expect(liveResultLabel(day, 1, "de")).toContain("67.000");
+    expect(liveResultLabel(day, 1, "de")).toContain("Modellschätzung");
+    expect(liveResultLabel(day, 5, "de")).not.toMatch(/Modellerlös|67\.000/);
+    expect(liveResultLabel(day, 5, "de")).toContain(fleetEuroHiddenHint("de"));
+    expect(breakdownText(day, 5, "de")).toBe(fleetEuroHiddenHint("de"));
+  });
+});
 
 describe("beispieltage data", () => {
   it("matches the schema, the source and the weekdays", () => {
@@ -58,7 +81,7 @@ describe("beispieltage data", () => {
       expect(publicCopyIssues(hint.de)).toEqual([]);
       expect(hint.en.length).toBeGreaterThan(0);
     }
-    expect(EURO_SCOPE.de).toContain("Beispieltagen");
+    expect(EURO_SCOPE.de).toContain("×1");
     expect(EURO_SCOPE.de).toContain("Modellschätzung");
     expect(EURO_SCOPE.de).not.toMatch(/nur im aufklappbaren/);
     expect(file.selectionRule.de).toContain("Der beste Herbsttag");

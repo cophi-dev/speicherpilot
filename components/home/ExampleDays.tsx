@@ -21,7 +21,8 @@ import {
   formatModelEuro,
   HINTS,
   liveResultLabel,
-  scaleKey,
+  fleetEuroHiddenHint,
+  showsFleetEuroRevenue,
   scaleSizeLabel,
   thousandsLabel,
   berlinClock,
@@ -56,8 +57,10 @@ export function ExampleDays() {
     router.replace(`/?${params.toString()}#beispieltage`, { scroll: false });
   }
 
-  const revenue = day.revenueEur[scaleKey(scale)];
-  const shown = formatModelEuro(displayEuro(revenue, scale), language);
+  const revenue = day.revenueEur.x1;
+  const shown = formatModelEuro(displayEuro(revenue, 1), language);
+  const showEuro = showsFleetEuroRevenue(scale);
+  const euroHint = fleetEuroHiddenHint(language);
   const medianDay = FILE.days.find((item) => item.role === "median") ?? FILE.days[3];
 
   return (
@@ -93,14 +96,15 @@ export function ExampleDays() {
           </div>
           <div className="beispieltage-result-row">
             <div>
-              <p className="beispieltage-euro">
-                <span className="beispieltage-approx">≈</span>{" "}
-                <MonoNumber value={shown} />
-                <span> €</span>
-              </p>
-              {scale >= 5 ? (
-                <p className="beispieltage-cap">{tx("Obergrenze, ohne Preiswirkung", "Upper bound, no price effect")}</p>
-              ) : null}
+              {showEuro ? (
+                <p className="beispieltage-euro">
+                  <span className="beispieltage-approx">≈</span>{" "}
+                  <MonoNumber value={shown} />
+                  <span> €</span>
+                </p>
+              ) : (
+                <p className="beispieltage-euro-hint">{euroHint}</p>
+              )}
             </div>
             <ScalePicker scale={scale} language={language} onChoose={setScale} />
           </div>
@@ -109,30 +113,28 @@ export function ExampleDays() {
             {". "}
             {tx("Die Fahrweise bleibt gleich. Nur die Mengen wachsen.", "The dispatch stays the same. Only the amounts grow.")}
           </p>
-          {scale >= 5 ? (
+          {!showEuro ? null : (
             <p className="beispieltage-size">
-              {tx(
-                "Obergrenze, ohne Preiswirkung. Die Preisnehmer-Annahme gilt für einen Speicher, nicht für ×5 oder ×10. Eine Preiswirkung ist nicht modelliert. Modellschätzung.",
-                "Upper bound, with no price effect. The price-taker assumption applies to one battery, not to ×5 or ×10. A price effect is not modelled. Model estimate."
+              {breakdownText(day, scale, language)}
+              {day.parts.chargingEur > 0 ? null : (
+                <>
+                  {" "}
+                  <GlossaryTip id="preisspanne" language={language} />
+                </>
               )}
             </p>
-          ) : null}
-          <p className="beispieltage-size">
-            {breakdownText(day, scale, language)}
-            {day.parts.chargingEur > 0 ? null : (
-              <>
-                {" "}
-                <GlossaryTip id="preisspanne" language={language} />
-              </>
-            )}
-          </p>
+          )}
           <StatTrio
             items={[
-              {
-                value: formatQuantity(day.stats.spreadEurPerMwh, language, 0),
-                unit: "€/MWh",
-                label: tx("Preisspanne des Tages", "Price spread of the day"),
-              },
+              ...(showEuro
+                ? [
+                    {
+                      value: formatQuantity(day.stats.spreadEurPerMwh, language, 0),
+                      unit: "€/MWh",
+                      label: tx("Preisspanne des Tages", "Price spread of the day"),
+                    },
+                  ]
+                : []),
               {
                 value: formatQuantity(day.chargedFromGridMwh * scale, language, scale >= 10 ? 0 : 1),
                 unit: "MWh",

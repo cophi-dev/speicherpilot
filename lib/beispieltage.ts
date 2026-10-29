@@ -32,10 +32,23 @@ export function scaleKey(scale: BeispielScale): "x1" | "x2" | "x5" | "x10" {
   return "x1";
 }
 
-/** Hundreds for ×1 and ×2, thousands for ×5 and ×10, so the larger scales do not look more precise. */
-export function displayEuro(amount: number, scale: BeispielScale): number {
-  const step = scale >= 5 ? 1000 : 100;
-  return Math.round(amount / step) * step;
+/** Rounds a ×1 model revenue for display (nearest 100 €). */
+export function displayEuro(amount: number, scale: BeispielScale = 1): number {
+  if (scale !== 1) {
+    return amount;
+  }
+  return Math.round(amount / 100) * 100;
+}
+
+export function showsFleetEuroRevenue(scale: BeispielScale): boolean {
+  return scale === 1;
+}
+
+export function fleetEuroHiddenHint(language: AppLanguage): string {
+  if (language === "de") {
+    return "Ab ×2 würden sich die Strompreise verschieben. Deshalb zeigen wir hier nur Energie in MWh/GW, keinen Euro-Wert.";
+  }
+  return "From ×2, electricity prices would shift. That is why we only show energy in MWh/GW here, not a euro figure.";
 }
 
 export function formatModelEuro(amount: number, language: AppLanguage): string {
@@ -88,18 +101,15 @@ export function chartAriaLabel(day: Beispieltag, language: AppLanguage): string 
 }
 
 export function liveResultLabel(day: Beispieltag, scale: BeispielScale, language: AppLanguage): string {
-  const shown = formatModelEuro(displayEuro(day.revenueEur[scaleKey(scale)], scale), language);
   const when = shortBerlinDate(day.dateBerlin, language);
-  if (scale >= 5) {
-    if (language === "de") {
-      return `Modellerlös ×${scale} am ${when}: rund ${shown} Euro, Obergrenze ohne Preiswirkung, Modellschätzung`;
-    }
-    return `Model revenue ×${scale} on ${when}: about ${shown} euro, upper bound with no price effect, model estimate`;
+  if (!showsFleetEuroRevenue(scale)) {
+    return `${fleetEuroHiddenHint(language)} ${when}, Faktor ×${scale}.`;
   }
+  const shown = formatModelEuro(displayEuro(day.revenueEur.x1, 1), language);
   if (language === "de") {
-    return `Modellerlös ×${scale} am ${when}: rund ${shown} Euro, Modellschätzung`;
+    return `Modellerlös ×1 am ${when}: rund ${shown} Euro, Modellschätzung`;
   }
-  return `Model revenue ×${scale} on ${when}: about ${shown} euro, model estimate`;
+  return `Model revenue ×1 on ${when}: about ${shown} euro, model estimate`;
 }
 
 export function scaleSizeLabel(scale: BeispielScale, language: AppLanguage, powerMw: number, energyMwh: number): string {
@@ -122,8 +132,11 @@ export function thousandsLabel(revenueX1: number, language: AppLanguage): string
 }
 
 export function breakdownText(day: Beispieltag, scale: BeispielScale, language: AppLanguage): string {
-  const charge = formatModelEuro(displayEuro(Math.abs(day.parts.chargingEur) * scale, scale), language);
-  const discharge = formatModelEuro(displayEuro(Math.abs(day.parts.dischargingEur) * scale, scale), language);
+  if (!showsFleetEuroRevenue(scale)) {
+    return fleetEuroHiddenHint(language);
+  }
+  const charge = formatModelEuro(displayEuro(Math.abs(day.parts.chargingEur), 1), language);
+  const discharge = formatModelEuro(displayEuro(Math.abs(day.parts.dischargingEur), 1), language);
   if (day.parts.chargingEur > 0) {
     const low = formatQuantity(Math.round(day.stats.minEurPerMwh), language, 0);
     if (language === "de") {
@@ -144,10 +157,16 @@ export function comparisonText(day: Beispieltag, scale: BeispielScale, file: Bei
       ? "Das ist der mittlere Tag des Jahres: Die Hälfte der Tage lag darunter."
       : "This is the middle day of the year: half of the days were below it.";
   }
-  const shownMedian = formatModelEuro(displayEuro(file.medianDayRevenueX1 * scale, scale), language);
   const factor = formatQuantity(factorVersusMedian(day.revenueEur.x1, file.medianDayRevenueX1), language, 1);
   const when = day.textDe.title;
   const medianWhen = medianDay.textDe.title;
+  if (!showsFleetEuroRevenue(scale)) {
+    if (language === "de") {
+      return `Der ${when.replace(" 2026", "")} liegt beim ${factor}-Fachen des normalen Tags (${medianWhen}, Modell ×1). Rang ${day.rankByModelRevenueX1} von 365 Tagen.`;
+    }
+    return `${day.textEn.title} is ${factor} times the ordinary day (${medianDay.textEn.title}, model ×1). Rank ${day.rankByModelRevenueX1} of 365 days.`;
+  }
+  const shownMedian = formatModelEuro(displayEuro(file.medianDayRevenueX1, 1), language);
   if (language === "de") {
     return `Zum Vergleich: ein normaler Tag (${medianWhen}) kommt im selben Modell auf rund ${shownMedian} €. Der ${when.replace(" 2026", "")} liegt beim ${factor}-Fachen. Rang ${day.rankByModelRevenueX1} von 365 Tagen.`;
   }
@@ -156,13 +175,13 @@ export function comparisonText(day: Beispieltag, scale: BeispielScale, file: Bei
 
 export const HINTS: readonly { de: string; en: string; tips: Array<"preisnehmer" | "intraday" | "regelleistung" | "vollzyklen" | "soc" | "modellschaetzung"> }[] = [
   {
-    de: "Preisnehmer: nur malgenommen, keine Prognose. Das gilt für einen Speicher, nicht für Flotten ×5 und ×10.",
-    en: "Price taker: just multiplied, not a forecast. That applies to one battery, not to fleets at ×5 and ×10.",
+    de: "Preisnehmer: Euro-Erlös nur bei ×1 als Modellschätzung, keine Prognose. Ab ×2 zeigen wir keinen Euro-Wert, weil sich die Preise verschieben würden.",
+    en: "Price taker: euro revenue only at ×1 as a model estimate, not a forecast. From ×2 we show no euro figure, because prices would shift.",
     tips: ["preisnehmer"],
   },
   {
-    de: "Bei ×5 und ×10 ist der Euro-Wert eine Obergrenze ohne Preiswirkung. Preiswirkung ist nicht modelliert. Modellschätzung.",
-    en: "At ×5 and ×10 the euro figure is an upper bound with no price effect. A price effect is not modelled. Model estimate.",
+    de: "Ab ×2 würden sich die Strompreise verschieben. Deshalb nur Energie in MWh, kein skalierter Euro-Wert.",
+    en: "From ×2, electricity prices would shift. That is why we only show energy in MWh, not a scaled euro figure.",
     tips: ["modellschaetzung"],
   },
   {
@@ -189,6 +208,6 @@ export const HINTS: readonly { de: string; en: string; tips: Array<"preisnehmer"
 
 /** The methodology sentence that names where euro figures are allowed. */
 export const EURO_SCOPE = {
-  de: "Euro-Beträge stehen im aufklappbaren Annahmen-Block und in den Beispieltagen, jeweils als Modellschätzung.",
-  en: "Euro amounts appear in the collapsible assumptions block and in the example days, in each case as a model estimate.",
+  de: "Euro-Erlös in den Beispieltagen nur bei ×1 (Beispielspeicher wie Bollingstedt), als Modellschätzung. Auf /live bedeutet ×1 die heutige Flotte. Ab ×2 keine Euro-Werte in der Oberfläche.",
+  en: "Euro revenue in the example days only at ×1 (example battery like Bollingstedt), as a model estimate. On /live, ×1 is today’s fleet. From ×2, no euro figures in the UI.",
 } as const;
