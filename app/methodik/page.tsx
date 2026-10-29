@@ -1,10 +1,20 @@
 import { MethodikDocs } from "@/components/methodik/MethodikDocs";
+import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 
 export const metadata = {
   title: "Methodik",
-  description: "Assumptions, formulas, and limits of the SpeicherPilot site model.",
+  description:
+    "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells. Nachvollziehbar für Live, Standort und Szenarien.",
 };
 
-export default function MethodikPage() {
-  return <MethodikDocs />;
+export default async function MethodikPage() {
+  const fleet = await loadLargeBatteryFleet();
+  const fleetStand = fleet
+    ? {
+        powerGw: fleet.powerGw,
+        energyGwh: fleet.energyGwh,
+        standLabel: fleet.updatedLabel,
+      }
+    : null;
+  return <MethodikDocs fleet={fleetStand} />;
 }

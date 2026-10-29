@@ -82,13 +82,26 @@ export function HomeRing({
   const story = stories[1];
   const explained = exampleStories?.[1] ?? story;
   const quiet = !dayHasSurplus(story.surplusGwh);
+  const lastSurplusDay =
+    quiet && story.dateBerlin === todayKey && explained && dayHasSurplus(explained.surplusGwh)
+      ? explained
+      : null;
   const sentence = heroSentence({ dateBerlin: story.dateBerlin, todayKey, surplusGwh: story.surplusGwh });
   const quietTitle = quietDayTitle({
     dateBerlin: story.dateBerlin,
     todayKey,
     dayOpen: story.dateBerlin === todayKey && (until !== null || !story.eveningPublished),
   });
-  const title = quiet ? (language === "de" ? quietTitle.de : quietTitle.en) : language === "de" ? sentence.de : sentence.en;
+  const ringLabel =
+    lastSurplusDay && lastSurplusDay.dateBerlin !== todayKey
+      ? tx("Heute noch kein Überschuss", "No surplus yet today")
+      : quiet
+        ? language === "de"
+          ? quietTitle.de
+          : quietTitle.en
+        : language === "de"
+          ? sentence.de
+          : sentence.en;
   const before = story.eveningPeakBeforeGw;
   const after = story.eveningPeakAfterGw;
   const peak = eveningPeakStat(before, after, language);
@@ -116,12 +129,24 @@ export function HomeRing({
           {leading}
           <div className="day-hero-layout">
             <p className="day-kicker day-order-kicker">{kicker}</p>
-            <h1 id="home-day" className="day-title day-order-title">{title}</h1>
+            <h1 id="home-day" className="day-title day-order-title">
+              {lastSurplusDay && lastSurplusDay.dateBerlin !== todayKey ? (
+                <>
+                  {tx("Heute noch kein Überschuss, zuletzt am ", "No surplus yet today, last on ")}
+                  <Link className="underline underline-offset-[3px]" href={`/live?tag=${lastSurplusDay.dateBerlin}`}>
+                    {formatBerlinDayLabel(lastSurplusDay.dateBerlin)}
+                  </Link>
+                  .
+                </>
+              ) : (
+                ringLabel
+              )}
+            </h1>
             <div className="day-order-ring">
-              <figure>
+              <figure className={quiet ? "day-ring-wrap-quiet" : undefined}>
                 <DayRing
                   points={story.points}
-                  label={title}
+                  label={ringLabel}
                   description={description}
                   callouts={callouts}
                   chargedGwh={story.chargedGwh}
@@ -155,7 +180,11 @@ export function HomeRing({
             <div className="day-order-controls">
               <StatTrio
                 items={[
-                  { value: `≈ ${formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1)}`, unit: "h", label: tx("Mittagsüberschuss", "Midday surplus") },
+                  {
+                    value: quiet ? "—" : `≈ ${formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1)}`,
+                    unit: quiet ? undefined : "h",
+                    label: tx("Mittagsüberschuss", "Midday surplus"),
+                  },
                   {
                     value: peak?.value ?? "—",
                     unit: peak ? "GW" : undefined,
@@ -206,10 +235,10 @@ export function HomeRing({
               <span className="day-door-title">{tx("Welche Speichergröße passt an meinen Standort?", "Which storage size fits my site?")}</span>
               <span className="day-door-go">{tx("Standort rechnen →", "Size a site →")}</span>
             </Link>
-            <Link className="day-door" href={sitePath("netz")}>
+            <Link className="day-door" href="/szenarien">
               <span className="day-kicker">{tx("Für Netzbetreiber", "For grid operators")}</span>
-              <span className="day-door-title">{tx("Bleibt der Anschluss unter der Grenze?", "Does the connection stay under the limit?")}</span>
-              <span className="day-door-go">{tx("Anschluss prüfen →", "Check the connection →")}</span>
+              <span className="day-door-title">{tx("Welche Grenze trägt der Anschluss?", "What limit does the connection carry?")}</span>
+              <span className="day-door-go">{tx("Szenarien rechnen →", "Run scenarios →")}</span>
             </Link>
           </div>
         </div>

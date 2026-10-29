@@ -85,8 +85,8 @@ export function HeuteHero({ heute }: { heute: HeuteImNetz }) {
             >
               {tx("Eigenen Standort rechnen →", "Size your own site →")}
             </Link>
-            <Link href="/site?view=netz" className="text-sm font-medium underline underline-offset-[3px]">
-              {tx("Anschluss prüfen", "Check a connection")}
+            <Link href="/szenarien" className="text-sm font-medium underline underline-offset-[3px]">
+              {tx("Szenarien rechnen", "Run scenarios")}
             </Link>
             <Link href="/live" className="text-sm text-muted-foreground underline underline-offset-[3px]">
               {tx("Alle Zahlen", "All figures")}

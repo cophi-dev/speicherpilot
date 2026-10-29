@@ -5840,6 +5840,104 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   line-height: 1.35;
 }
 .mix-surplus .mix-head h2 { font-size: clamp(26px, 4vw, 34px); font-weight: 500; }
+.mix-surplus-slider-kicker {
+  margin: 0 0 8px;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mix-muted);
+}
+.mix-surplus-empty {
+  margin: 0 0 20px;
+  max-width: 68ch;
+  font-size: 17px;
+  line-height: 1.5;
+}
+.mix-surplus-curtailment-note {
+  margin: -8px 0 20px;
+  max-width: 68ch;
+}
+.mix-surplus-table .mix-num-col {
+  text-align: right;
+  padding-left: 24px;
+}
+.mix-surplus-table th,
+.mix-surplus-table td {
+  font-variant-numeric: tabular-nums;
+}
+.mix-surplus-row-selected {
+  background: rgb(15 23 42 / 6%);
+  box-shadow: inset 3px 0 0 #0e9a72;
+}
+.dark .mix-surplus-row-selected {
+  background: rgb(233 238 242 / 6%);
+  box-shadow: inset 3px 0 0 #7dffe6;
+}
+.mix-surplus-chip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--mix-guide);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  vertical-align: middle;
+}
+.mix-surplus-cards {
+  display: none;
+}
+@media (max-width: 479px) {
+  .mix-surplus-table-wrap .mix-surplus-table {
+    display: none;
+  }
+  .mix-surplus-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mix-surplus-card {
+    border: 1px solid var(--mix-guide);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .mix-surplus-card.is-selected {
+    background: rgb(15 23 42 / 6%);
+    box-shadow: inset 3px 0 0 #0e9a72;
+  }
+  .dark .mix-surplus-card.is-selected {
+    background: rgb(233 238 242 / 6%);
+    box-shadow: inset 3px 0 0 #7dffe6;
+  }
+  .mix-surplus-card-factor {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .mix-surplus-card-line {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+}
+.day-ring-wrap-quiet .day-ring-frame {
+  opacity: 0.4;
+}
+.site-shell-skip:focus {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 80;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 0 0 2px var(--ring);
+}
 .mix-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; }
 .mix-head h2, .mix-soc h3, .mix-period { margin: 0; }
 .mix-finding p { max-width: 68ch; margin: 0 0 8px; font-size: 18px; line-height: 1.45; }

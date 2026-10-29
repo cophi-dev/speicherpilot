@@ -1,17 +1,22 @@
 import "server-only";
 
-import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { formatBerlinDateKeyFromUtcDate, prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { buildLiveReadings, type StripReading } from "@/lib/liveStrip";
 import { choosePublishedDay, chooseStorageDay, dayIsUsable, type LiveDispatchInput, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
 import { loadDayAheadDay, loadFreiburgFrequency, loadGermanyPower } from "@/lib/loadGermanyPower";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { getGermanyEnergyFlowForBerlinRange } from "@/lib/energyChartsApi";
 import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
-import { buildSurplusDayReport, type SurplusDayReport } from "@/lib/surplusDaySimulation";
+import {
+  buildSurplusDayReport,
+  isPublishedFullBerlinDay,
+  type SurplusDayReport,
+} from "@/lib/surplusDaySimulation";
 import { buildPowerBoard, type PowerBoardModel } from "@/lib/powerBoard";
 import { parseMixRange, residualDaysFromSlots } from "@/lib/powerMix";
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
 import type { ResidualDay } from "@/lib/windSolarResidual";
+import { pickSurplusDay } from "@/lib/windSolarResidual";
 
 export type GermanyView = {
   todayKey: string;
@@ -49,6 +54,40 @@ function untilOf(day: ResidualDay | null, todayKey: string): string | null {
     return null;
   }
   return uniqueQuarterLabels([last.timestampIso])[0] ?? null;
+}
+
+async function loadSurplusDayReportForView(
+  days: ResidualDay[],
+  todayKey: string,
+  startKey: string,
+  fleet: LiveFleetPublic,
+  now: Date
+): Promise<SurplusDayReport | null> {
+  const lastSurplus = pickSurplusDay(days, todayKey)?.day.dateBerlin ?? null;
+  let key = startKey;
+  for (let step = 0; step < 21; step += 1) {
+    try {
+      const flow = await getGermanyEnergyFlowForBerlinRange(
+        resolveGermanyEnergyFlowBerlinRangeForDate(key, now),
+        now
+      );
+      if (flow && isPublishedFullBerlinDay(flow)) {
+        return buildSurplusDayReport(
+          flow,
+          { powerMw: fleet.powerMw, energyMwh: fleet.energyMwh },
+          { lastSurplusDateBerlin: lastSurplus }
+        );
+      }
+    } catch {
+      /* try older day */
+    }
+    const older = prevBerlinDateKey(key);
+    if (older === key) {
+      break;
+    }
+    key = older;
+  }
+  return null;
 }
 
 export async function loadGermanyView(
@@ -98,20 +137,7 @@ export async function loadGermanyView(
 
   let surplusDay: SurplusDayReport | null = null;
   if (parseMixRange(requestedRange) === "tag" && publicFleet) {
-    try {
-      const flow = await getGermanyEnergyFlowForBerlinRange(
-        resolveGermanyEnergyFlowBerlinRangeForDate(endDate, now),
-        now
-      );
-      if (flow) {
-        surplusDay = buildSurplusDayReport(flow, {
-          powerMw: publicFleet.powerMw,
-          energyMwh: publicFleet.energyMwh,
-        });
-      }
-    } catch {
-      surplusDay = null;
-    }
+    surplusDay = await loadSurplusDayReportForView(days, todayKey, endDate, publicFleet, now);
   }
 
   return {

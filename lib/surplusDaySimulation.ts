@@ -1,39 +1,35 @@
 import type { GermanyDispatchSlot, GermanyDispatchSlotsResponse } from "@/lib/energyChartsApi";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
-import {
-  borderCoupledBatteryChargeMw,
-  simulatePracticalDispatchAtCapacity,
-} from "@/lib/optimalBessCapacity";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
+import type { ResidualSlot } from "@/lib/windSolarResidual";
 
 const QUARTER_HOUR_H = 0.25;
+const DISCHARGE_HOUR = 17;
+const SATURATION_SHARE = 0.995;
 
 export type SurplusDayObserved = {
   dateBerlin: string;
-  /** Wind plus solar above load (GWh), when the feed allows it. */
-  renewableSurplusGwh: number;
-  /** Structural generation minus load surplus (GWh). */
-  structuralSurplusGwh: number;
+  /** Sum of max(0, wind on land + offshore + solar − load) · ¼ h (GWh). */
+  windSolarSurplusGwh: number;
   observedExportGwh: number | null;
-  curtailmentGwh: number | null;
-  curtailmentStatus: GermanyDispatchSlotsResponse["curtailmentStatus"];
-  hasCrossBorder: boolean;
+  /** Berlin calendar day with wind+solar surplus for empty-state link. */
+  lastSurplusDateBerlin: string | null;
 };
 
 export type SurplusDayFactorResult = {
   factor: LiveDispatchFactor;
   nameplateEnergyMwh: number;
   nameplatePowerMw: number;
-  /** Energy taken from surplus and curtailment (MWh). */
   absorbedMwh: number;
   absorbedGwh: number;
   remainingSurplusMwh: number;
   remainingSurplusGwh: number;
+  dischargedMwh: number;
+  dischargedGwh: number;
   observedExportGwh: number | null;
   simulatedExportGwh: number | null;
   exportDeltaGwh: number | null;
-  remainingCurtailmentGwh: number | null;
   saturationNote: boolean;
 };
 
@@ -47,31 +43,16 @@ export type FleetNameplate = {
   energyMwh: number;
 };
 
-function renewableSurplusMwh(slot: GermanyDispatchSlot): number {
-  if (slot.renewableGenerationMw !== null && Number.isFinite(slot.renewableGenerationMw)) {
-    return Math.max(0, slot.renewableGenerationMw - slot.loadMw) * QUARTER_HOUR_H;
-  }
-  return Math.max(0, slot.totalGenerationMw - slot.loadMw) * QUARTER_HOUR_H;
-}
-
-function structuralSurplusMwh(slot: GermanyDispatchSlot): number {
-  return Math.max(0, slot.totalGenerationMw - slot.loadMw) * QUARTER_HOUR_H;
-}
-
-function curtailedMwh(slot: GermanyDispatchSlot): number {
-  const mw = slot.curtailmentMw;
-  if (mw === null || mw === undefined || !Number.isFinite(mw) || mw <= 0) {
+export function windSolarSurplusMwhForSlot(slot: GermanyDispatchSlot): number {
+  const windSolarMw = slot.windSolarMw;
+  if (windSolarMw === null || windSolarMw === undefined || !Number.isFinite(windSolarMw)) {
     return 0;
   }
-  return mw * QUARTER_HOUR_H;
+  return Math.max(0, windSolarMw - slot.loadMw) * QUARTER_HOUR_H;
 }
 
-export function sumRenewableSurplusGwh(slots: GermanyDispatchSlot[]): number {
-  return slots.reduce((sum, slot) => sum + renewableSurplusMwh(slot), 0) / 1000;
-}
-
-export function sumStructuralSurplusGwh(slots: GermanyDispatchSlot[]): number {
-  return slots.reduce((sum, slot) => sum + structuralSurplusMwh(slot), 0) / 1000;
+export function sumWindSolarSurplusGwh(slots: GermanyDispatchSlot[]): number {
+  return slots.reduce((sum, slot) => sum + windSolarSurplusMwhForSlot(slot), 0) / 1000;
 }
 
 export function sumObservedExportGwh(slots: GermanyDispatchSlot[]): number | null {
@@ -88,137 +69,188 @@ export function sumObservedExportGwh(slots: GermanyDispatchSlot[]): number | nul
   return has ? mwh / 1000 : null;
 }
 
-export function sumCurtailmentGwh(
-  slots: GermanyDispatchSlot[],
-  status: GermanyDispatchSlotsResponse["curtailmentStatus"]
-): number | null {
-  if (status !== "loaded") {
-    return null;
-  }
-  const mwh = slots.reduce((sum, slot) => sum + curtailedMwh(slot), 0);
-  return mwh / 1000;
+export function isPublishedFullBerlinDay(flow: GermanyDispatchSlotsResponse): boolean {
+  return flow.pointFractionOfDay >= 0.999 || flow.samplePoints >= 92;
 }
 
-type BorderTotals = {
-  observedExportMwh: number;
-  simulatedExportMwh: number;
-  exportDeltaMwh: number;
-};
-
-function borderTotalsForDispatch(
-  slots: GermanyDispatchSlot[],
-  dispatch: ReturnType<typeof simulatePracticalDispatchAtCapacity>
-): BorderTotals | null {
-  let has = false;
-  let observedExportMwh = 0;
-  let simulatedExportMwh = 0;
-  for (let i = 0; i < slots.length; i += 1) {
-    const slot = slots[i]!;
-    const observedMw = slot.crossBorderElectricityTradingMw;
-    if (observedMw === null || observedMw === undefined || !Number.isFinite(observedMw)) {
-      continue;
-    }
-    has = true;
-    const chargeMw = dispatch[i]?.chargeMw ?? 0;
-    const dischargeMw = dispatch[i]?.dischargeMw ?? 0;
-    const borderChargeMw = borderCoupledBatteryChargeMw(slot, chargeMw);
-    const simulatedMw = observedMw + borderChargeMw - dischargeMw;
-    observedExportMwh += Math.max(0, -observedMw) * QUARTER_HOUR_H;
-    simulatedExportMwh += Math.max(0, -simulatedMw) * QUARTER_HOUR_H;
-  }
-  if (!has) {
-    return null;
-  }
-  return {
-    observedExportMwh,
-    simulatedExportMwh,
-    exportDeltaMwh: simulatedExportMwh - observedExportMwh,
-  };
-}
-
-function usableEnergyMwh(nameplateMwh: number): number {
+function usableCapMwh(nameplateMwh: number): number {
   return Math.max(0, nameplateMwh * (CHAIN_SOC_MAX - CHAIN_SOC_MIN));
 }
 
-function initialSocMwh(nameplateMwh: number): number {
-  return Math.max(0, nameplateMwh * CHAIN_SOC_MIN);
+function toResidualSlots(slots: GermanyDispatchSlot[]): ResidualSlot[] {
+  return slots
+    .filter(
+      (slot) =>
+        slot.windOnshoreMw !== null &&
+        slot.windOffshoreMw !== null &&
+        slot.solarMw !== null &&
+        Number.isFinite(slot.windOnshoreMw) &&
+        Number.isFinite(slot.windOffshoreMw) &&
+        Number.isFinite(slot.solarMw)
+    )
+    .map((slot) => ({
+      timestampIso: slot.timestampIso,
+      hourBerlin: slot.hourBerlin,
+      minuteBerlin: 0,
+      loadMw: slot.loadMw,
+      windMw: (slot.windOnshoreMw ?? 0) + (slot.windOffshoreMw ?? 0),
+      solarMw: slot.solarMw ?? 0,
+    }));
+}
+
+function eveningDischargeMw(slots: ResidualSlot[], powerMw: number, deliverableMwh: number): number[] {
+  const dischargeMw = slots.map(() => 0);
+  const evening = slots
+    .map((slot, index) => ({
+      index,
+      residual: slot.loadMw - slot.windMw - slot.solarMw,
+    }))
+    .filter((entry) => slots[entry.index].hourBerlin >= DISCHARGE_HOUR && entry.residual > 0);
+  if (evening.length === 0 || deliverableMwh <= 1e-9) {
+    return dischargeMw;
+  }
+  const peakMw = Math.max(...evening.map((entry) => entry.residual));
+  let lo = 0;
+  let hi = peakMw;
+  const feasible = (levelMw: number) => {
+    let needMwh = 0;
+    for (const entry of evening) {
+      const cutMw = Math.max(0, entry.residual - levelMw);
+      if (cutMw > powerMw + 1e-6) {
+        return false;
+      }
+      needMwh += cutMw * QUARTER_HOUR_H;
+    }
+    return needMwh <= deliverableMwh + 1e-6;
+  };
+  if (!feasible(hi)) {
+    return dischargeMw;
+  }
+  for (let step = 0; step < 48; step += 1) {
+    const mid = (lo + hi) / 2;
+    if (feasible(mid)) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  for (const entry of evening) {
+    dischargeMw[entry.index] = Math.max(0, entry.residual - hi);
+  }
+  return dischargeMw;
 }
 
 export function evaluateSurplusDayFactor(
   slots: GermanyDispatchSlot[],
   fleet: FleetNameplate,
-  factor: LiveDispatchFactor,
-  options?: { initialSocMwh?: number }
+  factor: LiveDispatchFactor
 ): SurplusDayFactorResult {
   const nameplateEnergyMwh = fleet.energyMwh * factor;
-  const nameplatePowerMw = fleet.powerMw * factor;
-  const usableCapMwh = usableEnergyMwh(nameplateEnergyMwh);
-  const startSoc =
-    options?.initialSocMwh !== undefined ? Math.min(usableCapMwh, Math.max(0, options.initialSocMwh)) : initialSocMwh(nameplateEnergyMwh);
+  const powerMw = fleet.powerMw * factor;
+  const capMwh = usableCapMwh(nameplateEnergyMwh);
+  let socMwh = 0;
+  let absorbedMwh = 0;
+  let dischargedToGridMwh = 0;
+  let observedExportMwh = 0;
+  let simulatedExportMwh = 0;
+  const totalSurplusMwh = slots.reduce((sum, slot) => sum + windSolarSurplusMwhForSlot(slot), 0);
 
-  const dispatch =
-    usableCapMwh > 0 && nameplatePowerMw > 0
-      ? simulatePracticalDispatchAtCapacity(slots, usableCapMwh, {
-          maxPowerMw: nameplatePowerMw,
-          initialSocMwh: startSoc,
-          resetDailyByBerlin: true,
-        })
+  const residualSlots = toResidualSlots(slots);
+  const dischargePlan =
+    capMwh > 0 && powerMw > 0 && residualSlots.length > 0
+      ? eveningDischargeMw(residualSlots, powerMw, capMwh * ROUND_TRIP_EFFICIENCY)
       : [];
 
-  let absorbedMwh = 0;
-  let absorbedCurtailmentMwh = 0;
-  let totalCurtailmentMwh = 0;
+  let residualIndex = 0;
+  for (const slot of slots) {
+    const exportObsMw =
+      slot.crossBorderElectricityTradingMw !== null &&
+      slot.crossBorderElectricityTradingMw !== undefined &&
+      Number.isFinite(slot.crossBorderElectricityTradingMw)
+        ? Math.max(0, -slot.crossBorderElectricityTradingMw)
+        : 0;
+    observedExportMwh += exportObsMw * QUARTER_HOUR_H;
 
-  for (let i = 0; i < slots.length; i += 1) {
-    const slot = slots[i]!;
-    const structural = structuralSurplusMwh(slot);
-    const curt = curtailedMwh(slot);
-    totalCurtailmentMwh += curt;
-    const chargeMwh = (dispatch[i]?.chargeMw ?? 0) * QUARTER_HOUR_H;
-    absorbedMwh += chargeMwh;
-    if (chargeMwh > 0 && structural + curt > 0 && curt > 0) {
-      absorbedCurtailmentMwh += Math.min(curt, chargeMwh * (curt / (structural + curt)));
+    let chargeMw = 0;
+    if (slot.hourBerlin < DISCHARGE_HOUR && capMwh > 0 && powerMw > 0) {
+      const surplusMw = windSolarSurplusMwhForSlot(slot) / QUARTER_HOUR_H;
+      const headroomMw = Math.max(0, capMwh - socMwh) / QUARTER_HOUR_H;
+      chargeMw = Math.min(surplusMw, powerMw, headroomMw);
+      const chargeMwh = chargeMw * QUARTER_HOUR_H;
+      socMwh += chargeMwh;
+      absorbedMwh += chargeMwh;
+    }
+
+    simulatedExportMwh += Math.max(0, exportObsMw - chargeMw) * QUARTER_HOUR_H;
+
+    const residualSlot =
+      slot.windOnshoreMw !== null &&
+      slot.windOffshoreMw !== null &&
+      slot.solarMw !== null &&
+      residualIndex < residualSlots.length &&
+      residualSlots[residualIndex]?.timestampIso === slot.timestampIso
+        ? residualSlots[residualIndex]
+        : null;
+    if (residualSlot && slot.hourBerlin >= DISCHARGE_HOUR) {
+      const plannedMw = dischargePlan[residualIndex] ?? 0;
+      const roomMw = (Math.max(0, socMwh) * ROUND_TRIP_EFFICIENCY) / QUARTER_HOUR_H;
+      const usedMw = Math.min(plannedMw, powerMw, roomMw);
+      if (usedMw > 0) {
+        const fromBatteryMwh = (usedMw * QUARTER_HOUR_H) / ROUND_TRIP_EFFICIENCY;
+        socMwh = Math.max(0, socMwh - fromBatteryMwh);
+        dischargedToGridMwh += usedMw * QUARTER_HOUR_H;
+      }
+    }
+    if (residualSlot) {
+      residualIndex += 1;
     }
   }
 
-  const structuralSurplusMwhTotal = slots.reduce((sum, slot) => sum + structuralSurplusMwh(slot), 0);
-  const structuralAbsorbedMwh = Math.max(0, absorbedMwh - absorbedCurtailmentMwh);
-  const remainingSurplusMwh = Math.max(0, structuralSurplusMwhTotal - structuralAbsorbedMwh);
-  const border = borderTotalsForDispatch(slots, dispatch);
-  const remainingCurtailmentMwh = Math.max(0, totalCurtailmentMwh - absorbedCurtailmentMwh);
+  absorbedMwh = Math.min(absorbedMwh, totalSurplusMwh + 1e-6);
 
   return {
     factor,
     nameplateEnergyMwh,
-    nameplatePowerMw,
+    nameplatePowerMw: powerMw,
     absorbedMwh,
     absorbedGwh: absorbedMwh / 1000,
-    remainingSurplusMwh,
-    remainingSurplusGwh: remainingSurplusMwh / 1000,
-    observedExportGwh: border ? border.observedExportMwh / 1000 : null,
-    simulatedExportGwh: border ? border.simulatedExportMwh / 1000 : null,
-    exportDeltaGwh: border ? border.exportDeltaMwh / 1000 : null,
-    remainingCurtailmentGwh: totalCurtailmentMwh > 0 ? remainingCurtailmentMwh / 1000 : null,
+    remainingSurplusMwh: Math.max(0, totalSurplusMwh - absorbedMwh),
+    remainingSurplusGwh: Math.max(0, totalSurplusMwh - absorbedMwh) / 1000,
+    dischargedMwh: dischargedToGridMwh,
+    dischargedGwh: dischargedToGridMwh / 1000,
+    observedExportGwh: observedExportMwh / 1000,
+    simulatedExportGwh: simulatedExportMwh / 1000,
+    exportDeltaGwh: (simulatedExportMwh - observedExportMwh) / 1000,
     saturationNote: factor >= 5,
   };
 }
 
+export function surplusSaturationFactor(report: SurplusDayReport): LiveDispatchFactor | null {
+  const surplusGwh = report.observed.windSolarSurplusGwh;
+  if (surplusGwh <= 0) {
+    return null;
+  }
+  for (const factor of LIVE_DISPATCH_FACTORS) {
+    if (report.factors[factor].absorbedGwh + 1e-6 >= surplusGwh * SATURATION_SHARE) {
+      return factor;
+    }
+  }
+  return null;
+}
+
 export function buildSurplusDayReport(
   flow: GermanyDispatchSlotsResponse,
-  fleet: FleetNameplate | null
+  fleet: FleetNameplate | null,
+  options?: { lastSurplusDateBerlin?: string | null }
 ): SurplusDayReport | null {
   if (!flow.slots.length) {
     return null;
   }
-  const status = flow.curtailmentStatus ?? "unavailable_upstream";
   const observed: SurplusDayObserved = {
     dateBerlin: flow.dateBerlin,
-    renewableSurplusGwh: sumRenewableSurplusGwh(flow.slots),
-    structuralSurplusGwh: sumStructuralSurplusGwh(flow.slots),
+    windSolarSurplusGwh: sumWindSolarSurplusGwh(flow.slots),
     observedExportGwh: sumObservedExportGwh(flow.slots),
-    curtailmentGwh: sumCurtailmentGwh(flow.slots, status),
-    curtailmentStatus: status,
-    hasCrossBorder: sumObservedExportGwh(flow.slots) !== null,
+    lastSurplusDateBerlin: options?.lastSurplusDateBerlin ?? null,
   };
 
   const emptyFactor = (factor: LiveDispatchFactor): SurplusDayFactorResult => ({
@@ -227,12 +259,13 @@ export function buildSurplusDayReport(
     nameplatePowerMw: 0,
     absorbedMwh: 0,
     absorbedGwh: 0,
-    remainingSurplusMwh: observed.structuralSurplusGwh * 1000,
-    remainingSurplusGwh: observed.structuralSurplusGwh,
+    remainingSurplusMwh: observed.windSolarSurplusGwh * 1000,
+    remainingSurplusGwh: observed.windSolarSurplusGwh,
+    dischargedMwh: 0,
+    dischargedGwh: 0,
     observedExportGwh: observed.observedExportGwh,
     simulatedExportGwh: observed.observedExportGwh,
     exportDeltaGwh: 0,
-    remainingCurtailmentGwh: observed.curtailmentGwh,
     saturationNote: factor >= 5,
   });
 

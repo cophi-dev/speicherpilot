@@ -83,16 +83,36 @@ function FitTable({
   );
 }
 
-export function MethodikUeberblick({ language }: { language: AppLanguage }) {
+export type MethodikFleetStand = {
+  powerGw: number;
+  energyGwh: number;
+  standLabel: { de: string; en: string };
+};
+
+export function MethodikUeberblick({
+  language,
+  fleet,
+}: {
+  language: AppLanguage;
+  fleet?: MethodikFleetStand | null;
+}) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const pct = (value: number) => formatQuantity(value * 100, language, 0);
   const rte = pct(ROUND_TRIP_EFFICIENCY);
   const soc = `${pct(CHAIN_SOC_MIN)}–${pct(CHAIN_SOC_MAX)}`;
   const band = `${formatQuantity(VOLTAGE_BAND.min, language, 3)}–${formatQuantity(VOLTAGE_BAND.max, language, 3)}`;
-  const power = formatQuantity(snapshot.powerGw, language, 1);
-  const energy = formatQuantity(snapshot.energyGwh, language, 1);
-  const powerExact = formatQuantity(snapshot.powerGw, language, 2);
-  const energyExact = formatQuantity(snapshot.energyGwh, language, 2);
+  const powerGw = fleet?.powerGw ?? snapshot.powerGw;
+  const energyGwh = fleet?.energyGwh ?? snapshot.energyGwh;
+  const standLabel =
+    fleet !== undefined && fleet !== null
+      ? language === "de"
+        ? fleet.standLabel.de
+        : fleet.standLabel.en
+      : snapshot.standLabel;
+  const power = formatQuantity(powerGw, language, 1);
+  const energy = formatQuantity(energyGwh, language, 1);
+  const powerExact = formatQuantity(powerGw, language, 2);
+  const energyExact = formatQuantity(energyGwh, language, 2);
   const steps = LIVE_DISPATCH_FACTORS.map((factor) => `×${factor}`).join(", ");
   const peak = Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100);
   const share = Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100);
@@ -163,8 +183,8 @@ export function MethodikUeberblick({ language }: { language: AppLanguage }) {
       value: `${power} / ${energy}`,
       unit: "GW / GWh",
       why: tx(
-        `Battery Charts aus dem Marktstammdatenregister, Stand ${snapshot.standLabel}. Die Seite rundet ${powerExact} GW und ${energyExact} GWh. Die Startseite kann bei Live-Abruf einen neueren Stand zeigen.`,
-        `Battery Charts from the Marktstammdatenregister, as of ${snapshot.standLabel}. The page rounds ${powerExact} GW and ${energyExact} GWh. The homepage can show a newer stand when it loads live data.`
+        `Battery Charts aus dem Marktstammdatenregister, Stand ${standLabel}. Die Seite zeigt ${powerExact} GW und ${energyExact} GWh (gleiche Quelle wie Start und Live).`,
+        `Battery Charts from the Marktstammdatenregister, as of ${standLabel}. The page shows ${powerExact} GW and ${energyExact} GWh (same source as start and live).`
       ),
       uncertainty: tx("Der Bestand ändert sich mit dem Register.", "The stock changes with the register."),
     },

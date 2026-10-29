@@ -416,7 +416,7 @@ export function SitePlanner() {
           {view === "projekt" ? tx("Perspektive · Speicher", "Perspective · storage") : tx("Perspektive · Netzbetreiber", "Perspective · grid operator")}
         </p>
         <PlannerTitle className="mt-1.5 text-[28px] leading-tight font-medium tracking-[-0.015em] md:text-[36px]">
-          {view === "projekt" ? tx("Speicher planen oder betreiben", "Plan or operate storage") : tx("Anschluss prüfen", "Check a connection")}
+          {view === "projekt" ? tx("Speicher planen oder betreiben", "Plan or operate storage") : tx("Szenarien rechnen", "Run scenarios")}
         </PlannerTitle>
         <p className="mt-2 max-w-[68ch] text-muted-foreground">
           {view === "projekt"

@@ -1,18 +1,25 @@
 "use client";
 
-import { useMemo } from "react";
+import Link from "next/link";
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
-import type { LiveDispatchFactor } from "@/lib/liveFleetDispatch";
+import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import type { SurplusDayReport } from "@/lib/surplusDaySimulation";
+
+const SMARD_QUARTERLY_URL = "https://www.smard.de/home/marktdaten/download-marktdaten/marktdaten-strom/";
 
 function gwh(value: number | null, language: "de" | "en", digits = 2) {
   if (value === null || !Number.isFinite(value)) {
-    return language === "de" ? "nicht veröffentlicht" : "not published";
+    return "—";
   }
-  return `${formatQuantity(value, language, digits)} GWh`;
+  return `${formatQuantity(value, language, digits)}\u00a0GWh`;
+}
+
+function formatBerlinLabel(dateBerlin: string) {
+  const dateParts = dateBerlin.split("-");
+  return dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}` : dateBerlin;
 }
 
 function Metric({
@@ -27,7 +34,7 @@ function Metric({
   return (
     <div className="mix-surplus-metric">
       <p className="mix-surplus-metric-label">{label}</p>
-      <p className="mix-surplus-metric-value num">{value}</p>
+      <p className="mix-surplus-metric-value num tabular-nums">{value}</p>
       {detail ? <p className="mix-surplus-metric-detail">{detail}</p> : null}
     </div>
   );
@@ -49,147 +56,192 @@ export function SurplusDaySimulation({
   const step = report?.factors[factor] ?? null;
   const observed = report?.observed ?? null;
 
-  const curtailmentText = useMemo(() => {
-    if (!observed) {
-      return null;
-    }
-    if (observed.curtailmentStatus === "loaded" && observed.curtailmentGwh !== null) {
-      return gwh(observed.curtailmentGwh, language);
-    }
-    return language === "de"
-      ? "Abregelungsdaten für diesen Tag noch nicht veröffentlicht"
-      : "Curtailment data for this day are not published yet";
-  }, [language, observed]);
+  const lastSurplusLink =
+    observed?.lastSurplusDateBerlin ? (
+      <Link className="underline underline-offset-[3px]" href={`/live?tag=${observed.lastSurplusDateBerlin}`}>
+        {formatBerlinLabel(observed.lastSurplusDateBerlin)}
+      </Link>
+    ) : null;
 
   if (!report || !observed || !step) {
     return null;
   }
 
-  const dateParts = observed.dateBerlin.split("-");
-  const dateLabel =
-    dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}` : observed.dateBerlin;
-  const satNote =
-    factor >= 5
-      ? tx("Obergrenze ohne Preiswirkung", "Upper bound without price effect")
-      : null;
+  const dateLabel = formatBerlinLabel(observed.dateBerlin);
+  const noSurplus = observed.windSolarSurplusGwh <= 0.000_5;
+
   const exportSim =
     step.simulatedExportGwh !== null && step.observedExportGwh !== null
       ? tx(
-          `Export beobachtet ${gwh(step.observedExportGwh, language)}, in der Modellschätzung ${gwh(step.simulatedExportGwh, language)} (Δ ${formatQuantity(step.exportDeltaGwh ?? 0, language, 2)} GWh).`,
-          `Export observed ${gwh(step.observedExportGwh, language, 2)}, in the model estimate ${gwh(step.simulatedExportGwh, language, 2)} (Δ ${formatQuantity(step.exportDeltaGwh ?? 0, language, 2)} GWh).`
+          `Export beobachtet ${gwh(step.observedExportGwh, language)}, in der Modellschätzung ${gwh(step.simulatedExportGwh, language)} (Δ ${formatQuantity(step.exportDeltaGwh ?? 0, language, 2)}\u00a0GWh).`,
+          `Export observed ${gwh(step.observedExportGwh, language)}, in the model estimate ${gwh(step.simulatedExportGwh, language)} (Δ ${formatQuantity(step.exportDeltaGwh ?? 0, language, 2)}\u00a0GWh).`
         )
       : tx(
           "Grenzhandel ist für diesen Tag in der Reihe nicht vollständig.",
           "Cross-border trading is not complete in the series for this day."
         );
 
+  const curtailmentDetail =
+    language === "de" ? (
+      <>
+        Tageswerte veröffentlicht niemand. Zuletzt bekannt: 2. Quartal 2026, 2,102&nbsp;GWh in Deutschland (
+        <a className="underline underline-offset-[3px]" href={SMARD_QUARTERLY_URL}>
+          Bundesnetzagentur/SMARD
+        </a>
+        , veröffentlicht 12.10.2026)
+      </>
+    ) : (
+      <>
+        No daily figures are published. Last known: Q2 2026, 2.102&nbsp;GWh in Germany (
+        <a className="underline underline-offset-[3px]" href={SMARD_QUARTERLY_URL}>
+          Bundesnetzagentur/SMARD
+        </a>
+        , published 12 Oct 2026)
+      </>
+    );
+
   return (
     <section className="day-paper mix-board mix-surplus" aria-labelledby="surplus-day-heading">
       <div className="day-hero-inner mix-inner">
         <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">
-          {tx("Deutschland", "Germany")} · {dateLabel}
+          {tx("Deutschland", "Germany")} · {dateLabel} ({tx("ganzer Tag", "full day")})
         </p>
         <div className="mix-head">
           <h2 id="surplus-day-heading">{tx("Überschuss, Export und Speicher", "Surplus, export and storage")}</h2>
         </div>
         <p className="mix-agg max-w-[68ch]">
           {tx(
-            "Wo Wind und Sonne über der Last liegen, entsteht Überschuss. Ein Teil geht über die Grenze, ein Teil wird abgeregelt. Die Tabelle zeigt, wie viel die modellierte Flotte bei ×1 bis ×10 aufnehmen könnte und wie sich Export und Abregelung in der Modellschätzung verringern.",
-            "Where wind and solar sit above load, surplus appears. Some leaves via the border, some is curtailed. The table shows how much the modeled fleet at ×1 to ×10 could absorb and how export and curtailment fall in the model estimate."
+            "Wo Wind und Sonne über der Last liegen, entsteht Überschuss. Ein Teil geht über die Grenze. Die Tabelle zeigt, wie viel die modellierte Flotte bei ×1 bis ×10 aufnehmen könnte und wie sich der Export in der Modellschätzung verringert.",
+            "Where wind and solar sit above load, surplus appears. Some leaves via the border. The table shows how much the modeled fleet at ×1 to ×10 could absorb and how export falls in the model estimate."
           )}{" "}
           <GlossaryTip id="modellschaetzung" language={language} />
         </p>
 
-        <div className="mix-surplus-grid" role="group" aria-label={tx("Beobachteter Tag", "Observed day")}>
-          <Metric
-            label={tx("Überschuss Wind und Sonne", "Wind and solar surplus")}
-            value={gwh(observed.renewableSurplusGwh, language)}
-            detail={
-              observed.structuralSurplusGwh > observed.renewableSurplusGwh + 0.001
-                ? tx(
-                    `Modell-Ladefenster (Erzeugung − Last): ${gwh(observed.structuralSurplusGwh, language)}`,
-                    `Model charge window (generation − load): ${gwh(observed.structuralSurplusGwh, language)}`
-                  )
-                : tx("Summe max(0, Erneuerbare − Last) · ¼ h", "Sum of max(0, renewables − load) · ¼ h")
-            }
-          />
-          <Metric
-            label={tx("Export beobachtet", "Export observed")}
-            value={gwh(observed.observedExportGwh, language)}
-            detail={tx("Energy-Charts, Grenzhandel", "Energy-Charts, cross-border trading")}
-          />
-          <Metric
-            label={tx("Abregelung", "Curtailment")}
-            value={curtailmentText ?? "—"}
-            detail={tx("Netztransparenz, verzögert", "Netztransparenz, delayed")}
-          />
-          <Metric
-            label={tx(`Aufnahme ×${factor}`, `Absorption ×${factor}`)}
-            value={gwh(step.absorbedGwh, language)}
-            detail={tx("Modellschätzung, nutzbar 10–90 %", "Model estimate, usable 10–90%")}
-          />
-        </div>
-
-        <div className="mix-soc">
-          <h3>{tx("Szenario ×1 bis ×10", "Scenario ×1 to ×10")}</h3>
-          <FactorSlider
-            factor={factor}
-            label={tx("Speicher im Netz", "Storage on the grid")}
-            valueText={language === "de" ? `×${factor} Speicherflotte` : `×${factor} storage fleet`}
-            saturationIndex={saturationIndex}
-            onChange={onFactor}
-          />
-          {satNote ? <p className="mix-surplus-line">{satNote}</p> : null}
-          <div className="mix-table-wrap">
-            <table className="mix-table">
-              <caption>
-                {tx(
-                  "Modellschätzung je Vielfaches. Obergrenze ohne Preiswirkung ab ×5.",
-                  "Model estimate per multiple. Upper bound without price effect from ×5."
+        {noSurplus ? (
+          <p className="mix-surplus-empty">
+            {tx("An diesem Tag gab es keinen Überschuss aus Wind und Sonne.", "On this day there was no wind-and-solar surplus.")}{" "}
+            {lastSurplusLink ? (
+              <>
+                {tx("Zuletzt am ", "Last on ")}
+                {lastSurplusLink}
+                {tx(".", ".")}
+              </>
+            ) : null}
+          </p>
+        ) : (
+          <>
+            <div className="mix-surplus-grid" role="group" aria-label={tx("Beobachteter Tag", "Observed day")}>
+              <Metric
+                label={tx("Überschuss Wind und Sonne", "Wind and solar surplus")}
+                value={gwh(observed.windSolarSurplusGwh, language)}
+                detail={tx(
+                  "Summe max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h",
+                  "Sum of max(0, onshore wind + offshore wind + solar − load) · ¼ h"
                 )}
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">{tx("Faktor", "Factor")}</th>
-                  <th scope="col">{tx("Aufnahme", "Absorption")}</th>
-                  <th scope="col">{tx("Export sim.", "Export sim.")}</th>
-                  <th scope="col">{tx("Abregelung verbleibend", "Curtailment left")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {([1, 2, 5, 10] as const).map((rowFactor) => {
+              />
+              <Metric
+                label={tx("Export beobachtet", "Export observed")}
+                value={gwh(observed.observedExportGwh, language)}
+                detail={tx("Energy-Charts, Grenzhandel", "Energy-Charts, cross-border trading")}
+              />
+              <Metric label={tx("Abregelung", "Curtailment")} value="—" detail={undefined} />
+              <Metric
+                label={tx(`Aufnahme ×${factor}`, `Absorption ×${factor}`)}
+                value={gwh(step.absorbedGwh, language)}
+                detail={tx("Modellschätzung, nutzbar 10–90 %", "Model estimate, usable 10–90%")}
+              />
+            </div>
+            <p className="mix-surplus-metric-detail mix-surplus-curtailment-note">{curtailmentDetail}</p>
+          </>
+        )}
+
+        {!noSurplus ? (
+          <div className="mix-soc">
+            <p className="mix-surplus-slider-kicker num">{tx("SPEICHER IM NETZ ×1 BIS ×10", "STORAGE ON THE GRID ×1 TO ×10")}</p>
+            <FactorSlider
+              factor={factor}
+              label=""
+              valueText={language === "de" ? `×${factor} Speicherflotte` : `×${factor} storage fleet`}
+              saturationIndex={saturationIndex}
+              onChange={onFactor}
+            />
+            <div className="mix-table-wrap mix-surplus-table-wrap">
+              <table className="mix-table mix-surplus-table">
+                <caption className="sr-only">
+                  {tx("Modellschätzung je Vielfaches der Flotte", "Model estimate per fleet multiple")}
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{tx("Faktor", "Factor")}</th>
+                    <th scope="col" className="mix-num-col">
+                      {tx("Aufnahme", "Absorption")}
+                    </th>
+                    <th scope="col" className="mix-num-col">
+                      {tx("Export sim.", "Export sim.")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {LIVE_DISPATCH_FACTORS.map((rowFactor) => {
+                    const row = report.factors[rowFactor];
+                    const showChip = rowFactor === 5 || rowFactor === 10;
+                    return (
+                      <tr
+                        key={rowFactor}
+                        className={rowFactor === factor ? "mix-surplus-row-selected" : undefined}
+                        aria-current={rowFactor === factor ? "true" : undefined}
+                      >
+                        <th scope="row">
+                          ×{rowFactor}
+                          {showChip ? (
+                            <span className="mix-surplus-chip">
+                              {tx("Obergrenze ohne Preiswirkung", "Upper bound without price effect")}
+                            </span>
+                          ) : null}
+                        </th>
+                        <td className="num tabular-nums mix-num-col">{gwh(row.absorbedGwh, language)}</td>
+                        <td className="num tabular-nums mix-num-col">
+                          {row.simulatedExportGwh !== null ? gwh(row.simulatedExportGwh, language) : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="mix-surplus-cards" aria-hidden="false">
+                {LIVE_DISPATCH_FACTORS.map((rowFactor) => {
                   const row = report.factors[rowFactor];
-                  const curtailLeft =
-                    observed.curtailmentStatus === "loaded" && row.remainingCurtailmentGwh !== null
-                      ? gwh(row.remainingCurtailmentGwh, language)
-                      : tx("noch nicht veröffentlicht", "not published yet");
                   return (
-                    <tr key={rowFactor} aria-current={rowFactor === factor ? "true" : undefined}>
-                      <th scope="row">×{rowFactor}</th>
-                      <td className="num">{gwh(row.absorbedGwh, language)}</td>
-                      <td className="num">
-                        {row.simulatedExportGwh !== null
-                          ? gwh(row.simulatedExportGwh, language)
-                          : tx("—", "—")}
-                      </td>
-                      <td className="num">{curtailLeft}</td>
-                    </tr>
+                    <div
+                      key={rowFactor}
+                      className={`mix-surplus-card${rowFactor === factor ? " is-selected" : ""}`}
+                      aria-current={rowFactor === factor ? "true" : undefined}
+                    >
+                      <p className="mix-surplus-card-factor num">×{rowFactor}</p>
+                      <p className="mix-surplus-card-line num tabular-nums">
+                        {tx("Aufnahme", "Absorption")} · {gwh(row.absorbedGwh, language)}
+                      </p>
+                      <p className="mix-surplus-card-line num tabular-nums">
+                        {tx("Export sim.", "Export sim.")} ·{" "}
+                        {row.simulatedExportGwh !== null ? gwh(row.simulatedExportGwh, language) : "—"}
+                      </p>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            </div>
+            <p className="mix-surplus-line">{exportSim}</p>
+            <p className="mix-source">
+              {tx(
+                "Export-Gegenrechnung je Viertelstunde: max(0, beobachteter Export minus Ladung aus Überschuss). Entladung ab 17 Uhr ändert den Export nicht. Keine Euro-Werte.",
+                "Export counter-calculation each quarter-hour: max(0, observed export minus charging from surplus). Discharge from 17:00 does not change export. No euro figures."
+              )}{" "}
+              <a className="underline underline-offset-[3px]" href="/methodik#live">
+                {tx("Formeln", "Formulas")}
+              </a>
+            </p>
           </div>
-          <p className="mix-surplus-line">{exportSim}</p>
-          <p className="mix-source">
-            {tx(
-              "Export-Gegenrechnung: beobachteter Grenzfluss plus netzkoppelte Ladung minus modellierte Abgabe. Keine Euro-Werte. Preisnehmer, nur Day-Ahead.",
-              "Export counter-calculation: observed border flow plus grid-coupled charging minus modeled discharge. No euro figures. Price taker, day-ahead only."
-            )}{" "}
-            <a className="underline underline-offset-[3px]" href="/methodik#live">
-              {tx("Formeln", "Formulas")}
-            </a>
-          </p>
-        </div>
+        ) : null}
       </div>
     </section>
   );

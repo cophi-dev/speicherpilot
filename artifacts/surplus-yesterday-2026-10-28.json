@@ -1,38 +1,45 @@
 {
   "dateBerlin": "2026-10-28",
-  "generatedAt": "2026-10-29T08:14:27.140Z",
-  "surplusGwh": 0,
+  "generatedAt": "2026-10-29T08:32:21.832Z",
+  "fleet": {
+    "powerMw": 4582.72622,
+    "energyMwh": 8038.245570000001
+  },
+  "windSolarSurplusGwh": 0,
   "exportObservedGwh": 0.01275,
-  "curtailmentGwh": null,
-  "curtailmentStatus": "unavailable_not_configured",
+  "lastSurplusDateBerlin": null,
   "factors": {
     "x1": {
-      "absorbedGwh": 11.861624999999979,
+      "absorbedGwh": 0,
+      "remainingSurplusGwh": 0,
       "exportObservedGwh": 0.01275,
       "exportSimulatedGwh": 0.01275,
       "exportDeltaGwh": 0,
-      "curtailmentRemainingGwh": null
+      "dischargedGwh": 0
     },
     "x2": {
-      "absorbedGwh": 16.437449999999952,
+      "absorbedGwh": 0,
+      "remainingSurplusGwh": 0,
       "exportObservedGwh": 0.01275,
       "exportSimulatedGwh": 0.01275,
       "exportDeltaGwh": 0,
-      "curtailmentRemainingGwh": null
+      "dischargedGwh": 0
     },
     "x5": {
-      "absorbedGwh": 16.437449999999952,
+      "absorbedGwh": 0,
+      "remainingSurplusGwh": 0,
       "exportObservedGwh": 0.01275,
       "exportSimulatedGwh": 0.01275,
       "exportDeltaGwh": 0,
-      "curtailmentRemainingGwh": null
+      "dischargedGwh": 0
     },
     "x10": {
-      "absorbedGwh": 16.437449999999952,
+      "absorbedGwh": 0,
+      "remainingSurplusGwh": 0,
       "exportObservedGwh": 0.01275,
       "exportSimulatedGwh": 0.01275,
       "exportDeltaGwh": 0,
-      "curtailmentRemainingGwh": null
+      "dischargedGwh": 0
     }
   }
 }

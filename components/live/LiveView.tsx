@@ -8,16 +8,10 @@ import { SurplusDaySimulation } from "@/components/live/SurplusDaySimulation";
 import { LiveStrip } from "@/components/mix/LiveStrip";
 import { PowerBoard } from "@/components/mix/PowerBoard";
 import type { LiveDispatchInput } from "@/lib/liveFleetDispatch";
-import {
-  LIVE_DISPATCH_FACTORS,
-  buildLiveDispatchStory,
-  parseLiveFactor,
-  type LiveDispatchFactor,
-} from "@/lib/liveFleetDispatch";
-import { fullSurplusFactor } from "@/lib/dayRingStory";
+import { LIVE_DISPATCH_FACTORS, parseLiveFactor, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import type { StripReading } from "@/lib/liveStrip";
 import type { PowerBoardModel } from "@/lib/powerBoard";
-import type { SurplusDayReport } from "@/lib/surplusDaySimulation";
+import { surplusSaturationFactor, type SurplusDayReport } from "@/lib/surplusDaySimulation";
 
 export function LiveView({
   dispatch,
@@ -39,22 +33,12 @@ export function LiveView({
   const factor = parseLiveFactor(searchParams.get("x"));
 
   const saturationIndex = useMemo(() => {
-    if (!dispatch.day || !dispatch.fleet) {
+    if (!surplusDay) {
       return null;
     }
-    const stories = {} as Record<LiveDispatchFactor, ReturnType<typeof buildLiveDispatchStory>>;
-    for (const step of LIVE_DISPATCH_FACTORS) {
-      stories[step] = buildLiveDispatchStory({
-        day: dispatch.day,
-        fallback: dispatch.fallback,
-        powerMw: dispatch.fleet.powerMw,
-        energyMwh: dispatch.fleet.energyMwh,
-        factor: step,
-      });
-    }
-    const saturated = fullSurplusFactor(stories);
+    const saturated = surplusSaturationFactor(surplusDay);
     return saturated ? LIVE_DISPATCH_FACTORS.indexOf(saturated) : null;
-  }, [dispatch.day, dispatch.fallback, dispatch.fleet]);
+  }, [surplusDay]);
 
   function onFactor(next: LiveDispatchFactor) {
     const params = new URLSearchParams(searchParams.toString());

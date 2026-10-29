@@ -5,7 +5,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import { useLanguage } from "@/components/language-context";
-import { MethodikUeberblick } from "@/components/methodik/MethodikUeberblick";
+import { MethodikUeberblick, type MethodikFleetStand } from "@/components/methodik/MethodikUeberblick";
 import { NetzMethodik } from "@/components/methodik/NetzMethodik";
 import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { EURO_SCOPE } from "@/lib/beispieltage";
@@ -34,7 +34,7 @@ const CHAPTERS = [
   { id: "quellen", de: "Quellen", en: "Sources" },
 ] as const;
 
-export function MethodikDocs() {
+export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
@@ -88,7 +88,7 @@ export function MethodikDocs() {
             </ol>
           </nav>
           <article>
-            <MethodikUeberblick language={language} />
+            <MethodikUeberblick language={language} fleet={fleet} />
             <section id="was">
               <h2>{tx("04 Was gerechnet wird", "04 What is calculated")}</h2>
               <p>{tx("Zwei Sichten, ein Kern. Der Projektierer sieht Größe, Zyklen und die abgegebene Energie eines Tages. Der Netzbetreiber sieht Kilowatt am Anschluss, die Ampel und die Einschätzung netzdienlich. Keine Zahl steht in beiden Helden.", "Two views, one core. The developer sees size, cycles and the energy delivered on one day. The grid operator sees kilowatts at the connection, the traffic light and the grid-support estimate. No figure appears in both heroes.")}</p>
@@ -171,10 +171,10 @@ export function MethodikDocs() {
             </section>
             <section id="live">
               <h2>{tx("06b Überschuss, Export, Abregelung", "06b Surplus, export, curtailment")}</h2>
-              <p>{tx("Überschuss Wind und Sonne ist die Summe von max(0, erneuerbare Erzeugung − Last) mal 0,25 h über den Tag. Das ist nicht dieselbe Zahl wie die Residuallast-Uhr: dort zählt nur Wind plus Sonne gegen die Last, nicht die volle Erzeugungsbilanz.", "Wind-and-solar surplus is the sum of max(0, renewable generation − load) times 0.25 h over the day. That is not the same figure as the residual-load ring: there only wind plus solar count against load, not the full generation balance.")}</p>
-              <p>{tx("Export beobachtet integriert nur negative Grenzhandels-Leistung (Export) aus Energy-Charts. Die Modellschätzung für Export zieht netzkoppelte Ladung ab und addiert modellierte Abgabe: simuliert = beobachtet + borderCoupled(Ladung) − Abgabe. Das ist keine Prognose, wie es gewesen wäre.", "Observed export integrates only negative cross-border power (export) from Energy-Charts. The model estimate for export subtracts grid-coupled charging and adds modeled discharge: simulated = observed + borderCoupled(charge) − discharge. That is not a forecast of what would have happened.")}</p>
-              <p>{tx("Abregelung kommt aus Netztransparenz (Maschinenprozess), oft mit Verzögerung und Lücken. Fehlt die Reihe für den Tag oder ist sie nicht angebunden, steht der Satz „Abregelungsdaten für diesen Tag noch nicht veröffentlicht“. Es wird keine 0 als Fakt gezeigt.", "Curtailment comes from Netztransparenz (machine process), often delayed and gappy. If the series is missing for the day or not connected, the text says curtailed data for this day are not published yet. Zero is never shown as a fact.")}</p>
-              <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, 4,5 GW / 7,9 GWh Nennenergie, Stand siehe Seite). Nutzbar sind 10–90 % Nennenergie pro Tag, Wirkungsgrad 85 % auf der Abgabe im übrigen Modell, hier eine verlustfreie praktische Walk für Ladung und Grenz-Kopplung. ×2, ×5 und ×10 vervielfachen Leistung und Energie; ab ×5 gilt „Obergrenze ohne Preiswirkung“. Unsicherheit: Kupferplatte, keine Engpässe, keine Preiswirkung.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, 4.5 GW / 7.9 GWh nameplate, as-of on the page). Usable is 10–90% of nameplate per day; 85% round-trip on discharge in the other model; here a lossless practical walk for charging and border coupling. ×2, ×5 and ×10 scale power and energy; from ×5 the label is upper bound without price effect. Uncertainty: copper plate, no bottlenecks, no price effect.")}</p>
+              <p>{tx("Überschuss Wind und Sonne ist die Summe von max(0, Wind an Land + Wind auf See + Sonne − Last) mal 0,25 h über den Tag. Dieselbe Definition wie der Ring und Abschnitt 06.", "Wind-and-solar surplus is the sum of max(0, onshore wind + offshore wind + solar − load) times 0.25 h over the day. Same definition as the ring and section 06.")}</p>
+              <p>{tx("Export beobachtet integriert nur negative Grenzhandels-Leistung (Export) aus Energy-Charts total_power (Last inkl. Eigenverbrauch, 15 Min.). Die Modellschätzung je Viertelstunde: simuliert = max(0, beobachtet − Ladung aus Überschuss). Entladung ab 17 Uhr ändert den Export nicht.", "Observed export integrates only negative cross-border power (export) from Energy-Charts total_power (load including self-consumption, 15 min). The model estimate each quarter-hour: simulated = max(0, observed − charging from surplus). Discharge from 17:00 does not change export.")}</p>
+              <p>{tx("Gemessene EE-Abregelung bundesweit gibt es nur quartalsweise (Bundesnetzagentur/SMARD, 2. Quartal 2026 am 12.10.2026: 2,102 GWh). Tageswerte veröffentlicht niemand. Abregelung fließt nicht in die Aufnahme.", "Measured renewable curtailment for all of Germany is published only quarterly (Bundesnetzagentur/SMARD, Q2 2026 on 12 Oct 2026: 2.102 GWh). No daily figures exist. Curtailment is not included in absorption.")}</p>
+              <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, Stand siehe Seite). Nutzbar sind 10–90 % Nennenergie, Start bei 0 im nutzbaren Fenster, Laden nur vor 17 Uhr, Wirkungsgrad 85 % auf der Abgabe. ×2, ×5 und ×10 vervielfachen Leistung und Energie; ab ×5 gilt „Obergrenze ohne Preiswirkung“. Unsicherheit: Kupferplatte, keine Engpässe, keine Preiswirkung.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, as-of on the page). Usable is 10–90% of nameplate, starting at 0 in the usable window, charging only before 17:00, 85% round-trip on discharge. ×2, ×5 and ×10 scale power and energy; from ×5 the label is upper bound without price effect. Uncertainty: copper plate, no bottlenecks, no price effect.")}</p>
             </section>
             <section id="groesse">
               <h2>{tx("07 Speichergröße", "07 Storage size")}</h2>

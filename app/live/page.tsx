@@ -10,7 +10,7 @@ export const revalidate = 1800;
 export const metadata = {
   title: "Was wäre, wenn Deutschland mehr Speicher hätte?",
   description:
-    "A model of today’s German residual load with the large-storage fleet scaled from ×1 to ×10. The battery starts empty, charges on surplus, and cuts the evening peak. No euro figures.",
+    "Modellierter Überschusstag in Deutschland: Flotte ×1 bis ×10, Export-Gegenrechnung und Methodik — Live-Daten, einfache Sprache, ohne Euro-Werte.",
 };
 
 export default async function LivePage({

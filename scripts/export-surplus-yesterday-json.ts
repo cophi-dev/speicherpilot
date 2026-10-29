@@ -1,37 +1,74 @@
 #!/usr/bin/env tsx
 /**
- * Writes yesterday's surplus KPI JSON for manual cross-check.
- * Usage: pnpm tsx scripts/export-surplus-yesterday-json.ts
+ * Writes surplus KPI JSON for manual cross-check.
+ * Usage: pnpm tsx scripts/export-surplus-yesterday-json.ts [--date YYYY-MM-DD] [--power MW] [--energy MWh]
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
-import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { formatBerlinDateKeyFromUtcDate, prevBerlinDateKey } from "@/lib/berlinCalendar";
+import {
+  BATTERY_CHARTS_ENERGY_QUERY,
+  BATTERY_CHARTS_POWER_QUERY,
+  batteryChartsDataUrl,
+  parseBatteryChartsFleet,
+} from "@/lib/largeBatteryFleet";
 import { getGermanyEnergyFlowForBerlinRange } from "@/lib/energyChartsApi";
 import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
 import { buildSurplusDayReport } from "@/lib/surplusDaySimulation";
 
-/** Battery Charts large-storage fleet (21 Oct 2026), used when the script runs outside Next. */
-const FALLBACK_FLEET = { powerMw: 4_500, energyMwh: 7_900 };
+function readArg(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag);
+  if (index === -1 || index + 1 >= process.argv.length) {
+    return undefined;
+  }
+  return process.argv[index + 1];
+}
+
+async function loadLiveFleet(): Promise<{ powerMw: number; energyMwh: number } | null> {
+  try {
+    const [power, energy] = await Promise.all([
+      fetch(batteryChartsDataUrl(BATTERY_CHARTS_POWER_QUERY)).then((r) => r.json()),
+      fetch(batteryChartsDataUrl(BATTERY_CHARTS_ENERGY_QUERY)).then((r) => r.json()),
+    ]);
+    const parsed = parseBatteryChartsFleet(power, energy);
+    if (!parsed) {
+      return null;
+    }
+    return { powerMw: parsed.powerGw * 1000, energyMwh: parsed.energyGwh * 1000 };
+  } catch {
+    return null;
+  }
+}
 
 async function main() {
   const now = new Date();
-  const yesterday = formatBerlinDateKeyFromUtcDate(new Date(now.getTime() - 86_400_000));
-  const fleet = FALLBACK_FLEET;
+  const dateArg = readArg("--date");
+  const dateBerlin = dateArg && /^\d{4}-\d{2}-\d{2}$/.test(dateArg)
+    ? dateArg
+    : prevBerlinDateKey(formatBerlinDateKeyFromUtcDate(now));
+
+  const powerArg = readArg("--power");
+  const energyArg = readArg("--energy");
+  const liveFleet = await loadLiveFleet();
+  const fleet = {
+    powerMw: powerArg ? Number(powerArg) : (liveFleet?.powerMw ?? 4_580),
+    energyMwh: energyArg ? Number(energyArg) : (liveFleet?.energyMwh ?? 8_000),
+  };
+
   const flow = await getGermanyEnergyFlowForBerlinRange(
-    resolveGermanyEnergyFlowBerlinRangeForDate(yesterday, now),
+    resolveGermanyEnergyFlowBerlinRangeForDate(dateBerlin, now),
     now
   );
   const report = flow ? buildSurplusDayReport(flow, fleet) : null;
 
   const payload = {
-    dateBerlin: yesterday,
+    dateBerlin,
     generatedAt: now.toISOString(),
-    surplusGwh: report?.observed.renewableSurplusGwh ?? null,
-    structuralSurplusGwh: report?.observed.structuralSurplusGwh ?? null,
+    fleet,
+    windSolarSurplusGwh: report?.observed.windSolarSurplusGwh ?? null,
     exportObservedGwh: report?.observed.observedExportGwh ?? null,
-    curtailmentGwh: report?.observed.curtailmentGwh,
-    curtailmentStatus: report?.observed.curtailmentStatus ?? null,
+    lastSurplusDateBerlin: report?.observed.lastSurplusDateBerlin ?? null,
     factors: report
       ? {
           x1: pick(report, 1),
@@ -44,7 +81,7 @@ async function main() {
 
   const dir = path.join(process.cwd(), "artifacts");
   mkdirSync(dir, { recursive: true });
-  const target = path.join(dir, `surplus-yesterday-${yesterday}.json`);
+  const target = path.join(dir, `surplus-yesterday-${dateBerlin}.json`);
   writeFileSync(target, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
   console.log(target);
 }
@@ -53,10 +90,11 @@ function pick(report: NonNullable<ReturnType<typeof buildSurplusDayReport>>, fac
   const row = report.factors[factor];
   return {
     absorbedGwh: row.absorbedGwh,
+    remainingSurplusGwh: row.remainingSurplusGwh,
     exportObservedGwh: row.observedExportGwh,
     exportSimulatedGwh: row.simulatedExportGwh,
     exportDeltaGwh: row.exportDeltaGwh,
-    curtailmentRemainingGwh: row.remainingCurtailmentGwh,
+    dischargedGwh: row.dischargedGwh,
   };
 }
 
