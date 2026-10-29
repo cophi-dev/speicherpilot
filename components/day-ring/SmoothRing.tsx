@@ -137,14 +137,14 @@ export function SmoothRing({
         </g>
       )}
       <g className="day-ring-tips">
-        {points.map((point) => {
+        {points.map((point, index) => {
           const value = valueOf(point, "ohneMw");
           const angle = quarterCenterForHour(point.hour);
           const at = radiusOf(value);
           const tip = ringTip(value);
           const [x, y] = xyPair(at, angle);
           return (
-            <circle key={point.hour} className="day-ring-tip" data-raw={tip} cx={x} cy={y} r="8" fill="transparent">
+            <circle key={point.timestampIso ?? `${point.hour}-${index}`} className="day-ring-tip" data-raw={tip} cx={x} cy={y} r="8" fill="transparent">
               <title>{tip}</title>
             </circle>
           );

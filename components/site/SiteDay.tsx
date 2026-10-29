@@ -887,7 +887,7 @@ function PdfLink({ view, language, plan, profile }: { view: Perspective; languag
         })();
       }}
     >
-      {view === "netz" ? tx("Anschlussprüfung als PDF", "Connection check as PDF") : tx("Angebot als PDF", "Proposal as PDF")}
+      {view === "netz" ? tx("Szenario als PDF", "Scenario as PDF") : tx("Angebot als PDF", "Proposal as PDF")}
     </button>
   );
 }

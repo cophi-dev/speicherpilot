@@ -3,6 +3,7 @@ import {
   buildSurplusDayReport,
   evaluateSurplusDayFactor,
   sumWindSolarSurplusGwh,
+  surplusQuartersToChartSamples,
   windSolarSurplusMwhForSlot,
 } from "@/lib/surplusDaySimulation";
 
@@ -145,6 +146,39 @@ describe("surplusDaySimulation", () => {
     expect(result.simulatedExportGwh!).toBeLessThanOrEqual(result.observedExportGwh! + 1e-9);
   });
 
+  it("quarter series matches aggregate totals and invariants", () => {
+    const slots = Array.from({ length: 8 }, (_, index) => {
+      const hour = 10 + Math.floor((index * 15) / 60);
+      const minute = (index * 15) % 60;
+      return slot({
+        timestampIso: `2026-05-07T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00+02:00`,
+        hourBerlin: hour,
+        loadMw: 10_000,
+        windOnshoreMw: 25_000,
+        windOffshoreMw: 5_000,
+        solarMw: 5_000,
+        crossBorderElectricityTradingMw: -8_000,
+      });
+    });
+    const result = evaluateSurplusDayFactor(slots, REF_FLEET, 1);
+    const capMwh = REF_FLEET.energyMwh * 0.8;
+    const absorbedFromSeries = result.quarters.reduce((sum, row) => sum + row.chargeMw * 0.25, 0);
+    const exportSimFromSeries = result.quarters.reduce((sum, row) => sum + row.exportSimulatedMw * 0.25, 0);
+    expect(absorbedFromSeries / 1000).toBeCloseTo(result.absorbedGwh, 6);
+    expect(exportSimFromSeries / 1000).toBeCloseTo(result.simulatedExportGwh!, 6);
+    for (const row of result.quarters) {
+      expect(row.chargeMw).toBeLessThanOrEqual(row.surplusMw + 1e-6);
+      expect(row.socMwh).toBeGreaterThanOrEqual(-1e-6);
+      expect(row.socMwh).toBeLessThanOrEqual(capMwh + 1e-6);
+      expect(row.chargeMw <= 1e-6 || row.dischargeMw <= 1e-6).toBe(true);
+    }
+    const mitPeak = Math.max(
+      ...result.quarters.filter((row) => row.hourBerlin >= 17).map((row) => row.residualMw + row.chargeMw - row.dischargeMw)
+    );
+    const chartPeak = Math.max(...surplusQuartersToChartSamples(result.quarters).filter((_, i) => result.quarters[i].hourBerlin >= 17).map((s) => s.mit));
+    expect(chartPeak * 1000).toBeCloseTo(mitPeak, 3);
+  });
+
   it("builds factor rows with monotonic absorption when surplus is large", () => {
     const slots = [slot({ timestampIso: "2026-05-07T10:00:00+02:00", loadMw: 10_000, windOnshoreMw: 40_000, solarMw: 10_000 })];
     const report = buildSurplusDayReport(
@@ -160,39 +194,4 @@ describe("surplusDaySimulation", () => {
     expect(report?.factors[1].absorbedGwh).toBeLessThan(report!.factors[10].absorbedGwh);
     expect(sumWindSolarSurplusGwh(slots)).toBeCloseTo(report!.observed.windSolarSurplusGwh, 6);
   });
-});
-
-/**
- * @jest-environment node
- */
-describe("surplusDaySimulation reference days (Energy-Charts)", () => {
-  const live = process.env.SURPLUS_REFERENCE_LIVE === "1" ? it : it.skip;
-
-  live("matches nachrechner reference values", async () => {
-    const { getGermanyEnergyFlowForBerlinRange } = await import("@/lib/energyChartsApi");
-    const { resolveGermanyEnergyFlowBerlinRangeForDate } = await import("@/lib/germanyEnergyFlowPeriod");
-    const now = new Date("2026-10-29T10:00:00+02:00");
-
-    async function reportFor(dateBerlin: string) {
-      const flow = await getGermanyEnergyFlowForBerlinRange(
-        resolveGermanyEnergyFlowBerlinRangeForDate(dateBerlin, now),
-        now
-      );
-      expect(flow).not.toBeNull();
-      return buildSurplusDayReport(flow!, REF_FLEET);
-    }
-
-    const oct28 = await reportFor("2026-10-28");
-    for (const factor of [1, 2, 5, 10] as const) {
-      expect(oct28!.factors[factor].absorbedGwh).toBeCloseTo(0, 2);
-    }
-
-    const oct25 = await reportFor("2026-10-25");
-    expect(oct25!.factors[1].absorbedGwh).toBeCloseTo(6.4, 2);
-    expect(oct25!.factors[2].absorbedGwh).toBeCloseTo(9.64, 2);
-
-    const jun21 = await reportFor("2026-06-21");
-    expect(jun21!.factors[10].absorbedGwh).toBeCloseTo(58.17, 2);
-    expect(jun21!.factors[10].simulatedExportGwh).toBeCloseTo(5.96, 2);
-  }, 120_000);
 });

@@ -1127,6 +1127,33 @@
   fill: hsl(var(--c-limit));
 }
 
+.sim-chart .an.lb.paper {
+  paint-order: stroke fill;
+  stroke: hsl(var(--card));
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+
+.dark .sim-chart .an.lb.paper {
+  stroke: hsl(var(--background));
+}
+
+.mix-surplus-chart-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  max-width: 100%;
+}
+
+.mix-surplus-chart-kicker .sim-chip-gap {
+  margin-left: 0;
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.35;
+}
+
 .sim-chart .lb {
   paint-order: stroke;
   stroke: hsl(var(--card));

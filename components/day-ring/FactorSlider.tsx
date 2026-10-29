@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useSyncExternalStore } from "react";
 
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 
@@ -18,6 +18,11 @@ export function FactorSlider({
   onChange: (factor: LiveDispatchFactor) => void;
 }) {
   const inputId = useId();
+  const hydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const index = INDEX.get(factor) ?? 0;
   const fill = (index / (LIVE_DISPATCH_FACTORS.length - 1)) * 100;
   const hatchFrom = saturationIndex === null ? 100 : (saturationIndex / (LIVE_DISPATCH_FACTORS.length - 1)) * 100;
@@ -53,9 +58,15 @@ export function FactorSlider({
           }}
         />
       </div>
-      <div className="day-slider-stops">
+      <div className="day-slider-stops" aria-busy={hydrated ? undefined : true}>
         {LIVE_DISPATCH_FACTORS.map((step) => (
-          <button key={step} type="button" className={step === factor ? "is-current" : undefined} onClick={() => onChange(step)}>
+          <button
+            key={step}
+            type="button"
+            className={step === factor ? "is-current" : undefined}
+            disabled={!hydrated}
+            onClick={() => onChange(step)}
+          >
             ×{step}
           </button>
         ))}

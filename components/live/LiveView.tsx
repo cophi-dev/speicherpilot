@@ -56,7 +56,7 @@ export function LiveView({
         onFactor={onFactor}
         saturationIndex={saturationIndex}
       />
-      <PowerBoard model={board} missingFactor={5} />
+      <PowerBoard model={board} missingFactor={5} hideSocLine />
     </>
   );
 }

@@ -179,8 +179,10 @@ function LiveRingBody({
   const hourLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
   const kicker = until
-    ? `${tx("Live · Was wäre wenn", "Live · What if")} · ${tx(`bisher bis ${until}`, `so far until ${until}`)}`
-    : `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
+    ? `${tx("Live · heute bis jetzt", "Live · today so far")} · ${tx(`bisher bis ${until}`, `so far until ${until}`)}`
+    : story.fallback
+      ? `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`
+      : `${tx("Live · heute, laufend", "Live · today, in progress")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
   const callouts = buildCallouts(story, story.points, language);
   const tablePoints = useDeferredValue(story.points);
   const caption = liveClockCaption(before, after, factor, language);
