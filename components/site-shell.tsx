@@ -170,6 +170,21 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
     if (typeof window.matchMedia !== "function") {
       return;
     }
+    const desktopNav = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (desktopNav.matches) {
+        setMenuOpen(false);
+      }
+    };
+    closeOnDesktop();
+    desktopNav.addEventListener("change", closeOnDesktop);
+    return () => desktopNav.removeEventListener("change", closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") {
+      return;
+    }
     const query = window.matchMedia("(min-width: 768px)");
     const apply = () => {
       document.querySelectorAll<HTMLDetailsElement>(".site-fold").forEach((node) => {
@@ -228,14 +243,14 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
         <header className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}>
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
             <BrandLockup />
-            <nav className="hidden min-h-6 items-center gap-7 text-sm font-medium md:flex" aria-label={tx("Hauptnavigation", "Primary")}>
+            <nav className="hidden min-h-6 min-w-0 items-center gap-7 text-sm font-medium lg:flex" aria-label={tx("Hauptnavigation", "Primary")}>
               {NAV.map((item) => {
                 const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex min-h-6 items-center ${active ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    className={`inline-flex min-h-6 shrink-0 items-center whitespace-nowrap ${active ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     aria-current={active ? "page" : undefined}
                   >
                     {language === "de" ? item.de : item.en}
@@ -268,8 +283,9 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
               </div>
               <button
                 type="button"
-                className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
                 aria-expanded={menuOpen}
+                aria-controls="site-mobile-nav"
                 aria-label={tx("Menü", "Menu")}
                 onClick={() => setMenuOpen((open) => !open)}
               >
@@ -278,8 +294,8 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
             </div>
           </div>
           {menuOpen ? (
-            <div className="border-t border-border bg-card px-5 py-4 md:px-8">
-              <nav className="flex flex-col gap-3 text-sm font-medium md:hidden" aria-label={tx("Hauptnavigation", "Primary")}>
+            <div className="border-t border-border bg-card px-5 py-4 md:px-8 lg:hidden">
+              <nav id="site-mobile-nav" className="flex flex-col gap-3 text-sm font-medium" aria-label={tx("Hauptnavigation", "Primary")}>
                 {NAV.map((item) => (
                   <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
                     {language === "de" ? item.de : item.en}

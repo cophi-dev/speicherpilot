@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
-import { layoutChartLabels } from "@/lib/chartLabelLayout";
+import { clampChartAnnotationInPlot, layoutChartLabels } from "@/lib/chartLabelLayout";
 import { buildDispatchDayChartXAxisMarks } from "@/lib/dispatchChartXAxis";
 import type { AppLanguage } from "@/components/language-context";
 
@@ -295,6 +295,8 @@ export function DispatchDayChart({
 
   const hovered = hover == null ? null : samples[hover];
   const tipLeft = hovered ? (xAtSample(hover ?? 0) + xAtSampleEnd(hover ?? 0)) / 2 : 0;
+  const plotLeftInset = padLeft + 2;
+  const plotRightInset = width - padRight - 2;
   const placedLabels = !fitLabels || mobile
     ? []
     : layoutChartLabels(
@@ -305,7 +307,7 @@ export function DispatchDayChart({
           anchor: note.anchor ?? "start",
           prefers: (note.dy ?? 0) < 0 ? ("up" as const) : ("down" as const),
         })),
-        { minX: 4, maxX: width - 4, minY: 14, maxY: bandTop - 4 }
+        { minX: plotLeftInset, maxX: plotRightInset, minY: 14, maxY: bandTop - 4 }
       );
   const xTicks = buildDispatchDayChartXAxisMarks(samples, {
     plotW,
@@ -430,12 +432,20 @@ export function DispatchDayChart({
               : fitLabels
                 ? placedLabels.map((placed, index) => {
                     const note = annotations[index];
+                    const clamped = clampChartAnnotationInPlot(
+                      placed.x,
+                      placed.y,
+                      placed.anchor,
+                      note?.text ?? "",
+                      plotLeftInset,
+                      plotRightInset
+                    );
                     return (
                       <text
                         key={`a-${index}`}
-                        x={placed.x}
-                        y={placed.y}
-                        textAnchor={placed.anchor}
+                        x={clamped.x}
+                        y={clamped.y}
+                        textAnchor={clamped.anchor}
                         className={`an lb paper${note?.strong ? " s" : ""}${intro ? " fade2" : ""}`}
                       >
                         {note?.text}
@@ -445,13 +455,20 @@ export function DispatchDayChart({
                 : annotations.map((note, index) => {
                     const baseX = annotationX(samples, note, padLeft, plotW);
                     const placedX = baseX + (note.dx ?? 0);
-                    const runsPast = placedX > width * 0.85;
+                    const clamped = clampChartAnnotationInPlot(
+                      placedX,
+                      yAt(note.value) + (note.dy ?? 0),
+                      note.anchor ?? "start",
+                      note.text,
+                      plotLeftInset,
+                      plotRightInset
+                    );
                     return (
                       <text
                         key={`a-${index}`}
-                        x={runsPast ? baseX : placedX}
-                        y={yAt(note.value) + (note.dy ?? 0)}
-                        textAnchor={runsPast ? "end" : (note.anchor ?? "start")}
+                        x={clamped.x}
+                        y={clamped.y}
+                        textAnchor={clamped.anchor}
                         className={`an lb paper${note.strong ? " s" : ""}${intro ? " fade2" : ""}`}
                       >
                         {note.text}

@@ -90,3 +90,46 @@ export function layoutChartLabels(labels: ChartLabel[], frame: LabelFrame): Plac
   }
   return placed.map(({ x, y, anchor }) => ({ x, y, anchor }));
 }
+
+/** Clamp a single annotation so its estimated box stays inside horizontal plot bounds. */
+export function clampChartAnnotationInPlot(
+  x: number,
+  y: number,
+  anchor: LabelAnchor,
+  text: string,
+  plotLeft: number,
+  plotRight: number
+): PlacedLabel {
+  const width = labelWidth(text);
+  let nextX = x;
+  let nextAnchor = anchor;
+  const rightEdge = (ax: number, anc: LabelAnchor) => labelBox(ax, y, anc, text).right;
+  const leftEdge = (ax: number, anc: LabelAnchor) => labelBox(ax, y, anc, text).left;
+  if (rightEdge(nextX, nextAnchor) > plotRight) {
+    if (nextAnchor === "start") {
+      nextX = plotRight - width;
+    } else if (nextAnchor === "middle") {
+      nextX = plotRight - width / 2;
+    } else {
+      nextX = plotRight;
+    }
+  }
+  if (leftEdge(nextX, nextAnchor) < plotLeft) {
+    if (nextAnchor === "end") {
+      nextX = plotLeft + width;
+    } else if (nextAnchor === "middle") {
+      nextX = plotLeft + width / 2;
+    } else {
+      nextX = plotLeft;
+    }
+  }
+  if (rightEdge(nextX, nextAnchor) > plotRight) {
+    nextAnchor = "end";
+    nextX = plotRight;
+  }
+  if (leftEdge(nextX, nextAnchor) < plotLeft) {
+    nextAnchor = "start";
+    nextX = plotLeft;
+  }
+  return { x: nextX, y, anchor: nextAnchor };
+}
