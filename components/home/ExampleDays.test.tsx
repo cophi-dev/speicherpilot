@@ -7,8 +7,8 @@ import {
   beispieltage,
   displayEuro,
   formatModelEuro,
-  scaleKey,
-  type BeispielScale,
+  fleetEuroHiddenHint,
+  showsFleetEuroRevenue,
 } from "@/lib/beispieltage";
 import { formatQuantity } from "@/lib/formatQuantity";
 
@@ -84,16 +84,25 @@ describe("ExampleDays", () => {
     expect(selected).toHaveAttribute("aria-checked", "true");
   });
 
-  it("shows the rounded model revenue for every day and scale", () => {
+  it("shows the rounded model revenue only at ×1", () => {
     query = "";
     renderDays();
     for (const day of beispieltage.days) {
       fireEvent.click(screen.getByRole("radio", { name: new RegExp(day.textDe.title) }));
-      for (const scale of BEISPIEL_SCALES) {
-        fireEvent.click(screen.getByRole("radio", { name: `×${scale}` }));
-        const shown = formatModelEuro(displayEuro(day.revenueEur[scaleKey(scale as BeispielScale)], scale), "de");
-        expect(document.querySelector(".beispieltage-euro")?.textContent).toContain(shown);
-      }
+      fireEvent.click(screen.getByRole("radio", { name: "×1" }));
+      const shown = formatModelEuro(displayEuro(day.revenueEur.x1, 1), "de");
+      expect(document.querySelector(".beispieltage-euro")?.textContent).toContain(shown);
+    }
+  });
+
+  it("shows no euro amount at ×2, ×5 and ×10 in the result block", () => {
+    query = "";
+    renderDays();
+    const resultBlock = () => document.querySelector(".beispieltage-result");
+    for (const scale of [2, 5, 10] as const) {
+      fireEvent.click(screen.getByRole("radio", { name: `×${scale}` }));
+      expect(resultBlock()?.textContent).not.toMatch(/€/);
+      expect(resultBlock()?.textContent).toContain("Strompreise verschieben");
     }
   });
 
@@ -113,7 +122,9 @@ describe("ExampleDays", () => {
         expect(text).toMatch(/0,35|Teilzyklus/);
         expect(text).toMatch(/Modellschätzung/);
         expect(text).toContain("85 %");
-        expect(text).toContain("ohne Netzentgelte, Umlagen, Steuern");
+        if (scale === 1) {
+          expect(text).toContain("ohne Netzentgelte, Umlagen, Steuern");
+        }
         if (scale === 10) {
           expect(text).toContain(`${formatQuantity(day.chargedFromGridMwh * scale, "de", 0)} MWh`);
         }
@@ -130,7 +141,7 @@ describe("ExampleDays", () => {
     const { container } = renderDays();
     const section = container.querySelector("#beispieltage");
     const text = section?.textContent ?? "";
-    expect(text).not.toMatch(/Tesla|LP-Obergrenze|garantiert|Rendite/);
+    expect(text).not.toMatch(/Tesla|LP-Grenze|garantiert|Rendite/);
     expect(container.querySelector("meta[property='og:image']")).toBeNull();
     const names = [...container.querySelectorAll("a, button")].map((node) => node.textContent ?? "");
     expect(names.join(" ")).not.toMatch(/teilen|share|post/i);

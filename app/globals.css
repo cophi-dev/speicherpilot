@@ -5302,7 +5302,19 @@ math mi {
   line-height: 1;
   font-weight: 400;
   letter-spacing: -0.03em;
+  min-height: 40px;
 }
+
+.beispieltage-euro-hint {
+  margin: 0;
+  max-width: 36ch;
+  min-height: 40px;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 400;
+  color: #3c444c;
+}
+.dark .beispieltage-euro-hint { color: #d5dde4; }
 
 .beispieltage-cap {
   margin: 6px 0 0;

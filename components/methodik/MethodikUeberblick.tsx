@@ -153,7 +153,10 @@ export function MethodikUeberblick({
         "Das Modell nimmt die Preise, wie sie waren. Ein großer Speicher verändert sie darin nicht.",
         "The model takes the prices as they were. A large battery does not change them inside the model."
       ),
-      uncertainty: tx("×5 und ×10 sind deshalb Obergrenzen.", "×5 and ×10 are therefore upper bounds."),
+      uncertainty: tx(
+        "Ab ×2 zeigt die Oberfläche keinen Euro-Erlös.",
+        "From ×2 the UI shows no euro revenue."
+      ),
     },
     {
       assumption: tx("Markt", "Market"),
@@ -193,12 +196,12 @@ export function MethodikUeberblick({
       value: steps,
       unit: "—",
       why: tx(
-        "Leistung und Energie skalieren gemeinsam. ×1 ist der registrierte Bestand.",
-        "Power and energy scale together. ×1 is the registered stock."
+        "Leistung und Energie skalieren gemeinsam. ×1 ist der registrierte Bestand. Die Abendspitze ändert sich mit dem Faktor, aber nicht linear: Ist der Überschuss aufgebraucht, sinkt sie nicht weiter (25.10.: ab ×2 bei 5,0 GW).",
+        "Power and energy scale together. ×1 is the registered stock. The evening peak changes with the factor, but not linearly: once surplus is used up, it stops falling (25 Oct: from ×2 at 5.0 GW)."
       ),
       uncertainty: tx(
-        "×5 und ×10 ohne Preiswirkung sind Obergrenzen, keine Prognose.",
-        "×5 and ×10 without a price effect are upper bounds, not a forecast."
+        "Euro nur bei ×1 in den Beispieltagen; /live ohne Euro.",
+        "Euro only at ×1 in the example days; /live without euro."
       ),
     },
     {
@@ -466,8 +469,8 @@ export function MethodikUeberblick({
             {tx("Das Modell ist ein Preisnehmer ", "The model is a price taker ")}
             <GlossaryTip id="preisnehmer" language={language} />
             {tx(
-              ". Es gibt keine Preiswirkung. Darum sind ×5 und ×10 Obergrenzen.",
-              ". There is no price effect. That is why ×5 and ×10 are upper bounds."
+              ". Ab ×2 zeigt die Seite deshalb keinen skalierten Euro-Erlös.",
+              ". From ×2 the page therefore shows no scaled euro revenue."
             )}
           </li>
           <li>

@@ -42,7 +42,7 @@ export function rateGridSupport(status: GridSupportStatus): TrafficLight {
   return "yellow";
 }
 
-const PUBLIC_COPY_FORBIDDEN = [/Tesla/i, /LP-Obergrenze/, /garantiert/i, /\bRendite\b/];
+const PUBLIC_COPY_FORBIDDEN = [/Tesla/i, /LP-Grenze/, /garantiert/i, /\bRendite\b/];
 
 /** Flags empty public copy and words the example days must not use. */
 export function publicCopyIssues(text: string): string[] {

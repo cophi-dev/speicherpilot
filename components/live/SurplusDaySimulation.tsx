@@ -347,7 +347,7 @@ export function SurplusDaySimulation({
               <div className="mix-surplus-chart sim-chart">
                 <p className="sim-kicker mix-surplus-chart-kicker">
                   {tx("Residuallast und Export", "Residual load and export")} · {dateLabel}
-                  <span className="sim-chip sim-chip-gap">{tx("Modell, Obergrenze ohne Preiswirkung", "Model, upper bound without price effect")}</span>
+                  <span className="sim-chip sim-chip-gap">{tx("Modellschätzung", "Model estimate")}</span>
                 </p>
                 <SimLegend
                   items={[
@@ -409,21 +409,13 @@ export function SurplusDaySimulation({
                 <tbody>
                   {LIVE_DISPATCH_FACTORS.map((rowFactor) => {
                     const row = report.factors[rowFactor];
-                    const showChip = rowFactor === 5 || rowFactor === 10;
                     return (
                       <tr
                         key={rowFactor}
                         className={rowFactor === factor ? "mix-surplus-row-selected" : undefined}
                         aria-current={rowFactor === factor ? "true" : undefined}
                       >
-                        <th scope="row">
-                          ×{rowFactor}
-                          {showChip ? (
-                            <span className="mix-surplus-chip">
-                              {tx("Obergrenze ohne Preiswirkung", "Upper bound without price effect")}
-                            </span>
-                          ) : null}
-                        </th>
+                        <th scope="row">×{rowFactor}</th>
                         <td className="num tabular-nums mix-num-col">{gwh(row.absorbedGwh, language)}</td>
                         <td className="num tabular-nums mix-num-col">
                           {row.simulatedExportGwh !== null ? gwh(row.simulatedExportGwh, language) : "—"}
@@ -436,21 +428,13 @@ export function SurplusDaySimulation({
               <div className="mix-surplus-cards" aria-hidden="false">
                 {LIVE_DISPATCH_FACTORS.map((rowFactor) => {
                   const row = report.factors[rowFactor];
-                  const showChip = rowFactor === 5 || rowFactor === 10;
                   return (
                     <div
                       key={rowFactor}
                       className={`mix-surplus-card${rowFactor === factor ? " is-selected" : ""}`}
                       aria-current={rowFactor === factor ? "true" : undefined}
                     >
-                      <p className="mix-surplus-card-factor num">
-                        ×{rowFactor}
-                        {showChip ? (
-                          <span className="mix-surplus-chip mix-surplus-chip-card">
-                            {tx("Obergrenze ohne Preiswirkung", "Upper bound without price effect")}
-                          </span>
-                        ) : null}
-                      </p>
+                      <p className="mix-surplus-card-factor num">×{rowFactor}</p>
                       <p className="mix-surplus-card-line num tabular-nums">
                         {tx("Aufnahme", "Absorption")} · {gwh(row.absorbedGwh, language)}
                       </p>
