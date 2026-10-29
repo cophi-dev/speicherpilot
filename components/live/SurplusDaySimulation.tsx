@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
+import {
+  formatQuarterlyCurtailmentGwh,
+  formatSignedDeltaGwh,
+  SMARD_QUARTERLY_TOPIC_URL,
+} from "@/lib/eeCurtailmentQuarterly";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import type { SurplusDayReport } from "@/lib/surplusDaySimulation";
-
-const SMARD_QUARTERLY_URL = "https://www.smard.de/home/marktdaten/download-marktdaten/marktdaten-strom/";
 
 function gwh(value: number | null, language: "de" | "en", digits = 2) {
   if (value === null || !Number.isFinite(value)) {
@@ -29,7 +33,7 @@ function Metric({
 }: {
   label: string;
   value: string;
-  detail?: string;
+  detail?: ReactNode;
 }) {
   return (
     <div className="mix-surplus-metric">
@@ -69,36 +73,37 @@ export function SurplusDaySimulation({
 
   const dateLabel = formatBerlinLabel(observed.dateBerlin);
   const noSurplus = observed.windSolarSurplusGwh <= 0.000_5;
+  const quarterlyGwh = formatQuarterlyCurtailmentGwh(language);
+
+  const curtailmentDetail =
+    language === "de" ? (
+      <>
+        Tageswerte veröffentlicht niemand. Zuletzt bekannt: {quarterlyGwh} in Deutschland (
+        <a className="underline underline-offset-[3px]" href={SMARD_QUARTERLY_TOPIC_URL}>
+          Bundesnetzagentur/SMARD
+        </a>
+        , Q2 2026, veröffentlicht 12.10.2026)
+      </>
+    ) : (
+      <>
+        No daily figures are published. Last known: {quarterlyGwh} in Germany (
+        <a className="underline underline-offset-[3px]" href={SMARD_QUARTERLY_TOPIC_URL}>
+          Bundesnetzagentur/SMARD
+        </a>
+        , Q2 2026, published 12 Oct 2026)
+      </>
+    );
 
   const exportSim =
     step.simulatedExportGwh !== null && step.observedExportGwh !== null
       ? tx(
-          `Export beobachtet ${gwh(step.observedExportGwh, language)}, in der Modellschätzung ${gwh(step.simulatedExportGwh, language)} (Δ ${formatQuantity(step.exportDeltaGwh ?? 0, language, 2)}\u00a0GWh).`,
-          `Export observed ${gwh(step.observedExportGwh, language)}, in the model estimate ${gwh(step.simulatedExportGwh, language)} (Δ ${formatQuantity(step.exportDeltaGwh ?? 0, language, 2)}\u00a0GWh).`
+          `Export beobachtet ${gwh(step.observedExportGwh, language)}, in der Modellschätzung ${gwh(step.simulatedExportGwh, language)} (Δ ${formatSignedDeltaGwh(step.exportDeltaGwh ?? 0, language, 2)}\u00a0GWh).`,
+          `Export observed ${gwh(step.observedExportGwh, language)}, in the model estimate ${gwh(step.simulatedExportGwh, language)} (Δ ${formatSignedDeltaGwh(step.exportDeltaGwh ?? 0, language, 2)}\u00a0GWh).`
         )
       : tx(
           "Grenzhandel ist für diesen Tag in der Reihe nicht vollständig.",
           "Cross-border trading is not complete in the series for this day."
         );
-
-  const curtailmentDetail =
-    language === "de" ? (
-      <>
-        Tageswerte veröffentlicht niemand. Zuletzt bekannt: 2. Quartal 2026, 2,102&nbsp;GWh in Deutschland (
-        <a className="underline underline-offset-[3px]" href={SMARD_QUARTERLY_URL}>
-          Bundesnetzagentur/SMARD
-        </a>
-        , veröffentlicht 12.10.2026)
-      </>
-    ) : (
-      <>
-        No daily figures are published. Last known: Q2 2026, 2.102&nbsp;GWh in Germany (
-        <a className="underline underline-offset-[3px]" href={SMARD_QUARTERLY_URL}>
-          Bundesnetzagentur/SMARD
-        </a>
-        , published 12 Oct 2026)
-      </>
-    );
 
   return (
     <section className="day-paper mix-board mix-surplus" aria-labelledby="surplus-day-heading">
@@ -129,42 +134,41 @@ export function SurplusDaySimulation({
             ) : null}
           </p>
         ) : (
-          <>
-            <div className="mix-surplus-grid" role="group" aria-label={tx("Beobachteter Tag", "Observed day")}>
-              <Metric
-                label={tx("Überschuss Wind und Sonne", "Wind and solar surplus")}
-                value={gwh(observed.windSolarSurplusGwh, language)}
-                detail={tx(
-                  "Summe max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h",
-                  "Sum of max(0, onshore wind + offshore wind + solar − load) · ¼ h"
-                )}
-              />
-              <Metric
-                label={tx("Export beobachtet", "Export observed")}
-                value={gwh(observed.observedExportGwh, language)}
-                detail={tx("Energy-Charts, Grenzhandel", "Energy-Charts, cross-border trading")}
-              />
-              <Metric label={tx("Abregelung", "Curtailment")} value="—" detail={undefined} />
-              <Metric
-                label={tx(`Aufnahme ×${factor}`, `Absorption ×${factor}`)}
-                value={gwh(step.absorbedGwh, language)}
-                detail={tx("Modellschätzung, nutzbar 10–90 %", "Model estimate, usable 10–90%")}
-              />
-            </div>
-            <p className="mix-surplus-metric-detail mix-surplus-curtailment-note">{curtailmentDetail}</p>
-          </>
+          <div className="mix-surplus-grid" role="group" aria-label={tx("Beobachteter Tag", "Observed day")}>
+            <Metric
+              label={tx("Überschuss Wind und Sonne", "Wind and solar surplus")}
+              value={gwh(observed.windSolarSurplusGwh, language)}
+              detail={tx(
+                "Summe max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h",
+                "Sum of max(0, onshore wind + offshore wind + solar − load) · ¼ h"
+              )}
+            />
+            <Metric
+              label={tx("Export beobachtet", "Export observed")}
+              value={gwh(observed.observedExportGwh, language)}
+              detail={tx("Energy-Charts, Grenzhandel", "Energy-Charts, cross-border trading")}
+            />
+            <Metric label={tx("Abregelung", "Curtailment")} value="—" detail={curtailmentDetail} />
+            <Metric
+              label={tx(`Aufnahme ×${factor}`, `Absorption ×${factor}`)}
+              value={gwh(step.absorbedGwh, language)}
+              detail={tx("Modellschätzung, nutzbar 10–90 %", "Model estimate, usable 10–90%")}
+            />
+          </div>
         )}
 
         {!noSurplus ? (
           <div className="mix-soc">
             <p className="mix-surplus-slider-kicker num">{tx("SPEICHER IM NETZ ×1 BIS ×10", "STORAGE ON THE GRID ×1 TO ×10")}</p>
-            <FactorSlider
-              factor={factor}
-              label=""
-              valueText={language === "de" ? `×${factor} Speicherflotte` : `×${factor} storage fleet`}
-              saturationIndex={saturationIndex}
-              onChange={onFactor}
-            />
+            <div className="mix-surplus-slider">
+              <FactorSlider
+                factor={factor}
+                label=""
+                valueText={language === "de" ? `×${factor} Speicherflotte` : `×${factor} storage fleet`}
+                saturationIndex={saturationIndex}
+                onChange={onFactor}
+              />
+            </div>
             <div className="mix-table-wrap mix-surplus-table-wrap">
               <table className="mix-table mix-surplus-table">
                 <caption className="sr-only">
@@ -211,13 +215,21 @@ export function SurplusDaySimulation({
               <div className="mix-surplus-cards" aria-hidden="false">
                 {LIVE_DISPATCH_FACTORS.map((rowFactor) => {
                   const row = report.factors[rowFactor];
+                  const showChip = rowFactor === 5 || rowFactor === 10;
                   return (
                     <div
                       key={rowFactor}
                       className={`mix-surplus-card${rowFactor === factor ? " is-selected" : ""}`}
                       aria-current={rowFactor === factor ? "true" : undefined}
                     >
-                      <p className="mix-surplus-card-factor num">×{rowFactor}</p>
+                      <p className="mix-surplus-card-factor num">
+                        ×{rowFactor}
+                        {showChip ? (
+                          <span className="mix-surplus-chip mix-surplus-chip-card">
+                            {tx("Obergrenze ohne Preiswirkung", "Upper bound without price effect")}
+                          </span>
+                        ) : null}
+                      </p>
                       <p className="mix-surplus-card-line num tabular-nums">
                         {tx("Aufnahme", "Absorption")} · {gwh(row.absorbedGwh, language)}
                       </p>

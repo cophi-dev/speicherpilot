@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s | SpeicherPilot",
   },
   description:
-    "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien — ohne Euro-Werte, auf Deutsch.",
+    "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien — auf Deutsch.",
 };
 
 export default function RootLayout({

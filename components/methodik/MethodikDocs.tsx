@@ -14,6 +14,7 @@ import { REFERENCE_PARK } from "@/lib/referencePark";
 import { GLOSSARY } from "@/lib/glossary";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
+import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 
 const CHAPTERS = [
   { id: "annahmen", de: "Annahmen auf einen Blick", en: "Assumptions at a glance" },
@@ -173,7 +174,23 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <h2>{tx("06b Überschuss, Export, Abregelung", "06b Surplus, export, curtailment")}</h2>
               <p>{tx("Überschuss Wind und Sonne ist die Summe von max(0, Wind an Land + Wind auf See + Sonne − Last) mal 0,25 h über den Tag. Dieselbe Definition wie der Ring und Abschnitt 06.", "Wind-and-solar surplus is the sum of max(0, onshore wind + offshore wind + solar − load) times 0.25 h over the day. Same definition as the ring and section 06.")}</p>
               <p>{tx("Export beobachtet integriert nur negative Grenzhandels-Leistung (Export) aus Energy-Charts total_power (Last inkl. Eigenverbrauch, 15 Min.). Die Modellschätzung je Viertelstunde: simuliert = max(0, beobachtet − Ladung aus Überschuss). Entladung ab 17 Uhr ändert den Export nicht.", "Observed export integrates only negative cross-border power (export) from Energy-Charts total_power (load including self-consumption, 15 min). The model estimate each quarter-hour: simulated = max(0, observed − charging from surplus). Discharge from 17:00 does not change export.")}</p>
-              <p>{tx("Gemessene EE-Abregelung bundesweit gibt es nur quartalsweise (Bundesnetzagentur/SMARD, 2. Quartal 2026 am 12.10.2026: 2,102 GWh). Tageswerte veröffentlicht niemand. Abregelung fließt nicht in die Aufnahme.", "Measured renewable curtailment for all of Germany is published only quarterly (Bundesnetzagentur/SMARD, Q2 2026 on 12 Oct 2026: 2.102 GWh). No daily figures exist. Curtailment is not included in absorption.")}</p>
+              <p>
+                {language === "de" ? (
+                  <>
+                    Gemessene EE-Abregelung bundesweit gibt es nur quartalsweise (
+                    <a href={SMARD_QUARTERLY_TOPIC_URL}>Bundesnetzagentur/SMARD</a>, 2. Quartal 2026 am 12.10.2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("de")}). Tageswerte veröffentlicht niemand. Abregelung fließt nicht in
+                    die Aufnahme.
+                  </>
+                ) : (
+                  <>
+                    Measured renewable curtailment for all of Germany is published only quarterly (
+                    <a href={SMARD_QUARTERLY_TOPIC_URL}>Bundesnetzagentur/SMARD</a>, Q2 2026 on 12 Oct 2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("en")}). No daily figures exist. Curtailment is not included in
+                    absorption.
+                  </>
+                )}
+              </p>
               <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, Stand siehe Seite). Nutzbar sind 10–90 % Nennenergie, Start bei 0 im nutzbaren Fenster, Laden nur vor 17 Uhr, Wirkungsgrad 85 % auf der Abgabe. ×2, ×5 und ×10 vervielfachen Leistung und Energie; ab ×5 gilt „Obergrenze ohne Preiswirkung“. Unsicherheit: Kupferplatte, keine Engpässe, keine Preiswirkung.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, as-of on the page). Usable is 10–90% of nameplate, starting at 0 in the usable window, charging only before 17:00, 85% round-trip on discharge. ×2, ×5 and ×10 scale power and energy; from ×5 the label is upper bound without price effect. Uncertainty: copper plate, no bottlenecks, no price effect.")}</p>
             </section>
             <section id="groesse">

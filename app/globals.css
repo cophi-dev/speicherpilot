@@ -5839,7 +5839,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   color: var(--mix-muted);
   line-height: 1.35;
 }
-.mix-surplus .mix-head h2 { font-size: clamp(26px, 4vw, 34px); font-weight: 500; }
+.mix-surplus .mix-head h2 { font-size: clamp(26px, 4vw, 34px); font-weight: 300; }
 .mix-surplus-slider-kicker {
   margin: 0 0 8px;
   font-family: var(--font-plex-mono), monospace;
@@ -5854,9 +5854,19 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   font-size: 17px;
   line-height: 1.5;
 }
-.mix-surplus-curtailment-note {
-  margin: -8px 0 20px;
-  max-width: 68ch;
+.mix-surplus-slider .day-slider-stops .is-current {
+  color: #0a5c48;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dark .mix-surplus-slider .day-slider-stops .is-current {
+  color: #7dffe6;
+}
+.mix-surplus-chip-card {
+  display: block;
+  margin-top: 6px;
+  margin-left: 0;
 }
 .mix-surplus-table .mix-num-col {
   text-align: right;

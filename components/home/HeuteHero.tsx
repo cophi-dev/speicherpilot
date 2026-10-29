@@ -47,7 +47,9 @@ export function HeuteHero({ heute }: { heute: HeuteImNetz }) {
           <div className="heute-copy">
             <p className="num text-[12px] tracking-[0.14em] text-muted-foreground uppercase">
               {tx("Heute im Netz", "Today on the grid")}
-              <span className="text-muted-foreground"> · battery storage & grid connection planner</span>
+              {language === "de" ? (
+                <span className="text-muted-foreground"> · Speicher und Netz in Zahlen</span>
+              ) : null}
             </p>
             <h1 id="heute-title" className="mt-4 text-foreground">
               {figure ? (

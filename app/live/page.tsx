@@ -10,7 +10,7 @@ export const revalidate = 1800;
 export const metadata = {
   title: "Was wäre, wenn Deutschland mehr Speicher hätte?",
   description:
-    "Modellierter Überschusstag in Deutschland: Flotte ×1 bis ×10, Export-Gegenrechnung und Methodik — Live-Daten, einfache Sprache, ohne Euro-Werte.",
+    "Modellierter Überschusstag in Deutschland: Flotte ×1 bis ×10, Export-Gegenrechnung und Methodik — Live-Daten, einfache Sprache.",
 };
 
 export default async function LivePage({

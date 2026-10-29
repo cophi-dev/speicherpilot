@@ -162,6 +162,9 @@ describe("surplusDaySimulation", () => {
   });
 });
 
+/**
+ * @jest-environment node
+ */
 describe("surplusDaySimulation reference days (Energy-Charts)", () => {
   const live = process.env.SURPLUS_REFERENCE_LIVE === "1" ? it : it.skip;
 
