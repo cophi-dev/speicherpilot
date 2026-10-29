@@ -799,7 +799,7 @@ function HourTicks({
         const label = polarPoint(0, 0, labelRadius, deg);
         const text = hour === 0 ? "00" : String(hour).padStart(2, "0");
         return (
-          <g key={hour}>
+          <g key={`tick-${hour}-${deg}`}>
             <line x1={guide.x} y1={guide.y} x2={tick.x} y2={tick.y} strokeWidth="1" />
             <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="central">
               {text}
@@ -833,8 +833,8 @@ export function HourlyResidualTable({
         </tr>
       </thead>
       <tbody>
-        {rows.map((row) => (
-          <tr key={row.hour}>
+        {rows.map((row, index) => (
+          <tr key={`${row.hour}-${index}`}>
             <td>{String(row.hour).padStart(2, "0")}</td>
             <td>{formatQuantity(row.ohneGw, language, 1)}</td>
             <td>{formatQuantity(row.mitGw, language, 1)}</td>

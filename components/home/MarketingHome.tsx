@@ -34,7 +34,7 @@ export function MarketingHome({
         until={until}
         leading={<LiveStrip stand={stand} readings={readings} />}
       />
-      <PowerBoard model={board} missingFactor={1} />
+      <PowerBoard model={board} missingFactor={1} hideSocLine />
       <ConnectionStory />
     </div>
   );

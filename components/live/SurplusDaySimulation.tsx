@@ -62,7 +62,7 @@ function lerpSamples(from: SurplusChartSample[], to: SurplusChartSample[], amoun
     const prev = from[index] ?? point;
     const mix = (start: number, end: number) => start + (end - start) * amount;
     return {
-      hour: point.hour,
+      ...point,
       ohne: point.ohne,
       mit: mix(prev.mit, point.mit),
       charge: mix(prev.charge, point.charge),
@@ -99,37 +99,44 @@ function chartNotes(
   if (peak >= 0) {
     const sample = samples[peak];
     notes.push({
-      hour: sample.hour + 0.125,
+      hour: sample.hour,
+      slotIndex: peak,
       value: sample.ohne,
       text: `${formatGw(sample.ohne, language)} GW ${tx("ohne Speicher", "without storage")}`,
       anchor: "middle",
-      dy: -8,
+      dy: -14,
+      dx: -8,
       mdx: -16,
-      mdy: -10,
+      mdy: -12,
     });
   }
   if (mitPeak >= 0) {
     const sample = samples[mitPeak];
     notes.push({
-      hour: sample.hour + 0.125,
+      hour: sample.hour,
+      slotIndex: mitPeak,
       value: sample.mit,
       text: `${formatGw(sample.mit, language)} GW ${tx("mit", "with")} ×${factor}`,
       anchor: "middle",
-      dy: -8,
+      dy: -14,
+      dx: 8,
       mdx: 18,
-      mdy: -10,
+      mdy: -12,
       strong: true,
     });
   }
-  if (dischargedGwh > 0.001) {
+  if (dischargedGwh > 0.001 && mitPeak >= 0) {
+    const sample = samples[mitPeak];
     notes.push({
-      hour: 19.5,
-      value: samples[Math.max(mitPeak, 0)]?.mit ?? 0,
+      hour: sample.hour,
+      slotIndex: mitPeak,
+      value: sample.mit,
       text: `${formatQuantity(dischargedGwh, language, 1)} GWh ${tx("abgegeben", "discharged")}`,
-      dx: 8,
-      dy: 16,
+      anchor: "start",
+      dy: 22,
+      dx: 10,
       mdx: 12,
-      mdy: 14,
+      mdy: 18,
     });
   }
   return notes;
@@ -307,8 +314,8 @@ export function SurplusDaySimulation({
               label={tx("Überschuss Wind und Sonne", "Wind and solar surplus")}
               value={gwh(observed.windSolarSurplusGwh, language)}
               detail={tx(
-                "Summe max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h",
-                "Sum of max(0, onshore wind + offshore wind + solar − load) · ¼ h"
+                "Viertelstunden, in denen Wind und Sonne mehr liefern als gebraucht wird",
+                "Quarter-hours when wind and solar deliver more than is used"
               )}
             />
             <Metric

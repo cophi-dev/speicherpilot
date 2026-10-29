@@ -1,7 +1,7 @@
 import type { GermanyDispatchSlot, GermanyDispatchSlotsResponse } from "@/lib/energyChartsApi";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
-import { berlinClockParts } from "@/lib/quarterMarks";
+import { berlinClockParts, uniqueQuarterLabels } from "@/lib/quarterMarks";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
@@ -137,6 +137,23 @@ function toResidualSlots(slots: GermanyDispatchSlot[]): ResidualSlot[] {
     }));
 }
 
+function morningChargeSocMwh(slots: GermanyDispatchSlot[], capMwh: number, powerMw: number): number {
+  let socMwh = 0;
+  for (const slot of slots) {
+    if (slot.hourBerlin >= DISCHARGE_HOUR) {
+      break;
+    }
+    if (capMwh <= 0 || powerMw <= 0) {
+      continue;
+    }
+    const surplusMw = windSolarSurplusMwhForSlot(slot) / QUARTER_HOUR_H;
+    const headroomMw = Math.max(0, capMwh - socMwh) / QUARTER_HOUR_H;
+    const chargeMw = Math.min(surplusMw, powerMw, headroomMw);
+    socMwh += chargeMw * QUARTER_HOUR_H;
+  }
+  return socMwh;
+}
+
 function eveningDischargeMw(slots: ResidualSlot[], powerMw: number, deliverableMwh: number): number[] {
   const dischargeMw = slots.map(() => 0);
   const evening = slots
@@ -195,9 +212,10 @@ export function evaluateSurplusDayFactor(
   const totalSurplusMwh = slots.reduce((sum, slot) => sum + windSolarSurplusMwhForSlot(slot), 0);
 
   const residualSlots = toResidualSlots(slots);
+  const socAt17 = morningChargeSocMwh(slots, capMwh, powerMw);
   const dischargePlan =
-    capMwh > 0 && powerMw > 0 && residualSlots.length > 0
-      ? eveningDischargeMw(residualSlots, powerMw, capMwh * ROUND_TRIP_EFFICIENCY)
+    capMwh > 0 && powerMw > 0 && residualSlots.length > 0 && socAt17 > 1e-9
+      ? eveningDischargeMw(residualSlots, powerMw, socAt17 * ROUND_TRIP_EFFICIENCY)
       : [];
 
   const quarters: SurplusDayQuarter[] = [];
@@ -293,13 +311,18 @@ export function surplusEveningPeaksGw(quarters: SurplusDayQuarter[]): {
   if (evening.length === 0) {
     return { beforeGw: null, afterGw: null };
   }
+  const mitMw = (row: SurplusDayQuarter) => row.residualMw + row.chargeMw - row.dischargeMw;
   const before = Math.max(...evening.map((row) => row.residualMw));
-  const after = Math.max(...evening.map((row) => row.residualMw - row.dischargeMw));
+  const after = Math.max(...evening.map(mitMw));
   return { beforeGw: before / 1000, afterGw: after / 1000 };
 }
 
 export type SurplusChartSample = {
   hour: number;
+  timestampIso?: string;
+  slotIndex?: number;
+  slotCount?: number;
+  timeLabel?: string;
   ohne: number;
   mit: number;
   charge: number;
@@ -307,12 +330,18 @@ export type SurplusChartSample = {
   soc: number;
 };
 
-/** Residual load with/without discharge and export in GW for DispatchDayChart. */
+/** Residual load with/without storage (residual + charge − discharge) in GW for DispatchDayChart. */
 export function surplusQuartersToChartSamples(quarters: SurplusDayQuarter[]): SurplusChartSample[] {
-  return quarters.map((row) => ({
+  const labels = uniqueQuarterLabels(quarters.map((row) => row.timestampIso));
+  const count = quarters.length;
+  return quarters.map((row, index) => ({
     hour: row.hour,
+    timestampIso: row.timestampIso,
+    slotIndex: index,
+    slotCount: count,
+    timeLabel: labels[index],
     ohne: row.residualMw / 1000,
-    mit: (row.residualMw - row.dischargeMw) / 1000,
+    mit: (row.residualMw + row.chargeMw - row.dischargeMw) / 1000,
     charge: row.chargeMw / 1000,
     discharge: row.dischargeMw / 1000,
     soc: row.socFraction,

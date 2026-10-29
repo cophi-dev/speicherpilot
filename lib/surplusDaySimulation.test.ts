@@ -3,6 +3,7 @@ import {
   buildSurplusDayReport,
   evaluateSurplusDayFactor,
   sumWindSolarSurplusGwh,
+  surplusQuartersToChartSamples,
   windSolarSurplusMwhForSlot,
 } from "@/lib/surplusDaySimulation";
 
@@ -171,6 +172,11 @@ describe("surplusDaySimulation", () => {
       expect(row.socMwh).toBeLessThanOrEqual(capMwh + 1e-6);
       expect(row.chargeMw <= 1e-6 || row.dischargeMw <= 1e-6).toBe(true);
     }
+    const mitPeak = Math.max(
+      ...result.quarters.filter((row) => row.hourBerlin >= 17).map((row) => row.residualMw + row.chargeMw - row.dischargeMw)
+    );
+    const chartPeak = Math.max(...surplusQuartersToChartSamples(result.quarters).filter((_, i) => result.quarters[i].hourBerlin >= 17).map((s) => s.mit));
+    expect(chartPeak * 1000).toBeCloseTo(mitPeak, 3);
   });
 
   it("builds factor rows with monotonic absorption when surplus is large", () => {
