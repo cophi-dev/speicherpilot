@@ -41,8 +41,7 @@ function formatBerlinLabel(dateBerlin: string) {
 }
 
 function formatGw(value: number, language: AppLanguage) {
-  const shown = Math.round(value * 10) / 10;
-  return formatQuantity(shown, language, Number.isInteger(shown) ? 0 : 1);
+  return formatQuantity(Math.round(value * 10) / 10, language, 1);
 }
 
 function usePrefersReducedMotion() {

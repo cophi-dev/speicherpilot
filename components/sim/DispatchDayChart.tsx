@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import { layoutChartLabels } from "@/lib/chartLabelLayout";
+import { buildDispatchDayChartXAxisMarks } from "@/lib/dispatchChartXAxis";
 import type { AppLanguage } from "@/components/language-context";
 
 export type ChartSample = {
@@ -141,30 +142,6 @@ function xRight(samples: ChartSample[], index: number, padLeft: number, plotW: n
 
 function sampleKey(sample: ChartSample, index: number): string {
   return sample.timestampIso ?? `slot-${index}`;
-}
-
-function xAxisMarks(samples: ChartSample[], mobile: boolean): Array<{ index?: number; hour?: number; label: string }> {
-  if (!usesSlotIndex(samples)) {
-    return [0, 3, 6, 9, 12, 15, 18, 21, 24]
-      .filter((hour) => (mobile ? hour % 6 === 0 : true))
-      .map((hour) => ({ hour, label: String(hour).padStart(2, "0") }));
-  }
-  const marks: Array<{ index: number; label: string }> = [];
-  for (let index = 0; index < samples.length; index += 1) {
-    const label = samples[index].timeLabel ?? clockLabel(samples[index].hour);
-    const onHour = label.endsWith(":00") || index === 0 || index === samples.length - 1;
-    if (!onHour) {
-      continue;
-    }
-    const short = label.length > 5 ? label.slice(0, 5) : label;
-    if (marks.length === 0 || marks[marks.length - 1].label !== short) {
-      marks.push({ index, label: short });
-    }
-  }
-  if (mobile) {
-    return marks.filter((_, step) => step % 2 === 0);
-  }
-  return marks;
 }
 
 function annotationX(samples: ChartSample[], note: ChartAnnotation, padLeft: number, plotW: number): number {
@@ -330,7 +307,13 @@ export function DispatchDayChart({
         })),
         { minX: 4, maxX: width - 4, minY: 14, maxY: bandTop - 4 }
       );
-  const xTicks = xAxisMarks(samples, mobile);
+  const xTicks = buildDispatchDayChartXAxisMarks(samples, {
+    plotW,
+    padLeft,
+    padRight,
+    chartWidth: width,
+    mobile,
+  });
 
   return (
     <div className={`sim-chart${intro ? " intro" : ""}`} ref={wrapRef}>
@@ -494,7 +477,7 @@ export function DispatchDayChart({
                   return (
                     <g key={`tick-${mark.index}-${mark.label}`}>
                       <line x1={x} x2={x} y1={bandTop + BAND} y2={bandTop + BAND + 4} className="zl" />
-                      <text x={x} y={height - 4} textAnchor="middle" className="tk">
+                      <text x={x} y={height - 4} textAnchor={mark.anchor} className="tk">
                         {mark.label}
                       </text>
                     </g>
@@ -506,7 +489,7 @@ export function DispatchDayChart({
                   return (
                     <g key={`hour-${hour}`}>
                       <line x1={x} x2={x} y1={bandTop + BAND} y2={bandTop + BAND + 4} className="zl" />
-                      <text x={x} y={height - 4} textAnchor={hour === 0 ? "start" : hour === 24 ? "end" : "middle"} className="tk">
+                      <text x={x} y={height - 4} textAnchor={mark.anchor} className="tk">
                         {mark.label}
                       </text>
                     </g>
