@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 
+import { ConnectionStory } from "@/components/home/ConnectionStory";
+import { SiteOperatorSections } from "@/components/site/SiteOperatorSections";
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { ModelChip } from "@/components/day-ring/ModelChip";
 import { UtilisationLegend } from "@/components/day-ring/UtilisationLegend";
@@ -99,6 +101,8 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
         onLimit={setLimitDraft}
       />
       <ExampleCards language={language} view={view} scenario={scenario} />
+      {view === "projekt" && scenario !== "grossspeicher" ? <ConnectionStory /> : null}
+      {view === "netz" ? <SiteOperatorSections /> : null}
     </div>
   );
 }

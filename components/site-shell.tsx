@@ -19,12 +19,9 @@ type ThemePreference = "light" | "dark" | "system";
 
 const NAV = [
   { href: "/", de: "Start", en: "Start" },
+  { href: "/live", de: "Tag", en: "Day" },
   { href: "/site", de: "Standort", en: "Site" },
-  { href: "/live", de: "Live", en: "Live" },
-  { href: "/netz", de: "Netz", en: "Grid" },
-  { href: "/szenarien", de: "Szenarien rechnen", en: "Run scenarios" },
   { href: "/methodik", de: "Methodik", en: "Method" },
-  { href: "/blog", de: "Blog", en: "Blog" },
 ] as const;
 
 function resolveTheme(pref: ThemePreference): "light" | "dark" {
@@ -250,6 +247,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={false}
                     className={`inline-flex min-h-6 shrink-0 items-center whitespace-nowrap ${active ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     aria-current={active ? "page" : undefined}
                   >
@@ -297,7 +295,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
             <div className="border-t border-border bg-card px-5 py-4 md:px-8 lg:hidden">
               <nav id="site-mobile-nav" className="flex flex-col gap-3 text-sm font-medium" aria-label={tx("Hauptnavigation", "Primary")}>
                 {NAV.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+                  <Link key={item.href} href={item.href} prefetch={false} onClick={() => setMenuOpen(false)}>
                     {language === "de" ? item.de : item.en}
                   </Link>
                 ))}
@@ -375,9 +373,12 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
               </details>
             </div>
             <p className="flex flex-col items-start gap-1">
-              <Link className="inline-flex min-h-8 items-center" href="/blog">{tx("Blog", "Blog")}</Link>
-              <Link className="inline-flex min-h-8 items-center" href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
-              <Link className="inline-flex min-h-8 items-center" href="/netz">{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</Link>
+              <Link className="inline-flex min-h-8 items-center" href="/blog" prefetch={false}>
+                {tx("Blog", "Blog")}
+              </Link>
+              <Link className="inline-flex min-h-8 items-center" href="/news" prefetch={false}>
+                News
+              </Link>
             </p>
             <p>
               {tx(

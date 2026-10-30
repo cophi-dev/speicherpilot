@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { ModelChip } from "@/components/day-ring/ModelChip";
+import { PerspectiveChoice } from "@/components/PerspectiveChoice";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
 import {
   DispatchDayChart,
@@ -17,11 +17,11 @@ import { UebersichtBarChart } from "@/components/uebersicht/UebersichtBarChart";
 import { fleetEuroHiddenHint } from "@/lib/beispieltage";
 import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 import { formatQuantity } from "@/lib/formatQuantity";
-import type { OverviewUiModel } from "@/lib/germanyView";
-import type { OverviewFactorResult, OverviewQuarterPoint } from "@/lib/overviewChain";
+import type { OverviewsBundle } from "@/lib/germanyView";
+import type { OverviewQuarterPoint } from "@/lib/overviewChain";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
-import { OVERVIEW_BLICKS, parseOverviewFactor, type OverviewBlick } from "@/lib/overviewRange";
-import { uniqueQuarterLabels } from "@/lib/quarterMarks";
+import { OVERVIEW_BLICKS, parseOverviewBlick, parseOverviewFactor, type OverviewBlick } from "@/lib/overviewRange";
+import { einschaetzung } from "@/lib/overviewSentence";
 
 const SOC_REST_TOOLTIP_DE =
   "Geladen und abgegeben sind nicht einfach 85 % voneinander: Am Zeitraumende bleibt Energie im Speicher (Rest). Entladen = (aufgenommen − Rest) × 85 %.";
@@ -40,18 +40,6 @@ function formatBerlinDate(dateKey: string) {
   return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : dateKey;
 }
 
-function formatPeakMoment(iso: string | null, multiDay: boolean) {
-  if (!iso) {
-    return null;
-  }
-  const clock = uniqueQuarterLabels([iso])[0] ?? "";
-  if (!multiDay) {
-    return clock;
-  }
-  const dateKey = iso.slice(0, 10);
-  return `${formatBerlinDate(dateKey)} ${clock}`.trim();
-}
-
 function blickLabel(blick: OverviewBlick, language: AppLanguage) {
   const de: Record<OverviewBlick, string> = {
     heute: "Heute",
@@ -68,19 +56,59 @@ function blickLabel(blick: OverviewBlick, language: AppLanguage) {
   return language === "de" ? de[blick] : en[blick];
 }
 
-export function Uebersicht({ model, until }: { model: OverviewUiModel; until: string | null }) {
+function readInitialQuery() {
+  if (typeof window === "undefined") {
+    return { blick: "30tage" as OverviewBlick, factor: 1 as LiveDispatchFactor };
+  }
+  const params = new URLSearchParams(window.location.search);
+  return {
+    blick: parseOverviewBlick(params.get("blick")),
+    factor: parseOverviewFactor(params.get("x")) as LiveDispatchFactor,
+  };
+}
+
+function syncHistory(blick: OverviewBlick, factor: LiveDispatchFactor) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  params.set("blick", blick);
+  params.set("x", String(factor));
+  const query = params.toString();
+  window.history.replaceState(null, "", query ? `/?${query}#uebersicht` : "/#uebersicht");
+}
+
+function quarterLabel(count: number, language: AppLanguage) {
+  if (language === "de") {
+    if (count === 1) {
+      return "1 Viertelstunde fehlt";
+    }
+    return `${count} Viertelstunden fehlen`;
+  }
+  return count === 1 ? "1 quarter-hour missing" : `${count} quarter-hours missing`;
+}
+
+export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: string | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const factor = parseOverviewFactor(searchParams.get("x")) as LiveDispatchFactor;
-  const blick = model.bounds.blick;
-  const factorResult = model.factors[factor] as OverviewFactorResult;
+  const [blick, setBlick] = useState<OverviewBlick>(() => readInitialQuery().blick);
+  const [factor, setFactor] = useState<LiveDispatchFactor>(() => readInitialQuery().factor);
+
+  useEffect(() => {
+    syncHistory(blick, factor);
+  }, [blick, factor]);
+
+  const model = bundle.byBlick[blick];
+  const factorResult = model.factors[factor];
   const isSingleDay = model.bounds.dayCount === 1;
-  const multiDay = model.bounds.dayCount > 1;
   const missingShare =
     model.observed.totalQuarters > 0 ? model.observed.missingQuarters / model.observed.totalQuarters : 0;
   const showMissingHint = missingShare >= 0.02 - 1e-9;
+
+  const assessment = useMemo(
+    () => einschaetzung(model, factor, language, { dataStand: bundle.dataStand, until }),
+    [model, factor, language, bundle.dataStand, until]
+  );
 
   const chartSamples: ChartSample[] = useMemo(
     () =>
@@ -107,13 +135,6 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
     return niceChartScale(values);
   }, [factorResult.quarterPoints]);
 
-  function pushQuery(nextBlick: OverviewBlick, nextFactor: LiveDispatchFactor) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("blick", nextBlick);
-    params.set("x", String(nextFactor));
-    router.replace(`/?${params.toString()}#uebersicht`, { scroll: false });
-  }
-
   function onBlickKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
       return;
@@ -121,45 +142,36 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
     event.preventDefault();
     const delta = event.key === "ArrowRight" ? 1 : -1;
     const next = OVERVIEW_BLICKS[(index + delta + OVERVIEW_BLICKS.length) % OVERVIEW_BLICKS.length];
-    pushQuery(next, factor);
+    setBlick(next);
   }
-
-  const surplus = model.observed.surplusGwh ?? 0;
-  const noSurplus = surplus <= 1e-6;
-  const peakLabel =
-    model.observed.peakSurplusMw !== null && model.observed.peakSurplusIso
-      ? formatPeakMoment(model.observed.peakSurplusIso, multiDay)
-      : null;
 
   const netImport = model.observed.netImportGwh;
   const importGwh = model.observed.importGwh;
   const exportGwh = model.observed.exportGwh;
   const netTradeGwh =
     netImport !== null ? Math.abs(netImport) : importGwh !== null && exportGwh !== null ? Math.abs(importGwh - exportGwh) : null;
-  const importTileTitle = tx("Handel", "Trade");
+  const absorbedSharePct =
+    factorResult.absorbedShare !== null ? formatQuantity(factorResult.absorbedShare * 100, language, 0) : null;
 
   return (
-    <section id="uebersicht" className="uebersicht" aria-labelledby="uebersicht-title">
+    <section id="uebersicht" className="uebersicht start-overview" aria-labelledby="uebersicht-title">
       <div className="mx-auto max-w-[1200px]">
-        {model.stale ? (
+        {bundle.stale ? (
           <p className="uebersicht-banner" role="status">
             {tx(
-              `Wir zeigen den letzten erfolgreichen Abruf. Datenstand: ${model.dataStand}.`,
-              `We show the last successful fetch. Data as of ${model.dataStand}.`
+              `Wir zeigen den letzten erfolgreichen Abruf. Datenstand: ${bundle.dataStand}.`,
+              `We show the last successful fetch. Data as of ${bundle.dataStand}.`
             )}
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 id="uebersicht-title">{tx("Deutschland auf einen Blick", "Germany at a glance")}</h2>
-          <ModelChip label={tx("Modellschätzung", "Model estimate")} />
-        </div>
-        <p className="uebersicht-lead">
+        <p className="day-kicker">{tx("Deutschland · Übersicht", "Germany · overview")}</p>
+        <h1 id="uebersicht-title" className="start-hero-title">
           {tx(
-            "Überschuss, Handel und Abregelung — und was mehr Speicher in unserem Modell verschoben hätte.",
-            "Surplus, trade and curtailment — and what more storage would have shifted in our model."
+            "Wie viel Strom aus Wind und Sonne war übrig — und hätte mehr Speicher ihn aufgenommen?",
+            "How much wind and solar power was left over — and would more storage have absorbed it?"
           )}
-        </p>
+        </h1>
 
         <div className="sim-seg uebersicht-period" role="radiogroup" aria-label={tx("Zeitraum", "Period")}>
           {OVERVIEW_BLICKS.map((item, index) => (
@@ -169,150 +181,69 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
               role="radio"
               aria-checked={blick === item}
               className={blick === item ? "on" : undefined}
-              onClick={() => pushQuery(item, factor)}
+              onClick={() => setBlick(item)}
               onKeyDown={(event) => onBlickKey(event, index)}
             >
               {blickLabel(item, language)}
             </button>
           ))}
         </div>
-        {model.observed.openDay ? (
-          <p className="uebersicht-sub" role="status">
-            {tx("Tag läuft noch.", "Day still in progress.")}
-          </p>
-        ) : null}
-        {blick === "heute" && until ? (
-          <p className="uebersicht-sub">{tx(`bisher, bis ${until} Uhr`, `so far, until ${until}`)}</p>
-        ) : null}
+
         {showMissingHint ? (
           <p className="uebersicht-sub" role="status">
             {tx(
-              `${model.observed.missingQuarters} Viertelstunden fehlen in den Rohdaten (${formatQuantity(missingShare * 100, language, 1)} %).`,
-              `${model.observed.missingQuarters} quarter-hours missing in the raw data (${formatQuantity(missingShare * 100, language, 1)}%).`
+              `${quarterLabel(model.observed.missingQuarters, language)} in den Rohdaten (${formatQuantity(missingShare * 100, language, 1)} %).`,
+              `${quarterLabel(model.observed.missingQuarters, language)} in the raw data (${formatQuantity(missingShare * 100, language, 1)}%).`
             )}
           </p>
         ) : null}
 
-        <div className="uebersicht-tiles">
-          <article className="uebersicht-kpi">
-            <h3>{tx("Überschuss", "Surplus")}</h3>
+        <p className="uebersicht-assessment">{assessment}</p>
+        {model.observed.openDay && blick === "heute" ? (
+          <p className="uebersicht-open-hint">
+            {tx("Der Tag läuft noch. Die Zahlen können sich noch ändern.", "The day is still in progress. Figures may still change.")}
+          </p>
+        ) : null}
+
+        <div className="uebersicht-trio" aria-label={tx("Kernzahlen", "Key figures")}>
+          <article className="uebersicht-trio-item">
+            <h2>{tx("Überschuss", "Surplus")}</h2>
             <p className="uebersicht-value">{gwh(model.observed.surplusGwh, language)}</p>
-            <p className="uebersicht-note">
+            <p className="uebersicht-quiet">
               {tx(
-                `Wind und Sonne lieferten mehr als nötig: an ${model.observed.surplusDays} von ${model.observed.dayCount} Tagen.`,
-                `Wind and solar exceeded need: on ${model.observed.surplusDays} of ${model.observed.dayCount} days.`
+                `an ${model.observed.surplusDays} von ${model.observed.dayCount} Tagen`,
+                `on ${model.observed.surplusDays} of ${model.observed.dayCount} days`
               )}
             </p>
-            {peakLabel ? (
-              <p className="uebersicht-quiet">
-                {tx("Höchste Spitze", "Highest peak")}: {formatQuantity((model.observed.peakSurplusMw ?? 0) / 1000, language, 1)} GW ·{" "}
-                {peakLabel}
-              </p>
-            ) : null}
-            <p className="uebersicht-source">{tx(`Datenstand: ${model.dataStand} · Energy-Charts.info`, `As of ${model.dataStand} · Energy-Charts.info`)}</p>
           </article>
-
-          <article className="uebersicht-kpi">
-            <h3>{importTileTitle}</h3>
+          <article className="uebersicht-trio-item">
+            <h2>{tx("Handel", "Trade")}</h2>
             <p className="uebersicht-value">{gwh(netTradeGwh, language)}</p>
-            <p className="uebersicht-note">
-              {importGwh !== null && exportGwh !== null && netTradeGwh !== null
-                ? netImport !== null && netImport >= 0
-                  ? tx(
-                      `Deutschland hat unterm Strich ${gwh(netTradeGwh, language, 2)} eingekauft. Eingekauft in Viertelstunden mit Import: ${gwh(importGwh, language, 2)}, verkauft: ${gwh(exportGwh, language, 2)}.`,
-                      `Germany bought ${gwh(netTradeGwh, language, 2)} net. Bought in import quarters: ${gwh(importGwh, language, 2)}, sold: ${gwh(exportGwh, language, 2)}.`
-                    )
-                  : tx(
-                      `Deutschland hat unterm Strich ${gwh(netTradeGwh, language, 2)} verkauft. Eingekauft in Viertelstunden mit Import: ${gwh(importGwh, language, 2)}, verkauft: ${gwh(exportGwh, language, 2)}.`,
-                      `Germany sold ${gwh(netTradeGwh, language, 2)} net. Bought in import quarters: ${gwh(importGwh, language, 2)}, sold: ${gwh(exportGwh, language, 2)}.`
-                    )
-                : tx("Keine Handelsdaten im Zeitraum.", "No trade data in this period.")}
-            </p>
-            <p className="uebersicht-source">{tx("Quelle: kommerzieller Handelssaldo · Energy-Charts", "Source: commercial trading balance · Energy-Charts")}</p>
-          </article>
-
-          <article className="uebersicht-kpi">
-            <h3>{tx("Abregelung", "Curtailment")}</h3>
-            <p className="uebersicht-value">{gwh(model.curtailmentQuarterDailyGwh, language, 0)}</p>
-            <p className="uebersicht-note">
-              {tx(
-                `Im Schnitt pro Tag im letzten veröffentlichten Quartal (${model.curtailmentQuarterLabel}, BNetzA/SMARD, Quartalssumme ${formatQuarterlyCurtailmentGwh(language)} EE-Redispatch gesamt). Tageswerte veröffentlicht niemand vollständig.`,
-                `Daily average in the last published quarter (${model.curtailmentQuarterLabel}, BNetzA/SMARD, quarterly total ${formatQuarterlyCurtailmentGwh(language)} EE redispatch). Nobody publishes complete daily totals.`
-              )}
-            </p>
-            <p className="uebersicht-source">
-              <a href={SMARD_QUARTERLY_TOPIC_URL}>{tx(`Stand ${model.curtailmentPublishedLabel}`, `As of ${model.curtailmentPublishedLabel}`)}</a>
+            <p className="uebersicht-quiet">
+              {netImport !== null && netImport >= 0
+                ? tx("unterm Strich eingekauft", "net import")
+                : tx("unterm Strich verkauft", "net export")}
             </p>
           </article>
-
-          <article className="uebersicht-kpi" data-model-estimate>
+          <article className="uebersicht-trio-item" data-model-estimate>
             <div className="flex flex-wrap items-center gap-2">
-              <h3>{tx("Mehr Speicher", "More storage")}</h3>
+              <h2>{tx(`Bei ×${factor} aufgenommen`, `Absorbed at ×${factor}`)}</h2>
               <ModelChip label={tx("Modellschätzung", "Model estimate")} />
             </div>
-            {noSurplus ? (
-              <p className="uebersicht-note">
-                {tx(
-                  "Im Zeitraum gab es keinen Überschuss aus Wind und Sonne. Unser Modell lädt nur aus Überschuss, deshalb hätte auch mehr Speicher hier nichts verschoben.",
-                  "There was no wind-and-solar surplus in this period. Our model charges only from surplus, so more storage would not have shifted anything here."
-                )}{" "}
-                {model.observed.lastSurplusDateBerlin ? (
-                  <Link href={`/live?tag=${model.observed.lastSurplusDateBerlin}`}>
-                    {tx(
-                      `Letzter Tag mit Überschuss: ${formatBerlinDate(model.observed.lastSurplusDateBerlin)}.`,
-                      `Last surplus day: ${formatBerlinDate(model.observed.lastSurplusDateBerlin)}.`
-                    )}
-                  </Link>
-                ) : null}
-              </p>
-            ) : (
-              <>
-                <p className="uebersicht-value">
-                  {gwh(factorResult.absorbedGwh, language)}{" "}
-                  {factorResult.absorbedShare !== null
-                    ? tx(`(${formatQuantity(factorResult.absorbedShare * 100, language, 0)} % des Überschusses)`, `(${formatQuantity(factorResult.absorbedShare * 100, language, 0)}% of surplus)`)
-                    : null}
-                </p>
-                <ul className="uebersicht-list">
-                  <li>
-                    {tx("Abgegeben am Abend", "Discharged in the evening")}: {gwh(factorResult.dischargedGwh, language)}
-                  </li>
-                  <li>
-                    {tx("Abendspitze im Schnitt", "Average evening peak")}:{" "}
-                    {factorResult.eveningPeakBeforeGw !== null && factorResult.eveningPeakAfterGw !== null
-                      ? `${formatQuantity(factorResult.eveningPeakBeforeGw, language, 1)} → ${formatQuantity(factorResult.eveningPeakAfterGw, language, 1)} GW`
-                      : "—"}
-                  </li>
-                  <li>
-                    {tx("Entladung in Stunden mit Import (höchstens)", "Discharge during import hours (at most)")}:{" "}
-                    {gwh(factorResult.dischargedDuringImportGwh, language, 2)}
-                  </li>
-                  <li>
-                    <span title={language === "de" ? SOC_REST_TOOLTIP_DE : SOC_REST_TOOLTIP_EN}>
-                      {tx("Rest im Speicher am Zeitraumende", "Remainder in storage at period end")}: {gwh(factorResult.endSocDeltaGwh, language, 2)}
-                    </span>
-                  </li>
-                  {factor === 1 && factorResult.eurModelX1 !== null ? (
-                    <li>
-                      {tx("Modellschätzung", "Model estimate")}: ≈ {formatQuantity(factorResult.eurModelX1, language, 0)} €{" "}
-                      {tx("Erlös aus Preisunterschied (Day-Ahead DE-LU)", "Revenue from price spread (day-ahead DE-LU)")}
-                    </li>
-                  ) : factor > 1 ? (
-                    <li className="beispieltage-euro-hint">{fleetEuroHiddenHint(language)}</li>
-                  ) : null}
-                </ul>
-                {factorResult.saturated ? (
-                  <p className="uebersicht-note">
-                    {tx(
-                      `Ab ×${factor} nimmt der Speicher allen Überschuss auf. Mehr Speicher bringt in diesem Zeitraum nichts mehr.`,
-                      `From ×${factor} the fleet absorbs all surplus. More storage would not help further in this period.`
-                    )}
-                  </p>
-                ) : null}
-              </>
-            )}
+            <p className="uebersicht-value">
+              {gwh(factorResult.absorbedGwh, language)}{" "}
+              {absorbedSharePct !== null ? tx(`(${absorbedSharePct} % des Überschusses)`, `(${absorbedSharePct}% of surplus)`) : null}
+            </p>
           </article>
         </div>
+
+        <p className="uebersicht-context">
+          {tx(
+            `Zum Vergleich: im Schnitt ${formatQuantity(bundle.curtailmentQuarterDailyGwh, language, 0)} GWh pro Tag abgeregelt (${bundle.curtailmentQuarterLabel}, BNetzA/SMARD, Quartalssumme ${formatQuarterlyCurtailmentGwh(language)}).`,
+            `For comparison: on average ${formatQuantity(bundle.curtailmentQuarterDailyGwh, language, 0)} GWh curtailed per day (${bundle.curtailmentQuarterLabel}, BNetzA/SMARD, quarterly total ${formatQuarterlyCurtailmentGwh(language)}).`
+          )}{" "}
+          <a href={SMARD_QUARTERLY_TOPIC_URL}>{tx(`Stand ${bundle.curtailmentPublishedLabel}`, `As of ${bundle.curtailmentPublishedLabel}`)}</a>
+        </p>
 
         <div className="uebersicht-chart-wrap">
           <FactorSlider
@@ -320,7 +251,7 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
             label=""
             valueText={language === "de" ? `×${factor} Speicherflotte` : `×${factor} storage fleet`}
             saturationIndex={factorResult.saturated ? LIVE_DISPATCH_FACTORS.indexOf(factor) : null}
-            onChange={(next) => pushQuery(blick, next)}
+            onChange={setFactor}
           />
           <figure>
             <figcaption className="sr-only">
@@ -355,38 +286,82 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
                 />
               </>
             ) : (
-              <UebersichtBarChart rows={factorResult.dayRows} soc={factorResult.socSeries} language={language} blick={blick} />
+              <UebersichtBarChart rows={factorResult.dayRows} language={language} blick={blick} />
             )}
           </figure>
-          <details className="uebersicht-table">
-            <summary>{tx("Zahlen als Tabelle", "Numbers as a table")}</summary>
-            <table>
-              <thead>
-                <tr>
-                  <th>{tx("Tag", "Day")}</th>
-                  <th>{tx("Überschuss GWh", "Surplus GWh")}</th>
-                  <th>{tx("aufgenommen GWh", "absorbed GWh")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {factorResult.dayRows.map((row) => (
-                  <tr key={row.dateBerlin}>
-                    <td>{formatBerlinDate(row.dateBerlin)}</td>
-                    <td>{formatQuantity(row.surplusGwh, language, 2)}</td>
-                    <td>{formatQuantity(row.absorbedGwh, language, 2)}</td>
+
+          <details className="uebersicht-details">
+            <summary>{tx("Details", "Details")}</summary>
+            <ul className="uebersicht-list">
+              <li>
+                {tx("Abgegeben am Abend", "Discharged in the evening")}: {gwh(factorResult.dischargedGwh, language)}
+              </li>
+              <li>
+                {tx("Abendspitze im Schnitt", "Average evening peak")}:{" "}
+                {factorResult.eveningPeakBeforeGw !== null && factorResult.eveningPeakAfterGw !== null
+                  ? `${formatQuantity(factorResult.eveningPeakBeforeGw, language, 1)} → ${formatQuantity(factorResult.eveningPeakAfterGw, language, 1)} GW`
+                  : "—"}
+              </li>
+              <li>
+                {tx("Entladung in Stunden mit Import (höchstens)", "Discharge during import hours (at most)")}:{" "}
+                {gwh(factorResult.dischargedDuringImportGwh, language, 2)}
+              </li>
+              <li>
+                <span title={language === "de" ? SOC_REST_TOOLTIP_DE : SOC_REST_TOOLTIP_EN}>
+                  {tx("Rest im Speicher am Zeitraumende", "Remainder in storage at period end")}: {gwh(factorResult.endSocDeltaGwh, language, 2)}
+                </span>
+              </li>
+              {factor === 1 && factorResult.eurModelX1 !== null ? (
+                <li>
+                  {tx("Modellschätzung", "Model estimate")}: ≈ {formatQuantity(factorResult.eurModelX1, language, 0)} €{" "}
+                  {tx("Erlös aus Preisunterschied (Day-Ahead DE-LU)", "Revenue from price spread (day-ahead DE-LU)")}
+                </li>
+              ) : factor > 1 ? (
+                <li className="beispieltage-euro-hint">{fleetEuroHiddenHint(language)}</li>
+              ) : null}
+            </ul>
+            <details className="uebersicht-table">
+              <summary>{tx("Zahlen als Tabelle", "Numbers as a table")}</summary>
+              <table>
+                <thead>
+                  <tr>
+                    <th>{tx("Tag", "Day")}</th>
+                    <th>{tx("Überschuss GWh", "Surplus GWh")}</th>
+                    <th>{tx("aufgenommen GWh", "absorbed GWh")}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {factorResult.dayRows.map((row) => (
+                    <tr key={row.dateBerlin}>
+                      <td>
+                        <Link href={`/live?tag=${row.dateBerlin}`} prefetch={false}>
+                          {formatBerlinDate(row.dateBerlin)}
+                        </Link>
+                      </td>
+                      <td>{formatQuantity(row.surplusGwh, language, 2)}</td>
+                      <td>{formatQuantity(row.absorbedGwh, language, 2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </details>
           </details>
         </div>
 
+        <section className="start-doors" aria-labelledby="start-doors-title">
+          <h2 id="start-doors-title">{tx("Weiter", "Next")}</h2>
+          <PerspectiveChoice language={language} />
+        </section>
+
         <p className="uebersicht-foot">
-          {tx(
-            "Modell: 85 % Wirkungsgrad, Ladestand 10–90 %, Speicher lädt nur aus Überschuss vor 17 Uhr und entlädt ab 17 Uhr. Preise bleiben unverändert (nur bei ×1 sinnvoll).",
-            "Model: 85% round-trip, state of charge 10–90%, storage charges from surplus before 17:00 and discharges from 17:00. Prices unchanged (meaningful only at ×1)."
-          )}{" "}
-          <Link href="/methodik#uebersicht">{tx("Mehr in der Methodik", "More in the method")}</Link>
+          {tx(`Datenstand: ${bundle.dataStand} · Energy-Charts.info`, `As of ${bundle.dataStand} · Energy-Charts.info`)} ·{" "}
+          <Link href="/methodik#uebersicht" prefetch={false}>
+            {tx("Methodik", "Method")}
+          </Link>{" "}
+          ·{" "}
+          <Link href="/news" prefetch={false}>
+            News
+          </Link>
         </p>
       </div>
     </section>

@@ -35,6 +35,10 @@ export type OverviewDayRow = {
   absorbedGwh: number;
   netImportGwh: number | null;
   socEndFraction: number;
+  /** Highest state of charge during the Berlin day (0–1 nameplate). */
+  socMaxFraction: number;
+  /** Quarter-hours with SoC ≥ 89.5 % of nameplate. */
+  fullQuarters: number;
 };
 
 export type OverviewFactorResult = {
@@ -182,12 +186,23 @@ function evaluateFactor(args: {
     }
     const lastSlot = day.slots[day.slots.length - 1];
     const socEnd = lastSlot ? socByIso.get(lastSlot.timestampIso) ?? CHAIN_SOC_MIN : CHAIN_SOC_MIN;
+    let socMax = CHAIN_SOC_MIN;
+    let fullQuarters = 0;
+    for (const slot of day.slots) {
+      const soc = socByIso.get(slot.timestampIso) ?? CHAIN_SOC_MIN;
+      socMax = Math.max(socMax, soc);
+      if (soc >= 0.895 - 1e-6) {
+        fullQuarters += 1;
+      }
+    }
     dayRows.push({
       dateBerlin: day.dateBerlin,
       surplusGwh: figures.surplusGwh ?? 0,
       absorbedGwh: absorbedDayMwh / 1000,
       netImportGwh: figures.tradeGwh,
       socEndFraction: socEnd,
+      socMaxFraction: socMax,
+      fullQuarters,
     });
     socSeries.push({ dateBerlin: day.dateBerlin, socFraction: socEnd });
   }
@@ -314,7 +329,10 @@ export function evaluateOverview(args: {
     missingQuarters,
     totalQuarters,
     lastSurplusDateBerlin: args.lastSurplusDateBerlin,
-    openDay: args.bounds.blick === "heute" && args.bounds.endKey === args.todayKey,
+    openDay:
+      (args.bounds.blick === "heute" || args.bounds.blick === "tag") &&
+      args.bounds.endKey === args.todayKey &&
+      args.bounds.capEndAtLastSlot,
   };
 
   for (const slot of scopedSlots) {

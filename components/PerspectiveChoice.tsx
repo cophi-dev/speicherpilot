@@ -7,17 +7,17 @@ type Language = "de" | "en";
 const CHOICES: { view: Perspective; titleDe: string; titleEn: string; bodyDe: string; bodyEn: string }[] = [
   {
     view: "projekt",
-    titleDe: "Ich plane oder betreibe einen Speicher",
-    titleEn: "I plan or operate storage",
+    titleDe: "Ich plane einen Speicher",
+    titleEn: "I plan storage",
     bodyDe: "Du siehst die Größe, die Kosten und ob sich der Speicher an einem Lastprofil bezahlt macht.",
     bodyEn: "You see the size, the cost, and whether the battery pays for itself on a load profile.",
   },
   {
     view: "netz",
-    titleDe: "Ich bin Netzbetreiber und prüfe einen Anschluss",
-    titleEn: "I am a grid operator checking a connection",
-    bodyDe: "Du siehst, ob die Lastspitze in den Anschluss oder die Station passt, die schon da ist.",
-    bodyEn: "You see whether the load peak fits the connection or the substation that is already there.",
+    titleDe: "Ich betreibe ein Netz",
+    titleEn: "I operate a grid",
+    bodyDe: "Du siehst zulässige Anschlussleistung, Badge netzdienlich und flexible Anschlussvereinbarung.",
+    bodyEn: "You see permitted connection capacity, the grid-support badge and flexible connection agreements.",
   },
 ];
 

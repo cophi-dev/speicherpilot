@@ -67,9 +67,11 @@ describe("daily series revalidation", () => {
     }
   });
 
-  it("keeps the last payload and marks it stale on HTTP 429", async () => {
+  it("keeps the last payload and marks it stale on HTTP 429 only after two hours", async () => {
     const store = createLastGoodStore<{ n: number }>();
     const original = global.fetch;
+    const now = Date.now();
+    jest.spyOn(Date, "now").mockReturnValue(now);
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ n: 4 }) })
@@ -90,10 +92,20 @@ describe("daily series revalidation", () => {
         init: dailySeriesFetchInit(1_000),
       });
       expect(first).toEqual({ value: { n: 4 }, stale: false });
-      expect(second).toEqual({ value: { n: 4 }, stale: true });
-      expect(second.value).not.toEqual({ n: 0 });
+      expect(second).toEqual({ value: { n: 4 }, stale: false });
+
+      jest.spyOn(Date, "now").mockReturnValue(now + 2 * 60 * 60 * 1000 + 1);
+      const third = await fetchJsonWithLastGoodState({
+        key: "row",
+        url: "https://example.test/row",
+        store,
+        parse: (payload) => payload as { n: number },
+        init: dailySeriesFetchInit(1_000),
+      });
+      expect(third).toEqual({ value: { n: 4 }, stale: true });
     } finally {
       global.fetch = original;
+      jest.restoreAllMocks();
     }
   });
 });

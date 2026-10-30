@@ -8,15 +8,15 @@ import { loadGermanyView } from "@/lib/germanyView";
 export const revalidate = 1800;
 
 export const metadata = {
-  title: "Was wäre, wenn Deutschland mehr Speicher hätte?",
+  title: "Tag · Was wäre, wenn Deutschland mehr Speicher hätte?",
   description:
-    "Modellierter Überschusstag in Deutschland: Flotte ×1 bis ×10, Export-Gegenrechnung und Methodik — Live-Daten, einfache Sprache.",
+    "Ein Tag in Deutschland: Ring, Regler ×1 bis ×10 und Erzeugung und Last — Live-Daten, einfache Sprache.",
 };
 
 export default async function LivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tag?: string | string[]; x?: string | string[]; zeitraum?: string | string[]; blick?: string | string[] }>;
+  searchParams: Promise<{ tag?: string | string[]; x?: string | string[] }>;
 }) {
   const query = await searchParams;
   const view = await loadGermanyView(new Date(), "/live", query);
@@ -28,8 +28,11 @@ export default async function LivePage({
         stand={view.stand}
         readings={view.readings}
         board={view.board}
-        surplusDay={view.surplusDay}
-        overviewLink={`/?blick=${view.overview?.bounds.blick ?? "heute"}&x=${Array.isArray(query.x) ? query.x[0] : query.x ?? "1"}#uebersicht`}
+        overviews={view.overviews}
+        dayOverview={view.dayOverview}
+        todayKey={view.todayKey}
+        requestedTag={view.requestedTag}
+        requestedTagStatus={view.requestedTagStatus}
       />
     </Suspense>
   );

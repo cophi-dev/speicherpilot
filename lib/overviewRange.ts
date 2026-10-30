@@ -10,7 +10,7 @@ export function parseOverviewBlick(value: string | null | undefined): OverviewBl
   if (value === "gestern" || value === "7tage" || value === "30tage" || value === "heute") {
     return value;
   }
-  return "heute";
+  return "30tage";
 }
 
 export function parseOverviewFactor(value: string | null | undefined): OverviewFactor {
@@ -19,7 +19,7 @@ export function parseOverviewFactor(value: string | null | undefined): OverviewF
 }
 
 export type OverviewBounds = {
-  blick: OverviewBlick;
+  blick: OverviewBlick | "tag";
   startKey: string;
   endKey: string;
   /** When true, only slots up to the last published quarter on `endKey` count (open today). */
