@@ -17,10 +17,9 @@ import {
   type SurplusDayReport,
 } from "@/lib/surplusDaySimulation";
 import { buildPowerBoard, type PowerBoardModel } from "@/lib/powerBoard";
-import { parseMixRange, residualDaysFromSlots } from "@/lib/powerMix";
+import { parseMixRange, powerSeriesFresh, residualDaysFromSlots } from "@/lib/powerMix";
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
-import type { ResidualDay } from "@/lib/windSolarResidual";
-import { pickSurplusDay } from "@/lib/windSolarResidual";
+import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
 
 export type OverviewUiModel = OverviewEvaluation & {
   stale: boolean;
@@ -118,7 +117,7 @@ function buildOverviewsBundle(args: {
   }
   return {
     byBlick,
-    stale: args.stale,
+    stale: args.stale && !powerSeriesFresh(args.slots),
     dataStand: args.dataStand,
     fleetMissing: false,
     curtailmentQuarterDailyGwh: EE_CURTAILMENT_Q2_2026_GWH / 91,
@@ -239,7 +238,7 @@ export async function loadGermanyView(
     todayKey,
     path,
     fleet: publicFleet ? { powerGw: publicFleet.powerGw, energyGwh: publicFleet.energyGwh } : null,
-    stale: power.stale,
+    stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
     tag: path === "/live" && chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
   });
 
@@ -261,7 +260,7 @@ export async function loadGermanyView(
       prices: mergedPrices,
       lastSurplus,
       todayKey,
-      stale: power.stale,
+      stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
       dataStand: readings.stand,
     });
     if (chosen?.day) {

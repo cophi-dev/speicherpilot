@@ -186,8 +186,8 @@ export function MethodikUeberblick({
       value: `${power} / ${energy}`,
       unit: "GW / GWh",
       why: tx(
-        `Battery Charts aus dem Marktstammdatenregister, Stand ${standLabel}. Die Seite zeigt ${powerExact} GW und ${energyExact} GWh (gleiche Quelle wie Start und Live).`,
-        `Battery Charts from the Marktstammdatenregister, as of ${standLabel}. The page shows ${powerExact} GW and ${energyExact} GWh (same source as start and live).`
+        `Live: Battery Charts (battery-charts.de), ${powerExact} GW / ${energyExact} GWh, Stand ${standLabel}. Fallback im Code: Snapshot ${formatQuantity(snapshot.powerGw, language, 2)} GW / ${formatQuantity(snapshot.energyGwh, language, 2)} GWh (${snapshot.standLabel}), wenn die Live-Quelle nicht antwortet.`,
+        `Live: Battery Charts (battery-charts.de), ${powerExact} GW / ${energyExact} GWh, as of ${standLabel}. Code fallback: snapshot ${formatQuantity(snapshot.powerGw, language, 2)} GW / ${formatQuantity(snapshot.energyGwh, language, 2)} GWh (${snapshot.standLabel}) when the live source does not respond.`
       ),
       uncertainty: tx("Der Bestand ändert sich mit dem Register.", "The stock changes with the register."),
     },

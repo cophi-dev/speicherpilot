@@ -20,10 +20,13 @@ export function PowerBoard({
   model,
   missingFactor = 1,
   hideSocLine = false,
+  tighten = false,
 }: {
   model: PowerBoardModel;
   missingFactor?: LiveDispatchFactor;
   hideSocLine?: boolean;
+  /** On /live: keep chart and headline, fold secondary blocks. */
+  tighten?: boolean;
 }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
@@ -123,41 +126,35 @@ export function PowerBoard({
               : null
           }
         />
-        <h3 className="mix-period">{model.periodTitle[language]}{model.until ? ` · ${tx("bis", "until")} ${model.until}` : ""}</h3>
-        <dl className="mix-stats">
-          {model.rows
-            .filter((row) => ["load", "completeLoad", "windSolar", "share", "residualMax", "residualMin"].includes(row.id))
-            .map((row) => (
-              <div key={row.id}>
-                <dt>{row.label[language]}</dt>
-                <dd>{row.value[language]}</dd>
-              </div>
-            ))}
-        </dl>
-        <div className="mix-table-wrap">
-          <table className="mix-table">
-            <caption>{tx("Mix und Kennzahlen. Jede Zahl aus dem Befund steht in dieser Tabelle.", "Mix and figures. Every number in the finding is in this table.")}</caption>
-            <thead>
-              <tr>
-                <th scope="col">{tx("Träger", "Carrier")}</th>
-                <th scope="col">{tx("Wert", "Value")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {model.rows.map((row) => (
-                <tr key={row.id}>
-                  <th scope="row">
-                    {DOT[row.id] ? <span className={`mix-dot mix-fill-${DOT[row.id]}`} aria-hidden="true" /> : null}
-                    {row.label[language]}
-                  </th>
-                  <td>{row.value[language]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {hideSocLine ? null : (
-          <SocLine model={model} samples={samples} points={model.points} factor={factor} compact={compact} chartWidth={chartWidth} onFactor={onFactor} />
+        {tighten ? (
+          <details className="mix-more">
+            <summary>{tx("Mehr Zahlen und Tabelle", "More figures and table")}</summary>
+            <MixBoardDetails
+              model={model}
+              language={language}
+              tx={tx}
+              hideSocLine={hideSocLine}
+              samples={samples}
+              points={model.points}
+              factor={factor}
+              compact={compact}
+              chartWidth={chartWidth}
+              onFactor={onFactor}
+            />
+          </details>
+        ) : (
+          <MixBoardDetails
+            model={model}
+            language={language}
+            tx={tx}
+            hideSocLine={hideSocLine}
+            samples={samples}
+            points={model.points}
+            factor={factor}
+            compact={compact}
+            chartWidth={chartWidth}
+            onFactor={onFactor}
+          />
         )}
         {SURPLUS_MONTHS ? <SurplusYear data={SURPLUS_MONTHS} /> : null}
         <p className="mix-source">
@@ -184,6 +181,87 @@ const DOT: Record<string, string> = {
   load: "load",
   trade: "trade",
 };
+
+function MixBoardDetails({
+  model,
+  language,
+  tx,
+  hideSocLine,
+  samples,
+  points,
+  factor,
+  compact,
+  chartWidth,
+  onFactor,
+}: {
+  model: PowerBoardModel;
+  language: "de" | "en";
+  tx: (de: string, en: string) => string;
+  hideSocLine: boolean;
+  samples: SocSample[];
+  points: PowerBoardModel["points"];
+  factor: LiveDispatchFactor;
+  compact: boolean;
+  chartWidth: number;
+  onFactor: (factor: LiveDispatchFactor) => void;
+}) {
+  return (
+    <>
+      <h3 className="mix-period">
+        {model.periodTitle[language]}
+        {model.until ? ` · ${tx("bis", "until")} ${model.until}` : ""}
+      </h3>
+      <dl className="mix-stats">
+        {model.rows
+          .filter((row) => ["load", "completeLoad", "windSolar", "share", "residualMax", "residualMin"].includes(row.id))
+          .map((row) => (
+            <div key={row.id}>
+              <dt>{row.label[language]}</dt>
+              <dd>{row.value[language]}</dd>
+            </div>
+          ))}
+      </dl>
+      <div className="mix-table-wrap">
+        <table className="mix-table">
+          <caption>
+            {tx(
+              "Mix und Kennzahlen. Jede Zahl aus dem Befund steht in dieser Tabelle.",
+              "Mix and figures. Every number in the finding is in this table."
+            )}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{tx("Träger", "Carrier")}</th>
+              <th scope="col">{tx("Wert", "Value")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {model.rows.map((row) => (
+              <tr key={row.id}>
+                <th scope="row">
+                  {DOT[row.id] ? <span className={`mix-dot mix-fill-${DOT[row.id]}`} aria-hidden="true" /> : null}
+                  {row.label[language]}
+                </th>
+                <td>{row.value[language]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {hideSocLine ? null : (
+        <SocLine
+          model={model}
+          samples={samples}
+          points={points}
+          factor={factor}
+          compact={compact}
+          chartWidth={chartWidth}
+          onFactor={onFactor}
+        />
+      )}
+    </>
+  );
+}
 
 function useNarrow(): boolean {
   return useSyncExternalStore(
@@ -213,15 +291,23 @@ function SurplusLine({
   }
   const charged = readout.charged
     ? tx(
-        `Speicher ×1 hätte ${readout.charged[language]} geladen`,
-        `Storage ×1 would have charged ${readout.charged[language]}`
+        `Speicher ×1 hätte ${readout.charged[language]} geladen${readout.chargedFull ? " (voll)" : ""}`,
+        `Storage ×1 would have charged ${readout.charged[language]}${readout.chargedFull ? " (full)" : ""}`
       )
     : tx("Speicher ×1 ist gerade nicht geladen", "Storage ×1 is not loaded");
+  const exportClause = tx(
+    `In denselben Stunden hat Deutschland ${readout.exportDuring[language]} exportiert`,
+    `In the same hours Germany exported ${readout.exportDuring[language]}`
+  );
+  const coalGas =
+    readout.exportMoreThanSurplus && readout.fossilDuringSurplus
+      ? tx(", mehr als der Überschuss, weil Kohle und Gas weiterliefen", ", more than the surplus because coal and gas kept running")
+      : "";
   return (
     <p className="mix-surplus-line">
       {tx(
-        `Überschuss ${readout.surplus[language]}, Export in diesen Viertelstunden ${readout.exportDuring[language]}, ${charged}. Die geladene Menge ist eine Modellschätzung.`,
-        `Surplus ${readout.surplus[language]}, export in these quarter-hours ${readout.exportDuring[language]}, ${charged}. The charged amount is a model estimate.`
+        `Überschuss ${readout.surplus[language]}. ${exportClause}${coalGas}. ${charged}, Modellschätzung.`,
+        `Surplus ${readout.surplus[language]}. ${exportClause}${coalGas}. ${charged}, model estimate.`
       )}
     </p>
   );

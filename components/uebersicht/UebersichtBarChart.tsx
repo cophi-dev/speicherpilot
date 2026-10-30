@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import type { AppLanguage } from "@/components/language-context";
 import type { OverviewDayRow } from "@/lib/overviewChain";
 import type { OverviewBlick } from "@/lib/overviewRange";
 import { formatQuantity } from "@/lib/formatQuantity";
+
+const SOC_FULL_MARK = 0.895;
 
 function formatDayLabel(dateBerlin: string) {
   return `${dateBerlin.slice(8, 10)}.${dateBerlin.slice(5, 7)}`;
@@ -44,7 +45,7 @@ export function UebersichtBarChart({
 
   const max = Math.max(0.1, ...rows.map((row) => Math.max(row.surplusGwh, row.absorbedGwh)));
   const height = 300;
-  const pad = { l: 48, r: 16, t: 16, b: 56 };
+  const pad = { l: 48, r: 16, t: 28, b: 56 };
   const viewWidth = Math.max(320, widthPx);
   const innerW = viewWidth - pad.l - pad.r;
   const innerH = height - pad.t - pad.b;
@@ -68,9 +69,10 @@ export function UebersichtBarChart({
           const remainderH = Math.max(0, surplusH - absorbedH);
           const showLabel = index % labelEvery === 0 || index === rows.length - 1;
           const label = formatDayLabel(row.dateBerlin);
+          const fullMark = row.socMaxFraction >= SOC_FULL_MARK;
           const aria = tx(
-            `${label}: ${formatQuantity(row.surplusGwh, language, 1)} GWh Überschuss, ${formatQuantity(row.absorbedGwh, language, 1)} GWh aufgenommen`,
-            `${label}: ${formatQuantity(row.surplusGwh, language, 1)} GWh surplus, ${formatQuantity(row.absorbedGwh, language, 1)} GWh absorbed`
+            `${label}: ${formatQuantity(row.surplusGwh, language, 1)} GWh Überschuss, ${formatQuantity(row.absorbedGwh, language, 1)} GWh aufgenommen${fullMark ? ", Speicher voll im Modell" : ""}`,
+            `${label}: ${formatQuantity(row.surplusGwh, language, 1)} GWh surplus, ${formatQuantity(row.absorbedGwh, language, 1)} GWh absorbed${fullMark ? ", storage full in the model" : ""}`
           );
           return (
             <g key={row.dateBerlin}>
@@ -99,6 +101,17 @@ export function UebersichtBarChart({
                   />
                 ) : null}
               </a>
+              {fullMark ? (
+                <text
+                  x={x + barW / 2}
+                  y={Math.max(pad.t + 10, pad.t + innerH - surplusH - 5)}
+                  textAnchor="middle"
+                  className="bar-full-glyph"
+                  aria-hidden="true"
+                >
+                  ▲
+                </text>
+              ) : null}
               {showLabel ? (
                 <text x={x + barW / 2} y={height - 16} textAnchor="middle" className="bar-label">
                   {label}
@@ -111,35 +124,15 @@ export function UebersichtBarChart({
           max {formatQuantity(max, language, 1)} GWh
         </text>
       </svg>
-      <div className="uebersicht-soc-row" aria-label={tx("Speicher voll?", "Storage full?")}>
-        <span className="uebersicht-soc-title">{tx("Speicher voll?", "Storage full?")}</span>
-        <div className="uebersicht-soc-cells">
-          {rows.map((row, index) => {
-            if (index % labelEvery !== 0 && index !== rows.length - 1 && (blick === "30tage" || rows.length > 14)) {
-              return <span key={row.dateBerlin} className="uebersicht-soc-spacer" />;
-            }
-            return (
-              <Link
-                key={row.dateBerlin}
-                href={`/live?tag=${row.dateBerlin}`}
-                prefetch={false}
-                className="uebersicht-soc-cell"
-                title={tx(`max. Ladestand ${formatQuantity(row.socMaxFraction * 100, language, 0)} %`, `max. state of charge ${formatQuantity(row.socMaxFraction * 100, language, 0)}%`)}
-                aria-label={tx(
-                  `${formatDayLabel(row.dateBerlin)}: max. Ladestand ${formatQuantity(row.socMaxFraction * 100, language, 0)} %`,
-                  `${formatDayLabel(row.dateBerlin)}: max. state of charge ${formatQuantity(row.socMaxFraction * 100, language, 0)}%`
-                )}
-              >
-                <span className="uebersicht-soc-fill" style={{ height: `${Math.round(row.socMaxFraction * 100)}%` }} />
-              </Link>
-            );
-          })}
-        </div>
-        <p className="uebersicht-soc-caption">{tx("max. Ladestand je Tag (Modell)", "Max. state of charge per day (model)")}</p>
-      </div>
-      <p className="uebersicht-bar-legend">
-        <span className="legend-surplus">{tx("Überschuss (Rand)", "Surplus (outline)")}</span>
+      <p className="uebersicht-bar-legend" aria-hidden="false">
         <span className="legend-absorbed">{tx("aufgenommen", "absorbed")}</span>
+        <span className="legend-remainder">{tx("nicht aufgenommen (Rest Überschuss)", "not absorbed (remaining surplus)")}</span>
+        <span className="legend-full">
+          <span className="legend-full-glyph" aria-hidden="true">
+            ▲
+          </span>
+          <span className="legend-full-label">{tx("Speicher voll", "Storage full")}</span>
+        </span>
       </p>
     </div>
   );

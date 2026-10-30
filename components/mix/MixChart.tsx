@@ -1,6 +1,6 @@
-import { useId, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
-import { CARRIER_IDS, type CarrierId, type ChartPoint } from "@/lib/powerMix";
+import { CARRIER_IDS, CHART_STACK_ORDER, type CarrierId, type ChartPoint } from "@/lib/powerMix";
 import { CARRIER_COPY } from "@/lib/powerBoard";
 import { niceAxis } from "@/lib/niceTicks";
 
@@ -191,7 +191,6 @@ export function MixChart({
   surplusLabel?: string | null;
 }) {
   const { hostRef, width } = useChartWidth<HTMLElement>();
-  const hatchId = useId().replace(/:/g, "");
   const frame = chartFrame(compact, width);
   const titleId = "mix-chart-title";
   const descId = "mix-chart-desc";
@@ -222,14 +221,14 @@ export function MixChart({
   const axis = niceAxis(Math.min(...values), Math.max(...values), 6);
   const xs = points.map((point) => point.unix);
   const completeIndex = points.map((point) => CARRIER_IDS.every((id) => point.carriers[id] !== null));
-  const lower = CARRIER_IDS.map(() => points.map(() => 0));
-  const upper = CARRIER_IDS.map(() => points.map(() => 0));
+  const lower = CHART_STACK_ORDER.map(() => points.map(() => 0));
+  const upper = CHART_STACK_ORDER.map(() => points.map(() => 0));
   for (let index = 0; index < points.length; index += 1) {
     if (!completeIndex[index]) {
       continue;
     }
     let cursor = 0;
-    CARRIER_IDS.forEach((id, carrier) => {
+    CHART_STACK_ORDER.forEach((id, carrier) => {
       lower[carrier][index] = cursor;
       cursor += Math.max(0, points[index].carriers[id] ?? 0);
       upper[carrier][index] = cursor;
@@ -264,7 +263,7 @@ export function MixChart({
       }
     }
     if (lastComplete >= 0) {
-      CARRIER_IDS.forEach((id, carrier) => {
+      CHART_STACK_ORDER.forEach((id, carrier) => {
         const y1 = yOf(lower[carrier][lastComplete], axis.min, axis.max, frame);
         const y2 = yOf(upper[carrier][lastComplete], axis.min, axis.max, frame);
         const band = Math.abs(y1 - y2);
@@ -332,11 +331,6 @@ export function MixChart({
       <svg className={compact ? "mix-chart is-compact" : "mix-chart"} viewBox={`0 0 ${frame.width} ${frame.height}`} role="img" aria-labelledby={`${titleId} ${descId}`}>
         <title id={titleId}>{title}</title>
         <desc id={descId}>{description}</desc>
-        <defs>
-          <pattern id={hatchId} patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="6" stroke="#0A5C48" strokeWidth="1.5" />
-          </pattern>
-        </defs>
         {axis.ticks.map((tick) => (
           <g key={tick}>
             <line
@@ -354,7 +348,7 @@ export function MixChart({
         <text className="mix-axis" fontSize={frame.font} x={frame.pad.l} y={12}>
           {unit}
         </text>
-        {CARRIER_IDS.map((id, carrier) =>
+        {CHART_STACK_ORDER.map((id, carrier) =>
           completeRuns.map((group) => {
             const kept = hideOpenBar ? group.filter((index) => index !== openIndex) : group;
             if (kept.length === 0) {
@@ -368,8 +362,8 @@ export function MixChart({
         <path className="mix-trade" d={tradePath(drawn, axis.min, axis.max, xs, frame)} />
         {surplusPath ? (
           <>
-            <path className="mix-surplus-wash" d={surplusPath} />
-            <path className="mix-surplus" d={surplusPath} fill={`url(#${hatchId})`} stroke="#0A5C48" />
+            <path className="mix-surplus-area" d={surplusPath} />
+            <path className="mix-surplus-cap" d={surplusCapPath(xs, windSeries, surplusIndexes, axis.min, axis.max, frame)} />
           </>
         ) : null}
         <path className="mix-load" d={loadPath} fill="none" />
@@ -412,6 +406,27 @@ export function MixChart({
       </ul>
     </figure>
   );
+}
+
+function surplusCapPath(
+  xs: number[],
+  wind: number[],
+  indexes: number[],
+  min: number,
+  max: number,
+  frame: ChartFrame
+): string {
+  return runs(indexes)
+    .map((group) => {
+      const coords = group.map((index) => {
+        const x = chartX(xs[index], xs[0], xs[xs.length - 1], frame);
+        const y = yOf(wind[index], min, max, frame);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      });
+      return coords.length > 0 ? `M ${coords.join(" L ")}` : "";
+    })
+    .filter(Boolean)
+    .join(" ");
 }
 
 function surplusMarkAt(
