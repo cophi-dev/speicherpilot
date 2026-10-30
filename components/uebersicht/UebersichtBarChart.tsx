@@ -104,11 +104,12 @@ export function UebersichtBarChart({
               {fullMark ? (
                 <text
                   x={x + barW / 2}
-                  y={pad.t + innerH - surplusH - 6}
+                  y={Math.max(pad.t + 10, pad.t + innerH - surplusH - 5)}
                   textAnchor="middle"
-                  className="bar-full-mark"
+                  className="bar-full-glyph"
+                  aria-hidden="true"
                 >
-                  {tx("Speicher voll", "Storage full")}
+                  ▲
                 </text>
               ) : null}
               {showLabel ? (
@@ -126,7 +127,12 @@ export function UebersichtBarChart({
       <p className="uebersicht-bar-legend" aria-hidden="false">
         <span className="legend-absorbed">{tx("aufgenommen", "absorbed")}</span>
         <span className="legend-remainder">{tx("nicht aufgenommen (Rest Überschuss)", "not absorbed (remaining surplus)")}</span>
-        <span className="legend-full">{tx("Speicher voll", "Storage full")}</span>
+        <span className="legend-full">
+          <span className="legend-full-glyph" aria-hidden="true">
+            ▲
+          </span>
+          <span className="legend-full-label">{tx("Speicher voll", "Storage full")}</span>
+        </span>
       </p>
     </div>
   );

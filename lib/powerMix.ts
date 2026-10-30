@@ -468,11 +468,6 @@ export function periodFigures(slots: PowerSlot[], offshorePresent: boolean): Per
   };
 }
 
-/**
- * Export energy on quarter-hours where wind plus solar already exceeds load.
- * Trade is positive for import and negative for export. This sums the published series.
- * It does not run a new dispatch.
- */
 const FOSSIL_CARRIER_IDS: CarrierId[] = ["lignite", "hardCoal", "gas"];
 
 function isWindSolarSurplusSlot(slot: PowerSlot, offshorePresent: boolean): boolean {
@@ -506,6 +501,11 @@ export function powerSeriesFresh(slots: PowerSlot[], nowMs = Date.now(), maxAgeM
   return nowMs - latestMs <= maxAgeMs;
 }
 
+/**
+ * Export energy on quarter-hours where wind plus solar already exceeds load.
+ * Trade is positive for import and negative for export. This sums the published series.
+ * It does not run a new dispatch.
+ */
 export function exportOnSurplusGwh(slots: PowerSlot[], offshorePresent: boolean): number | null {
   let sum = 0;
   let sawSurplus = false;

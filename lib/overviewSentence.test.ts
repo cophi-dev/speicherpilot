@@ -3,6 +3,8 @@ import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { LIVE_DISPATCH_FACTORS } from "@/lib/liveFleetDispatch";
 import { overviewBounds } from "@/lib/overviewRange";
 
+const THIN = "\u202F";
+
 function emptyFactors(surplusGwh: number, absorbedByFactor: Record<number, number>, saturatedFrom: number | null): OverviewEvaluation["factors"] {
   return Object.fromEntries(
     LIVE_DISPATCH_FACTORS.map((factor) => {
@@ -80,14 +82,16 @@ function baseModel(
 
 describe("sharePhrase", () => {
   it("uses nearest fractions with qualifier and percent", () => {
-    expect(sharePhrase(0.31, "de")).toBe("knapp ein Drittel (31 %)");
-    expect(sharePhrase(0.51, "de")).toBe("gut die Hälfte (51 %)");
+    expect(sharePhrase(0.31, "de")).toBe(`knapp ein Drittel (31${THIN}%)`);
+    expect(sharePhrase(0.51, "de")).toBe(`gut die Hälfte (51${THIN}%)`);
     expect(sharePhrase(0.9, "de")).not.toBe("alles");
   });
 
-  it("uses wenig below 15 %", () => {
-    expect(sharePhrase(0.02, "de")).toBe("wenig (2 %)");
-    expect(sharePhrase(0.12, "de")).toBe("wenig (12 %)");
+  it("uses wenig below 15 % and ein Zehntel from 15 %", () => {
+    expect(sharePhrase(0, "de")).toBe("nichts");
+    expect(sharePhrase(0.02, "de")).toBe(`wenig (2${THIN}%)`);
+    expect(sharePhrase(0.1499, "de")).toBe(`wenig (15${THIN}%)`);
+    expect(sharePhrase(0.15, "de")).toBe(`gut ein Zehntel (15${THIN}%)`);
   });
 
   it("uses alles only from saturation", () => {
@@ -120,25 +124,38 @@ describe("einschaetzung", () => {
     expect(text).toMatch(/Mehr Speicher hätte nichts geändert/);
   });
 
-  it("uses a calendar-day intro on /live tag scope", () => {
+  it("uses a calendar-day intro on /live tag scope with one decimal GWh", () => {
     const text = einschaetzung(
-      baseModel({ surplusGwh: 61, surplusDays: 1, absorbedByFactor: { 1: 12, 2: 20, 5: 40, 10: 60 } }, "tag", {
-        startKey: "2026-10-25",
-        endKey: "2026-10-25",
+      baseModel({ surplusGwh: 22.8, surplusDays: 1, absorbedByFactor: { 1: 12, 2: 20, 5: 40, 10: 60 } }, "tag", {
+        startKey: "2026-10-11",
+        endKey: "2026-10-11",
       }),
       1,
       "de"
     );
-    expect(text).toMatch(/Am So, 25\. Oktober 2026 gab es 61 GWh Überschuss/);
+    expect(text).toMatch(/Am .*2026 gab es 22,8 GWh Überschuss/);
     expect(text).not.toMatch(/an 1 Tag/);
   });
 
-  it("names fleet uptake shares when ×1 takes less than half", () => {
+  it("names fleet uptake with share word before the bracket", () => {
     const text = einschaetzung(baseModel({ surplusGwh: 146, surplusDays: 9 }), 1, "de");
     expect(text).toMatch(/146 GWh Überschuss/);
-    expect(text).toMatch(/\(36 %, 52,2 GWh\)/);
+    expect(text).toMatch(new RegExp(`gut ein Drittel \\(36${THIN}%, 52,2${THIN}GWh\\)`));
     expect(text).toMatch(/fünfmal so viel Speicher/);
     expect(text).not.toMatch(/×1:/);
+  });
+
+  it("uses wenig in the full sentence below 15 % uptake", () => {
+    const text = einschaetzung(
+      baseModel({
+        surplusGwh: 100,
+        surplusDays: 3,
+        absorbedByFactor: { 1: 4, 5: 40, 10: 95 },
+      }),
+      1,
+      "de"
+    );
+    expect(text).toMatch(new RegExp(`wenig \\(4${THIN}%, 4,0${THIN}GWh\\)`));
   });
 
   it("uses an diesem Tag when saturated on tag scope", () => {
@@ -165,7 +182,7 @@ describe("einschaetzung", () => {
       "de"
     );
     expect(text).toMatch(/Bei ×2 hätte der Speicher/);
-    expect(text).toMatch(/\(\d+ %, [\d,]+ GWh\)/);
+    expect(text).toMatch(new RegExp(`gut zwei Fünftel \\(44${THIN}%, 35,0${THIN}GWh\\)`));
     expect(text).not.toMatch(/×1:/);
     expect(text).not.toMatch(/×2:/);
   });

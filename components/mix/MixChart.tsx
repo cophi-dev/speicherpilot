@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
 import { CARRIER_IDS, CHART_STACK_ORDER, type CarrierId, type ChartPoint } from "@/lib/powerMix";
 import { CARRIER_COPY } from "@/lib/powerBoard";
@@ -191,7 +191,6 @@ export function MixChart({
   surplusLabel?: string | null;
 }) {
   const { hostRef, width } = useChartWidth<HTMLElement>();
-  const hatchId = useId().replace(/:/g, "");
   const frame = chartFrame(compact, width);
   const titleId = "mix-chart-title";
   const descId = "mix-chart-desc";
@@ -332,11 +331,6 @@ export function MixChart({
       <svg className={compact ? "mix-chart is-compact" : "mix-chart"} viewBox={`0 0 ${frame.width} ${frame.height}`} role="img" aria-labelledby={`${titleId} ${descId}`}>
         <title id={titleId}>{title}</title>
         <desc id={descId}>{description}</desc>
-        <defs>
-          <pattern id={hatchId} patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(-35)">
-            <line x1="0" y1="0" x2="0" y2="5" stroke="#8B5CF6" strokeWidth="1.2" />
-          </pattern>
-        </defs>
         {axis.ticks.map((tick) => (
           <g key={tick}>
             <line
@@ -368,8 +362,7 @@ export function MixChart({
         <path className="mix-trade" d={tradePath(drawn, axis.min, axis.max, xs, frame)} />
         {surplusPath ? (
           <>
-            <path className="mix-surplus-wash" d={surplusPath} />
-            <path className="mix-surplus-fill" d={surplusPath} fill={`url(#${hatchId})`} />
+            <path className="mix-surplus-area" d={surplusPath} />
             <path className="mix-surplus-cap" d={surplusCapPath(xs, windSeries, surplusIndexes, axis.min, axis.max, frame)} />
           </>
         ) : null}

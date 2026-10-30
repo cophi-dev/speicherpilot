@@ -92,7 +92,6 @@ export function LiveView({
             <Link href="/live">{tx("Live-Werte gelten für heute → zu heute", "Live values are for today → go to today")}</Link>
           </p>
         ) : null}
-        {daySentence ? <p className="live-day-assessment">{daySentence}</p> : null}
       </header>
       <LiveRing
         dispatch={dispatch}
@@ -104,6 +103,9 @@ export function LiveView({
         factor={factor}
         hideHeader
       />
+      {daySentence ? (
+        <p className="live-day-assessment live-day-assessment-flow">{daySentence}</p>
+      ) : null}
       <PowerBoard model={board} missingFactor={5} hideSocLine={false} tighten />
       <p className="live-overview-link mx-auto max-w-[1200px] px-4 pb-8">
         <Link href="/#uebersicht" prefetch={false}>
