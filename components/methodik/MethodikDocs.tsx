@@ -90,6 +90,53 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             </ol>
           </nav>
           <article>
+            <details className="site-fold methodik-group" open={false} id="methodik-deutschland">
+              <summary>{tx("A · Deutschland (Start)", "A · Germany (home)")}</summary>
+              <p>
+                {tx(
+                  "Übersicht, Zeiträume, Handel und Flottenmodell — Abschnitte 06, 06b und 06c.",
+                  "Overview, periods, trade and fleet model — sections 06, 06b and 06c."
+                )}
+              </p>
+              <ul>
+                <li><a href="#grossspeicher">{tx("Großspeicher-Modell", "Large-storage model")}</a></li>
+                <li><a href="#live">{tx("Überschuss und Handel", "Surplus and trade")}</a></li>
+                <li><a href="#uebersicht">{tx("Zeitraum-Übersicht", "Period overview")}</a></li>
+              </ul>
+            </details>
+            <details className="site-fold methodik-group" open={false} id="methodik-tag">
+              <summary>{tx("B · Tag (/live)", "B · Day (/live)")}</summary>
+              <p>{tx("Ring lesen, Regler und Erzeugung und Last.", "Reading the ring, slider and generation and load.")}</p>
+              <ul>
+                <li><a href="#live">{tx("Ring und Überschuss", "Ring and surplus")}</a></li>
+                <li><a href="#erzeugung">{tx("Erzeugung und Last", "Generation and load")}</a></li>
+              </ul>
+            </details>
+            <details className="site-fold methodik-group" open={false} id="methodik-standort">
+              <summary>{tx("C · Standort", "C · Site")}</summary>
+              <ul>
+                <li><a href="#ampel">{tx("Anschluss-Ampel", "Connection light")}</a></li>
+                <li><a href="#netzdienlichkeit">{tx("Einschätzung netzdienlich", "Grid-support estimate")}</a></li>
+                <li><a href="#peak-erklaert">{tx("Peak Shaving", "Peak shaving")}</a></li>
+                <li><a href="#szenarien">{tx("Szenarien", "Scenarios")}</a></li>
+                <li><a href="#netz">{tx("Testnetz", "Test grid")}</a></li>
+              </ul>
+            </details>
+            <details className="site-fold methodik-group" open={false} id="methodik-recht">
+              <summary>{tx("D · Quellen und Recht", "D · Sources and law")}</summary>
+              <p>
+                {tx("Stand Abruf 30.10.2026. Flotte Großspeicher: battery-charts.de / MaStR (MW und MWh auf der Seite).", "As of 30 Oct 2026. Large-storage fleet: battery-charts.de / MaStR (MW and MWh on the page).")}
+              </p>
+              <ul>
+                <li><a href="#lizenzen">{tx("Quellen und Lizenzen", "Sources and licences")}</a></li>
+                <li><a href="#quellen">{tx("Quellen", "Sources")}</a></li>
+                <li>
+                  <a href="https://www.gesetze-im-internet.de/enwg_2005/__17.html">§ 17 EnWG</a>
+                  {" · "}
+                  <a href="https://www.gesetze-im-internet.de/enwg_2005/__14a.html">§ 14a EnWG</a>
+                </li>
+              </ul>
+            </details>
             <MethodikUeberblick language={language} fleet={fleet} />
             <section id="was">
               <h2>{tx("04 Was gerechnet wird", "04 What is calculated")}</h2>

@@ -27,8 +27,18 @@ beforeAll(() => {
 
 let query = "view=netz&scenario=supermarkt";
 
+jest.mock("@/components/home/ConnectionStory", () => ({
+  ConnectionStory: () => null,
+}));
+
+jest.mock("@/components/site/SiteOperatorSections", () => ({
+  SiteOperatorSections: () => null,
+}));
+
 jest.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(query),
+  useRouter: () => ({ replace: jest.fn(), push: jest.fn() }),
+  usePathname: () => "/site",
 }));
 
 const modelDay = referenceParkModelDay({
