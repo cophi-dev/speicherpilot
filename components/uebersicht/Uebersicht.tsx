@@ -15,9 +15,10 @@ import {
 } from "@/components/sim/DispatchDayChart";
 import { UebersichtBarChart } from "@/components/uebersicht/UebersichtBarChart";
 import { fleetEuroHiddenHint } from "@/lib/beispieltage";
-import { SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
+import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewUiModel } from "@/lib/germanyView";
+import type { OverviewFactorResult, OverviewQuarterPoint } from "@/lib/overviewChain";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import { OVERVIEW_BLICKS, parseOverviewFactor, type OverviewBlick } from "@/lib/overviewRange";
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
@@ -37,6 +38,18 @@ function gwh(value: number | null | undefined, language: AppLanguage, digits = 1
 function formatBerlinDate(dateKey: string) {
   const parts = dateKey.split("-");
   return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : dateKey;
+}
+
+function formatPeakMoment(iso: string | null, multiDay: boolean) {
+  if (!iso) {
+    return null;
+  }
+  const clock = uniqueQuarterLabels([iso])[0] ?? "";
+  if (!multiDay) {
+    return clock;
+  }
+  const dateKey = iso.slice(0, 10);
+  return `${formatBerlinDate(dateKey)} ${clock}`.trim();
 }
 
 function blickLabel(blick: OverviewBlick, language: AppLanguage) {
@@ -62,12 +75,16 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
   const searchParams = useSearchParams();
   const factor = parseOverviewFactor(searchParams.get("x")) as LiveDispatchFactor;
   const blick = model.bounds.blick;
-  const factorResult = model.factors[factor];
+  const factorResult = model.factors[factor] as OverviewFactorResult;
   const isSingleDay = model.bounds.dayCount === 1;
+  const multiDay = model.bounds.dayCount > 1;
+  const missingShare =
+    model.observed.totalQuarters > 0 ? model.observed.missingQuarters / model.observed.totalQuarters : 0;
+  const showMissingHint = missingShare >= 0.02 - 1e-9;
 
   const chartSamples: ChartSample[] = useMemo(
     () =>
-      factorResult.quarterPoints.map((point) => ({
+      factorResult.quarterPoints.map((point: OverviewQuarterPoint) => ({
         hour: point.hour,
         ohne: point.residualMw / 1000,
         mit: point.residualMitMw / 1000,
@@ -111,14 +128,15 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
   const noSurplus = surplus <= 1e-6;
   const peakLabel =
     model.observed.peakSurplusMw !== null && model.observed.peakSurplusIso
-      ? uniqueQuarterLabels([model.observed.peakSurplusIso])[0]
+      ? formatPeakMoment(model.observed.peakSurplusIso, multiDay)
       : null;
 
   const netImport = model.observed.netImportGwh;
-  const importTileTitle =
-    netImport !== null && netImport < 0
-      ? tx("Netto-Export", "Net export")
-      : tx("Importe", "Imports");
+  const importGwh = model.observed.importGwh;
+  const exportGwh = model.observed.exportGwh;
+  const netTradeGwh =
+    netImport !== null ? Math.abs(netImport) : importGwh !== null && exportGwh !== null ? Math.abs(importGwh - exportGwh) : null;
+  const importTileTitle = tx("Handel", "Trade");
 
   return (
     <section id="uebersicht" className="uebersicht" aria-labelledby="uebersicht-title">
@@ -143,7 +161,7 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
           )}
         </p>
 
-        <div className="uebersicht-seg" role="radiogroup" aria-label={tx("Zeitraum", "Period")}>
+        <div className="sim-seg uebersicht-period" role="radiogroup" aria-label={tx("Zeitraum", "Period")}>
           {OVERVIEW_BLICKS.map((item, index) => (
             <button
               key={item}
@@ -158,8 +176,21 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
             </button>
           ))}
         </div>
+        {model.observed.openDay ? (
+          <p className="uebersicht-sub" role="status">
+            {tx("Tag läuft noch.", "Day still in progress.")}
+          </p>
+        ) : null}
         {blick === "heute" && until ? (
           <p className="uebersicht-sub">{tx(`bisher, bis ${until} Uhr`, `so far, until ${until}`)}</p>
+        ) : null}
+        {showMissingHint ? (
+          <p className="uebersicht-sub" role="status">
+            {tx(
+              `${model.observed.missingQuarters} Viertelstunden fehlen in den Rohdaten (${formatQuantity(missingShare * 100, language, 1)} %).`,
+              `${model.observed.missingQuarters} quarter-hours missing in the raw data (${formatQuantity(missingShare * 100, language, 1)}%).`
+            )}
+          </p>
         ) : null}
 
         <div className="uebersicht-tiles">
@@ -183,17 +214,19 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
 
           <article className="uebersicht-kpi">
             <h3>{importTileTitle}</h3>
-            <p className="uebersicht-value">{gwh(netImport !== null ? Math.abs(netImport) : null, language)}</p>
+            <p className="uebersicht-value">{gwh(netTradeGwh, language)}</p>
             <p className="uebersicht-note">
-              {netImport !== null && netImport < 0
-                ? tx(
-                    `Deutschland exportierte netto ${gwh(model.observed.exportGwh, language, 2)} und importierte ${gwh(model.observed.importGwh, language, 2)}.`,
-                    `Germany exported ${gwh(model.observed.exportGwh, language, 2)} net and imported ${gwh(model.observed.importGwh, language, 2)}.`
-                  )
-                : tx(
-                    `Deutschland importierte netto ${gwh(netImport, language, 2)} (Summe positiver Handelssaldo).`,
-                    `Germany imported ${gwh(netImport, language, 2)} net (sum of positive trading balance).`
-                  )}
+              {importGwh !== null && exportGwh !== null && netTradeGwh !== null
+                ? netImport !== null && netImport >= 0
+                  ? tx(
+                      `Deutschland hat unterm Strich ${gwh(netTradeGwh, language, 2)} eingekauft. Eingekauft in Viertelstunden mit Import: ${gwh(importGwh, language, 2)}, verkauft: ${gwh(exportGwh, language, 2)}.`,
+                      `Germany bought ${gwh(netTradeGwh, language, 2)} net. Bought in import quarters: ${gwh(importGwh, language, 2)}, sold: ${gwh(exportGwh, language, 2)}.`
+                    )
+                  : tx(
+                      `Deutschland hat unterm Strich ${gwh(netTradeGwh, language, 2)} verkauft. Eingekauft in Viertelstunden mit Import: ${gwh(importGwh, language, 2)}, verkauft: ${gwh(exportGwh, language, 2)}.`,
+                      `Germany sold ${gwh(netTradeGwh, language, 2)} net. Bought in import quarters: ${gwh(importGwh, language, 2)}, sold: ${gwh(exportGwh, language, 2)}.`
+                    )
+                : tx("Keine Handelsdaten im Zeitraum.", "No trade data in this period.")}
             </p>
             <p className="uebersicht-source">{tx("Quelle: kommerzieller Handelssaldo · Energy-Charts", "Source: commercial trading balance · Energy-Charts")}</p>
           </article>
@@ -203,8 +236,8 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
             <p className="uebersicht-value">{gwh(model.curtailmentQuarterDailyGwh, language, 0)}</p>
             <p className="uebersicht-note">
               {tx(
-                `Im Schnitt pro Tag im letzten veröffentlichten Quartal (${model.curtailmentQuarterLabel}, BNetzA/SMARD). Tageswerte veröffentlicht niemand vollständig.`,
-                `Daily average in the last published quarter (${model.curtailmentQuarterLabel}, BNetzA/SMARD). Nobody publishes complete daily totals.`
+                `Im Schnitt pro Tag im letzten veröffentlichten Quartal (${model.curtailmentQuarterLabel}, BNetzA/SMARD, Quartalssumme ${formatQuarterlyCurtailmentGwh(language)} EE-Redispatch gesamt). Tageswerte veröffentlicht niemand vollständig.`,
+                `Daily average in the last published quarter (${model.curtailmentQuarterLabel}, BNetzA/SMARD, quarterly total ${formatQuarterlyCurtailmentGwh(language)} EE redispatch). Nobody publishes complete daily totals.`
               )}
             </p>
             <p className="uebersicht-source">
@@ -224,7 +257,7 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
                   "There was no wind-and-solar surplus in this period. Our model charges only from surplus, so more storage would not have shifted anything here."
                 )}{" "}
                 {model.observed.lastSurplusDateBerlin ? (
-                  <Link href={`/?blick=gestern#uebersicht`}>
+                  <Link href={`/live?tag=${model.observed.lastSurplusDateBerlin}`}>
                     {tx(
                       `Letzter Tag mit Überschuss: ${formatBerlinDate(model.observed.lastSurplusDateBerlin)}.`,
                       `Last surplus day: ${formatBerlinDate(model.observed.lastSurplusDateBerlin)}.`
@@ -302,7 +335,7 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
                     { swatch: "ohne", label: tx("ohne Speicher", "without storage") },
                     { swatch: "mit", label: tx("mit Speicher", "with storage") },
                     { swatch: "charge", label: tx("lädt", "charging") },
-                    { swatch: "discharge", label: tx("discharging", "discharging") },
+                    { swatch: "discharge", label: tx("gibt ab", "discharging") },
                   ]}
                 />
                 <DispatchDayChart
@@ -322,7 +355,7 @@ export function Uebersicht({ model, until }: { model: OverviewUiModel; until: st
                 />
               </>
             ) : (
-              <UebersichtBarChart rows={factorResult.dayRows} soc={factorResult.socSeries} language={language} />
+              <UebersichtBarChart rows={factorResult.dayRows} soc={factorResult.socSeries} language={language} blick={blick} />
             )}
           </figure>
           <details className="uebersicht-table">

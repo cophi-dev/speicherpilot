@@ -35,12 +35,12 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
   const [csv, setCsv] = useState<LoadProfile | null>(null);
   const [limitDraft, setLimitDraft] = useState("");
 
-  const [limitMw, setLimitMw] = useState(HAMBURG_SUPERMARKET.limitKw / 1000);
+  const [simLimitKw, setSimLimitKw] = useState(HAMBURG_SUPERMARKET.limitKw);
 
   const example = useMemo(() => exampleBundle(scenario), [scenario]);
-  const limitKw = Number(limitDraft.replace(",", "."));
+  const connectionLimitKw = Number(limitDraft.replace(",", "."));
   const uploaded = useMemo(() => {
-    if (!csv || !Number.isFinite(limitKw) || limitKw <= 0) {
+    if (!csv || !Number.isFinite(connectionLimitKw) || connectionLimitKw <= 0) {
       return null;
     }
     const plan = planSite({
@@ -48,7 +48,7 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
       pvEnabled: false,
       pvKwp: 0,
       pvOrientation: "south",
-      limitKw,
+      limitKw: connectionLimitKw,
       voltage: "NS",
       operation: "grid-serving",
       demandChargeEurPerKwYear: HAMBURG_SUPERMARKET.demandChargeEurPerKwYear,
@@ -64,8 +64,8 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
       lifetimeYears: HAMBURG_SUPERMARKET.lifetimeYears,
       discountRate: 0,
     });
-    return { plan, profile: csv, story: storyFromPlan(plan, limitKw, HAMBURG_SUPERMARKET.roundTripEfficiency) };
-  }, [csv, limitKw]);
+    return { plan, profile: csv, story: storyFromPlan(plan, connectionLimitKw, HAMBURG_SUPERMARKET.roundTripEfficiency) };
+  }, [csv, connectionLimitKw]);
 
   const active = uploaded ?? example;
   const missingLimit = csv !== null && uploaded === null;
@@ -78,7 +78,7 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
         <ExampleHero view={view} scenario={scenario} language={language} plan={active.plan} story={active.story} example={!uploaded} />
       ) : null}
       {scenario !== "grossspeicher" && active && !missingLimit ? (
-        <SiteSimulator view={view} story={active.story} language={language} limitMw={limitMw} onLimitMwChange={setLimitMw} />
+        <SiteSimulator view={view} story={active.story} language={language} limitKw={simLimitKw} onLimitKwChange={setSimLimitKw} />
       ) : null}
       {view === "netz" && scenario !== "grossspeicher" && active ? (
         <SupportCard language={language} story={active.story} />

@@ -32,8 +32,7 @@ export function SiteConnectionSim({ view }: { view: Perspective }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const story = useMemo(() => supermarketConnectionStory(), []);
-  const [limitMw, setLimitMw] = useState(story.limitKw / 1000);
-  const limitKw = limitMw * 1000;
+  const [limitKw, setLimitKw] = useState(story.limitKw);
   const badge = useMemo(
     () =>
       assessConnectionGridBadge({
@@ -139,17 +138,17 @@ export function SiteConnectionSim({ view }: { view: Perspective }) {
         </Link>
       </div>
       <div className="sim-field-row">
-        <label htmlFor="sim-limit-mw">
-          {tx("zulässige Anschlussleistung (MW)", "permitted connection capacity (MW)")}
+        <label htmlFor="sim-limit-kw" className="sim-kicker">
+          {tx("ZULÄSSIGE ANSCHLUSSLEISTUNG (KW)", "PERMITTED CONNECTION CAPACITY (KW)")}
         </label>
         <input
-          id="sim-limit-mw"
+          id="sim-limit-kw"
           className="sim-input"
           type="number"
-          min={0.01}
-          step={0.01}
-          value={limitMw}
-          onChange={(event) => setLimitMw(Math.max(0.01, Number(event.target.value) || story.limitKw / 1000))}
+          min={1}
+          step={1}
+          value={Math.round(limitKw)}
+          onChange={(event) => setLimitKw(Math.max(1, Number(event.target.value) || story.limitKw))}
         />
       </div>
       <div className="sim-tabs">
@@ -213,6 +212,7 @@ export function SiteConnectionSim({ view }: { view: Perspective }) {
               ? tx(" · neue Spitze", " · new peak")
               : tx(" · keine neue Spitze", " · no new peak")}
             {badge.exceedsLimit ? tx(" · über Anschlussleistung", " · above connection capacity") : null}
+            {badge.neutralHint ? tx(` · ${badge.neutralHint}`, ` · ${badge.neutralHint}`) : null}
           </p>
         </article>
       </div>
@@ -243,7 +243,7 @@ export function SiteConnectionSim({ view }: { view: Perspective }) {
             yTicks={scale.yTicks}
             hatch="limit"
             limit={limitKw}
-            limitLabel={`${tx("Anschluss", "Connection")} ${formatQuantity(limitKw, language, 3)} kW (${formatQuantity(limitMw, language, 3)} MW)`}
+            limitLabel={`${tx("Grenze", "Limit")} ${formatQuantity(limitKw, language, 0)} kW`}
             tipLoad={tx("Last", "Load")}
             ariaLabel={tx(
               `Netzbezug eines fiktiven Supermarkts mit und ohne Speicher. Spitze ${formatQuantity(story.peakBeforeKw, language, 0)} auf ${formatQuantity(story.peakAfterKw, language, 0)} kW. Abgegeben ${energyLabel(story.dischargedKwh, language)} kWh. Modellschätzung, Beispieldaten.`,
@@ -285,7 +285,7 @@ function GridCopy({
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const pct = formatQuantity((story.peakBeforeKw / limitKw) * 100, language, 0);
   const hours = formatQuantity(story.hoursOverLimit, language, story.hoursOverLimit >= 10 ? 0 : 1);
-  const holds = story.peakAfterKw <= story.limitKw + 0.05;
+  const holds = story.peakAfterKw <= limitKw + 0.05;
   return (
     <>
       <p className="sim-kicker">{tx("Aus Sicht des Netzbetreibers", "From the grid operator’s view")}</p>
@@ -313,8 +313,8 @@ function GridCopy({
         <dd>
           {badge.createsNewPeak
             ? tx(
-                "Beim Laden entsteht eine neue Bezugsspitze. Die Marke bleibt deshalb neutral bei nicht erfüllt.",
-                "Charging creates a new import peak. The badge therefore stays neutral at not met."
+                "Beim Laden entsteht eine neue Bezugsspitze. Das Badge zeigt deshalb ‚belastend‘.",
+                "Charging creates a new import peak. The badge therefore shows ‘burdensome’."
               )
             : tx(
                 "Geladen wird, wenn die Leitung Luft hat. Dabei entsteht keine neue Spitze.",

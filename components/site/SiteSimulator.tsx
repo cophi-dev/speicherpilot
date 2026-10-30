@@ -14,17 +14,16 @@ export function SiteSimulator({
   view,
   story,
   language,
-  limitMw,
-  onLimitMwChange,
+  limitKw,
+  onLimitKwChange,
 }: {
   view: Perspective;
   story: SiteConnectionStory;
   language: AppLanguage;
-  limitMw: number;
-  onLimitMwChange: (value: number) => void;
+  limitKw: number;
+  onLimitKwChange: (value: number) => void;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const limitKw = limitMw * 1000;
   const badge = useMemo(
     () =>
       assessConnectionGridBadge({
@@ -96,15 +95,17 @@ export function SiteSimulator({
         </h2>
         {view === "netz" ? (
           <div className="sim-field-row">
-            <label htmlFor="site-sim-limit-mw">{tx("zulässige Anschlussleistung (MW)", "permitted connection capacity (MW)")}</label>
+            <label htmlFor="site-sim-limit-kw" className="sim-kicker">
+              {tx("ZULÄSSIGE ANSCHLUSSLEISTUNG (KW)", "PERMITTED CONNECTION CAPACITY (KW)")}
+            </label>
             <input
-              id="site-sim-limit-mw"
+              id="site-sim-limit-kw"
               className="sim-input"
               type="number"
-              min={0.01}
-              step={0.001}
-              value={limitMw}
-              onChange={(event) => onLimitMwChange(Math.max(0.01, Number(event.target.value) || story.limitKw / 1000))}
+              min={1}
+              step={1}
+              value={Math.round(limitKw)}
+              onChange={(event) => onLimitKwChange(Math.max(1, Number(event.target.value) || story.limitKw))}
             />
             <p className="sim-kpi-note">
               <a className="sim-badge" href="/methodik#netzdienlichkeit">
@@ -148,7 +149,7 @@ export function SiteSimulator({
           yTicks={scale.yTicks}
           hatch={view === "netz" ? "limit" : "graphite"}
           limit={limitKw}
-          limitLabel={view === "netz" ? tx(`Grenze ${formatLimit(limitKw, language)} kW (${formatLimit(limitMw, language, 3)} MW)`, `Limit ${formatLimit(limitKw, language)} kW (${formatLimit(limitMw, language, 3)} MW)`) : tx("Kappziel", "Shave target")}
+          limitLabel={view === "netz" ? tx(`Grenze ${formatLimit(limitKw, language, 0)} kW`, `Limit ${formatLimit(limitKw, language, 0)} kW`) : tx("Kappziel", "Shave target")}
           tipLoad={tx("Last", "Load")}
           ariaLabel={tx("Tag am Anschluss in kW", "Day at the connection in kW")}
           tag={tx("Beispieldaten", "Example data")}

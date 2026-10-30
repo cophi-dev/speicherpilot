@@ -205,14 +205,52 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </p>
               <p>
                 {tx(
-                  `Speicher über mehrere Tage: Start 10 % nutzbarer Energie, Übertrag Tag zu Tag, Rest am Ende. Abgegeben ≠ 85 % von aufgenommen, weil Rest im Speicher bleibt. Entladung in Import-Stunden ist höchstens Σ min(Entladung, max(0, Handelssaldo)) · ¼ h — kein Beleg, dass Import wegfällt. Abregelung: Prognose §13k (netztransparenz.de, AusgewieseneABSM) vs. Ist quartalsweise (BNetzA/SMARD, Stand 12.10.2026). §13k EnWG (gesetze-im-internet.de, Abruf 30.10.2026).`,
-                  "Storage across days: start at 10% usable energy, carry state day to day, remainder at period end. Discharged ≠ 85% of absorbed because energy stays stored. Discharge during import hours is at most Σ min(discharge, max(0, trade)) · ¼ h — not proof that import disappears. Curtailment: forecast §13k (netztransparenz.de, AusgewieseneABSM) vs. quarterly actual (BNetzA/SMARD, as of 12 Oct 2026). §13k EnWG (gesetze-im-internet.de, retrieved 30 Oct 2026)."
+                  "Speicher über mehrere Tage: Start 10 % nutzbarer Energie, Übertrag Tag zu Tag, Rest am Ende. Abgegeben ≠ 85 % von aufgenommen, weil Rest im Speicher bleibt. Entladung in Import-Stunden ist höchstens Σ min(Entladung, max(0, Handelssaldo)) · ¼ h — kein Beleg, dass Import wegfällt.",
+                  "Storage across days: start at 10% usable energy, carry state day to day, remainder at period end. Discharged ≠ 85% of absorbed because energy stays stored. Discharge during import hours is at most Σ min(discharge, max(0, trade)) · ¼ h — not proof that import disappears."
                 )}
               </p>
               <p>
-                {tx(
-                  "Netz-Simulator (Ein-Anschluss): Badge netzdienlich wenn ≥60 % Entladungsenergie bei ≥90 % Anschlussauslastung und Laden keine neue Bezugsspitze erzeugt; belastend bei neuer Spitze oder Überschreitung der zulässigen Anschlussleistung; sonst neutral. Schwellen sind Modell v1, Schätzung. Primärquellen: EnWG §14a, §17 (Stand 30.10.2026), VDE-AR-N 4110, BNetzA zu flexiblen Netzanschlussvereinbarungen — keine Rechtsberatung.",
-                  "Grid simulator (single connection): badge grid-supportive when ≥60% discharge energy at ≥90% connection loading and charging creates no new import peak; burdensome when a new peak appears or permitted connection capacity is exceeded; otherwise neutral. Thresholds are model v1, estimate. Primary sources: EnWG §14a, §17 (as of 30 Oct 2026), VDE-AR-N 4110, BNetzA on flexible connection agreements — not legal advice."
+                {language === "de" ? (
+                  <>
+                    § 13k EnWG: Übertragungsnetzbetreiber bestimmen am Vortag stündliche Abregelungsstrommengen wegen Engpässen im
+                    Übertragungsnetz, nur für Entlastungsregionen (
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/__13k.html">gesetze-im-internet.de/enwg_2005/__13k.html</a>
+                    , Abruf 30.10.2026). Das ist nicht dasselbe wie die tatsächliche Abregelung: Die BNetzA/SMARD-Quartalszahl (Q2 2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("de")} EE-Redispatch, davon rund 52&nbsp;% mit Ursache im Verteilernetz, veröffentlicht
+                    12.10.2026,{" "}
+                    <a href={SMARD_QUARTERLY_TOPIC_URL}>smard.de</a>) umfasst auch Verteilnetz-Maßnahmen.
+                  </>
+                ) : (
+                  <>
+                    § 13k EnWG: transmission system operators set hourly curtailment volumes for the next day because of congestion in
+                    the transmission grid, only for relief regions (
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/__13k.html">gesetze-im-internet.de/enwg_2005/__13k.html</a>
+                    , retrieved 30 Oct 2026). That is not the same as actual curtailment: the BNetzA/SMARD quarterly figure (Q2 2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("en")} renewable redispatch, about 52&nbsp;% with cause in the distribution grid,
+                    published 12 Oct 2026, <a href={SMARD_QUARTERLY_TOPIC_URL}>smard.de</a>) also includes distribution measures.
+                  </>
+                )}
+              </p>
+              <p>
+                {language === "de" ? (
+                  <>
+                    Die Schwellen 60&nbsp;% / 90&nbsp;% sind unsere Modellannahme v1, nicht aus Gesetz oder Norm. Rechtsrahmen zum Nachlesen: §
+                    17 Abs.&nbsp;2b EnWG (flexible Netzanschlussvereinbarung: Netzbetreiber darf statische oder dynamische Begrenzung der
+                    Entnahme- oder Einspeiseleistung verlangen), § 14a EnWG (netzorientierte Steuerung steuerbarer Verbrauchseinrichtungen,
+                    Festlegung der BNetzA), beide{" "}
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/">gesetze-im-internet.de</a>, Abruf 30.10.2026; VDE-AR-N
+                    4110:2023-09 (TAR Mittelspannung, laut{" "}
+                    <a href="https://www.vde.com/">vde.com</a> gültig, Abruf 30.10.2026).
+                  </>
+                ) : (
+                  <>
+                    The 60&nbsp;% / 90&nbsp;% thresholds are our model assumption v1, not from law or standard. Legal context: § 17 (2b) EnWG
+                    (flexible connection agreement: DSO may require static or dynamic limits on withdrawal or feed-in), § 14a EnWG
+                    (grid-oriented control of controllable loads, BNetzA specification), both{" "}
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/">gesetze-im-internet.de</a>, retrieved 30 Oct 2026; VDE-AR-N
+                    4110:2023-09 (MV technical connection rules, valid per{" "}
+                    <a href="https://www.vde.com/">vde.com</a>, retrieved 30 Oct 2026).
+                  </>
                 )}
               </p>
             </section>
