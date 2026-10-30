@@ -1,9 +1,10 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { LiveStrip } from "@/components/mix/LiveStrip";
 import { ChargedLine } from "@/components/day-ring/ChargedLine";
 import { DayRing, DayValuesTable, HourlyResidualTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { MonoNumber } from "@/components/day-ring/MonoNumber";
@@ -26,7 +27,6 @@ import {
   saturationNote,
   sliderValueText,
   surplusHours,
-  weekdayShort,
 } from "@/lib/dayRingStory";
 import {
   buildLiveDispatchStory,
@@ -38,7 +38,27 @@ import {
   type LiveDispatchStory,
 } from "@/lib/liveFleetDispatch";
 
-export function LiveRing({ dispatch, until, leading }: { dispatch: LiveDispatchInput; until?: string | null; leading?: ReactNode }) {
+export function LiveRing({
+  dispatch,
+  until,
+  heading,
+  subheading,
+  isToday = false,
+  stand,
+  readings,
+  onFactor: onFactorProp,
+  factor: factorProp,
+}: {
+  dispatch: LiveDispatchInput;
+  until?: string | null;
+  heading?: string;
+  subheading?: string | null;
+  isToday?: boolean;
+  stand?: string;
+  readings?: import("@/lib/liveStrip").StripReading[];
+  onFactor?: (factor: LiveDispatchFactor) => void;
+  factor?: LiveDispatchFactor;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const router = useRouter();
@@ -48,7 +68,7 @@ export function LiveRing({ dispatch, until, leading }: { dispatch: LiveDispatchI
   if (pendingFactor !== null && pendingFactor === queryFactor) {
     setPendingFactor(null);
   }
-  const factor = pendingFactor ?? queryFactor;
+  const factor = pendingFactor ?? factorProp ?? queryFactor;
   const ansicht = searchParams.get("ansicht");
 
   useEffect(() => {
@@ -99,10 +119,14 @@ export function LiveRing({ dispatch, until, leading }: { dispatch: LiveDispatchI
     <>
     <section className="day-hero day-hero-screen" aria-labelledby="live-what-if">
       <div className="day-hero-inner">
-        {leading}
+        {isToday && stand && readings ? <LiveStrip stand={stand} readings={readings} /> : null}
+        {!isToday ? (
+          <p className="live-strip-hint">
+            <Link href="/live">{tx("Live-Werte gelten für heute → zu heute", "Live values are for today → go to today")}</Link>
+          </p>
+        ) : null}
         {story && stories && dispatch.fleet ? (
           <LiveRingBody
-            until={until ?? null}
             story={story}
             stories={stories}
             fleet={dispatch.fleet}
@@ -112,9 +136,16 @@ export function LiveRing({ dispatch, until, leading }: { dispatch: LiveDispatchI
             saturated={saturated}
             onFactor={(next) => {
               setPendingFactor(next);
-              // The ring morph has to start on this frame. The URL follows on the next one.
-              window.requestAnimationFrame(() => replaceQuery("x", String(next)));
+              window.requestAnimationFrame(() => {
+                if (onFactorProp) {
+                  onFactorProp(next);
+                } else {
+                  replaceQuery("x", String(next));
+                }
+              });
             }}
+            heading={heading}
+            subheading={subheading}
           />
         ) : (
           <div>
@@ -154,7 +185,8 @@ function LiveRingBody({
   saturationIndex,
   saturated,
   onFactor,
-  until,
+  heading,
+  subheading,
 }: {
   story: LiveDispatchStory;
   stories: Record<LiveDispatchFactor, LiveDispatchStory>;
@@ -164,10 +196,11 @@ function LiveRingBody({
   saturationIndex: number | null;
   saturated: LiveDispatchFactor | null;
   onFactor: (factor: LiveDispatchFactor) => void;
-  until: string | null;
+  heading?: string;
+  subheading?: string | null;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const title = tx(
+  const subtitle = tx(
     "Schieb den Regler und sieh, wie Speicher den Tag runder machen.",
     "Move the slider and see how storage rounds the day."
   );
@@ -178,11 +211,6 @@ function LiveRingBody({
   const hours = surplusHours(story);
   const hourLabel = formatQuantity(hours, language, Number.isInteger(hours) ? 0 : 1);
   const dateLabel = formatBerlinDayLabel(story.dateBerlin);
-  const kicker = until
-    ? `${tx("Live · heute bis jetzt", "Live · today so far")} · ${tx(`bisher bis ${until}`, `so far until ${until}`)}`
-    : story.fallback
-      ? `${tx("Live · Was wäre wenn", "Live · What if")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`
-      : `${tx("Live · heute, laufend", "Live · today, in progress")} · ${weekdayShort(story.dateBerlin, language)} ${dateLabel}`;
   const callouts = buildCallouts(story, story.points, language);
   const tablePoints = useDeferredValue(story.points);
   const caption = liveClockCaption(before, after, factor, language);
@@ -197,10 +225,12 @@ function LiveRingBody({
   return (
     <>
       <div className="day-hero-layout">
-        <p className="day-kicker day-order-kicker">{kicker}</p>
+        <p className="day-kicker day-order-kicker">{tx("Tag · Modell", "Day · model")}</p>
         <h1 id="live-what-if" className="day-title day-order-title">
-          {title}
+          {heading ?? dateLabel}
         </h1>
+        {subheading ? <p className="day-subtitle">{subheading}</p> : null}
+        <p className="day-lead day-order-lead">{subtitle}</p>
         <div className="day-order-slider">
           <FactorSlider
             factor={factor}
@@ -216,7 +246,7 @@ function LiveRingBody({
           <figure>
             <DayRing
               points={story.points}
-              label={title}
+              label={subtitle}
               description={description}
               callouts={callouts}
               chargedGwh={story.chargedGwh}
@@ -249,7 +279,9 @@ function LiveRingBody({
             />
           </figure>
           <p className="day-source">
-            <Link href="/#beispieltage">{tx("Tage, an denen ein Speicher viel gebracht hätte", "Days when a battery would have done a lot")}</Link>
+            <Link href="/#uebersicht" prefetch={false}>
+              {tx("Zur Übersicht auf der Startseite", "To the overview on the homepage")}
+            </Link>
           </p>
         </div>
         <div className="day-order-controls">
