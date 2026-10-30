@@ -198,6 +198,11 @@ function ExampleHero({
               <a className="day-cta" href="#csv-drop">{tx("Eigenes CSV prüfen →", "Check your own CSV →")}</a>
               <PdfLink view={view} language={language} plan={plan} profile={scenario === "quartier" ? quartierProfile() : hamburgSupermarketProfile()} />
             </div>
+            {view === "projekt" ? (
+              <p className="site-quiet">
+                <Link href="/site?view=netz#testnetz-n1">{tx("Testnetz (n-1) für Netzbetreiber →", "Test grid (n-1) for grid operators →")}</Link>
+              </p>
+            ) : null}
           </div>
           <div>
             <DayRing

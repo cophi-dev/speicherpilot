@@ -1,5 +1,5 @@
 import type { AppLanguage } from "@/components/language-context";
-import { chainFleetSoc, CHAIN_SOC_MIN, type ChainPoint } from "@/lib/chainedFleetSoc";
+import { chainFleetSoc, CHAIN_SOC_MAX, CHAIN_SOC_MIN, type ChainPoint, type ChainRun } from "@/lib/chainedFleetSoc";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import { MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
@@ -8,6 +8,7 @@ import {
   CARRIER_IDS,
   chartUnit,
   exportOnSurplusGwh,
+  fossilRunsDuringSurplus,
   isQuietDay,
   lastSurplusDate,
   periodFigures,
@@ -57,6 +58,9 @@ export type SurplusReadout = {
   exportDuring: Copy;
   /** Fleet ×1 charge from the existing chain. Null when the fleet is not loaded. */
   charged: Copy | null;
+  exportMoreThanSurplus: boolean;
+  fossilDuringSurplus: boolean;
+  chargedFull: boolean;
 };
 
 export type PowerBoardModel = {
@@ -122,6 +126,36 @@ function stampOpenEnd(points: ChartPoint[], until: string | null, range: MixRang
 
 function textPair(build: (language: AppLanguage) => string): Copy {
   return { de: build("de"), en: build("en") };
+}
+
+function fleetChargedFullInWindow(chain: ChainRun | null, window: PowerSlot[], offshorePresent: boolean): boolean {
+  if (!chain) {
+    return false;
+  }
+  const byIso = new Map(chain.points.map((point) => [point.timestampIso, point]));
+  for (const slot of window) {
+    if (slot.hourBerlin >= 17) {
+      continue;
+    }
+    const windOn = slot.carriers.windOnshore;
+    const windOff = offshorePresent ? slot.carriers.windOffshore : 0;
+    const solar = slot.carriers.solar;
+    if (slot.loadMw === null || windOn === null || solar === null) {
+      continue;
+    }
+    if (offshorePresent && slot.carriers.windOffshore === null) {
+      continue;
+    }
+    const wind = windOn + (windOff ?? 0);
+    if (wind + solar <= slot.loadMw) {
+      continue;
+    }
+    const point = byIso.get(slot.timestampIso);
+    if (point && point.soc >= CHAIN_SOC_MAX - 1e-3) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function dateLabel(dateBerlin: string): string {
@@ -358,6 +392,7 @@ export function buildPowerBoard(input: {
 
   const soc = {} as Record<LiveDispatchFactor, SocSample[]>;
   let chargedGwh: number | null = null;
+  let chainX1: ChainRun | null = null;
   for (const factor of LIVE_DISPATCH_FACTORS) {
     const chain =
       fleet === null
@@ -365,6 +400,7 @@ export function buildPowerBoard(input: {
         : chainFleetSoc(residualDays, fleet.powerGw * factor * 1000, fleet.energyGwh * factor * 1000);
     if (factor === 1) {
       chargedGwh = chain ? chain.chargedMwh / 1000 : null;
+      chainX1 = chain;
     }
     const chainPoints = chain?.points ?? [];
     soc[factor] =
@@ -383,12 +419,21 @@ export function buildPowerBoard(input: {
   }
 
   const exportDuringGwh = exportOnSurplusGwh(window, input.offshorePresent);
+  const surplusGwh = figures.surplusGwh;
+  const exportMoreThanSurplus =
+    exportDuringGwh !== null &&
+    surplusGwh !== null &&
+    exportDuringGwh > surplusGwh + 1e-6;
+  const fossilDuringSurplus = fossilRunsDuringSurplus(window, input.offshorePresent);
   const surplusReadout: SurplusReadout = {
     known: figures.surplusGwh !== null,
     hasSurplus: figures.surplusGwh !== null && figures.surplusGwh > SURPLUS_DAY_GWH,
     surplus,
     exportDuring: textPair((language) => gwh(exportDuringGwh, language)),
     charged: fleet ? textPair((language) => gwh(chargedGwh, language)) : null,
+    exportMoreThanSurplus,
+    fossilDuringSurplus,
+    chargedFull: fleetChargedFullInWindow(chainX1, window, input.offshorePresent),
   };
 
   const description = both(

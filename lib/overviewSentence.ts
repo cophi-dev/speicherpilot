@@ -10,6 +10,7 @@ import { weekdayShort } from "@/lib/dayRingStory";
 export const SATURATION = 0.995;
 
 const FRACTION_BANDS: Array<{ value: number; de: string; en: string }> = [
+  { value: 1 / 10, de: "ein Zehntel", en: "one tenth" },
   { value: 1 / 5, de: "ein Fünftel", en: "one fifth" },
   { value: 1 / 4, de: "ein Viertel", en: "one quarter" },
   { value: 1 / 3, de: "ein Drittel", en: "one third" },
@@ -86,8 +87,11 @@ export function sharePhrase(share: number, language: AppLanguage) {
   if (share >= SATURATION - 1e-6) {
     return language === "de" ? "alles" : "everything";
   }
-  const band = nearestFractionBand(share);
   const pct = formatQuantity(share * 100, language, 0);
+  if (share < 0.15 - 1e-6) {
+    return language === "de" ? `wenig (${pct} %)` : `little (${pct}%)`;
+  }
+  const band = nearestFractionBand(share);
   const qualifier =
     share + 1e-6 < band.value
       ? language === "de"
@@ -103,6 +107,12 @@ export function sharePhrase(share: number, language: AppLanguage) {
     return `${qualifier}${core} (${pct} %)`;
   }
   return `${qualifier}${core} (${pct}%)`;
+}
+
+function uptakePhrase(absorbedGwh: number, absorbedShare: number | null, language: AppLanguage): string {
+  const sharePct = absorbedShare !== null ? formatQuantity(absorbedShare * 100, language, 0) : "—";
+  const gwh = formatQuantity(absorbedGwh, language, 1);
+  return language === "de" ? `(${sharePct} %, ${gwh} GWh)` : `(${sharePct}%, ${gwh} GWh)`;
 }
 
 function factorLabel(factor: LiveDispatchFactor, language: AppLanguage) {
@@ -204,15 +214,19 @@ export function einschaetzung(
   );
 
   const fleetParts = [
-    `${factorLabel(1, language)} hätte ${sharePhrase(x1.absorbedShare ?? 0, language)} davon aufgenommen (${formatQuantity(x1.absorbedGwh, language, 1)} GWh)`,
-    `${factorLabel(5, language)} ${sharePhrase(x5.absorbedShare ?? 0, language)} (${formatQuantity(x5.absorbedGwh, language, 1)} GWh)`,
-    `${factorLabel(10, language)} ${sharePhrase(x10.absorbedShare ?? 0, language)} (${formatQuantity(x10.absorbedGwh, language, 1)} GWh)`,
+    `${factorLabel(1, language)} hätte ${uptakePhrase(x1.absorbedGwh, x1.absorbedShare, language)} davon aufgenommen`,
+    `${factorLabel(5, language)} ${uptakePhrase(x5.absorbedGwh, x5.absorbedShare, language)}`,
+    `${factorLabel(10, language)} ${uptakePhrase(x10.absorbedGwh, x10.absorbedShare, language)}`,
   ];
 
   if (saturatedAt !== null && saturatedAt <= factor) {
+    const periodTail =
+      blick === "tag"
+        ? tx("an diesem Tag nichts", "on this day")
+        : tx("in diesem Zeitraum nichts", "in this period");
     return tx(
-      `${intro} Ab ×${saturatedAt} nimmt der Speicher im Modell den gesamten Überschuss auf — mehr Speicher bringt in diesem Zeitraum nichts.${dataNote}`,
-      `${intro} From ×${saturatedAt} the model fleet absorbs all surplus — more storage would not help further in this period.${dataNote}`
+      `${intro} Ab ×${saturatedAt} nimmt der Speicher im Modell den gesamten Überschuss auf — mehr Speicher bringt ${periodTail}.${dataNote}`,
+      `${intro} From ×${saturatedAt} the model fleet absorbs all surplus — more storage would not help further ${blick === "tag" ? "on this day" : "in this period"}.${dataNote}`
     );
   }
 
@@ -223,8 +237,8 @@ export function einschaetzung(
 
   if (factor > 1) {
     return tx(
-      `${intro} Bei ×${factor} hätte der Speicher ${sharePhrase(current, language)} aufgenommen (${formatQuantity(factorResult.absorbedGwh, language, 1)} GWh).${dataNote}`,
-      `${intro} At ×${factor} storage would have absorbed ${sharePhrase(current, language)} (${formatQuantity(factorResult.absorbedGwh, language, 1)} GWh).${dataNote}`
+      `${intro} Bei ×${factor} hätte der Speicher ${uptakePhrase(factorResult.absorbedGwh, factorResult.absorbedShare, language)} aufgenommen.${dataNote}`,
+      `${intro} At ×${factor} storage would have absorbed ${uptakePhrase(factorResult.absorbedGwh, factorResult.absorbedShare, language)}.${dataNote}`
     );
   }
 

@@ -23,6 +23,19 @@ export const CARRIER_IDS = [
 
 export type CarrierId = (typeof CARRIER_IDS)[number];
 
+/** Bottom-to-top paint order for the generation stack in MixChart (CARRIER_IDS unchanged elsewhere). */
+export const CHART_STACK_ORDER: CarrierId[] = [
+  "windOffshore",
+  "windOnshore",
+  "solar",
+  "lignite",
+  "hardCoal",
+  "gas",
+  "biomass",
+  "hydro",
+  "other",
+];
+
 export type MixRange = "tag" | "woche" | "monat";
 
 export type PowerSlot = {
@@ -460,14 +473,45 @@ export function periodFigures(slots: PowerSlot[], offshorePresent: boolean): Per
  * Trade is positive for import and negative for export. This sums the published series.
  * It does not run a new dispatch.
  */
+const FOSSIL_CARRIER_IDS: CarrierId[] = ["lignite", "hardCoal", "gas"];
+
+function isWindSolarSurplusSlot(slot: PowerSlot, offshorePresent: boolean): boolean {
+  const wind = windMw(slot, offshorePresent);
+  const solar = solarMw(slot);
+  return wind !== null && solar !== null && slot.loadMw !== null && wind + solar > slot.loadMw;
+}
+
+/** True when any fossil carrier publishes above zero during wind-and-solar surplus quarter-hours. */
+export function fossilRunsDuringSurplus(slots: PowerSlot[], offshorePresent: boolean): boolean {
+  for (const slot of slots) {
+    if (!isWindSolarSurplusSlot(slot, offshorePresent)) {
+      continue;
+    }
+    for (const id of FOSSIL_CARRIER_IDS) {
+      const value = slot.carriers[id];
+      if (value !== null && value > 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** Latest published quarter is within maxAgeMs of now (Berlin series clock). */
+export function powerSeriesFresh(slots: PowerSlot[], nowMs = Date.now(), maxAgeMs = 2 * 60 * 60 * 1000): boolean {
+  if (slots.length === 0) {
+    return false;
+  }
+  const latestMs = Math.max(...slots.map((slot) => slot.unixSeconds * 1000));
+  return nowMs - latestMs <= maxAgeMs;
+}
+
 export function exportOnSurplusGwh(slots: PowerSlot[], offshorePresent: boolean): number | null {
   let sum = 0;
   let sawSurplus = false;
   let sawTrade = false;
   for (const slot of slots) {
-    const wind = windMw(slot, offshorePresent);
-    const solar = solarMw(slot);
-    if (wind === null || solar === null || slot.loadMw === null || wind + solar <= slot.loadMw) {
+    if (!isWindSolarSurplusSlot(slot, offshorePresent)) {
       continue;
     }
     sawSurplus = true;

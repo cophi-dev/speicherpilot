@@ -104,7 +104,7 @@ export function LiveView({
         factor={factor}
         hideHeader
       />
-      <PowerBoard model={board} missingFactor={5} hideSocLine={false} />
+      <PowerBoard model={board} missingFactor={5} hideSocLine={false} tighten />
       <p className="live-overview-link mx-auto max-w-[1200px] px-4 pb-8">
         <Link href="/#uebersicht" prefetch={false}>
           {tx("Zur Zeitraum-Übersicht auf der Startseite", "To the period overview on the homepage")}

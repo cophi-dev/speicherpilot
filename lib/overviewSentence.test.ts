@@ -85,6 +85,11 @@ describe("sharePhrase", () => {
     expect(sharePhrase(0.9, "de")).not.toBe("alles");
   });
 
+  it("uses wenig below 15 %", () => {
+    expect(sharePhrase(0.02, "de")).toBe("wenig (2 %)");
+    expect(sharePhrase(0.12, "de")).toBe("wenig (12 %)");
+  });
+
   it("uses alles only from saturation", () => {
     expect(sharePhrase(SATURATION, "de")).toBe("alles");
   });
@@ -131,8 +136,21 @@ describe("einschaetzung", () => {
   it("names fleet uptake shares when ×1 takes less than half", () => {
     const text = einschaetzung(baseModel({ surplusGwh: 146, surplusDays: 9 }), 1, "de");
     expect(text).toMatch(/146 GWh Überschuss/);
+    expect(text).toMatch(/\(36 %, 52,2 GWh\)/);
     expect(text).toMatch(/fünfmal so viel Speicher/);
     expect(text).not.toMatch(/×1:/);
+  });
+
+  it("uses an diesem Tag when saturated on tag scope", () => {
+    const text = einschaetzung(
+      baseModel({ surplusGwh: 70, surplusDays: 1, saturatedFrom: 10 }, "tag", {
+        startKey: "2026-10-25",
+        endKey: "2026-10-25",
+      }),
+      10,
+      "de"
+    );
+    expect(text).toMatch(/an diesem Tag nichts/);
   });
 
   it("states saturation from ×N upward", () => {
@@ -147,6 +165,7 @@ describe("einschaetzung", () => {
       "de"
     );
     expect(text).toMatch(/Bei ×2 hätte der Speicher/);
+    expect(text).toMatch(/\(\d+ %, [\d,]+ GWh\)/);
     expect(text).not.toMatch(/×1:/);
     expect(text).not.toMatch(/×2:/);
   });
