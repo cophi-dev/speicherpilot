@@ -7,56 +7,91 @@ export type ConnectionGridBadge = {
   dischargeShareInPeaks: number;
   createsNewPeak: boolean;
   exceedsLimit: boolean;
+  neutralHint: string | null;
 };
 
+const EPS = 0.05;
+const PEAK_UTIL_EPS = 1e-9;
+const SUPPORT_EPS = 1e-9;
+
 /**
- * Rule v1 for one connection point (simulator).
- * belastend: new import peak from charge/discharge or power above the allowed connection.
- * netzdienlich: ≥60 % discharge energy in intervals with ≥90 % connection use and no new peak from charging.
+ * Rule v1: grid position after storage is mitKw = ohneKw + charge − discharge.
  */
 export function assessConnectionGridBadge(args: {
   netKw: number[];
   chargeKw: number[];
   dischargeKw: number[];
   limitKw: number;
+  feedInLimitKw?: number;
   intervalHours?: number;
 }): ConnectionGridBadge {
   const intervalHours = args.intervalHours ?? 0.25;
-  const limit = Math.max(0, args.limitKw);
-  const threshold = limit * GRID_SUPPORT_CONFIG.peakUtilisation;
-  let peakBefore = 0;
-  for (const net of args.netKw) {
-    if (net > peakBefore) {
-      peakBefore = net;
-    }
+  const limit = args.limitKw;
+  if (!(limit > 0)) {
+    return {
+      id: "neutral",
+      dischargeShareInPeaks: 0,
+      createsNewPeak: false,
+      exceedsLimit: false,
+      neutralHint: "keine Anschlussleistung angegeben",
+    };
   }
-  let dischargeKwh = 0;
-  let dischargeInPeakKwh = 0;
-  let createsNewPeak = false;
-  let exceedsLimit = false;
+  const feedInLimit = args.feedInLimitKw ?? limit;
+  const peakThreshold = limit * GRID_SUPPORT_CONFIG.peakUtilisation - PEAK_UTIL_EPS;
   const n = args.netKw.length;
+  const ohneKw: number[] = [];
+  const mitKw: number[] = [];
+  let peakBeforeMax = 0;
+  let peakAfterMax = 0;
   for (let i = 0; i < n; i += 1) {
+    const ohne = args.netKw[i] ?? 0;
     const charge = Math.max(0, args.chargeKw[i] ?? 0);
     const discharge = Math.max(0, args.dischargeKw[i] ?? 0);
-    const net = args.netKw[i] ?? 0;
-    if (limit > 0 && (net > limit + 0.05 || (charge > 0 && net + charge > limit + 0.05))) {
+    const mit = ohne + charge - discharge;
+    ohneKw.push(ohne);
+    mitKw.push(mit);
+    peakBeforeMax = Math.max(peakBeforeMax, ohne);
+    peakAfterMax = Math.max(peakAfterMax, mit);
+  }
+
+  let exceedsLimit = false;
+  for (let i = 0; i < n; i += 1) {
+    if (mitKw[i] > limit + EPS && mitKw[i] > ohneKw[i] + EPS) {
       exceedsLimit = true;
     }
+    if (mitKw[i] < -feedInLimit - EPS) {
+      exceedsLimit = true;
+    }
+  }
+
+  let createsNewPeak = false;
+  if (peakAfterMax > peakBeforeMax + EPS) {
+    for (let i = 0; i < n; i += 1) {
+      const charge = Math.max(0, args.chargeKw[i] ?? 0);
+      if (charge > 1e-6 && mitKw[i] > peakBeforeMax + EPS) {
+        createsNewPeak = true;
+        break;
+      }
+    }
+  }
+
+  let dischargeKwh = 0;
+  let dischargeInPeakKwh = 0;
+  for (let i = 0; i < n; i += 1) {
+    const discharge = Math.max(0, args.dischargeKw[i] ?? 0);
     const delivered = discharge * intervalHours;
     dischargeKwh += delivered;
-    if (net >= threshold) {
+    if (ohneKw[i] >= peakThreshold) {
       dischargeInPeakKwh += delivered;
-    }
-    if (charge > 1e-6 && net + charge > peakBefore + 0.05) {
-      createsNewPeak = true;
     }
   }
   const dischargeShareInPeaks = dischargeKwh > 0 ? dischargeInPeakKwh / dischargeKwh : 0;
+
   if (createsNewPeak || exceedsLimit) {
-    return { id: "belastend", dischargeShareInPeaks, createsNewPeak, exceedsLimit };
+    return { id: "belastend", dischargeShareInPeaks, createsNewPeak, exceedsLimit, neutralHint: null };
   }
-  if (dischargeShareInPeaks >= GRID_SUPPORT_CONFIG.supportiveMinShare) {
-    return { id: "netzdienlich", dischargeShareInPeaks, createsNewPeak, exceedsLimit };
+  if (dischargeShareInPeaks >= GRID_SUPPORT_CONFIG.supportiveMinShare - SUPPORT_EPS) {
+    return { id: "netzdienlich", dischargeShareInPeaks, createsNewPeak, exceedsLimit, neutralHint: null };
   }
-  return { id: "neutral", dischargeShareInPeaks, createsNewPeak, exceedsLimit };
+  return { id: "neutral", dischargeShareInPeaks, createsNewPeak, exceedsLimit, neutralHint: null };
 }

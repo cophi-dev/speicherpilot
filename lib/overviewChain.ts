@@ -1,5 +1,6 @@
 import { chainFleetSoc, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
+import { buildQuarterPriceMap, priceForQuarterIso } from "@/lib/quarterPrices";
 import { LIVE_DISPATCH_FACTORS, scaleFleet, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import { MORE_STORAGE_DISCHARGE_HOUR, MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
 import {
@@ -87,22 +88,6 @@ function filterSlotsForBounds(slots: PowerSlot[], bounds: OverviewBounds, lastIs
   return filtered;
 }
 
-function priceAt(points: DayAheadPricePoint[], unixMs: number): number | null {
-  if (points.length === 0) {
-    return null;
-  }
-  let best = points[0];
-  let bestDist = Math.abs(best.unixMs - unixMs);
-  for (const point of points) {
-    const dist = Math.abs(point.unixMs - unixMs);
-    if (dist < bestDist) {
-      best = point;
-      bestDist = dist;
-    }
-  }
-  return best.eurPerMwh;
-}
-
 function eveningPeaksForDay(
   day: ResidualDay,
   chargeMw: Map<string, number>,
@@ -142,20 +127,27 @@ function evaluateFactor(args: {
   const dischargeByIso = new Map(run.points.map((point) => [point.timestampIso, point.dischargeMw]));
   const socByIso = new Map(run.points.map((point) => [point.timestampIso, point.soc]));
 
-  let dischargedDuringImportMwh = 0;
-  let eur: number | null = args.factor === 1 ? 0 : null;
   const tradeByIso = new Map(args.slots.map((slot) => [slot.timestampIso, slot.tradeMw]));
+
+  let dischargedDuringImportMwh = 0;
+  const priceMap = buildQuarterPriceMap(args.prices);
+  let eurSum = 0;
+  let eurComplete = args.factor === 1;
 
   for (const point of run.points) {
     const trade = tradeByIso.get(point.timestampIso);
     const importMw = trade !== null && trade !== undefined && trade > 0 ? trade : 0;
     dischargedDuringImportMwh += Math.min(point.dischargeMw, importMw) * QUARTER_H;
-    if (args.factor === 1 && eur !== null) {
-      const unixMs = Date.parse(point.timestampIso);
-      const price = Number.isFinite(unixMs) ? priceAt(args.prices, unixMs) : null;
-      if (price !== null) {
-        eur += (point.dischargeMw - point.chargeMw) * QUARTER_H * price;
+    if (args.factor === 1 && eurComplete) {
+      if (point.chargeMw <= 1e-6 && point.dischargeMw <= 1e-6) {
+        continue;
       }
+      const price = priceForQuarterIso(priceMap, point.timestampIso);
+      if (price === null) {
+        eurComplete = false;
+        continue;
+      }
+      eurSum += (point.dischargeMw - point.chargeMw) * QUARTER_H * price;
     }
   }
 
@@ -166,7 +158,8 @@ function evaluateFactor(args: {
       ? absorbedGwh / args.observedSurplusGwh
       : null;
   const saturated =
-    args.observedSurplusGwh !== null && absorbedGwh >= args.observedSurplusGwh * SATURATION - 1e-6;
+    (args.observedSurplusGwh ?? 0) > 1e-9 &&
+    absorbedGwh >= (args.observedSurplusGwh as number) * SATURATION - 1e-6;
 
   const eveningBefore: number[] = [];
   const eveningAfter: number[] = [];
@@ -246,7 +239,7 @@ function evaluateFactor(args: {
     startSocGwh: run.startSocMwh / 1000,
     endSocGwh: run.endSocMwh / 1000,
     saturated,
-    eurModelX1: eur,
+    eurModelX1: args.factor === 1 && eurComplete ? eurSum : null,
     zeroReason,
     dayRows,
     quarterPoints,
@@ -275,8 +268,12 @@ export function evaluateOverview(args: {
   let missingQuarters = 0;
   const totalQuarters = scopedSlots.length;
   for (const slot of scopedSlots) {
-    if (slot.tradeMw === null) {
+    const wind = windMw(slot, args.offshorePresent);
+    const solar = solarMw(slot);
+    if (slot.tradeMw === null || slot.loadMw === null || wind === null || solar === null) {
       missingQuarters += 1;
+    }
+    if (slot.tradeMw === null) {
       continue;
     }
     hasTrade = true;

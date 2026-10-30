@@ -99,10 +99,14 @@ describe("evaluateOverview", () => {
     }
   });
 
-  it("exposes eurModelX1 only for factor 1", () => {
+  it("exposes eurModelX1 only for factor 1 when every charge or discharge quarter has a price", () => {
     const bounds = overviewBounds("gestern", "2026-10-28");
     bounds.startKey = "2026-10-27";
     bounds.endKey = "2026-10-27";
+    const prices = Array.from({ length: 24 }, (_, hour) => ({
+      unixMs: Date.parse(`2026-10-27T${String(hour).padStart(2, "0")}:00:00+01:00`),
+      eurPerMwh: 50,
+    }));
     const result = evaluateOverview({
       bounds,
       slots,
@@ -110,7 +114,7 @@ describe("evaluateOverview", () => {
       days: [day],
       powerMw: 1000,
       energyMwh: 2000,
-      prices: [{ unixMs: Date.parse("2026-10-27T12:00:00+01:00"), eurPerMwh: 50 }],
+      prices,
       lastSurplusDateBerlin: null,
       todayKey: "2026-10-28",
     });
@@ -143,5 +147,49 @@ describe("evaluateOverview", () => {
     expect(result.observed.surplusGwh ?? 0).toBeLessThan(0.001);
     expect(result.factors[1].absorbedGwh).toBe(0);
     expect(result.factors[1].zeroReason).toBe("no_surplus");
+    expect(result.factors[10].saturated).toBe(false);
+  });
+
+  it("does not mark saturation without observed surplus", () => {
+    const bounds = overviewBounds("gestern", "2026-10-30");
+    bounds.startKey = "2026-10-29";
+    bounds.endKey = "2026-10-29";
+    const calm: ResidualDay = {
+      dateBerlin: "2026-10-29",
+      slots: [residualSlot("2026-10-29", 12, 40_000, 5_000, 1_000)],
+    };
+    const calmSlots = [powerSlot("2026-10-29", 12, 40_000, 5_000, 1_000, 2000)];
+    const result = evaluateOverview({
+      bounds,
+      slots: calmSlots,
+      offshorePresent: true,
+      days: [calm],
+      powerMw: 40_000,
+      energyMwh: 80_000,
+      prices: [],
+      lastSurplusDateBerlin: null,
+      todayKey: "2026-10-30",
+    });
+    expect(result.factors[10].saturated).toBe(false);
+  });
+
+  it("leaves eurModelX1 null when a charge or discharge quarter has no price", () => {
+    const bounds = overviewBounds("gestern", "2026-10-28");
+    bounds.startKey = "2026-10-27";
+    bounds.endKey = "2026-10-27";
+    const result = evaluateOverview({
+      bounds,
+      slots,
+      offshorePresent: true,
+      days: [day],
+      powerMw: 5000,
+      energyMwh: 8000,
+      prices: [],
+      lastSurplusDateBerlin: null,
+      todayKey: "2026-10-28",
+    });
+    if (result.factors[1].absorbedGwh > 1e-6) {
+      expect(result.factors[1].eurModelX1).toBeNull();
+    }
   });
 });

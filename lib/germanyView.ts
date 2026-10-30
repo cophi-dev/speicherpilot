@@ -8,6 +8,7 @@ import { loadDayAheadDay, loadDayAheadRange, loadFreiburgFrequency, loadGermanyP
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { getGermanyEnergyFlowForBerlinRange } from "@/lib/energyChartsApi";
 import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
+import { mergeDayAheadPrices } from "@/lib/quarterPrices";
 import { evaluateOverview, type OverviewEvaluation } from "@/lib/overviewChain";
 import { overviewBounds, parseOverviewBlick } from "@/lib/overviewRange";
 import {
@@ -121,7 +122,7 @@ export async function loadGermanyView(
     loadLargeBatteryFleet(),
     loadGermanyPower(now),
     loadDayAheadDay(todayKey),
-    loadDayAheadRange(priceStart, yesterdayKey),
+    loadDayAheadRange(priceStart, todayKey),
     loadFreiburgFrequency(now),
   ]);
   const parsed = power.parsed;
@@ -170,7 +171,7 @@ export async function loadGermanyView(
       days,
       powerMw: publicFleet.powerMw,
       energyMwh: publicFleet.energyMwh,
-      prices: priceRange.prices,
+      prices: mergeDayAheadPrices(priceRange.prices, price.prices),
       lastSurplusDateBerlin: lastSurplus,
       todayKey,
     });
