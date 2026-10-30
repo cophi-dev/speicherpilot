@@ -86,8 +86,9 @@ function renderOverview() {
 describe("Uebersicht", () => {
   it("renders period controls and assessment", () => {
     renderOverview();
+    fireEvent.click(screen.getByRole("radio", { name: /^Heute$/i }));
     expect(screen.getByRole("radiogroup", { name: /Zeitraum/i })).toBeInTheDocument();
-    expect(screen.getByText(/Tag läuft noch/)).toBeInTheDocument();
+    expect(screen.getByText(/Der Tag läuft noch/)).toBeInTheDocument();
     expect(screen.getAllByText(/Modellschätzung/).length).toBeGreaterThan(0);
   });
 

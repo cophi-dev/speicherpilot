@@ -1,4 +1,4 @@
-import { einschaetzung } from "@/lib/overviewSentence";
+import { einschaetzung, sharePhrase, SATURATION } from "@/lib/overviewSentence";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { LIVE_DISPATCH_FACTORS } from "@/lib/liveFleetDispatch";
 import { overviewBounds } from "@/lib/overviewRange";
@@ -9,7 +9,7 @@ function emptyFactors(surplusGwh: number, absorbedByFactor: Record<number, numbe
       const absorbed = absorbedByFactor[factor] ?? 0;
       const share = surplusGwh > 1e-9 ? absorbed / surplusGwh : null;
       const saturated =
-        saturatedFrom !== null && factor >= saturatedFrom && surplusGwh > 1e-9 && absorbed >= surplusGwh * 0.995 - 1e-6;
+        saturatedFrom !== null && factor >= saturatedFrom && surplusGwh > 1e-9 && absorbed >= surplusGwh * SATURATION - 1e-6;
       return [
         factor,
         {
@@ -39,10 +39,20 @@ function baseModel(
     absorbedByFactor?: Record<number, number>;
     saturatedFrom?: number | null;
   },
-  boundsBlick: "heute" | "gestern" | "30tage" = "30tage"
+  boundsBlick: "heute" | "gestern" | "30tage" | "tag" = "30tage",
+  boundsOverride?: { startKey?: string; endKey?: string }
 ): OverviewEvaluation {
   const todayKey = "2026-10-30";
-  const bounds = overviewBounds(boundsBlick, todayKey);
+  const bounds =
+    boundsBlick === "tag"
+      ? {
+          blick: "tag" as const,
+          startKey: boundsOverride?.startKey ?? "2026-10-25",
+          endKey: boundsOverride?.endKey ?? "2026-10-25",
+          capEndAtLastSlot: false,
+          dayCount: 1,
+        }
+      : overviewBounds(boundsBlick, todayKey);
   const surplusGwh = partial.surplusGwh ?? 146;
   return {
     bounds,
@@ -68,16 +78,29 @@ function baseModel(
   };
 }
 
+describe("sharePhrase", () => {
+  it("uses nearest fractions with qualifier and percent", () => {
+    expect(sharePhrase(0.31, "de")).toBe("knapp ein Drittel (31 %)");
+    expect(sharePhrase(0.51, "de")).toBe("gut die Hälfte (51 %)");
+    expect(sharePhrase(0.9, "de")).not.toBe("alles");
+  });
+
+  it("uses alles only from saturation", () => {
+    expect(sharePhrase(SATURATION, "de")).toBe("alles");
+  });
+});
+
 describe("einschaetzung", () => {
-  it("describes an open day", () => {
+  it("describes an open day without surplus", () => {
     const text = einschaetzung(
-      baseModel({ openDay: true, surplusGwh: 1 }, "heute"),
+      baseModel({ openDay: true, surplusGwh: 0, lastSurplusDateBerlin: "2026-10-25" }, "heute"),
       1,
       "de",
-      { until: "09:00" }
+      { until: "09:30" }
     );
-    expect(text).toMatch(/Tag läuft noch/);
-    expect(text).toMatch(/09:00/);
+    expect(text).toMatch(/Heute bisher kein Überschuss \(bis 09:30\)/);
+    expect(text).toMatch(/Zuletzt Überschuss: So, 25\.10\./);
+    expect(text).not.toMatch(/Tag läuft noch/);
   });
 
   it("describes no surplus with last surplus day", () => {
@@ -92,16 +115,39 @@ describe("einschaetzung", () => {
     expect(text).toMatch(/Mehr Speicher hätte nichts geändert/);
   });
 
+  it("uses a calendar-day intro on /live tag scope", () => {
+    const text = einschaetzung(
+      baseModel({ surplusGwh: 61, surplusDays: 1, absorbedByFactor: { 1: 12, 2: 20, 5: 40, 10: 60 } }, "tag", {
+        startKey: "2026-10-25",
+        endKey: "2026-10-25",
+      }),
+      1,
+      "de"
+    );
+    expect(text).toMatch(/Am So, 25\. Oktober 2026 gab es 61 GWh Überschuss/);
+    expect(text).not.toMatch(/an 1 Tag/);
+  });
+
   it("names fleet uptake shares when ×1 takes less than half", () => {
     const text = einschaetzung(baseModel({ surplusGwh: 146, surplusDays: 9 }), 1, "de");
     expect(text).toMatch(/146 GWh Überschuss/);
-    expect(text).toMatch(/gut ein Drittel|52,2 GWh/);
-    expect(text).toMatch(/Fünfmal so viel/);
-    expect(text).toMatch(/145,7 GWh/);
+    expect(text).toMatch(/fünfmal so viel Speicher/);
+    expect(text).not.toMatch(/×1:/);
   });
 
   it("states saturation from ×N upward", () => {
     const text = einschaetzung(baseModel({ surplusGwh: 70, surplusDays: 2, saturatedFrom: 10 }), 10, "de");
     expect(text).toMatch(/gesamten Überschuss/);
+  });
+
+  it("omits duplicate factor chain at ×2", () => {
+    const text = einschaetzung(
+      baseModel({ surplusGwh: 80, surplusDays: 2, absorbedByFactor: { 1: 20, 2: 35, 5: 70, 10: 80 } }),
+      2,
+      "de"
+    );
+    expect(text).toMatch(/Bei ×2 hätte der Speicher/);
+    expect(text).not.toMatch(/×1:/);
+    expect(text).not.toMatch(/×2:/);
   });
 });

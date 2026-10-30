@@ -7,10 +7,12 @@ const outDir = join(process.cwd(), "opt/cursor/artifacts/screenshots");
 mkdirSync(outDir, { recursive: true });
 
 const shots = [
-  ["home-light-1280", "/", 1280, "light"],
-  ["home-dark-1280", "/", 1280, "dark"],
-  ["home-light-375", "/", 375, "light"],
-  ["home-dark-375", "/", 375, "dark"],
+  ["home-30tage-light-1280", "/", 1280, "light"],
+  ["home-30tage-dark-1280", "/", 1280, "dark"],
+  ["home-heute-light-1280", "/?blick=heute", 1280, "light"],
+  ["home-heute-dark-1280", "/?blick=heute", 1280, "dark"],
+  ["home-30tage-light-375", "/", 375, "light"],
+  ["home-heute-light-375", "/?blick=heute", 375, "light"],
   ["live-light-1280", "/live?tag=2026-10-25", 1280, "light"],
   ["live-dark-1280", "/live?tag=2026-10-25", 1280, "dark"],
   ["live-light-375", "/live?tag=2026-10-25", 375, "light"],

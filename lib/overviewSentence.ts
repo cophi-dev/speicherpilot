@@ -6,7 +6,21 @@ import { LIVE_DISPATCH_FACTORS } from "@/lib/liveFleetDispatch";
 import type { OverviewBlick } from "@/lib/overviewRange";
 import { weekdayShort } from "@/lib/dayRingStory";
 
-const FULL_SOC = 0.895;
+/** Share at or above this counts as absorbing all surplus in phrasing. */
+export const SATURATION = 0.995;
+
+const FRACTION_BANDS: Array<{ value: number; de: string; en: string }> = [
+  { value: 1 / 5, de: "ein Fünftel", en: "one fifth" },
+  { value: 1 / 4, de: "ein Viertel", en: "one quarter" },
+  { value: 1 / 3, de: "ein Drittel", en: "one third" },
+  { value: 2 / 5, de: "zwei Fünftel", en: "two fifths" },
+  { value: 1 / 2, de: "die Hälfte", en: "half" },
+  { value: 3 / 5, de: "drei Fünftel", en: "three fifths" },
+  { value: 2 / 3, de: "zwei Drittel", en: "two thirds" },
+  { value: 3 / 4, de: "drei Viertel", en: "three quarters" },
+  { value: 4 / 5, de: "vier Fünftel", en: "four fifths" },
+  { value: 9 / 10, de: "neun Zehntel", en: "nine tenths" },
+];
 
 function formatBerlinLong(dateKey: string, language: AppLanguage) {
   const [year, month, day] = dateKey.split("-");
@@ -32,7 +46,17 @@ function formatBerlinLong(dateKey: string, language: AppLanguage) {
   return date.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
-function periodPhrase(blick: OverviewBlick, language: AppLanguage) {
+function formatBerlinShort(dateKey: string, language: AppLanguage) {
+  if (language === "de") {
+    return `${weekdayShort(dateKey, language)}, ${dateKey.slice(8, 10)}.${dateKey.slice(5, 7)}.`;
+  }
+  return formatBerlinLong(dateKey, language);
+}
+
+function periodPhrase(blick: OverviewBlick | "tag", language: AppLanguage, tagDateKey?: string) {
+  if (blick === "tag" && tagDateKey) {
+    return language === "de" ? `Am ${formatBerlinLong(tagDateKey, language)}` : `On ${formatBerlinLong(tagDateKey, language)}`;
+  }
   if (language === "en") {
     if (blick === "heute") return "Today";
     if (blick === "gestern") return "Yesterday";
@@ -45,23 +69,40 @@ function periodPhrase(blick: OverviewBlick, language: AppLanguage) {
   return "In den letzten 30 Tagen";
 }
 
-function sharePhrase(share: number, language: AppLanguage) {
-  if (share >= FULL_SOC - 1e-6) {
+function nearestFractionBand(share: number) {
+  let best = FRACTION_BANDS[0];
+  let bestDist = Math.abs(share - best.value);
+  for (const band of FRACTION_BANDS) {
+    const dist = Math.abs(share - band.value);
+    if (dist < bestDist - 1e-9) {
+      best = band;
+      bestDist = dist;
+    }
+  }
+  return best;
+}
+
+export function sharePhrase(share: number, language: AppLanguage) {
+  if (share >= SATURATION - 1e-6) {
     return language === "de" ? "alles" : "everything";
   }
-  if (share >= 0.75 - 1e-6) {
-    return language === "de" ? "vier Fünftel" : "four fifths";
+  const band = nearestFractionBand(share);
+  const pct = formatQuantity(share * 100, language, 0);
+  const qualifier =
+    share + 1e-6 < band.value
+      ? language === "de"
+        ? "knapp "
+        : "just under "
+      : share > band.value + 1e-6
+        ? language === "de"
+          ? "gut "
+          : "about "
+        : "";
+  const core = language === "de" ? band.de : band.en;
+  if (language === "de") {
+    return `${qualifier}${core} (${pct} %)`;
   }
-  if (share >= 0.55 - 1e-6) {
-    return language === "de" ? "knapp drei Fünftel" : "just under three fifths";
-  }
-  if (share >= 0.35 - 1e-6) {
-    return language === "de" ? "gut ein Drittel" : "about one third";
-  }
-  if (share >= 0.15 - 1e-6) {
-    return language === "de" ? "knapp ein Fünftel" : "just under one fifth";
-  }
-  return language === "de" ? "wenig" : "little";
+  return `${qualifier}${core} (${pct}%)`;
 }
 
 function factorLabel(factor: LiveDispatchFactor, language: AppLanguage) {
@@ -72,9 +113,13 @@ function factorLabel(factor: LiveDispatchFactor, language: AppLanguage) {
     return language === "de" ? "Zweimal so viel Speicher" : "Twice as much storage";
   }
   if (factor === 5) {
-    return language === "de" ? "Fünfmal so viel Speicher" : "Five times as much storage";
+    return language === "de" ? "fünfmal so viel Speicher" : "five times as much storage";
   }
-  return language === "de" ? "Zehnmal so viel Speicher" : "Ten times as much storage";
+  return language === "de" ? "zehnmal so viel Speicher" : "ten times as much storage";
+}
+
+function showLastSurplus(lastDate: string | null, boundsEndKey: string) {
+  return Boolean(lastDate && lastDate < boundsEndKey);
 }
 
 /**
@@ -88,6 +133,7 @@ export function einschaetzung(
 ): string {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const blick = model.bounds.blick;
+  const tagDateKey = blick === "tag" ? model.bounds.startKey : undefined;
   const observed = model.observed;
   const factorResult = model.factors[factor];
   const surplus = observed.surplusGwh ?? 0;
@@ -96,11 +142,18 @@ export function einschaetzung(
       ? tx(` Datenstand: ${options.dataStand}.`, ` Data as of ${options.dataStand}.`)
       : "";
 
-  if (observed.openDay && blick === "heute") {
+  if (observed.openDay && blick === "heute" && surplus <= 1e-6) {
     const until = options?.until;
+    const last =
+      observed.lastSurplusDateBerlin && showLastSurplus(observed.lastSurplusDateBerlin, model.bounds.endKey)
+        ? tx(
+            ` Zuletzt Überschuss: ${formatBerlinShort(observed.lastSurplusDateBerlin, language)}`,
+            ` Last surplus: ${formatBerlinShort(observed.lastSurplusDateBerlin, language)}`
+          )
+        : "";
     return tx(
-      `Der Tag läuft noch${until ? ` (bisher bis ${until} Uhr)` : ""}. Die Zahlen können sich noch ändern.${dataNote}`,
-      `The day is still in progress${until ? ` (so far until ${until})` : ""}. Figures may still change.${dataNote}`
+      `Heute bisher kein Überschuss${until ? ` (bis ${until})` : ""}.${last}${dataNote}`,
+      `No surplus so far today${until ? ` (until ${until})` : ""}.${last}${dataNote}`
     );
   }
 
@@ -118,32 +171,36 @@ export function einschaetzung(
               `Germany sold ${formatQuantity(Math.abs(netImport), language, 1)} GWh of electricity.`
             )
           : tx("Es gab keinen Überschuss aus Wind und Sonne.", "There was no wind-and-solar surplus.");
-    const last = observed.lastSurplusDateBerlin
-      ? tx(
-          ` Zuletzt Überschuss: ${formatBerlinLong(observed.lastSurplusDateBerlin, language)}.`,
-          ` Last surplus: ${formatBerlinLong(observed.lastSurplusDateBerlin, language)}.`
-        )
-      : "";
+    const last =
+      observed.lastSurplusDateBerlin && showLastSurplus(observed.lastSurplusDateBerlin, model.bounds.endKey)
+        ? tx(
+            ` Zuletzt Überschuss: ${formatBerlinLong(observed.lastSurplusDateBerlin, language)}.`,
+            ` Last surplus: ${formatBerlinLong(observed.lastSurplusDateBerlin, language)}.`
+          )
+        : "";
+    const lead = periodPhrase(blick, language, tagDateKey);
     return tx(
-      `${periodPhrase(blick, language)} gab es keinen Überschuss. ${trade} Mehr Speicher hätte nichts geändert, weil er im Modell nur aus Überschuss lädt.${last}${dataNote}`,
-      `${periodPhrase(blick, language)} there was no surplus. ${trade} More storage would not have changed anything, because the model charges only from surplus.${last}${dataNote}`
+      `${lead} gab es keinen Überschuss. ${trade} Mehr Speicher hätte nichts geändert, weil er im Modell nur aus Überschuss lädt.${last}${dataNote}`,
+      `${lead} there was no surplus. ${trade} More storage would not have changed anything, because the model charges only from surplus.${last}${dataNote}`
     );
   }
 
   const x1 = model.factors[1];
-  const x2 = model.factors[2];
   const x5 = model.factors[5];
   const x10 = model.factors[10];
   const saturatedAt = LIVE_DISPATCH_FACTORS.find((step) => model.factors[step].saturated) ?? null;
 
   const dayPart =
-    observed.surplusDays === 1
-      ? tx("an 1 Tag", "on 1 day")
-      : tx(`an ${observed.surplusDays} Tagen`, `on ${observed.surplusDays} days`);
+    blick === "tag"
+      ? ""
+      : observed.surplusDays === 1
+        ? tx("an 1 Tag ", "on 1 day ")
+        : tx(`an ${observed.surplusDays} Tagen `, `on ${observed.surplusDays} days `);
 
+  const introLead = periodPhrase(blick, language, tagDateKey);
   const intro = tx(
-    `${periodPhrase(blick, language)} gab es ${dayPart} ${formatQuantity(surplus, language, 0)} GWh Überschuss.`,
-    `${periodPhrase(blick, language)} there was ${dayPart} ${formatQuantity(surplus, language, 0)} GWh of surplus.`
+    `${introLead} gab es ${dayPart}${formatQuantity(surplus, language, 0)} GWh Überschuss.`,
+    `${introLead} there was ${dayPart}${formatQuantity(surplus, language, 0)} GWh of surplus.`
   );
 
   const fleetParts = [
@@ -161,16 +218,13 @@ export function einschaetzung(
 
   const current = factorResult.absorbedShare ?? 0;
   if (factor === 1 && current < 0.5 - 1e-6) {
-    return tx(
-      `${intro} ${fleetParts.join(", ")}.${dataNote}`,
-      `${intro} ${factorLabel(1, language)} would have absorbed ${sharePhrase(current, language)} (${formatQuantity(x1.absorbedGwh, language, 1)} GWh); ×5 ${formatQuantity(x5.absorbedGwh, language, 1)} GWh; ×10 ${formatQuantity(x10.absorbedGwh, language, 1)} GWh.${dataNote}`
-    );
+    return tx(`${intro} ${fleetParts.join(", ")}.${dataNote}`, `${intro} ${fleetParts.join(", ")}.${dataNote}`);
   }
 
   if (factor > 1) {
     return tx(
-      `${intro} Bei ×${factor} hätte der Speicher ${sharePhrase(current, language)} aufgenommen (${formatQuantity(factorResult.absorbedGwh, language, 1)} GWh). ×1: ${formatQuantity(x1.absorbedGwh, language, 1)} GWh, ×2: ${formatQuantity(x2.absorbedGwh, language, 1)} GWh.${dataNote}`,
-      `${intro} At ×${factor} storage would have absorbed ${sharePhrase(current, language)} (${formatQuantity(factorResult.absorbedGwh, language, 1)} GWh). ×1: ${formatQuantity(x1.absorbedGwh, language, 1)} GWh; ×2: ${formatQuantity(x2.absorbedGwh, language, 1)} GWh.${dataNote}`
+      `${intro} Bei ×${factor} hätte der Speicher ${sharePhrase(current, language)} aufgenommen (${formatQuantity(factorResult.absorbedGwh, language, 1)} GWh).${dataNote}`,
+      `${intro} At ×${factor} storage would have absorbed ${sharePhrase(current, language)} (${formatQuantity(factorResult.absorbedGwh, language, 1)} GWh).${dataNote}`
     );
   }
 

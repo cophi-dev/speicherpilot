@@ -22,15 +22,20 @@ export function SiteOperatorSections() {
   });
 
   return (
-    <div className="site-operator-extra">
-      <section id="grenze-erloes" className="site-section">
-        <h2>{tx("Grenze und Erlös", "Limit and revenue")}</h2>
+    <div className="site-operator-extra mx-auto max-w-[1200px] px-4">
+      <p className="day-kicker site-section-kicker">{tx("Netzbetreiber", "Grid operator")}</p>
+      <details id="grenze-erloes" className="site-fold-manual site-section" open={false}>
+        <summary>
+          <h2 className="site-section-title">{tx("Grenze und Erlös", "Limit and revenue")}</h2>
+        </summary>
         <Suspense fallback={<SzenarienPending />}>
           <SzenarienRechner />
         </Suspense>
-      </section>
-      <details id="testnetz-n1" className="site-fold site-section">
-        <summary>{tx("Im Netz dahinter: Testnetz (n-1)", "Behind the grid: test grid (n-1)")}</summary>
+      </details>
+      <details id="testnetz-n1" className="site-fold-manual site-section" open={false}>
+        <summary>
+          <h2 className="site-section-title">{tx("Im Netz dahinter: Testnetz (n-1)", "Behind the grid: test grid (n-1)")}</h2>
+        </summary>
         <NetzDemo data={demo} selection={selection} />
       </details>
     </div>

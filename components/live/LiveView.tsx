@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { dayPageHeading, DayPicker } from "@/components/live/DayPicker";
 import { LiveRing } from "@/components/live/LiveRing";
+import { LiveStrip } from "@/components/mix/LiveStrip";
 import { PowerBoard } from "@/components/mix/PowerBoard";
 import { useLanguage } from "@/components/language-context";
 import type { OverviewsBundle, RequestedTagStatus } from "@/lib/germanyView";
@@ -62,30 +63,46 @@ export function LiveView({
 
   return (
     <>
-      <DayPicker todayKey={todayKey} selectedTag={requestedTag} overviews={overviews} />
-      {requestedTagStatus === "ausserhalb" ? (
-        <p className="live-tag-notice mx-auto max-w-[1200px] px-4" role="status">
-          {tx(
-            `Für den ${requestedTag ?? ""} haben wir keine Daten. Wir zeigen die letzten 30 Tage.`,
-            `We have no data for ${requestedTag ?? ""}. We show the last 30 days.`
-          )}
-        </p>
+      {isToday && stand && readings ? (
+        <div className="mx-auto max-w-[1200px] px-4 pt-2">
+          <LiveStrip stand={stand} readings={readings} />
+        </div>
       ) : null}
-      {requestedTagStatus === "unvollstaendig" ? (
-        <p className="live-tag-notice mx-auto max-w-[1200px] px-4" role="status">
-          {tx("Für diesen Tag sind die Rohdaten noch unvollständig.", "Raw data for this day is still incomplete.")}
-        </p>
-      ) : null}
+      <header className="live-day-header">
+        <p className="day-kicker">{tx("Tag · Modell", "Day · model")}</p>
+        <h1 id="live-what-if" className="live-day-title">
+          {heading}
+        </h1>
+        <DayPicker todayKey={todayKey} selectedTag={requestedTag} overviews={overviews} />
+        {requestedTagStatus === "ausserhalb" ? (
+          <p className="live-tag-notice" role="status">
+            {tx(
+              `Für den ${requestedTag ?? ""} haben wir keine Daten. Wir zeigen die letzten 30 Tage.`,
+              `We have no data for ${requestedTag ?? ""}. We show the last 30 days.`
+            )}
+          </p>
+        ) : null}
+        {requestedTagStatus === "unvollstaendig" ? (
+          <p className="live-tag-notice" role="status">
+            {tx("Für diesen Tag sind die Rohdaten noch unvollständig.", "Raw data for this day is still incomplete.")}
+          </p>
+        ) : null}
+        {!isToday ? (
+          <p className="live-strip-hint">
+            <Link href="/live">{tx("Live-Werte gelten für heute → zu heute", "Live values are for today → go to today")}</Link>
+          </p>
+        ) : null}
+        {daySentence ? <p className="live-day-assessment">{daySentence}</p> : null}
+      </header>
       <LiveRing
         dispatch={dispatch}
         until={until}
-        heading={heading}
-        subheading={daySentence}
         isToday={isToday}
         stand={stand}
         readings={readings}
         onFactor={onFactor}
         factor={factor}
+        hideHeader
       />
       <PowerBoard model={board} missingFactor={5} hideSocLine={false} />
       <p className="live-overview-link mx-auto max-w-[1200px] px-4 pb-8">

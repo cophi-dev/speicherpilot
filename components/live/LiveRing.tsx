@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -12,6 +12,7 @@ import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
 import { FactorSlider } from "@/components/day-ring/FactorSlider";
 import { StatTrio } from "@/components/day-ring/StatTrio";
 import { GlossaryTip } from "@/components/GlossaryTip";
+import { DispatchDayChart, niceChartScale, SimLegend, type ChartSample } from "@/components/sim/DispatchDayChart";
 import { useLanguage, type AppLanguage } from "@/components/language-context";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
@@ -40,7 +41,6 @@ import {
 
 export function LiveRing({
   dispatch,
-  until,
   heading,
   subheading,
   isToday = false,
@@ -48,6 +48,7 @@ export function LiveRing({
   readings,
   onFactor: onFactorProp,
   factor: factorProp,
+  hideHeader = false,
 }: {
   dispatch: LiveDispatchInput;
   until?: string | null;
@@ -58,6 +59,7 @@ export function LiveRing({
   readings?: import("@/lib/liveStrip").StripReading[];
   onFactor?: (factor: LiveDispatchFactor) => void;
   factor?: LiveDispatchFactor;
+  hideHeader?: boolean;
 }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
@@ -69,17 +71,7 @@ export function LiveRing({
     setPendingFactor(null);
   }
   const factor = pendingFactor ?? factorProp ?? queryFactor;
-  const ansicht = searchParams.get("ansicht");
-
-  useEffect(() => {
-    if (ansicht === null) {
-      return;
-    }
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("ansicht");
-    const query = params.toString();
-    router.replace(query ? `/live?${query}` : "/live", { scroll: false });
-  }, [ansicht, router, searchParams]);
+  const [vizMode, setVizMode] = useState<"uhr" | "linie">("uhr");
 
   const stories = useMemo(() => {
     if (!dispatch.day || !dispatch.fleet) {
@@ -117,10 +109,10 @@ export function LiveRing({
 
   return (
     <>
-    <section className="day-hero day-hero-screen" aria-labelledby="live-what-if">
+    <section className={`day-hero day-hero-screen${hideHeader ? " live-day-hero" : ""}`} aria-labelledby="live-what-if">
       <div className="day-hero-inner">
-        {isToday && stand && readings ? <LiveStrip stand={stand} readings={readings} /> : null}
-        {!isToday ? (
+        {!hideHeader && isToday && stand && readings ? <LiveStrip stand={stand} readings={readings} /> : null}
+        {!hideHeader && !isToday ? (
           <p className="live-strip-hint">
             <Link href="/live">{tx("Live-Werte gelten für heute → zu heute", "Live values are for today → go to today")}</Link>
           </p>
@@ -146,6 +138,9 @@ export function LiveRing({
             }}
             heading={heading}
             subheading={subheading}
+            hideHeader={hideHeader}
+            vizMode={vizMode}
+            onVizMode={setVizMode}
           />
         ) : (
           <div>
@@ -187,6 +182,9 @@ function LiveRingBody({
   onFactor,
   heading,
   subheading,
+  hideHeader = false,
+  vizMode,
+  onVizMode,
 }: {
   story: LiveDispatchStory;
   stories: Record<LiveDispatchFactor, LiveDispatchStory>;
@@ -198,6 +196,9 @@ function LiveRingBody({
   onFactor: (factor: LiveDispatchFactor) => void;
   heading?: string;
   subheading?: string | null;
+  hideHeader?: boolean;
+  vizMode: "uhr" | "linie";
+  onVizMode: (mode: "uhr" | "linie") => void;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const subtitle = tx(
@@ -221,16 +222,39 @@ function LiveRingBody({
   const fleetName = fleet.source === "battery-charts" ? "battery-charts.de" : "Energy-Charts";
   const stand = language === "de" ? fleet.updatedLabel.de : fleet.updatedLabel.en;
   const showSaturation = saturated !== null && LIVE_DISPATCH_FACTORS.indexOf(factor) >= LIVE_DISPATCH_FACTORS.indexOf(saturated);
+  const chartSamples: ChartSample[] = useMemo(
+    () =>
+      story.points.map((point) => ({
+        hour: point.hour,
+        ohne: point.ohneMw / 1000,
+        mit: point.mitMw / 1000,
+        charge: point.chargeMw / 1000,
+        discharge: point.dischargeMw / 1000,
+        soc: point.soc,
+      })),
+    [story.points]
+  );
+  const chartScale = useMemo(() => {
+    const values = [0];
+    for (const point of story.points) {
+      values.push(point.ohneMw / 1000, point.mitMw / 1000, -(point.chargeMw / 1000), point.dischargeMw / 1000);
+    }
+    return niceChartScale(values);
+  }, [story.points]);
 
   return (
     <>
       <div className="day-hero-layout">
-        <p className="day-kicker day-order-kicker">{tx("Tag · Modell", "Day · model")}</p>
-        <h1 id="live-what-if" className="day-title day-order-title">
-          {heading ?? dateLabel}
-        </h1>
-        {subheading ? <p className="day-subtitle">{subheading}</p> : null}
-        <p className="day-lead day-order-lead">{subtitle}</p>
+        {!hideHeader ? (
+          <>
+            <p className="day-kicker day-order-kicker">{tx("Tag · Modell", "Day · model")}</p>
+            <h1 id="live-what-if" className="day-title day-order-title">
+              {heading ?? dateLabel}
+            </h1>
+            {subheading ? <p className="day-subtitle">{subheading}</p> : null}
+            <p className="day-lead day-order-lead">{subtitle}</p>
+          </>
+        ) : null}
         <div className="day-order-slider">
           <FactorSlider
             factor={factor}
@@ -242,31 +266,80 @@ function LiveRingBody({
           {showSaturation && saturated ? <p className="day-sat">{saturationNote(saturated, language)}</p> : null}
           {charged ? <ChargedLine parts={charged} modelLabel={tx("Modell", "Model")} /> : null}
         </div>
+        {hideHeader ? <p className="day-lead day-order-lead">{subtitle}</p> : null}
+        <div className="day-viz-toggle" role="radiogroup" aria-label={tx("Darstellung", "View")}>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={vizMode === "uhr"}
+            className={vizMode === "uhr" ? "on" : undefined}
+            onClick={() => onVizMode("uhr")}
+          >
+            {tx("Uhr", "Clock")}
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={vizMode === "linie"}
+            className={vizMode === "linie" ? "on" : undefined}
+            onClick={() => onVizMode("linie")}
+          >
+            {tx("Linie", "Line")}
+          </button>
+        </div>
         <div className="day-order-ring">
           <figure>
-            <DayRing
-              points={story.points}
-              label={subtitle}
-              description={description}
-              callouts={callouts}
-              chargedGwh={story.chargedGwh}
-              center={
-                before !== null && after !== null ? (
-                  <>
-                    <p className="day-center-figure">
-                      <MonoNumber value={formatGw1(before, language)} /> → <MonoNumber value={formatGw1(after, language)} />
-                    </p>
-                    <p className="day-center-caption">
-                      GW {tx("Abendspitze", "evening peak")} · ×{factor}
-                    </p>
-                  </>
-                ) : (
-                  <p className="day-center-caption">{tx("Keine Abendspitze in dieser Reihe", "No evening peak in this series")}</p>
-                )
-              }
-            />
+            {vizMode === "uhr" ? (
+              <DayRing
+                points={story.points}
+                label={subtitle}
+                description={description}
+                callouts={callouts}
+                chargedGwh={story.chargedGwh}
+                center={
+                  before !== null && after !== null ? (
+                    <>
+                      <p className="day-center-figure">
+                        <MonoNumber value={formatGw1(before, language)} /> → <MonoNumber value={formatGw1(after, language)} />
+                      </p>
+                      <p className="day-center-caption">
+                        GW {tx("Abendspitze", "evening peak")} · ×{factor}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="day-center-caption">{tx("Keine Abendspitze in dieser Reihe", "No evening peak in this series")}</p>
+                  )
+                }
+              />
+            ) : (
+              <>
+                <SimLegend
+                  items={[
+                    { swatch: "ohne", label: tx("ohne Speicher", "without storage") },
+                    { swatch: "mit", label: tx("mit Speicher", "with storage") },
+                    { swatch: "charge", label: tx("lädt", "charging") },
+                    { swatch: "discharge", label: tx("gibt ab", "discharging") },
+                  ]}
+                />
+                <DispatchDayChart
+                  samples={chartSamples}
+                  unit="GW"
+                  y0={chartScale.y0}
+                  y1={chartScale.y1}
+                  yTicks={chartScale.yTicks}
+                  hatch="graphite"
+                  tipLoad={tx("Residuallast", "Residual load")}
+                  ariaLabel={tx("Tageskurve Residuallast mit Speicher. Modellschätzung.", "Day curve residual load with storage. Model estimate.")}
+                  tag={tx("MODELL", "MODEL")}
+                  annotations={[]}
+                  chargedNote=""
+                  intro={false}
+                  language={language}
+                />
+              </>
+            )}
             <figcaption className="day-sr">{caption}</figcaption>
-            <HourlyResidualTable points={tablePoints} caption={caption} />
+            {vizMode === "uhr" ? <HourlyResidualTable points={tablePoints} caption={caption} /> : null}
             <DayValuesTable
               points={tablePoints}
               caption={description}

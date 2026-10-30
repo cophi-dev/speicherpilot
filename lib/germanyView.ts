@@ -265,7 +265,8 @@ export async function loadGermanyView(
       dataStand: readings.stand,
     });
     if (chosen?.day) {
-      const dayBounds = overviewBounds("heute", todayKey);
+      const dayBounds = overviewBounds("gestern", todayKey);
+      dayBounds.blick = "tag";
       dayBounds.startKey = chosen.day.dateBerlin;
       dayBounds.endKey = chosen.day.dateBerlin;
       dayBounds.dayCount = 1;

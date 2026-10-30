@@ -329,7 +329,10 @@ export function evaluateOverview(args: {
     missingQuarters,
     totalQuarters,
     lastSurplusDateBerlin: args.lastSurplusDateBerlin,
-    openDay: args.bounds.blick === "heute" && args.bounds.endKey === args.todayKey,
+    openDay:
+      (args.bounds.blick === "heute" || args.bounds.blick === "tag") &&
+      args.bounds.endKey === args.todayKey &&
+      args.bounds.capEndAtLastSlot,
   };
 
   for (const slot of scopedSlots) {

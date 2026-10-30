@@ -58,7 +58,7 @@ function blickLabel(blick: OverviewBlick, language: AppLanguage) {
 
 function readInitialQuery() {
   if (typeof window === "undefined") {
-    return { blick: "heute" as OverviewBlick, factor: 1 as LiveDispatchFactor };
+    return { blick: "30tage" as OverviewBlick, factor: 1 as LiveDispatchFactor };
   }
   const params = new URLSearchParams(window.location.search);
   return {
@@ -80,9 +80,12 @@ function syncHistory(blick: OverviewBlick, factor: LiveDispatchFactor) {
 
 function quarterLabel(count: number, language: AppLanguage) {
   if (language === "de") {
-    return count === 1 ? "1 Viertelstunde" : `${count} Viertelstunden`;
+    if (count === 1) {
+      return "1 Viertelstunde fehlt";
+    }
+    return `${count} Viertelstunden fehlen`;
   }
-  return count === 1 ? "1 quarter-hour" : `${count} quarter-hours`;
+  return count === 1 ? "1 quarter-hour missing" : `${count} quarter-hours missing`;
 }
 
 export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: string | null }) {
@@ -189,13 +192,18 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
         {showMissingHint ? (
           <p className="uebersicht-sub" role="status">
             {tx(
-              `${quarterLabel(model.observed.missingQuarters, language)} fehlen in den Rohdaten (${formatQuantity(missingShare * 100, language, 1)} %).`,
-              `${quarterLabel(model.observed.missingQuarters, language)} missing in the raw data (${formatQuantity(missingShare * 100, language, 1)}%).`
+              `${quarterLabel(model.observed.missingQuarters, language)} in den Rohdaten (${formatQuantity(missingShare * 100, language, 1)} %).`,
+              `${quarterLabel(model.observed.missingQuarters, language)} in the raw data (${formatQuantity(missingShare * 100, language, 1)}%).`
             )}
           </p>
         ) : null}
 
         <p className="uebersicht-assessment">{assessment}</p>
+        {model.observed.openDay && blick === "heute" ? (
+          <p className="uebersicht-open-hint">
+            {tx("Der Tag läuft noch. Die Zahlen können sich noch ändern.", "The day is still in progress. Figures may still change.")}
+          </p>
+        ) : null}
 
         <div className="uebersicht-trio" aria-label={tx("Kernzahlen", "Key figures")}>
           <article className="uebersicht-trio-item">

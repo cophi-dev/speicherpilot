@@ -90,7 +90,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             </ol>
           </nav>
           <article>
-            <details className="site-fold methodik-group" open={false} id="methodik-deutschland">
+            <details className="site-fold-manual methodik-group" open={false} id="methodik-deutschland">
               <summary>{tx("A · Deutschland (Start)", "A · Germany (home)")}</summary>
               <p>
                 {tx(
@@ -104,7 +104,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 <li><a href="#uebersicht">{tx("Zeitraum-Übersicht", "Period overview")}</a></li>
               </ul>
             </details>
-            <details className="site-fold methodik-group" open={false} id="methodik-tag">
+            <details className="site-fold-manual methodik-group" open={false} id="methodik-tag">
               <summary>{tx("B · Tag (/live)", "B · Day (/live)")}</summary>
               <p>{tx("Ring lesen, Regler und Erzeugung und Last.", "Reading the ring, slider and generation and load.")}</p>
               <ul>
@@ -112,7 +112,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 <li><a href="#erzeugung">{tx("Erzeugung und Last", "Generation and load")}</a></li>
               </ul>
             </details>
-            <details className="site-fold methodik-group" open={false} id="methodik-standort">
+            <details className="site-fold-manual methodik-group" open={false} id="methodik-standort">
               <summary>{tx("C · Standort", "C · Site")}</summary>
               <ul>
                 <li><a href="#ampel">{tx("Anschluss-Ampel", "Connection light")}</a></li>
@@ -122,7 +122,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 <li><a href="#netz">{tx("Testnetz", "Test grid")}</a></li>
               </ul>
             </details>
-            <details className="site-fold methodik-group" open={false} id="methodik-recht">
+            <details className="site-fold-manual methodik-group" open={false} id="methodik-recht">
               <summary>{tx("D · Quellen und Recht", "D · Sources and law")}</summary>
               <p>
                 {tx("Stand Abruf 30.10.2026. Flotte Großspeicher: battery-charts.de / MaStR (MW und MWh auf der Seite).", "As of 30 Oct 2026. Large-storage fleet: battery-charts.de / MaStR (MW and MWh on the page).")}
