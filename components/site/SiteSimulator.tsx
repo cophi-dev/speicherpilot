@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { AppLanguage } from "@/components/language-context";
 import { DispatchDayChart, niceChartScale, type ChartSample } from "@/components/sim/DispatchDayChart";
+import { assessConnectionGridBadge } from "@/lib/connectionGridBadge";
 import { utilisationColor } from "@/lib/dayRingScale";
 import type { Perspective } from "@/lib/perspective";
 import type { SiteConnectionStory } from "@/lib/siteConnectionDay";
@@ -13,12 +14,33 @@ export function SiteSimulator({
   view,
   story,
   language,
+  limitMw,
+  onLimitMwChange,
 }: {
   view: Perspective;
   story: SiteConnectionStory;
   language: AppLanguage;
+  limitMw: number;
+  onLimitMwChange: (value: number) => void;
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const limitKw = limitMw * 1000;
+  const badge = useMemo(
+    () =>
+      assessConnectionGridBadge({
+        netKw: story.points.map((point) => point.ohneKw),
+        chargeKw: story.points.map((point) => point.chargeKw),
+        dischargeKw: story.points.map((point) => point.dischargeKw),
+        limitKw,
+      }),
+    [story.points, limitKw]
+  );
+  const badgeLabel =
+    badge.id === "netzdienlich"
+      ? tx("netzdienlich", "grid-supportive")
+      : badge.id === "belastend"
+        ? tx("belastend", "burdensome")
+        : tx("neutral", "neutral");
   const [reduced, setReduced] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [hour, setHour] = useState(0);
@@ -56,12 +78,12 @@ export function SiteSimulator({
     [story]
   );
   const scale = useMemo(() => {
-    const values = [0, story.limitKw];
+    const values = [0, limitKw];
     for (const point of story.points) {
       values.push(point.ohneKw, point.mitKw);
     }
     return niceChartScale(values);
-  }, [story]);
+  }, [story, limitKw]);
 
   return (
     <section className="day-paper" aria-labelledby="site-sim-title">
@@ -72,6 +94,26 @@ export function SiteSimulator({
             ? tx("Fünf Viertelstunden lang gibt der Speicher ab, genau so viel, wie über der Linie liegt.", "For five quarter-hours the battery gives back exactly what sits above the line.")
             : tx("Der Speicher wartet den Tag über und arbeitet an der Spitze.", "The battery waits through the day and works at the peak.")}
         </h2>
+        {view === "netz" ? (
+          <div className="sim-field-row">
+            <label htmlFor="site-sim-limit-mw">{tx("zulässige Anschlussleistung (MW)", "permitted connection capacity (MW)")}</label>
+            <input
+              id="site-sim-limit-mw"
+              className="sim-input"
+              type="number"
+              min={0.01}
+              step={0.001}
+              value={limitMw}
+              onChange={(event) => onLimitMwChange(Math.max(0.01, Number(event.target.value) || story.limitKw / 1000))}
+            />
+            <p className="sim-kpi-note">
+              <a className="sim-badge" href="/methodik#netzdienlichkeit">
+                {badgeLabel}
+                <b>v1 · {tx("Schätzung", "estimate")}</b>
+              </a>
+            </p>
+          </div>
+        ) : null}
         <div className="site-play">
           <button type="button" className="day-cta" aria-pressed={playing} onClick={() => setPlaying((value) => !value)} disabled={reduced}>
             {playing ? <Pause aria-hidden="true" size={18} /> : <Play aria-hidden="true" size={18} />}
@@ -105,8 +147,8 @@ export function SiteSimulator({
           y1={scale.y1}
           yTicks={scale.yTicks}
           hatch={view === "netz" ? "limit" : "graphite"}
-          limit={story.limitKw}
-          limitLabel={view === "netz" ? tx(`Grenze ${formatLimit(story.limitKw, language)} kW`, `Limit ${formatLimit(story.limitKw, language)} kW`) : tx("Kappziel", "Shave target")}
+          limit={limitKw}
+          limitLabel={view === "netz" ? tx(`Grenze ${formatLimit(limitKw, language)} kW (${formatLimit(limitMw, language, 3)} MW)`, `Limit ${formatLimit(limitKw, language)} kW (${formatLimit(limitMw, language, 3)} MW)`) : tx("Kappziel", "Shave target")}
           tipLoad={tx("Last", "Load")}
           ariaLabel={tx("Tag am Anschluss in kW", "Day at the connection in kW")}
           tag={tx("Beispieldaten", "Example data")}
@@ -115,7 +157,7 @@ export function SiteSimulator({
           intro={false}
           language={language}
           fitLabels
-          segmentColor={(value) => utilisationColor(value / story.limitKw)}
+          segmentColor={(value) => utilisationColor(value / limitKw)}
           markerHour={hour}
         />
       </div>
@@ -123,8 +165,8 @@ export function SiteSimulator({
   );
 }
 
-function formatLimit(value: number, language: AppLanguage) {
-  return new Intl.NumberFormat(language === "de" ? "de-DE" : "en-GB", { maximumFractionDigits: 0 }).format(value);
+function formatLimit(value: number, language: AppLanguage, digits = 0) {
+  return new Intl.NumberFormat(language === "de" ? "de-DE" : "en-GB", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);
 }
 
 function clock(hour: number): string {

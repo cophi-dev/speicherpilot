@@ -14,6 +14,8 @@ const FILES = [
   "components/methodik/NetzMethodik.tsx",
   "components/netz/NetzDemo.tsx",
   "components/netz/NetzKarte.tsx",
+  "components/uebersicht/Uebersicht.tsx",
+  "components/sim/SiteConnectionSim.tsx",
 ];
 
 const GLOSSARY_IDS = [

@@ -6097,3 +6097,29 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
     background: white;
   }
 }
+
+.uebersicht { padding: 24px 16px 32px; border-bottom: 1px solid var(--mix-guide, #e2e8ee); }
+.uebersicht-lead { max-width: 72ch; margin-top: 8px; color: var(--mix-muted, #4f5961); }
+.uebersicht-banner { padding: 10px 12px; margin-bottom: 12px; background: #fff3cd; border-radius: 8px; }
+.uebersicht-seg { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 8px; }
+.uebersicht-seg button { min-height: 44px; min-width: 44px; padding: 10px 16px; border: 1px solid var(--mix-guide, #cbd5e1); border-radius: 999px; background: #fff; }
+.uebersicht-seg button.on { background: #14181c; color: #fff; }
+.uebersicht-sub { font-size: 14px; color: var(--mix-muted, #4f5961); }
+.uebersicht-tiles { display: grid; gap: 16px; margin-top: 20px; }
+@media (min-width: 900px) { .uebersicht-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.uebersicht-kpi { padding: 16px; border: 1px solid var(--mix-guide, #e2e8ee); border-radius: 12px; }
+.uebersicht-kpi h3 { font-size: 15px; font-weight: 600; }
+.uebersicht-value { font-size: 28px; font-family: var(--font-plex-mono), ui-monospace, monospace; margin-top: 6px; }
+.uebersicht-note, .uebersicht-quiet, .uebersicht-source, .uebersicht-foot { font-size: 13px; color: var(--mix-muted, #4f5961); margin-top: 8px; }
+.uebersicht-list { margin: 8px 0 0 18px; font-size: 14px; }
+.uebersicht-chart-wrap { margin-top: 24px; }
+.uebersicht-table { margin-top: 12px; font-size: 14px; }
+.uebersicht-bars { width: 100%; height: auto; }
+.uebersicht-bars .bar-surplus { fill: #7dfce6; stroke: #14181c; stroke-width: 0.5; }
+.uebersicht-bars .bar-absorbed { fill: #14181c; }
+.uebersicht-bars .bar-soc { fill: #f59e0b; }
+.uebersicht-bars .bar-label, .uebersicht-bars .bar-axis { font-size: 10px; fill: #4f5961; }
+.sim-field-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 12px 0; }
+.sim-field-row label { font-size: 14px; font-weight: 600; }
+.sim-input { min-height: 44px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; max-width: 120px; }
+.live-overview-link { font-size: 14px; }

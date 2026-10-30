@@ -24,6 +24,7 @@ const CHAPTERS = [
   { id: "einheiten", de: "Daten und Einheiten", en: "Data and units" },
   { id: "grossspeicher", de: "Großspeicher-Modell", en: "Large-storage model" },
   { id: "live", de: "Überschuss und Grenzhandel", en: "Surplus and border trade" },
+  { id: "uebersicht", de: "Zeitraum-Übersicht", en: "Period overview" },
   { id: "groesse", de: "Speichergröße", en: "Storage size" },
   { id: "ampel", de: "Anschluss-Ampel", en: "Connection light" },
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
@@ -193,6 +194,27 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </p>
               <p>{tx("Auf /live gelten zwei sichtbare Zeiträume: Der Ring oben rechnet den gewählten Kalendertag (heute laufend oder ein älterer Tag über ?tag=). Darunter steht der letzte vollständig veröffentlichte Tag mit Überschuss-Rechnung, Grafik und Tabelle. Beide Teile nutzen denselben Regler ×1…×10 (?x). Die Formeln sind identisch: Überschuss max(0, Wind an Land + Wind auf See + Sonne − Last), Laden nur vor 17 Uhr daraus, Export simuliert = max(0, Export beobachtet − Ladung), Entladung ab 17 Uhr auf die Abend-Residuallast mit η = 0,85 auf der Abgabe, nutzbar 10–90 % Nennenergie. Quelle Leistung und Grenzhandel: Energy-Charts total_power, 15-Minuten-Werte.", "On /live there are two visible periods: the ring at the top uses the chosen calendar day (today in progress or an older day via ?tag=). Below that is the last fully published day with surplus calculation, chart and table. Both share the same ×1…×10 control (?x). The formulas are the same: surplus max(0, onshore wind + offshore wind + solar − load), charging only before 17:00 from that surplus, simulated export = max(0, observed export − charging), discharge from 17:00 on the evening residual with η = 0.85 on delivery, usable 10–90% of nameplate. Source for power and cross-border trade: Energy-Charts total_power, 15-minute values.")}</p>
               <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, Stand siehe Seite). ×2, ×5 und ×10 vervielfachen Leistung und Energie. Euro gibt es nur bei ×1. Unsicherheit: Kupferplatte, keine Engpässe.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, as-of on the page). ×2, ×5 and ×10 scale power and energy. Euro figures appear only at ×1. Uncertainty: copper plate, no bottlenecks.")}</p>
+            </section>
+            <section id="uebersicht">
+              <h2>{tx("06c Zeitraum-Übersicht auf der Startseite", "06c Period overview on the homepage")}</h2>
+              <p>
+                {tx(
+                  "Überschuss = Σ max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h. Import/Export = kommerzieller Handelssaldo aus demselben Energy-Charts-Abruf (positiv = Netto-Import). Physikalische Flüsse (/cbpf) sind hier nicht genutzt (größerer Verzug). Zeiträume: Heute bis zur letzten Viertelstunde; Gestern voller Berlin-Tag; 7 und 30 Tage = rollierend volle Tage bis gestern (heute ausgeschlossen).",
+                  "Surplus = Σ max(0, onshore + offshore wind + solar − load) · ¼ h. Import/export = commercial trading balance from the same Energy-Charts fetch (positive = net import). Physical flows (/cbpf) are not used here (longer lag). Periods: today through the last quarter-hour; yesterday full Berlin day; 7 and 30 days = rolling full days through yesterday (today excluded)."
+                )}
+              </p>
+              <p>
+                {tx(
+                  `Speicher über mehrere Tage: Start 10 % nutzbarer Energie, Übertrag Tag zu Tag, Rest am Ende. Abgegeben ≠ 85 % von aufgenommen, weil Rest im Speicher bleibt. Entladung in Import-Stunden ist höchstens Σ min(Entladung, max(0, Handelssaldo)) · ¼ h — kein Beleg, dass Import wegfällt. Abregelung: Prognose §13k (netztransparenz.de, AusgewieseneABSM) vs. Ist quartalsweise (BNetzA/SMARD, Stand 12.10.2026). §13k EnWG (gesetze-im-internet.de, Abruf 30.10.2026).`,
+                  "Storage across days: start at 10% usable energy, carry state day to day, remainder at period end. Discharged ≠ 85% of absorbed because energy stays stored. Discharge during import hours is at most Σ min(discharge, max(0, trade)) · ¼ h — not proof that import disappears. Curtailment: forecast §13k (netztransparenz.de, AusgewieseneABSM) vs. quarterly actual (BNetzA/SMARD, as of 12 Oct 2026). §13k EnWG (gesetze-im-internet.de, retrieved 30 Oct 2026)."
+                )}
+              </p>
+              <p>
+                {tx(
+                  "Netz-Simulator (Ein-Anschluss): Badge netzdienlich wenn ≥60 % Entladungsenergie bei ≥90 % Anschlussauslastung und Laden keine neue Bezugsspitze erzeugt; belastend bei neuer Spitze oder Überschreitung der zulässigen Anschlussleistung; sonst neutral. Schwellen sind Modell v1, Schätzung. Primärquellen: EnWG §14a, §17 (Stand 30.10.2026), VDE-AR-N 4110, BNetzA zu flexiblen Netzanschlussvereinbarungen — keine Rechtsberatung.",
+                  "Grid simulator (single connection): badge grid-supportive when ≥60% discharge energy at ≥90% connection loading and charging creates no new import peak; burdensome when a new peak appears or permitted connection capacity is exceeded; otherwise neutral. Thresholds are model v1, estimate. Primary sources: EnWG §14a, §17 (as of 30 Oct 2026), VDE-AR-N 4110, BNetzA on flexible connection agreements — not legal advice."
+                )}
+              </p>
             </section>
             <section id="groesse">
               <h2>{tx("07 Speichergröße", "07 Storage size")}</h2>

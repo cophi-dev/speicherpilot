@@ -12,7 +12,7 @@ export const revalidate = 1800;
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ tag?: string | string[]; zeitraum?: string | string[] }>;
+  searchParams: Promise<{ tag?: string | string[]; zeitraum?: string | string[]; blick?: string | string[]; x?: string | string[] }>;
 }) {
   const query = await searchParams;
   const view = await loadGermanyView(new Date(), "/", query);
@@ -27,6 +27,7 @@ export default async function Home({
         stand={view.stand}
         readings={view.readings}
         board={view.board}
+        overview={view.overview}
       />
       <ExampleDaysIsland />
       <NewsPreviewSection place="home" />

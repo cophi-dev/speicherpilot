@@ -40,6 +40,25 @@ export async function loadGermanyPower(now: Date): Promise<{ parsed: PowerParse 
   return { parsed: result.value, stale: result.stale };
 }
 
+export async function loadDayAheadRange(
+  startKey: string,
+  endKey: string
+): Promise<{ prices: DayAheadPricePoint[]; stale: boolean }> {
+  const url = `https://api.energy-charts.info/v2/price?bzn=DE-LU&start=${startKey}&end=${endKey}`;
+  const result = await fetchJsonWithLastGoodState({
+    key: `price-de-lu:${startKey}:${endKey}`,
+    url,
+    store: priceStore,
+    parse: (payload) => {
+      const prices = parseDayAheadPrices(payload);
+      return prices.length > 0 ? prices : null;
+    },
+    init: dailySeriesFetchInit(15_000),
+    isUsable: (value) => value.length > 0,
+  });
+  return { prices: result.value ?? [], stale: result.stale && result.value !== null };
+}
+
 export async function loadDayAheadDay(dateKey: string): Promise<{ prices: DayAheadPricePoint[]; stale: boolean }> {
   const url = `https://api.energy-charts.info/v2/price?bzn=DE-LU&start=${dateKey}&end=${dateKey}`;
   const result = await fetchJsonWithLastGoodState({

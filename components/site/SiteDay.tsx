@@ -35,6 +35,8 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
   const [csv, setCsv] = useState<LoadProfile | null>(null);
   const [limitDraft, setLimitDraft] = useState("");
 
+  const [limitMw, setLimitMw] = useState(HAMBURG_SUPERMARKET.limitKw / 1000);
+
   const example = useMemo(() => exampleBundle(scenario), [scenario]);
   const limitKw = Number(limitDraft.replace(",", "."));
   const uploaded = useMemo(() => {
@@ -76,7 +78,7 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
         <ExampleHero view={view} scenario={scenario} language={language} plan={active.plan} story={active.story} example={!uploaded} />
       ) : null}
       {scenario !== "grossspeicher" && active && !missingLimit ? (
-        <SiteSimulator view={view} story={active.story} language={language} />
+        <SiteSimulator view={view} story={active.story} language={language} limitMw={limitMw} onLimitMwChange={setLimitMw} />
       ) : null}
       {view === "netz" && scenario !== "grossspeicher" && active ? (
         <SupportCard language={language} story={active.story} />
@@ -878,7 +880,7 @@ function PdfLink({ view, language, plan, profile }: { view: Perspective; languag
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = kind === "connection" ? "speicherpilot-anschlusspruefung.pdf" : "speicherpilot-angebot.pdf";
+            link.download = kind === "connection" ? "speicherpilot-szenario-netz.pdf" : "speicherpilot-angebot.pdf";
             link.click();
             URL.revokeObjectURL(url);
           } finally {

@@ -16,7 +16,7 @@ export const metadata = {
 export default async function LivePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tag?: string | string[]; x?: string | string[]; zeitraum?: string | string[] }>;
+  searchParams: Promise<{ tag?: string | string[]; x?: string | string[]; zeitraum?: string | string[]; blick?: string | string[] }>;
 }) {
   const query = await searchParams;
   const view = await loadGermanyView(new Date(), "/live", query);
@@ -29,6 +29,7 @@ export default async function LivePage({
         readings={view.readings}
         board={view.board}
         surplusDay={view.surplusDay}
+        overviewLink={`/?blick=${view.overview?.bounds.blick ?? "heute"}&x=${Array.isArray(query.x) ? query.x[0] : query.x ?? "1"}#uebersicht`}
       />
     </Suspense>
   );
