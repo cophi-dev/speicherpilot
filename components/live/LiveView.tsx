@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -7,6 +8,7 @@ import { LiveRing } from "@/components/live/LiveRing";
 import { SurplusDaySimulation } from "@/components/live/SurplusDaySimulation";
 import { LiveStrip } from "@/components/mix/LiveStrip";
 import { PowerBoard } from "@/components/mix/PowerBoard";
+import { useLanguage } from "@/components/language-context";
 import type { LiveDispatchInput } from "@/lib/liveFleetDispatch";
 import { LIVE_DISPATCH_FACTORS, parseLiveFactor, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import type { StripReading } from "@/lib/liveStrip";
@@ -20,6 +22,7 @@ export function LiveView({
   readings,
   board,
   surplusDay,
+  overviewLink,
 }: {
   dispatch: LiveDispatchInput;
   until: string | null;
@@ -27,7 +30,10 @@ export function LiveView({
   readings: StripReading[];
   board: PowerBoardModel;
   surplusDay: SurplusDayReport | null;
+  overviewLink: string;
 }) {
+  const { language } = useLanguage();
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
   const router = useRouter();
   const searchParams = useSearchParams();
   const factor = parseLiveFactor(searchParams.get("x"));
@@ -49,6 +55,9 @@ export function LiveView({
 
   return (
     <>
+      <p className="live-overview-link mx-auto max-w-[1200px] px-4 pt-4">
+        <Link href={overviewLink}>{tx("Zur Zeitraum-Übersicht auf der Startseite", "To the period overview on the homepage")}</Link>
+      </p>
       <LiveRing dispatch={dispatch} until={until} leading={<LiveStrip stand={stand} readings={readings} />} />
       <SurplusDaySimulation
         report={surplusDay}

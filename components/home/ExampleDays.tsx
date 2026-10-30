@@ -31,6 +31,11 @@ import {
 import type { Beispieltag } from "@/lib/beispieltageSchema";
 import { formatQuantity } from "@/lib/formatQuantity";
 
+const SOC_REST_TOOLTIP_DE =
+  "Geladen und abgegeben sind nicht einfach 85 % voneinander: Am Tagesende bleibt Energie im Speicher. Entladen = (geladen − Rest) × 85 %.";
+const SOC_REST_TOOLTIP_EN =
+  "Charged and discharged are not simply 85% of each other: energy stays in the battery at day end. Discharged = (charged − remainder) × 85%.";
+
 const FILE = beispieltage;
 const MAX_X1 = Math.max(...FILE.days.map((day) => day.revenueEur.x1));
 
@@ -144,6 +149,12 @@ export function ExampleDays() {
                 value: formatQuantity(day.dischargedToGridMwh * scale, language, 1),
                 unit: "MWh",
                 label: tx("abgegebene Menge", "energy discharged"),
+              },
+              {
+                value: formatQuantity((day.dispatch.socPct.at(-1) ?? 0), language, 1),
+                unit: "%",
+                label: tx("Rest im Speicher am Tagesende", "Remainder in storage at day end"),
+                title: language === "de" ? SOC_REST_TOOLTIP_DE : SOC_REST_TOOLTIP_EN,
               },
             ]}
           />

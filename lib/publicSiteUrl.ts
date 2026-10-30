@@ -1,8 +1,11 @@
 /**
- * Canonical public origin for OG URLs, share links, and X intents.
- * Set `NEXT_PUBLIC_SITE_URL` in production (e.g. https://speicherpilot.vercel.app).
+ * Canonical public origin for OG URLs, share links, sitemap, and robots.
+ * Production always uses the registered domain, not the Vercel preview host.
  */
 export function getPublicSiteOrigin(): string {
+  if (process.env.VERCEL_ENV === "production") {
+    return "https://www.speicherpilot.app";
+  }
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (raw) {
     try {

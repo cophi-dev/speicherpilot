@@ -1,3 +1,4 @@
+import { assessConnectionGridBadge } from "@/lib/connectionGridBadge";
 import {
   connectionBadge,
   fullUtilisationAssessment,
@@ -30,7 +31,13 @@ describe("site connection day", () => {
     expect(story.dischargedKwh).toBeGreaterThan(0);
     expect(story.chargedKwh).toBeGreaterThanOrEqual(0);
     expect(story.points.every((point) => point.soc >= 0 && point.soc <= 1)).toBe(true);
-    expect(["netzdienlich", "nicht erfüllt"]).toContain(story.badge.label);
+    const gridBadge = assessConnectionGridBadge({
+      netKw: story.points.map((point) => point.ohneKw),
+      chargeKw: story.points.map((point) => point.chargeKw),
+      dischargeKw: story.points.map((point) => point.dischargeKw),
+      limitKw: story.limitKw,
+    });
+    expect(gridBadge.id).toBe("netzdienlich");
     expect(JSON.stringify({ label: story.badge.label, peak: story.peakAfterKw })).not.toMatch(/€/);
   });
 });

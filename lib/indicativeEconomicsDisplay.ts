@@ -245,7 +245,7 @@ export function buildValueBreakdownLines(
     },
     {
       id: "avoidedRedispatch",
-      label: language === "de" ? "Redispatch vermieden" : "Avoided redispatch",
+      label: language === "de" ? "Redispatch-Proxy" : "Redispatch proxy",
       value: formatEurFn(breakdown.avoidedRedispatchEur),
       amountEur: breakdown.avoidedRedispatchEur,
       hint:

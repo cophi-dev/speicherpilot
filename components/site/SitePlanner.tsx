@@ -410,7 +410,7 @@ export function SitePlanner() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = kind === "connection" ? "speicherpilot-anschlusspruefung.pdf" : "speicherpilot-angebot.pdf";
+      link.download = kind === "connection" ? "speicherpilot-szenario-netz.pdf" : "speicherpilot-angebot.pdf";
       link.click();
       URL.revokeObjectURL(url);
     } finally {

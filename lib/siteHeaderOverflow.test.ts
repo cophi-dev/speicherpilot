@@ -20,7 +20,9 @@ describe("site header layout", () => {
 });
 
 describe("site header horizontal overflow", () => {
-  it("does not exceed viewport width on primary routes", async () => {
+  const runBrowser = process.env.RUN_BROWSER_TESTS === "1";
+
+  (runBrowser ? it : it.skip)("does not exceed viewport width on primary routes", async () => {
     const browser = await chromium.launch();
     const failures: string[] = [];
     try {

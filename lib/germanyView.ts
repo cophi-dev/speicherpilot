@@ -1,12 +1,16 @@
 import "server-only";
 
-import { formatBerlinDateKeyFromUtcDate, prevBerlinDateKey } from "@/lib/berlinCalendar";
+import { formatBerlinDateKeyFromUtcDate, prevBerlinDateKey, addBerlinCalendarDays } from "@/lib/berlinCalendar";
+import { EE_CURTAILMENT_Q2_2026_GWH } from "@/lib/eeCurtailmentQuarterly";
 import { buildLiveReadings, type StripReading } from "@/lib/liveStrip";
 import { choosePublishedDay, chooseStorageDay, dayIsUsable, type LiveDispatchInput, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
-import { loadDayAheadDay, loadFreiburgFrequency, loadGermanyPower } from "@/lib/loadGermanyPower";
+import { loadDayAheadDay, loadDayAheadRange, loadFreiburgFrequency, loadGermanyPower } from "@/lib/loadGermanyPower";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { getGermanyEnergyFlowForBerlinRange } from "@/lib/energyChartsApi";
 import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
+import { mergeDayAheadPrices } from "@/lib/quarterPrices";
+import { evaluateOverview, type OverviewEvaluation } from "@/lib/overviewChain";
+import { overviewBounds, parseOverviewBlick } from "@/lib/overviewRange";
 import {
   buildSurplusDayReport,
   isPublishedFullBerlinDay,
@@ -18,6 +22,16 @@ import { uniqueQuarterLabels } from "@/lib/quarterMarks";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 import { pickSurplusDay } from "@/lib/windSolarResidual";
 
+export type OverviewUiModel = OverviewEvaluation & {
+  stale: boolean;
+  dataStand: string;
+  fleetMissing: boolean;
+  /** Daily average EE curtailment, Q2 2026 (BNetzA/SMARD). */
+  curtailmentQuarterDailyGwh: number;
+  curtailmentQuarterLabel: string;
+  curtailmentPublishedLabel: string;
+};
+
 export type GermanyView = {
   todayKey: string;
   dispatch: LiveDispatchInput;
@@ -28,6 +42,7 @@ export type GermanyView = {
   stand: string;
   readings: StripReading[];
   surplusDay: SurplusDayReport | null;
+  overview: OverviewUiModel | null;
 };
 
 function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): LiveFleetPublic | null {
@@ -93,15 +108,21 @@ async function loadSurplusDayReportForView(
 export async function loadGermanyView(
   now: Date,
   path: "/" | "/live",
-  query: { tag?: string | string[]; zeitraum?: string | string[] }
+  query: { tag?: string | string[]; zeitraum?: string | string[]; blick?: string | string[]; x?: string | string[] }
 ): Promise<GermanyView> {
   const todayKey = formatBerlinDateKeyFromUtcDate(now);
   const requestedTag = Array.isArray(query.tag) ? query.tag[0] : query.tag;
   const requestedRange = Array.isArray(query.zeitraum) ? query.zeitraum[0] : query.zeitraum;
-  const [fleet, power, price, frequency] = await Promise.all([
+  const requestedBlick = Array.isArray(query.blick) ? query.blick[0] : query.blick;
+  const blick = parseOverviewBlick(requestedBlick);
+  const bounds = overviewBounds(blick, todayKey);
+  const yesterdayKey = prevBerlinDateKey(todayKey);
+  const priceStart = addBerlinCalendarDays(yesterdayKey, -29);
+  const [fleet, power, price, priceRange, frequency] = await Promise.all([
     loadLargeBatteryFleet(),
     loadGermanyPower(now),
     loadDayAheadDay(todayKey),
+    loadDayAheadRange(priceStart, todayKey),
     loadFreiburgFrequency(now),
   ]);
   const parsed = power.parsed;
@@ -140,6 +161,33 @@ export async function loadGermanyView(
     surplusDay = await loadSurplusDayReportForView(days, todayKey, endDate, publicFleet, now);
   }
 
+  let overview: OverviewUiModel | null = null;
+  if (parsed && publicFleet) {
+    const lastSurplus = pickSurplusDay(days, todayKey)?.day.dateBerlin ?? null;
+    const evaluation = evaluateOverview({
+      bounds,
+      slots: parsed.slots,
+      offshorePresent: parsed.offshorePresent,
+      days,
+      powerMw: publicFleet.powerMw,
+      energyMwh: publicFleet.energyMwh,
+      prices: mergeDayAheadPrices(priceRange.prices, price.prices),
+      lastSurplusDateBerlin: lastSurplus,
+      todayKey,
+    });
+    overview = {
+      ...evaluation,
+      stale: power.stale,
+      dataStand: readings.stand,
+      fleetMissing: false,
+      curtailmentQuarterDailyGwh: EE_CURTAILMENT_Q2_2026_GWH / 91,
+      curtailmentQuarterLabel: "Q2 2026",
+      curtailmentPublishedLabel: "12.10.2026",
+    };
+  } else if (!publicFleet && parsed) {
+    overview = null;
+  }
+
   return {
     todayKey,
     dispatch: {
@@ -157,5 +205,6 @@ export async function loadGermanyView(
     stand: readings.stand,
     readings: readings.readings,
     surplusDay,
+    overview,
   };
 }

@@ -24,6 +24,7 @@ const CHAPTERS = [
   { id: "einheiten", de: "Daten und Einheiten", en: "Data and units" },
   { id: "grossspeicher", de: "Großspeicher-Modell", en: "Large-storage model" },
   { id: "live", de: "Überschuss und Grenzhandel", en: "Surplus and border trade" },
+  { id: "uebersicht", de: "Zeitraum-Übersicht", en: "Period overview" },
   { id: "groesse", de: "Speichergröße", en: "Storage size" },
   { id: "ampel", de: "Anschluss-Ampel", en: "Connection light" },
   { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
@@ -193,6 +194,65 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </p>
               <p>{tx("Auf /live gelten zwei sichtbare Zeiträume: Der Ring oben rechnet den gewählten Kalendertag (heute laufend oder ein älterer Tag über ?tag=). Darunter steht der letzte vollständig veröffentlichte Tag mit Überschuss-Rechnung, Grafik und Tabelle. Beide Teile nutzen denselben Regler ×1…×10 (?x). Die Formeln sind identisch: Überschuss max(0, Wind an Land + Wind auf See + Sonne − Last), Laden nur vor 17 Uhr daraus, Export simuliert = max(0, Export beobachtet − Ladung), Entladung ab 17 Uhr auf die Abend-Residuallast mit η = 0,85 auf der Abgabe, nutzbar 10–90 % Nennenergie. Quelle Leistung und Grenzhandel: Energy-Charts total_power, 15-Minuten-Werte.", "On /live there are two visible periods: the ring at the top uses the chosen calendar day (today in progress or an older day via ?tag=). Below that is the last fully published day with surplus calculation, chart and table. Both share the same ×1…×10 control (?x). The formulas are the same: surplus max(0, onshore wind + offshore wind + solar − load), charging only before 17:00 from that surplus, simulated export = max(0, observed export − charging), discharge from 17:00 on the evening residual with η = 0.85 on delivery, usable 10–90% of nameplate. Source for power and cross-border trade: Energy-Charts total_power, 15-minute values.")}</p>
               <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, Stand siehe Seite). ×2, ×5 und ×10 vervielfachen Leistung und Energie. Euro gibt es nur bei ×1. Unsicherheit: Kupferplatte, keine Engpässe.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, as-of on the page). ×2, ×5 and ×10 scale power and energy. Euro figures appear only at ×1. Uncertainty: copper plate, no bottlenecks.")}</p>
+            </section>
+            <section id="uebersicht">
+              <h2>{tx("06c Zeitraum-Übersicht auf der Startseite", "06c Period overview on the homepage")}</h2>
+              <p>
+                {tx(
+                  "Überschuss = Σ max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h. Import/Export = kommerzieller Handelssaldo aus demselben Energy-Charts-Abruf (positiv = Netto-Import). Physikalische Flüsse (/cbpf) sind hier nicht genutzt (größerer Verzug). Zeiträume: Heute bis zur letzten Viertelstunde; Gestern voller Berlin-Tag; 7 und 30 Tage = rollierend volle Tage bis gestern (heute ausgeschlossen).",
+                  "Surplus = Σ max(0, onshore + offshore wind + solar − load) · ¼ h. Import/export = commercial trading balance from the same Energy-Charts fetch (positive = net import). Physical flows (/cbpf) are not used here (longer lag). Periods: today through the last quarter-hour; yesterday full Berlin day; 7 and 30 days = rolling full days through yesterday (today excluded)."
+                )}
+              </p>
+              <p>
+                {tx(
+                  "Speicher über mehrere Tage: Start 10 % nutzbarer Energie, Übertrag Tag zu Tag, Rest am Ende. Abgegeben ≠ 85 % von aufgenommen, weil Rest im Speicher bleibt. Entladung in Import-Stunden ist höchstens Σ min(Entladung, max(0, Handelssaldo)) · ¼ h — kein Beleg, dass Import wegfällt.",
+                  "Storage across days: start at 10% usable energy, carry state day to day, remainder at period end. Discharged ≠ 85% of absorbed because energy stays stored. Discharge during import hours is at most Σ min(discharge, max(0, trade)) · ¼ h — not proof that import disappears."
+                )}
+              </p>
+              <p>
+                {language === "de" ? (
+                  <>
+                    § 13k EnWG: Übertragungsnetzbetreiber bestimmen am Vortag stündliche Abregelungsstrommengen wegen Engpässen im
+                    Übertragungsnetz, nur für Entlastungsregionen (
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/__13k.html">gesetze-im-internet.de/enwg_2005/__13k.html</a>
+                    , Abruf 30.10.2026). Das ist nicht dasselbe wie die tatsächliche Abregelung: Die BNetzA/SMARD-Quartalszahl (Q2 2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("de")} EE-Redispatch, davon rund 52&nbsp;% mit Ursache im Verteilernetz, veröffentlicht
+                    12.10.2026,{" "}
+                    <a href={SMARD_QUARTERLY_TOPIC_URL}>smard.de</a>) umfasst auch Verteilnetz-Maßnahmen.
+                  </>
+                ) : (
+                  <>
+                    § 13k EnWG: transmission system operators set hourly curtailment volumes for the next day because of congestion in
+                    the transmission grid, only for relief regions (
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/__13k.html">gesetze-im-internet.de/enwg_2005/__13k.html</a>
+                    , retrieved 30 Oct 2026). That is not the same as actual curtailment: the BNetzA/SMARD quarterly figure (Q2 2026:{" "}
+                    {formatQuarterlyCurtailmentGwh("en")} renewable redispatch, about 52&nbsp;% with cause in the distribution grid,
+                    published 12 Oct 2026, <a href={SMARD_QUARTERLY_TOPIC_URL}>smard.de</a>) also includes distribution measures.
+                  </>
+                )}
+              </p>
+              <p>
+                {language === "de" ? (
+                  <>
+                    Die Schwellen 60&nbsp;% / 90&nbsp;% sind unsere Modellannahme v1, nicht aus Gesetz oder Norm. Rechtsrahmen zum Nachlesen: §
+                    17 Abs.&nbsp;2b EnWG (flexible Netzanschlussvereinbarung: Netzbetreiber darf statische oder dynamische Begrenzung der
+                    Entnahme- oder Einspeiseleistung verlangen), § 14a EnWG (netzorientierte Steuerung steuerbarer Verbrauchseinrichtungen,
+                    Festlegung der BNetzA), beide{" "}
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/">gesetze-im-internet.de</a>, Abruf 30.10.2026; VDE-AR-N
+                    4110:2023-09 (TAR Mittelspannung, laut{" "}
+                    <a href="https://www.vde.com/">vde.com</a> gültig, Abruf 30.10.2026).
+                  </>
+                ) : (
+                  <>
+                    The 60&nbsp;% / 90&nbsp;% thresholds are our model assumption v1, not from law or standard. Legal context: § 17 (2b) EnWG
+                    (flexible connection agreement: DSO may require static or dynamic limits on withdrawal or feed-in), § 14a EnWG
+                    (grid-oriented control of controllable loads, BNetzA specification), both{" "}
+                    <a href="https://www.gesetze-im-internet.de/enwg_2005/">gesetze-im-internet.de</a>, retrieved 30 Oct 2026; VDE-AR-N
+                    4110:2023-09 (MV technical connection rules, valid per{" "}
+                    <a href="https://www.vde.com/">vde.com</a>, retrieved 30 Oct 2026).
+                  </>
+                )}
+              </p>
             </section>
             <section id="groesse">
               <h2>{tx("07 Speichergröße", "07 Storage size")}</h2>
