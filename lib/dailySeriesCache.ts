@@ -7,6 +7,10 @@
  * Page segments must export this number as a literal (`export const revalidate = 1800`).
  * Next.js does not accept an imported binding there.
  */
+import debug from "debug";
+
+const log = debug("speicherpilot:dailySeriesCache");
+
 export const DAILY_SERIES_REVALIDATE_SECONDS = 1800;
 
 export type DailySeriesFetchInit = RequestInit & {
@@ -22,20 +26,20 @@ export function dailySeriesFetchInit(timeoutMs: number): DailySeriesFetchInit {
 }
 
 export type LastGoodStore<T> = {
-  get(key: string): T | undefined;
-  set(key: string, value: T): void;
+  get(key: string): { value: T; savedAtMs: number } | undefined;
+  set(key: string, value: T, savedAtMs?: number): void;
   clear(): void;
 };
 
 /** Process memory for a failed request. Not a freshness cache: every call still hits `fetch`. */
 export function createLastGoodStore<T>(): LastGoodStore<T> {
-  const values = new Map<string, T>();
+  const values = new Map<string, { value: T; savedAtMs: number }>();
   return {
     get(key) {
       return values.get(key);
     },
-    set(key, value) {
-      values.set(key, value);
+    set(key, value, savedAtMs = Date.now()) {
+      values.set(key, { value, savedAtMs });
     },
     clear() {
       values.clear();
@@ -51,9 +55,18 @@ export function createLastGoodStore<T>(): LastGoodStore<T> {
  */
 export type LastGoodState<T> = {
   value: T | null;
-  /** True when a failed attempt, including HTTP 429, fell back to an older success. */
+  /** True when a failed attempt fell back to an older success older than two hours. */
   stale: boolean;
 };
+
+const STALE_FALLBACK_MS = 2 * 60 * 60 * 1000;
+
+function fallbackStale(previous: { savedAtMs: number } | undefined, nowMs: number): boolean {
+  if (!previous) {
+    return false;
+  }
+  return nowMs - previous.savedAtMs > STALE_FALLBACK_MS;
+}
 
 export async function fetchJsonWithLastGoodState<T>(options: {
   key: string;
@@ -65,25 +78,29 @@ export async function fetchJsonWithLastGoodState<T>(options: {
 }): Promise<LastGoodState<T>> {
   const isUsable = options.isUsable ?? (() => true);
   const cached = () => options.store.get(options.key);
+  const nowMs = Date.now();
   try {
     const response = await fetch(options.url, options.init);
     if (!response.ok) {
+      if (process.env.NODE_ENV !== "production") {
+        log("HTTP %s %s", response.status, options.url);
+      }
       const previous = cached();
-      return { value: previous ?? null, stale: previous !== undefined };
+      return { value: previous?.value ?? null, stale: fallbackStale(previous, nowMs) };
     }
     const parsed = options.parse(await response.json());
     if (parsed !== null && isUsable(parsed)) {
-      options.store.set(options.key, parsed);
+      options.store.set(options.key, parsed, nowMs);
       return { value: parsed, stale: false };
     }
     const previous = cached();
     if (previous !== undefined) {
-      return { value: previous, stale: true };
+      return { value: previous.value, stale: fallbackStale(previous, nowMs) };
     }
     return { value: parsed, stale: false };
   } catch {
     const previous = cached();
-    return { value: previous ?? null, stale: previous !== undefined };
+    return { value: previous?.value ?? null, stale: fallbackStale(previous, nowMs) };
   }
 }
 

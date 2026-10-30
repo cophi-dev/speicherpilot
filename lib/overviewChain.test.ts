@@ -173,7 +173,7 @@ describe("evaluateOverview", () => {
     expect(result.factors[10].saturated).toBe(false);
   });
 
-  it("leaves eurModelX1 null when a charge or discharge quarter has no price", () => {
+  it("tracks socMaxFraction at least socEndFraction on surplus days", () => {
     const bounds = overviewBounds("gestern", "2026-10-28");
     bounds.startKey = "2026-10-27";
     bounds.endKey = "2026-10-27";
@@ -185,11 +185,13 @@ describe("evaluateOverview", () => {
       powerMw: 5000,
       energyMwh: 8000,
       prices: [],
-      lastSurplusDateBerlin: null,
+      lastSurplusDateBerlin: "2026-10-27",
       todayKey: "2026-10-28",
     });
-    if (result.factors[1].absorbedGwh > 1e-6) {
-      expect(result.factors[1].eurModelX1).toBeNull();
+    const row = result.factors[1].dayRows[0];
+    expect(row.socMaxFraction).toBeGreaterThanOrEqual(row.socEndFraction - 1e-6);
+    if ((result.observed.surplusGwh ?? 0) > 0.05) {
+      expect(row.socMaxFraction).toBeGreaterThan(0.2);
     }
   });
 });

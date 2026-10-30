@@ -1,20 +1,15 @@
 /** @jest-environment jsdom */
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { Suspense } from "react";
 
 import { LanguageContext } from "@/components/language-context";
 import { Uebersicht } from "@/components/uebersicht/Uebersicht";
-import type { OverviewUiModel } from "@/lib/germanyView";
 import { LIVE_DISPATCH_FACTORS } from "@/lib/liveFleetDispatch";
+import type { OverviewsBundle } from "@/lib/germanyView";
+import { overviewBounds } from "@/lib/overviewRange";
 
-let query = "blick=heute&x=1";
-jest.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: jest.fn() }),
-  useSearchParams: () => new URLSearchParams(query),
-}));
-
-const baseModel: OverviewUiModel = {
-  bounds: { blick: "heute", startKey: "2026-10-30", endKey: "2026-10-30", capEndAtLastSlot: true, dayCount: 1 },
+const evaluation = {
+  bounds: overviewBounds("heute", "2026-10-30"),
   observed: {
     surplusGwh: 1.2,
     surplusDays: 1,
@@ -42,15 +37,34 @@ const baseModel: OverviewUiModel = {
         endSocDeltaGwh: 0.05,
         startSocGwh: 0.8,
         endSocGwh: 0.85,
-        saturated: false,
+        saturated: factor === 10,
         eurModelX1: factor === 1 ? 1200 : null,
         zeroReason: null,
-        dayRows: [{ dateBerlin: "2026-10-30", surplusGwh: 1.2, absorbedGwh: 0.5, netImportGwh: 1.5, socEndFraction: 0.5 }],
+        dayRows: [
+          {
+            dateBerlin: "2026-10-30",
+            surplusGwh: 1.2,
+            absorbedGwh: 0.5,
+            netImportGwh: 1.5,
+            socEndFraction: 0.5,
+            socMaxFraction: 0.9,
+            fullQuarters: 4,
+          },
+        ],
         quarterPoints: [],
         socSeries: [{ dateBerlin: "2026-10-30", socFraction: 0.5 }],
       },
     ])
-  ) as OverviewUiModel["factors"],
+  ),
+};
+
+const bundle: OverviewsBundle = {
+  byBlick: {
+    heute: evaluation,
+    gestern: { ...evaluation, bounds: overviewBounds("gestern", "2026-10-30") },
+    "7tage": { ...evaluation, bounds: overviewBounds("7tage", "2026-10-30") },
+    "30tage": { ...evaluation, bounds: overviewBounds("30tage", "2026-10-30") },
+  },
   stale: false,
   dataStand: "30.10.2026 08:00 Uhr",
   fleetMissing: false,
@@ -59,28 +73,34 @@ const baseModel: OverviewUiModel = {
   curtailmentPublishedLabel: "12.10.2026",
 };
 
-function renderOverview(factor = "1") {
-  query = `blick=heute&x=${factor}`;
+function renderOverview() {
   return render(
     <LanguageContext.Provider value={{ language: "de", setLanguage: () => undefined }}>
       <Suspense>
-        <Uebersicht model={baseModel} until="08:00" />
+        <Uebersicht bundle={bundle} until="08:00" />
       </Suspense>
     </LanguageContext.Provider>
   );
 }
 
 describe("Uebersicht", () => {
-  it("renders four period controls and data stand", () => {
+  it("renders period controls and assessment", () => {
     renderOverview();
     expect(screen.getByRole("radiogroup", { name: /Zeitraum/i })).toBeInTheDocument();
-    expect(screen.getByText(/Datenstand/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tag läuft noch/)).toBeInTheDocument();
     expect(screen.getAllByText(/Modellschätzung/).length).toBeGreaterThan(0);
   });
 
-  it("hides euro amounts from factor 2 upward", () => {
-    renderOverview("2");
-    expect(document.body.textContent).not.toMatch(/≈\s*[\d.,]+\s*€/);
-    expect(document.body.textContent).toMatch(/Ab ×2|From ×2/);
+  it("switches period without router", () => {
+    renderOverview();
+    fireEvent.click(screen.getByRole("radio", { name: /7 Tage/i }));
+    expect(screen.getByRole("radio", { name: /7 Tage/i })).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("updates absorbed figure when factor changes", () => {
+    renderOverview();
+    const slider = document.querySelector('input[type="range"]') as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: "3" } });
+    expect(document.body.textContent).toMatch(/Bei ×10 aufgenommen/);
   });
 });

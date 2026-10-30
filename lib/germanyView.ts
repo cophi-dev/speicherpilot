@@ -10,7 +10,7 @@ import { getGermanyEnergyFlowForBerlinRange } from "@/lib/energyChartsApi";
 import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
 import { mergeDayAheadPrices } from "@/lib/quarterPrices";
 import { evaluateOverview, type OverviewEvaluation } from "@/lib/overviewChain";
-import { overviewBounds, parseOverviewBlick } from "@/lib/overviewRange";
+import { OVERVIEW_BLICKS, overviewBounds, type OverviewBlick } from "@/lib/overviewRange";
 import {
   buildSurplusDayReport,
   isPublishedFullBerlinDay,
@@ -32,6 +32,18 @@ export type OverviewUiModel = OverviewEvaluation & {
   curtailmentPublishedLabel: string;
 };
 
+export type OverviewsBundle = {
+  byBlick: Record<OverviewBlick, OverviewEvaluation>;
+  stale: boolean;
+  dataStand: string;
+  fleetMissing: boolean;
+  curtailmentQuarterDailyGwh: number;
+  curtailmentQuarterLabel: string;
+  curtailmentPublishedLabel: string;
+};
+
+export type RequestedTagStatus = "ok" | "ausserhalb" | "unvollstaendig" | "default";
+
 export type GermanyView = {
   todayKey: string;
   dispatch: LiveDispatchInput;
@@ -42,7 +54,10 @@ export type GermanyView = {
   stand: string;
   readings: StripReading[];
   surplusDay: SurplusDayReport | null;
-  overview: OverviewUiModel | null;
+  overviews: OverviewsBundle | null;
+  dayOverview: OverviewEvaluation | null;
+  requestedTag: string | null;
+  requestedTagStatus: RequestedTagStatus;
 };
 
 function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): LiveFleetPublic | null {
@@ -57,6 +72,58 @@ function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): 
     updatedLabel: fleet.updatedLabel,
     source: fleet.source,
     href: fleet.chartUrl,
+  };
+}
+
+function slimOverviewEvaluation(evaluation: OverviewEvaluation): OverviewEvaluation {
+  if (evaluation.bounds.blick === "heute" || evaluation.bounds.blick === "gestern") {
+    return evaluation;
+  }
+  const factors = {} as OverviewEvaluation["factors"];
+  for (const [key, factor] of Object.entries(evaluation.factors)) {
+    factors[Number(key) as keyof OverviewEvaluation["factors"]] = {
+      ...factor,
+      quarterPoints: [],
+    };
+  }
+  return { ...evaluation, factors };
+}
+
+function buildOverviewsBundle(args: {
+  slots: NonNullable<Awaited<ReturnType<typeof loadGermanyPower>>["parsed"]>["slots"];
+  offshorePresent: boolean;
+  days: ResidualDay[];
+  fleet: LiveFleetPublic;
+  prices: Awaited<ReturnType<typeof loadDayAheadRange>>["prices"];
+  lastSurplus: string | null;
+  todayKey: string;
+  stale: boolean;
+  dataStand: string;
+}): OverviewsBundle {
+  const byBlick = {} as Record<OverviewBlick, OverviewEvaluation>;
+  for (const blick of OVERVIEW_BLICKS) {
+    const bounds = overviewBounds(blick, args.todayKey);
+    const evaluation = evaluateOverview({
+      bounds,
+      slots: args.slots,
+      offshorePresent: args.offshorePresent,
+      days: args.days,
+      powerMw: args.fleet.powerMw,
+      energyMwh: args.fleet.energyMwh,
+      prices: args.prices,
+      lastSurplusDateBerlin: args.lastSurplus,
+      todayKey: args.todayKey,
+    });
+    byBlick[blick] = slimOverviewEvaluation(evaluation);
+  }
+  return {
+    byBlick,
+    stale: args.stale,
+    dataStand: args.dataStand,
+    fleetMissing: false,
+    curtailmentQuarterDailyGwh: EE_CURTAILMENT_Q2_2026_GWH / 91,
+    curtailmentQuarterLabel: "Q2 2026",
+    curtailmentPublishedLabel: "12.10.2026",
   };
 }
 
@@ -108,14 +175,11 @@ async function loadSurplusDayReportForView(
 export async function loadGermanyView(
   now: Date,
   path: "/" | "/live",
-  query: { tag?: string | string[]; zeitraum?: string | string[]; blick?: string | string[]; x?: string | string[] }
+  query: { tag?: string | string[]; zeitraum?: string | string[] }
 ): Promise<GermanyView> {
   const todayKey = formatBerlinDateKeyFromUtcDate(now);
-  const requestedTag = Array.isArray(query.tag) ? query.tag[0] : query.tag;
+  const requestedTagRaw = path === "/live" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
   const requestedRange = Array.isArray(query.zeitraum) ? query.zeitraum[0] : query.zeitraum;
-  const requestedBlick = Array.isArray(query.blick) ? query.blick[0] : query.blick;
-  const blick = parseOverviewBlick(requestedBlick);
-  const bounds = overviewBounds(blick, todayKey);
   const yesterdayKey = prevBerlinDateKey(todayKey);
   const priceStart = addBerlinCalendarDays(yesterdayKey, -29);
   const [fleet, power, price, priceRange, frequency] = await Promise.all([
@@ -127,10 +191,33 @@ export async function loadGermanyView(
   ]);
   const parsed = power.parsed;
   const days = parsed ? residualDaysFromSlots(parsed) : [];
-  const tagged = requestedTag && /^\d{4}-\d{2}-\d{2}$/.test(requestedTag) ? days.find((day) => day.dateBerlin === requestedTag) : null;
-  const chosen = tagged && dayIsUsable(tagged)
-    ? { day: tagged, fallback: tagged.dateBerlin !== todayKey }
-    : choosePublishedDay(days, todayKey);
+  const earliestTag = addBerlinCalendarDays(todayKey, -30);
+  let requestedTagStatus: RequestedTagStatus = "default";
+  let requestedTag: string | null = null;
+  let chosen: { day: ResidualDay; fallback: boolean } | null = null;
+
+  if (requestedTagRaw && /^\d{4}-\d{2}-\d{2}$/.test(requestedTagRaw)) {
+    requestedTag = requestedTagRaw;
+    if (requestedTag < earliestTag || requestedTag > todayKey) {
+      requestedTagStatus = "ausserhalb";
+    } else {
+      const tagged: ResidualDay | undefined = days.find((day) => day.dateBerlin === requestedTag);
+      if (!tagged) {
+        requestedTagStatus = "ausserhalb";
+      } else {
+        const day = tagged;
+        const usable = dayIsUsable(day);
+        requestedTagStatus = usable ? "ok" : "unvollstaendig";
+        chosen = { day, fallback: day.dateBerlin !== todayKey };
+      }
+    }
+  }
+
+  if (!chosen) {
+    const published = choosePublishedDay(days, todayKey);
+    chosen = published ? { day: published.day, fallback: published.fallback } : null;
+  }
+
   const example = chooseStorageDay(days, todayKey);
   const endDate = chosen?.day.dateBerlin ?? todayKey;
   const publicFleet = fleetPublic(fleet);
@@ -147,13 +234,13 @@ export async function loadGermanyView(
   const board = buildPowerBoard({
     slots: parsed?.slots ?? [],
     offshorePresent: parsed?.offshorePresent ?? true,
-    range: parseMixRange(requestedRange),
+    range: path === "/live" ? "tag" : parseMixRange(requestedRange),
     endDate,
     todayKey,
     path,
     fleet: publicFleet ? { powerGw: publicFleet.powerGw, energyGwh: publicFleet.energyGwh } : null,
     stale: power.stale,
-    tag: chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
+    tag: path === "/live" && chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
   });
 
   let surplusDay: SurplusDayReport | null = null;
@@ -161,31 +248,40 @@ export async function loadGermanyView(
     surplusDay = await loadSurplusDayReportForView(days, todayKey, endDate, publicFleet, now);
   }
 
-  let overview: OverviewUiModel | null = null;
+  let overviews: OverviewsBundle | null = null;
+  let dayOverview: OverviewEvaluation | null = null;
   if (parsed && publicFleet) {
     const lastSurplus = pickSurplusDay(days, todayKey)?.day.dateBerlin ?? null;
-    const evaluation = evaluateOverview({
-      bounds,
+    const mergedPrices = mergeDayAheadPrices(priceRange.prices, price.prices);
+    overviews = buildOverviewsBundle({
       slots: parsed.slots,
       offshorePresent: parsed.offshorePresent,
       days,
-      powerMw: publicFleet.powerMw,
-      energyMwh: publicFleet.energyMwh,
-      prices: mergeDayAheadPrices(priceRange.prices, price.prices),
-      lastSurplusDateBerlin: lastSurplus,
+      fleet: publicFleet,
+      prices: mergedPrices,
+      lastSurplus,
       todayKey,
-    });
-    overview = {
-      ...evaluation,
       stale: power.stale,
       dataStand: readings.stand,
-      fleetMissing: false,
-      curtailmentQuarterDailyGwh: EE_CURTAILMENT_Q2_2026_GWH / 91,
-      curtailmentQuarterLabel: "Q2 2026",
-      curtailmentPublishedLabel: "12.10.2026",
-    };
-  } else if (!publicFleet && parsed) {
-    overview = null;
+    });
+    if (chosen?.day) {
+      const dayBounds = overviewBounds("heute", todayKey);
+      dayBounds.startKey = chosen.day.dateBerlin;
+      dayBounds.endKey = chosen.day.dateBerlin;
+      dayBounds.dayCount = 1;
+      dayBounds.capEndAtLastSlot = chosen.day.dateBerlin === todayKey;
+      dayOverview = evaluateOverview({
+        bounds: dayBounds,
+        slots: parsed.slots,
+        offshorePresent: parsed.offshorePresent,
+        days,
+        powerMw: publicFleet.powerMw,
+        energyMwh: publicFleet.energyMwh,
+        prices: mergedPrices,
+        lastSurplusDateBerlin: lastSurplus,
+        todayKey,
+      });
+    }
   }
 
   return {
@@ -205,6 +301,9 @@ export async function loadGermanyView(
     stand: readings.stand,
     readings: readings.readings,
     surplusDay,
-    overview,
+    overviews,
+    dayOverview,
+    requestedTag,
+    requestedTagStatus,
   };
 }
