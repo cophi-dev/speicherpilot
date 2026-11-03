@@ -20,11 +20,23 @@ function eveningPeak(day: ResidualDay): { gw: number | null; at: string | null }
     const residual = slot.loadMw - slot.windMw - slot.solarMw;
     if (residual > best) {
       best = residual;
-      const hm = slot.timestampIso.slice(11, 16);
-      at = hm;
+      at = `${String(slot.hourBerlin).padStart(2, "0")}:${String(slot.minuteBerlin).padStart(2, "0")}`;
     }
   }
   return { gw: Number.isFinite(best) ? best / 1000 : null, at };
+}
+
+function berlinHmFromIso(iso: string): string {
+  const d = new Date(iso);
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Berlin",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const h = parts.find((x) => x.type === "hour")?.value ?? "00";
+  const m = parts.find((x) => x.type === "minute")?.value ?? "00";
+  return `${h}:${m}`;
 }
 
 function priceStats(
@@ -135,7 +147,7 @@ export function buildTagesKennzahlRecords(args: {
         soc += c * Q;
         charged += c * Q;
         if (fullAt === null && soc >= 0.9 * args.energyMwh - 1e-6) {
-          fullAt = slot.timestampIso.slice(11, 16);
+          fullAt = berlinHmFromIso(slot.timestampIso);
         }
       }
     }

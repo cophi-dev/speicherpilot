@@ -1,0 +1,98 @@
+"use client";
+
+import Link from "next/link";
+
+import { LueckeChart } from "@/components/home/LueckeChart";
+import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
+import { formatQuantity } from "@/lib/formatQuantity";
+import type { ResidualDay } from "@/lib/windSolarResidual";
+
+const STEPS = [
+  {
+    title: "Nacht",
+    body: "Wind liefert einen Teil der Last, Sonne fehlt. Der Rest kommt aus anderen Quellen.",
+  },
+  {
+    title: "Mittag",
+    body: "Wind und Sonne erreichen ihren Höchststand — die Last bleibt darüber. Kein Überschuss zum Laden.",
+  },
+  {
+    title: "Abend",
+    body: (peakAt: string | null, peakGw: number | null, loadGw: number, wsGw: number) =>
+      peakAt && peakGw !== null
+        ? `${peakAt} Uhr: ${formatQuantity(loadGw, "de", 1)} GW Verbrauch, ${formatQuantity(wsGw, "de", 1)} GW Wind und Sonne, keine Sonne in der Dämmerung. Die Lücke: ${formatQuantity(peakGw, "de", 1)} GW.`
+        : "Abends fehlt die Sonne, der Verbrauch steigt. Die Lücke ist am größten.",
+  },
+] as const;
+
+function eveningSlot(day: ResidualDay) {
+  const evening = day.slots.filter((s) => s.hourBerlin >= 16);
+  if (evening.length === 0) {
+    return day.slots[0];
+  }
+  let best = evening[0];
+  let bestGap = -1;
+  for (const s of evening) {
+    const gap = s.loadMw - s.windMw - s.solarMw;
+    if (gap > bestGap) {
+      bestGap = gap;
+      best = s;
+    }
+  }
+  return best;
+}
+
+export function TagChapter({
+  day,
+  lastSurplusKey,
+  surplusLine,
+  peakGw,
+  peakAt,
+}: {
+  day: ResidualDay;
+  lastSurplusKey: string | null;
+  surplusLine: string;
+  peakGw: number | null;
+  peakAt: string | null;
+}) {
+  const peakSlot = eveningSlot(day);
+  const loadGw = peakSlot.loadMw / 1000;
+  const wsGw = (peakSlot.windMw + peakSlot.solarMw) / 1000;
+  const lastLine = tagLastSurplusLine(lastSurplusKey);
+
+  return (
+    <section className="v4-chapter" aria-labelledby="kapitel-tag">
+      <div className="v4-chapter-head v4-content">
+        <p className="v4-chapter-num num">01 · Der Tag</p>
+        <h2 id="kapitel-tag" className="v4-chapter-h2">
+          Was gestern im Stromnetz passiert ist
+        </h2>
+        <p className="v4-tag-kern">{surplusLine}</p>
+        {lastLine ? <p className="v4-tag-side">{lastLine}</p> : null}
+      </div>
+      <div className="v4-content v4-luecke-wrap">
+        <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
+      </div>
+      <ol className="v4-st-steps v4-content">
+        {STEPS.map((step, index) => (
+          <li key={step.title}>
+            <span className="v4-st-num num">{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <p className="v4-st-title">{step.title}</p>
+              <p className="v4-st-body">
+                {typeof step.body === "function"
+                  ? step.body(peakAt, peakGw, loadGw, wsGw)
+                  : step.body}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="v4-chapter-foot v4-content num">
+        <Link href={`/tag/${day.dateBerlin}`} className="v4-text-link">
+          Tag ansehen →
+        </Link>
+      </p>
+    </section>
+  );
+}

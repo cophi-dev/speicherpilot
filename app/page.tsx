@@ -14,9 +14,7 @@ export default async function Home() {
   return (
     <StartPageV4
       overviews={view.overviews}
-      until={view.until}
       dispatch={view.dispatch}
-      exampleDispatch={view.exampleDispatch}
       todayKey={view.todayKey}
       kopfDayKey={view.kopfDayKey}
       auffaelligkeitRecords={view.auffaelligkeitRecords}

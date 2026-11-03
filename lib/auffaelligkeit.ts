@@ -242,9 +242,9 @@ function vergleich(rank: number, mehr: [string, string], tie: boolean): string {
 }
 
 export type AuffaelligkeitResult =
-  | { kind: "metric"; key: MetricKey; headline: string; subline: string }
-  | { kind: "serie"; headline: string; subline: string }
-  | { kind: "keine"; headline: string; subline: string };
+  | { kind: "metric"; key: MetricKey; headline: string; subline: string; kopfH1: string; kopfSubline: string }
+  | { kind: "serie"; headline: string; subline: string; kopfH1: string; kopfSubline: string }
+  | { kind: "keine"; headline: string; subline: string; kopfH1: string; kopfSubline: string };
 
 export function auffaelligkeitForDay(
   records: TagesKennzahlRecord[],
@@ -262,14 +262,14 @@ export function auffaelligkeitForDay(
   if (!top && r.dryStreak >= 3) {
     const lastSurplus = [...records.slice(0, index)].reverse().find((d) => d.surplusGwh >= 0.05);
     const headline = `${weekdayLabelDe(dateKey)}: der ${r.dryStreak}. Tag in Folge ohne Überschuss. Zuletzt war am ${lastSurplus ? weekdayLabelDe(lastSurplus.dateKey) : "—"} Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.`;
-    return { kind: "serie", headline, subline: "" };
+    return { kind: "serie", headline, subline: "", kopfH1: headline, kopfSubline: "" };
   }
 
   if (!top) {
     const surplusPart =
       r.surplusGwh < 0.05 ? "Kein Überschuss" : `${deNum(r.surplusGwh)} GWh Überschuss`;
     const headline = `${weekdayLabelDe(dateKey)}: ein unauffälliger Tag. ${surplusPart}, Abendspitze ${deNum(r.eveningPeakGw ?? 0)} GW um ${r.eveningPeakAt ?? "—"} Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.`;
-    return { kind: "keine", headline, subline: "" };
+    return { kind: "keine", headline, subline: "", kopfH1: headline, kopfSubline: "" };
   }
 
   const w = WORT[`${top.key},${top.dir}`] ?? ["", ""];
@@ -278,6 +278,8 @@ export function auffaelligkeitForDay(
 
   let headline = "";
   let subline = "";
+  let kopfH1 = "";
+  let kopfSubline = "";
 
   switch (top.key) {
     case "surplus_gwh":
@@ -286,10 +288,12 @@ export function auffaelligkeitForDay(
       break;
     case "evening_peak_gw":
       headline = `${weekdayLabelDe(dateKey)}: Am Abend mussten andere Quellen bis zu ${deNum(r.eveningPeakGw ?? 0)} GW decken (${r.eveningPeakAt ?? "—"} Uhr). ${Vcap}.`;
+      kopfH1 = `Am Abend mussten andere Quellen bis zu ${deNum(r.eveningPeakGw ?? 0)} GW decken.`;
       subline =
         (r.peakCutGw ?? 0) < 0.05
           ? "Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden."
           : `Die heutige Flotte hätte die Spitze um ${deNum(r.peakCutGw ?? 0)} GW gesenkt (Modell).`;
+      kopfSubline = subline ? `${Vcap}. ${subline}` : Vcap;
       break;
     case "spread":
       headline = `${weekdayLabelDe(dateKey)}: Der Börsenpreis lag zwischen ${deNum(r.pmin ?? 0, 0)} und ${deNum(r.pmax ?? 0, 0)} €/MWh. ${Vcap}.`;
@@ -310,7 +314,25 @@ export function auffaelligkeitForDay(
       headline = `${weekdayLabelDe(dateKey)}: ${Vcap}.`;
   }
 
-  return { kind: "metric", key: top.key, headline, subline };
+  if (!kopfH1) {
+    kopfH1 = headline;
+  }
+  if (!kopfSubline) {
+    kopfSubline = subline;
+  }
+
+  return { kind: "metric", key: top.key, headline, subline, kopfH1, kopfSubline };
+}
+
+/** Metric shown in the Kopf (number, bars, rank) — same as Regel v1 winner. */
+export function kopfMetric(records: TagesKennzahlRecord[], dateKey: string): ScoredMetric | null {
+  const index = records.findIndex((r) => r.dateKey === dateKey);
+  if (index < 0) {
+    return null;
+  }
+  const prevWinner =
+    index > 0 && index >= 30 ? pickWinner(records, records[index - 1].dateKey, null) : null;
+  return pickWinner(records, dateKey, prevWinner);
 }
 
 /** Round GW/GWh for display; ranking uses raw values. */

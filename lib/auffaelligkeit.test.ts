@@ -34,8 +34,9 @@ describe("auffaelligkeit Regel v1", () => {
     const peak = scored?.find((s) => s.key === "evening_peak_gw");
     expect(peak?.rank).toBe(2);
     const r = auffaelligkeitForDay(records, "2026-11-02");
-    expect(r.headline).toContain("Nur an einem der letzten 30 Tage war es höher");
-    expect(r.headline).toContain("64,4 GW");
+    expect(r.kind).toBe("metric");
+    expect(r.kopfH1).toContain("64,4 GW");
+    expect(r.kopfSubline).toContain("Nur an einem der letzten 30 Tage war es höher");
   });
 
   it("27.10.: unauffälliger Tag (Ersatz)", () => {
