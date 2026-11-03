@@ -7,6 +7,7 @@ import { dayPageHeading, DayPicker } from "@/components/live/DayPicker";
 import { LiveRing } from "@/components/live/LiveRing";
 import { LiveStrip } from "@/components/mix/LiveStrip";
 import { PowerBoard } from "@/components/mix/PowerBoard";
+import { PageLead } from "@/components/PageLead";
 import { useLanguage } from "@/components/language-context";
 import type { OverviewsBundle, RequestedTagStatus } from "@/lib/germanyView";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
@@ -73,7 +74,12 @@ export function LiveView({
         <h1 id="live-what-if" className="live-day-title">
           {heading}
         </h1>
+        <PageLead
+          de="Ein Kalendertag im Detail — Ring, Regler und Erzeugung."
+          en="One calendar day in detail — ring, slider and generation."
+        />
         <DayPicker todayKey={todayKey} selectedTag={requestedTag} overviews={overviews} />
+        {daySentence ? <p className="live-day-assessment live-day-assessment-flow">{daySentence}</p> : null}
         {requestedTagStatus === "ausserhalb" ? (
           <p className="live-tag-notice" role="status">
             {tx(
@@ -103,9 +109,6 @@ export function LiveView({
         factor={factor}
         hideHeader
       />
-      {daySentence ? (
-        <p className="live-day-assessment live-day-assessment-flow">{daySentence}</p>
-      ) : null}
       <PowerBoard model={board} missingFactor={5} hideSocLine={false} tighten />
       <p className="live-overview-link mx-auto max-w-[1200px] px-4 pb-8">
         <Link href="/#uebersicht" prefetch={false}>

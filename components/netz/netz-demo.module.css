@@ -5,6 +5,10 @@
   overflow-x: clip;
 }
 
+.embedded .inner {
+  padding-top: 0;
+}
+
 .stage :focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
@@ -44,6 +48,12 @@
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.banner :global(.day-chip) {
+  border-color: color-mix(in srgb, #e9eef2 35%, transparent);
+  color: color-mix(in srgb, #e9eef2 70%, transparent);
+  background: transparent;
 }
 
 .chip {

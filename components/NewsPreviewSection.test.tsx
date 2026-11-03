@@ -122,7 +122,7 @@ describe("NewsPreviewSection", () => {
     renderNews("de", [item(21, { teaser: "Ein Satz zur Einordnung." }), item(18), item(9), item(2)], "home");
     expect(screen.getByRole("heading", { level: 2, name: "Aus dem Markt" })).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(3);
-    expect(screen.getByRole("link", { name: "Alle News →" })).toHaveAttribute("href", "/news");
+    expect(screen.getByRole("link", { name: "Alle News →" })).toHaveAttribute("href", "/beitraege#extern-gelesen");
     expect(screen.getByText("Ein Satz zur Einordnung.")).toHaveClass("news-teaser");
     expect(screen.queryByRole("link", { name: /So prüfen wir Meldungen/ })).toBeNull();
     expect(document.querySelectorAll(".news-list article a")).toHaveLength(3);

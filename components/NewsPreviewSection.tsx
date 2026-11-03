@@ -72,7 +72,7 @@ export default function NewsPreviewSection({ limit = 3, place = "page", items }:
                 <p className="day-kicker">{de ? "News · geprüft" : "News · checked"}</p>
                 <h2 id="home-news-title">{de ? "Aus dem Markt" : "From the market"}</h2>
               </div>
-              <Link className="news-textlink" href="/news">
+              <Link className="news-textlink" href="/beitraege#extern-gelesen">
                 {de ? "Alle News →" : "All news →"}
               </Link>
             </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+import { ModelChip } from "@/components/day-ring/ModelChip";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
 import { MAP_VIEW, NetzKarte, STRAND_LABELS, TIP_LEGEND, VOLTAGE_LEGEND } from "@/components/netz/NetzKarte";
@@ -204,7 +205,15 @@ function Kpi({ label, value, delta, nowrap = false }: { label: ReactNode; value:
   );
 }
 
-export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemoFile; selection: NetzSelection }) {
+export function NetzDemo({
+  data,
+  selection: initialSelection,
+  embedded = false,
+}: {
+  data: NetzDemoFile;
+  selection: NetzSelection;
+  embedded?: boolean;
+}) {
   const { language } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
@@ -350,28 +359,32 @@ export function NetzDemo({ data, selection: initialSelection }: { data: NetzDemo
   }
 
   return (
-    <div className={styles.stage}>
-      <p className={styles.banner} role="note">
-        <WithTip id="testnetz" language={language}>
-          {tx("Testnetz, kein reales Netz", "Test grid, not a real grid")}
-        </WithTip>
-        <span className={styles.chip}>{tx("MODELL", "MODEL")}</span>
-      </p>
+    <div className={embedded ? `${styles.stage} ${styles.embedded}` : styles.stage}>
+      {embedded ? null : (
+        <p className={styles.banner} role="note">
+          <WithTip id="testnetz" language={language}>
+            {tx("Testnetz, kein reales Netz", "Test grid, not a real grid")}
+          </WithTip>
+          <ModelChip label={tx("MODELL", "MODEL")} />
+        </p>
+      )}
       <div className={styles.inner}>
-        <header className={styles.intro}>
-          <div>
-            <p className={styles.kicker}>{tx("Szenarien rechnen im Testnetz", "Run scenarios in the test grid")}</p>
-            <h1 className={styles.title}>{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</h1>
-            <p className={styles.purpose}>
-              {tx("Ein Speicher wird an einen Knoten gesetzt. Die Seite zeigt den ", "A storage unit is placed at a node. The page shows the ")}
-              <WithTip id="lastfluss" language={language}>
-                {tx("Lastfluss", "load flow")}
-              </WithTip>
-              {tx(", die Auslastung, den Einzelausfall und den Kipppunkt.", ", the loading, the single outage and the tipping point.")}
-            </p>
-          </div>
-          <Histogram values={tips} mark={tip} language={language} />
-        </header>
+        {embedded ? null : (
+          <header className={styles.intro}>
+            <div>
+              <p className={styles.kicker}>{tx("Szenarien rechnen im Testnetz", "Run scenarios in the test grid")}</p>
+              <h1 className={styles.title}>{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</h1>
+              <p className={styles.purpose}>
+                {tx("Ein Speicher wird an einen Knoten gesetzt. Die Seite zeigt den ", "A storage unit is placed at a node. The page shows the ")}
+                <WithTip id="lastfluss" language={language}>
+                  {tx("Lastfluss", "load flow")}
+                </WithTip>
+                {tx(", die Auslastung, den Einzelausfall und den Kipppunkt.", ", the loading, the single outage and the tipping point.")}
+              </p>
+            </div>
+            <Histogram values={tips} mark={tip} language={language} />
+          </header>
+        )}
 
         <div className={styles.work}>
           <div className={styles.side}>

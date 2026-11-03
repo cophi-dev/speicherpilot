@@ -348,6 +348,12 @@ export function MixChart({
         <text className="mix-axis" fontSize={frame.font} x={frame.pad.l} y={12}>
           {unit}
         </text>
+        {surplusPath ? (
+          <>
+            <path className="mix-surplus-area" d={surplusPath} />
+            <path className="mix-surplus-cap" d={surplusCapPath(xs, windSeries, surplusIndexes, axis.min, axis.max, frame)} />
+          </>
+        ) : null}
         {CHART_STACK_ORDER.map((id, carrier) =>
           completeRuns.map((group) => {
             const kept = hideOpenBar ? group.filter((index) => index !== openIndex) : group;
@@ -360,12 +366,6 @@ export function MixChart({
           })
         )}
         <path className="mix-trade" d={tradePath(drawn, axis.min, axis.max, xs, frame)} />
-        {surplusPath ? (
-          <>
-            <path className="mix-surplus-area" d={surplusPath} />
-            <path className="mix-surplus-cap" d={surplusCapPath(xs, windSeries, surplusIndexes, axis.min, axis.max, frame)} />
-          </>
-        ) : null}
         <path className="mix-load" d={loadPath} fill="none" />
         <path className="mix-residual-edge" d={residualPath} fill="none" />
         <path className="mix-residual" d={residualPath} fill="none" />

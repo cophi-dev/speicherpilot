@@ -5,7 +5,9 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { ConnectionStory } from "@/components/home/ConnectionStory";
+import { PageLead } from "@/components/PageLead";
 import { SiteOperatorSections } from "@/components/site/SiteOperatorSections";
+import { SiteNetzPrinciple } from "@/components/site/SiteNetzPrinciple";
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { ModelChip } from "@/components/day-ring/ModelChip";
 import { UtilisationLegend } from "@/components/day-ring/UtilisationLegend";
@@ -28,8 +30,15 @@ import { QUARTIER, planQuartier, quartierProfile } from "@/lib/quartierExample";
 import { storyFromPlan, supermarketConnectionStory, type ConnectionPoint, type SiteConnectionStory } from "@/lib/siteConnectionDay";
 import { GRID_SUPPORT_CONFIG, parseLoadProfileCsv, planSite, type LoadProfile, type SitePlan } from "@/lib/sitePlanner";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
+import type { NetzSelection } from "@/lib/netzDemo";
 
-export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay | null }) {
+export function SiteDay({
+  modelDay = null,
+  netzSelection,
+}: {
+  modelDay?: ReferenceParkModelDay | null;
+  netzSelection: NetzSelection;
+}) {
   const params = useSearchParams();
   const view = parsePerspective(params.get("view")) ?? "projekt";
   const scenario = parseScenario(params.get("scenario")) ?? "supermarkt";
@@ -74,6 +83,12 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
 
   return (
     <div className="site-v2">
+      <div className="mx-auto max-w-[1200px] px-4 pt-4">
+        <PageLead
+          de="Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze und Netzwirkung."
+          en="One storage unit at a connection point: developers see size and economics, grid operators limits and grid effects."
+        />
+      </div>
       {scenario === "grossspeicher" ? (
         <ReferenceParkHero view={view} language={language} modelDay={modelDay} />
       ) : active ? (
@@ -102,7 +117,7 @@ export function SiteDay({ modelDay = null }: { modelDay?: ReferenceParkModelDay 
       />
       <ExampleCards language={language} view={view} scenario={scenario} />
       {view === "projekt" && scenario !== "grossspeicher" ? <ConnectionStory /> : null}
-      {view === "netz" ? <SiteOperatorSections /> : null}
+      {view === "netz" ? <SiteOperatorSections selection={netzSelection} /> : null}
     </div>
   );
 }
@@ -167,6 +182,7 @@ function ExampleHero({
               {example ? <span className="site-chip">{tx("Beispieldaten", "Example data")}</span> : null}
             </p>
             <h1 id="site-hero-title">{sentence}</h1>
+            {netz ? <SiteNetzPrinciple /> : null}
             <dl className="site-stats">
               {netz ? (
                 <>

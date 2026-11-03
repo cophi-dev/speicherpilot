@@ -72,7 +72,7 @@
     --secondary: 60 13% 92%;
     --secondary-foreground: 210 11% 7%;
     --muted: 60 13% 92%;
-    --muted-foreground: 210 5% 36%;
+    --muted-foreground: 210 8% 28%;
     --accent: 60 13% 92%;
     --accent-foreground: 210 11% 7%;
     --destructive: 3 76% 45%;
@@ -778,7 +778,7 @@
   display: flex;
   width: 100%;
   max-width: 520px;
-  height: 36px;
+  min-height: 44px;
   margin-top: 24px;
   overflow: hidden;
   border: 1px solid hsl(var(--border-strong));
@@ -791,6 +791,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
@@ -825,6 +826,7 @@
   gap: 8px;
   margin: 0;
   padding: 0 12px;
+  min-height: 44px;
   border: none;
   background: transparent;
   font-size: 14px;
@@ -1553,6 +1555,11 @@
   padding-bottom: 32px;
 }
 
+.live-day-hero.day-hero {
+  margin-top: 0;
+  padding: 32px 20px 48px;
+}
+
 .day-hero-screen > .day-hero-inner {
   position: relative;
   z-index: 1;
@@ -1805,6 +1812,9 @@ html:not(.dark) .site-header.is-over-hero .brand-lockup__frame .brand-lockup__du
 }
 
 html:not(.dark) .day-hero .day-kicker,
+html:not(.dark) .start-overview .day-kicker,
+html:not(.dark) .live-day-header .day-kicker,
+html:not(.dark) .uebersicht .day-kicker,
 html:not(.dark) .day-hero .day-source,
 html:not(.dark) .day-hero .day-stats dt,
 html:not(.dark) .day-hero .day-stats-unit,
@@ -4445,7 +4455,7 @@ math mi {
 }
 .methodik nav ol { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; list-style: none; }
 .methodik nav li { padding-block: 6px; }
-.methodik nav a { display: block; min-height: 24px; color: inherit; }
+.methodik nav a { display: block; min-height: 44px; color: inherit; }
 @media (min-width: 480px) {
   .methodik nav ol { display: grid; grid-template-columns: 1fr 1fr; }
 }
@@ -4616,6 +4626,7 @@ math mi {
   margin: 0;
   max-width: 68ch;
   overflow: hidden;
+  overflow-wrap: anywhere;
   color: #3c444c;
   font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
   font-size: 16px;
@@ -4757,6 +4768,10 @@ math mi {
   color: #c5ced6;
   font-size: 15px;
   line-height: 1.45;
+}
+
+html:not(.dark) .szen-disclaimer {
+  color: hsl(var(--muted-foreground));
 }
 
 .szen-body {
@@ -6089,6 +6104,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .mix-fill-windOnshore { fill: var(--mix-windOnshore); background: var(--mix-windOnshore); }
 .mix-fill-solar { fill: var(--mix-solar); background: var(--mix-solar); }
 .mix-fill-other { fill: var(--mix-other); background: var(--mix-other); }
+.mix-fill-surplus { fill: var(--mix-surplus); background: var(--mix-surplus); }
 .mix-fill-load { fill: var(--mix-load); background: var(--mix-load); }
 .mix-fill-trade { fill: var(--mix-trade); background: var(--mix-trade); }
 .mix-fill-surplus {
@@ -6097,7 +6113,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .mix-surplus-area {
   fill: var(--mix-surplus);
-  opacity: 0.35;
+  opacity: 0.28;
   stroke: none;
 }
 .mix-surplus-cap {
@@ -6229,7 +6245,18 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .uebersicht .day-slider-stops .is-current { color: hsl(var(--foreground)); font-weight: 600; }
 .day-picker-nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
 .day-picker-btn { min-height: 44px; padding: 8px 12px; border: 1px solid hsl(var(--border)); border-radius: 6px; }
-.day-picker-btn.is-disabled { opacity: 0.45; pointer-events: none; }
+.day-picker-btn.is-disabled {
+  opacity: 1;
+  pointer-events: none;
+  color: #5a6269;
+  border-color: #b8c0c8;
+  background: #eef1f4;
+}
+.dark .day-picker-btn.is-disabled {
+  color: #9aa3ad;
+  border-color: #3a424a;
+  background: #151b21;
+}
 .day-picker-chips { display: flex; flex-wrap: nowrap; gap: 6px; margin: 8px 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
 .day-picker-chips a { flex: 0 0 auto; white-space: nowrap; }
 .uebersicht-open-hint { font-size: 13px; color: hsl(var(--muted-foreground)); margin-top: 4px; max-width: 72ch; }
@@ -6302,6 +6329,15 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   color: hsl(var(--muted-foreground));
   margin-top: 8px;
 }
+.page-lead { max-width: 72ch; margin: 10px 0 0; font-size: 16px; line-height: 1.55; color: hsl(var(--muted-foreground)); }
+.uebersicht-trio-hint { font-size: 13px; line-height: 1.4; color: hsl(var(--muted-foreground)); margin: 0 0 6px; max-width: 28ch; }
+.uebersicht-insights { max-width: 72ch; margin: 12px 0 0; padding-left: 1.1rem; font-size: 15px; line-height: 1.5; }
+.uebersicht-insights a { text-underline-offset: 3px; }
+.site-netz-principle { max-width: 62ch; margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #0e9a72; font-size: 15px; line-height: 1.5; }
+.beitraege-section-title { font-size: clamp(22px, 3vw, 28px); font-weight: 300; margin: 32px 0 16px; }
+.beitraege-extern { margin-top: 48px; padding-top: 8px; border-top: 1px solid hsl(var(--border)); }
+.day-slider-block { min-height: 72px; }
+.day-slider input[type="range"] { min-height: 44px; }
 .uebersicht-list { margin: 8px 0 0 18px; font-size: 14px; }
 .uebersicht-chart-wrap { margin-top: 24px; }
 .uebersicht-table { margin-top: 12px; font-size: 14px; }

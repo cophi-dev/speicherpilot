@@ -40,7 +40,15 @@ function Inlines({ items, sources }: { items: Inline[]; sources: Map<string, Sou
   });
 }
 
-export function BlogArticle({ post }: { post: BlogPost }) {
+export function BlogArticle({
+  post,
+  backHref = "/beitraege#artikel",
+  backLabel = "Beiträge",
+}: {
+  post: BlogPost;
+  backHref?: string;
+  backLabel?: string;
+}) {
   const sources = sourceMap(post);
   const hero = heroFigure(post);
   const prose: ReactNode[] = [];
@@ -162,7 +170,7 @@ export function BlogArticle({ post }: { post: BlogPost }) {
         <div className="day-hero-inner blog-sheet">
           {sheet}
           <p className="blog-back prose">
-            <Link href="/blog">Alle Beiträge</Link>
+            <Link href={backHref}>{backLabel}</Link>
           </p>
         </div>
       </div>
