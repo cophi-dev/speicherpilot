@@ -14,6 +14,7 @@ import {
 } from "@/components/methodik/MethodikUeberblick";
 import { MethodikHashScroll } from "@/components/methodik/MethodikHashScroll";
 import { MethodikSection } from "@/components/methodik/MethodikSection";
+import { LazyMethodikBody } from "@/components/methodik/LazyMethodikBody";
 import { NetzMethodik } from "@/components/methodik/NetzMethodik";
 import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { EURO_SCOPE } from "@/lib/beispieltage";
@@ -428,10 +429,14 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Warum nur etwa 0,35 Zyklen am Tag? Und warum liegt die Abgabe nicht bei den drei teuersten Viertelstunden? Der Kern wählt einen Teilzyklus nach einem Punktwert, Preis plus Abendzuschlag 17–21 Uhr plus Schwankung, nicht nach strengem Optimum. Das ist eine bewusste, vorsichtige Heuristik, kein Fahrplan eines echten Betreibers.", "Why only about 0.35 cycles a day? And why is discharge not in the three most expensive quarter-hours? The core picks one partial cycle by a score, price plus an evening bonus from 17:00 to 21:00 plus a swing term, not by a strict optimum. That is a deliberate, cautious heuristic, not an operator’s schedule.")}</p>
             </MethodikSection>
             <MethodikSection id="szenarien" title={methodikSectionLabel("szenarien", language)}>
-              <SzenarienMethodik language={language} bodyOnly />
+              <LazyMethodikBody sectionId="szenarien">
+                <SzenarienMethodik language={language} bodyOnly />
+              </LazyMethodikBody>
             </MethodikSection>
             <MethodikSection id="netz" title={methodikSectionLabel("netz", language)}>
-              <NetzMethodik language={language} bodyOnly />
+              <LazyMethodikBody sectionId="netz">
+                <NetzMethodik language={language} bodyOnly />
+              </LazyMethodikBody>
             </MethodikSection>
             <span id="beispiele" className="sr-only" aria-hidden="true" />
             <span id="quartier" className="sr-only" aria-hidden="true" />
