@@ -239,6 +239,22 @@ function shortDayLabel(dateKey: string): string {
   return m && d ? `${d}.${m}.` : dateKey;
 }
 
+/** One trailing full stop, never „..“ when chained with another sentence. */
+function capSentence(s: string): string {
+  const t = s.trim();
+  if (!t) {
+    return t;
+  }
+  const c = t.charAt(0).toUpperCase() + t.slice(1);
+  return c.endsWith(".") ? c : `${c}.`;
+}
+
+function withModellSubline(vergleichSentence: string, subline: string): string {
+  const lead = capSentence(vergleichSentence);
+  const rest = subline.trim();
+  return rest ? `${lead} ${rest}` : lead;
+}
+
 function vergleich(
   rank: number,
   mehr: [string, string],
@@ -319,10 +335,7 @@ export function auffaelligkeitForDay(
   const nearDay =
     top.key === "evening_peak_gw" ? eveningPeakRoundedNearDay(records, index, top.rank, top.dir) : undefined;
   const V = vergleich(top.rank, w, top.tie, nearDay ? { roundedNearDay: nearDay } : undefined);
-  const Vcap = (() => {
-    const c = V.charAt(0).toUpperCase() + V.slice(1);
-    return c.endsWith(".") ? c : `${c}.`;
-  })();
+  const Vcap = capSentence(V);
 
   let headline = "";
   let subline = "";
@@ -331,21 +344,28 @@ export function auffaelligkeitForDay(
 
   switch (top.key) {
     case "surplus_gwh":
-      headline = `${weekdayLabelDe(dateKey)}: ${deNum(r.surplusGwh)} GWh Strom aus Wind und Sonne waren übrig, ${deNum(r.surplusH, 2).replace(/,?0+$/, "")} Stunden lang. ${Vcap}.`;
+      headline = `${weekdayLabelDe(dateKey)}: ${deNum(r.surplusGwh)} GWh Strom aus Wind und Sonne waren übrig, ${deNum(r.surplusH, 2).replace(/,?0+$/, "")} Stunden lang. ${Vcap}`;
       subline = `Die heutige Flotte hätte ${deNum(r.absorbedGwh)} GWh davon aufgenommen (Modell).`;
       kopfH1 = "Aus Wind und Sonne blieb an diesem Tag viel Strom übrig.";
-      kopfSubline = `${Vcap}. ${subline}`;
+      kopfSubline = withModellSubline(V, subline);
       break;
     case "evening_peak_gw":
       headline = `${weekdayLabelDe(dateKey)}: Am Abend mussten andere Quellen bis zu ${deNum(r.eveningPeakGw ?? 0)} GW decken (${r.eveningPeakAt ?? "—"} Uhr). ${Vcap}`;
-      kopfH1 = nearDay
-        ? `Am Abend mussten andere Quellen fast so viel wie am ${nearDay} decken.`
-        : "Am Abend mussten andere Quellen besonders viel decken.";
+      if (nearDay) {
+        kopfH1 =
+          top.dir === "tief"
+            ? `Am Abend mussten andere Quellen fast so wenig wie am ${nearDay} decken.`
+            : `Am Abend mussten andere Quellen fast so viel wie am ${nearDay} decken.`;
+      } else if (top.dir === "tief") {
+        kopfH1 = "Am Abend mussten andere Quellen so wenig decken wie selten.";
+      } else {
+        kopfH1 = "Am Abend mussten andere Quellen besonders viel decken.";
+      }
       subline =
         (r.peakCutGw ?? 0) < 0.05
           ? "Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden."
           : `Die heutige Flotte hätte die Spitze um ${deNum(r.peakCutGw ?? 0)} GW gesenkt (Modell).`;
-      kopfSubline = subline ? `${Vcap}. ${subline}` : Vcap;
+      kopfSubline = withModellSubline(V, subline);
       break;
     case "spread":
       headline = `${weekdayLabelDe(dateKey)}: Der Börsenpreis lag zwischen ${deNum(r.pmin ?? 0, 0)} und ${deNum(r.pmax ?? 0, 0)} €/MWh. ${Vcap}`;
@@ -353,7 +373,7 @@ export function auffaelligkeitForDay(
       kopfSubline = Vcap;
       break;
     case "pmin":
-      headline = `${weekdayLabelDe(dateKey)}: Strom kostete an der Börse zeitweise ${deNum(r.pmin ?? 0, 2)} €/MWh (${r.pminAt ?? "—"} Uhr). ${Vcap}.`;
+      headline = `${weekdayLabelDe(dateKey)}: Strom kostete an der Börse zeitweise ${deNum(r.pmin ?? 0, 2)} €/MWh (${r.pminAt ?? "—"} Uhr). ${Vcap}`;
       if (r.negH) {
         headline += ` ${deNum(r.negH, 2)} Stunden lag der Preis unter null.`;
       }
@@ -374,7 +394,7 @@ export function auffaelligkeitForDay(
       kopfSubline = Vcap;
       break;
     default:
-      headline = `${weekdayLabelDe(dateKey)}: ${Vcap}.`;
+      headline = `${weekdayLabelDe(dateKey)}: ${Vcap}`;
   }
 
   if (!kopfH1) {

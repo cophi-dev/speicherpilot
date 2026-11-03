@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export default async function LiveRedirectPage({
   searchParams,
@@ -14,7 +14,7 @@ export default async function LiveRedirectPage({
   }
   const suffix = params.toString() ? `?${params.toString()}` : "";
   if (tag && /^\d{4}-\d{2}-\d{2}$/.test(tag)) {
-    redirect(`/tag/${tag}${suffix}`);
+    permanentRedirect(`/tag/${tag}${suffix}`);
   }
-  redirect(`/tag${suffix}`);
+  permanentRedirect(`/tag${suffix}`);
 }

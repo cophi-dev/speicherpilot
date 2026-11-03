@@ -46,4 +46,19 @@ describe("auffaelligkeit Regel v1", () => {
     expect(r.kind).toBe("keine");
     expect(r.headline).toContain("unauffälliger Tag");
   });
+
+  it("never emits double periods in kopf or headline", () => {
+    const keys = records.map((r) => r.dateKey).filter((k) => k >= "2026-10-01" && k <= "2026-11-02");
+    for (const dateKey of keys) {
+      const r = auffaelligkeitForDay(records, dateKey);
+      const text = `${r.kopfH1} ${r.kopfSubline} ${r.headline} ${r.subline}`;
+      expect(text).not.toMatch(/\.\./);
+    }
+  });
+
+  it("evening peak H1 follows direction (hoch vs tief)", () => {
+    expect(auffaelligkeitForDay(records, "2026-10-06").kopfH1).toContain("besonders viel decken");
+    expect(auffaelligkeitForDay(records, "2026-10-09").kopfH1).toContain("so wenig decken wie selten");
+    expect(auffaelligkeitForDay(records, "2026-10-25").kopfH1).toContain("so wenig decken wie selten");
+  });
 });

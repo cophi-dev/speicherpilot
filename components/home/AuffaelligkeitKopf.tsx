@@ -41,6 +41,9 @@ export function AuffaelligkeitKopf({
   const metricKey = result.kind === "metric" ? result.key : null;
   const stand = kopfDataStand(dayKey, todayKey, dataStand);
   const kicker = `${kickerPrefix} · ${weekdayShort(dayKey, "de")}, ${formatBerlinDayLabel(dayKey)} · Datenstand ${stand}`;
+  const dayLabel = formatBerlinDayLabel(dayKey);
+  const isTagPage = kickerPrefix === "Tag";
+  const isYesterday = dayKey === prevBerlinDateKey(todayKey);
 
   const hero = record && winner && metricKey === winner.key ? kopfHero(record, winner) : null;
 
@@ -62,15 +65,18 @@ export function AuffaelligkeitKopf({
     });
   }, [dayKey, metricKey, records]);
 
+  const priceSpreadLabel = isTagPage && !isYesterday ? `Spanne am ${dayLabel}` : "Spanne gestern";
+  const priceDayLabel = isTagPage && !isYesterday ? `Börsenpreis am ${dayLabel}` : "Börsenpreis gestern";
+
   const priceLine =
     record?.pmin != null && record.pmax != null && metricKey !== "spread"
       ? {
-          label: "Börsenpreis gestern",
+          label: priceDayLabel,
           value: `${formatQuantity(Math.round(record.pmin), "de", 0)}–${formatQuantity(Math.round(record.pmax), "de", 0)} €/MWh`,
         }
       : metricKey === "spread" && record?.spread != null
         ? {
-            label: "Spanne gestern",
+            label: priceSpreadLabel,
             value: `${formatQuantity(Math.round(record.pmin ?? 0), "de", 0)}–${formatQuantity(Math.round(record.pmax ?? 0), "de", 0)} €/MWh`,
           }
         : null;

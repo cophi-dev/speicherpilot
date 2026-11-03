@@ -29,18 +29,34 @@ export default async function TagDetailPage({
   const query = await searchParams;
   const view = await loadGermanyView(new Date(), "/tag", { tag: datum, ...query });
 
+  const records = view.auffaelligkeitRecords;
+  const record = records?.find((r) => r.dateKey === datum) ?? null;
+
   if (view.requestedTagStatus === "ausserhalb" || view.requestedTagStatus === "unvollstaendig") {
     return (
-      <TagUnavailable requested={datum} todayKey={view.todayKey} status={view.requestedTagStatus} />
+      <TagUnavailable
+        requested={datum}
+        todayKey={view.todayKey}
+        status={view.requestedTagStatus === "ausserhalb" ? "ausserhalb" : "unvollstaendig"}
+        record={record}
+      />
     );
   }
 
   const dayKey = datum;
-  const records = view.auffaelligkeitRecords;
   const day = view.dispatch.day;
 
   if (!records || !day || day.dateBerlin !== datum) {
-    return <TagUnavailable requested={datum} todayKey={view.todayKey} status="ausserhalb" />;
+    return (
+      <TagUnavailable requested={datum} todayKey={view.todayKey} status="ausserhalb" record={record} />
+    );
+  }
+
+  const recordIndex = records.findIndex((r) => r.dateKey === dayKey);
+  if (recordIndex >= 0 && recordIndex < 30) {
+    return (
+      <TagUnavailable requested={datum} todayKey={view.todayKey} status="vorlauf" record={records[recordIndex]} />
+    );
   }
 
   const result = auffaelligkeitForDay(records, dayKey);

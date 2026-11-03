@@ -19,7 +19,7 @@ export function MethodikSection({ id, title, level = 2, defaultOpen = false, chi
         <Heading>{title}</Heading>
       </summary>
       <div className="methodik-section-body">
-        <LazyMethodikBody sectionId={id}>{children}</LazyMethodikBody>
+        <LazyMethodikBody sectionId={id} initialOpen={defaultOpen}>{children}</LazyMethodikBody>
       </div>
     </details>
   );

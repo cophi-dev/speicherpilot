@@ -81,6 +81,7 @@ describe("alle_tage.txt reference (33 days, full fixture history)", () => {
       const normalizedSentence = sentence.replace(/\s+/g, " ").trim();
       const normalizedOut = `${r.headline}${r.subline ? ` ${r.subline}` : ""}`.replace(/\s+/g, " ").trim();
       expect(normalizedOut).toBe(normalizedSentence);
+      expect(`${r.kopfH1} ${r.kopfSubline}`).not.toMatch(/\.\./);
     }
   );
 
