@@ -89,13 +89,7 @@ export type MethodikFleetStand = {
   standLabel: { de: string; en: string };
 };
 
-export function MethodikUeberblick({
-  language,
-  fleet,
-}: {
-  language: AppLanguage;
-  fleet?: MethodikFleetStand | null;
-}) {
+function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFleetStand | null) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const pct = (value: number) => formatQuantity(value * 100, language, 0);
   const rte = pct(ROUND_TRIP_EFFICIENCY);
@@ -370,10 +364,21 @@ export function MethodikUeberblick({
     tx("Lizenz geprüft", "Licence checked"),
   ];
 
-  return (
+  return { tx, assumptions, sources, headers, sourceHeaders, share, peak, language };
+}
+
+export function MethodikAnnahmenSection({
+  language,
+  fleet,
+  bodyOnly = false,
+}: {
+  language: AppLanguage;
+  fleet?: MethodikFleetStand | null;
+  bodyOnly?: boolean;
+}) {
+  const { assumptions, headers, tx } = buildMethodikOverviewContext(language, fleet);
+  const body = (
     <>
-      <section id="annahmen">
-        <h2>{tx("01 Annahmen auf einen Blick", "01 Assumptions at a glance")}</h2>
         <p>
           {tx(
             "Fachleute sehen hier in kurzer Zeit, was das Modell annimmt. Die Formeln in den Kapiteln darunter rechnen damit. Der Großspeicher ",
@@ -397,9 +402,31 @@ export function MethodikUeberblick({
           cols={["c-assumption", "c-value", "c-unit", "c-why", "c-uncertainty"]}
           rows={assumptions.map((row) => [row.assumption, row.value, row.unit, row.why, row.uncertainty])}
         />
-      </section>
-      <section id="lizenzen">
-        <h2>{tx("02 Quellen und Lizenzen", "02 Sources and licences")}</h2>
+    </>
+  );
+  if (bodyOnly) {
+    return body;
+  }
+  return (
+    <section id="annahmen">
+      <h2>{tx("01 Annahmen auf einen Blick", "01 Assumptions at a glance")}</h2>
+      {body}
+    </section>
+  );
+}
+
+export function MethodikLizenzenSection({
+  language,
+  fleet,
+  bodyOnly = false,
+}: {
+  language: AppLanguage;
+  fleet?: MethodikFleetStand | null;
+  bodyOnly?: boolean;
+}) {
+  const { sources, sourceHeaders, tx } = buildMethodikOverviewContext(language, fleet);
+  const body = (
+    <>
         <p>
           {tx(
             "Keine Energy-Charts-Bilder sind eingebettet. Wir nutzen nur Daten. Die Namensnennung steht so, wie die Quelle sie verlangt oder in ihrer Lizenz vorgibt. Die Lizenztexte wurden am 28.10.2026 geprüft.",
@@ -440,9 +467,31 @@ export function MethodikUeberblick({
             ))}
           </tbody>
         </table>
-      </section>
-      <section id="grenzen">
-        <h2>{tx("03 Grenzen des Modells", "03 Limits of the model")}</h2>
+    </>
+  );
+  if (bodyOnly) {
+    return body;
+  }
+  return (
+    <section id="lizenzen">
+      <h2>{tx("02 Quellen und Lizenzen", "02 Sources and licences")}</h2>
+      {body}
+    </section>
+  );
+}
+
+export function MethodikGrenzenSection({
+  language,
+  fleet,
+  bodyOnly = false,
+}: {
+  language: AppLanguage;
+  fleet?: MethodikFleetStand | null;
+  bodyOnly?: boolean;
+}) {
+  const { tx, share, peak } = buildMethodikOverviewContext(language, fleet);
+  const body = (
+    <>
         <p>
           {tx(
             "Das Modell endet hier. Was darunter nicht steht, ist nicht gerechnet.",
@@ -522,7 +571,31 @@ export function MethodikUeberblick({
             )}
           </li>
         </ul>
-      </section>
+    </>
+  );
+  if (bodyOnly) {
+    return body;
+  }
+  return (
+    <section id="grenzen">
+      <h2>{tx("03 Grenzen des Modells", "03 Limits of the model")}</h2>
+      {body}
+    </section>
+  );
+}
+
+export function MethodikUeberblick({
+  language,
+  fleet,
+}: {
+  language: AppLanguage;
+  fleet?: MethodikFleetStand | null;
+}) {
+  return (
+    <>
+      <MethodikAnnahmenSection language={language} fleet={fleet} />
+      <MethodikLizenzenSection language={language} fleet={fleet} />
+      <MethodikGrenzenSection language={language} fleet={fleet} />
     </>
   );
 }

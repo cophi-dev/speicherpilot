@@ -24,7 +24,7 @@ export function SiteOperatorSectionsServer({ selection }: { selection: NetzSelec
           <p className="site-testnetz-lead">
             Was passiert im Netz dahinter, wenn eine Leitung oder ein Trafo ausfällt? Zahlen aus SimBench, keine Messung.
           </p>
-          <NetzDemo data={demo} selection={selection} embedded />
+          <NetzDemo data={demo} selection={selection} embedded surface="paper" />
         </div>
       </section>
     </div>

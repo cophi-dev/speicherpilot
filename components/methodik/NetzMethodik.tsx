@@ -21,7 +21,7 @@ function median(values: number[]): number {
   return sorted[mid] ?? 0;
 }
 
-export function NetzMethodik({ language }: { language: AppLanguage }) {
+export function NetzMethodik({ language, bodyOnly = false }: { language: AppLanguage; bodyOnly?: boolean }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const data = loadNetzDemo();
   const hl = data.cases.hL.base;
@@ -35,9 +35,8 @@ export function NetzMethodik({ language }: { language: AppLanguage }) {
   const num = (value: number, digits = 1) => formatQuantity(value, language, digits);
   const pu = (value: number) => formatQuantity(value, language, 4);
 
-  return (
-    <section id="netz">
-      <h2>{tx("14 Netzwirkung im Testnetz", "14 Grid effect in a test grid")}</h2>
+  const body = (
+    <>
       <p>
         {tx(
           "Die Seite /netz schlägt einen vorab gerechneten Lastfluss nach. Sie rechnet nichts im Browser. Ein Speicher sitzt an einem von vier Knoten, mit 2, 5, 10 oder 20 MW, laden oder entladen.",
@@ -202,6 +201,15 @@ export function NetzMethodik({ language }: { language: AppLanguage }) {
       <p>
         <a href="/netz">{tx("Zur Seite Netzwirkung im Testnetz", "To the test-grid page")}</a>
       </p>
+    </>
+  );
+  if (bodyOnly) {
+    return body;
+  }
+  return (
+    <section id="netz">
+      <h2>{tx("14 Netzwirkung im Testnetz", "14 Grid effect in a test grid")}</h2>
+      {body}
     </section>
   );
 }

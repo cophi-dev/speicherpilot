@@ -209,10 +209,12 @@ export function NetzDemo({
   data,
   selection: initialSelection,
   embedded = false,
+  surface = "default",
 }: {
   data: NetzDemoFile;
   selection: NetzSelection;
   embedded?: boolean;
+  surface?: "default" | "paper";
 }) {
   const { language } = useLanguage();
   const router = useRouter();
@@ -358,8 +360,15 @@ export function NetzDemo({
     return deltaText(value, baseValue, language, digits);
   }
 
+  const stageClass =
+    embedded && surface === "paper"
+      ? `${styles.stage} ${styles.embedded} ${styles.stagePaper}`
+      : embedded
+        ? `${styles.stage} ${styles.embedded}`
+        : styles.stage;
+
   return (
-    <div className={embedded ? `${styles.stage} ${styles.embedded}` : styles.stage}>
+    <div className={stageClass}>
       {embedded ? null : (
         <p className={styles.banner} role="note">
           <WithTip id="testnetz" language={language}>
