@@ -20,9 +20,13 @@ export function parseScenario(value: string | null): ScenarioId | null {
 
 export function sitePath(view: Perspective, scenario?: ScenarioId | null): string {
   const params = new URLSearchParams();
-  params.set("view", view);
+  params.set("sicht", view);
   if (scenario) {
     params.set("scenario", scenario);
   }
-  return `/site?${params.toString()}`;
+  return `/ort?${params.toString()}`;
+}
+
+export function perspectiveFromParams(params: URLSearchParams): Perspective {
+  return parsePerspective(params.get("sicht")) ?? parsePerspective(params.get("view")) ?? "projekt";
 }

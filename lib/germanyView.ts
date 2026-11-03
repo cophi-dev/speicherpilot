@@ -19,6 +19,8 @@ import {
 import { buildPowerBoard, type PowerBoardModel } from "@/lib/powerBoard";
 import { parseMixRange, powerSeriesFresh, residualDaysFromSlots } from "@/lib/powerMix";
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
+import { buildTagesKennzahlRecords } from "@/lib/auffaelligkeitRecords";
+import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
 
 export type OverviewUiModel = OverviewEvaluation & {
@@ -57,6 +59,9 @@ export type GermanyView = {
   dayOverview: OverviewEvaluation | null;
   requestedTag: string | null;
   requestedTagStatus: RequestedTagStatus;
+  auffaelligkeitRecords: TagesKennzahlRecord[] | null;
+  /** Last complete Berlin day shown in the dashboard head (typically yesterday). */
+  kopfDayKey: string | null;
 };
 
 function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): LiveFleetPublic | null {
@@ -173,11 +178,11 @@ async function loadSurplusDayReportForView(
 
 export async function loadGermanyView(
   now: Date,
-  path: "/" | "/live",
+  path: "/" | "/live" | "/tag",
   query: { tag?: string | string[]; zeitraum?: string | string[] }
 ): Promise<GermanyView> {
   const todayKey = formatBerlinDateKeyFromUtcDate(now);
-  const requestedTagRaw = path === "/live" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
+  const requestedTagRaw = path !== "/" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
   const requestedRange = Array.isArray(query.zeitraum) ? query.zeitraum[0] : query.zeitraum;
   const yesterdayKey = prevBerlinDateKey(todayKey);
   const priceStart = addBerlinCalendarDays(yesterdayKey, -29);
@@ -233,13 +238,13 @@ export async function loadGermanyView(
   const board = buildPowerBoard({
     slots: parsed?.slots ?? [],
     offshorePresent: parsed?.offshorePresent ?? true,
-    range: path === "/live" ? "tag" : parseMixRange(requestedRange),
+    range: path === "/" ? parseMixRange(requestedRange) : "tag",
     endDate,
     todayKey,
     path,
     fleet: publicFleet ? { powerGw: publicFleet.powerGw, energyGwh: publicFleet.energyGwh } : null,
     stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
-    tag: path === "/live" && chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
+    tag: path !== "/" && chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
   });
 
   let surplusDay: SurplusDayReport | null = null;
@@ -284,6 +289,20 @@ export async function loadGermanyView(
     }
   }
 
+  const kopfDayKey = prevBerlinDateKey(todayKey);
+  let auffaelligkeitRecords: TagesKennzahlRecord[] | null = null;
+  if (parsed && publicFleet) {
+    const mergedPrices = mergeDayAheadPrices(priceRange.prices, price.prices);
+    auffaelligkeitRecords = buildTagesKennzahlRecords({
+      days,
+      slots: parsed.slots,
+      offshorePresent: parsed.offshorePresent,
+      prices: mergedPrices,
+      powerMw: publicFleet.powerMw,
+      energyMwh: publicFleet.energyMwh,
+    });
+  }
+
   return {
     todayKey,
     dispatch: {
@@ -305,5 +324,7 @@ export async function loadGermanyView(
     dayOverview,
     requestedTag,
     requestedTagStatus,
+    auffaelligkeitRecords,
+    kopfDayKey,
   };
 }

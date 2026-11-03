@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { jetbrainsMono, plexMono, plexSans } from "@/app/fonts";
+import { jetbrainsMono, plexMono, plexSans, spaceGrotesk } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
 import { ThemeInitScript } from "@/components/ThemeInitScript";
-import { assessmentChatConfigured } from "@/lib/llmAvailability";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 
 const siteOrigin = getPublicSiteOrigin();
@@ -33,11 +32,11 @@ export default function RootLayout({
     <html
       lang="de"
       suppressHydrationWarning
-      className={`${plexSans.variable} ${plexMono.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${plexMono.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground">
         <ThemeInitScript />
-        <SiteShell chatConfigured={assessmentChatConfigured()}>{children}</SiteShell>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

@@ -40,7 +40,7 @@ export function SiteDay({
   netzSelection: NetzSelection;
 }) {
   const params = useSearchParams();
-  const view = parsePerspective(params.get("view")) ?? "projekt";
+  const view = parsePerspective(params.get("sicht")) ?? parsePerspective(params.get("view")) ?? "projekt";
   const scenario = parseScenario(params.get("scenario")) ?? "supermarkt";
   const { language } = useLanguage();
   const [csv, setCsv] = useState<LoadProfile | null>(null);

@@ -73,7 +73,7 @@ export function DayPicker({
     <div className="day-picker mx-auto max-w-[1200px] px-4 pt-4">
       <div className="day-picker-nav">
         {canPrev ? (
-          <Link href={`/live?tag=${prev}`} prefetch={false} className="day-picker-btn">
+          <Link href={`/tag/${prev}`} prefetch={false} className="day-picker-btn">
             {tx("← Vortag", "← Previous day")}
           </Link>
         ) : (
@@ -89,13 +89,13 @@ export function DayPicker({
             onChange={(event) => {
               const value = event.target.value;
               if (value) {
-                window.location.href = `/live?tag=${value}`;
+                window.location.href = `/tag/${value}`;
               }
             }}
           />
         </label>
         {canNext ? (
-          <Link href={`/live?tag=${next}`} prefetch={false} className="day-picker-btn">
+          <Link href={`/tag/${next}`} prefetch={false} className="day-picker-btn">
             {tx("Folgetag →", "Next day →")}
           </Link>
         ) : (
@@ -107,7 +107,7 @@ export function DayPicker({
           {chips.map((chip) => (
             <Link
               key={chip.tag}
-              href={`/live?tag=${chip.tag}`}
+              href={`/tag/${chip.tag}`}
               prefetch={false}
               className={chip.tag === activeTag ? "on" : undefined}
             >

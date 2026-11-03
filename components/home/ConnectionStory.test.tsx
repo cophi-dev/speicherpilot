@@ -66,7 +66,7 @@ describe("ConnectionStory", () => {
     expect(screen.getByText("01")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Eigenen Markt rechnen →" })).toHaveAttribute(
       "href",
-      "/site?view=projekt&scenario=supermarkt"
+      "/ort?sicht=projekt&scenario=supermarkt"
     );
 
     const items = screen.getAllByRole("listitem");

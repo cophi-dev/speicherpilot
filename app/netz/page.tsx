@@ -13,12 +13,12 @@ export default async function NetzRedirect({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const query = await searchParams;
-  const params = new URLSearchParams({ view: "netz" });
+  const params = new URLSearchParams({ sicht: "netz" });
   for (const key of ["fall", "richtung", "knoten", "p"] as const) {
     const value = first(query[key]);
     if (value) {
       params.set(key, value);
     }
   }
-  permanentRedirect(`/site?${params.toString()}#testnetz-n1`);
+  permanentRedirect(`/ort?${params.toString()}#testnetz-n1`);
 }

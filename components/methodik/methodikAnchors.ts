@@ -17,6 +17,7 @@ export const METHODIK_SECTION_IDS = [
   "live",
   "uebersicht",
   "groesse",
+  "auffaelligkeit",
   "ampel",
   "netzdienlichkeit",
   "peak-erklaert",

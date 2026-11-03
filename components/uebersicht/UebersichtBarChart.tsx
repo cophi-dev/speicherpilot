@@ -86,7 +86,7 @@ export function UebersichtBarChart({
           );
           return (
             <g key={row.dateBerlin}>
-              <a href={`/live?tag=${row.dateBerlin}`} aria-label={aria}>
+              <a href={`/tag/${row.dateBerlin}`} aria-label={aria}>
                 <rect
                   x={x}
                   y={pad.t + innerH - surplusH}

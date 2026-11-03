@@ -17,7 +17,7 @@ describe("perspective urls", () => {
   });
 
   it("puts the choice only in the query string", () => {
-    expect(sitePath("netz", "quartier")).toBe("/site?view=netz&scenario=quartier");
-    expect(sitePath("projekt")).toBe("/site?view=projekt");
+    expect(sitePath("netz", "quartier")).toBe("/ort?sicht=netz&scenario=quartier");
+    expect(sitePath("projekt")).toBe("/ort?sicht=projekt");
   });
 });
