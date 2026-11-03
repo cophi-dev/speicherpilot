@@ -89,7 +89,19 @@ function quarterLabel(count: number, language: AppLanguage) {
   return count === 1 ? "1 quarter-hour missing" : `${count} quarter-hours missing`;
 }
 
-export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: string | null }) {
+export function Uebersicht({
+  bundle,
+  until,
+  hideLeadAssessment = false,
+  overviewTitle,
+}: {
+  bundle: OverviewsBundle;
+  until: string | null;
+  /** When the homepage lead already shows the heute ×1 sentence. */
+  hideLeadAssessment?: boolean;
+  /** When the page H1 lives above the story; this block uses h2 with the same text. */
+  overviewTitle?: string;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const [blick, setBlick] = useState<OverviewBlick>(() => readInitialQuery().blick);
@@ -169,12 +181,18 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
         ) : null}
 
         <p className="day-kicker">{tx("Deutschland · Übersicht", "Germany · overview")}</p>
-        <h1 id="uebersicht-title" className="start-hero-title">
-          {tx(
-            "Wie viel Strom aus Wind und Sonne war übrig — und hätte mehr Speicher ihn aufgenommen?",
-            "How much wind and solar power was left over — and would more storage have absorbed it?"
-          )}
-        </h1>
+        {overviewTitle ? (
+          <h2 id="uebersicht-title" className="start-hero-title">
+            {overviewTitle}
+          </h2>
+        ) : (
+          <h1 id="uebersicht-title" className="start-hero-title">
+            {tx(
+              "Wie viel Strom aus Wind und Sonne war übrig — und hätte mehr Speicher ihn aufgenommen?",
+              "How much wind and solar power was left over — and would more storage have absorbed it?"
+            )}
+          </h1>
+        )}
 
         <div className="sim-seg uebersicht-period" role="radiogroup" aria-label={tx("Zeitraum", "Period")}>
           {OVERVIEW_BLICKS.map((item, index) => (
@@ -201,7 +219,9 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
           </p>
         ) : null}
 
-        <p className="uebersicht-assessment">{assessment}</p>
+        {!(hideLeadAssessment && blick === "heute" && factor === 1) ? (
+          <p className="uebersicht-assessment">{assessment}</p>
+        ) : null}
         {model.observed.openDay && blick === "heute" ? (
           <p className="uebersicht-open-hint">
             {tx("Der Tag läuft noch. Die Zahlen können sich noch ändern.", "The day is still in progress. Figures may still change.")}
@@ -369,11 +389,11 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
 
         <p className="uebersicht-foot">
           {tx(`Datenstand: ${bundle.dataStand} · Energy-Charts.info`, `As of ${bundle.dataStand} · Energy-Charts.info`)} ·{" "}
-          <Link href="/methodik#uebersicht" prefetch={false}>
+          <Link href="/methodik#uebersicht" prefetch={false} className="tap-target-inline">
             {tx("Methodik", "Method")}
           </Link>{" "}
           ·{" "}
-          <Link href="/beitraege" prefetch={false}>
+          <Link href="/beitraege" prefetch={false} className="tap-target-inline">
             {tx("Beiträge", "Articles")}
           </Link>
         </p>

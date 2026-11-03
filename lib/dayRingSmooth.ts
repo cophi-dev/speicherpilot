@@ -2,6 +2,8 @@ import { polarPoint, RING_GAP_DEG, RING_SLOTS, segmentAngles, segmentIndexForHou
 
 /** Drawn samples of the monotone cubic. At least four interpolated points per hour, and fine enough for a 1280px ring at 2×. */
 const EDGE_STEP_DEG = 0.2;
+/** Upper bound on polar curve samples (full ring ≈ one per 3.75°). */
+export const MAX_RING_CURVE_SAMPLES = 96;
 
 /** Morph duration for a factor change. Ease-in-out, and the first frame is the next animation frame. */
 export const RING_MORPH_MS = 450;
@@ -56,7 +58,11 @@ export function inMidnightTaper(angleDeg: number): boolean {
  * Pull both ends onto `zeroRadius` across two quarter-hours.
  * The shape narrows; opacity stays solid. The 4° gap itself is not part of the path.
  */
-export function taperRingSamples(samples: readonly CurveSample[], zeroRadius: number): CurveSample[] {
+export function taperRingSamples(
+  samples: readonly CurveSample[],
+  zeroRadius: number,
+  maxSamples: number = Number.POSITIVE_INFINITY
+): CurveSample[] {
   if (samples.length < 2) {
     return samples.map((sample) => ({ ...sample }));
   }
@@ -78,7 +84,8 @@ export function taperRingSamples(samples: readonly CurveSample[], zeroRadius: nu
   const head: CurveSample = { angleDeg: gap, radius: zeroRadius, value: body[0].value };
   const tail: CurveSample = { angleDeg: end, radius: zeroRadius, value: body[body.length - 1].value };
   return sampleMonotone(
-    [head, ...body, tail].map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: sample.radius }))
+    [head, ...body, tail].map((sample) => ({ angle: sample.angleDeg, value: sample.value, radius: sample.radius })),
+    maxSamples
   );
 }
 export function quarterCenterDeg(index: number): number {
@@ -129,7 +136,8 @@ export function oneKnotPerClockAngle(
 export function smoothPolarSamples(
   series: readonly { angleDeg: number; value: number }[],
   radiusOf: (value: number) => number,
-  zeroRadius: number
+  zeroRadius: number,
+  maxSamples: number = Number.POSITIVE_INFINITY
 ): CurveSample[] {
   void zeroRadius;
   const controls: Control[] = oneKnotPerClockAngle(series).map((sample) => ({
@@ -137,7 +145,7 @@ export function smoothPolarSamples(
     value: sample.value,
     radius: radiusOf(sample.value),
   }));
-  return sampleMonotone(controls);
+  return sampleMonotone(controls, maxSamples);
 }
 
 /**
@@ -256,7 +264,7 @@ export function conicGradient(stops: readonly { angleDeg: number; color: string 
   return `conic-gradient(from 0deg at 50% 50%, ${paint.map((stop) => `${stop.color} ${stop.angleDeg.toFixed(2)}deg`).join(", ")})`;
 }
 
-function sampleMonotone(controls: readonly Control[]): CurveSample[] {
+function sampleMonotone(controls: readonly Control[], maxSamples: number = Number.POSITIVE_INFINITY): CurveSample[] {
   if (controls.length < 2) return controls.map((control) => ({ angleDeg: control.angle, value: control.value, radius: control.radius }));
   const slopes = fritschCarlsonSlopes(
     controls.map((control) => control.angle),
@@ -266,8 +274,22 @@ function sampleMonotone(controls: readonly Control[]): CurveSample[] {
   const end = controls[controls.length - 1].angle;
   const angles = new Set<number>([start, end]);
   for (const control of controls) angles.add(control.angle);
-  for (let angle = start; angle < end - 1e-6; angle += EDGE_STEP_DEG) angles.add(angle);
-  return [...angles].sort((left, right) => left - right).map((angle) => evaluateMonotone(controls, slopes, angle));
+  const span = end - start;
+  const step =
+    Number.isFinite(maxSamples) && maxSamples > 0 && span > 0
+      ? Math.max(EDGE_STEP_DEG, span / maxSamples)
+      : EDGE_STEP_DEG;
+  for (let angle = start; angle < end - 1e-6; angle += step) angles.add(angle);
+  const sorted = [...angles].sort((left, right) => left - right).map((angle) => evaluateMonotone(controls, slopes, angle));
+  if (!Number.isFinite(maxSamples) || sorted.length <= maxSamples) {
+    return sorted;
+  }
+  const stride = sorted.length / maxSamples;
+  const capped: CurveSample[] = [];
+  for (let index = 0; index < maxSamples; index += 1) {
+    capped.push(sorted[Math.min(sorted.length - 1, Math.round(index * stride))]!);
+  }
+  return capped;
 }
 
 /**

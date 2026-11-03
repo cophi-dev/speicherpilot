@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import { ConnectionLight } from "@/components/connection/ConnectionLight";
+import { ModelChip } from "@/components/day-ring/ModelChip";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
 import { connectionLight } from "@/lib/connectionLight";
@@ -162,7 +163,7 @@ export function ConnectionStory() {
               style={pinPx > 0 && !narrow ? { minHeight: pinPx } : undefined}
             >
               <div className="connection-story-head">
-                <h2 id={titleId} className="text-[36px] leading-[1.02] font-medium tracking-[-0.03em] md:text-[56px]">
+                <h2 id={titleId} className="connection-story-title text-[36px] leading-[1.02] font-light tracking-[-0.03em] md:text-[56px]">
                   {language === "de" ? "Was ist Peak " : "What is peak "}
                   <span className="whitespace-nowrap">
                     {language === "de" ? "Shaving?" : "shaving?"}
@@ -185,7 +186,7 @@ export function ConnectionStory() {
                 ))}
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <p className="num border border-warning px-2 py-1 text-[12px] font-medium tracking-[0.08em] text-warning uppercase">
+                <p className="story-example-chip num px-2 py-1 text-[12px] font-medium tracking-[0.08em] uppercase">
                   {tx("Beispieldaten", "Example data")}
                 </p>
               </div>
@@ -218,15 +219,22 @@ export function ConnectionStory() {
                   <div className="story-step-card">
                     <p className="story-step-kicker">
                       <span className="num text-[12px] tracking-[0.14em] text-muted-foreground">{item.n}</span>
-                      <StepPill index={index} total={steps.length} story={story} language={language} />
                     </p>
                     <h3 className="mt-3 max-w-[18ch] text-[22px] leading-snug font-medium tracking-[-0.02em]">{item.title}</h3>
                     <p className="mt-4 max-w-[36ch] text-[16px] leading-[1.6]">{item.body}</p>
                     {item.figure ? (
-                      <p className="story-figure num mt-6 text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
-                        {item.figure}
-                        <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
-                      </p>
+                      <div className="story-figure-wrap mt-6">
+                        <p className="story-figure num text-[48px] leading-none tracking-[-0.04em] md:text-[64px]">
+                          {item.figure}
+                          <span className="ml-2 text-[16px] tracking-normal text-muted-foreground">{item.figureUnit}</span>
+                        </p>
+                        <p className="mt-3 flex flex-wrap items-center gap-2">
+                          <ModelChip label={tx("Modellschätzung", "Model estimate")} />
+                          <span className="text-sm text-muted-foreground">
+                            {tx("Beispielspeicher ×1", "Example storage ×1")}
+                          </span>
+                        </p>
+                      </div>
                     ) : null}
                     {item.note ? <p className="mt-3 max-w-[36ch] text-sm text-muted-foreground">{item.note}</p> : null}
                     <div className="story-card-chart">
@@ -260,35 +268,12 @@ export function ConnectionStory() {
             `Modell: Speicher startet voll, ${formatQuantity(story.roundTripEfficiency * 100, language, 0)} % Wirkungsgrad, lädt ab ${clockLabel(story.rechargeFromHour)} mit höchstens ${formatQuantity(story.rechargeCapKw, language, 0)} kW nach. Ausschnitt ${clockLabel(story.zoomFromHour)}–${clockLabel(story.zoomToHour)}. Fiktives Profil, nicht gemessen.`,
             `Model: battery starts full, ${formatQuantity(story.roundTripEfficiency * 100, language, 0)}% round-trip efficiency, recharges from ${clockLabel(story.rechargeFromHour)} at ${formatQuantity(story.rechargeCapKw, language, 0)} kW at most. Window ${clockLabel(story.zoomFromHour)}–${clockLabel(story.zoomToHour)}. Fictional profile, not measured.`
           )}{" "}
-          <Link href="/methodik#peak-erklaert" className="underline underline-offset-[3px]">
+          <Link href="/methodik#peak-erklaert" className="tap-target-inline underline underline-offset-[3px]">
             {tx("So ist das gerechnet", "How this is calculated")}
           </Link>
         </p>
       </div>
     </section>
-  );
-}
-
-function StepPill({
-  index,
-  total,
-  story,
-  language,
-}: {
-  index: number;
-  total: number;
-  story: PeakShavingExplain;
-  language: "de" | "en";
-}) {
-  const peak = index === 0 ? story.peakBeforeKw : story.peakAfterKw;
-  const light = connectionLight(peak, story.limitKw);
-  const verdict = language === "de" ? light.label.de : light.label.en;
-  const stepNo = String(index + 1).padStart(2, "0");
-  const totalNo = String(total).padStart(2, "0");
-  return (
-    <span className="story-pill" data-status={light.status}>
-      {stepNo} / {totalNo} · {verdict}
-    </span>
   );
 }
 

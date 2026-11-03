@@ -2,6 +2,7 @@
 export const METHODIK_HASH_ALIASES: Record<string, string> = {
   beispiele: "beispieltage",
   quartier: "beispieltage",
+  ring: "was",
 };
 
 export const METHODIK_SECTION_IDS = [

@@ -133,6 +133,18 @@ describe("einschaetzung", () => {
     expect(text).not.toMatch(/Tag läuft noch/);
   });
 
+  it("drops until time when dataStand is shown for heute", () => {
+    const text = einschaetzung(
+      baseModel({ openDay: true, surplusGwh: 0, lastSurplusDateBerlin: "2026-10-25" }, "heute"),
+      1,
+      "de",
+      { until: "18:30", dataStand: "03.11.2026 20:11 Uhr" }
+    );
+    expect(text).toMatch(/Heute bisher kein Überschuss\./);
+    expect(text).not.toMatch(/bis 18:30/);
+    expect(text).toMatch(/Datenstand: 03\.11\.2026 20:11 Uhr/);
+  });
+
   it("describes no surplus with last surplus day", () => {
     const text = einschaetzung(
       baseModel({ surplusGwh: 0, netImportGwh: 138, lastSurplusDateBerlin: "2026-10-25" }, "gestern"),

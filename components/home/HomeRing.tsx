@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { EnergyScaleLegend } from "@/components/day-ring/EnergyScaleLegend";
@@ -28,6 +28,7 @@ import {
   surplusHours,
   weekdayShort,
 } from "@/lib/dayRingStory";
+import { MAX_RING_CURVE_SAMPLES } from "@/lib/dayRingSmooth";
 import {
   buildLiveDispatchStory,
   LIVE_DISPATCH_FACTORS,
@@ -43,6 +44,9 @@ export function HomeRing({
   todayKey,
   until,
   leading,
+  showHero = true,
+  showMovements = true,
+  showMore = true,
 }: {
   dispatch: LiveDispatchInput;
   /** Last complete day with surplus, used by the explanation blocks. The hero stays on `dispatch`. */
@@ -50,6 +54,9 @@ export function HomeRing({
   todayKey: string;
   until: string | null;
   leading?: ReactNode;
+  showHero?: boolean;
+  showMovements?: boolean;
+  showMore?: boolean;
 }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
@@ -60,10 +67,10 @@ export function HomeRing({
   );
 
   if (!stories || !dispatch.fleet) {
-    return (
-      <section className="day-hero day-hero-screen">
+    const missing = (
+      <section className={showHero ? "day-hero day-hero-screen" : "day-story"} aria-live="polite">
         <div className="day-hero-inner">
-          <h1 className="day-title">
+          <h2 className={showHero ? "day-title" : undefined}>
             {dispatch.fleet
               ? tx(
                   "In den geladenen Tagen liegt keine Residuallast mit mindestens vier Viertelstunden vor.",
@@ -73,10 +80,11 @@ export function HomeRing({
                   "Die Großspeicher-Flotte von battery-charts.de ist gerade nicht geladen.",
                   "The large-storage fleet from battery-charts.de is not loaded."
                 )}
-          </h1>
+          </h2>
         </div>
       </section>
     );
+    return showHero ? missing : showMovements ? missing : null;
   }
 
   const story = stories[1];
@@ -124,6 +132,7 @@ export function HomeRing({
 
   return (
     <>
+      {showHero ? (
       <section className="day-hero day-hero-screen" aria-labelledby="home-day">
         <div className="day-hero-inner">
           {leading}
@@ -215,13 +224,17 @@ export function HomeRing({
           </div>
         </div>
       </section>
+      ) : null}
 
+      {showMovements ? (
       <section className="day-story" aria-labelledby="home-movements">
         <div className="day-hero-inner">
           <Movements story={explained} language={language} />
         </div>
       </section>
+      ) : null}
 
+      {showMore ? (
       <section className="day-paper" aria-labelledby="home-more">
         <div className="day-hero-inner">
           <h2 id="home-more">{tx("Was wäre mit mehr Großspeichern?", "What if there were more large storage?")}</h2>
@@ -243,11 +256,24 @@ export function HomeRing({
           </div>
         </div>
       </section>
+      ) : null}
     </>
   );
 }
 
 const MOVEMENT_IDS = ["night", "midday", "evening"] as const;
+
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+      media.addEventListener("change", onStoreChange);
+      return () => media.removeEventListener("change", onStoreChange);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false
+  );
+}
 
 function Movements({ story, language }: { story: LiveDispatchStory; language: AppLanguage }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
@@ -263,8 +289,12 @@ function Movements({ story, language }: { story: LiveDispatchStory; language: Ap
     { id: MOVEMENT_IDS[2], n: "03", title: tx("Abend", "Evening"), body: tx("Die Sonne ist weg, der Verbrauch hoch. Speicher geben ab und kappen die Spitze.", "The sun is gone and use is high. Storage gives power back and cuts the peak.") },
   ];
   const [highlight, setHighlight] = useState<(typeof steps)[number]["id"]>("night");
+  const reducedMotion = usePrefersReducedMotion();
   const items = useRef<Array<HTMLLIElement | null>>([]);
   useEffect(() => {
+    if (reducedMotion) {
+      return;
+    }
     const ratios = new Map<number, number>();
     const nodes = items.current.filter((node): node is HTMLLIElement => node !== null);
     const observer = new IntersectionObserver(
@@ -290,16 +320,65 @@ function Movements({ story, language }: { story: LiveDispatchStory; language: Ap
     );
     for (const node of nodes) observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [reducedMotion]);
   const active = steps.find((step) => step.id === highlight) ?? steps[0];
   const stepNo = steps.findIndex((step) => step.id === highlight) + 1;
+
+  const ringBlock = (stepId: (typeof MOVEMENT_IDS)[number], title: string, body: string) => (
+    <>
+      <DayRing
+        points={story.points}
+        label={title}
+        description={`${body} ${tx("Uhrzeiten 0, 6, 12 und 18 Uhr. Skala in GW.", "Hours 0, 6, 12 and 18. Scale in GW.")}`}
+        highlight={stepId}
+        showShift={false}
+        showSoc={false}
+        showFlow={false}
+        showHourTicks
+        showGwScale
+        chargedGwh={story.chargedGwh}
+        center={movementCenter(story, stepId, language)}
+        maxCurveSamples={MAX_RING_CURVE_SAMPLES}
+      />
+      <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
+      <p className="day-movement-ring-read">
+        <Link className="day-textlink tap-target-inline" href="/methodik#was">
+          {tx("Ring lesen", "How to read the ring")}
+        </Link>
+      </p>
+    </>
+  );
+
+  if (reducedMotion) {
+    return (
+      <div className="day-movements day-movements-reduced">
+        <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
+        <p className="day-kicker day-movement-kicker">
+          {tx(`Beispieltag: ${exampleDate}`, `Example day: ${exampleDate}`)}
+          {story.fallback && !quiet ? tx(" · letzter Tag mit Überschuss", " · last day with surplus") : null}
+        </p>
+        <div className="day-movements-reduced-stack">
+          {steps.map((step) => (
+            <article key={step.id} className="day-movement-static">
+              <p className="num day-movement-n">{step.n}</p>
+              <h3>{step.title}</h3>
+              <div className="day-movement-static-ring">{ringBlock(step.id, step.title, step.body)}</div>
+              <p className="day-movement-static-body">{step.body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="day-movements">
+      <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
+      <div className="day-movements-scroll">
       <div className="day-movement-story">
         <div className="day-movement-pin">
           <div className="day-movement-fit">
             <div className="day-movement-head">
-              <h2 id="home-movements">{tx("Ein Tag in drei Bewegungen", "One day in three movements")}</h2>
               <p className="day-movement-count num">
                 <span className="sr-only">{tx("Schritt ", "Step ")}</span>
                 {stepNo}/3
@@ -316,12 +395,20 @@ function Movements({ story, language }: { story: LiveDispatchStory; language: Ap
                 description={`${active.body} ${tx("Uhrzeiten 0, 6, 12 und 18 Uhr. Skala in GW.", "Hours 0, 6, 12 and 18. Scale in GW.")}`}
                 highlight={highlight}
                 showShift={false}
+                showSoc={false}
+                showFlow={false}
                 showHourTicks
                 showGwScale
                 chargedGwh={story.chargedGwh}
                 center={movementCenter(story, highlight, language)}
+                maxCurveSamples={MAX_RING_CURVE_SAMPLES}
               />
               <EnergyScaleLegend language={language} residualLabel={tx("Residuallast, GW", "Residual load, GW")} />
+              <p className="day-movement-ring-read">
+                <Link className="day-textlink tap-target-inline" href="/methodik#was">
+                  {tx("Ring lesen", "How to read the ring")}
+                </Link>
+              </p>
             </div>
           </div>
           <div className="day-movement-active" aria-hidden="true">
@@ -348,6 +435,7 @@ function Movements({ story, language }: { story: LiveDispatchStory; language: Ap
             </li>
           ))}
         </ol>
+      </div>
       </div>
     </div>
   );

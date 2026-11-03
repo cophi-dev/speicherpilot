@@ -40,6 +40,7 @@ export function SmoothRing({
   zeroRadius,
   monotone = false,
   solidSigns = false,
+  maxCurveSamples,
 }: {
   points: LiveDispatchPoint[];
   unit: RingUnit;
@@ -62,6 +63,7 @@ export function SmoothRing({
   monotone?: boolean;
   /** One flat colour per sign. Charge is mint, discharge is coral. */
   solidSigns?: boolean;
+  maxCurveSamples?: number;
 }) {
   const clipId = `ring-${useId().replace(/:/g, "")}`;
   const valueOf = (point: LiveDispatchPoint, field: "ohneMw" | "mitMw") => (unit === "kW" ? point[field] : point[field] / 1000);
@@ -74,9 +76,11 @@ export function SmoothRing({
   const ohneSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: ohne[index] ?? 0 }));
   const mitSeries = points.map((point, index) => ({ angleDeg: quarterCenterForHour(point.hour), value: mit[index] ?? 0 }));
   const smooth = (series: { angleDeg: number; value: number }[]) =>
-    monotone ? monotonePolarSamples(series, radiusOf) : smoothPolarSamples(series, radiusOf, zero);
-  const ohneSamples = taperRingSamples(smooth(ohneSeries), zero);
-  const mitSamples = taperRingSamples(smooth(mitSeries), zero);
+    monotone
+      ? monotonePolarSamples(series, radiusOf)
+      : smoothPolarSamples(series, radiusOf, zero, maxCurveSamples);
+  const ohneSamples = taperRingSamples(smooth(ohneSeries), zero, maxCurveSamples);
+  const mitSamples = taperRingSamples(smooth(mitSeries), zero, maxCurveSamples);
   const colorOf = (value: number) =>
     scale === "utilisation" && limit != null && limit > 0 ? utilisationColor(value / limit) : energyColor(value);
   const gradient = conicGradient(ohneSeries.map((sample) => ({ angleDeg: sample.angleDeg, color: colorOf(sample.value) })));
@@ -84,13 +88,15 @@ export function SmoothRing({
   const reach = Math.max(zero, ...ohneSamples.map((sample) => sample.radius), ...mitSamples.map((sample) => sample.radius)) + 48;
   const area = polarAreaPath(ohneSamples, zero);
   const holeMask = holeRadius > 0 ? `url(#${clipId}-hole)` : undefined;
+  const areaPathId = `${clipId}-area-path`;
 
   return (
     <g className="day-smooth">
       <defs>
+        <path id={areaPathId} className="day-ring-area" d={area} fillRule="nonzero" />
         <mask id={`${clipId}-zero`} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
           <rect x={view.x} y={view.y} width={view.w} height={view.h} fill="white" />
-          <path d={area} fill="black" fillRule="nonzero" />
+          <use href={`#${areaPathId}`} fill="black" />
         </mask>
         {holeRadius > 0 ? (
           <mask id={`${clipId}-hole`} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x={view.x} y={view.y} width={view.w} height={view.h}>
@@ -103,10 +109,10 @@ export function SmoothRing({
             <path d={wedgePath(span.start, span.end, reach)} />
           </clipPath>
         ) : null}
+        <clipPath id={`${clipId}-area`} clipPathUnits="userSpaceOnUse">
+          <use href={`#${areaPathId}`} />
+        </clipPath>
       </defs>
-      <clipPath id={`${clipId}-area`} clipPathUnits="userSpaceOnUse">
-        <path className="day-ring-area" d={area} fillRule="nonzero" shapeRendering="geometricPrecision" />
-      </clipPath>
       <circle className="day-zero" cx="0" cy="0" r={zero} fill="none" mask={`url(#${clipId}-zero)`} />
       {solidSigns ? (
         <g mask={holeMask}>

@@ -75,7 +75,7 @@ describe("ConnectionStory", () => {
     expect(screen.getByText("Die Spitze passt nicht durch")).toBeInTheDocument();
     expect(screen.getByText(/lädt er mit höchstens/)).toBeInTheDocument();
     expect(screen.getByText("03")).toBeInTheDocument();
-    expect(screen.getByText(/Modellschätzung/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Modellschätzung/).length).toBeGreaterThanOrEqual(1);
     for (const item of items) {
       expect(item.className).not.toContain("border-l");
     }
