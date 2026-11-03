@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
 import { TagChapter } from "@/components/home/TagChapter";
@@ -105,7 +105,15 @@ export function AuffaelligkeitKopf({
         {hero ? (
           <div className="v4-kopf-hero">
             <div className="v4-kopf-zahl">
-              <p className="v4-riesenzahl num" aria-hidden="true">
+              <p
+                className="v4-riesenzahl num"
+                aria-hidden="true"
+                style={
+                  {
+                    "--v4-ries-ch": String(hero.value.length + Math.ceil(hero.unit.length * 0.45)),
+                  } as CSSProperties
+                }
+              >
                 {hero.value}
                 <span className="v4-riesenzahl-unit">{hero.unit}</span>
               </p>
@@ -174,6 +182,8 @@ export function TagPageV4({
         surplusLine={tagSurplusLine(record?.surplusGwh ?? 0)}
         peakGw={record?.eveningPeakGw ?? null}
         peakAt={record?.eveningPeakAt ?? null}
+        todayKey={todayKey}
+        useTagDateHeading
       />
     </div>
   );

@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { LueckeChart } from "@/components/home/LueckeChart";
 import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
+import { prevBerlinDateKey } from "@/lib/berlinCalendar";
+import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
@@ -48,24 +50,34 @@ export function TagChapter({
   surplusLine,
   peakGw,
   peakAt,
+  todayKey,
+  useTagDateHeading = false,
 }: {
   day: ResidualDay;
   lastSurplusKey: string | null;
   surplusLine: string;
   peakGw: number | null;
   peakAt: string | null;
+  todayKey?: string;
+  /** On /tag for days before „gestern“, use „Was am … passiert ist“. */
+  useTagDateHeading?: boolean;
 }) {
   const peakSlot = eveningSlot(day);
   const loadGw = peakSlot.loadMw / 1000;
   const wsGw = (peakSlot.windMw + peakSlot.solarMw) / 1000;
   const lastLine = tagLastSurplusLine(lastSurplusKey);
+  const dayLabel = formatBerlinDayLabel(day.dateBerlin);
+  const chapterTitle =
+    useTagDateHeading && todayKey && day.dateBerlin !== prevBerlinDateKey(todayKey)
+      ? `Was am ${dayLabel} im Stromnetz passiert ist`
+      : "Was gestern im Stromnetz passiert ist";
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag">
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">01 · Der Tag</p>
         <h2 id="kapitel-tag" className="v4-chapter-h2">
-          Was gestern im Stromnetz passiert ist
+          {chapterTitle}
         </h2>
         <p className="v4-tag-kern">{surplusLine}</p>
         {lastLine ? <p className="v4-tag-side">{lastLine}</p> : null}

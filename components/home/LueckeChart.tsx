@@ -97,6 +97,9 @@ export function LueckeChart({
     peakGw !== null ? `${formatQuantity(peakGw, "de", 1).replace(/\s/g, "")} GW` : "—";
   const peakTimeLabel =
     peakAt !== null ? `Abendspitze der Residuallast, ${peakAt} Uhr` : "Abendspitze der Residuallast";
+  const peakOnRight = peakGw !== null && peakX > PAD.left + plotW * 0.5;
+  const gapLabelX = peakOnRight ? PAD.left + plotW * 0.38 : PAD.left + plotW * 0.55;
+  const gapLabelY = peakOnRight ? PAD.top + plotH * 0.48 : PAD.top + plotH * 0.35;
 
   const hours = [0, 6, 12, 18, 24];
 
@@ -133,7 +136,7 @@ export function LueckeChart({
       <text x={PAD.left + plotW * 0.2} y={PAD.top + plotH * 0.55} className="v4-luecke-label">
         Wind und Sonne
       </text>
-      <text x={PAD.left + plotW * 0.55} y={PAD.top + plotH * 0.35} className="v4-luecke-gap-label">
+      <text x={gapLabelX} y={gapLabelY} className="v4-luecke-gap-label">
         andere Quellen
       </text>
       {peakGw !== null ? (
@@ -148,10 +151,20 @@ export function LueckeChart({
           <circle cx={peakX} cy={peakYWs} r={4.5} className="v4-luecke-peak-dot" />
           <circle cx={peakX} cy={peakYLoad} r={4.5} className="v4-luecke-peak-dot" />
           <line x1={peakX} x2={peakX} y1={PAD.top + 8} y2={peakYLoad} className="v4-luecke-peak-hair" />
-          <text x={peakX - 12} y={PAD.top + 52} textAnchor="end" className="v4-luecke-peak-value num">
+          <text
+            x={peakOnRight ? peakX + 14 : peakX - 12}
+            y={PAD.top + 44}
+            textAnchor={peakOnRight ? "start" : "end"}
+            className="v4-luecke-peak-value num"
+          >
             {peakLabel}
           </text>
-          <text x={peakX - 12} y={PAD.top + 68} textAnchor="end" className="v4-luecke-peak-caption">
+          <text
+            x={peakOnRight ? peakX + 14 : peakX - 12}
+            y={PAD.top + 62}
+            textAnchor={peakOnRight ? "start" : "end"}
+            className="v4-luecke-peak-caption"
+          >
             {peakTimeLabel}
           </text>
         </>
