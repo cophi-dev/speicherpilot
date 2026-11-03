@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
+import { TagUnavailable } from "@/components/home/TagUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
 import { loadGermanyView } from "@/lib/germanyView";
@@ -27,12 +28,19 @@ export default async function TagDetailPage({
   const { datum } = await params;
   const query = await searchParams;
   const view = await loadGermanyView(new Date(), "/tag", { tag: datum, ...query });
-  const dayKey = view.dispatch.day?.dateBerlin ?? datum;
+
+  if (view.requestedTagStatus === "ausserhalb" || view.requestedTagStatus === "unvollstaendig") {
+    return (
+      <TagUnavailable requested={datum} todayKey={view.todayKey} status={view.requestedTagStatus} />
+    );
+  }
+
+  const dayKey = datum;
   const records = view.auffaelligkeitRecords;
   const day = view.dispatch.day;
 
-  if (!records || !day || !view.kopfDayKey) {
-    return null;
+  if (!records || !day || day.dateBerlin !== datum) {
+    return <TagUnavailable requested={datum} todayKey={view.todayKey} status="ausserhalb" />;
   }
 
   const result = auffaelligkeitForDay(records, dayKey);

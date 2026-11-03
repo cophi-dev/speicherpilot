@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
@@ -31,6 +32,14 @@ import {
   methodikSectionLabel,
   methodikSectionNavLabel,
 } from "@/components/methodik/methodikSections";
+
+const MethodikHeroRings = dynamic(
+  () => import("@/components/methodik/MethodikHeroRings").then((m) => ({ default: m.MethodikHeroRings })),
+  {
+    ssr: false,
+    loading: () => <div className="methodik-scales methodik-scales-placeholder" aria-hidden="true" />,
+  }
+);
 
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
@@ -69,22 +78,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
             en="Assumptions, formulas and sources — traceable for every figure on the site."
           />
-          <div className="methodik-scales">
-            <figure>
-              <DayRing points={PHASE_POINTS} label={tx("Netz Deutschland", "Germany grid")} description={tx("Form der nationalen Uhr.", "Shape of the national clock.")} showShift={false} showHourTicks={false} showSoc={false} chargedGwh={0} />
-              <figcaption>
-                <span className="methodik-scale-long">{tx("Netz Deutschland · GW", "Germany grid · GW")}</span>
-                <span className="methodik-scale-short">{tx("Netz · GW", "Grid · GW")}</span>
-              </figcaption>
-            </figure>
-            <figure>
-              <DayRing points={KW_MINI} unit="kW" scale="utilisation" limit={90} label={tx("Standort", "Site")} description={tx("Form der Standort-Uhr.", "Shape of the site clock.")} showShift={false} showHourTicks={false} showSoc={false} chargedGwh={0} />
-              <figcaption>
-                <span className="methodik-scale-long">{tx("Standort · kW", "Site · kW")}</span>
-                <span className="methodik-scale-short">{tx("Standort · kW", "Site · kW")}</span>
-              </figcaption>
-            </figure>
-          </div>
+          <MethodikHeroRings language={language} />
             </div>
             <div className="methodik-paper day-paper">
           <article>

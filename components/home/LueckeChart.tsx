@@ -6,8 +6,8 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
 const W = 1152;
-const H = 440;
-const PAD = { top: 72, right: 24, bottom: 48, left: 48 };
+const H = 360;
+const PAD = { top: 56, right: 24, bottom: 44, left: 48 };
 const Y_MAX_GW = 80;
 
 function slotGw(slot: ResidualSlot) {

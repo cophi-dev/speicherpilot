@@ -9,7 +9,6 @@ export function LazyMethodikBody({ sectionId, children }: { sectionId: string; c
   useEffect(() => {
     const node = document.getElementById(sectionId);
     if (!node || !(node instanceof HTMLDetailsElement)) {
-      setShow(true);
       return;
     }
     const sync = () => setShow(node.open);
@@ -17,6 +16,10 @@ export function LazyMethodikBody({ sectionId, children }: { sectionId: string; c
     node.addEventListener("toggle", sync);
     return () => node.removeEventListener("toggle", sync);
   }, [sectionId]);
+
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   return show ? children : null;
 }

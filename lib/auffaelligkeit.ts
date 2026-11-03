@@ -1,6 +1,6 @@
 /**
  * Regel v1 „Auffälligkeit des Tages“ — port of struktur-v4/rechnung/kennzahlen.py
- * Tie-break order matches frozen pruefung.txt (Abendspitze before Preisspanne on 29.10.).
+ * Tie-break: Preisspanne before Abendspitze (Brief/spec R2).
  */
 
 import { getBerlinIsoWeekdayForDateKey } from "@/lib/berlinCalendar";
@@ -56,8 +56,8 @@ const METRICS: Array<{
   eligible: (r: TagesKennzahlRecord) => boolean;
 }> = [
   { key: "surplus_gwh", dir: "hoch", label: "Überschuss", eligible: (r) => r.surplusGwh >= 0.05 },
-  { key: "evening_peak_gw", dir: "beide", label: "Abendspitze", eligible: () => true },
   { key: "spread", dir: "hoch", label: "Preisspanne", eligible: () => true },
+  { key: "evening_peak_gw", dir: "beide", label: "Abendspitze", eligible: () => true },
   { key: "pmin", dir: "tief", label: "niedrigster Preis", eligible: () => true },
   { key: "ws_share", dir: "beide", label: "Anteil Wind+Sonne", eligible: () => true },
   { key: "full_min", dir: "tief", label: "Flotte voll um", eligible: (r) => r.fullMin !== null },
@@ -230,7 +230,24 @@ function deNum(x: number, digits = 1): string {
   return formatQuantity(x, "de", digits);
 }
 
-function vergleich(rank: number, mehr: [string, string], tie: boolean): string {
+function roundGw1(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function shortDayLabel(dateKey: string): string {
+  const [, m, d] = dateKey.split("-");
+  return m && d ? `${d}.${m}.` : dateKey;
+}
+
+function vergleich(
+  rank: number,
+  mehr: [string, string],
+  tie: boolean,
+  opts?: { roundedNearDay?: string }
+): string {
+  if (opts?.roundedNearDay) {
+    return `fast so hoch wie am ${opts.roundedNearDay}`;
+  }
   if (rank === 1 && tie) {
     return "gleichauf mit dem Spitzenwert der letzten 30 Tage";
   }
@@ -239,6 +256,32 @@ function vergleich(rank: number, mehr: [string, string], tie: boolean): string {
   }
   const n = rank === 2 ? "einem" : "zwei";
   return `nur an ${n} der letzten 30 Tage war es ${mehr[1]}`;
+}
+
+function eveningPeakRoundedNearDay(
+  records: TagesKennzahlRecord[],
+  index: number,
+  rank: number,
+  dir: Direction
+): string | undefined {
+  if (rank !== 2 || dir !== "hoch") {
+    return undefined;
+  }
+  const r = records[index];
+  const raw = r.eveningPeakGw;
+  if (raw === null) {
+    return undefined;
+  }
+  const win = records.slice(Math.max(0, index - 30), index);
+  const higher = win.filter((d) => (d.eveningPeakGw ?? Number.NEGATIVE_INFINITY) > raw);
+  if (higher.length !== 1) {
+    return undefined;
+  }
+  const ref = higher[0];
+  if (roundGw1(ref.eveningPeakGw ?? 0) !== roundGw1(raw)) {
+    return undefined;
+  }
+  return shortDayLabel(ref.dateKey);
 }
 
 export type AuffaelligkeitResult =
@@ -273,8 +316,13 @@ export function auffaelligkeitForDay(
   }
 
   const w = WORT[`${top.key},${top.dir}`] ?? ["", ""];
-  const V = vergleich(top.rank, w, top.tie);
-  const Vcap = V.charAt(0).toUpperCase() + V.slice(1);
+  const nearDay =
+    top.key === "evening_peak_gw" ? eveningPeakRoundedNearDay(records, index, top.rank, top.dir) : undefined;
+  const V = vergleich(top.rank, w, top.tie, nearDay ? { roundedNearDay: nearDay } : undefined);
+  const Vcap = (() => {
+    const c = V.charAt(0).toUpperCase() + V.slice(1);
+    return c.endsWith(".") ? c : `${c}.`;
+  })();
 
   let headline = "";
   let subline = "";
@@ -285,10 +333,14 @@ export function auffaelligkeitForDay(
     case "surplus_gwh":
       headline = `${weekdayLabelDe(dateKey)}: ${deNum(r.surplusGwh)} GWh Strom aus Wind und Sonne waren übrig, ${deNum(r.surplusH, 2).replace(/,?0+$/, "")} Stunden lang. ${Vcap}.`;
       subline = `Die heutige Flotte hätte ${deNum(r.absorbedGwh)} GWh davon aufgenommen (Modell).`;
+      kopfH1 = "Aus Wind und Sonne blieb an diesem Tag viel Strom übrig.";
+      kopfSubline = `${Vcap}. ${subline}`;
       break;
     case "evening_peak_gw":
-      headline = `${weekdayLabelDe(dateKey)}: Am Abend mussten andere Quellen bis zu ${deNum(r.eveningPeakGw ?? 0)} GW decken (${r.eveningPeakAt ?? "—"} Uhr). ${Vcap}.`;
-      kopfH1 = `Am Abend mussten andere Quellen bis zu ${deNum(r.eveningPeakGw ?? 0)} GW decken.`;
+      headline = `${weekdayLabelDe(dateKey)}: Am Abend mussten andere Quellen bis zu ${deNum(r.eveningPeakGw ?? 0)} GW decken (${r.eveningPeakAt ?? "—"} Uhr). ${Vcap}`;
+      kopfH1 = nearDay
+        ? `Am Abend mussten andere Quellen fast so viel wie am ${nearDay} decken.`
+        : "Am Abend mussten andere Quellen besonders viel decken.";
       subline =
         (r.peakCutGw ?? 0) < 0.05
           ? "Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden."
@@ -296,19 +348,30 @@ export function auffaelligkeitForDay(
       kopfSubline = subline ? `${Vcap}. ${subline}` : Vcap;
       break;
     case "spread":
-      headline = `${weekdayLabelDe(dateKey)}: Der Börsenpreis lag zwischen ${deNum(r.pmin ?? 0, 0)} und ${deNum(r.pmax ?? 0, 0)} €/MWh. ${Vcap}.`;
+      headline = `${weekdayLabelDe(dateKey)}: Der Börsenpreis lag zwischen ${deNum(r.pmin ?? 0, 0)} und ${deNum(r.pmax ?? 0, 0)} €/MWh. ${Vcap}`;
+      kopfH1 = "Der Börsenpreis bewegte sich in einer großen Spanne.";
+      kopfSubline = Vcap;
       break;
     case "pmin":
       headline = `${weekdayLabelDe(dateKey)}: Strom kostete an der Börse zeitweise ${deNum(r.pmin ?? 0, 2)} €/MWh (${r.pminAt ?? "—"} Uhr). ${Vcap}.`;
       if (r.negH) {
         headline += ` ${deNum(r.negH, 2)} Stunden lag der Preis unter null.`;
       }
+      kopfH1 = "An der Börse gab es zeitweise sehr niedrige Preise.";
+      kopfSubline = Vcap;
       break;
     case "ws_share":
       headline = `${weekdayLabelDe(dateKey)}: Wind und Sonne deckten${top.dir === "tief" ? " nur" : ""} ${deNum(r.wsShare, 1)} % der Last, ${V}.`;
+      kopfH1 =
+        top.dir === "tief"
+          ? "Wind und Sonne deckten nur einen kleinen Teil der Last."
+          : "Wind und Sonne deckten einen großen Teil der Last.";
+      kopfSubline = Vcap;
       break;
     case "full_min":
       headline = `${weekdayLabelDe(dateKey)}: Die Speicherflotte war im Modell schon um ${r.fullAt ?? "—"} Uhr voll, ${V}. Der restliche Überschuss ging an ihr vorbei.`;
+      kopfH1 = "Im Modell war die Speicherflotte an diesem Tag früh voll.";
+      kopfSubline = Vcap;
       break;
     default:
       headline = `${weekdayLabelDe(dateKey)}: ${Vcap}.`;

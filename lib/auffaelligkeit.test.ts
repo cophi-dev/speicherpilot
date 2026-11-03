@@ -12,14 +12,17 @@ function loadFixture(): TagesKennzahlRecord[] {
 describe("auffaelligkeit Regel v1", () => {
   const records = loadFixture();
 
-  it("29.10.: Abendspitze gewinnt Tie-Break (Platz 1)", () => {
+  it("29.10.: Preisspanne gewinnt vor Abendspitze (Platz 1)", () => {
     const scored = scoreDay(records, "2026-10-29");
-    expect(scored?.[0]?.key).toBe("evening_peak_gw");
+    expect(scored?.[0]?.key).toBe("spread");
     expect(scored?.[0]?.rank).toBe(1);
     const r = auffaelligkeitForDay(records, "2026-10-29");
-    expect(r.headline).toContain("Am Abend mussten andere Quellen bis zu 64,4 GW decken");
-    expect(r.headline).toContain("So hoch wie an keinem Tag der letzten 30");
-    expect(r.subline).toContain("Speicher hier nicht geholfen");
+    expect(r.kind).toBe("metric");
+    if (r.kind === "metric") {
+      expect(r.key).toBe("spread");
+    }
+    expect(r.headline).toContain("Börsenpreis lag zwischen");
+    expect(r.headline).toContain("So groß wie an keinem Tag der letzten 30");
   });
 
   it("31.10.: Anteil Wind+Sonne Platz 1", () => {
@@ -35,8 +38,7 @@ describe("auffaelligkeit Regel v1", () => {
     expect(peak?.rank).toBe(2);
     const r = auffaelligkeitForDay(records, "2026-11-02");
     expect(r.kind).toBe("metric");
-    expect(r.kopfH1).toContain("64,4 GW");
-    expect(r.kopfSubline).toContain("Nur an einem der letzten 30 Tage war es höher");
+    expect(r.kopfSubline).toMatch(/fast so hoch wie am 29\.10\./i);
   });
 
   it("27.10.: unauffälliger Tag (Ersatz)", () => {

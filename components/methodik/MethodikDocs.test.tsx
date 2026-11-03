@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 
 import { LanguageContext } from "@/components/language-context";
 import { MethodikDocs } from "@/components/methodik/MethodikDocs";
@@ -14,24 +14,36 @@ beforeAll(() => {
 });
 
 describe("methodik v2", () => {
-  it("quotes the BGH press release and keeps the forbidden word out", () => {
+  it("quotes the BGH press release and keeps the forbidden word out", async () => {
     render(
       <LanguageContext.Provider value={{ language: "de", setLanguage: () => {} }}>
         <MethodikDocs />
       </LanguageContext.Provider>
     );
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.");
-    expect(document.body.textContent).toContain("Entscheidungsspielraum");
+    for (const id of ["netzdienlichkeit", "netz", "szenarien", "beispieltage", "groesse", "grossspeicher", "peak-erklaert", "glossar", "grenzen", "was"]) {
+      const node = document.getElementById(id);
+      if (node instanceof HTMLDetailsElement) {
+        node.open = true;
+        node.dispatchEvent(new Event("toggle"));
+      }
+    }
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Entscheidungsspielraum");
+      expect(document.getElementById("wirkungsgrad")?.tagName).toBe("H3");
+      expect(document.getElementById("begriff-modellschaetzung")?.tagName).toBe("DT");
+      expect(document.body.textContent).toContain("Szenarien rechnen");
+    });
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
+      "Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen."
+    );
     expect(document.body.textContent).toContain("als angemessen ansehen");
     expect(document.body.textContent).not.toMatch(/Beurteilungsspielraum/);
     expect(document.body.textContent).toContain("§ 17 Abs. 2b EnWG");
     expect(document.body.textContent).toContain("238,5");
     expect(document.body.textContent).toContain("η");
     expect(document.getElementById("peak-erklaert")).not.toBeNull();
-    expect(document.getElementById("wirkungsgrad")?.tagName).toBe("H3");
     expect(document.body.textContent).not.toMatch(/P_Tag|E_Überschuss/);
     expect(document.querySelector("#groesse var")?.textContent).toBe("PTag");
-    expect(document.getElementById("begriff-modellschaetzung")?.tagName).toBe("DT");
     expect(document.body.textContent).toContain("26,6 kWh");
     expect(document.body.textContent).toContain("0,922");
     expect(document.body.textContent).toContain("27,9 %");
@@ -61,7 +73,6 @@ describe("methodik v2", () => {
     expect(document.body.textContent).toContain("ODbL 1.0");
     expect(document.body.textContent).toContain("energy-charts.info");
     expect(document.body.textContent).toContain("BSD-3-Clause");
-    expect(document.body.textContent).toContain("Szenarien rechnen");
     const annahmen = document.getElementById("annahmen");
     const was = document.getElementById("was");
     expect(annahmen).not.toBeNull();

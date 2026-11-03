@@ -14,6 +14,7 @@ const PAD = { top: 16, right: 48, bottom: 36, left: 40 };
 export function OrtChapter() {
   const teach = useMemo(() => supermarketTeachingDay(), []);
   const peakBefore = Math.round(teach.peakBeforeKw);
+  const peakAfter = Math.round(teach.peakAfterKw);
   const limit = teach.limitKw;
   const peakHour = teach.peakHour;
 
@@ -59,7 +60,7 @@ export function OrtChapter() {
         </h2>
         <div className="v4-ort-kern">
           <p className="v4-ort-kw num">
-            {formatQuantity(peakBefore, "de", 0)} → {formatQuantity(limit, "de", 0)} kW
+            {formatQuantity(peakBefore, "de", 0)} → {formatQuantity(peakAfter, "de", 0)} kW
           </p>
           <p className="v4-ort-side">
             Spitze eines Supermarkts, {formatQuantity(limit, "de", 0)} kW Anschluss.{" "}

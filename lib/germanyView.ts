@@ -185,7 +185,7 @@ export async function loadGermanyView(
   const requestedTagRaw = path !== "/" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
   const requestedRange = Array.isArray(query.zeitraum) ? query.zeitraum[0] : query.zeitraum;
   const yesterdayKey = prevBerlinDateKey(todayKey);
-  const priceStart = addBerlinCalendarDays(yesterdayKey, -29);
+  const priceStart = addBerlinCalendarDays(todayKey, -61);
   const [fleet, power, price, priceRange, frequency] = await Promise.all([
     loadLargeBatteryFleet(),
     loadGermanyPower(now),
@@ -217,7 +217,10 @@ export async function loadGermanyView(
     }
   }
 
-  if (!chosen) {
+  if (
+    !chosen &&
+    !(requestedTag && (requestedTagStatus === "ausserhalb" || requestedTagStatus === "unvollstaendig"))
+  ) {
     const published = choosePublishedDay(days, todayKey);
     chosen = published ? { day: published.day, fallback: published.fallback } : null;
   }

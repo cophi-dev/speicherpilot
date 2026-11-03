@@ -6,11 +6,12 @@ import { useMemo } from "react";
 import { RangLeiste } from "@/components/home/RangLeiste";
 import { TagChapter } from "@/components/home/TagChapter";
 import { tagSurplusLine } from "@/lib/kopfTagCopy";
-import { formatQuantity } from "@/lib/formatQuantity";
 import type { AuffaelligkeitResult } from "@/lib/auffaelligkeit";
-import { displayGw, kopfMetric, type TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { kopfMetric, type TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
+import { barValue, kopfHero } from "@/lib/kopfHero";
+import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -20,78 +21,59 @@ function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): str
   return liveStand;
 }
 
-function metricValue(record: TagesKennzahlRecord, key: string): number | null {
-  switch (key) {
-    case "evening_peak_gw":
-      return record.eveningPeakGw;
-    case "spread":
-      return record.spread;
-    case "ws_share":
-      return record.wsShare;
-    case "surplus_gwh":
-      return record.surplusGwh;
-    default:
-      return record.eveningPeakGw;
-  }
-}
-
 export function AuffaelligkeitKopf({
   dayKey,
   todayKey,
   dataStand,
   result,
   records,
+  kickerPrefix = "Gestern",
 }: {
   dayKey: string;
   todayKey: string;
   dataStand: string;
   result: AuffaelligkeitResult;
   records: TagesKennzahlRecord[];
+  kickerPrefix?: string;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
-  const winner = kopfMetric(records, dayKey);
-  const metricKey = result.kind === "metric" ? result.key : winner?.key ?? "evening_peak_gw";
+  const winner = result.kind === "metric" ? kopfMetric(records, dayKey) : null;
+  const metricKey = result.kind === "metric" ? result.key : null;
   const stand = kopfDataStand(dayKey, todayKey, dataStand);
-  const kicker = `Gestern · ${weekdayShort(dayKey, "de")}, ${formatBerlinDayLabel(dayKey)} · Datenstand ${stand}`;
+  const kicker = `${kickerPrefix} · ${weekdayShort(dayKey, "de")}, ${formatBerlinDayLabel(dayKey)} · Datenstand ${stand}`;
+
+  const hero = record && winner && metricKey === winner.key ? kopfHero(record, winner) : null;
 
   const bars = useMemo(() => {
+    if (!metricKey) {
+      return [];
+    }
     const idx = records.findIndex((r) => r.dateKey === dayKey);
     if (idx < 0) {
       return [];
     }
     const slice = records.slice(Math.max(0, idx - 30), idx + 1);
     return slice.map((r) => {
-      const value = metricValue(r, metricKey);
+      const value = barValue(r, metricKey);
       const highlight = r.dateKey === dayKey;
-      const rankEntry = kopfMetric(records, r.dateKey);
-      const recordBar = rankEntry?.rank === 1 && rankEntry.key === metricKey && !highlight;
+      const w = kopfMetric(records, r.dateKey);
+      const recordBar = w?.rank === 1 && w.key === metricKey && !highlight;
       return { dateKey: r.dateKey, value, highlight, record: recordBar };
     });
   }, [dayKey, metricKey, records]);
 
-  const rank =
-    winner && winner.key === metricKey ? winner.rank : kopfMetric(records, dayKey)?.rank ?? null;
-
-  const rankLabel =
-    rank !== null && rank <= 3 ? `Platz ${rank} von 31 Tagen` : rank !== null ? `Platz ${rank} von 31 Tagen` : undefined;
-
-  const kernGw =
-    metricKey === "evening_peak_gw" ? record?.eveningPeakGw ?? null : metricKey === "surplus_gwh" ? record?.surplusGwh ?? null : null;
-
-  const kernLabel =
-    metricKey === "evening_peak_gw" && record
-      ? `Abendspitze der Residuallast · ${record.eveningPeakAt ?? "—"} Uhr`
-      : winner?.label ?? "Kernzahl";
-
   const priceLine =
-    record?.pmin != null && record.pmax != null
+    record?.pmin != null && record.pmax != null && metricKey !== "spread"
       ? {
           label: "Börsenpreis gestern",
           value: `${formatQuantity(Math.round(record.pmin), "de", 0)}–${formatQuantity(Math.round(record.pmax), "de", 0)} €/MWh`,
         }
-      : null;
-
-  const showBigNumber = metricKey === "evening_peak_gw" && kernGw !== null;
+      : metricKey === "spread" && record?.spread != null
+        ? {
+            label: "Spanne gestern",
+            value: `${formatQuantity(Math.round(record.pmin ?? 0), "de", 0)}–${formatQuantity(Math.round(record.pmax ?? 0), "de", 0)} €/MWh`,
+          }
+        : null;
 
   return (
     <section className="v4-kopf" aria-labelledby="auffaelligkeit-h1">
@@ -114,29 +96,38 @@ export function AuffaelligkeitKopf({
           ) : null}
         </div>
 
-        <div className="v4-kopf-hero">
-          <div className="v4-kopf-zahl">
-            {showBigNumber ? (
+        {hero ? (
+          <div className="v4-kopf-hero">
+            <div className="v4-kopf-zahl">
               <p className="v4-riesenzahl num" aria-hidden="true">
-                {displayGw(kernGw).replace(" GW", "")}
-                <span className="v4-riesenzahl-unit">GW</span>
+                {hero.value}
+                <span className="v4-riesenzahl-unit">{hero.unit}</span>
               </p>
-            ) : null}
-            <div className="v4-kern-row num">
-              <span>{kernLabel}</span>
-              {rankLabel ? <span>{rankLabel}</span> : null}
+              <div className="v4-kern-row num">
+                <span>{hero.kernLabel}</span>
+                {hero.rankLabel ? <span>{hero.rankLabel}</span> : null}
+              </div>
+              <div className="v4-kopf-links">
+                <Link href={`/tag/${dayKey}`} className="v4-text-link">
+                  Tag ansehen →
+                </Link>
+                <Link href="/methodik#auffaelligkeit" className="v4-text-link">
+                  Wie die Auffälligkeit gewählt wird
+                </Link>
+              </div>
             </div>
-            <div className="v4-kopf-links">
-              <Link href={`/tag/${dayKey}`} className="v4-text-link">
-                Tag ansehen →
-              </Link>
-              <Link href="/methodik#auffaelligkeit" className="v4-text-link">
-                Wie die Auffälligkeit gewählt wird
-              </Link>
-            </div>
+            <RangLeiste bars={bars} metricLabel={hero.kernLabel} rankLabel={undefined} />
           </div>
-          <RangLeiste bars={bars} metricLabel={kernLabel} rankLabel={undefined} />
-        </div>
+        ) : (
+          <div className="v4-kopf-links v4-kopf-links-standalone">
+            <Link href={`/tag/${dayKey}`} className="v4-text-link">
+              Tag ansehen →
+            </Link>
+            <Link href="/methodik#auffaelligkeit" className="v4-text-link">
+              Wie die Auffälligkeit gewählt wird
+            </Link>
+          </div>
+        )}
         <p className="v4-kopf-chapter-foot num">01 · Der Tag</p>
       </div>
     </section>
@@ -169,6 +160,7 @@ export function TagPageV4({
         dataStand={dataStand}
         result={result}
         records={records}
+        kickerPrefix="Tag"
       />
       <TagChapter
         day={day}
