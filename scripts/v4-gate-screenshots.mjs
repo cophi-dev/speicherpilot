@@ -17,12 +17,12 @@ const ROUTES = [
 const VIEWPORTS = [
   { tag: "1440", width: 1440, height: 900 },
   { tag: "375", width: 375, height: 740 },
-] as const;
+] ;
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch();
-  for (const theme of ["light", "dark"] as const) {
+  for (const theme of ["light", "dark"]) {
     for (const vp of VIEWPORTS) {
       const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
       if (theme === "dark") {
