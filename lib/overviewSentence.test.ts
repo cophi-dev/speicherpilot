@@ -87,10 +87,11 @@ describe("sharePhrase", () => {
     expect(sharePhrase(0.9, "de")).not.toBe("alles");
   });
 
-  it("uses wenig below 15 % and ein Zehntel from 15 %", () => {
+  it("uses wenig below 15 % rounded and ein Zehntel from 15 % rounded", () => {
     expect(sharePhrase(0, "de")).toBe("nichts");
     expect(sharePhrase(0.02, "de")).toBe(`wenig (2${THIN}%)`);
-    expect(sharePhrase(0.1499, "de")).toBe(`wenig (15${THIN}%)`);
+    expect(sharePhrase(0.144, "de")).toBe(`wenig (14${THIN}%)`);
+    expect(sharePhrase(0.1499, "de")).toBe(`gut ein Zehntel (15${THIN}%)`);
     expect(sharePhrase(0.15, "de")).toBe(`gut ein Zehntel (15${THIN}%)`);
   });
 

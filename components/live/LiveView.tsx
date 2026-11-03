@@ -7,6 +7,7 @@ import { dayPageHeading, DayPicker } from "@/components/live/DayPicker";
 import { LiveRing } from "@/components/live/LiveRing";
 import { LiveStrip } from "@/components/mix/LiveStrip";
 import { PowerBoard } from "@/components/mix/PowerBoard";
+import { PageLead } from "@/components/PageLead";
 import { useLanguage } from "@/components/language-context";
 import type { OverviewsBundle, RequestedTagStatus } from "@/lib/germanyView";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
@@ -73,6 +74,10 @@ export function LiveView({
         <h1 id="live-what-if" className="live-day-title">
           {heading}
         </h1>
+        <PageLead
+          de="Ein Kalendertag im Detail — Ring, Regler und Erzeugung. Mehrere Tage zusammen stehen auf Start."
+          en="One calendar day in detail — ring, slider and generation. Multi-day views are on Start."
+        />
         <DayPicker todayKey={todayKey} selectedTag={requestedTag} overviews={overviews} />
         {requestedTagStatus === "ausserhalb" ? (
           <p className="live-tag-notice" role="status">

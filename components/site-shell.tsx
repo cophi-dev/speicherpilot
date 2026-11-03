@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Monitor, Moon, Sun, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 
 import BessAiChatOverlay from "@/components/BessAiChatOverlay";
 import { BrandLockup } from "@/components/BrandLockup";
@@ -21,6 +21,7 @@ const NAV = [
   { href: "/", de: "Start", en: "Start" },
   { href: "/live", de: "Tag", en: "Day" },
   { href: "/site", de: "Standort", en: "Site" },
+  { href: "/beitraege", de: "Beiträge", en: "Articles" },
   { href: "/methodik", de: "Methodik", en: "Method" },
 ] as const;
 
@@ -300,26 +301,6 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
                   </Link>
                 ))}
               </nav>
-              <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={tx("Erscheinungsbild", "Appearance")}>
-                {(
-                  [
-                    { key: "system" as const, icon: Monitor },
-                    { key: "light" as const, icon: Sun },
-                    { key: "dark" as const, icon: Moon },
-                  ] as const
-                ).map(({ key, icon: Icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setThemePref(key)}
-                    aria-pressed={themePref === key}
-                    className={`inline-flex h-8 items-center gap-2 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
-                  >
-                    <Icon className="size-4" strokeWidth={1.5} aria-hidden />
-                    {themeLabel(key, language)}
-                  </button>
-                ))}
-              </div>
             </div>
           ) : null}
         </header>
@@ -373,11 +354,8 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
               </details>
             </div>
             <p className="flex flex-col items-start gap-1">
-              <Link className="inline-flex min-h-8 items-center" href="/blog" prefetch={false}>
-                {tx("Blog", "Blog")}
-              </Link>
-              <Link className="inline-flex min-h-8 items-center" href="/news" prefetch={false}>
-                News
+              <Link className="inline-flex min-h-11 items-center" href="/beitraege" prefetch={false}>
+                {tx("Beiträge", "Articles")}
               </Link>
             </p>
             <p>
@@ -386,21 +364,6 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
                 "Illustrative model, not procurement or plant advice."
               )}
             </p>
-            <div>
-              <div className="flex flex-wrap gap-2" role="group" aria-label={tx("Erscheinungsbild", "Appearance")}>
-                {(["system", "light", "dark"] as const).map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    aria-pressed={mounted && themePref === key}
-                    onClick={() => setThemePref(key)}
-                    className={`h-8 rounded-md border px-3 text-sm ${themePref === key ? "border-foreground bg-foreground text-background" : "border-border"}`}
-                  >
-                    {themeLabel(key, language)}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </footer>
       </div>

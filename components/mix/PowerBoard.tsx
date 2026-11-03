@@ -156,7 +156,16 @@ export function PowerBoard({
             onFactor={onFactor}
           />
         )}
-        {SURPLUS_MONTHS ? <SurplusYear data={SURPLUS_MONTHS} /> : null}
+        {SURPLUS_MONTHS ? (
+          tighten ? (
+            <details className="mix-more mix-month-fold">
+              <summary>{tx("Überschuss-Tage pro Monat", "Surplus days per month")}</summary>
+              <SurplusYear data={SURPLUS_MONTHS} />
+            </details>
+          ) : (
+            <SurplusYear data={SURPLUS_MONTHS} />
+          )
+        ) : null}
         <p className="mix-source">
           {tx(
             "Energie: Energy-Charts (Fraunhofer ISE), CC BY 4.0. Preise: Bundesnetzagentur | SMARD.de, CC BY 4.0. Marktpreise, keine Erlöse.",

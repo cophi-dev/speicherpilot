@@ -104,6 +104,10 @@ function sharePctThin(share: number, language: AppLanguage): string {
   return language === "de" ? `${pct}\u202F%` : `${pct}%`;
 }
 
+function sharePctRounded(share: number): number {
+  return Math.round(share * 100);
+}
+
 export function sharePhrase(share: number, language: AppLanguage) {
   if (share <= 1e-6) {
     return language === "de" ? "nichts" : "nothing";
@@ -112,7 +116,7 @@ export function sharePhrase(share: number, language: AppLanguage) {
     return language === "de" ? "alles" : "everything";
   }
   const pctUnit = sharePctThin(share, language);
-  if (share < 0.15 - 1e-6) {
+  if (sharePctRounded(share) < 15) {
     return language === "de" ? `wenig (${pctUnit})` : `little (${pctUnit})`;
   }
   return `${fractionPhraseCore(share, language)} (${pctUnit})`;
@@ -125,7 +129,7 @@ function uptakeWord(share: number, language: AppLanguage): string {
   if (share >= SATURATION - 1e-6) {
     return language === "de" ? "alles" : "everything";
   }
-  if (share < 0.15 - 1e-6) {
+  if (sharePctRounded(share) < 15) {
     return language === "de" ? "wenig" : "little";
   }
   return fractionPhraseCore(share, language);

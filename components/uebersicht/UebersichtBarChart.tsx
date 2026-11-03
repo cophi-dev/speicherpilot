@@ -55,6 +55,16 @@ export function UebersichtBarChart({
 
   return (
     <div className="uebersicht-bar-wrap" ref={wrapRef}>
+      <p className="uebersicht-bar-legend" aria-hidden="false">
+        <span className="legend-absorbed">{tx("aufgenommen", "absorbed")}</span>
+        <span className="legend-remainder">{tx("nicht aufgenommen (Rest Überschuss)", "not absorbed (remaining surplus)")}</span>
+        <span className="legend-full">
+          <span className="legend-full-glyph" aria-hidden="true">
+            ▲
+          </span>
+          <span className="legend-full-label">{tx("Speicher voll", "Storage full")}</span>
+        </span>
+      </p>
       <svg
         viewBox={`0 0 ${viewWidth} ${height}`}
         className="uebersicht-bars"
@@ -124,16 +134,6 @@ export function UebersichtBarChart({
           max {formatQuantity(max, language, 1)} GWh
         </text>
       </svg>
-      <p className="uebersicht-bar-legend" aria-hidden="false">
-        <span className="legend-absorbed">{tx("aufgenommen", "absorbed")}</span>
-        <span className="legend-remainder">{tx("nicht aufgenommen (Rest Überschuss)", "not absorbed (remaining surplus)")}</span>
-        <span className="legend-full">
-          <span className="legend-full-glyph" aria-hidden="true">
-            ▲
-          </span>
-          <span className="legend-full-label">{tx("Speicher voll", "Storage full")}</span>
-        </span>
-      </p>
     </div>
   );
 }

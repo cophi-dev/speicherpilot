@@ -21,6 +21,8 @@ import type { OverviewsBundle } from "@/lib/germanyView";
 import type { OverviewQuarterPoint } from "@/lib/overviewChain";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import { OVERVIEW_BLICKS, parseOverviewBlick, parseOverviewFactor, type OverviewBlick } from "@/lib/overviewRange";
+import { PageLead } from "@/components/PageLead";
+import { buildOverviewInsights } from "@/lib/overviewInsights";
 import { einschaetzung } from "@/lib/overviewSentence";
 
 const SOC_REST_TOOLTIP_DE =
@@ -110,6 +112,8 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
     [model, factor, language, bundle.dataStand, until]
   );
 
+  const insights = useMemo(() => buildOverviewInsights(model, blick, language), [model, blick, language]);
+
   const chartSamples: ChartSample[] = useMemo(
     () =>
       factorResult.quarterPoints.map((point: OverviewQuarterPoint) => ({
@@ -159,8 +163,8 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
         {bundle.stale ? (
           <p className="uebersicht-banner" role="status">
             {tx(
-              `Wir zeigen den letzten erfolgreichen Abruf. Datenstand: ${bundle.dataStand}.`,
-              `We show the last successful fetch. Data as of ${bundle.dataStand}.`
+              `Daten älter als zwei Stunden — Stand ${bundle.dataStand}. Wir zeigen den letzten erfolgreichen Abruf.`,
+              `Data older than two hours — as of ${bundle.dataStand}. We show the last successful fetch.`
             )}
           </p>
         ) : null}
@@ -172,6 +176,10 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
             "How much wind and solar power was left over — and would more storage have absorbed it?"
           )}
         </h1>
+        <PageLead
+          de="Zeitraum-Überblick für Deutschland: Überschuss, Handel und was mehr Speicher aufgenommen hätte. Einzelne Tage im Detail unter Tag."
+          en="Period overview for Germany: surplus, trade and what more storage would have absorbed. Single days in detail under Day."
+        />
 
         <div className="sim-seg uebersicht-period" role="radiogroup" aria-label={tx("Zeitraum", "Period")}>
           {OVERVIEW_BLICKS.map((item, index) => (
@@ -199,6 +207,22 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
         ) : null}
 
         <p className="uebersicht-assessment">{assessment}</p>
+
+        {insights.length > 0 ? (
+          <ul className="uebersicht-insights" aria-label={tx("Auffälligkeiten", "Notable points")}>
+            {insights.map((item) => (
+              <li key={item.id}>
+                {item.tag ? (
+                  <Link href={`/live?tag=${item.tag}`} prefetch={false}>
+                    {item.text}
+                  </Link>
+                ) : (
+                  item.text
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {model.observed.openDay && blick === "heute" ? (
           <p className="uebersicht-open-hint">
             {tx("Der Tag läuft noch. Die Zahlen können sich noch ändern.", "The day is still in progress. Figures may still change.")}
@@ -208,6 +232,7 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
         <div className="uebersicht-trio" aria-label={tx("Kernzahlen", "Key figures")}>
           <article className="uebersicht-trio-item">
             <h2>{tx("Überschuss", "Surplus")}</h2>
+            <p className="uebersicht-trio-hint">{tx("Wind plus Sonne über der Last", "Wind plus solar above load")}</p>
             <p className="uebersicht-value">{gwh(model.observed.surplusGwh, language)}</p>
             <p className="uebersicht-quiet">
               {tx(
@@ -218,6 +243,7 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
           </article>
           <article className="uebersicht-trio-item">
             <h2>{tx("Handel", "Trade")}</h2>
+            <p className="uebersicht-trio-hint">{tx("Import minus Export (Handelssaldo)", "Import minus export (trade balance)")}</p>
             <p className="uebersicht-value">{gwh(netTradeGwh, language)}</p>
             <p className="uebersicht-quiet">
               {netImport !== null && netImport >= 0
@@ -230,6 +256,7 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
               <h2>{tx(`Bei ×${factor} aufgenommen`, `Absorbed at ×${factor}`)}</h2>
               <ModelChip label={tx("Modellschätzung", "Model estimate")} />
             </div>
+            <p className="uebersicht-trio-hint">{tx("Modell: lädt nur aus Überschuss", "Model: charges from surplus only")}</p>
             <p className="uebersicht-value">
               {gwh(factorResult.absorbedGwh, language)}{" "}
               {absorbedSharePct !== null ? tx(`(${absorbedSharePct} % des Überschusses)`, `(${absorbedSharePct}% of surplus)`) : null}
@@ -359,8 +386,8 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
             {tx("Methodik", "Method")}
           </Link>{" "}
           ·{" "}
-          <Link href="/news" prefetch={false}>
-            News
+          <Link href="/beitraege" prefetch={false}>
+            {tx("Beiträge", "Articles")}
           </Link>
         </p>
       </div>
