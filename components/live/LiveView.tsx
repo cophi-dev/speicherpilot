@@ -75,10 +75,11 @@ export function LiveView({
           {heading}
         </h1>
         <PageLead
-          de="Ein Kalendertag im Detail — Ring, Regler und Erzeugung. Mehrere Tage zusammen stehen auf Start."
-          en="One calendar day in detail — ring, slider and generation. Multi-day views are on Start."
+          de="Ein Kalendertag im Detail — Ring, Regler und Erzeugung."
+          en="One calendar day in detail — ring, slider and generation."
         />
         <DayPicker todayKey={todayKey} selectedTag={requestedTag} overviews={overviews} />
+        {daySentence ? <p className="live-day-assessment live-day-assessment-flow">{daySentence}</p> : null}
         {requestedTagStatus === "ausserhalb" ? (
           <p className="live-tag-notice" role="status">
             {tx(
@@ -108,9 +109,6 @@ export function LiveView({
         factor={factor}
         hideHeader
       />
-      {daySentence ? (
-        <p className="live-day-assessment live-day-assessment-flow">{daySentence}</p>
-      ) : null}
       <PowerBoard model={board} missingFactor={5} hideSocLine={false} tighten />
       <p className="live-overview-link mx-auto max-w-[1200px] px-4 pb-8">
         <Link href="/#uebersicht" prefetch={false}>

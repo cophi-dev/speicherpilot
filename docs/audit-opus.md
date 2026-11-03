@@ -9,7 +9,7 @@
 1. Der fachliche Kern (Übersicht Heute/Gestern/7/30 Tage, ×1–×10, Import/Überschuss/Abregelung-Kontext) sitzt gut auf **`/`** — das ist der richtige Morgen-Anker für Phillipp.
 2. **`/live`** liefert den Tagesfilm (Ring, MixChart, Monatsüberblick), überlappt aber in Regler-Logik und Erzählung mit der Startseite; ohne klare Trennung wirkt die App länger als nötig.
 3. **`/site`** trennt Projektierer und Netzbetreiber sinnvoll, stapelt auf der Netz-Sicht aber Simulator, Grenze/Erlös-Rechner und Testnetz — schwer scanbar, Testnetz weiterhin schwach in SSR/Deep-Link (siehe Beilage).
-4. **Content-Pipeline fehlt als Produkt:** Blog (`/blog`) und News (`/news`) hängen im Footer; es gibt keinen täglichen „Erkenntnis → Kopiertext“-Pfad wie in `posts/STATUS.md` beschrieben.
+4. **Beiträge in der Nav:** `/beitraege` bündelt Artikel und „Extern gelesen“; Blog/News leiten per Redirect dorthin. **Kein Content-Generator in der UI** — Phillipp zieht Text außerhalb aus der Seite, die App liefert keine Kopier-Buttons.
 5. Design v2 ist ruhig und vertrauenswürdig; für „Award-Anspruch + tägliche Arbeit“ braucht es schlankere IA, weniger Doppelungen, Chart-Lesbarkeit, Mobile-Polish und **Accessibility 100** (Live-Check Startseite: 96/100 wegen Kontrast).
 
 ---
@@ -19,7 +19,7 @@
 | Nutzer | Aufgabe | Primäre Route | Passt? | Überflüssig / doppelt |
 |--------|---------|---------------|--------|------------------------|
 | **Phillipp (Owner, morgens)** | Gestern/7 Tage: Überschuss, Import, Abregelung; 1–3 postbare Sätze; ggf. Deep-Link auf starken Tag | **`/`** (`blick`, `x`), dann **`/live?tag=…`** für Einzelttag | Kern auf `/` stark; postbarer Text nur implizit in `einschaetzung`-Absatz | **`/news`** = externe Presse, nicht „eigene Erkenntnis“; kein `/beitraege`; Blog versteckt |
-| **Phillipp (Content)** | Kurzpost oder Blog wie Upload-Entwurf; Zahlen geprüft; Kopieren, selbst auf LinkedIn | **`/blog/[slug]`** (1 Artikel), **`posts/`** im Repo (nicht im Nav) | Stil Blog passt; Workflow nicht in UI | Blog vs. News vs. posts — drei Welten |
+| **Phillipp (Content)** | Blog-Artikel lesen; externe Meldungen kuratiert | **`/beitraege`**, **`posts/`** im Repo (nicht generiert) | Artikel-Stil passt | Kein Kopier-Workflow in der App — bewusst |
 | **Projektierer** | Lohnt Speicher am Standort? Größe, Peak, grobe Wirtschaftlichkeit | **`/site?view=projekt`** (+ Szenario Supermarkt/Quartier/Bollingstedt) | Klare Tür von `/` „Ich plane einen Speicher“ | Alte **`/szenarien`**-URL nur Redirect; Konfigurator-Reste in Codebase nicht in Hauptnav |
 | **Netzbetreiber** | Belastet Speicher **einen** Anschluss? Badge netzdienlich/neutral/belastend; Grenze vs. Erlös | **`/site?view=netz`**, Hash **`#testnetz-n1`**, **`/netz`** → Redirect | Badge + Ampel am Beispiel gut; Testnetz sichtbar im Screenshot, aber SSR/Hash laut Beilage fehleranfällig | **Grenze und Erlös** in `<details closed>` — Kern für NB oft versteckt; nationale Flotte auf `/` nicht NB-Perspektive (richtig so, aber Navigation muss das sagen) |
 
@@ -58,27 +58,11 @@
 
 ---
 
-## 3. Erkenntnis- & Content-Workflow (Vorschlag)
+## 3. Erkenntnis- & Content (Entscheidung)
 
-### Täglich 1–3 Erkenntnisse (automatisch)
+**Die Seite steht für sich.** Zahlen und Sätze (`einschaetzung`, Erkenntnis-Link unter dem Chart auf `/`) sind normale Seiteninhalte — **kein Content-Generator**, keine Kopier-Buttons, keine Share-/OG-UI.
 
-Regelbasiert aus vorhandenen Modellen (`overviewSentence`, `OverviewsBundle`, `dayOverview`), z. B.:
-
-- Stärkster **Überschuss-Tag** im gewählten Blick  
-- **Abendspitze** before/after ×1  
-- Tag mit **×10 saturates** (Speicher voll, Rest-Überschuss hoch)  
-- **Import/Rekord-Handel** im Zeitraum  
-
-Darstellung auf `/`: kompakte Karten mit **„Text kopieren“** (LinkedIn-DE, 400–800 Zeichen, Zahlen + „Modellschätzung“ wo nötig, Link `speicherpilot.app/?blick=…` optional im Fließtext — **kein Share-Button, kein OG-Bild**).
-
-### Beiträge-Bereich `/beitraege`
-
-- **Kurzposts:** statische Markdown-Dateien unter `posts/` (Frontmatter: Datum, Status, `linkedin-de.txt`-Block oder ein Feld `copyText`).  
-- **Artikel:** bestehendes `content/blog/*.md` + Figuren — wie Upload-Stil (Quellen am Ende, „Was vereinfacht“-Kasten).  
-- **Redaktion:** Phillipp postet LinkedIn selbst; UI liefert nur Copy + Vorschau.  
-- **Pipeline:** optional später „Aus Erkenntnis → Entwurf in posts/` speichern“ (Phase 2+, git commit).
-
-Referenzstil: Upload `blog1_grossspeicher_netz.md`, `STATUS.md` (geprüft, geparkt, Serie Netzbetreiber).
+Regelbasierte Hinweise auf `/` (z. B. stärkster Überschuss-Tag → `/live?tag=…`) ersetzen keine Redaktions-Pipeline in der App. Artikel liegen unter **`/beitraege`**; Kurzposts bleiben optional im Repo (`posts/`), nicht als Produktfläche.
 
 ---
 
@@ -146,7 +130,7 @@ Aus Beilage **naechstes_paket.md** + Live-Check:
 
 | # | Befund | Schwere | Aufwand |
 |---|--------|---------|---------|
-| 1 | Kein Content-Workflow (Erkenntnis → Kopierpost → Blog) | hoch | mittel |
+| 1 | IA + Beiträge ohne Copy-UI | hoch | mittel |
 | 2 | `/` vs. `/live` Doppelung ohne klare Story | hoch | mittel |
 | 3 | MixChart / Überschuss-Lesbarkeit | hoch | mittel |
 | 4 | Testnetz SSR + Deep-Link | hoch | klein–mittel |
@@ -178,10 +162,10 @@ Redirects beibehalten: `/netz`, `/szenarien`, später `/blog` → Beiträge.
 ### Paket 1 — Roter Faden & Content (Abnahme zuerst)
 
 - IA-Texte in Nav: Start / Tag / Standort / **Beiträge** / Methodik  
-- `/beitraege` mit MD/MDX aus Repo, **Kopieren**-Button, Blog migriert  
-- `/`: 1–3 Erkenntnis-Karten aus Regeln, Link zu `/live?tag=`  
-- Klare Intro-Zeile auf `/live`: „Einzelner Tag — Übersicht unter Start“  
-- **Abnahme:** Phillipp findet morgens in <2 Min. einen Kopierpost; Blog erreichbar aus Header; keine Share-Buttons; DE-only Copy; Lighthouse a11y ≥ 98 auf `/`.
+- `/beitraege` mit MD aus Repo, Blog migriert (Redirects), **ohne** Kopier-Button  
+- `/`: eine Erkenntnis-Zeile unter dem Chart, Link zu `/live?tag=`  
+- Klare Intro-Zeile auf `/live`: Ein Kalendertag im Detail  
+- **Abnahme:** Morgen-Überblick auf `/` in wenigen Klicks; Blog aus Header; keine Share-/Copy-UI; Lighthouse a11y ≥ 98 auf `/`.
 
 ### Paket 2 — Charts, Netz-Sicht, Qualität
 

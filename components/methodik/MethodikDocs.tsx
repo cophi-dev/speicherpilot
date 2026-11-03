@@ -62,8 +62,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
           <p className="day-kicker">{tx("Methodik · Referenz", "Method · reference")}</p>
           <h1 id="methodik-title">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
           <PageLead
-            de="Annahmen, Formeln und Quellen — ergänzend zu Start, Tag und Standort."
-            en="Assumptions, formulas and sources — alongside Start, Day and Site."
+            de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
+            en="Assumptions, formulas and sources — traceable for every figure on the site."
           />
           <div className="methodik-scales">
             <figure>

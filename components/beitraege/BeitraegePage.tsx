@@ -10,7 +10,6 @@ export function BeitraegePage({ posts }: { posts: readonly BlogPost[] }) {
     <div className="beitraege" lang="de">
       <header className="day-hero blog-hero" aria-labelledby="beitraege-title">
         <div className="day-hero-inner">
-          <p className="day-kicker">Beiträge</p>
           <h1 id="beitraege-title">Beiträge</h1>
           <PageLead
             de="Artikel von SpeicherPilot und kuratierte externe Meldungen — zum Lesen. Veröffentlichen machen Sie selbst."

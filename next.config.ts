@@ -8,7 +8,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/blog", destination: "/beitraege#artikel", permanent: true },
-      { source: "/blog/:slug", destination: "/beitraege/:slug", permanent: true },
+      {
+        source: "/blog/:slug((?!.*\\.).*)",
+        destination: "/beitraege/:slug",
+        permanent: true,
+      },
       { source: "/news", destination: "/beitraege#extern-gelesen", permanent: true },
     ];
   },

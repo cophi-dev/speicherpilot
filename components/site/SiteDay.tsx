@@ -85,8 +85,8 @@ export function SiteDay({
     <div className="site-v2">
       <div className="mx-auto max-w-[1200px] px-4 pt-4">
         <PageLead
-          de="Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber sehen Grenze und Netzwirkung. Zeitraum-Übersicht steht auf Start."
-          en="One storage unit at a connection point: developers see size and economics, grid operators see limits and grid effects. Period overview is on Start."
+          de="Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze und Netzwirkung."
+          en="One storage unit at a connection point: developers see size and economics, grid operators limits and grid effects."
         />
       </div>
       {scenario === "grossspeicher" ? (

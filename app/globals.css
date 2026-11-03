@@ -778,7 +778,7 @@
   display: flex;
   width: 100%;
   max-width: 520px;
-  height: 36px;
+  min-height: 44px;
   margin-top: 24px;
   overflow: hidden;
   border: 1px solid hsl(var(--border-strong));
@@ -791,6 +791,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
@@ -825,6 +826,7 @@
   gap: 8px;
   margin: 0;
   padding: 0 12px;
+  min-height: 44px;
   border: none;
   background: transparent;
   font-size: 14px;
@@ -1551,6 +1553,11 @@
   max-height: none;
   padding-top: calc(12px + 4rem);
   padding-bottom: 32px;
+}
+
+.live-day-hero.day-hero {
+  margin-top: 0;
+  padding: 32px 20px 48px;
 }
 
 .day-hero-screen > .day-hero-inner {
@@ -4448,7 +4455,7 @@ math mi {
 }
 .methodik nav ol { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; list-style: none; }
 .methodik nav li { padding-block: 6px; }
-.methodik nav a { display: block; min-height: 24px; color: inherit; }
+.methodik nav a { display: block; min-height: 44px; color: inherit; }
 @media (min-width: 480px) {
   .methodik nav ol { display: grid; grid-template-columns: 1fr 1fr; }
 }
@@ -4619,6 +4626,7 @@ math mi {
   margin: 0;
   max-width: 68ch;
   overflow: hidden;
+  overflow-wrap: anywhere;
   color: #3c444c;
   font-family: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
   font-size: 16px;

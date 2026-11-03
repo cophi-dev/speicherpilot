@@ -9,19 +9,83 @@ import { weekdayShort } from "@/lib/dayRingStory";
 /** Share at or above this counts as absorbing all surplus in phrasing. */
 export const SATURATION = 0.995;
 
-const FRACTION_BANDS: Array<{ value: number; de: string; en: string }> = [
-  { value: 1 / 10, de: "ein Zehntel", en: "one tenth" },
-  { value: 1 / 5, de: "ein Fünftel", en: "one fifth" },
-  { value: 1 / 4, de: "ein Viertel", en: "one quarter" },
-  { value: 1 / 3, de: "ein Drittel", en: "one third" },
-  { value: 2 / 5, de: "zwei Fünftel", en: "two fifths" },
-  { value: 1 / 2, de: "die Hälfte", en: "half" },
-  { value: 3 / 5, de: "drei Fünftel", en: "three fifths" },
-  { value: 2 / 3, de: "zwei Drittel", en: "two thirds" },
-  { value: 3 / 4, de: "drei Viertel", en: "three quarters" },
-  { value: 4 / 5, de: "vier Fünftel", en: "four fifths" },
-  { value: 9 / 10, de: "neun Zehntel", en: "nine tenths" },
+const FRACTION_TARGETS: Array<{ pct: number; de: string; en: string }> = [
+  { pct: 20, de: "ein Fünftel", en: "one fifth" },
+  { pct: 25, de: "ein Viertel", en: "one quarter" },
+  { pct: 33, de: "ein Drittel", en: "one third" },
+  { pct: 50, de: "die Hälfte", en: "half" },
+  { pct: 67, de: "zwei Drittel", en: "two thirds" },
+  { pct: 75, de: "drei Viertel", en: "three quarters" },
 ];
+
+function sharePctRounded(share: number): number {
+  return Math.round(share * 100);
+}
+
+function sharePctThinFromRounded(pctRounded: number, language: AppLanguage): string {
+  const pct = formatQuantity(pctRounded, language, 0);
+  return language === "de" ? `${pct}\u202F%` : `${pct}%`;
+}
+
+function qualifierForDiff(diff: number, language: AppLanguage): string {
+  if (diff <= -1 && diff >= -2) {
+    return language === "de" ? "knapp " : "just under ";
+  }
+  if (diff >= 2) {
+    return language === "de" ? "gut " : "about ";
+  }
+  return language === "de" ? "etwa " : "about ";
+}
+
+/** Plain-language share label; bracket shows rounded percent. */
+export function shareFractionLabel(share: number, language: AppLanguage): string {
+  const pctRounded = sharePctRounded(share);
+  const pctUnit = sharePctThinFromRounded(pctRounded, language);
+  if (pctRounded <= 0 || share <= 1e-6) {
+    return language === "de" ? "nichts" : "nothing";
+  }
+  if (share >= SATURATION - 1e-6 || pctRounded >= 100) {
+    return language === "de" ? "alles" : "everything";
+  }
+  if (pctRounded < 15) {
+    return language === "de" ? `wenig (${pctUnit})` : `little (${pctUnit})`;
+  }
+  if (pctRounded >= 15 && pctRounded <= 18) {
+    const sixth = language === "de" ? "etwa ein Sechstel" : "about one sixth";
+    return `${sixth} (${pctUnit})`;
+  }
+
+  let best: { target: (typeof FRACTION_TARGETS)[number]; diff: number } | null = null;
+  for (const target of FRACTION_TARGETS) {
+    const diff = pctRounded - target.pct;
+    if (Math.abs(diff) > 2) {
+      continue;
+    }
+    if (!best || Math.abs(diff) < Math.abs(best.diff)) {
+      best = { target, diff };
+    }
+  }
+
+  if (!best) {
+    return `(${pctUnit})`;
+  }
+
+  const core = language === "de" ? best.target.de : best.target.en;
+  return `${qualifierForDiff(best.diff, language)}${core} (${pctUnit})`;
+}
+
+export function sharePhrase(share: number, language: AppLanguage) {
+  return shareFractionLabel(share, language);
+}
+
+function uptakeWord(share: number, language: AppLanguage): string {
+  const label = shareFractionLabel(share, language);
+  if (label.startsWith("(")) {
+    return label.slice(1, -1);
+  }
+  const open = label.indexOf(" (");
+  return open >= 0 ? label.slice(0, open) : label;
+}
 
 function formatBerlinLong(dateKey: string, language: AppLanguage) {
   const [year, month, day] = dateKey.split("-");
@@ -70,76 +134,18 @@ function periodPhrase(blick: OverviewBlick | "tag", language: AppLanguage, tagDa
   return "In den letzten 30 Tagen";
 }
 
-function nearestFractionBand(share: number) {
-  let best = FRACTION_BANDS[0];
-  let bestDist = Math.abs(share - best.value);
-  for (const band of FRACTION_BANDS) {
-    const dist = Math.abs(share - band.value);
-    if (dist < bestDist - 1e-9) {
-      best = band;
-      bestDist = dist;
-    }
-  }
-  return best;
-}
-
-function fractionPhraseCore(share: number, language: AppLanguage): string {
-  const band = nearestFractionBand(share);
-  const qualifier =
-    share + 1e-6 < band.value
-      ? language === "de"
-        ? "knapp "
-        : "just under "
-      : share > band.value + 1e-6
-        ? language === "de"
-          ? "gut "
-          : "about "
-        : "";
-  const core = language === "de" ? band.de : band.en;
-  return `${qualifier}${core}`;
-}
-
-function sharePctThin(share: number, language: AppLanguage): string {
-  const pct = formatQuantity(share * 100, language, 0);
-  return language === "de" ? `${pct}\u202F%` : `${pct}%`;
-}
-
-function sharePctRounded(share: number): number {
-  return Math.round(share * 100);
-}
-
-export function sharePhrase(share: number, language: AppLanguage) {
-  if (share <= 1e-6) {
-    return language === "de" ? "nichts" : "nothing";
-  }
-  if (share >= SATURATION - 1e-6) {
-    return language === "de" ? "alles" : "everything";
-  }
-  const pctUnit = sharePctThin(share, language);
-  if (sharePctRounded(share) < 15) {
-    return language === "de" ? `wenig (${pctUnit})` : `little (${pctUnit})`;
-  }
-  return `${fractionPhraseCore(share, language)} (${pctUnit})`;
-}
-
-function uptakeWord(share: number, language: AppLanguage): string {
-  if (share <= 1e-6) {
-    return language === "de" ? "nichts" : "nothing";
-  }
-  if (share >= SATURATION - 1e-6) {
-    return language === "de" ? "alles" : "everything";
-  }
-  if (sharePctRounded(share) < 15) {
-    return language === "de" ? "wenig" : "little";
-  }
-  return fractionPhraseCore(share, language);
-}
-
 function uptakePhrase(absorbedGwh: number, absorbedShare: number | null, language: AppLanguage): string {
   const share = absorbedShare ?? 0;
-  const word = uptakeWord(share, language);
-  const pctUnit = sharePctThin(share, language);
+  const label = shareFractionLabel(share, language);
+  const pctUnit = sharePctThinFromRounded(sharePctRounded(share), language);
   const gwh = formatQuantity(absorbedGwh, language, 1);
+  if (label.startsWith("(")) {
+    if (language === "de") {
+      return `${pctUnit} (${gwh}\u202FGWh)`;
+    }
+    return `${pctUnit} (${gwh} GWh)`;
+  }
+  const word = uptakeWord(share, language);
   if (language === "de") {
     return `${word} (${pctUnit}, ${gwh}\u202FGWh)`;
   }

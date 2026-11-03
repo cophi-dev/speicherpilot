@@ -21,8 +21,7 @@ import type { OverviewsBundle } from "@/lib/germanyView";
 import type { OverviewQuarterPoint } from "@/lib/overviewChain";
 import { LIVE_DISPATCH_FACTORS, type LiveDispatchFactor } from "@/lib/liveFleetDispatch";
 import { OVERVIEW_BLICKS, parseOverviewBlick, parseOverviewFactor, type OverviewBlick } from "@/lib/overviewRange";
-import { PageLead } from "@/components/PageLead";
-import { buildOverviewInsights } from "@/lib/overviewInsights";
+import { pickOverviewHighlight } from "@/lib/overviewInsights";
 import { einschaetzung } from "@/lib/overviewSentence";
 
 const SOC_REST_TOOLTIP_DE =
@@ -112,7 +111,7 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
     [model, factor, language, bundle.dataStand, until]
   );
 
-  const insights = useMemo(() => buildOverviewInsights(model, blick, language), [model, blick, language]);
+  const highlight = useMemo(() => pickOverviewHighlight(model, language), [model, language]);
 
   const chartSamples: ChartSample[] = useMemo(
     () =>
@@ -176,10 +175,6 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
             "How much wind and solar power was left over — and would more storage have absorbed it?"
           )}
         </h1>
-        <PageLead
-          de="Zeitraum-Überblick für Deutschland: Überschuss, Handel und was mehr Speicher aufgenommen hätte. Einzelne Tage im Detail unter Tag."
-          en="Period overview for Germany: surplus, trade and what more storage would have absorbed. Single days in detail under Day."
-        />
 
         <div className="sim-seg uebersicht-period" role="radiogroup" aria-label={tx("Zeitraum", "Period")}>
           {OVERVIEW_BLICKS.map((item, index) => (
@@ -207,22 +202,6 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
         ) : null}
 
         <p className="uebersicht-assessment">{assessment}</p>
-
-        {insights.length > 0 ? (
-          <ul className="uebersicht-insights" aria-label={tx("Auffälligkeiten", "Notable points")}>
-            {insights.map((item) => (
-              <li key={item.id}>
-                {item.tag ? (
-                  <Link href={`/live?tag=${item.tag}`} prefetch={false}>
-                    {item.text}
-                  </Link>
-                ) : (
-                  item.text
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : null}
         {model.observed.openDay && blick === "heute" ? (
           <p className="uebersicht-open-hint">
             {tx("Der Tag läuft noch. Die Zahlen können sich noch ändern.", "The day is still in progress. Figures may still change.")}
@@ -316,6 +295,14 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
               <UebersichtBarChart rows={factorResult.dayRows} language={language} blick={blick} />
             )}
           </figure>
+
+          {highlight ? (
+            <p className="uebersicht-highlight">
+              <Link href={`/live?tag=${highlight.tag}`} prefetch={false}>
+                {highlight.label}
+              </Link>
+            </p>
+          ) : null}
 
           <details className="uebersicht-details">
             <summary>{tx("Details", "Details")}</summary>

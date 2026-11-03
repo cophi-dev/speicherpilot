@@ -272,7 +272,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
                   <button
                     key={code}
                     type="button"
-                    className={`h-8 px-2.5 focus-visible:ring-2 focus-visible:ring-ring ${language === code ? "bg-foreground text-background" : "text-foreground"}`}
+                    className={`h-11 min-h-[44px] px-2.5 focus-visible:ring-2 focus-visible:ring-ring ${language === code ? "bg-foreground text-background" : "text-foreground"}`}
                     aria-pressed={language === code}
                     onClick={() => setLanguage(code)}
                   >
@@ -282,7 +282,7 @@ export function SiteShell({ children, chatConfigured = false }: SiteShellProps) 
               </div>
               <button
                 type="button"
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+                className="inline-flex h-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
                 aria-expanded={menuOpen}
                 aria-controls="site-mobile-nav"
                 aria-label={tx("Menü", "Menu")}

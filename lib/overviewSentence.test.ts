@@ -81,22 +81,42 @@ function baseModel(
 }
 
 describe("sharePhrase", () => {
-  it("uses nearest fractions with qualifier and percent", () => {
-    expect(sharePhrase(0.31, "de")).toBe(`knapp ein Drittel (31${THIN}%)`);
-    expect(sharePhrase(0.51, "de")).toBe(`gut die Hälfte (51${THIN}%)`);
-    expect(sharePhrase(0.9, "de")).not.toBe("alles");
-  });
-
-  it("uses wenig below 15 % rounded and ein Zehntel from 15 % rounded", () => {
+  it("maps edge cases 0, 100 and saturation", () => {
     expect(sharePhrase(0, "de")).toBe("nichts");
-    expect(sharePhrase(0.02, "de")).toBe(`wenig (2${THIN}%)`);
-    expect(sharePhrase(0.144, "de")).toBe(`wenig (14${THIN}%)`);
-    expect(sharePhrase(0.1499, "de")).toBe(`gut ein Zehntel (15${THIN}%)`);
-    expect(sharePhrase(0.15, "de")).toBe(`gut ein Zehntel (15${THIN}%)`);
+    expect(sharePhrase(1, "de")).toBe("alles");
+    expect(sharePhrase(SATURATION, "de")).toBe("alles");
   });
 
-  it("uses alles only from saturation", () => {
-    expect(sharePhrase(SATURATION, "de")).toBe("alles");
+  it("uses wenig below 15 % rounded", () => {
+    expect(sharePhrase(0.02, "de")).toBe(`wenig (2${THIN}%)`);
+    expect(sharePhrase(0.14, "de")).toBe(`wenig (14${THIN}%)`);
+  });
+
+  it("uses etwa ein Sechstel for 15–18 % rounded", () => {
+    expect(sharePhrase(0.1499, "de")).toBe(`etwa ein Sechstel (15${THIN}%)`);
+    expect(sharePhrase(0.15, "de")).toBe(`etwa ein Sechstel (15${THIN}%)`);
+    expect(sharePhrase(0.17, "de")).toBe(`etwa ein Sechstel (17${THIN}%)`);
+  });
+
+  it("picks nearest standard fraction within ±2 pp", () => {
+    expect(sharePhrase(0.19, "de")).toBe(`knapp ein Fünftel (19${THIN}%)`);
+    expect(sharePhrase(0.2, "de")).toBe(`etwa ein Fünftel (20${THIN}%)`);
+    expect(sharePhrase(0.25, "de")).toBe(`etwa ein Viertel (25${THIN}%)`);
+    expect(sharePhrase(0.3, "de")).toBe(`(30${THIN}%)`);
+    expect(sharePhrase(0.36, "de")).toBe(`(36${THIN}%)`);
+    expect(sharePhrase(0.5, "de")).toBe(`etwa die Hälfte (50${THIN}%)`);
+    expect(sharePhrase(0.66, "de")).toBe(`knapp zwei Drittel (66${THIN}%)`);
+    expect(sharePhrase(0.74, "de")).toBe(`knapp drei Viertel (74${THIN}%)`);
+  });
+
+  it("falls back to percent only when no fraction fits", () => {
+    expect(sharePhrase(0.99, "de")).toBe(`(99${THIN}%)`);
+  });
+
+  it("uses nearest fractions with qualifier", () => {
+    expect(sharePhrase(0.31, "de")).toBe(`knapp ein Drittel (31${THIN}%)`);
+    expect(sharePhrase(0.51, "de")).toBe(`etwa die Hälfte (51${THIN}%)`);
+    expect(sharePhrase(0.9, "de")).not.toBe("alles");
   });
 });
 
@@ -141,7 +161,7 @@ describe("einschaetzung", () => {
   it("names fleet uptake with share word before the bracket", () => {
     const text = einschaetzung(baseModel({ surplusGwh: 146, surplusDays: 9 }), 1, "de");
     expect(text).toMatch(/146 GWh Überschuss/);
-    expect(text).toMatch(new RegExp(`gut ein Drittel \\(36${THIN}%, 52,2${THIN}GWh\\)`));
+    expect(text).toMatch(new RegExp(`36${THIN}% \\(52,2${THIN}GWh\\)`));
     expect(text).toMatch(/fünfmal so viel Speicher/);
     expect(text).not.toMatch(/×1:/);
   });
@@ -183,7 +203,7 @@ describe("einschaetzung", () => {
       "de"
     );
     expect(text).toMatch(/Bei ×2 hätte der Speicher/);
-    expect(text).toMatch(new RegExp(`gut zwei Fünftel \\(44${THIN}%, 35,0${THIN}GWh\\)`));
+    expect(text).toMatch(new RegExp(`44${THIN}% \\(35,0${THIN}GWh\\)`));
     expect(text).not.toMatch(/×1:/);
     expect(text).not.toMatch(/×2:/);
   });
