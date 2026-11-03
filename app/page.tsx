@@ -12,7 +12,13 @@ export default async function Home() {
 
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[480px] max-w-[1200px]" />}>
-      <MarketingHome overviews={view.overviews} until={view.until} />
+      <MarketingHome
+        overviews={view.overviews}
+        until={view.until}
+        dispatch={view.dispatch}
+        exampleDispatch={view.exampleDispatch}
+        todayKey={view.todayKey}
+      />
     </Suspense>
   );
 }

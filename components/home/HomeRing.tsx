@@ -43,6 +43,9 @@ export function HomeRing({
   todayKey,
   until,
   leading,
+  showHero = true,
+  showMovements = true,
+  showMore = true,
 }: {
   dispatch: LiveDispatchInput;
   /** Last complete day with surplus, used by the explanation blocks. The hero stays on `dispatch`. */
@@ -50,6 +53,9 @@ export function HomeRing({
   todayKey: string;
   until: string | null;
   leading?: ReactNode;
+  showHero?: boolean;
+  showMovements?: boolean;
+  showMore?: boolean;
 }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
@@ -60,10 +66,10 @@ export function HomeRing({
   );
 
   if (!stories || !dispatch.fleet) {
-    return (
-      <section className="day-hero day-hero-screen">
+    const missing = (
+      <section className={showHero ? "day-hero day-hero-screen" : "day-story"} aria-live="polite">
         <div className="day-hero-inner">
-          <h1 className="day-title">
+          <h2 className={showHero ? "day-title" : undefined}>
             {dispatch.fleet
               ? tx(
                   "In den geladenen Tagen liegt keine Residuallast mit mindestens vier Viertelstunden vor.",
@@ -73,10 +79,11 @@ export function HomeRing({
                   "Die Großspeicher-Flotte von battery-charts.de ist gerade nicht geladen.",
                   "The large-storage fleet from battery-charts.de is not loaded."
                 )}
-          </h1>
+          </h2>
         </div>
       </section>
     );
+    return showHero ? missing : showMovements ? missing : null;
   }
 
   const story = stories[1];
@@ -124,6 +131,7 @@ export function HomeRing({
 
   return (
     <>
+      {showHero ? (
       <section className="day-hero day-hero-screen" aria-labelledby="home-day">
         <div className="day-hero-inner">
           {leading}
@@ -215,13 +223,17 @@ export function HomeRing({
           </div>
         </div>
       </section>
+      ) : null}
 
+      {showMovements ? (
       <section className="day-story" aria-labelledby="home-movements">
         <div className="day-hero-inner">
           <Movements story={explained} language={language} />
         </div>
       </section>
+      ) : null}
 
+      {showMore ? (
       <section className="day-paper" aria-labelledby="home-more">
         <div className="day-hero-inner">
           <h2 id="home-more">{tx("Was wäre mit mehr Großspeichern?", "What if there were more large storage?")}</h2>
@@ -243,11 +255,24 @@ export function HomeRing({
           </div>
         </div>
       </section>
+      ) : null}
     </>
   );
 }
 
 const MOVEMENT_IDS = ["night", "midday", "evening"] as const;
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const read = () => setReduced(media.matches);
+    read();
+    media.addEventListener("change", read);
+    return () => media.removeEventListener("change", read);
+  }, []);
+  return reduced;
+}
 
 function Movements({ story, language }: { story: LiveDispatchStory; language: AppLanguage }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
@@ -263,8 +288,12 @@ function Movements({ story, language }: { story: LiveDispatchStory; language: Ap
     { id: MOVEMENT_IDS[2], n: "03", title: tx("Abend", "Evening"), body: tx("Die Sonne ist weg, der Verbrauch hoch. Speicher geben ab und kappen die Spitze.", "The sun is gone and use is high. Storage gives power back and cuts the peak.") },
   ];
   const [highlight, setHighlight] = useState<(typeof steps)[number]["id"]>("night");
+  const reducedMotion = usePrefersReducedMotion();
   const items = useRef<Array<HTMLLIElement | null>>([]);
   useEffect(() => {
+    if (reducedMotion) {
+      return;
+    }
     const ratios = new Map<number, number>();
     const nodes = items.current.filter((node): node is HTMLLIElement => node !== null);
     const observer = new IntersectionObserver(
@@ -290,7 +319,7 @@ function Movements({ story, language }: { story: LiveDispatchStory; language: Ap
     );
     for (const node of nodes) observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [reducedMotion]);
   const active = steps.find((step) => step.id === highlight) ?? steps[0];
   const stepNo = steps.findIndex((step) => step.id === highlight) + 1;
   return (

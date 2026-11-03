@@ -6401,6 +6401,47 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   --mix-ink: #e9eef2;
 }
 .start-hero-title { font-size: clamp(28px, 4vw, 40px); font-weight: 300; line-height: 1.15; max-width: 28ch; margin-top: 8px; }
+.start-story-lead {
+  padding: calc(32px + 4rem) 0 28px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+}
+.start-story-lead-text {
+  margin: 0;
+  max-width: 46ch;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 300;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+.start-story-lead-link {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
+}
+.start-page .day-story {
+  margin-top: 0;
+  padding-top: 32px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .day-movement-pin {
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .day-movements li {
+    min-height: auto !important;
+  }
+  .connection-story-stage {
+    position: static;
+    height: auto;
+    min-height: 0;
+  }
+  .connection-story .story-step {
+    min-height: auto !important;
+  }
+}
 .uebersicht-assessment { font-size: clamp(18px, 2.4vw, 22px); line-height: 1.45; max-width: 72ch; margin: 16px 0 20px; }
 .uebersicht-trio { display: grid; gap: 12px; margin: 12px 0 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 .uebersicht-trio-item { border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 12px 14px; }

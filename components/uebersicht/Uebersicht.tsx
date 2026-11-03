@@ -89,7 +89,16 @@ function quarterLabel(count: number, language: AppLanguage) {
   return count === 1 ? "1 quarter-hour missing" : `${count} quarter-hours missing`;
 }
 
-export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: string | null }) {
+export function Uebersicht({
+  bundle,
+  until,
+  hideLeadAssessment = false,
+}: {
+  bundle: OverviewsBundle;
+  until: string | null;
+  /** When the homepage lead already shows the heute ×1 sentence. */
+  hideLeadAssessment?: boolean;
+}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const [blick, setBlick] = useState<OverviewBlick>(() => readInitialQuery().blick);
@@ -201,7 +210,9 @@ export function Uebersicht({ bundle, until }: { bundle: OverviewsBundle; until: 
           </p>
         ) : null}
 
-        <p className="uebersicht-assessment">{assessment}</p>
+        {!(hideLeadAssessment && blick === "heute" && factor === 1) ? (
+          <p className="uebersicht-assessment">{assessment}</p>
+        ) : null}
         {model.observed.openDay && blick === "heute" ? (
           <p className="uebersicht-open-hint">
             {tx("Der Tag läuft noch. Die Zahlen können sich noch ändern.", "The day is still in progress. Figures may still change.")}
