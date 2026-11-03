@@ -8,7 +8,13 @@ import type { OverviewsBundle } from "@/lib/germanyView";
 import { overviewBounds } from "@/lib/overviewRange";
 
 jest.mock("@/components/home/HomeRing", () => ({
-  HomeRing: () => <section className="day-story" aria-labelledby="home-movements"><h2 id="home-movements">Ein Tag in drei Bewegungen</h2></section>,
+  HomeRing: () => (
+    <section className="day-story">
+      <div className="day-movements">
+        <h2 id="home-movements">Ein Tag in drei Bewegungen</h2>
+      </div>
+    </section>
+  ),
 }));
 
 jest.mock("@/components/home/ConnectionStory", () => ({
@@ -90,13 +96,14 @@ describe("MarketingHome", () => {
       </LanguageContext.Provider>
     );
 
+    expect(screen.getByRole("heading", { level: 1, name: /Wie viel Strom aus Wind und Sonne/i })).toBeInTheDocument();
     expect(screen.getByText(/Heute bisher kein Überschuss/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Ein Tag in drei Bewegungen" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Was ist Peak Shaving/i })).toBeInTheDocument();
     expect(document.querySelector("#uebersicht")).toBeInTheDocument();
 
     const lead = document.querySelector(".start-story-lead");
-    const movements = document.getElementById("home-movements")?.closest(".day-story");
+    const movements = document.getElementById("home-movements")?.closest(".day-movements");
     const peak = document.getElementById("peak-shaving");
     const overview = document.getElementById("uebersicht");
     expect(lead?.compareDocumentPosition(movements!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

@@ -88,6 +88,7 @@ export function DayRing({
   smoothSeries = true,
   clearCenter = false,
   referenceRing = false,
+  maxCurveSamples,
 }: {
   points: LiveDispatchPoint[];
   label: string;
@@ -121,6 +122,8 @@ export function DayRing({
   clearCenter?: boolean;
   /** Bollingstedt model day: px geometry, monotone state of charge, solid sign colours. */
   referenceRing?: boolean;
+  /** Cap polar path complexity (homepage story rings). */
+  maxCurveSamples?: number;
 }) {
   const titleId = useId();
   const descId = useId();
@@ -394,6 +397,7 @@ export function DayRing({
             zeroRadius={referenceLayout?.zero}
             monotone={referenceLayout != null}
             solidSigns={referenceLayout != null}
+            maxCurveSamples={maxCurveSamples}
           />
         )}
         {!empty ? <circle className="day-guide" cx="0" cy="0" r={guideUser} /> : null}

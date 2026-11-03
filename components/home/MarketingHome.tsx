@@ -26,6 +26,11 @@ export function MarketingHome({
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
 
+  const pageTitle = tx(
+    "Wie viel Strom aus Wind und Sonne war übrig — und hätte mehr Speicher ihn aufgenommen?",
+    "How much wind and solar power was left over — and would more storage have absorbed it?"
+  );
+
   const leadSentence = useMemo(() => {
     if (!overviews) {
       return null;
@@ -42,19 +47,15 @@ export function MarketingHome({
 
   return (
     <div className="start-page">
-      <section className="start-story-lead" aria-labelledby="start-story-lead">
+      <header className="start-story-lead">
         <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-          <p id="start-story-lead" className="sr-only">
-            {tx("Kurzüberblick für heute", "Brief overview for today")}
-          </p>
+          <p className="day-kicker">{tx("Deutschland · SpeicherPilot", "Germany · SpeicherPilot")}</p>
+          <h1 id="start-page-title" className="start-page-h1">
+            {pageTitle}
+          </h1>
           <p className="start-story-lead-text">{leadSentence}</p>
-          <p className="start-story-lead-link">
-            <a href="/methodik#was" className="underline underline-offset-[3px]">
-              {tx("Ring lesen", "How to read the ring")}
-            </a>
-          </p>
         </div>
-      </section>
+      </header>
 
       <HomeRing
         dispatch={dispatch}
@@ -67,7 +68,7 @@ export function MarketingHome({
 
       <ConnectionStory />
 
-      <Uebersicht bundle={overviews} until={until} hideLeadAssessment />
+      <Uebersicht bundle={overviews} until={until} hideLeadAssessment overviewTitle={pageTitle} />
     </div>
   );
 }

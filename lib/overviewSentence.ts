@@ -191,6 +191,8 @@ export function einschaetzung(
 
   if (observed.openDay && blick === "heute" && surplus <= 1e-6) {
     const until = options?.until;
+    const untilClause =
+      until && !options?.dataStand ? tx(` (bis ${until})`, ` (until ${until})`) : "";
     const last =
       observed.lastSurplusDateBerlin && showLastSurplus(observed.lastSurplusDateBerlin, model.bounds.endKey)
         ? tx(
@@ -199,8 +201,8 @@ export function einschaetzung(
           )
         : "";
     return tx(
-      `Heute bisher kein Überschuss${until ? ` (bis ${until})` : ""}.${last}${dataNote}`,
-      `No surplus so far today${until ? ` (until ${until})` : ""}.${last}${dataNote}`
+      `Heute bisher kein Überschuss${untilClause}.${last}${dataNote}`,
+      `No surplus so far today${untilClause}.${last}${dataNote}`
     );
   }
 
