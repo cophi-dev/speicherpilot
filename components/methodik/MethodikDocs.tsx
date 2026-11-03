@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
@@ -14,6 +15,7 @@ import {
 } from "@/components/methodik/MethodikUeberblick";
 import { MethodikHashScroll } from "@/components/methodik/MethodikHashScroll";
 import { MethodikSection } from "@/components/methodik/MethodikSection";
+import { LazyMethodikBody } from "@/components/methodik/LazyMethodikBody";
 import { NetzMethodik } from "@/components/methodik/NetzMethodik";
 import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { EURO_SCOPE } from "@/lib/beispieltage";
@@ -30,6 +32,14 @@ import {
   methodikSectionLabel,
   methodikSectionNavLabel,
 } from "@/components/methodik/methodikSections";
+
+const MethodikHeroRings = dynamic(
+  () => import("@/components/methodik/MethodikHeroRings").then((m) => ({ default: m.MethodikHeroRings })),
+  {
+    ssr: false,
+    loading: () => <div className="methodik-scales methodik-scales-placeholder" aria-hidden="true" />,
+  }
+);
 
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
@@ -68,22 +78,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
             en="Assumptions, formulas and sources — traceable for every figure on the site."
           />
-          <div className="methodik-scales">
-            <figure>
-              <DayRing points={PHASE_POINTS} label={tx("Netz Deutschland", "Germany grid")} description={tx("Form der nationalen Uhr.", "Shape of the national clock.")} showShift={false} showHourTicks={false} showSoc={false} chargedGwh={0} />
-              <figcaption>
-                <span className="methodik-scale-long">{tx("Netz Deutschland · GW", "Germany grid · GW")}</span>
-                <span className="methodik-scale-short">{tx("Netz · GW", "Grid · GW")}</span>
-              </figcaption>
-            </figure>
-            <figure>
-              <DayRing points={KW_MINI} unit="kW" scale="utilisation" limit={90} label={tx("Standort", "Site")} description={tx("Form der Standort-Uhr.", "Shape of the site clock.")} showShift={false} showHourTicks={false} showSoc={false} chargedGwh={0} />
-              <figcaption>
-                <span className="methodik-scale-long">{tx("Standort · kW", "Site · kW")}</span>
-                <span className="methodik-scale-short">{tx("Standort · kW", "Site · kW")}</span>
-              </figcaption>
-            </figure>
-          </div>
+          <MethodikHeroRings language={language} />
             </div>
             <div className="methodik-paper day-paper">
           <article>
@@ -280,6 +275,14 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 )}
               </p>
             </MethodikSection>
+            <MethodikSection id="auffaelligkeit" title={methodikSectionLabel("auffaelligkeit", language)}>
+              <p>
+                {tx(
+                  "Jede Tageskennzahl wird mit den 30 Kalendertagen davor verglichen (ohne den Tag selbst). Platz 1 bedeutet: extremer als alle 30 Vortage in der jeweiligen Richtung. Kennzahlen auf Platz 1–3 gelten als auffällig. Bei gleichem Platz entscheidet zuerst ein echter Rekord vor Gleichstand, dann die feste Reihenfolge: Überschuss, Abendspitze Residuallast, Preisspanne Day-Ahead, niedrigster Preis, Anteil Wind+Sonne, Uhrzeit „Flotte voll“ im Modell.",
+                  "Each daily metric is compared with the 30 calendar days before it (excluding the day itself). Rank 1 means more extreme than all 30 prior days in that direction. Ranks 1–3 count as notable. On a tie in rank, a clear record beats a shared one, then the fixed order applies: surplus, evening residual peak, day-ahead price span, lowest price, wind+solar share, time the model fleet is full."
+                )}
+              </p>
+            </MethodikSection>
             </section>
             <section id="b-daten" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("B · Daten", "B · Data")}</h2>
@@ -383,6 +386,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Modellannahme für die Auswahl. Der Score einer Viertelstunde ist der Day-Ahead-Preis plus Abendzuschlag plus Volatilitätsterm. Der Abendzuschlag gilt von 17 bis 21 Uhr und ist 0,18 mal die Preisspanne des Tages, sonst null. Der Volatilitätsterm ist 0,12 mal die normierte Streuung mal dieselbe Preisspanne. Die normierte Streuung ist die Standardabweichung der Preise über die letzten vier Viertelstunden, geteilt durch die größte Standardabweichung des Tages. Abgegeben wird bei den höchsten Scores, geladen davor bei den niedrigsten Preisen.", "Model assumption for the choice. A quarter-hour’s score is the day-ahead price plus an evening bonus plus a volatility term. The evening bonus applies from 17:00 to 21:00 and is 0.18 times the day’s price range, otherwise zero. The volatility term is 0.12 times the normalised spread times that same price range. The normalised spread is the standard deviation of prices over the last four quarter-hours, divided by the day’s largest standard deviation. Discharge uses the highest scores, and charging before that uses the lowest prices.")}</p>
             </MethodikSection>
             <MethodikSection id="beispieltage" title={methodikSectionLabel("beispieltage", language)}>
+              <LazyMethodikBody sectionId="beispieltage">
               <p>{tx("Vier Tage aus dem Fenster 27.10.2025 bis 26.10.2026 stehen auf der Startseite. Dieselbe Rechnung wie der Modelltag: 103,5 MW und 238,5 MWh, Wirkungsgrad 0,85 hin und zurück, je Richtung die Wurzel daraus (0,922). Ladezustand 10 bis 90 %, Start 50 %, Ende nicht darunter. Das ist eine Modellschätzung und keine Abrechnung, keine Prognose und nicht die Fahrweise von Bollingstedt.", "Four days from the window 27 October 2025 to 26 October 2026 are on the homepage. The same calculation as the model day: 103.5 MW and 238.5 MWh, round-trip efficiency 0.85, the square root of that in each direction (0.922). State of charge 10 to 90%, start 50%, and the day does not end below that. This is a model estimate, not a bill, not a forecast and not the operation at Bollingstedt.")}</p>
               <p>{tx("Warum diese Tage? 1. Der Tag mit dem höchsten Modellerlös. 2. Der beste Tag ohne negative Preise. 3. Der beste Herbsttag. 4. Der mittlere Tag als Vergleich.", "Why these days? 1. The day with the highest model revenue. 2. The best day without negative prices. 3. The best autumn day. 4. The middle day as a comparison.")}</p>
               <Formula label={tx("Modellerlös eines Tages, Euro", "Model revenue of one day, euro")}>
@@ -418,12 +422,17 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Mit perfekter Vorschau und mehreren Zyklen wäre im Modell das Zwei- bis Dreifache möglich. Der Kern rechnet bewusst vorsichtiger.", "With a perfect preview and several cycles, two to three times as much would be possible in the model. The core deliberately calculates more cautiously.")}</p>
               <h3>{tx("Was ein Profi fragt", "What a specialist asks")}</h3>
               <p>{tx("Warum nur etwa 0,35 Zyklen am Tag? Und warum liegt die Abgabe nicht bei den drei teuersten Viertelstunden? Der Kern wählt einen Teilzyklus nach einem Punktwert, Preis plus Abendzuschlag 17–21 Uhr plus Schwankung, nicht nach strengem Optimum. Das ist eine bewusste, vorsichtige Heuristik, kein Fahrplan eines echten Betreibers.", "Why only about 0.35 cycles a day? And why is discharge not in the three most expensive quarter-hours? The core picks one partial cycle by a score, price plus an evening bonus from 17:00 to 21:00 plus a swing term, not by a strict optimum. That is a deliberate, cautious heuristic, not an operator’s schedule.")}</p>
+              </LazyMethodikBody>
             </MethodikSection>
             <MethodikSection id="szenarien" title={methodikSectionLabel("szenarien", language)}>
-              <SzenarienMethodik language={language} bodyOnly />
+              <LazyMethodikBody sectionId="szenarien">
+                <SzenarienMethodik language={language} bodyOnly />
+              </LazyMethodikBody>
             </MethodikSection>
             <MethodikSection id="netz" title={methodikSectionLabel("netz", language)}>
-              <NetzMethodik language={language} bodyOnly />
+              <LazyMethodikBody sectionId="netz">
+                <NetzMethodik language={language} bodyOnly />
+              </LazyMethodikBody>
             </MethodikSection>
             <span id="beispiele" className="sr-only" aria-hidden="true" />
             <span id="quartier" className="sr-only" aria-hidden="true" />

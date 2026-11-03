@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { LazyMethodikBody } from "@/components/methodik/LazyMethodikBody";
+
 type MethodikSectionProps = {
   id: string;
   title: ReactNode;
@@ -8,7 +10,7 @@ type MethodikSectionProps = {
   children: ReactNode;
 };
 
-/** Collapsible methodik block; `id` stays stable for deep links. */
+/** Collapsible methodik block; `id` stays stable for deep links. Body ships only after open (HTML gate). */
 export function MethodikSection({ id, title, level = 2, defaultOpen = false, children }: MethodikSectionProps) {
   const Heading = level === 2 ? "h2" : "h3";
   return (
@@ -16,7 +18,9 @@ export function MethodikSection({ id, title, level = 2, defaultOpen = false, chi
       <summary className="methodik-section-summary">
         <Heading>{title}</Heading>
       </summary>
-      <div className="methodik-section-body">{children}</div>
+      <div className="methodik-section-body">
+        <LazyMethodikBody sectionId={id} initialOpen={defaultOpen}>{children}</LazyMethodikBody>
+      </div>
     </details>
   );
 }

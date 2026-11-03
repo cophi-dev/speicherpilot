@@ -31,7 +31,7 @@ function axisFor(peakKw: number) {
   return { max: top + step * 0.25, ticks };
 }
 
-export function ConnectionStory() {
+export function ConnectionStory({ hideEuro = false }: { hideEuro?: boolean } = {}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const story = useMemo(() => supermarketTeachingDay(), []);
@@ -148,7 +148,7 @@ export function ConnectionStory() {
   const shownPeak = step === 0 ? story.peakBeforeKw : story.peakAfterKw;
   const light = connectionLight(shownPeak, story.limitKw);
   const deltaKw = Math.max(0, story.peakBeforeKw - story.peakAfterKw);
-  const steps = storySteps(story, deltaKw, language);
+  const steps = storySteps(story, deltaKw, language, hideEuro);
 
   return (
     <section ref={sectionRef} id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-12 md:py-16">
@@ -277,7 +277,7 @@ export function ConnectionStory() {
   );
 }
 
-function storySteps(story: PeakShavingExplain, deltaKw: number, language: "de" | "en") {
+function storySteps(story: PeakShavingExplain, deltaKw: number, language: "de" | "en", hideEuro = false) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const peak = formatQuantity(story.peakBeforeKw, language, 0);
   const after = formatQuantity(story.peakAfterKw, language, 0);
@@ -337,12 +337,14 @@ function storySteps(story: PeakShavingExplain, deltaKw: number, language: "de" |
             `Die Spitze sinkt um ${delta} kW. Der Anschluss passt noch nicht. Übrig bleibt ein Bezug von ${after} kW.`,
             `The peak falls by ${delta} kW. The connection still does not fit. Import left over is ${after} kW.`
           ),
-      figure: euro,
-      figureUnit: "€/a",
-      note: tx(
-        "Modellschätzung. Leistungspreis in diesem Beispiel: 120 € je kW und Jahr. Kein Tarif und kein Angebot.",
-        "Model estimate. Demand charge in this example: €120 per kW and year. Not a tariff and not a quote."
-      ),
+      figure: hideEuro ? null : euro,
+      figureUnit: hideEuro ? null : "€/a",
+      note: hideEuro
+        ? null
+        : tx(
+            "Modellschätzung. Leistungspreis in diesem Beispiel: 120 € je kW und Jahr. Kein Tarif und kein Angebot.",
+            "Model estimate. Demand charge in this example: €120 per kW and year. Not a tariff and not a quote."
+          ),
     },
   ];
 }

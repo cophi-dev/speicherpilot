@@ -142,7 +142,7 @@ export function HomeRing({
               {lastSurplusDay && lastSurplusDay.dateBerlin !== todayKey ? (
                 <>
                   {tx("Heute noch kein Überschuss, zuletzt am ", "No surplus yet today, last on ")}
-                  <Link className="underline underline-offset-[3px]" href={`/live?tag=${lastSurplusDay.dateBerlin}`}>
+                  <Link className="underline underline-offset-[3px]" href={`/tag/${lastSurplusDay.dateBerlin}`}>
                     {formatBerlinDayLabel(lastSurplusDay.dateBerlin)}
                   </Link>
                   .

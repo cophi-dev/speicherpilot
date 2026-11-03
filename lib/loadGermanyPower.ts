@@ -27,7 +27,8 @@ function berlinKey(date: Date): string {
 
 export async function loadGermanyPower(now: Date): Promise<{ parsed: PowerParse | null; stale: boolean }> {
   const end = berlinKey(now);
-  const start = addBerlinCalendarDays(end, -30);
+  /** 61 calendar days: 30-day window for each selectable tag plus prior day for Wiederholungsregel. */
+  const start = addBerlinCalendarDays(end, -61);
   const url = `https://api.energy-charts.info/v2/total_power?country=de&start=${start}&end=${end}`;
   const result = await fetchJsonWithLastGoodState({
     key: "total-power-de",

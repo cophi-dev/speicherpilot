@@ -43,6 +43,7 @@ export const METHODIK_SECTIONS = [
   { id: "live", chapter: "A", num: 4, de: "Überschuss und Grenzhandel", en: "Surplus and border trade" },
   { id: "uebersicht", chapter: "A", num: 5, de: "Zeitraum-Übersicht", en: "Period overview" },
   { id: "groesse", chapter: "A", num: 6, de: "Speichergröße", en: "Storage size" },
+  { id: "auffaelligkeit", chapter: "A", num: 7, de: "Auffälligkeit des Tages", en: "Daily highlight rule" },
   { id: "lizenzen", chapter: "B", num: 1, de: "Datenquellen", en: "Data sources" },
   { id: "grenzen", chapter: "B", num: 2, de: "Grenzen des Modells", en: "Limits of the model" },
   { id: "einheiten", chapter: "B", num: 3, de: "Daten und Einheiten", en: "Data and units" },

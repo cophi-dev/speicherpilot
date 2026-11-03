@@ -25,12 +25,16 @@ function renderRechner(search = "") {
 
 const BANNED = [/Netzanschlussprüfung/, /Zielnetzplanung/, /\bPlanung\b/, /Prüfung des Anschlusses/, /genehmigt/, /zulässig/, /Tesla/i, /\bHNE\b/, /\bShare\b/, /\bteilen\b/, /01\.01\.2027/, /Kapazitätspreis/, /06\.11\.2026/];
 
+function heroTitle() {
+  return document.getElementById("szen-title")?.textContent ?? "";
+}
+
 describe("Szenarienrechner", () => {
   it("shows the prototype statement, percent cards and no euro in the open view", () => {
     renderRechner("p=103.5&e=238.5&g=51.75&form=fest&v=12&start=1&jahr=12m");
     expect(screen.getByText("Prototyp")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/im Modell/);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).not.toMatch(/Netzanschlussprüfung/);
+    expect(heroTitle()).toMatch(/im Modell/);
+    expect(heroTitle()).not.toMatch(/Netzanschlussprüfung/);
     expect(screen.getByText(/keine Prüfung des Netzanschlusses/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Netzgrenze in Prozent/)).toHaveAttribute("aria-valuetext", "50 Prozent, 51,75 Megawatt");
     expect(screen.getByLabelText(/Netzgrenze in Prozent/)).toHaveAttribute("aria-valuemax", "100");
@@ -58,13 +62,12 @@ describe("Szenarienrechner", () => {
     for (const pattern of BANNED) {
       expect(document.body.textContent).not.toMatch(pattern);
     }
-    const hero = screen.getByRole("heading", { level: 1 }).textContent ?? "";
-    expect(hero.split(/\s+/).length).toBeLessThan(28);
+    expect(heroTitle().split(/\s+/).length).toBeLessThan(28);
   });
 
   it("states the agreed edge cases and keeps errors on the field", () => {
     const zero = renderRechner("g=0");
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Mit einer Grenze von 0 MW kann der Speicher im Modell nichts handeln.");
+    expect(heroTitle()).toBe("Mit einer Grenze von 0 MW kann der Speicher im Modell nichts handeln.");
     zero.unmount();
 
     const unbound = renderRechner("g=200");
@@ -113,7 +116,7 @@ describe("Szenarienrechner", () => {
         <SzenarienRechner table={table} />
       </LanguageContext.Provider>
     );
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/evening window/);
+    expect(heroTitle()).toMatch(/evening window/);
     expect(document.querySelector(".szen-chart-caption")?.textContent).toMatch(/Percent of one year/);
   });
 });

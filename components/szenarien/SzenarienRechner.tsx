@@ -178,7 +178,7 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
           <p className="day-kicker">
             {tx("Szenarien rechnen", "Run scenarios")} <ModelChip label={tx("Prototyp", "Prototype")} />
           </p>
-          <h1 id="szen-title">{hero}</h1>
+          <h2 id="szen-title">{hero}</h2>
           <p className="szen-disclaimer">
             {copy?.disclaimer ??
               tx(

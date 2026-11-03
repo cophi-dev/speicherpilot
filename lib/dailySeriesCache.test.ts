@@ -16,7 +16,7 @@ describe("daily series revalidation", () => {
   });
 
   it("keeps the page revalidate literal in step with the fetch lifetime", () => {
-    for (const file of ["app/page.tsx", "app/live/page.tsx"]) {
+    for (const file of ["app/page.tsx", "app/tag/[datum]/page.tsx"]) {
       const source = readFileSync(path.join(process.cwd(), file), "utf8");
       expect(source).toContain(`export const revalidate = ${DAILY_SERIES_REVALIDATE_SECONDS}`);
     }

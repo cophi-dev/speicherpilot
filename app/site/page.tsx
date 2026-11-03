@@ -1,37 +1,27 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { SiteDay } from "@/components/site/SiteDay";
-import { loadReferenceParkModelDay } from "@/lib/loadReferenceParkModelDay";
-import { parseSelection } from "@/lib/netzDemo";
-
-function first(value: string | string[] | undefined): string | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-  return value ?? null;
-}
-
-export const metadata = {
-  title: "Speicher oder Anschluss",
-  description: "Zwei Einstiege: Speicher planen oder Szenarien rechnen. Beispiele Supermarkt, Quartier und der Großspeicher Bollingstedt in Schleswig-Holstein.",
-};
-
-export default async function SitePage({
+export default async function SiteRedirectPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const query = await searchParams;
-  const modelDay = await loadReferenceParkModelDay();
-  const netzSelection = parseSelection({
-    fall: first(query.fall),
-    richtung: first(query.richtung),
-    knoten: first(query.knoten),
-    p: first(query.p),
-  });
-  return (
-    <Suspense>
-      <SiteDay modelDay={modelDay} netzSelection={netzSelection} />
-    </Suspense>
-  );
+  const params = new URLSearchParams();
+  const view = typeof query.view === "string" ? query.view : Array.isArray(query.view) ? query.view[0] : null;
+  const sicht = view === "netz" ? "netz" : "projekt";
+  params.set("sicht", sicht);
+  if (query.scenario) {
+    const scenario = Array.isArray(query.scenario) ? query.scenario[0] : query.scenario;
+    if (scenario) {
+      params.set("scenario", scenario);
+    }
+  }
+  for (const key of ["fall", "richtung", "knoten", "p"] as const) {
+    const v = query[key];
+    if (typeof v === "string") {
+      params.set(key, v);
+    }
+  }
+  const hash = typeof query === "object" ? "" : "";
+  redirect(`/ort?${params.toString()}${hash}`);
 }

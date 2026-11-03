@@ -35,12 +35,14 @@ import type { NetzSelection } from "@/lib/netzDemo";
 export function SiteDay({
   modelDay = null,
   netzSelection,
+  shellHidden = false,
 }: {
   modelDay?: ReferenceParkModelDay | null;
   netzSelection: NetzSelection;
+  shellHidden?: boolean;
 }) {
   const params = useSearchParams();
-  const view = parsePerspective(params.get("view")) ?? "projekt";
+  const view = parsePerspective(params.get("sicht")) ?? parsePerspective(params.get("view")) ?? "projekt";
   const scenario = parseScenario(params.get("scenario")) ?? "supermarkt";
   const { language } = useLanguage();
   const [csv, setCsv] = useState<LoadProfile | null>(null);
@@ -83,16 +85,21 @@ export function SiteDay({
 
   return (
     <div className="site-v2">
-      <div className="mx-auto max-w-[1200px] px-4 pt-4">
-        <PageLead
-          de="Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze und Netzwirkung."
-          en="One storage unit at a connection point: developers see size and economics, grid operators limits and grid effects."
-        />
-      </div>
-      {scenario === "grossspeicher" ? (
+      {!shellHidden ? (
+        <div className="mx-auto max-w-[1200px] px-4 pt-4">
+          <PageLead
+            de="Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze und Netzwirkung."
+            en="One storage unit at a connection point: developers see size and economics, grid operators limits and grid effects."
+          />
+        </div>
+      ) : null}
+      {!shellHidden && scenario === "grossspeicher" ? (
         <ReferenceParkHero view={view} language={language} modelDay={modelDay} />
-      ) : active ? (
+      ) : !shellHidden && active ? (
         <ExampleHero view={view} scenario={scenario} language={language} plan={active.plan} story={active.story} example={!uploaded} />
+      ) : null}
+      {shellHidden && scenario === "grossspeicher" ? (
+        <ReferenceParkHero view={view} language={language} modelDay={modelDay} omitHeader />
       ) : null}
       {scenario !== "grossspeicher" && active && !missingLimit ? (
         <SiteSimulator view={view} story={active.story} language={language} limitKw={simLimitKw} onLimitKwChange={setSimLimitKw} />
@@ -317,7 +324,15 @@ function siteCallouts(story: SiteConnectionStory, language: AppLanguage, netz: b
   ];
 }
 
-function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; modelDay: ReferenceParkModelDay | null }) {
+function ReferenceParkGridHero({
+  language,
+  modelDay,
+  omitHeader = false,
+}: {
+  language: AppLanguage;
+  modelDay: ReferenceParkModelDay | null;
+  omitHeader?: boolean;
+}) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const facts = REFERENCE_PARK;
   const figure = formatQuantity(facts.powerMw, language, 1);
@@ -346,22 +361,26 @@ function ReferenceParkGridHero({ language, modelDay }: { language: AppLanguage; 
   );
   const useLine = connectionUseSentence(use, facts.powerMw, language);
   return (
-    <section className="day-hero site-hero" aria-labelledby="site-hero-title">
+    <section className="day-hero site-hero" aria-labelledby={omitHeader ? undefined : "site-hero-title"}>
       <div className="day-hero-inner">
-        <PerspectiveToggle view="netz" scenario="grossspeicher" language={language} />
+        {!omitHeader ? <PerspectiveToggle view="netz" scenario="grossspeicher" language={language} /> : null}
         <div className="site-hero-grid site-model-grid">
           <div className="site-model-copy">
-            <p className="day-kicker">
-              {tx("Netzbetreiber · Hochspannung", "Grid operator · high voltage")}{" "}
-              <span className="site-chip site-chip-public">{tx("Modelltag", "Model day")}</span>
-            </p>
-            <h1 id="site-hero-title">
-              {language === "de" ? (
-                <>Bollingstedt am <span className="site-keep">110-kV-Netz</span> von SH Netz.</>
-              ) : (
-                "Bollingstedt on the 110 kV grid of SH Netz."
-              )}
-            </h1>
+            {!omitHeader ? (
+              <>
+                <p className="day-kicker">
+                  {tx("Netzbetreiber · Hochspannung", "Grid operator · high voltage")}{" "}
+                  <span className="site-chip site-chip-public">{tx("Modelltag", "Model day")}</span>
+                </p>
+                <h1 id="site-hero-title">
+                  {language === "de" ? (
+                    <>Bollingstedt am <span className="site-keep">110-kV-Netz</span> von SH Netz.</>
+                  ) : (
+                    "Bollingstedt on the 110 kV grid of SH Netz."
+                  )}
+                </h1>
+              </>
+            ) : null}
             <dl className="site-facts">
               <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={facts.mastrUnits[0].href} source={`MaStR ${facts.mastrUnits[0].seeId}`} />
               <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${energy} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
@@ -596,7 +615,17 @@ function ReferenceParkTable({ points, caption, language }: { points: LiveDispatc
   );
 }
 
-function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; language: AppLanguage; modelDay: ReferenceParkModelDay | null }) {
+function ReferenceParkHero({
+  view,
+  language,
+  modelDay,
+  omitHeader = false,
+}: {
+  view: Perspective;
+  language: AppLanguage;
+  modelDay: ReferenceParkModelDay | null;
+  omitHeader?: boolean;
+}) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const facts = REFERENCE_PARK;
   const hours = referenceParkHoursAtFullPower();
@@ -618,16 +647,20 @@ function ReferenceParkHero({ view, language, modelDay }: { view: Perspective; la
   );
   const points = modelDay?.points ?? [];
   if (view === "netz") {
-    return <ReferenceParkGridHero language={language} modelDay={modelDay} />;
+    return <ReferenceParkGridHero language={language} modelDay={modelDay} omitHeader={omitHeader} />;
   }
   return (
-    <section className="day-hero site-hero" aria-labelledby="site-hero-title">
+    <section className="day-hero site-hero" aria-labelledby={omitHeader ? undefined : "site-hero-title"}>
       <div className="day-hero-inner">
-        <PerspectiveToggle view={view} scenario="grossspeicher" language={language} />
+        {!omitHeader ? <PerspectiveToggle view={view} scenario="grossspeicher" language={language} /> : null}
         <div className="site-hero-grid site-model-grid">
           <div className="site-model-copy">
-            <p className="day-kicker">{tx("Standort · öffentliche Referenz", "Site · public reference")} <span className="site-chip site-chip-public">{tx("Öffentliche Eckdaten", "Public key figures")}</span></p>
-            <h1 id="site-hero-title">{tx("Großspeicher Bollingstedt am Hochspannungsnetz.", "Bollingstedt large storage on the high-voltage grid.")}</h1>
+            {!omitHeader ? (
+              <>
+                <p className="day-kicker">{tx("Standort · öffentliche Referenz", "Site · public reference")} <span className="site-chip site-chip-public">{tx("Öffentliche Eckdaten", "Public key figures")}</span></p>
+                <h1 id="site-hero-title">{tx("Großspeicher Bollingstedt am Hochspannungsnetz.", "Bollingstedt large storage on the high-voltage grid.")}</h1>
+              </>
+            ) : null}
             <dl className="site-facts">
               <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={facts.mastrUnits[0].href} source={`MaStR ${facts.mastrUnits[0].seeId}`} />
               <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${formatQuantity(facts.energyMwh, language, 1)} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
@@ -920,7 +953,11 @@ function PdfLink({ view, language, plan, profile }: { view: Perspective; languag
 }
 
 function toRing(points: ConnectionPoint[]): LiveDispatchPoint[] {
-  return points.map((point) => ({
+  const capped =
+    points.length > 96
+      ? Array.from({ length: 96 }, (_, i) => points[Math.min(points.length - 1, Math.round((i * (points.length - 1)) / 95))])
+      : points;
+  return capped.map((point) => ({
     hour: point.hour,
     ohneMw: point.ohneKw,
     mitMw: point.mitKw,

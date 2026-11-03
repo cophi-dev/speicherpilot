@@ -94,6 +94,8 @@ export function Uebersicht({
   until,
   hideLeadAssessment = false,
   overviewTitle,
+  hidePeriodTabs = false,
+  chapterMode = false,
 }: {
   bundle: OverviewsBundle;
   until: string | null;
@@ -101,10 +103,13 @@ export function Uebersicht({
   hideLeadAssessment?: boolean;
   /** When the page H1 lives above the story; this block uses h2 with the same text. */
   overviewTitle?: string;
+  /** v4 start: only 30-day system chapter, no Heute/Gestern/7 tabs. */
+  hidePeriodTabs?: boolean;
+  chapterMode?: boolean;
 }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const [blick, setBlick] = useState<OverviewBlick>(() => readInitialQuery().blick);
+  const [blick, setBlick] = useState<OverviewBlick>(() => (hidePeriodTabs ? "30tage" : readInitialQuery().blick));
   const [factor, setFactor] = useState<LiveDispatchFactor>(() => readInitialQuery().factor);
 
   useEffect(() => {
@@ -182,7 +187,7 @@ export function Uebersicht({
 
         <p className="day-kicker">{tx("Deutschland · Übersicht", "Germany · overview")}</p>
         {overviewTitle ? (
-          <h2 id="uebersicht-title" className="start-hero-title">
+          <h2 id="uebersicht-title" className={chapterMode ? "v4-chapter-h2" : "start-hero-title"}>
             {overviewTitle}
           </h2>
         ) : (
@@ -194,6 +199,7 @@ export function Uebersicht({
           </h1>
         )}
 
+        {!hidePeriodTabs ? (
         <div className="sim-seg uebersicht-period" role="radiogroup" aria-label={tx("Zeitraum", "Period")}>
           {OVERVIEW_BLICKS.map((item, index) => (
             <button
@@ -209,6 +215,7 @@ export function Uebersicht({
             </button>
           ))}
         </div>
+        ) : null}
 
         {showMissingHint ? (
           <p className="uebersicht-sub" role="status">
@@ -318,7 +325,7 @@ export function Uebersicht({
 
           {highlight ? (
             <p className="uebersicht-highlight">
-              <Link href={`/live?tag=${highlight.tag}`} prefetch={false}>
+              <Link href={`/tag/${highlight.tag}`} prefetch={false}>
                 {highlight.label}
               </Link>
             </p>
@@ -368,7 +375,7 @@ export function Uebersicht({
                   {factorResult.dayRows.map((row) => (
                     <tr key={row.dateBerlin}>
                       <td>
-                        <Link href={`/live?tag=${row.dateBerlin}`} prefetch={false}>
+                        <Link href={`/tag/${row.dateBerlin}`} prefetch={false}>
                           {formatBerlinDate(row.dateBerlin)}
                         </Link>
                       </td>

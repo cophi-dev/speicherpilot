@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       { source: "/news", destination: "/beitraege#extern-gelesen", permanent: true },
+      { source: "/site", destination: "/ort?sicht=projekt", permanent: true },
+      { source: "/netz", destination: "/ort?sicht=netz#testnetz", permanent: true },
+      { source: "/szenarien", destination: "/ort?sicht=netz#grenze", permanent: true },
     ];
   },
   async headers() {
