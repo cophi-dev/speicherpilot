@@ -1,12 +1,11 @@
 import type { AppLanguage } from "@/components/language-context";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
-export function SzenarienMethodik({ language }: { language: AppLanguage }) {
+export function SzenarienMethodik({ language, bodyOnly = false }: { language: AppLanguage; bodyOnly?: boolean }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const eta = Math.sqrt(ROUND_TRIP_EFFICIENCY);
-  return (
-    <section id="szenarien">
-      <h2>{tx("13 Szenarien", "13 Scenarios")}</h2>
+  const body = (
+    <>
       <p>
         {tx(
           "Der Rechner auf /szenarien vergleicht drei Wege für denselben Speicher am selben Netzknoten: Anschluss voll, flexible Anschlussvereinbarung, verzögerter Anschluss. Die Hauptzahlen sind Prozent und Monate. Euro steht nur im Aufklappblock, als Modellschätzung und obere Modellgrenze.",
@@ -176,6 +175,15 @@ export function SzenarienMethodik({ language }: { language: AppLanguage }) {
           " calculates voltage and loading for a storage unit in a public teaching grid. That is a different calculation from the comparison on this page."
         )}
       </p>
+    </>
+  );
+  if (bodyOnly) {
+    return body;
+  }
+  return (
+    <section id="szenarien">
+      <h2>{tx("13 Szenarien", "13 Scenarios")}</h2>
+      {body}
     </section>
   );
 }

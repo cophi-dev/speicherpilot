@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { ModelChip } from "@/components/day-ring/ModelChip";
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
-import { MAP_VIEW, NetzKarte, STRAND_LABELS, TIP_LEGEND, VOLTAGE_LEGEND } from "@/components/netz/NetzKarte";
+import { MAP_VIEW, NetzKarte, STRAND_LABELS, buildTipLegend, buildVoltageLegend } from "@/components/netz/NetzKarte";
+import { NETZ_PALETTE, netzSurfaceFromDemo } from "@/lib/netzPalette";
 import type { AppLanguage } from "@/components/language-context";
 import type { GlossaryId } from "@/lib/glossary";
 import {
@@ -115,7 +116,17 @@ function Mark({ fill, shape, radius = 5 }: { fill: string; shape: "circle" | "do
   return <svg className={styles.swatch} viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r={Math.min(6, radius)} fill={fill} /></svg>;
 }
 
-function Histogram({ values, mark, language }: { values: number[]; mark: number; language: AppLanguage }) {
+function Histogram({
+  values,
+  mark,
+  language,
+  palette,
+}: {
+  values: number[];
+  mark: number;
+  language: AppLanguage;
+  palette: (typeof NETZ_PALETTE)["night"];
+}) {
   const bins = Array.from({ length: 10 }, () => 0);
   for (const value of values) {
     bins[Math.min(9, Math.max(0, Math.floor(value)))] += 1;
@@ -129,9 +140,9 @@ function Histogram({ values, mark, language }: { values: number[]; mark: number;
       <svg role="img" aria-label={caption} viewBox="0 0 160 78">
         {bins.map((count, index) => {
           const height = (count / peak) * 56;
-          return <rect key={index} x={index * 16 + 2} y={64 - height} width={12} height={Math.max(height, 0)} rx={2} fill={index === markIndex ? "#7DFCE6" : "#8CA3BA"} />;
+          return <rect key={index} x={index * 16 + 2} y={64 - height} width={12} height={Math.max(height, 0)} rx={2} fill={index === markIndex ? palette.histogramMark : palette.histogramBar} />;
         })}
-        <text x={markIndex * 16 + 8} y={10} textAnchor="middle" fill="#7DFCE6" fontSize="11" fontFamily="ui-monospace, monospace">
+        <text x={markIndex * 16 + 8} y={10} textAnchor="middle" fill={palette.histogramMark} fontSize="11" fontFamily="ui-monospace, monospace">
           {mark >= 100 ? "100" : formatTip(mark, language)}
         </text>
       </svg>
@@ -209,10 +220,12 @@ export function NetzDemo({
   data,
   selection: initialSelection,
   embedded = false,
+  surface = "default",
 }: {
   data: NetzDemoFile;
   selection: NetzSelection;
   embedded?: boolean;
+  surface?: "default" | "paper";
 }) {
   const { language } = useLanguage();
   const router = useRouter();
@@ -236,6 +249,9 @@ export function NetzDemo({
   }
 
   const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const mapPalette = NETZ_PALETTE[netzSurfaceFromDemo(surface)];
+  const voltageLegend = buildVoltageLegend(mapPalette);
+  const tipLegend = buildTipLegend(mapPalette);
   const node = nodeById(data, selection.knoten);
   const { state, base } = activeState(data, selection);
   const derived = deriveLimits(state);
@@ -249,7 +265,7 @@ export function NetzDemo({
     if (!scroll || !storageOn || picture !== "karte") return;
     if (typeof window.matchMedia !== "function" || !window.matchMedia("(max-width: 860px)").matches) return;
     const svg = scroll.querySelector("svg");
-    const ring = scroll.querySelector('circle[stroke="#7DFCE6"]');
+    const ring = scroll.querySelector(`circle[stroke="${mapPalette.storageRing}"]`);
     if (!svg || !ring) return;
     const cx = Number(ring.getAttribute("cx"));
     const viewWidth = Number(svg.viewBox.baseVal.width) || MAP_VIEW.width;
@@ -358,8 +374,15 @@ export function NetzDemo({
     return deltaText(value, baseValue, language, digits);
   }
 
+  const stageClass =
+    embedded && surface === "paper"
+      ? `${styles.stage} ${styles.embedded} ${styles.stagePaper}`
+      : embedded
+        ? `${styles.stage} ${styles.embedded}`
+        : styles.stage;
+
   return (
-    <div className={embedded ? `${styles.stage} ${styles.embedded}` : styles.stage}>
+    <div className={stageClass}>
       {embedded ? null : (
         <p className={styles.banner} role="note">
           <WithTip id="testnetz" language={language}>
@@ -382,7 +405,7 @@ export function NetzDemo({
                 {tx(", die Auslastung, den Einzelausfall und den Kipppunkt.", ", the loading, the single outage and the tipping point.")}
               </p>
             </div>
-            <Histogram values={tips} mark={tip} language={language} />
+            <Histogram values={tips} mark={tip} language={language} palette={mapPalette} />
           </header>
         )}
 
@@ -417,8 +440,8 @@ export function NetzDemo({
                 onChange={(event) => update({ ...selection, knoten: event.target.value as NetzNodeId })}
               >
                 {data.nodes.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.id} · {pair(language, NODE_LABEL[item.id])} · {formatOhm(item.zOhm, language)} Ω
+                  <option key={item.id} value={item.id} title={`${item.id} · ${pair(language, NODE_LABEL[item.id])} · ${formatOhm(item.zOhm, language)} Ω`}>
+                    {item.id} · {formatOhm(item.zOhm, language)} Ω
                   </option>
                 ))}
               </select>
@@ -526,6 +549,7 @@ export function NetzDemo({
                       storageBus={storageOn ? node.bus : null}
                       title={mapTitle}
                       description={mapDescription}
+                      palette={mapPalette}
                     />
                   </div>
                 </div>
@@ -597,21 +621,21 @@ export function NetzDemo({
               </div>
             )}
             <ul className={styles.legend}>
-              {(mapMode === "kipp" ? TIP_LEGEND : VOLTAGE_LEGEND).map((item) => (
+              {(mapMode === "kipp" ? tipLegend : voltageLegend).map((item) => (
                 <li key={item.de}>
-                  <Mark fill={item.fill} shape={item.shape} radius={"radius" in item ? item.radius : 5} />
+                  <Mark fill={item.fill} shape={item.shape} radius={"radius" in item && typeof item.radius === "number" ? item.radius : 5} />
                   {pair(language, item)}
                 </li>
               ))}
               {mapMode === "spannung" ? (
                 <>
-                  <li><Mark fill="rgb(102, 115, 127)" shape="circle" />{tx("Leitung unter 80 %", "Line below 80 %")}</li>
-                  <li><Mark fill="#E1E6EA" shape="circle" />{tx("Leitung 80 bis 100 %", "Line 80 to 100 %")}</li>
-                  <li><Mark fill="#FFFFFF" shape="circle" />{tx("Leitung über 100 %, gestrichelt", "Line above 100 %, dashed")}</li>
-                  <li><Mark fill="rgb(102, 115, 127)" shape="cross" />{tx("offene Trennstelle", "open tie switch")}</li>
+                  <li><Mark fill={mapPalette.lineBelow80} shape="circle" />{tx("Leitung unter 80 %", "Line below 80 %")}</li>
+                  <li><Mark fill={mapPalette.line80to100} shape="circle" />{tx("Leitung 80 bis 100 %", "Line 80 to 100 %")}</li>
+                  <li><Mark fill={mapPalette.lineOver100} shape="circle" />{tx("Leitung über 100 %, gestrichelt", "Line above 100 %, dashed")}</li>
+                  <li><Mark fill={mapPalette.tieGray} shape="cross" />{tx("offene Trennstelle", "open tie switch")}</li>
                 </>
               ) : (
-                <li><Mark fill="rgb(102, 115, 127)" shape="cross" />{tx("offene Trennstelle", "open tie switch")}</li>
+                <li><Mark fill={mapPalette.tieGray} shape="cross" />{tx("offene Trennstelle", "open tie switch")}</li>
               )}
             </ul>
           </div>

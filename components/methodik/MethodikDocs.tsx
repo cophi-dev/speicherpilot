@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import { PageLead } from "@/components/PageLead";
 import { useLanguage } from "@/components/language-context";
-import { MethodikUeberblick, type MethodikFleetStand } from "@/components/methodik/MethodikUeberblick";
+import {
+  MethodikAnnahmenSection,
+  MethodikGrenzenSection,
+  MethodikLizenzenSection,
+  type MethodikFleetStand,
+} from "@/components/methodik/MethodikUeberblick";
+import { MethodikHashScroll } from "@/components/methodik/MethodikHashScroll";
+import { MethodikSection } from "@/components/methodik/MethodikSection";
 import { NetzMethodik } from "@/components/methodik/NetzMethodik";
 import { SzenarienMethodik } from "@/components/methodik/SzenarienMethodik";
 import { EURO_SCOPE } from "@/lib/beispieltage";
@@ -17,48 +24,44 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 
-const CHAPTERS = [
-  { id: "annahmen", de: "Annahmen auf einen Blick", en: "Assumptions at a glance" },
-  { id: "lizenzen", de: "Quellen und Lizenzen", en: "Sources and licences" },
-  { id: "grenzen", de: "Grenzen des Modells", en: "Limits of the model" },
-  { id: "was", de: "Was gerechnet wird", en: "What is calculated" },
-  { id: "einheiten", de: "Daten und Einheiten", en: "Data and units" },
-  { id: "grossspeicher", de: "Großspeicher-Modell", en: "Large-storage model" },
-  { id: "live", de: "Überschuss und Grenzhandel", en: "Surplus and border trade" },
-  { id: "uebersicht", de: "Zeitraum-Übersicht", en: "Period overview" },
-  { id: "groesse", de: "Speichergröße", en: "Storage size" },
-  { id: "ampel", de: "Anschluss-Ampel", en: "Connection light" },
-  { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
-  { id: "peak-erklaert", de: "Peak Shaving", en: "Peak shaving" },
-  { id: "modelltag", de: "Modelltag Bollingstedt", en: "Bollingstedt model day" },
-  { id: "beispieltage", de: "Beispieltage", en: "Example days" },
-  { id: "szenarien", de: "Szenarien", en: "Scenarios" },
-  { id: "netz", de: "Netzwirkung im Testnetz", en: "Grid effect in a test grid" },
-  { id: "quellen", de: "Quellen", en: "Sources" },
-] as const;
+import {
+  METHODIK_CHAPTERS,
+  METHODIK_SECTIONS,
+  methodikSectionLabel,
+  methodikSectionNavLabel,
+} from "@/components/methodik/methodikSections";
 
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") {
-      return;
-    }
-    const query = window.matchMedia("(min-width: 768px)");
-    const apply = () => {
-      document.querySelectorAll<HTMLDetailsElement>(".site-fold").forEach((node) => {
-        node.open = query.matches;
-      });
-    };
-    apply();
-    query.addEventListener("change", apply);
-    return () => query.removeEventListener("change", apply);
-  }, []);
   return (
     <div className="methodik">
+      <MethodikHashScroll />
       <section className="day-hero methodik-hero" aria-labelledby="methodik-title">
-        <div className="day-hero-inner">
+        <div className="methodik-layout">
+          <nav className="methodik-toc" aria-label={tx("Kapitel", "Chapters")}>
+            <ol className="methodik-chapter-nav">
+              {METHODIK_CHAPTERS.map((chapter) => (
+                <li key={chapter.id}>
+                  <a href={`#${chapter.id}`}>{language === "de" ? chapter.de : chapter.en}</a>
+                  <p>{language === "de" ? chapter.deLead : chapter.enLead}</p>
+                </li>
+              ))}
+            </ol>
+            <details className="methodik-toc-sections">
+              <summary>{tx("Alle Abschnitte (17)", "All sections (17)")}</summary>
+              <ol className="methodik-section-nav">
+                {METHODIK_SECTIONS.map((section) => (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`}>{methodikSectionNavLabel(section.id, language)}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </nav>
+          <div className="methodik-main">
+            <div className="day-hero-inner methodik-hero-copy">
           <p className="day-kicker">{tx("Methodik · Referenz", "Method · reference")}</p>
           <h1 id="methodik-title">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
           <PageLead
@@ -81,99 +84,20 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </figcaption>
             </figure>
           </div>
-        </div>
-      </section>
-      <div className="day-paper">
-        <div className="methodik-layout">
-          <nav aria-label={tx("Inhalt", "Contents")}>
-            <ol>
-              {CHAPTERS.map((chapter, index) => (
-                <li key={chapter.id}>
-                  <a href={`#${chapter.id}`}>{tx(`${String(index + 1).padStart(2, "0")} ${chapter.de}`, `${String(index + 1).padStart(2, "0")} ${chapter.en}`)}</a>
-                </li>
-              ))}
-            </ol>
-          </nav>
+            </div>
+            <div className="methodik-paper day-paper">
           <article>
-            <details className="site-fold methodik-group" id="methodik-deutschland">
-              <summary>{tx("A · Deutschland (Start)", "A · Germany (home)")}</summary>
-              <p>
-                {tx(
-                  "Übersicht, Zeiträume, Handel und Flottenmodell — Abschnitte 06, 06b und 06c.",
-                  "Overview, periods, trade and fleet model — sections 06, 06b and 06c."
-                )}
-              </p>
-              <ul>
-                <li><a href="#grossspeicher">{tx("Großspeicher-Modell", "Large-storage model")}</a></li>
-                <li><a href="#live">{tx("Überschuss und Handel", "Surplus and trade")}</a></li>
-                <li><a href="#uebersicht">{tx("Zeitraum-Übersicht", "Period overview")}</a></li>
-              </ul>
-            </details>
-            <details className="site-fold methodik-group" id="methodik-tag">
-              <summary>{tx("B · Tag (/live)", "B · Day (/live)")}</summary>
-              <p>{tx("Ring lesen, Regler und Erzeugung und Last.", "Reading the ring, slider and generation and load.")}</p>
-              <ul>
-                <li><a href="#live">{tx("Ring und Überschuss", "Ring and surplus")}</a></li>
-                <li><a href="#erzeugung">{tx("Erzeugung und Last", "Generation and load")}</a></li>
-              </ul>
-            </details>
-            <details className="site-fold methodik-group" id="methodik-standort">
-              <summary>{tx("C · Standort", "C · Site")}</summary>
-              <ul>
-                <li><a href="#ampel">{tx("Anschluss-Ampel", "Connection light")}</a></li>
-                <li><a href="#netzdienlichkeit">{tx("Einschätzung netzdienlich", "Grid-support estimate")}</a></li>
-                <li><a href="#peak-erklaert">{tx("Peak Shaving", "Peak shaving")}</a></li>
-                <li><a href="#szenarien">{tx("Szenarien", "Scenarios")}</a></li>
-                <li><a href="#netz">{tx("Testnetz", "Test grid")}</a></li>
-              </ul>
-            </details>
-            <details className="site-fold methodik-group" id="methodik-recht">
-              <summary>{tx("D · Quellen und Recht", "D · Sources and law")}</summary>
-              <p>
-                {tx("Stand Abruf 30.10.2026. Flotte Großspeicher: battery-charts.de / MaStR (MW und MWh auf der Seite).", "As of 30 Oct 2026. Large-storage fleet: battery-charts.de / MaStR (MW and MWh on the page).")}
-              </p>
-              <ul>
-                <li><a href="#lizenzen">{tx("Quellen und Lizenzen", "Sources and licences")}</a></li>
-                <li><a href="#quellen">{tx("Quellen", "Sources")}</a></li>
-                <li>
-                  <a href="https://www.gesetze-im-internet.de/enwg_2005/__17.html">§ 17 EnWG</a>
-                  {" · "}
-                  <a href="https://www.gesetze-im-internet.de/enwg_2005/__14a.html">§ 14a EnWG</a>
-                </li>
-              </ul>
-            </details>
-            <MethodikUeberblick language={language} fleet={fleet} />
-            <section id="was">
-              <h2>{tx("04 Was gerechnet wird", "04 What is calculated")}</h2>
+            <section id="a-modell" className="methodik-chapter">
+              <h2 className="methodik-chapter-title">{tx("A · Modell", "A · Model")}</h2>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[0].deLead : METHODIK_CHAPTERS[0].enLead}</p>
+              <MethodikSection id="annahmen" defaultOpen title={methodikSectionLabel("annahmen", language)}>
+                <MethodikAnnahmenSection language={language} fleet={fleet} bodyOnly />
+              </MethodikSection>
+            <MethodikSection id="was" title={methodikSectionLabel("was", language)}>
               <p>{tx("Zwei Sichten, ein Kern. Der Projektierer sieht Größe, Zyklen und die abgegebene Energie eines Tages. Der Netzbetreiber sieht Kilowatt am Anschluss, die Ampel und die Einschätzung netzdienlich. Keine Zahl steht in beiden Helden.", "Two views, one core. The developer sees size, cycles and the energy delivered on one day. The grid operator sees kilowatts at the connection, the traffic light and the grid-support estimate. No figure appears in both heroes.")}</p>
               <p>{tx("Die nationale Uhr auf /live und der Startseite ist die Residuallast Deutschlands in Polarform. Der Standort-Ring ist dieselbe Form in Kilowatt. Die GW-Skala kommt auf /site nicht vor.", "The national clock on /live and the homepage is Germany’s residual load in polar form. The site ring is the same form in kilowatts. The GW scale does not appear on /site.")}</p>
-            </section>
-            <section id="einheiten">
-              <h2>{tx("05 Daten und Einheiten", "05 Data and units")}</h2>
-              <div className="methodik-table"><table>
-                <thead>
-                  <tr><th>{tx("Größe", "Quantity")}</th><th>{tx("Einheit", "Unit")}</th><th>{tx("Quelle", "Source")}</th></tr>
-                </thead>
-                <tbody>
-                  <tr><td>{tx("Residuallast", "Residual load")}</td><td>{tx("MW, in der Uhr GW", "MW, and GW on the clock")}</td><td>{tx("Energy-Charts, Last − Wind − Sonne", "Energy-Charts, load − wind − solar")}</td></tr>
-                  <tr><td>{tx("Großspeicher", "Large storage")}</td><td>MW, MWh</td><td>battery-charts.de aus dem MaStR</td></tr>
-                  <tr><td>{tx("Anschluss", "Connection")}</td><td>kW</td><td>{tx("Eingabe oder Beispiel", "Input or example")}</td></tr>
-                  <tr><td>{tx("Wirkungsgrad, live", "Efficiency, live")}</td><td>{tx("0,85 auf der Abgabe", "0.85 on discharge")}</td><td>{tx("Standard, Spanne 80–90 %", "Default, range 80–90%")}</td></tr>
-                  <tr><td>{tx("Wirkungsgrad, Standort", "Efficiency, site")}</td><td>√RTE je Richtung</td><td>{tx("Standort-Rechner", "Site calculator")}</td></tr>
-                </tbody>
-              </table></div>
-              <p>{tx("Eine nationale Reihe heißt Deutschland. Sie wird nicht als Hamburg oder als Norden beschriftet. 50Hertz ist die Regelzone, nicht die Stadt. TransnetBW zeigt, dass im Norden mehr Wind steht als im Süden, und ist kein Engpass.", "A national series is called Germany. It is not labelled as Hamburg or as the north. 50Hertz is the control area, not the city. TransnetBW shows that the north has more wind than the south, and is not a congestion.")}</p>
-              <h3 id="erzeugung">{tx("Erzeugung und Last", "Generation and load")}</h3>
-              <p>{tx("Die Fläche unter der Uhr ist die veröffentlichte Erzeugung je Träger, so wie Energy-Charts sie liefert. Eine eigene Industrie-Eigenerzeugung wird nicht dazugerechnet und nicht herausgerechnet. Die Last heißt dort „Load (incl. self-consumption)“ und enthält den Eigenverbrauch, den die Quelle in dieser Reihe führt.", "The area under the clock is published generation by carrier, as Energy-Charts supplies it. No separate industrial self-generation is added or removed. Load is the series “Load (incl. self-consumption)” and includes the self-consumption that source puts in that series.")}</p>
-              <p>{tx("Träger von unten nach oben: Braunkohle, Steinkohle, Erdgas, Biomasse, Wasser, Wind auf See, Wind an Land, Sonne, Sonstige. Wasser ist Laufwasser, Speicherwasser und die Erzeugung der Pumpspeicher. Verbrauch der Pumpspeicher und Batteriespeicher stehen nicht in der Fläche. Sonstige ist Öl, Kohlegas, Geothermie, Abfall, die Reihe Others und jede weitere Erzeugungsreihe, die keinem genannten Träger zugeordnet ist.", "Carriers from bottom to top: lignite, hard coal, natural gas, biomass, hydro, offshore wind, onshore wind, solar, other. Hydro is run-of-river, reservoir and pumped-storage generation. Pumped-storage consumption and battery storage are not in the area. Other is oil, coal-derived gas, geothermal, waste, the Others series and any further generation series that is not one of the named carriers.")}</p>
-              <p>{tx("Residuallast = Last − Wind an Land − Wind auf See − Sonne. Nur in Viertelstunden, in denen alle diese Werte veröffentlicht sind. Eine Lücke bleibt leer und wird nicht zu 0. Handelssaldo ist die Reihe „Cross border electricity trading“. Positiv heißt Import nach Deutschland, negativ heißt Export. Der Anteil von Wind und Sonne bezieht sich nur auf Viertelstunden, in denen Last, Wind und Sonne zusammen vorliegen. Die Tabelle nennt die Zahl der Viertelstunden. Eine spätere Last ohne Erzeugung steht im Streifen als vorläufig und ist nicht der aktuelle Stand.", "Residual load = load − onshore wind − offshore wind − solar. Only in quarter-hours where all of those values are published. A gap stays empty and does not become 0. The cross-border balance is the series “Cross border electricity trading”. Positive means import into Germany, negative means export. The wind-and-solar share uses only quarter-hours where load, wind and solar are published together. The table names the quarter-hour count. A later load without generation is marked provisional on the strip and is not the current reading.")}</p>
-              <p>{tx("Energie in GWh ist die Summe der veröffentlichten Viertelstunden in MW mal 0,25 h, geteilt durch 1.000. Eine fehlende Viertelstunde zählt nicht als 0. Tag: jede Viertelstunde, Achse in GW. Woche: Stundenmittel der veröffentlichten Viertelstunden, Achse in GW. Monat: Tagesenergie in GWh über 31 Tage. Die Zahlenzeile bleibt in jedem Zeitraum die Summe der Viertelstunden. Die Zeitachse folgt der Uhrzeit des Zeitstempels. Am 25.10.2026 hat der Tag 100 Viertelstunden. Die zweite 02:00-Stunde trägt die Abweichung +01, damit die Marken sich nicht decken.", "Energy in GWh is the sum of published quarter-hours in MW times 0.25 h, divided by 1,000. A missing quarter-hour does not count as 0. Day: every quarter-hour, axis in GW. Week: hourly mean of the published quarter-hours, axis in GW. Month: daily energy in GWh over 31 days. The figure row stays the quarter-hour sum in every period. The time axis follows the timestamp. On 25 October 2026 the day has 100 quarter-hours. The second 02:00 hour carries the offset +01, so the marks do not collide.")}</p>
-              <p>{tx("Ein Überschusstag ist ein Tag, an dem die Summe von max(0, Wind an Land + Wind auf See + Sonne − Last) mal 0,25 h größer als 0,05 GWh ist. Liegt der Tag darunter, nennt der Befund den Anteil von Wind und Sonne an der Last und die Spanne der Residuallast. Dieselben Zahlen stehen in der Tabelle.", "A surplus day is a day on which the sum of max(0, onshore wind + offshore wind + solar − load) times 0.25 h is greater than 0.05 GWh. Below that, the finding names the wind-and-solar share of load and the residual-load range. The same numbers are in the table.")}</p>
-              <p>{tx("Nennenergie ist die Größe der Flotte. Nutzbar sind 10–90 % davon, also 80 % der Nennenergie. Der Ring eines einzelnen Tages und die Ladezustandslinie starten am Beginn des Zeitraums bei 10 % der Nennenergie und bleiben in diesem Fenster. Die beiden Rechnungen sind für denselben Tag und denselben Faktor gleich. Geladen wird nur vor 17 Uhr und nur aus Überschuss von Wind plus Sonne über der Last. Ab 17 Uhr wird auf die Abendspitze abgegeben. 85 % Wirkungsgrad werden bei der Abgabe abgezogen: aus dem Speicher geht die abgegebene Energie geteilt durch 0,85. Der Stand am Tagesende ist der Start des nächsten Tages. ×1 ist die Flotte, ×2, ×5 und ×10 vervielfachen Leistung und Energie. Die Abendspitze ändert sich mit dem Faktor, aber nicht linear: Ist der Überschuss aufgebraucht, sinkt sie nicht weiter (25.10.: ab ×2 bei 5,0 GW). Das ist eine Modellschätzung, Preisnehmer, nur Day-Ahead im übrigen Rechner, hier ohne Euro-Betrag.", "Nameplate energy is the fleet size. The usable window is 10–90% of that, so 80% of nameplate. The ring of a single day and the state-of-charge line both start the period at 10% of nameplate and stay inside that window. The two calculations match for the same day and the same factor. Charging is only before 17:00 and only from wind plus solar above load. From 17:00 it discharges onto the evening peak. 85% round-trip efficiency is taken on discharge: the battery loses the delivered energy divided by 0.85. The level at the end of a day is the start of the next day. ×1 is the fleet; ×2, ×5 and ×10 scale power and energy. The evening peak changes with the factor, but not linearly: once surplus is used up, it stops falling (25 Oct: from ×2 at 5.0 GW). That is a model estimate, a price taker, day-ahead only in the other calculator, and no euro amount here.")}</p>
-              <p>{tx("Im Streifen oben gilt: Last etwa 70 Minuten später, Erzeugung etwa 85 Minuten, Frequenz etwa 30 Minuten. Jede Zahl nennt die Uhrzeit ihres eigenen Werts. Die Frequenz ist die Messung in Freiburg, kein Wert eines Netzbetreibers. Der Day-Ahead-Preis ist der Marktpreis der laufenden Viertelstunde in Euro je Megawattstunde, Bundesnetzagentur | SMARD.de über Energy-Charts, CC BY 4.0. Das ist kein Erlös. SMARD-Viertelstunden in Megawattstunden wären mal 4 zu nehmen, wenn sie als Leistung gelesen würden. Das passiert hier nicht: die Leistung kommt in Megawatt von Energy-Charts. Anteil Erneuerbare im Streifen ist die Reihe „Renewable share of load“, nicht nur Wind und Sonne. Fehlt ein Wert, steht „nicht veröffentlicht“. Bei einem Fehler oder HTTP 429 bleibt der zuletzt gültige Abruf stehen und ist mit „zuletzt gültig“ markiert.", "On the strip at the top: load is about 70 minutes late, generation about 85 minutes, frequency about 30 minutes. Each number names the time of its own value. Frequency is the Freiburg measurement, not a grid-operator value. The day-ahead price is the market price of the current quarter-hour in euro per megawatt-hour, Bundesnetzagentur | SMARD.de via Energy-Charts, CC BY 4.0. That is not revenue. A SMARD quarter-hour in megawatt-hours would be multiplied by 4 if it were read as power. That does not happen here: power comes from Energy-Charts in megawatts. Renewable share on the strip is the series “Renewable share of load”, not wind and solar alone. A missing value says “not published”. On an error or HTTP 429 the last valid response stays and is marked “last valid”.")}</p>
-            </section>
-            <section id="grossspeicher">
-              <h2>{tx("06 Großspeicher-Modell", "06 Large-storage model")}</h2>
+            </MethodikSection>
+            <MethodikSection id="grossspeicher" title={methodikSectionLabel("grossspeicher", language)}>
               <div className="methodik-phases" inert>
                 <Phase label={tx("Laden", "Charge")} highlight="midday" />
                 <Phase label={tx("Halten", "Hold")} highlight={null} />
@@ -222,9 +146,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Ein fester Wert gilt für alle Leistungen und Ladezustände. In Wirklichkeit ist der Wirkungsgrad bei Teillast schlechter, und Hilfsenergie fällt auch im Stillstand an. Das Großspeicher-Modell bucht den ganzen Verlust bei der Abgabe. Der Standort-Rechner teilt ihn je zur Hälfte auf, als Wurzel aus dem Round-Trip auf dem Weg hinein und auf dem Weg hinaus. Die Summe ist gleich, nur der Ladezustand dazwischen sieht anders aus. Die beiden Modelle werden nicht vermischt.", "One fixed value applies at every power and state of charge. In practice efficiency is worse at part load, and auxiliary energy is used even while the battery is idle. The large-storage model books the whole loss on discharge. The site calculator splits it in half, as the square root of the round trip on the way in and on the way out. The sum is the same; only the state of charge in between looks different. The two models are not mixed.")}</p>
               <p>{tx("Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. η = 0,85 wird erst bei der Abgabe angewendet. Nutzbar sind 80 % der Nennenergie. Aus 7,86 GWh Nennenergie werden damit höchstens 6,29 GWh Ladung und 5,34 GWh Abgabe.", "Charging happens only before 17:00 and only from surplus, limited by power and free capacity. η = 0.85 is applied only on discharge. The usable share is 80% of nameplate. From 7.86 GWh nameplate that is at most 6.29 GWh charged and 5.34 GWh delivered.")}</p>
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
-            </section>
-            <section id="live">
-              <h2>{tx("06b Überschuss, Export, Abregelung", "06b Surplus, export, curtailment")}</h2>
+            </MethodikSection>
+            <MethodikSection id="live" title={methodikSectionLabel("live", language)}>
               <p>{tx("Überschuss Wind und Sonne ist die Summe von max(0, Wind an Land + Wind auf See + Sonne − Last) mal 0,25 h über den Tag. Dieselbe Definition wie der Ring und Abschnitt 06.", "Wind-and-solar surplus is the sum of max(0, onshore wind + offshore wind + solar − load) times 0.25 h over the day. Same definition as the ring and section 06.")}</p>
               <p>{tx("Export beobachtet integriert nur negative Grenzhandels-Leistung (Export) aus Energy-Charts total_power (Last inkl. Eigenverbrauch, 15 Min.). Die Modellschätzung je Viertelstunde: simuliert = max(0, beobachtet − Ladung aus Überschuss). Entladung ab 17 Uhr ändert den Export nicht.", "Observed export integrates only negative cross-border power (export) from Energy-Charts total_power (load including self-consumption, 15 min). The model estimate each quarter-hour: simulated = max(0, observed − charging from surplus). Discharge from 17:00 does not change export.")}</p>
               <p>
@@ -246,9 +169,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </p>
               <p>{tx("Auf /live gelten zwei sichtbare Zeiträume: Der Ring oben rechnet den gewählten Kalendertag (heute laufend oder ein älterer Tag über ?tag=). Darunter steht der letzte vollständig veröffentlichte Tag mit Überschuss-Rechnung, Grafik und Tabelle. Beide Teile nutzen denselben Regler ×1…×10 (?x). Die Formeln sind identisch: Überschuss max(0, Wind an Land + Wind auf See + Sonne − Last), Laden nur vor 17 Uhr daraus, Export simuliert = max(0, Export beobachtet − Ladung), Entladung ab 17 Uhr auf die Abend-Residuallast mit η = 0,85 auf der Abgabe, nutzbar 10–90 % Nennenergie. Quelle Leistung und Grenzhandel: Energy-Charts total_power, 15-Minuten-Werte.", "On /live there are two visible periods: the ring at the top uses the chosen calendar day (today in progress or an older day via ?tag=). Below that is the last fully published day with surplus calculation, chart and table. Both share the same ×1…×10 control (?x). The formulas are the same: surplus max(0, onshore wind + offshore wind + solar − load), charging only before 17:00 from that surplus, simulated export = max(0, observed export − charging), discharge from 17:00 on the evening residual with η = 0.85 on delivery, usable 10–90% of nameplate. Source for power and cross-border trade: Energy-Charts total_power, 15-minute values.")}</p>
               <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, Stand siehe Seite). ×2, ×5 und ×10 vervielfachen Leistung und Energie. Euro gibt es nur bei ×1. Unsicherheit: Kupferplatte, keine Engpässe.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, as-of on the page). ×2, ×5 and ×10 scale power and energy. Euro figures appear only at ×1. Uncertainty: copper plate, no bottlenecks.")}</p>
-            </section>
-            <section id="uebersicht">
-              <h2>{tx("06c Zeitraum-Übersicht auf der Startseite", "06c Period overview on the homepage")}</h2>
+            </MethodikSection>
+            <MethodikSection id="uebersicht" title={methodikSectionLabel("uebersicht", language)}>
               <p>
                 {tx(
                   "Überschuss = Σ max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h. Import/Export = kommerzieller Handelssaldo aus demselben Energy-Charts-Abruf (positiv = Netto-Import). Physikalische Flüsse (/cbpf) sind hier nicht genutzt (größerer Verzug). Zeiträume: Heute bis zur letzten Viertelstunde; Gestern voller Berlin-Tag; 7 und 30 Tage = rollierend volle Tage bis gestern (heute ausgeschlossen).",
@@ -305,9 +227,15 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   </>
                 )}
               </p>
-            </section>
-            <section id="groesse">
-              <h2>{tx("07 Speichergröße", "07 Storage size")}</h2>
+              <p>
+                {tx(
+                  "Den Rechtsrahmen-Überblick zu § 17, § 14a und VDE-AR-N fasst Kapitel D zusammen: ",
+                  "Chapter D summarises the legal overview for § 17, § 14a and VDE-AR-N: "
+                )}
+                <a href="#d-recht">{tx("D · Recht und Glossar", "D · Law and glossary")}</a>.
+              </p>
+            </MethodikSection>
+            <MethodikSection id="groesse" title={methodikSectionLabel("groesse", language)}>
               <Formula label={tx("Speichergröße aus der Tagesspitze", "Storage size from the daily peak")}>
                 <math display="block">
                   <mtable>
@@ -351,18 +279,53 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   </>
                 )}
               </p>
+            </MethodikSection>
             </section>
-            <section id="ampel">
-              <h2>{tx("08 Anschluss-Ampel", "08 Connection light")}</h2>
+            <section id="b-daten" className="methodik-chapter">
+              <h2 className="methodik-chapter-title">{tx("B · Daten", "B · Data")}</h2>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[1].deLead : METHODIK_CHAPTERS[1].enLead}</p>
+              <MethodikSection id="lizenzen" defaultOpen title={methodikSectionLabel("lizenzen", language)}>
+                <MethodikLizenzenSection language={language} fleet={fleet} bodyOnly />
+              </MethodikSection>
+              <MethodikSection id="grenzen" title={methodikSectionLabel("grenzen", language)}>
+                <MethodikGrenzenSection language={language} fleet={fleet} bodyOnly />
+              </MethodikSection>
+            <MethodikSection id="einheiten" title={methodikSectionLabel("einheiten", language)}>
+              <div className="methodik-table"><table>
+                <thead>
+                  <tr><th>{tx("Größe", "Quantity")}</th><th>{tx("Einheit", "Unit")}</th><th>{tx("Quelle", "Source")}</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>{tx("Residuallast", "Residual load")}</td><td>{tx("MW, in der Uhr GW", "MW, and GW on the clock")}</td><td>{tx("Energy-Charts, Last − Wind − Sonne", "Energy-Charts, load − wind − solar")}</td></tr>
+                  <tr><td>{tx("Großspeicher", "Large storage")}</td><td>MW, MWh</td><td>battery-charts.de aus dem MaStR</td></tr>
+                  <tr><td>{tx("Anschluss", "Connection")}</td><td>kW</td><td>{tx("Eingabe oder Beispiel", "Input or example")}</td></tr>
+                  <tr><td>{tx("Wirkungsgrad, live", "Efficiency, live")}</td><td>{tx("0,85 auf der Abgabe", "0.85 on discharge")}</td><td>{tx("Standard, Spanne 80–90 %", "Default, range 80–90%")}</td></tr>
+                  <tr><td>{tx("Wirkungsgrad, Standort", "Efficiency, site")}</td><td>√RTE je Richtung</td><td>{tx("Standort-Rechner", "Site calculator")}</td></tr>
+                </tbody>
+              </table></div>
+              <p>{tx("Eine nationale Reihe heißt Deutschland. Sie wird nicht als Hamburg oder als Norden beschriftet. 50Hertz ist die Regelzone, nicht die Stadt. TransnetBW zeigt, dass im Norden mehr Wind steht als im Süden, und ist kein Engpass.", "A national series is called Germany. It is not labelled as Hamburg or as the north. 50Hertz is the control area, not the city. TransnetBW shows that the north has more wind than the south, and is not a congestion.")}</p>
+              <h3 id="erzeugung">{tx("Erzeugung und Last", "Generation and load")}</h3>
+              <p>{tx("Die Fläche unter der Uhr ist die veröffentlichte Erzeugung je Träger, so wie Energy-Charts sie liefert. Eine eigene Industrie-Eigenerzeugung wird nicht dazugerechnet und nicht herausgerechnet. Die Last heißt dort „Load (incl. self-consumption)“ und enthält den Eigenverbrauch, den die Quelle in dieser Reihe führt.", "The area under the clock is published generation by carrier, as Energy-Charts supplies it. No separate industrial self-generation is added or removed. Load is the series “Load (incl. self-consumption)” and includes the self-consumption that source puts in that series.")}</p>
+              <p>{tx("Träger von unten nach oben: Braunkohle, Steinkohle, Erdgas, Biomasse, Wasser, Wind auf See, Wind an Land, Sonne, Sonstige. Wasser ist Laufwasser, Speicherwasser und die Erzeugung der Pumpspeicher. Verbrauch der Pumpspeicher und Batteriespeicher stehen nicht in der Fläche. Sonstige ist Öl, Kohlegas, Geothermie, Abfall, die Reihe Others und jede weitere Erzeugungsreihe, die keinem genannten Träger zugeordnet ist.", "Carriers from bottom to top: lignite, hard coal, natural gas, biomass, hydro, offshore wind, onshore wind, solar, other. Hydro is run-of-river, reservoir and pumped-storage generation. Pumped-storage consumption and battery storage are not in the area. Other is oil, coal-derived gas, geothermal, waste, the Others series and any further generation series that is not one of the named carriers.")}</p>
+              <p>{tx("Residuallast = Last − Wind an Land − Wind auf See − Sonne. Nur in Viertelstunden, in denen alle diese Werte veröffentlicht sind. Eine Lücke bleibt leer und wird nicht zu 0. Handelssaldo ist die Reihe „Cross border electricity trading“. Positiv heißt Import nach Deutschland, negativ heißt Export. Der Anteil von Wind und Sonne bezieht sich nur auf Viertelstunden, in denen Last, Wind und Sonne zusammen vorliegen. Die Tabelle nennt die Zahl der Viertelstunden. Eine spätere Last ohne Erzeugung steht im Streifen als vorläufig und ist nicht der aktuelle Stand.", "Residual load = load − onshore wind − offshore wind − solar. Only in quarter-hours where all of those values are published. A gap stays empty and does not become 0. The cross-border balance is the series “Cross border electricity trading”. Positive means import into Germany, negative means export. The wind-and-solar share uses only quarter-hours where load, wind and solar are published together. The table names the quarter-hour count. A later load without generation is marked provisional on the strip and is not the current reading.")}</p>
+              <p>{tx("Energie in GWh ist die Summe der veröffentlichten Viertelstunden in MW mal 0,25 h, geteilt durch 1.000. Eine fehlende Viertelstunde zählt nicht als 0. Tag: jede Viertelstunde, Achse in GW. Woche: Stundenmittel der veröffentlichten Viertelstunden, Achse in GW. Monat: Tagesenergie in GWh über 31 Tage. Die Zahlenzeile bleibt in jedem Zeitraum die Summe der Viertelstunden. Die Zeitachse folgt der Uhrzeit des Zeitstempels. Am 25.10.2026 hat der Tag 100 Viertelstunden. Die zweite 02:00-Stunde trägt die Abweichung +01, damit die Marken sich nicht decken.", "Energy in GWh is the sum of published quarter-hours in MW times 0.25 h, divided by 1,000. A missing quarter-hour does not count as 0. Day: every quarter-hour, axis in GW. Week: hourly mean of the published quarter-hours, axis in GW. Month: daily energy in GWh over 31 days. The figure row stays the quarter-hour sum in every period. The time axis follows the timestamp. On 25 October 2026 the day has 100 quarter-hours. The second 02:00 hour carries the offset +01, so the marks do not collide.")}</p>
+              <p>{tx("Ein Überschusstag ist ein Tag, an dem die Summe von max(0, Wind an Land + Wind auf See + Sonne − Last) mal 0,25 h größer als 0,05 GWh ist. Liegt der Tag darunter, nennt der Befund den Anteil von Wind und Sonne an der Last und die Spanne der Residuallast. Dieselben Zahlen stehen in der Tabelle.", "A surplus day is a day on which the sum of max(0, onshore wind + offshore wind + solar − load) times 0.25 h is greater than 0.05 GWh. Below that, the finding names the wind-and-solar share of load and the residual-load range. The same numbers are in the table.")}</p>
+              <p>{tx("Nennenergie ist die Größe der Flotte. Nutzbar sind 10–90 % davon, also 80 % der Nennenergie. Der Ring eines einzelnen Tages und die Ladezustandslinie starten am Beginn des Zeitraums bei 10 % der Nennenergie und bleiben in diesem Fenster. Die beiden Rechnungen sind für denselben Tag und denselben Faktor gleich. Geladen wird nur vor 17 Uhr und nur aus Überschuss von Wind plus Sonne über der Last. Ab 17 Uhr wird auf die Abendspitze abgegeben. 85 % Wirkungsgrad werden bei der Abgabe abgezogen: aus dem Speicher geht die abgegebene Energie geteilt durch 0,85. Der Stand am Tagesende ist der Start des nächsten Tages. ×1 ist die Flotte, ×2, ×5 und ×10 vervielfachen Leistung und Energie. Die Abendspitze ändert sich mit dem Faktor, aber nicht linear: Ist der Überschuss aufgebraucht, sinkt sie nicht weiter (25.10.: ab ×2 bei 5,0 GW). Das ist eine Modellschätzung, Preisnehmer, nur Day-Ahead im übrigen Rechner, hier ohne Euro-Betrag.", "Nameplate energy is the fleet size. The usable window is 10–90% of that, so 80% of nameplate. The ring of a single day and the state-of-charge line both start the period at 10% of nameplate and stay inside that window. The two calculations match for the same day and the same factor. Charging is only before 17:00 and only from wind plus solar above load. From 17:00 it discharges onto the evening peak. 85% round-trip efficiency is taken on discharge: the battery loses the delivered energy divided by 0.85. The level at the end of a day is the start of the next day. ×1 is the fleet; ×2, ×5 and ×10 scale power and energy. The evening peak changes with the factor, but not linearly: once surplus is used up, it stops falling (25 Oct: from ×2 at 5.0 GW). That is a model estimate, a price taker, day-ahead only in the other calculator, and no euro amount here.")}</p>
+              <p>{tx("Im Streifen oben gilt: Last etwa 70 Minuten später, Erzeugung etwa 85 Minuten, Frequenz etwa 30 Minuten. Jede Zahl nennt die Uhrzeit ihres eigenen Werts. Die Frequenz ist die Messung in Freiburg, kein Wert eines Netzbetreibers. Der Day-Ahead-Preis ist der Marktpreis der laufenden Viertelstunde in Euro je Megawattstunde, Bundesnetzagentur | SMARD.de über Energy-Charts, CC BY 4.0. Das ist kein Erlös. SMARD-Viertelstunden in Megawattstunden wären mal 4 zu nehmen, wenn sie als Leistung gelesen würden. Das passiert hier nicht: die Leistung kommt in Megawatt von Energy-Charts. Anteil Erneuerbare im Streifen ist die Reihe „Renewable share of load“, nicht nur Wind und Sonne. Fehlt ein Wert, steht „nicht veröffentlicht“. Bei einem Fehler oder HTTP 429 bleibt der zuletzt gültige Abruf stehen und ist mit „zuletzt gültig“ markiert.", "On the strip at the top: load is about 70 minutes late, generation about 85 minutes, frequency about 30 minutes. Each number names the time of its own value. Frequency is the Freiburg measurement, not a grid-operator value. The day-ahead price is the market price of the current quarter-hour in euro per megawatt-hour, Bundesnetzagentur | SMARD.de via Energy-Charts, CC BY 4.0. That is not revenue. A SMARD quarter-hour in megawatt-hours would be multiplied by 4 if it were read as power. That does not happen here: power comes from Energy-Charts in megawatts. Renewable share on the strip is the series “Renewable share of load”, not wind and solar alone. A missing value says “not published”. On an error or HTTP 429 the last valid response stays and is marked “last valid”.")}</p>
+            </MethodikSection>
+            </section>
+            <section id="c-netz" className="methodik-chapter">
+              <h2 className="methodik-chapter-title">{tx("C · Netz und Beispiele", "C · Grid and examples")}</h2>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[2].deLead : METHODIK_CHAPTERS[2].enLead}</p>
+            <MethodikSection id="ampel" defaultOpen title={methodikSectionLabel("ampel", language)}>
               <div className="methodik-gauges">
                 <Gauge pct={70} label={tx("passt", "fits")} />
                 <Gauge pct={95} label={tx("knapp", "tight")} />
                 <Gauge pct={120} label={tx("passt nicht", "does not fit")} />
               </div>
               <p>{tx("Unter 90 % der Anschlussleistung passt es. Ab 90 % bis zur Grenze ist es knapp. Darüber passt es nicht. Fehlt die Anschlussleistung, bleibt der Punkt grau und es gibt keine rote Linie. Die Farbe steht nie allein: der Text nennt den Zustand.", "Below 90% of the connection it fits. From 90% up to the limit it is tight. Above that it does not fit. If the connection capacity is missing, the dot stays grey and there is no red line. Colour never stands alone: the text names the state.")}</p>
-            </section>
-            <section id="netzdienlichkeit">
-              <h2>{tx("09 Einschätzung netzdienlich", "09 Grid-support estimate")}</h2>
+            </MethodikSection>
+            <MethodikSection id="netzdienlichkeit" title={methodikSectionLabel("netzdienlichkeit", language)}>
               <p>{tx(`Regel v1. Ein Intervall zählt als Spitze, wenn die Standortlast mindestens ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)} % der Anschlussleistung erreicht. Einschätzung netzdienlich ab ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)} % der Entladeenergie in diesen Intervallen und ohne neue Bezugsspitze. Darunter bis ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)} % heißt die Schätzung gemischt, darunter marktgetrieben. Eine neue Spitze liegt vor, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt. Die Schwellen stehen nur an einer Stelle im Modell und sind vorläufig.`, `Rule v1. An interval counts as a peak when site load reaches at least ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)}% of the connection. The estimate is grid-supportive from ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)}% of discharge energy in those intervals and only without a new import peak. Down to ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)}% the estimate is mixed, and below that market-driven. A new peak exists as soon as a charging interval lifts the import above the peak without storage. The thresholds live in one place in the model and are provisional.`)}</p>
               <p>{tx("Die Marke heißt netzdienlich v1 · Einschätzung, kein Befund. Die Schrift bleibt neutral, ohne Grün und ohne Rot.", "The badge reads grid-supportive v1 · estimate, not a finding. The type stays neutral, with no green and no red.")}</p>
               <blockquote>
@@ -372,9 +335,15 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   {tx(". Stand 21.10.2026.", ". As of 21 October 2026.")}
                 </p>
               </blockquote>
-            </section>
-            <section id="peak-erklaert">
-              <h2>{tx("10 Peak Shaving, Schritt für Schritt", "10 Peak shaving, step by step")}</h2>
+              <p>
+                {tx(
+                  "Rechtskontext und Quellen dazu: Kapitel D ",
+                  "Legal context and sources: chapter D "
+                )}
+                <a href="#d-recht">{tx("(Recht und Glossar)", "(law and glossary)")}</a>.
+              </p>
+            </MethodikSection>
+            <MethodikSection id="peak-erklaert" title={methodikSectionLabel("peak-erklaert", language)}>
               <p>{tx("Die Geschichte auf der Startseite mit Zahlen: Die Abendspitze passt nicht durch den Anschluss, der Speicher nimmt sie weg.", "The homepage story in numbers: the evening peak does not fit through the connection, and the battery takes it away.")}</p>
               <Formula label={tx("Abgabe über der Anschlussgrenze", "Discharge above the connection limit")}>
                 <math display="block">
@@ -405,17 +374,15 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Spitze −29,6 kW × 120 €/kW·a ≈ 3.550 €/a, Modellschätzung. Der Leistungspreis von 120 €/kW·a ist eine Annahme, kein Tarif.", "Peak −29.6 kW × 120 €/kW·a ≈ €3,550 per year, model estimate. The demand charge of 120 €/kW·a is an assumption, not a tariff.")}</p>
               <p>{tx("Ist der Speicher zu klein, sinkt die Spitze nur teilweise. Die Seite sagt dann: Der Anschluss passt noch nicht. Liegt die Last nie über der Grenze, gibt es keine Abgabe. Ist der Speicher leer, bevor die Spitze vorbei ist, geht der Rest über die Grenze.", "If the battery is too small, the peak only falls part of the way. The page then says the connection does not fit yet. If load never crosses the limit, there is no discharge. If the battery is empty before the peak is over, the rest goes over the limit.")}</p>
               <p>{tx("Der Lehrtag weiß, dass die Spitze kommt, und startet deshalb voll. Der Jahreslauf auf /site startet bei 50 %, lädt selbst vor und hält 10–95 % ein. Darum stimmen die Zahlen beider Ansichten nur zufällig überein, hier beide 26,6 kWh und 119,6 kW auf 90 kW. Der Leistungspreis hängt an der Jahreshöchstlast. Ein einziger verpasster Tag macht die Ersparnis kaputt. Darum rechnet /site ein ganzes Jahr und nimmt die Jahresspitze vorher und nachher. Der Lehrtag zeigt nur das Prinzip.", "The teaching day knows the peak is coming, and therefore starts full. The year run on /site starts at 50%, charges ahead on its own and stays inside 10–95%. The two views therefore match only by chance, here both at 26.6 kWh and 119.6 kW down to 90 kW. The demand charge follows the annual peak. One missed day wipes out the saving. That is why /site runs a whole year and takes the annual peak before and after. The teaching day only shows the principle.")}</p>
-            </section>
-            <section id="modelltag">
-              <h2>{tx("11 Modelltag Bollingstedt", "11 Bollingstedt model day")}</h2>
+            </MethodikSection>
+            <MethodikSection id="modelltag" title={methodikSectionLabel("modelltag", language)}>
               <p>{tx("Leistung und Inhalt sind die Summe zweier Einheiten im Marktstammdatenregister: SEE925543621515 und SEE922158261037. Zusammen sind das 103,5 MW und 238,5 MWh. Die Meldung des Betreibers nennt 238 MWh.", "Power and energy are the sum of two Marktstammdatenregister units: SEE925543621515 and SEE922158261037. Together that is 103.5 MW and 238.5 MWh. The operator’s release says 238 MWh.")}</p>
               <p>{tx("2,3 h ist 238,5 MWh geteilt durch 103,5 MW. Die C-Rate 0,43 ist 103,5 geteilt durch 238,5. Beides ist eine Rechnung aus den veröffentlichten Zahlen, keine Messung.", "2.3 h is 238.5 MWh divided by 103.5 MW. The C-rate 0.43 is 103.5 divided by 238.5. Both are the published figures divided, not a measurement.")}</p>
               <p>{tx("Die flexible Netzanschlussvereinbarung mit SH Netz begrenzt Bezug und Einspeisung dynamisch. Die Grenzwerte sind nicht veröffentlicht. Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine solche Vereinbarung anbieten, mit einer festen oder einer sich ändernden Grenze für die höchste Bezugs- oder Einspeiseleistung.", "The flexible grid connection agreement with SH Netz limits withdrawal and feed-in dynamically. The limits are not published. Under section 17 (2b) of the Energy Industry Act the network operator can offer such an agreement, with a fixed or a changing limit on the highest withdrawal or feed-in power.")}</p>
               <p>{tx(`Der Ring ist ein Modelltag. Er fährt 103,5 MW und 238,5 MWh gegen die Day-Ahead-Preise von gestern in der Gebotszone DE-LU. Der Wirkungsgrad ist der gemeinsame Standard, ${rtePct} % Round-Trip, Spanne 80–90 %, je Richtung die Wurzel daraus. Der Ladezustand bleibt zwischen 10 % und 90 %, der Start liegt bei 50 %, und der Tag endet nicht darunter. Modell: lädt mittags in den billigsten Viertelstunden und gibt abends (Vorrang 17–21 Uhr) in den teuersten ab, höchstens so viel, wie es an diesem Tag geladen hat. Das sind Annahmen, keine Messung am Standort. Die echte Fahrweise steht beim Betreiber und wird hier nicht übernommen.`, `The ring is a model day. It runs 103.5 MW and 238.5 MWh against yesterday’s day-ahead prices in the DE-LU bidding zone. Round-trip efficiency is the shared standard, ${rtePct}%, span 80–90%, and each direction uses the square root. The state of charge stays between 10% and 90%, the day starts at 50%, and it does not end below that. Model: it charges at midday in the cheapest quarter-hours and discharges in the evening (priority 17:00–21:00) in the most expensive ones, at most as much as it charged on this day. Those are assumptions, not a measurement at the site. The real operation is published by the operator and is not copied here.`)}</p>
               <p>{tx("Modellannahme für die Auswahl. Der Score einer Viertelstunde ist der Day-Ahead-Preis plus Abendzuschlag plus Volatilitätsterm. Der Abendzuschlag gilt von 17 bis 21 Uhr und ist 0,18 mal die Preisspanne des Tages, sonst null. Der Volatilitätsterm ist 0,12 mal die normierte Streuung mal dieselbe Preisspanne. Die normierte Streuung ist die Standardabweichung der Preise über die letzten vier Viertelstunden, geteilt durch die größte Standardabweichung des Tages. Abgegeben wird bei den höchsten Scores, geladen davor bei den niedrigsten Preisen.", "Model assumption for the choice. A quarter-hour’s score is the day-ahead price plus an evening bonus plus a volatility term. The evening bonus applies from 17:00 to 21:00 and is 0.18 times the day’s price range, otherwise zero. The volatility term is 0.12 times the normalised spread times that same price range. The normalised spread is the standard deviation of prices over the last four quarter-hours, divided by the day’s largest standard deviation. Discharge uses the highest scores, and charging before that uses the lowest prices.")}</p>
-            </section>
-            <section id="beispieltage">
-              <h2>{tx("12 Beispieltage", "12 Example days")}</h2>
+            </MethodikSection>
+            <MethodikSection id="beispieltage" title={methodikSectionLabel("beispieltage", language)}>
               <p>{tx("Vier Tage aus dem Fenster 27.10.2025 bis 26.10.2026 stehen auf der Startseite. Dieselbe Rechnung wie der Modelltag: 103,5 MW und 238,5 MWh, Wirkungsgrad 0,85 hin und zurück, je Richtung die Wurzel daraus (0,922). Ladezustand 10 bis 90 %, Start 50 %, Ende nicht darunter. Das ist eine Modellschätzung und keine Abrechnung, keine Prognose und nicht die Fahrweise von Bollingstedt.", "Four days from the window 27 October 2025 to 26 October 2026 are on the homepage. The same calculation as the model day: 103.5 MW and 238.5 MWh, round-trip efficiency 0.85, the square root of that in each direction (0.922). State of charge 10 to 90%, start 50%, and the day does not end below that. This is a model estimate, not a bill, not a forecast and not the operation at Bollingstedt.")}</p>
               <p>{tx("Warum diese Tage? 1. Der Tag mit dem höchsten Modellerlös. 2. Der beste Tag ohne negative Preise. 3. Der beste Herbsttag. 4. Der mittlere Tag als Vergleich.", "Why these days? 1. The day with the highest model revenue. 2. The best day without negative prices. 3. The best autumn day. 4. The middle day as a comparison.")}</p>
               <Formula label={tx("Modellerlös eines Tages, Euro", "Model revenue of one day, euro")}>
@@ -451,12 +418,20 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Mit perfekter Vorschau und mehreren Zyklen wäre im Modell das Zwei- bis Dreifache möglich. Der Kern rechnet bewusst vorsichtiger.", "With a perfect preview and several cycles, two to three times as much would be possible in the model. The core deliberately calculates more cautiously.")}</p>
               <h3>{tx("Was ein Profi fragt", "What a specialist asks")}</h3>
               <p>{tx("Warum nur etwa 0,35 Zyklen am Tag? Und warum liegt die Abgabe nicht bei den drei teuersten Viertelstunden? Der Kern wählt einen Teilzyklus nach einem Punktwert, Preis plus Abendzuschlag 17–21 Uhr plus Schwankung, nicht nach strengem Optimum. Das ist eine bewusste, vorsichtige Heuristik, kein Fahrplan eines echten Betreibers.", "Why only about 0.35 cycles a day? And why is discharge not in the three most expensive quarter-hours? The core picks one partial cycle by a score, price plus an evening bonus from 17:00 to 21:00 plus a swing term, not by a strict optimum. That is a deliberate, cautious heuristic, not an operator’s schedule.")}</p>
+            </MethodikSection>
+            <MethodikSection id="szenarien" title={methodikSectionLabel("szenarien", language)}>
+              <SzenarienMethodik language={language} bodyOnly />
+            </MethodikSection>
+            <MethodikSection id="netz" title={methodikSectionLabel("netz", language)}>
+              <NetzMethodik language={language} bodyOnly />
+            </MethodikSection>
+            <span id="beispiele" className="sr-only" aria-hidden="true" />
+            <span id="quartier" className="sr-only" aria-hidden="true" />
             </section>
-            <SzenarienMethodik language={language} />
-            <NetzMethodik language={language} />
-            <section id="quellen">
-              <details className="site-fold">
-              <summary><h2>{tx("15 Quellen", "15 Sources")}</h2></summary>
+            <section id="d-recht" className="methodik-chapter">
+              <h2 className="methodik-chapter-title">{tx("D · Recht und Glossar", "D · Law and glossary")}</h2>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[3].deLead : METHODIK_CHAPTERS[3].enLead}</p>
+              <MethodikSection id="quellen" defaultOpen title={methodikSectionLabel("quellen", language)}>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
@@ -471,9 +446,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 <li><a href="https://simbench.de">SimBench</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL 1.0</a> · {tx("Universität Kassel, TU Dortmund, RWTH Aachen, Fraunhofer IEE", "University of Kassel, TU Dortmund, RWTH Aachen, Fraunhofer IEE")}</li>
               </ul>
               <p>{tx(`Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Bollingstedt zeigt die veröffentlichten Eckdaten. Der Tagesverlauf, wenn er gezeigt wird, ist ein Modelltag und nicht die echte Fahrweise. ${EURO_SCOPE.de} Kein Angebot, keine Anschlusszusage.`, `The example supermarket and the example neighbourhood are fictional and marked as example data. Bollingstedt shows the published key figures. The daily profile, when one is shown, is a model day and not the real operation. ${EURO_SCOPE.en} Not a quote and not a connection offer.`)}</p>
-              </details>
-              <details className="site-fold" id="glossar">
-              <summary><h3>{tx("Glossar", "Glossary")}</h3></summary>
+              </MethodikSection>
+              <MethodikSection id="glossar" title={methodikSectionLabel("glossar", language)} level={3}>
               <dl>
                 {GLOSSARY.map((entry) => (
                   <div key={entry.id}>
@@ -482,12 +456,14 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   </div>
                 ))}
               </dl>
-              </details>
+              </MethodikSection>
               <p><Link href="/site?view=netz">{tx("Zum Standort", "To the site")}</Link></p>
             </section>
           </article>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

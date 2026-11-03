@@ -682,3 +682,196 @@
     animation: none !important;
   }
 }
+
+/* Embedded on /site?view=netz — same paper tokens as day-paper, not the standalone dark stage. */
+.stagePaper {
+  background: transparent;
+  color: hsl(var(--foreground));
+  color-scheme: light dark;
+}
+
+.stagePaper :focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.stagePaper a {
+  color: hsl(var(--primary));
+}
+
+.stagePaper :global(button.rounded-full) {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+  background: transparent;
+}
+
+.stagePaper .kicker,
+.stagePaper .field legend,
+.stagePaper .controlLabel,
+.stagePaper .hist figcaption,
+.stagePaper .note,
+.stagePaper .terms,
+.stagePaper .swipeHint {
+  color: hsl(var(--muted-foreground));
+}
+
+.stagePaper .inputs {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.stagePaper .select {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stagePaper .seg:has(input:checked) button {
+  color: currentColor;
+  border-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.stagePaper .seg {
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .seg:has(input:checked) {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.stagePaper .chip {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+.stagePaper .tableLink {
+  color: hsl(var(--primary));
+}
+
+.stagePaper .kpi small {
+  color: hsl(var(--muted-foreground));
+}
+
+.stagePaper .panel,
+.stagePaper .mapPanel,
+.stagePaper .metricCard {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.stagePaper .banner {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+.stagePaper .banner :global(.day-chip) {
+  border-color: color-mix(in srgb, hsl(var(--foreground)) 35%, transparent);
+  color: color-mix(in srgb, hsl(var(--foreground)) 70%, transparent);
+}
+
+.stagePaper .plain {
+  background: hsl(var(--card));
+  border-left-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .plain p,
+.stagePaper .plain .einordnung p {
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .einChip {
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .einChipGut {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+.stagePaper .howto {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .howto summary,
+.stagePaper .howto dt {
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .howto dd {
+  color: hsl(var(--muted-foreground));
+}
+
+.stagePaper .strandLabel {
+  color: hsl(var(--muted-foreground));
+}
+
+.stagePaper .lineNote {
+  border-left-color: hsl(var(--border));
+}
+
+.stagePaper .lineTitle {
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .kpi {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.stagePaper .kpi b {
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .kpi span,
+.stagePaper .kpi small {
+  color: hsl(var(--muted-foreground));
+}
+
+.stagePaper .caption,
+.stagePaper .legend,
+.stagePaper .block p,
+.stagePaper .block li,
+.stagePaper .limits li,
+.stagePaper .tableWrap caption,
+.stagePaper .tableWrap th {
+  color: hsl(var(--muted-foreground));
+}
+
+.stagePaper .tableWrap td {
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .tableWrap th,
+.stagePaper .tableWrap td {
+  border-bottom-color: hsl(var(--border));
+}
+
+.stagePaper .block h2,
+.stagePaper .alarm {
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .limits {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.stagePaper .limits li {
+  color: hsl(var(--foreground));
+}
+
+.stagePaper .mapFrame {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
