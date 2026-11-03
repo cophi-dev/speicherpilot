@@ -364,7 +364,7 @@ function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFle
     tx("Lizenz geprüft", "Licence checked"),
   ];
 
-  return { tx, assumptions, sources, headers, sourceHeaders, share, peak, language };
+  return { tx, assumptions, sources, headers, sourceHeaders, share, peak, language, rte, soc, power, energy, steps };
 }
 
 export function MethodikAnnahmenSection({
@@ -376,32 +376,32 @@ export function MethodikAnnahmenSection({
   fleet?: MethodikFleetStand | null;
   bodyOnly?: boolean;
 }) {
-  const { assumptions, headers, tx } = buildMethodikOverviewContext(language, fleet);
+  const { assumptions, headers, tx, rte, soc, power, energy, steps } = buildMethodikOverviewContext(language, fleet);
   const body = (
     <>
-        <p>
+      <p className="methodik-kurzfassung">
+        {tx(
+          `Kurzfassung: Round-Trip ${rte} % (Spanne 80–90 %), nutzbarer Ladezustand ${soc} %, Preisnehmer ohne Preiswirkung, nur Day-Ahead, Laden vor 17 Uhr und Abgabe ab 17 Uhr, Flotte ×1 = ${power} GW / ${energy} GWh (${steps}). Testnetz SimBench, kein reales Netz.`,
+          `Summary: round-trip ${rte}% (range 80–90%), usable state of charge ${soc}%, price taker with no price effect, day-ahead only, charge before 17:00 and discharge from 17:00, fleet ×1 = ${power} GW / ${energy} GWh (${steps}). SimBench test grid, not a real grid.`
+        )}
+      </p>
+      <details className="methodik-nested-table">
+        <summary>
           {tx(
-            "Fachleute sehen hier in kurzer Zeit, was das Modell annimmt. Die Formeln in den Kapiteln darunter rechnen damit. Der Großspeicher ",
-            "Specialists can see here, in a short time, what the model assumes. The formulas in the chapters below use these values. Large storage "
+            `Alle Annahmen als Tabelle (${assumptions.length})`,
+            `All assumptions as a table (${assumptions.length})`
           )}
-          <GlossaryTip id="grossspeicher" language={language} />
-          {tx(" ist ein Preisnehmer ", " is a price taker ")}
-          <GlossaryTip id="preisnehmer" language={language} />
-          {tx(". Gerechnet wird nur Day-Ahead ", ". The calculation uses only day-ahead ")}
-          <GlossaryTip id="day-ahead" language={language} />
-          {tx(". Der Ladezustand ", ". The state of charge ")}
-          <GlossaryTip id="ladezustand" language={language} />
-          {tx(" bleibt im genannten Fenster. Die Netz-Demo liegt in einem Testnetz ", " stays inside the stated window. The grid demo sits in a test grid ")}
-          <GlossaryTip id="testnetz" language={language} />
-          .
-        </p>
-        <FitTable
-          className="methodik-assumptions"
-          caption={tx("Annahmen auf einen Blick", "Assumptions at a glance")}
-          headers={headers}
-          cols={["c-assumption", "c-value", "c-unit", "c-why", "c-uncertainty"]}
-          rows={assumptions.map((row) => [row.assumption, row.value, row.unit, row.why, row.uncertainty])}
-        />
+        </summary>
+        <div className="methodik-table-wrap">
+          <FitTable
+            className="methodik-assumptions"
+            caption={tx("Annahmen auf einen Blick", "Assumptions at a glance")}
+            headers={headers}
+            cols={["c-assumption", "c-value", "c-unit", "c-why", "c-uncertainty"]}
+            rows={assumptions.map((row) => [row.assumption, row.value, row.unit, row.why, row.uncertainty])}
+          />
+        </div>
+      </details>
     </>
   );
   if (bodyOnly) {
@@ -427,46 +427,59 @@ export function MethodikLizenzenSection({
   const { sources, sourceHeaders, tx } = buildMethodikOverviewContext(language, fleet);
   const body = (
     <>
-        <p>
+      <p>
+        {tx(
+          "Keine Energy-Charts-Bilder sind eingebettet. Wir nutzen nur Daten. Die Namensnennung steht so, wie die Quelle sie verlangt oder in ihrer Lizenz vorgibt. Die Lizenztexte wurden am 28.10.2026 geprüft.",
+          "No Energy-Charts pictures are embedded. We use only data. The attribution is the way the source requests it or its licence prescribes. Licence texts checked on 28 October 2026."
+        )}
+      </p>
+      <details className="methodik-nested-table">
+        <summary>
           {tx(
-            "Keine Energy-Charts-Bilder sind eingebettet. Wir nutzen nur Daten. Die Namensnennung steht so, wie die Quelle sie verlangt oder in ihrer Lizenz vorgibt. Die Lizenztexte wurden am 28.10.2026 geprüft.",
-            "No Energy-Charts pictures are embedded. We use only data. The attribution is the way the source requests it or its licence prescribes. Licence texts checked on 28 October 2026."
+            `Alle Quellen und Lizenzen (${sources.length})`,
+            `All sources and licences (${sources.length})`
           )}
-        </p>
-        <table className="methodik-fit methodik-sources">
-          <caption className="sr-only">{tx("Quellen und Lizenzen", "Sources and licences")}</caption>
-          <colgroup>
-            <col className="c-name" />
-          </colgroup>
-          <thead>
-            <tr>
-              {sourceHeaders.map((header) => (
-                <th key={header} scope="col">
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sources.map((row) => (
-              <tr key={row.name}>
-                <th scope="row">{row.name}</th>
-                <td data-label={sourceHeaders[1]}>{row.use}</td>
-                <td data-label={sourceHeaders[2]}>{row.licence}</td>
-                <td data-label={sourceHeaders[3]}>{row.credit}</td>
-                <td data-label={sourceHeaders[4]}>
-                  {row.links.map((link, linkIndex) => (
-                    <span key={link.href}>
-                      {linkIndex > 0 ? " · " : null}
-                      <a href={link.href}>{link.text}</a>
-                    </span>
-                  ))}
-                </td>
-                <td data-label={sourceHeaders[5]}>{row.retrieved}</td>
+        </summary>
+        <div className="methodik-table-wrap">
+          <table className="methodik-fit methodik-sources">
+            <caption className="sr-only">{tx("Quellen und Lizenzen", "Sources and licences")}</caption>
+            <colgroup>
+              <col className="c-name" />
+              <col className="c-licence" />
+            </colgroup>
+            <thead>
+              <tr>
+                {sourceHeaders.map((header) => (
+                  <th key={header} scope="col">
+                    {header}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {sources.map((row) => (
+                <tr key={row.name}>
+                  <th scope="row">{row.name}</th>
+                  <td data-label={sourceHeaders[1]}>{row.use}</td>
+                  <td className="methodik-licence-cell" data-label={sourceHeaders[2]}>
+                    {row.licence}
+                  </td>
+                  <td data-label={sourceHeaders[3]}>{row.credit}</td>
+                  <td data-label={sourceHeaders[4]}>
+                    {row.links.map((link, linkIndex) => (
+                      <span key={link.href}>
+                        {linkIndex > 0 ? " · " : null}
+                        <a href={link.href}>{link.text}</a>
+                      </span>
+                    ))}
+                  </td>
+                  <td data-label={sourceHeaders[5]}>{row.retrieved}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
     </>
   );
   if (bodyOnly) {

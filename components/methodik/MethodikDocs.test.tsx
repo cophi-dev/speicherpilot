@@ -50,9 +50,9 @@ describe("methodik v2", () => {
     }
     expect(document.body.textContent).not.toMatch(/1,5 MVA|1\.5 MVA|Fair Grid/);
     expect(document.body.textContent).not.toMatch(/Netzanschlussprüfung|Tesla/);
-    expect(screen.getByRole("heading", { name: "01 Annahmen auf einen Blick" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "02 Quellen und Lizenzen" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "03 Grenzen des Modells" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "A1 Annahmen auf einen Blick" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "B1 Datenquellen" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "B2 Grenzen des Modells" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Annahme" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Lizenz" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Namensnennung" })).toBeInTheDocument();

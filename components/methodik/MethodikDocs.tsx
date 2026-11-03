@@ -24,57 +24,12 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 
-const CHAPTER_OVERVIEW = [
-  {
-    id: "a-modell",
-    de: "A · Modell",
-    en: "A · Model",
-    deLead:
-      "Speicher, Wirkungsgrad, SoC, Flotte ×1–×10 — nur ×1 mit Euro als Modellschätzung.",
-    enLead: "Storage, efficiency, state of charge, fleet ×1–×10 — euro only at ×1 as a model estimate.",
-  },
-  {
-    id: "b-daten",
-    de: "B · Daten",
-    en: "B · Data",
-    deLead: "Energy-Charts, SMARD, EPEX, battery-charts, Abregelung, Aktualität und Lizenzen.",
-    enLead: "Energy-Charts, SMARD, EPEX, battery-charts, curtailment, freshness and licences.",
-  },
-  {
-    id: "c-netz",
-    de: "C · Netz und Beispiele",
-    en: "C · Grid and examples",
-    deLead: "Badge netzdienlich v1, Standort, Szenarien und Testnetz (n-1).",
-    enLead: "Grid-support badge v1, site, scenarios and test grid (n-1).",
-  },
-  {
-    id: "d-recht",
-    de: "D · Recht und Glossar",
-    en: "D · Law and glossary",
-    deLead: "§ 17, § 14a EnWG, VDE-AR-N, BKZ und Begriffe.",
-    enLead: "§ 17, § 14a EnWG, VDE-AR-N, BKZ and terms.",
-  },
-] as const;
-
-const SECTION_NAV = [
-  { id: "annahmen", de: "Annahmen auf einen Blick", en: "Assumptions at a glance" },
-  { id: "lizenzen", de: "Quellen und Lizenzen", en: "Sources and licences" },
-  { id: "grenzen", de: "Grenzen des Modells", en: "Limits of the model" },
-  { id: "was", de: "Was gerechnet wird", en: "What is calculated" },
-  { id: "einheiten", de: "Daten und Einheiten", en: "Data and units" },
-  { id: "grossspeicher", de: "Großspeicher-Modell", en: "Large-storage model" },
-  { id: "live", de: "Überschuss und Grenzhandel", en: "Surplus and border trade" },
-  { id: "uebersicht", de: "Zeitraum-Übersicht", en: "Period overview" },
-  { id: "groesse", de: "Speichergröße", en: "Storage size" },
-  { id: "ampel", de: "Anschluss-Ampel", en: "Connection light" },
-  { id: "netzdienlichkeit", de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
-  { id: "peak-erklaert", de: "Peak Shaving", en: "Peak shaving" },
-  { id: "modelltag", de: "Modelltag Bollingstedt", en: "Bollingstedt model day" },
-  { id: "beispieltage", de: "Beispieltage", en: "Example days" },
-  { id: "szenarien", de: "Szenarien", en: "Scenarios" },
-  { id: "netz", de: "Netzwirkung im Testnetz", en: "Grid effect in a test grid" },
-  { id: "quellen", de: "Quellen", en: "Sources" },
-] as const;
+import {
+  METHODIK_CHAPTERS,
+  METHODIK_SECTIONS,
+  methodikSectionLabel,
+  methodikSectionNavLabel,
+} from "@/components/methodik/methodikSections";
 
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
@@ -84,7 +39,29 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
     <div className="methodik">
       <MethodikHashScroll />
       <section className="day-hero methodik-hero" aria-labelledby="methodik-title">
-        <div className="day-hero-inner">
+        <div className="methodik-layout">
+          <nav className="methodik-toc" aria-label={tx("Kapitel", "Chapters")}>
+            <ol className="methodik-chapter-nav">
+              {METHODIK_CHAPTERS.map((chapter) => (
+                <li key={chapter.id}>
+                  <a href={`#${chapter.id}`}>{language === "de" ? chapter.de : chapter.en}</a>
+                  <p>{language === "de" ? chapter.deLead : chapter.enLead}</p>
+                </li>
+              ))}
+            </ol>
+            <details className="methodik-toc-sections">
+              <summary>{tx("Alle Abschnitte (17)", "All sections (17)")}</summary>
+              <ol className="methodik-section-nav">
+                {METHODIK_SECTIONS.map((section) => (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`}>{methodikSectionNavLabel(section.id, language)}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </nav>
+          <div className="methodik-main">
+            <div className="day-hero-inner methodik-hero-copy">
           <p className="day-kicker">{tx("Methodik · Referenz", "Method · reference")}</p>
           <h1 id="methodik-title">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
           <PageLead
@@ -107,44 +84,20 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </figcaption>
             </figure>
           </div>
-        </div>
-      </section>
-      <div className="day-paper">
-        <div className="methodik-layout">
-          <nav className="methodik-toc" aria-label={tx("Kapitel", "Chapters")}>
-            <ol className="methodik-chapter-nav">
-              {CHAPTER_OVERVIEW.map((chapter) => (
-                <li key={chapter.id}>
-                  <a href={`#${chapter.id}`}>{language === "de" ? chapter.de : chapter.en}</a>
-                  <p>{language === "de" ? chapter.deLead : chapter.enLead}</p>
-                </li>
-              ))}
-            </ol>
-            <details className="methodik-toc-sections">
-              <summary>{tx("Alle Abschnitte (17)", "All sections (17)")}</summary>
-              <ol className="methodik-section-nav">
-              {SECTION_NAV.map((section, index) => (
-                <li key={section.id}>
-                  <a href={`#${section.id}`}>
-                    {tx(`${String(index + 1).padStart(2, "0")} ${section.de}`, `${String(index + 1).padStart(2, "0")} ${section.en}`)}
-                  </a>
-                </li>
-              ))}
-            </ol>
-            </details>
-          </nav>
+            </div>
+            <div className="methodik-paper day-paper">
           <article>
             <section id="a-modell" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("A · Modell", "A · Model")}</h2>
-              <p className="methodik-chapter-lead">{language === "de" ? CHAPTER_OVERVIEW[0].deLead : CHAPTER_OVERVIEW[0].enLead}</p>
-              <MethodikSection id="annahmen" defaultOpen title={tx("01 Annahmen auf einen Blick", "01 Assumptions at a glance")}>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[0].deLead : METHODIK_CHAPTERS[0].enLead}</p>
+              <MethodikSection id="annahmen" defaultOpen title={methodikSectionLabel("annahmen", language)}>
                 <MethodikAnnahmenSection language={language} fleet={fleet} bodyOnly />
               </MethodikSection>
-            <MethodikSection id="was" title={tx("04 Was gerechnet wird", "04 What is calculated")}>
+            <MethodikSection id="was" title={methodikSectionLabel("was", language)}>
               <p>{tx("Zwei Sichten, ein Kern. Der Projektierer sieht Größe, Zyklen und die abgegebene Energie eines Tages. Der Netzbetreiber sieht Kilowatt am Anschluss, die Ampel und die Einschätzung netzdienlich. Keine Zahl steht in beiden Helden.", "Two views, one core. The developer sees size, cycles and the energy delivered on one day. The grid operator sees kilowatts at the connection, the traffic light and the grid-support estimate. No figure appears in both heroes.")}</p>
               <p>{tx("Die nationale Uhr auf /live und der Startseite ist die Residuallast Deutschlands in Polarform. Der Standort-Ring ist dieselbe Form in Kilowatt. Die GW-Skala kommt auf /site nicht vor.", "The national clock on /live and the homepage is Germany’s residual load in polar form. The site ring is the same form in kilowatts. The GW scale does not appear on /site.")}</p>
             </MethodikSection>
-            <MethodikSection id="grossspeicher" title={tx("06 Großspeicher-Modell", "06 Large-storage model")}>
+            <MethodikSection id="grossspeicher" title={methodikSectionLabel("grossspeicher", language)}>
               <div className="methodik-phases" inert>
                 <Phase label={tx("Laden", "Charge")} highlight="midday" />
                 <Phase label={tx("Halten", "Hold")} highlight={null} />
@@ -194,7 +147,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Geladen wird nur vor 17 Uhr und nur aus Überschuss, bis Leistung und freier Inhalt begrenzt sind. η = 0,85 wird erst bei der Abgabe angewendet. Nutzbar sind 80 % der Nennenergie. Aus 7,86 GWh Nennenergie werden damit höchstens 6,29 GWh Ladung und 5,34 GWh Abgabe.", "Charging happens only before 17:00 and only from surplus, limited by power and free capacity. η = 0.85 is applied only on discharge. The usable share is 80% of nameplate. From 7.86 GWh nameplate that is at most 6.29 GWh charged and 5.34 GWh delivered.")}</p>
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
             </MethodikSection>
-            <MethodikSection id="live" title={tx("06b Überschuss, Export, Abregelung", "06b Surplus, export, curtailment")}>
+            <MethodikSection id="live" title={methodikSectionLabel("live", language)}>
               <p>{tx("Überschuss Wind und Sonne ist die Summe von max(0, Wind an Land + Wind auf See + Sonne − Last) mal 0,25 h über den Tag. Dieselbe Definition wie der Ring und Abschnitt 06.", "Wind-and-solar surplus is the sum of max(0, onshore wind + offshore wind + solar − load) times 0.25 h over the day. Same definition as the ring and section 06.")}</p>
               <p>{tx("Export beobachtet integriert nur negative Grenzhandels-Leistung (Export) aus Energy-Charts total_power (Last inkl. Eigenverbrauch, 15 Min.). Die Modellschätzung je Viertelstunde: simuliert = max(0, beobachtet − Ladung aus Überschuss). Entladung ab 17 Uhr ändert den Export nicht.", "Observed export integrates only negative cross-border power (export) from Energy-Charts total_power (load including self-consumption, 15 min). The model estimate each quarter-hour: simulated = max(0, observed − charging from surplus). Discharge from 17:00 does not change export.")}</p>
               <p>
@@ -217,7 +170,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Auf /live gelten zwei sichtbare Zeiträume: Der Ring oben rechnet den gewählten Kalendertag (heute laufend oder ein älterer Tag über ?tag=). Darunter steht der letzte vollständig veröffentlichte Tag mit Überschuss-Rechnung, Grafik und Tabelle. Beide Teile nutzen denselben Regler ×1…×10 (?x). Die Formeln sind identisch: Überschuss max(0, Wind an Land + Wind auf See + Sonne − Last), Laden nur vor 17 Uhr daraus, Export simuliert = max(0, Export beobachtet − Ladung), Entladung ab 17 Uhr auf die Abend-Residuallast mit η = 0,85 auf der Abgabe, nutzbar 10–90 % Nennenergie. Quelle Leistung und Grenzhandel: Energy-Charts total_power, 15-Minuten-Werte.", "On /live there are two visible periods: the ring at the top uses the chosen calendar day (today in progress or an older day via ?tag=). Below that is the last fully published day with surplus calculation, chart and table. Both share the same ×1…×10 control (?x). The formulas are the same: surplus max(0, onshore wind + offshore wind + solar − load), charging only before 17:00 from that surplus, simulated export = max(0, observed export − charging), discharge from 17:00 on the evening residual with η = 0.85 on delivery, usable 10–90% of nameplate. Source for power and cross-border trade: Energy-Charts total_power, 15-minute values.")}</p>
               <p>{tx("Die Aufnahme je ×1…×10 nutzt dieselbe Flotte wie die Uhr (Battery Charts, Stand siehe Seite). ×2, ×5 und ×10 vervielfachen Leistung und Energie. Euro gibt es nur bei ×1. Unsicherheit: Kupferplatte, keine Engpässe.", "Absorption at ×1…×10 uses the same fleet as the ring (Battery Charts, as-of on the page). ×2, ×5 and ×10 scale power and energy. Euro figures appear only at ×1. Uncertainty: copper plate, no bottlenecks.")}</p>
             </MethodikSection>
-            <MethodikSection id="uebersicht" title={tx("06c Zeitraum-Übersicht auf der Startseite", "06c Period overview on the homepage")}>
+            <MethodikSection id="uebersicht" title={methodikSectionLabel("uebersicht", language)}>
               <p>
                 {tx(
                   "Überschuss = Σ max(0, Wind an Land + Wind auf See + Sonne − Last) · ¼ h. Import/Export = kommerzieller Handelssaldo aus demselben Energy-Charts-Abruf (positiv = Netto-Import). Physikalische Flüsse (/cbpf) sind hier nicht genutzt (größerer Verzug). Zeiträume: Heute bis zur letzten Viertelstunde; Gestern voller Berlin-Tag; 7 und 30 Tage = rollierend volle Tage bis gestern (heute ausgeschlossen).",
@@ -274,8 +227,15 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   </>
                 )}
               </p>
+              <p>
+                {tx(
+                  "Den Rechtsrahmen-Überblick zu § 17, § 14a und VDE-AR-N fasst Kapitel D zusammen: ",
+                  "Chapter D summarises the legal overview for § 17, § 14a and VDE-AR-N: "
+                )}
+                <a href="#d-recht">{tx("D · Recht und Glossar", "D · Law and glossary")}</a>.
+              </p>
             </MethodikSection>
-            <MethodikSection id="groesse" title={tx("07 Speichergröße", "07 Storage size")}>
+            <MethodikSection id="groesse" title={methodikSectionLabel("groesse", language)}>
               <Formula label={tx("Speichergröße aus der Tagesspitze", "Storage size from the daily peak")}>
                 <math display="block">
                   <mtable>
@@ -323,14 +283,14 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             </section>
             <section id="b-daten" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("B · Daten", "B · Data")}</h2>
-              <p className="methodik-chapter-lead">{language === "de" ? CHAPTER_OVERVIEW[1].deLead : CHAPTER_OVERVIEW[1].enLead}</p>
-              <MethodikSection id="lizenzen" defaultOpen title={tx("02 Quellen und Lizenzen", "02 Sources and licences")}>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[1].deLead : METHODIK_CHAPTERS[1].enLead}</p>
+              <MethodikSection id="lizenzen" defaultOpen title={methodikSectionLabel("lizenzen", language)}>
                 <MethodikLizenzenSection language={language} fleet={fleet} bodyOnly />
               </MethodikSection>
-              <MethodikSection id="grenzen" title={tx("03 Grenzen des Modells", "03 Limits of the model")}>
+              <MethodikSection id="grenzen" title={methodikSectionLabel("grenzen", language)}>
                 <MethodikGrenzenSection language={language} fleet={fleet} bodyOnly />
               </MethodikSection>
-            <MethodikSection id="einheiten" title={tx("05 Daten und Einheiten", "05 Data and units")}>
+            <MethodikSection id="einheiten" title={methodikSectionLabel("einheiten", language)}>
               <div className="methodik-table"><table>
                 <thead>
                   <tr><th>{tx("Größe", "Quantity")}</th><th>{tx("Einheit", "Unit")}</th><th>{tx("Quelle", "Source")}</th></tr>
@@ -356,8 +316,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             </section>
             <section id="c-netz" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("C · Netz und Beispiele", "C · Grid and examples")}</h2>
-              <p className="methodik-chapter-lead">{language === "de" ? CHAPTER_OVERVIEW[2].deLead : CHAPTER_OVERVIEW[2].enLead}</p>
-            <MethodikSection id="ampel" defaultOpen title={tx("08 Anschluss-Ampel", "08 Connection light")}>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[2].deLead : METHODIK_CHAPTERS[2].enLead}</p>
+            <MethodikSection id="ampel" defaultOpen title={methodikSectionLabel("ampel", language)}>
               <div className="methodik-gauges">
                 <Gauge pct={70} label={tx("passt", "fits")} />
                 <Gauge pct={95} label={tx("knapp", "tight")} />
@@ -365,7 +325,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </div>
               <p>{tx("Unter 90 % der Anschlussleistung passt es. Ab 90 % bis zur Grenze ist es knapp. Darüber passt es nicht. Fehlt die Anschlussleistung, bleibt der Punkt grau und es gibt keine rote Linie. Die Farbe steht nie allein: der Text nennt den Zustand.", "Below 90% of the connection it fits. From 90% up to the limit it is tight. Above that it does not fit. If the connection capacity is missing, the dot stays grey and there is no red line. Colour never stands alone: the text names the state.")}</p>
             </MethodikSection>
-            <MethodikSection id="netzdienlichkeit" title={tx("09 Einschätzung netzdienlich", "09 Grid-support estimate")}>
+            <MethodikSection id="netzdienlichkeit" title={methodikSectionLabel("netzdienlichkeit", language)}>
               <p>{tx(`Regel v1. Ein Intervall zählt als Spitze, wenn die Standortlast mindestens ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)} % der Anschlussleistung erreicht. Einschätzung netzdienlich ab ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)} % der Entladeenergie in diesen Intervallen und ohne neue Bezugsspitze. Darunter bis ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)} % heißt die Schätzung gemischt, darunter marktgetrieben. Eine neue Spitze liegt vor, sobald ein Ladeintervall die Bezugsspitze über die Spitze ohne Speicher hebt. Die Schwellen stehen nur an einer Stelle im Modell und sind vorläufig.`, `Rule v1. An interval counts as a peak when site load reaches at least ${Math.round(GRID_SUPPORT_CONFIG.peakUtilisation * 100)}% of the connection. The estimate is grid-supportive from ${Math.round(GRID_SUPPORT_CONFIG.supportiveMinShare * 100)}% of discharge energy in those intervals and only without a new import peak. Down to ${Math.round(GRID_SUPPORT_CONFIG.mixedMinShare * 100)}% the estimate is mixed, and below that market-driven. A new peak exists as soon as a charging interval lifts the import above the peak without storage. The thresholds live in one place in the model and are provisional.`)}</p>
               <p>{tx("Die Marke heißt netzdienlich v1 · Einschätzung, kein Befund. Die Schrift bleibt neutral, ohne Grün und ohne Rot.", "The badge reads grid-supportive v1 · estimate, not a finding. The type stays neutral, with no green and no red.")}</p>
               <blockquote>
@@ -375,8 +335,15 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   {tx(". Stand 21.10.2026.", ". As of 21 October 2026.")}
                 </p>
               </blockquote>
+              <p>
+                {tx(
+                  "Rechtskontext und Quellen dazu: Kapitel D ",
+                  "Legal context and sources: chapter D "
+                )}
+                <a href="#d-recht">{tx("(Recht und Glossar)", "(law and glossary)")}</a>.
+              </p>
             </MethodikSection>
-            <MethodikSection id="peak-erklaert" title={tx("10 Peak Shaving, Schritt für Schritt", "10 Peak shaving, step by step")}>
+            <MethodikSection id="peak-erklaert" title={methodikSectionLabel("peak-erklaert", language)}>
               <p>{tx("Die Geschichte auf der Startseite mit Zahlen: Die Abendspitze passt nicht durch den Anschluss, der Speicher nimmt sie weg.", "The homepage story in numbers: the evening peak does not fit through the connection, and the battery takes it away.")}</p>
               <Formula label={tx("Abgabe über der Anschlussgrenze", "Discharge above the connection limit")}>
                 <math display="block">
@@ -408,14 +375,14 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Ist der Speicher zu klein, sinkt die Spitze nur teilweise. Die Seite sagt dann: Der Anschluss passt noch nicht. Liegt die Last nie über der Grenze, gibt es keine Abgabe. Ist der Speicher leer, bevor die Spitze vorbei ist, geht der Rest über die Grenze.", "If the battery is too small, the peak only falls part of the way. The page then says the connection does not fit yet. If load never crosses the limit, there is no discharge. If the battery is empty before the peak is over, the rest goes over the limit.")}</p>
               <p>{tx("Der Lehrtag weiß, dass die Spitze kommt, und startet deshalb voll. Der Jahreslauf auf /site startet bei 50 %, lädt selbst vor und hält 10–95 % ein. Darum stimmen die Zahlen beider Ansichten nur zufällig überein, hier beide 26,6 kWh und 119,6 kW auf 90 kW. Der Leistungspreis hängt an der Jahreshöchstlast. Ein einziger verpasster Tag macht die Ersparnis kaputt. Darum rechnet /site ein ganzes Jahr und nimmt die Jahresspitze vorher und nachher. Der Lehrtag zeigt nur das Prinzip.", "The teaching day knows the peak is coming, and therefore starts full. The year run on /site starts at 50%, charges ahead on its own and stays inside 10–95%. The two views therefore match only by chance, here both at 26.6 kWh and 119.6 kW down to 90 kW. The demand charge follows the annual peak. One missed day wipes out the saving. That is why /site runs a whole year and takes the annual peak before and after. The teaching day only shows the principle.")}</p>
             </MethodikSection>
-            <MethodikSection id="modelltag" title={tx("11 Modelltag Bollingstedt", "11 Bollingstedt model day")}>
+            <MethodikSection id="modelltag" title={methodikSectionLabel("modelltag", language)}>
               <p>{tx("Leistung und Inhalt sind die Summe zweier Einheiten im Marktstammdatenregister: SEE925543621515 und SEE922158261037. Zusammen sind das 103,5 MW und 238,5 MWh. Die Meldung des Betreibers nennt 238 MWh.", "Power and energy are the sum of two Marktstammdatenregister units: SEE925543621515 and SEE922158261037. Together that is 103.5 MW and 238.5 MWh. The operator’s release says 238 MWh.")}</p>
               <p>{tx("2,3 h ist 238,5 MWh geteilt durch 103,5 MW. Die C-Rate 0,43 ist 103,5 geteilt durch 238,5. Beides ist eine Rechnung aus den veröffentlichten Zahlen, keine Messung.", "2.3 h is 238.5 MWh divided by 103.5 MW. The C-rate 0.43 is 103.5 divided by 238.5. Both are the published figures divided, not a measurement.")}</p>
               <p>{tx("Die flexible Netzanschlussvereinbarung mit SH Netz begrenzt Bezug und Einspeisung dynamisch. Die Grenzwerte sind nicht veröffentlicht. Nach § 17 Abs. 2b EnWG kann der Netzbetreiber eine solche Vereinbarung anbieten, mit einer festen oder einer sich ändernden Grenze für die höchste Bezugs- oder Einspeiseleistung.", "The flexible grid connection agreement with SH Netz limits withdrawal and feed-in dynamically. The limits are not published. Under section 17 (2b) of the Energy Industry Act the network operator can offer such an agreement, with a fixed or a changing limit on the highest withdrawal or feed-in power.")}</p>
               <p>{tx(`Der Ring ist ein Modelltag. Er fährt 103,5 MW und 238,5 MWh gegen die Day-Ahead-Preise von gestern in der Gebotszone DE-LU. Der Wirkungsgrad ist der gemeinsame Standard, ${rtePct} % Round-Trip, Spanne 80–90 %, je Richtung die Wurzel daraus. Der Ladezustand bleibt zwischen 10 % und 90 %, der Start liegt bei 50 %, und der Tag endet nicht darunter. Modell: lädt mittags in den billigsten Viertelstunden und gibt abends (Vorrang 17–21 Uhr) in den teuersten ab, höchstens so viel, wie es an diesem Tag geladen hat. Das sind Annahmen, keine Messung am Standort. Die echte Fahrweise steht beim Betreiber und wird hier nicht übernommen.`, `The ring is a model day. It runs 103.5 MW and 238.5 MWh against yesterday’s day-ahead prices in the DE-LU bidding zone. Round-trip efficiency is the shared standard, ${rtePct}%, span 80–90%, and each direction uses the square root. The state of charge stays between 10% and 90%, the day starts at 50%, and it does not end below that. Model: it charges at midday in the cheapest quarter-hours and discharges in the evening (priority 17:00–21:00) in the most expensive ones, at most as much as it charged on this day. Those are assumptions, not a measurement at the site. The real operation is published by the operator and is not copied here.`)}</p>
               <p>{tx("Modellannahme für die Auswahl. Der Score einer Viertelstunde ist der Day-Ahead-Preis plus Abendzuschlag plus Volatilitätsterm. Der Abendzuschlag gilt von 17 bis 21 Uhr und ist 0,18 mal die Preisspanne des Tages, sonst null. Der Volatilitätsterm ist 0,12 mal die normierte Streuung mal dieselbe Preisspanne. Die normierte Streuung ist die Standardabweichung der Preise über die letzten vier Viertelstunden, geteilt durch die größte Standardabweichung des Tages. Abgegeben wird bei den höchsten Scores, geladen davor bei den niedrigsten Preisen.", "Model assumption for the choice. A quarter-hour’s score is the day-ahead price plus an evening bonus plus a volatility term. The evening bonus applies from 17:00 to 21:00 and is 0.18 times the day’s price range, otherwise zero. The volatility term is 0.12 times the normalised spread times that same price range. The normalised spread is the standard deviation of prices over the last four quarter-hours, divided by the day’s largest standard deviation. Discharge uses the highest scores, and charging before that uses the lowest prices.")}</p>
             </MethodikSection>
-            <MethodikSection id="beispieltage" title={tx("12 Beispieltage", "12 Example days")}>
+            <MethodikSection id="beispieltage" title={methodikSectionLabel("beispieltage", language)}>
               <p>{tx("Vier Tage aus dem Fenster 27.10.2025 bis 26.10.2026 stehen auf der Startseite. Dieselbe Rechnung wie der Modelltag: 103,5 MW und 238,5 MWh, Wirkungsgrad 0,85 hin und zurück, je Richtung die Wurzel daraus (0,922). Ladezustand 10 bis 90 %, Start 50 %, Ende nicht darunter. Das ist eine Modellschätzung und keine Abrechnung, keine Prognose und nicht die Fahrweise von Bollingstedt.", "Four days from the window 27 October 2025 to 26 October 2026 are on the homepage. The same calculation as the model day: 103.5 MW and 238.5 MWh, round-trip efficiency 0.85, the square root of that in each direction (0.922). State of charge 10 to 90%, start 50%, and the day does not end below that. This is a model estimate, not a bill, not a forecast and not the operation at Bollingstedt.")}</p>
               <p>{tx("Warum diese Tage? 1. Der Tag mit dem höchsten Modellerlös. 2. Der beste Tag ohne negative Preise. 3. Der beste Herbsttag. 4. Der mittlere Tag als Vergleich.", "Why these days? 1. The day with the highest model revenue. 2. The best day without negative prices. 3. The best autumn day. 4. The middle day as a comparison.")}</p>
               <Formula label={tx("Modellerlös eines Tages, Euro", "Model revenue of one day, euro")}>
@@ -452,10 +419,10 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <h3>{tx("Was ein Profi fragt", "What a specialist asks")}</h3>
               <p>{tx("Warum nur etwa 0,35 Zyklen am Tag? Und warum liegt die Abgabe nicht bei den drei teuersten Viertelstunden? Der Kern wählt einen Teilzyklus nach einem Punktwert, Preis plus Abendzuschlag 17–21 Uhr plus Schwankung, nicht nach strengem Optimum. Das ist eine bewusste, vorsichtige Heuristik, kein Fahrplan eines echten Betreibers.", "Why only about 0.35 cycles a day? And why is discharge not in the three most expensive quarter-hours? The core picks one partial cycle by a score, price plus an evening bonus from 17:00 to 21:00 plus a swing term, not by a strict optimum. That is a deliberate, cautious heuristic, not an operator’s schedule.")}</p>
             </MethodikSection>
-            <MethodikSection id="szenarien" title={tx("13 Szenarien", "13 Scenarios")}>
+            <MethodikSection id="szenarien" title={methodikSectionLabel("szenarien", language)}>
               <SzenarienMethodik language={language} bodyOnly />
             </MethodikSection>
-            <MethodikSection id="netz" title={tx("14 Netzwirkung im Testnetz", "14 Grid effect in a test grid")}>
+            <MethodikSection id="netz" title={methodikSectionLabel("netz", language)}>
               <NetzMethodik language={language} bodyOnly />
             </MethodikSection>
             <span id="beispiele" className="sr-only" aria-hidden="true" />
@@ -463,8 +430,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             </section>
             <section id="d-recht" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("D · Recht und Glossar", "D · Law and glossary")}</h2>
-              <p className="methodik-chapter-lead">{language === "de" ? CHAPTER_OVERVIEW[3].deLead : CHAPTER_OVERVIEW[3].enLead}</p>
-              <MethodikSection id="quellen" defaultOpen title={tx("15 Quellen", "15 Sources")}>
+              <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[3].deLead : METHODIK_CHAPTERS[3].enLead}</p>
+              <MethodikSection id="quellen" defaultOpen title={methodikSectionLabel("quellen", language)}>
               <ul>
                 <li><a href="https://energy-charts.info/">Energy-Charts</a> · Fraunhofer ISE, CC BY 4.0</li>
                 <li><a href="https://battery-charts.de/de/battery-charts-de/">Battery Charts</a> · RWTH, MaStR, CC BY 4.0</li>
@@ -480,7 +447,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </ul>
               <p>{tx(`Beispiel-Supermarkt und Beispiel-Quartier sind fiktiv und als Beispieldaten markiert. Bollingstedt zeigt die veröffentlichten Eckdaten. Der Tagesverlauf, wenn er gezeigt wird, ist ein Modelltag und nicht die echte Fahrweise. ${EURO_SCOPE.de} Kein Angebot, keine Anschlusszusage.`, `The example supermarket and the example neighbourhood are fictional and marked as example data. Bollingstedt shows the published key figures. The daily profile, when one is shown, is a model day and not the real operation. ${EURO_SCOPE.en} Not a quote and not a connection offer.`)}</p>
               </MethodikSection>
-              <MethodikSection id="glossar" title={tx("Glossar", "Glossary")} level={3}>
+              <MethodikSection id="glossar" title={methodikSectionLabel("glossar", language)} level={3}>
               <dl>
                 {GLOSSARY.map((entry) => (
                   <div key={entry.id}>
@@ -493,8 +460,10 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p><Link href="/site?view=netz">{tx("Zum Standort", "To the site")}</Link></p>
             </section>
           </article>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

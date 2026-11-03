@@ -1,4 +1,6 @@
 import type { NetzDemoFile, NetzState } from "@/lib/netzDemo";
+import type { NetzMapPalette } from "@/lib/netzPalette";
+import { NETZ_PALETTE } from "@/lib/netzPalette";
 
 import styles from "./netz-demo.module.css";
 
@@ -13,19 +15,9 @@ const ROW = 44;
 
 type Point = { x: number; y: number; strang: number; depth: number };
 
-const VOLTAGE_FILL = {
-  low: "#4DA3FF",
-  midlow: "#8CA3BA",
-  mid: "#E1E6EA",
-  midhigh: "#E6D2A8",
-  high: "#FF8F1F",
-} as const;
-
-const TIP_FILL = ["#4A5560", "#7C8894", "#B4BEC7", "#E1E6EA"] as const;
 const TIP_RADIUS = [3, 4, 5, 6] as const;
-const TIE_GRAY = "rgb(102, 115, 127)";
 
-function voltageBand(pu: number): keyof typeof VOLTAGE_FILL {
+function voltageBand(pu: number): keyof NetzMapPalette["voltage"] {
   if (pu < 0.965) return "low";
   if (pu < 0.99) return "midlow";
   if (pu <= 1.03) return "mid";
@@ -80,17 +72,17 @@ function layout(data: NetzDemoFile): Map<number, Point> {
   return points;
 }
 
-function lineStroke(loading: number | undefined): { stroke: string; width: number; dash?: string } {
+function lineStroke(loading: number | undefined, palette: NetzMapPalette): { stroke: string; width: number; dash?: string } {
   if (loading == null) {
-    return { stroke: TIE_GRAY, width: 1.3 };
+    return { stroke: palette.tieGray, width: 1.3 };
   }
   if (loading > 100) {
-    return { stroke: "#FFFFFF", width: 2.8, dash: "6 4" };
+    return { stroke: palette.lineOver100, width: 2.8, dash: "6 4" };
   }
   if (loading >= 80) {
-    return { stroke: "#E1E6EA", width: 2.3 };
+    return { stroke: palette.line80to100, width: 2.3 };
   }
-  return { stroke: TIE_GRAY, width: 1.3 };
+  return { stroke: palette.lineBelow80, width: 1.3 };
 }
 
 function NodeMark({
@@ -100,6 +92,7 @@ function NodeMark({
   shape,
   ring,
   storage,
+  palette,
   radius = 4.6,
 }: {
   x: number;
@@ -108,12 +101,13 @@ function NodeMark({
   shape: "circle" | "down" | "up";
   ring: boolean;
   storage: boolean;
+  palette: NetzMapPalette;
   radius?: number;
 }) {
   return (
     <g>
-      {storage ? <circle cx={x} cy={y} r={11} fill="none" stroke="#7DFCE6" strokeWidth={2} /> : null}
-      {ring ? <circle cx={x} cy={y} r={8} fill="none" stroke="#FFFFFF" strokeWidth={1.6} /> : null}
+      {storage ? <circle cx={x} cy={y} r={11} fill="none" stroke={palette.storageRing} strokeWidth={2} /> : null}
+      {ring ? <circle cx={x} cy={y} r={8} fill="none" stroke={palette.nodeAlertRing} strokeWidth={1.6} /> : null}
       {shape === "circle" ? <circle cx={x} cy={y} r={radius} fill={fill} /> : null}
       {shape === "down" ? <polygon points={`${x},${y + 6} ${x - 6},${y - 4} ${x + 6},${y - 4}`} fill={fill} /> : null}
       {shape === "up" ? <polygon points={`${x},${y - 6} ${x - 6},${y + 4} ${x + 6},${y + 4}`} fill={fill} /> : null}
@@ -121,11 +115,11 @@ function NodeMark({
   );
 }
 
-function TieMark({ x, y }: { x: number; y: number }) {
+function TieMark({ x, y, palette }: { x: number; y: number; palette: NetzMapPalette }) {
   return (
     <path
       d={`M ${x - 6} ${y - 6} L ${x + 6} ${y + 6} M ${x + 6} ${y - 6} L ${x - 6} ${y + 6}`}
-      stroke={TIE_GRAY}
+      stroke={palette.tieGray}
       strokeWidth={1.6}
     />
   );
@@ -139,6 +133,7 @@ export function NetzKarte({
   storageBus,
   title,
   description,
+  palette = NETZ_PALETTE.night,
 }: {
   data: NetzDemoFile;
   state: NetzState;
@@ -147,6 +142,7 @@ export function NetzKarte({
   storageBus: number | null;
   title: string;
   description: string;
+  palette?: NetzMapPalette;
 }) {
   const points = layout(data);
   const titleId = "netz-karte-titel";
@@ -188,7 +184,7 @@ export function NetzKarte({
     const to = points.get(node.bus);
     if (!from || !to) continue;
     const edge = edgeOf.get(`${Math.min(node.parent, node.bus)}-${Math.max(node.parent, node.bus)}`);
-    const paint = lineStroke(mode === "spannung" ? loadingById.get(edge?.id ?? -1) : undefined);
+    const paint = lineStroke(mode === "spannung" ? loadingById.get(edge?.id ?? -1) : undefined, palette);
     closed.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y, ...paint, key: `c-${node.bus}` });
   }
   const open = data.lines.filter((line) => line.openEnd);
@@ -197,7 +193,7 @@ export function NetzKarte({
     <svg className={styles.mapSvg} viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} role="img" aria-labelledby={titleId}>
       <title id={titleId}>{title}</title>
       <desc>{description}</desc>
-      <line x1={PAD_L + 8} y1={PAD_T - 8} x2={PAD_L + 8} y2={PAD_T + 8 * ROW + 8} stroke="#E1E6EA" strokeWidth={3} />
+      <line x1={PAD_L + 8} y1={PAD_T - 8} x2={PAD_L + 8} y2={PAD_T + 8 * ROW + 8} stroke={palette.busbar} strokeWidth={3} />
       {closed.map((line) => (
         <line
           key={line.key}
@@ -216,7 +212,7 @@ export function NetzKarte({
         const to = points.get(line.b);
         if (!from || !to) return null;
         const end = to.depth > from.depth || (to.depth === from.depth && line.b > line.a) ? to : from;
-        return <TieMark key={`o-${line.id}`} x={end.x + 12} y={end.y} />;
+        return <TieMark key={`o-${line.id}`} x={end.x + 12} y={end.y} palette={palette} />;
       })}
       {data.tree.map((node) => {
         const point = points.get(node.bus);
@@ -225,15 +221,49 @@ export function NetzKarte({
         if (mode === "kipp") {
           const tip = tipByBus.get(node.bus) ?? 0;
           const band = tipBand(tip);
-          return <NodeMark key={node.bus} x={point.x} y={point.y} fill={TIP_FILL[band]} shape="circle" ring={false} storage={storage} radius={TIP_RADIUS[band]} />;
+          return (
+            <NodeMark
+              key={node.bus}
+              x={point.x}
+              y={point.y}
+              fill={palette.tip[band]}
+              shape="circle"
+              ring={false}
+              storage={storage}
+              palette={palette}
+              radius={TIP_RADIUS[band]}
+            />
+          );
         }
         const pu = voltageByBus.get(node.bus);
         if (pu == null) {
-          return <NodeMark key={node.bus} x={point.x} y={point.y} fill="rgb(102, 115, 127)" shape="circle" ring={false} storage={storage} />;
+          return (
+            <NodeMark
+              key={node.bus}
+              x={point.x}
+              y={point.y}
+              fill={palette.fallbackNode}
+              shape="circle"
+              ring={false}
+              storage={storage}
+              palette={palette}
+            />
+          );
         }
         const band = voltageBand(pu);
         const shape = band === "low" ? "down" : band === "high" ? "up" : "circle";
-        return <NodeMark key={node.bus} x={point.x} y={point.y} fill={VOLTAGE_FILL[band]} shape={shape} ring={band === "low" || band === "high"} storage={storage} />;
+        return (
+          <NodeMark
+            key={node.bus}
+            x={point.x}
+            y={point.y}
+            fill={palette.voltage[band]}
+            shape={shape}
+            ring={band === "low" || band === "high"}
+            storage={storage}
+            palette={palette}
+          />
+        );
       })}
     </svg>
   );
@@ -242,17 +272,24 @@ export function NetzKarte({
 export const STRAND_LABELS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export const MAP_VIEW = { width: VIEW_W, height: VIEW_H, padTop: PAD_T, row: ROW };
 
-export const VOLTAGE_LEGEND = [
-  { fill: VOLTAGE_FILL.low, shape: "down" as const, de: "unter 0,965 p.u.", en: "below 0.965 p.u." },
-  { fill: VOLTAGE_FILL.midlow, shape: "circle" as const, de: "0,965 bis 0,990", en: "0.965 to 0.990" },
-  { fill: VOLTAGE_FILL.mid, shape: "circle" as const, de: "0,990 bis 1,030", en: "0.990 to 1.030" },
-  { fill: VOLTAGE_FILL.midhigh, shape: "circle" as const, de: "1,030 bis 1,055", en: "1.030 to 1.055" },
-  { fill: VOLTAGE_FILL.high, shape: "up" as const, de: "über 1,055 p.u.", en: "above 1.055 p.u." },
-];
+export function buildVoltageLegend(palette: NetzMapPalette) {
+  return [
+    { fill: palette.voltage.low, shape: "down" as const, de: "unter 0,965 p.u.", en: "below 0.965 p.u." },
+    { fill: palette.voltage.midlow, shape: "circle" as const, de: "0,965 bis 0,990", en: "0.965 to 0.990" },
+    { fill: palette.voltage.mid, shape: "circle" as const, de: "0,990 bis 1,030", en: "0.990 to 1.030" },
+    { fill: palette.voltage.midhigh, shape: "circle" as const, de: "1,030 bis 1,055", en: "1.030 to 1.055" },
+    { fill: palette.voltage.high, shape: "up" as const, de: "über 1,055 p.u.", en: "above 1.055 p.u." },
+  ];
+}
 
-export const TIP_LEGEND = [
-  { fill: TIP_FILL[0], shape: "circle" as const, radius: TIP_RADIUS[0], de: "unter 2 MW", en: "below 2 MW" },
-  { fill: TIP_FILL[1], shape: "circle" as const, radius: TIP_RADIUS[1], de: "2 bis unter 5 MW", en: "2 to below 5 MW" },
-  { fill: TIP_FILL[2], shape: "circle" as const, radius: TIP_RADIUS[2], de: "5 bis unter 10 MW", en: "5 to below 10 MW" },
-  { fill: TIP_FILL[3], shape: "circle" as const, radius: TIP_RADIUS[3], de: "10 MW und mehr", en: "10 MW and more" },
-];
+export function buildTipLegend(palette: NetzMapPalette) {
+  return [
+    { fill: palette.tip[0], shape: "circle" as const, radius: TIP_RADIUS[0], de: "unter 2 MW", en: "below 2 MW" },
+    { fill: palette.tip[1], shape: "circle" as const, radius: TIP_RADIUS[1], de: "2 bis unter 5 MW", en: "2 to below 5 MW" },
+    { fill: palette.tip[2], shape: "circle" as const, radius: TIP_RADIUS[2], de: "5 bis unter 10 MW", en: "5 to below 10 MW" },
+    { fill: palette.tip[3], shape: "circle" as const, radius: TIP_RADIUS[3], de: "10 MW und mehr", en: "10 MW and more" },
+  ];
+}
+
+export const VOLTAGE_LEGEND = buildVoltageLegend(NETZ_PALETTE.night);
+export const TIP_LEGEND = buildTipLegend(NETZ_PALETTE.night);
