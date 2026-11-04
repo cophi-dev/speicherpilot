@@ -38,7 +38,9 @@ describe("auffaelligkeit Regel v1", () => {
     expect(peak?.rank).toBe(2);
     const r = auffaelligkeitForDay(records, "2026-11-02");
     expect(r.kind).toBe("metric");
-    expect(r.kopfSubline).toMatch(/fast so hoch wie am 29\.10\./i);
+    expect(r.kopfH1).toMatch(/29\.10\./i);
+    expect(r.kopfSubline).not.toMatch(/fast so hoch wie am 29\.10\./i);
+    expect(r.kopfSubline).toMatch(/Modell/i);
   });
 
   it("27.10.: unauffälliger Tag (Ersatz)", () => {

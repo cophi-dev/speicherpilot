@@ -84,8 +84,9 @@ export default function NewsPreviewSection({ limit = 3, place = "page", items }:
   }
 
   return (
-    <section className="day-paper news-sheet" aria-label={de ? "Geprüfte Meldungen" : "Checked reports"}>
-      <div className="day-hero-inner">
+    <div className="news-v2">
+      <section className="day-paper news-sheet" aria-label={de ? "Geprüfte Meldungen" : "Checked reports"}>
+        <div className="day-hero-inner">
         {news.length === 0 ? (
           <div className="news-empty" role="status">
             <p>{de ? "Gerade keine neuen geprüften Meldungen." : "No new checked reports right now."}</p>
@@ -104,8 +105,9 @@ export default function NewsPreviewSection({ limit = 3, place = "page", items }:
             </p>
           </>
         )}
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }
 

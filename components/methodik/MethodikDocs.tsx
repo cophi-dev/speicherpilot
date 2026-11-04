@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
@@ -33,23 +32,25 @@ import {
   methodikSectionNavLabel,
 } from "@/components/methodik/methodikSections";
 
-const MethodikHeroRings = dynamic(
-  () => import("@/components/methodik/MethodikHeroRings").then((m) => ({ default: m.MethodikHeroRings })),
-  {
-    ssr: false,
-    loading: () => <div className="methodik-scales methodik-scales-placeholder" aria-hidden="true" />,
-  }
-);
-
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
   return (
-    <div className="methodik">
+    <div className="methodik v4-subpage methodik-v4">
       <MethodikHashScroll />
       <section className="day-hero methodik-hero" aria-labelledby="methodik-title">
         <div className="methodik-layout">
+          <div className="methodik-hero-copy">
+            <p className="v4-kicker num">{tx("Methodik · Referenz", "Method · reference")}</p>
+            <h1 id="methodik-title" className="v4-h1">
+              {tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}
+            </h1>
+            <PageLead
+              de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
+              en="Assumptions, formulas and sources — traceable for every figure on the site."
+            />
+          </div>
           <nav className="methodik-toc" aria-label={tx("Kapitel", "Chapters")}>
             <ol className="methodik-chapter-nav">
               {METHODIK_CHAPTERS.map((chapter) => (
@@ -70,17 +71,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </ol>
             </details>
           </nav>
-          <div className="methodik-main">
-            <div className="day-hero-inner methodik-hero-copy">
-          <p className="day-kicker">{tx("Methodik · Referenz", "Method · reference")}</p>
-          <h1 id="methodik-title">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
-          <PageLead
-            de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
-            en="Assumptions, formulas and sources — traceable for every figure on the site."
-          />
-          <MethodikHeroRings language={language} />
-            </div>
-            <div className="methodik-paper day-paper">
+          <div className="methodik-paper day-paper">
           <article>
             <section id="a-modell" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("A · Modell", "A · Model")}</h2>
@@ -469,7 +460,6 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p><Link href="/site?view=netz">{tx("Zum Standort", "To the site")}</Link></p>
             </section>
           </article>
-            </div>
           </div>
         </div>
       </section>
@@ -511,7 +501,7 @@ function Gauge({ pct, label }: { pct: number; label: string }) {
         <path d={arc(48, 200, 200 + 300)} fill="none" stroke="#C5CED6" strokeWidth="8" />
         <path d={arc(48, 200, 200 + sweep)} fill="none" stroke="#1E9CB0" strokeWidth="8" />
         <path d={arc(48, 200 + (100 / 130) * 300 - 1, 200 + (100 / 130) * 300 + 1)} fill="none" stroke="#FF5A4E" strokeWidth="8" />
-        <text x="0" y="6" textAnchor="middle" fontSize="16" fontFamily="var(--font-plex-mono), monospace" fill="currentColor">{pct}%</text>
+        <text x="0" y="6" textAnchor="middle" fontSize="16" fontFamily="var(--font-jetbrains), monospace" fill="currentColor">{pct}%</text>
       </svg>
       <figcaption>{label}</figcaption>
     </figure>

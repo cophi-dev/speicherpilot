@@ -2,23 +2,22 @@ import { Font } from "@react-pdf/renderer";
 
 let registered = false;
 
-/** IBM Plex faces used by proposal PDFs. Safe to call more than once. */
+/** Space Grotesk / JetBrains Mono for proposal PDFs. Safe to call more than once. */
 export function registerPdfFonts() {
   if (registered) {
     return;
   }
   registered = true;
   Font.register({
-    family: "IBM Plex Sans",
+    family: "Space Grotesk",
     fonts: [
-      { src: "/fonts/IBMPlexSans-Regular.ttf", fontWeight: 400 },
-      { src: "/fonts/IBMPlexSans-Medium.ttf", fontWeight: 500 },
-      { src: "/fonts/IBMPlexSans-SemiBold.ttf", fontWeight: 600 },
+      { src: "/fonts/SpaceGrotesk-Regular.ttf", fontWeight: 400 },
+      { src: "/fonts/SpaceGrotesk-Medium.ttf", fontWeight: 500 },
     ],
   });
   Font.register({
-    family: "IBM Plex Mono",
-    src: "/fonts/IBMPlexMono-Regular.ttf",
+    family: "JetBrains Mono",
+    src: "/fonts/JetBrainsMono-Regular.ttf",
   });
   Font.registerHyphenationCallback((word) => [word]);
 }

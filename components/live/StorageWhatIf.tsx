@@ -413,7 +413,7 @@ function StorageChartBody({
             y2={yOfMw(tick * 1000)}
             stroke={tick === 0 ? "hsl(var(--border-strong))" : "hsl(var(--gridline))"}
           />
-          <text x={pad.l - 8} y={yOfMw(tick * 1000) + 4} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+          <text x={pad.l - 8} y={yOfMw(tick * 1000) + 4} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-jetbrains), ui-monospace, monospace">
             {tick === report.yTicksGw[report.yTicksGw.length - 1]
               ? `${formatQuantity(tick, language, Number.isInteger(tick) ? 0 : 1)} GW`
               : formatQuantity(tick, language, Number.isInteger(tick) ? 0 : 1)}
@@ -421,7 +421,7 @@ function StorageChartBody({
         </g>
       ))}
       {[0, 6, 12, 18, 24].map((hour) => (
-        <text key={hour} x={xOf(hour)} y={height - 8} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+        <text key={hour} x={xOf(hour)} y={height - 8} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-jetbrains), ui-monospace, monospace">
           {String(hour).padStart(2, "0")}
         </text>
       ))}
@@ -448,14 +448,14 @@ function StorageChartBody({
             textAnchor="end"
             fill="hsl(var(--foreground))"
             fontSize="12"
-            fontFamily="var(--font-plex-mono), ui-monospace, monospace"
+            fontFamily="var(--font-jetbrains), ui-monospace, monospace"
           >
             {language === "de" ? step.peakLabel.de : step.peakLabel.en}
           </text>
         </>
       ) : null}
       {storedAnchor && storedAnchor.chargeMw > 0 && storedHeight > 16 ? (
-        <text x={xOf(storedAnchor.hour)} y={storedY + 4} textAnchor="middle" fill="hsl(var(--primary-foreground))" fontSize="12" fontFamily="var(--font-plex-sans), sans-serif">
+        <text x={xOf(storedAnchor.hour)} y={storedY + 4} textAnchor="middle" fill="hsl(var(--primary-foreground))" fontSize="12" fontFamily="var(--font-space-grotesk), sans-serif">
           {language === "de" ? "gespeichert" : "stored"}
         </text>
       ) : null}
@@ -466,7 +466,7 @@ function StorageChartBody({
           textAnchor="middle"
           fill="hsl(var(--foreground))"
           fontSize="12"
-          fontFamily="var(--font-plex-sans), sans-serif"
+          fontFamily="var(--font-space-grotesk), sans-serif"
         >
           {language === "de" ? "nicht gespeichert" : "not stored"}
         </text>
@@ -478,7 +478,7 @@ function StorageChartBody({
           textAnchor="start"
           fill="hsl(var(--foreground))"
           fontSize="12"
-          fontFamily="var(--font-plex-sans), sans-serif"
+          fontFamily="var(--font-space-grotesk), sans-serif"
         >
           {language === "de" ? "Residuallast" : "Residual load"}
         </text>
@@ -487,7 +487,7 @@ function StorageChartBody({
         <g className="jetzt-in">
           <line x1={xOf(now)} x2={xOf(now)} y1={pad.t} y2={height - pad.b} stroke="hsl(var(--foreground))" strokeWidth="1" />
           <rect x={xOf(now) - 22} y={pad.t} width="44" height="16" fill="hsl(var(--foreground))" />
-          <text x={xOf(now)} y={pad.t + 12} textAnchor="middle" fill="hsl(var(--background))" fontSize="10" fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+          <text x={xOf(now)} y={pad.t + 12} textAnchor="middle" fill="hsl(var(--background))" fontSize="10" fontFamily="var(--font-jetbrains), ui-monospace, monospace">
             JETZT
           </text>
         </g>

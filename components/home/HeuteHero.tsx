@@ -237,13 +237,13 @@ function ChartGeometry({
             className={tick === 0 ? "stroke-border-strong" : "stroke-gridline"}
             strokeWidth={tick === 0 ? 1.25 : 1}
           />
-          <text x={pad.l - 8} y={yOf(tick) + 4} textAnchor="end" className="fill-muted-foreground" fontSize="12" fontFamily="var(--font-plex-mono), monospace">
+          <text x={pad.l - 8} y={yOf(tick) + 4} textAnchor="end" className="fill-muted-foreground" fontSize="12" fontFamily="var(--font-jetbrains), monospace">
             {tick === ticks[ticks.length - 1] ? `${formatQuantity(tick, language, 0)} GW` : formatQuantity(tick, language, 0)}
           </text>
         </g>
       ))}
       {hours.map((hour) => (
-        <text key={hour} x={xOf(hour)} y={height - 8} textAnchor="middle" className="fill-muted-foreground" fontSize="12" fontFamily="var(--font-plex-mono), monospace">
+        <text key={hour} x={xOf(hour)} y={height - 8} textAnchor="middle" className="fill-muted-foreground" fontSize="12" fontFamily="var(--font-jetbrains), monospace">
           {String(hour).padStart(2, "0")}
         </text>
       ))}
@@ -272,7 +272,7 @@ function ChartGeometry({
           textAnchor="middle"
           className="fill-background"
           fontSize="10"
-          fontFamily="var(--font-plex-mono), monospace"
+          fontFamily="var(--font-jetbrains), monospace"
         >
           {language === "de" ? "JETZT" : "NOW"}
         </text>
@@ -325,7 +325,7 @@ function Annotation({
     <g>
       {!compact ? <line x1={x} y1={y} x2={anchorEnd ? labelX : labelX} y2={labelY - 8} className="stroke-border-strong" strokeWidth={1} /> : null}
       <circle cx={x} cy={y} r={10} className="fill-foreground" />
-      <text x={x} y={y + 1} textAnchor="middle" dominantBaseline="middle" className="fill-background" fontSize="11" fontFamily="var(--font-plex-mono), monospace">
+      <text x={x} y={y + 1} textAnchor="middle" dominantBaseline="middle" className="fill-background" fontSize="11" fontFamily="var(--font-jetbrains), monospace">
         {item.n}
       </text>
       {compact ? null : (

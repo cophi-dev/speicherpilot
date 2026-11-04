@@ -299,7 +299,7 @@ export function StoragePoster({
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
-        fontFamily: "var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif",
+        fontFamily: "var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif",
       }}
     >
       {body}

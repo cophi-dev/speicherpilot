@@ -22,7 +22,7 @@ export const common = {
 };
 
 export const axis = {
-  tick: { fontFamily: "var(--font-plex-mono)", fontSize: 12, fill: cssVar("subtle") },
+  tick: { fontFamily: "var(--font-jetbrains)", fontSize: 12, fill: cssVar("subtle") },
   axisLine: false,
   tickLine: { stroke: cssVar("border-strong") },
   tickSize: 4,
@@ -41,7 +41,7 @@ export function limitLine(kw: number, label: string) {
       value: label,
       position: "insideTopRight" as const,
       fill: cssVar("c-limit"),
-      fontFamily: "var(--font-plex-mono)",
+      fontFamily: "var(--font-jetbrains)",
       fontSize: 12,
     },
   };
@@ -53,7 +53,7 @@ export const tooltip = {
     background: cssVar("popover"),
     border: `1px solid ${cssVar("border")}`,
     borderRadius: 6,
-    fontFamily: "var(--font-plex-mono)",
+    fontFamily: "var(--font-jetbrains)",
     fontSize: 12,
     padding: "8px 10px",
     boxShadow: "none",

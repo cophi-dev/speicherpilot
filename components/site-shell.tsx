@@ -237,39 +237,35 @@ export function SiteShell({ children }: SiteShellProps) {
               <Link href="/datenschutz">Datenschutz</Link>
             </nav>
           </div>
-          <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8">
-            <div>
-              <details className="site-fold">
-                <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Quellen</summary>
-                <ul className="mt-3 space-y-1.5">
-                  <li>
-                    <a className="text-primary underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
-                      Energy-Charts (Fraunhofer ISE), CC BY 4.0
-                    </a>
-                  </li>
-                  <li>
-                    <a className="text-primary underline underline-offset-[3px]" href="https://battery-charts.info/" target="_blank" rel="noreferrer">
-                      Battery Charts (RWTH Aachen), CC BY 4.0
-                    </a>
-                  </li>
-                  <li>
-                    <a className="text-primary underline underline-offset-[3px]" href="https://www.smard.de/" target="_blank" rel="noreferrer">
-                      Bundesnetzagentur | SMARD.de
-                    </a>
-                  </li>
-                  <li>
-                    <a className="text-primary underline underline-offset-[3px]" href="https://www.marktstammdatenregister.de/" target="_blank" rel="noreferrer">
-                      MaStR
-                    </a>
-                  </li>
-                </ul>
-              </details>
-              <details className="site-fold">
-                <summary className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Glossar</summary>
-                <p className="mt-3">
-                  <Link href="/methodik#glossar">Begriffe in der Methodik</Link>
-                </p>
-              </details>
+          <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8 site-footer-cols">
+            <div className="site-footer-col">
+              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Quellen</p>
+              <ul className="mt-3 space-y-1.5">
+                <li>
+                  <a className="text-primary underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
+                    Energy-Charts (Fraunhofer ISE), CC BY 4.0
+                  </a>
+                </li>
+                <li>
+                  <a className="text-primary underline underline-offset-[3px]" href="https://battery-charts.info/" target="_blank" rel="noreferrer">
+                    Battery Charts (RWTH Aachen), CC BY 4.0
+                  </a>
+                </li>
+                <li>
+                  <a className="text-primary underline underline-offset-[3px]" href="https://www.smard.de/" target="_blank" rel="noreferrer">
+                    Bundesnetzagentur | SMARD.de
+                  </a>
+                </li>
+                <li>
+                  <a className="text-primary underline underline-offset-[3px]" href="https://www.marktstammdatenregister.de/" target="_blank" rel="noreferrer">
+                    MaStR
+                  </a>
+                </li>
+              </ul>
+              <p className="num mt-6 text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Glossar</p>
+              <p className="mt-3">
+                <Link href="/methodik#glossar">Begriffe in der Methodik</Link>
+              </p>
             </div>
             <p className="flex flex-col items-start gap-1">
               <Link className="inline-flex min-h-11 items-center" href="/methodik">

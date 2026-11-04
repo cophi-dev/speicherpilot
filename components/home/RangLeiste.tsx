@@ -7,7 +7,7 @@ export function RangLeiste({
   metricLabel,
   rankLabel,
 }: {
-  bars: Array<{ dateKey: string; value: number | null; highlight: boolean; record?: boolean }>;
+  bars: Array<{ dateKey: string; value: number | null; highlight: boolean; record?: boolean; zero?: boolean }>;
   metricLabel: string;
   rankLabel?: string;
 }) {
@@ -18,8 +18,8 @@ export function RangLeiste({
     <div className="v4-rang-leiste" aria-label={`${metricLabel}, ${rankLabel ?? ""}`}>
       <div className="v4-rang-bars">
         {bars.map((bar) => {
-          const h = bar.value === null ? 4 : Math.max(4, (bar.value / max) * 100);
-          const cls = bar.highlight ? "is-gestern" : bar.record ? "is-rekord" : "";
+          const h = bar.zero ? 2 : bar.value === null ? 4 : Math.max(4, (bar.value / max) * 100);
+          const cls = bar.highlight ? "is-gestern" : bar.record ? "is-rekord" : bar.zero ? "is-zero" : "";
           return (
             <span
               key={bar.dateKey}

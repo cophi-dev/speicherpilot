@@ -84,7 +84,7 @@ export function SiteDay({
   const missingLimit = csv !== null && uploaded === null;
 
   return (
-    <div className="site-v2">
+    <div className="site-v2 ort-day-body">
       {!shellHidden ? (
         <div className="mx-auto max-w-[1200px] px-4 pt-4">
           <PageLead

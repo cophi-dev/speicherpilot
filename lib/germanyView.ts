@@ -21,6 +21,7 @@ import { parseMixRange, powerSeriesFresh, residualDaysFromSlots } from "@/lib/po
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
 import { buildTagesKennzahlRecords } from "@/lib/auffaelligkeitRecords";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
 
 export type OverviewUiModel = OverviewEvaluation & {
@@ -62,6 +63,8 @@ export type GermanyView = {
   auffaelligkeitRecords: TagesKennzahlRecord[] | null;
   /** Last complete Berlin day shown in the dashboard head (typically yesterday). */
   kopfDayKey: string | null;
+  /** Newest Berlin day with a full quarter-hour series (redirect target for /tag). */
+  lastCompleteDayKey: string;
 };
 
 function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): LiveFleetPublic | null {
@@ -221,8 +224,17 @@ export async function loadGermanyView(
     !chosen &&
     !(requestedTag && (requestedTagStatus === "ausserhalb" || requestedTagStatus === "unvollstaendig"))
   ) {
-    const published = choosePublishedDay(days, todayKey);
-    chosen = published ? { day: published.day, fallback: published.fallback } : null;
+    if (path === "/") {
+      const key = pickLastCompleteDayKey(days, todayKey);
+      const completeDay = days.find((day) => day.dateBerlin === key);
+      if (completeDay && dayIsUsable(completeDay)) {
+        chosen = { day: completeDay, fallback: completeDay.dateBerlin !== todayKey };
+      }
+    }
+    if (!chosen) {
+      const published = choosePublishedDay(days, todayKey);
+      chosen = published ? { day: published.day, fallback: published.fallback } : null;
+    }
   }
 
   const example = chooseStorageDay(days, todayKey);
@@ -292,7 +304,8 @@ export async function loadGermanyView(
     }
   }
 
-  const kopfDayKey = prevBerlinDateKey(todayKey);
+  const lastCompleteDayKey = pickLastCompleteDayKey(days, todayKey);
+  const kopfDayKey = lastCompleteDayKey;
   let auffaelligkeitRecords: TagesKennzahlRecord[] | null = null;
   if (parsed && publicFleet) {
     const mergedPrices = mergeDayAheadPrices(priceRange.prices, price.prices);
@@ -329,5 +342,6 @@ export async function loadGermanyView(
     requestedTagStatus,
     auffaelligkeitRecords,
     kopfDayKey,
+    lastCompleteDayKey,
   };
 }

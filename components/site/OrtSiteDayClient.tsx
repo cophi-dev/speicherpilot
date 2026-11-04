@@ -33,7 +33,7 @@ export function OrtSiteDayClient({
   scenario: ScenarioId;
 }) {
   return (
-    <div className="ort-calc-wrap mx-auto max-w-[1200px] px-4" style={{ minHeight: reserveMinHeight(view, scenario) }}>
+    <div className="ort-calc-wrap" style={{ minHeight: reserveMinHeight(view, scenario) }}>
       <SiteDay modelDay={modelDay} netzSelection={netzSelection} shellHidden />
     </div>
   );

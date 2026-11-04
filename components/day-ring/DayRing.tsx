@@ -672,7 +672,7 @@ function CalloutMarker({ callout, unit, framePx, viewW }: { callout: RingCallout
   return (
     <g className="day-callout-mark" aria-hidden="true">
       <circle cx={at.x} cy={at.y} r={radius} fill="#0A0F14" stroke="#E9EEF2" strokeWidth={pxToUser(2, viewW, framePx)} />
-      <text x={at.x} y={at.y} textAnchor="middle" dominantBaseline="central" fill="#E9EEF2" fontSize={digit} fontFamily="var(--font-plex-mono), monospace">
+      <text x={at.x} y={at.y} textAnchor="middle" dominantBaseline="central" fill="#E9EEF2" fontSize={digit} fontFamily="var(--font-jetbrains), monospace">
         {callout.n}
       </text>
     </g>

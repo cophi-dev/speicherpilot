@@ -52,7 +52,7 @@ export default async function OrtPage({
       : modelDay;
 
   return (
-    <>
+    <div className="ort-v4-page v4-subpage ort-v4">
       <OrtServerShell view={view} scenario={scenario} />
       <OrtSiteDayClient
         modelDay={cappedDay}
@@ -60,6 +60,6 @@ export default async function OrtPage({
         view={view}
         scenario={scenario}
       />
-    </>
+    </div>
   );
 }

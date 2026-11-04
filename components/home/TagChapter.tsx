@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { LueckeChart } from "@/components/home/LueckeChart";
 import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
-import { prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualDay } from "@/lib/windSolarResidual";
@@ -52,6 +51,7 @@ export function TagChapter({
   peakAt,
   todayKey,
   useTagDateHeading = false,
+  showFooterLink = true,
 }: {
   day: ResidualDay;
   lastSurplusKey: string | null;
@@ -61,16 +61,16 @@ export function TagChapter({
   todayKey?: string;
   /** On /tag for days before „gestern“, use „Was am … passiert ist“. */
   useTagDateHeading?: boolean;
+  showFooterLink?: boolean;
 }) {
   const peakSlot = eveningSlot(day);
   const loadGw = peakSlot.loadMw / 1000;
   const wsGw = (peakSlot.windMw + peakSlot.solarMw) / 1000;
   const lastLine = tagLastSurplusLine(lastSurplusKey);
   const dayLabel = formatBerlinDayLabel(day.dateBerlin);
-  const chapterTitle =
-    useTagDateHeading && todayKey && day.dateBerlin !== prevBerlinDateKey(todayKey)
-      ? `Was am ${dayLabel} im Stromnetz passiert ist`
-      : "Was gestern im Stromnetz passiert ist";
+  const chapterTitle = useTagDateHeading
+    ? `Was am ${dayLabel} im Stromnetz passiert ist`
+    : "Was gestern im Stromnetz passiert ist";
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag">
@@ -100,11 +100,13 @@ export function TagChapter({
           </li>
         ))}
       </ol>
-      <p className="v4-chapter-foot v4-content num">
-        <Link href={`/tag/${day.dateBerlin}`} className="v4-text-link">
-          Tag ansehen →
-        </Link>
-      </p>
+      {showFooterLink ? (
+        <p className="v4-chapter-foot v4-content num">
+          <Link href={`/tag/${day.dateBerlin}`} className="v4-text-link">
+            Tag ansehen →
+          </Link>
+        </p>
+      ) : null}
     </section>
   );
 }

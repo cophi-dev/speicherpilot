@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
-import { formatBerlinDateKeyFromUtcDate, prevBerlinDateKey } from "@/lib/berlinCalendar";
+import { loadGermanyView } from "@/lib/germanyView";
 
 export default async function TagIndexPage({
   searchParams,
@@ -16,10 +16,11 @@ export default async function TagIndexPage({
   }
   const suffix = params.toString() ? `?${params.toString()}` : "";
 
+  const view = await loadGermanyView(new Date(), "/tag", {});
+
   if (tagRaw && /^\d{4}-\d{2}-\d{2}$/.test(tagRaw)) {
-    redirect(`/tag/${tagRaw}${suffix}`);
+    permanentRedirect(`/tag/${tagRaw}${suffix}`);
   }
 
-  const today = formatBerlinDateKeyFromUtcDate(new Date());
-  redirect(`/tag/${prevBerlinDateKey(today)}${suffix}`);
+  permanentRedirect(`/tag/${view.lastCompleteDayKey}${suffix}`);
 }

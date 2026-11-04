@@ -150,13 +150,13 @@ export function BlogArticle({
   flush();
 
   return (
-    <article className="blog" lang="de">
-      <header className="day-hero blog-hero">
-        <div className="day-hero-inner">
-          <p className="day-kicker">Blog</p>
-          <h1>{post.title}</h1>
-          <p className="blog-hero-lead">{post.description}</p>
-          <p className="blog-meta">
+    <article className="blog v4-subpage" lang="de">
+      <header className="v4-subpage-hero">
+        <div className="v4-content">
+          <p className="v4-kicker num">Beiträge</p>
+          <h1 className="v4-h1">{post.title}</h1>
+          <p className="blog-hero-lead v4-subline">{post.description}</p>
+          <p className="blog-meta num">
             <time dateTime={post.published}>{post.publishedLabel}</time>
             <span className="blog-meta-sep" aria-hidden="true"> · </span>
             <span>{readingLabel(post.readingMinutes)}</span>
@@ -165,12 +165,13 @@ export function BlogArticle({
           <BlogFigure figure={hero} />
         </div>
       </header>
-      <div className="news-grad" aria-hidden="true" />
-      <div className="day-paper">
-        <div className="day-hero-inner blog-sheet">
+      <div className="v4-subpage-body">
+        <div className="v4-content blog-sheet">
           {sheet}
-          <p className="blog-back prose">
-            <Link href={backHref}>{backLabel}</Link>
+          <p className="blog-back">
+            <Link href={backHref} className="v4-text-link">
+              {backLabel}
+            </Link>
           </p>
         </div>
       </div>

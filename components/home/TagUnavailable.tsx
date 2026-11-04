@@ -9,11 +9,13 @@ export function TagUnavailable({
   todayKey,
   status,
   record,
+  lastCompleteDayKey,
 }: {
   requested: string;
   todayKey: string;
   status: "ausserhalb" | "unvollstaendig" | "vorlauf";
   record?: TagesKennzahlRecord | null;
+  lastCompleteDayKey?: string;
 }) {
   const label = `${weekdayShort(requested, "de")}, ${formatBerlinDayLabel(requested)}`;
   const message =
@@ -53,7 +55,12 @@ export function TagUnavailable({
           ? `${label} liegt außerhalb des wählbaren Fensters (etwa 30 Tage bis ${formatBerlinDayLabel(todayKey)}).`
           : null}
       </p>
-      <p className="mt-8">
+      <p className="mt-8 flex flex-wrap gap-6">
+        {lastCompleteDayKey ? (
+          <Link href={`/tag/${lastCompleteDayKey}`} className="v4-text-link">
+            Letzter vollständiger Tag →
+          </Link>
+        ) : null}
         <Link href="/" className="v4-text-link">
           Zur Startseite
         </Link>
