@@ -102,7 +102,16 @@ describe("blog article wann-der-speicher-laden-will", () => {
     expect(screen.getByRole("heading", { name: "Was dieser Beitrag vereinfacht" })).toBeInTheDocument();
     expect(screen.queryByText(/Welche Gegenfrage ein Profi stellen würde/)).toBeNull();
     expect(screen.getByRole("img", { name: BLOG_FIGURES.a2.alt })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: BLOG_FIGURES.a2zweiNetze.alt })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: BLOG_FIGURES.a3dreiBausteine.alt })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /teilen|share/i })).toBeNull();
     expect(screen.queryByRole("region", { name: "Abbildung, seitlich wischen" })).toBeNull();
+    expect(screen.queryByText("← wischen →")).toBeNull();
+    const zweiNetze = screen.getByRole("img", { name: BLOG_FIGURES.a2zweiNetze.alt });
+    const dreiBausteine = screen.getByRole("img", { name: BLOG_FIGURES.a3dreiBausteine.alt });
+    expect(zweiNetze.getAttribute("loading")).toBe("lazy");
+    expect(dreiBausteine.getAttribute("loading")).toBe("lazy");
+    expect(zweiNetze.getAttribute("width")).toBe("1920");
+    expect(zweiNetze.getAttribute("height")).toBe("1080");
   });
 });

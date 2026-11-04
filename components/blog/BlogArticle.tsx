@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { BlogFigure } from "@/components/blog/BlogFigure";
-import { BLOG_FIGURES } from "@/content/blog/figures";
+import { BLOG_FIGURES, isResponsiveBlogFigure } from "@/content/blog/figures";
 import type { Inline, SourceRow } from "@/content/blog/parseArticle";
 import { heroFigure, readingLabel, type BlogPost } from "@/content/blog/posts";
 
@@ -68,7 +68,14 @@ export function BlogArticle({
   post.blocks.forEach((block, index) => {
     if (block.type === "figure") {
       flush();
-      sheet.push(<BlogFigure key={`figure-${block.figure}`} figure={BLOG_FIGURES[block.figure]} swipe />);
+      const asset = BLOG_FIGURES[block.figure];
+      sheet.push(
+        <BlogFigure
+          key={`figure-${block.figure}`}
+          figure={asset}
+          swipe={!isResponsiveBlogFigure(asset)}
+        />
+      );
       return;
     }
     if (block.type === "h2") {

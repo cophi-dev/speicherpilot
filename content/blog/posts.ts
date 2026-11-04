@@ -41,7 +41,10 @@ const POST_FILES: readonly PostFile[] = [
     published: "2026-11-04",
     publishedLabel: "04.11.2026",
     hero: "a2",
-    inserts: [],
+    inserts: [
+      { kind: "after-paragraph", startsWith: "Dasselbe Preissignal kann also", figure: "a2zweiNetze" },
+      { kind: "after-h2", heading: "Wo beide zusammenkommen", figure: "a3dreiBausteine" },
+    ],
   },
   {
     slug: "warum-grossspeicher-das-netz-flexibler-machen",
