@@ -14,8 +14,25 @@ describe("ladepark", () => {
     expect(kwh).toBeCloseTo(4 * 120_000, -2);
   });
 
-  it("utilisation under 2500h", () => {
+  it("peak exceeds connection on spike days", () => {
+    const profile = ladeparkProfile(4);
+    const conn = ladeparkConnectionKw(4);
+    const pMax = ladeparkMaxKw(4);
+    let maxKw = 0;
+    for (let day = 0; day < 365; day += 1) {
+      if (day % 14 !== 4) continue;
+      for (let step = 68; step < 72; step += 1) {
+        maxKw = Math.max(maxKw, profile.samplesKw[day * 96 + step] ?? 0);
+      }
+    }
+    expect(maxKw).toBeGreaterThanOrEqual(pMax * 0.99);
+    expect(maxKw).toBeGreaterThan(conn);
+  });
+
+  it("peak shaving lowers import peak vs raw profile", () => {
     const econ = planLadepark(4);
-    expect(econ.stromNev.after.utilisationHours).toBeLessThan(2500);
+    expect(econ.plan.peakImportBeforeKw).toBeGreaterThan(econ.connectionKw);
+    expect(econ.plan.peakImportAfterKw).toBeLessThanOrEqual(econ.connectionKw + 1);
+    expect(econ.stromNev.before.utilisationHours).not.toBeCloseTo(econ.stromNev.after.utilisationHours, 0);
   });
 });

@@ -3,15 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { ModelChip } from "@/components/day-ring/ModelChip";
 import { useLanguage } from "@/components/language-context";
 import { archetypeByKey, badgeForArchetype } from "@/lib/ortArchetypes";
 import type { OrtMode } from "@/lib/ortArchetypesSchema";
 import { NETZ_PALETTE } from "@/lib/netzPalette";
 import { sitePath } from "@/lib/perspective";
-
-const CORE =
-  "Netzdienlich ist keine Eigenschaft der Batterie. Es ergibt sich aus Ort, Uhrzeit und Vertrag.";
 
 export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?: "land" | "stadt" }) {
   const { language } = useLanguage();
@@ -33,16 +29,6 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
   return (
     <div className="ort-archetypen day-paper">
       <div className="day-hero-inner">
-        <p className="site-netz-principle v4-subline" role="note">
-          {CORE}
-        </p>
-        <h2 className="v4-h2">
-          {tx(
-            "Derselbe Speicher, derselbe Preis, zwei Orte. Wann hilft er dem Netz, wann belastet er es, und welcher Vertrag bringt beides zusammen?",
-            "Same storage, same price, two places. When does it help the grid, when does it burden it, and which contract aligns both?",
-          )}
-        </h2>
-
         <div className="v4-tab-bar site-toggle" role="tablist" aria-label={tx("Netztyp", "Grid type")}>
           {(["land", "stadt"] as const).map((key) => (
             <button

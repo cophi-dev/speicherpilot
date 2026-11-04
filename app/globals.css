@@ -7509,6 +7509,38 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   background: var(--v4-aqua);
   color: var(--v4-night);
 }
+.ort-size-segment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  max-width: 36rem;
+}
+@media (min-width: 640px) {
+  .ort-size-segment {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.ort-size-segment button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.35rem;
+  line-height: 1.2;
+  white-space: normal;
+  text-align: center;
+  font-family: var(--font-space-grotesk), sans-serif;
+}
+.ort-size-segment-label {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.ort-size-segment-mw {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
 .ort-v4 .site-card,
 .ort-v4 .site-examples a {
   border-radius: 0;

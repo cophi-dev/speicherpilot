@@ -620,12 +620,23 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
     bus = pick_storage_bus(net, mv, eng["b_kind"], eng["b_idx"])
     critical_qh = [t for t, value in enumerate(eng["L0_n0"]) if value >= 90] or [eng["t_star"]]
     mode = meta["storageMode"]
+    opposite_mode = "laden" if mode == "entladen" else "entladen"
     x_n1 = bisect_power(
         net, mv, abs_values, day_index, critical_qh, eng["k_kind"], eng["k_idx"], bus, mode, n1=True
     )
     x_n0 = bisect_power(net, mv, abs_values, day_index, critical_qh, eng["k_kind"], eng["k_idx"], bus, mode, n1=False)
     x_mw = x_n1
-    y_mw = max(x_mw, bisect_power(net, mv, abs_values, day_index, list(range(96)), eng["k_kind"], eng["k_idx"], bus, mode, n1=False))
+    # Y: Kipppunkt im Normalbetrieb (n0) am Engpass — richtungsgetrennt (kritische + Gegenrichtung).
+    y_critical = bisect_power(
+        net, mv, abs_values, day_index, critical_qh, eng["k_kind"], eng["k_idx"], bus, mode, n1=False
+    )
+    y_at_tstar = bisect_power(
+        net, mv, abs_values, day_index, [eng["t_star"]], eng["k_kind"], eng["k_idx"], bus, mode, n1=False
+    )
+    y_opposite = bisect_power(
+        net, mv, abs_values, day_index, [eng["t_star"]], eng["k_kind"], eng["k_idx"], bus, opposite_mode, n1=False
+    )
+    y_mw = round(max(x_mw, y_critical, y_at_tstar, y_opposite), 1)
     x_limited = x_n0 + 1e-6 < x_n1
     if x_mw < 0.1:
         warnings_local.append("X unter 0,1 MW — sehr kleiner Engpass-Spielraum")

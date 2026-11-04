@@ -9,7 +9,8 @@ import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
 import { connectionLight } from "@/lib/connectionLight";
 import { formatQuantity } from "@/lib/formatQuantity";
-import { ladeparkTeachingPeak, planLadepark } from "@/lib/ladepark";
+import { ladeparkConnectionKw, ladeparkMaxKw, planLadepark, LADEPARK } from "@/lib/ladepark";
+import { explainPeakShaving, type PeakQuarter, type PeakShavingExplain } from "@/lib/peakShavingExplain";
 import { sitePath } from "@/lib/perspective";
 
 function clockLabel(hour: number) {
@@ -35,21 +36,19 @@ export function ConnectionStory({ hideEuro = false }: { hideEuro?: boolean } = {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const story = useMemo(() => {
-    const { peakKw, limitKw } = ladeparkTeachingPeak(4);
     const econ = planLadepark(4);
-    const peakDay = econ.plan.peakDay;
-    const quarters = peakDay.loadKw.map((loadKw, i) => ({
-      hour: i / 4,
-      loadKw,
-      mitKw: peakDay.gridKw[i] ?? loadKw,
-    }));
-    return {
-      peakBeforeKw: peakKw,
-      peakAfterKw: Math.min(peakKw, limitKw),
+    const limitKw = ladeparkConnectionKw(4);
+    const shaveKw = ladeparkMaxKw(4) - limitKw;
+    return explainPeakShaving({
+      loadKw: econ.plan.peakDay.loadKw,
       limitKw,
-      peakHour: 17.5,
-      quarters,
-    };
+      powerKw: shaveKw,
+      energyKwh: shaveKw * 2.5,
+      roundTripEfficiency: LADEPARK.roundTripEfficiency,
+      rechargeFromHour: 19,
+      rechargeCapKw: Math.min(shaveKw, limitKw * 0.3),
+      demandChargeEurPerKwYear: null,
+    });
   }, []);
   const [step, setStep] = useState(0);
   const [narrow, setNarrow] = useState(false);

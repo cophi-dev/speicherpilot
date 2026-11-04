@@ -5,6 +5,8 @@ describe("ortArchetypes", () => {
     const data = loadOrtArchetypes();
     expect(data.archetypes.land.xMw).toBeLessThanOrEqual(data.archetypes.land.yMw);
     expect(data.archetypes.stadt.xMw).toBeLessThanOrEqual(data.archetypes.stadt.yMw);
+    expect(data.archetypes.land.yMw).toBeGreaterThan(data.archetypes.land.xMw);
+    expect(data.archetypes.stadt.yMw).toBeGreaterThan(data.archetypes.stadt.xMw);
   });
 
   it("badge v2 neutral when C empty", () => {

@@ -32,7 +32,7 @@ export function OrtProjektLadepark() {
   const [category, setCategory] = useState<LadeparkCategory>(4);
   const [limitKw, setLimitKw] = useState(() => ladeparkConnectionKw(4));
   const economics = useMemo(() => planLadepark(category), [category]);
-  const { plan, stromNev, paybackYears, paybackSpan } = economics;
+  const { plan, stromNev, paybackYears, paybackSpan, stromNevSpan, arbitrageSpan } = economics;
   const story = useMemo(
     () => storyFromPlan(plan, limitKw, plan.assumptions.roundTripEfficiency),
     [plan, limitKw],
@@ -42,31 +42,39 @@ export function OrtProjektLadepark() {
     <>
       <div className="ort-ladepark-intro day-paper">
         <div className="day-hero-inner">
-          <h2 className="v4-h2">
-            {tx(
-              "Ein Schnellladepark will mehr Leistung, als sein Anschluss hergibt.",
-              "A fast-charging hub wants more power than its connection allows.",
-            )}
-          </h2>
+          <h2 className="v4-h2">{tx("Größe wählen", "Choose size")}</h2>
           <p className="v4-subline">
             {tx("Beispieldaten · ", "Example data · ")}
             <ModelChip label={tx("Modellschätzung", "Model estimate")} />
           </p>
-          <div className="v4-tab-bar site-toggle" role="group" aria-label={tx("Größe", "Size")}>
-            {CATEGORIES.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={category === id}
-                className={category === id ? "is-active" : undefined}
-                onClick={() => {
-                  setCategory(id);
-                  setLimitKw(ladeparkConnectionKw(id));
-                }}
-              >
-                {label} · {formatQuantity(ladeparkMaxKw(id) / 1000, language, 1)} MW
-              </button>
-            ))}
+          <div
+            className="ort-size-segment v4-tab-bar site-toggle"
+            role="radiogroup"
+            aria-label={tx("Hub-Größe (Deutschlandnetz)", "Hub size (Deutschlandnetz)")}
+          >
+            {CATEGORIES.map(({ id, label }) => {
+              const mwLabel = formatQuantity(ladeparkMaxKw(id) / 1000, language, 1);
+              const aria = `${label} · ${mwLabel} MW`;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={category === id}
+                  aria-label={aria}
+                  className={category === id ? "is-active" : undefined}
+                  onClick={() => {
+                    setCategory(id);
+                    setLimitKw(ladeparkConnectionKw(id));
+                  }}
+                >
+                  <span className="ort-size-segment-label">{label}</span>
+                  <span className="ort-size-segment-mw" aria-hidden="true">
+                    · {mwLabel} MW
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -80,7 +88,10 @@ export function OrtProjektLadepark() {
               <dd>
                 {paybackYears != null
                   ? `≈ ${formatYears(paybackYears, language)} (${formatYears(paybackSpan.low ?? paybackYears, language)}–${formatYears(paybackSpan.high ?? paybackYears, language)})`
-                  : "—"}
+                  : tx(
+                      "— · keine positive Jahreswirkung (Netzentgelt plus Arbitrage minus Opex ≤ 0)",
+                      "— · no positive annual effect (grid fees plus arbitrage minus opex ≤ 0)",
+                    )}
               </dd>
             </div>
             <div>
@@ -92,14 +103,20 @@ export function OrtProjektLadepark() {
               </dd>
             </div>
             <div>
-              <dt>{tx("Netzentgelt-Ersparnis", "Grid fee savings")}</dt>
+              <dt>{tx("Netzentgelt-Ersparnis (Peak-Shaving)", "Grid fee savings (peak shaving)")}</dt>
               <dd>
-                ≈ {formatQuantity(stromNev.savingsEur, language, 0)} €/{tx("Jahr", "year")}
+                ≈ {formatQuantity(stromNev.savingsEur, language, 0)} €/{tx("Jahr", "year")} (
+                {formatQuantity(stromNevSpan.low, language, 0)}–{formatQuantity(stromNevSpan.high, language, 0)} €, ±30
+                %)
               </dd>
             </div>
             <div>
               <dt>{tx("Arbitrage Day-ahead", "Day-ahead arbitrage")}</dt>
-              <dd>≈ {formatQuantity(economics.arbitrageEur, language, 0)} €/{tx("Jahr", "year")}</dd>
+              <dd>
+                ≈ {formatQuantity(economics.arbitrageEur, language, 0)} €/{tx("Jahr", "year")} (
+                {formatQuantity(arbitrageSpan.low, language, 0)}–{formatQuantity(arbitrageSpan.high, language, 0)} €, ±30
+                %)
+              </dd>
             </div>
           </dl>
           <p className="site-quiet">
