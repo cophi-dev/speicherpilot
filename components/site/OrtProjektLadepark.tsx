@@ -82,40 +82,64 @@ export function OrtProjektLadepark() {
       <section className="day-paper" aria-labelledby="ort-ladepark-econ">
         <div className="day-hero-inner">
           <h3 id="ort-ladepark-econ">{tx("Wirtschaftlichkeit · Modellschätzung", "Economics · model estimate")}</h3>
-          <dl className="site-stats">
+          <dl className="site-stats ort-ladepark-kpi">
             <div>
               <dt>{tx("Amortisation", "Payback")}</dt>
-              <dd>
-                {paybackYears != null
-                  ? `≈ ${formatYears(paybackYears, language)} (${formatYears(paybackSpan.low ?? paybackYears, language)}–${formatYears(paybackSpan.high ?? paybackYears, language)})`
-                  : tx(
-                      "— · keine positive Jahreswirkung (Netzentgelt plus Arbitrage minus Opex ≤ 0)",
-                      "— · no positive annual effect (grid fees plus arbitrage minus opex ≤ 0)",
-                    )}
+              <dd className="ort-kpi-value">
+                {paybackYears != null ? (
+                  <>
+                    ≈ {formatYears(paybackYears, language)}{" "}
+                    {tx("Jahre", "years")}
+                    <span className="ort-kpi-span">
+                      {tx("Pauschale Unsicherheit ±30 %:", "Flat uncertainty ±30%:")}{" "}
+                      {formatYears(paybackSpan.low ?? paybackYears, language)}–
+                      {formatYears(paybackSpan.high ?? paybackYears, language)} {tx("Jahre", "years")}
+                    </span>
+                    {paybackYears > 15 ? (
+                      <span className="ort-kpi-note">
+                        {tx(
+                          "Amortisiert sich im Modell nicht innerhalb der angenommenen Lebensdauer von 15 Jahren (Modellschätzung).",
+                          "Does not pay back within the assumed 15-year lifetime in this model (model estimate).",
+                        )}
+                      </span>
+                    ) : null}
+                  </>
+                ) : (
+                  tx(
+                    "— · keine positive Jahreswirkung (Netzentgelt plus Arbitrage minus Opex ≤ 0)",
+                    "— · no positive annual effect (grid fees plus arbitrage minus opex ≤ 0)",
+                  )
+                )}
               </dd>
             </div>
             <div>
               <dt>{tx("Benutzungsdauer", "Utilisation hours")}</dt>
-              <dd>
-                {formatQuantity(stromNev.before.utilisationHours, language, 0)} h →{" "}
-                {formatQuantity(stromNev.after.utilisationHours, language, 0)} h
+              <dd className="ort-kpi-value ort-kpi-nowrap">
+                <span className="num">
+                  {formatQuantity(stromNev.before.utilisationHours, language, 0)} h →{" "}
+                  {formatQuantity(stromNev.after.utilisationHours, language, 0)} h
+                </span>
                 {stromNev.bandChanged ? ` · ${tx("Tarifbereich wechselt", "tariff band changes")}` : null}
               </dd>
             </div>
             <div>
               <dt>{tx("Netzentgelt-Ersparnis (Peak-Shaving)", "Grid fee savings (peak shaving)")}</dt>
-              <dd>
-                ≈ {formatQuantity(stromNev.savingsEur, language, 0)} €/{tx("Jahr", "year")} (
-                {formatQuantity(stromNevSpan.low, language, 0)}–{formatQuantity(stromNevSpan.high, language, 0)} €, ±30
-                %)
+              <dd className="ort-kpi-value">
+                ≈ {formatQuantity(stromNev.savingsEur, language, 0)} €/{tx("Jahr", "year")}
+                <span className="ort-kpi-span">
+                  {tx("Pauschale Unsicherheit ±30 %:", "Flat uncertainty ±30%:")}{" "}
+                  {formatQuantity(stromNevSpan.low, language, 0)}–{formatQuantity(stromNevSpan.high, language, 0)} €
+                </span>
               </dd>
             </div>
             <div>
               <dt>{tx("Arbitrage Day-ahead", "Day-ahead arbitrage")}</dt>
-              <dd>
-                ≈ {formatQuantity(economics.arbitrageEur, language, 0)} €/{tx("Jahr", "year")} (
-                {formatQuantity(arbitrageSpan.low, language, 0)}–{formatQuantity(arbitrageSpan.high, language, 0)} €, ±30
-                %)
+              <dd className="ort-kpi-value">
+                ≈ {formatQuantity(economics.arbitrageEur, language, 0)} €/{tx("Jahr", "year")}
+                <span className="ort-kpi-span">
+                  {tx("Pauschale Unsicherheit ±30 %:", "Flat uncertainty ±30%:")}{" "}
+                  {formatQuantity(arbitrageSpan.low, language, 0)}–{formatQuantity(arbitrageSpan.high, language, 0)} €
+                </span>
               </dd>
             </div>
           </dl>

@@ -21,7 +21,7 @@ describe("netzbetreiberNamen blocklist", () => {
     path.join(process.cwd(), "content"),
     path.join(process.cwd(), "public/blog"),
     path.join(process.cwd(), "components"),
-    path.join(process.cwd(), "lib/glossary.ts"),
+    path.join(process.cwd(), "lib"),
   ];
 
   it("scans visible content", () => {
@@ -35,6 +35,7 @@ describe("netzbetreiberNamen blocklist", () => {
     const hits: string[] = [];
     for (const file of files) {
       if (file.includes("netzbetreiberNamen.ts")) continue;
+      if (file.endsWith(".test.ts") || file.endsWith(".test.tsx")) continue;
       const text = fs.readFileSync(file, "utf8");
       if (containsGridOperatorName(text)) {
         hits.push(file);

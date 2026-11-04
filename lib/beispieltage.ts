@@ -120,9 +120,9 @@ export function scaleSizeLabel(scale: BeispielScale, language: AppLanguage, powe
   const powerText = formatQuantity(power, language, powerDigits);
   const energyText = formatQuantity(energy, language, energyDigits);
   if (language === "de") {
-    return `${scale} Speicher wie Bollingstedt: ${powerText} MW / ${energyText} MWh`;
+    return `${scale} Speicher wie Großspeicher Beispiel: ${powerText} MW / ${energyText} MWh`;
   }
-  return `${scale} ${scale === 1 ? "battery" : "batteries"} like Bollingstedt: ${powerText} MW / ${energyText} MWh`;
+  return `${scale} ${scale === 1 ? "battery" : "batteries"} like example large-scale storage: ${powerText} MW / ${energyText} MWh`;
 }
 
 export function thousandsLabel(revenueX1: number, language: AppLanguage): string {
@@ -208,6 +208,6 @@ export const HINTS: readonly { de: string; en: string; tips: Array<"preisnehmer"
 
 /** The methodology sentence that names where euro figures are allowed. */
 export const EURO_SCOPE = {
-  de: "Euro-Erlös in den Beispieltagen nur bei ×1 (Beispielspeicher wie Bollingstedt), als Modellschätzung. Auf /live bedeutet ×1 die heutige Flotte. Ab ×2 keine Euro-Werte in der Oberfläche.",
-  en: "Euro revenue in the example days only at ×1 (example battery like Bollingstedt), as a model estimate. On /live, ×1 is today’s fleet. From ×2, no euro figures in the UI.",
+  de: "Euro-Erlös in den Beispieltagen nur bei ×1 (Beispielspeicher wie Großspeicher Beispiel), als Modellschätzung. Auf /live bedeutet ×1 die heutige Flotte. Ab ×2 keine Euro-Werte in der Oberfläche.",
+  en: "Euro revenue in the example days only at ×1 (example battery like the reference large-scale storage), as a model estimate. On /live, ×1 is today’s fleet. From ×2, no euro figures in the UI.",
 } as const;

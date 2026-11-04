@@ -23,28 +23,41 @@ from build_ort_archetypes import (  # noqa: E402
 )
 
 
-def test_typtag_land_min_stadt_max():
+def test_typtag_land_feed_stadt_max():
     sb = pytest.importorskip("simbench")
     import warnings
 
     warnings.filterwarnings("ignore")
-    from build_ort_archetypes import load_net, profile_absolute
+    from build_ort_archetypes import load_net, profile_absolute, typtag_day_index
 
-    for key, pick in (("land", "min"), ("stadt", "max")):
-        net = load_net(ARCHETYPES[key]["code"])
+    for key in ("land", "stadt"):
+        meta = ARCHETYPES[key]
+        net = load_net(meta["code"])
         abs_values = profile_absolute(net)
+        pick = meta["pick"]
         day = typtag_day_index(abs_values, pick)
-        stats = []
         load_p = abs_values[("load", "p_mw")]
         gen_p = abs_values[("sgen", "p_mw")]
-        residual = load_p.sum(axis=1) - gen_p.sum(axis=1)
-        for d in range(len(residual) // 96):
-            chunk = residual.iloc[d * 96 : (d + 1) * 96]
-            stats.append((float(chunk.min()), float(chunk.max()), d))
-        if pick == "min":
-            assert day == min(stats, key=lambda item: item[0])[2]
-        else:
+        n_days = len(load_p) // 96
+        if pick == "feed_max":
+            best_day = 0
+            best_val = -1e18
+            for d in range(n_days):
+                chunk = gen_p.iloc[d * 96 : (d + 1) * 96].sum(axis=1) - load_p.iloc[d * 96 : (d + 1) * 96].sum(axis=1)
+                value = float(chunk.max())
+                if value > best_val:
+                    best_val = value
+                    best_day = d
+            assert day == best_day
+        elif pick == "max":
+            residual = load_p.sum(axis=1) - gen_p.sum(axis=1)
+            stats = []
+            for d in range(n_days):
+                chunk = residual.iloc[d * 96 : (d + 1) * 96]
+                stats.append((float(chunk.min()), float(chunk.max()), d))
             assert day == max(stats, key=lambda item: item[1])[2]
+        else:
+            pytest.fail(f"unexpected pick {pick}")
 
 
 def test_t_star_within_day():
@@ -99,6 +112,25 @@ def test_badge_v2_relief():
 def test_pick_price_day_suffix():
     days = [{"date": "2025-05-29", "prices": [0.0] * 96}, {"date": "2026-01-01", "prices": [1.0] * 96}]
     assert pick_price_day("2016-05-29", days) == "2025-05-29"
+
+
+def test_nachrechner_ok():
+    payload_path = ROOT / "data" / "ort" / "ort-archetypes.json"
+    if not payload_path.exists():
+        pytest.skip("ort-archetypes.json missing")
+    payload = json.loads(payload_path.read_text(encoding="utf-8"))
+    if not payload["archetypes"]["land"].get("hasEngpass"):
+        pytest.skip("land JSON interim without engpass — run pnpm run data:ort when build finishes")
+    import subprocess
+
+    result = subprocess.run(
+        [sys.executable, str(ORT_DIR / "nachrechner_ort.py"), str(payload_path)],
+        capture_output=True,
+        text=True,
+        cwd=str(ROOT),
+        timeout=3600,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_bisect_power_zero_when_infeasible():

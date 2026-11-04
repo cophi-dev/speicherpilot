@@ -3,7 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { LanguageContext } from "@/components/language-context";
 import { SiteDay } from "@/components/site/SiteDay";
 import { formatQuantity } from "@/lib/formatQuantity";
-import { parseSelection } from "@/lib/netzDemo";
 import { planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import { referenceParkModelDay } from "@/lib/referenceParkModelDay";
 import { supermarketConnectionStory } from "@/lib/siteConnectionDay";
@@ -32,9 +31,6 @@ jest.mock("@/components/home/ConnectionStory", () => ({
   ConnectionStory: () => null,
 }));
 
-jest.mock("@/components/site/SiteOperatorSections", () => ({
-  SiteOperatorSections: () => null,
-}));
 
 jest.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(query),
@@ -53,7 +49,7 @@ const modelDay = referenceParkModelDay({
 function renderSite() {
   return render(
     <LanguageContext.Provider value={{ language: "de", setLanguage: () => {} }}>
-      <SiteDay modelDay={modelDay} netzSelection={parseSelection({})} />
+      <SiteDay modelDay={modelDay} />
     </LanguageContext.Provider>
   );
 }

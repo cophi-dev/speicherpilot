@@ -5,7 +5,6 @@ import Link from "next/link";
 import { OrtArchetypen } from "@/components/site/OrtArchetypen";
 import { OrtProjektLadepark } from "@/components/site/OrtProjektLadepark";
 import { useLanguage } from "@/components/language-context";
-import type { NetzSelection } from "@/lib/netzDemo";
 import { sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
 import type { ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
 
@@ -62,12 +61,10 @@ function ExampleCards({ view, scenario }: { view: Perspective; scenario: Scenari
 export function OrtPageBody({
   view,
   scenario,
-  netzSelection,
 }: {
   view: Perspective;
   scenario: ScenarioId;
   modelDay: ReferenceParkModelDay | null;
-  netzSelection: NetzSelection;
 }) {
   if (view === "projekt") {
     return (
@@ -78,6 +75,5 @@ export function OrtPageBody({
     );
   }
   const archetype = scenario === "stadt" ? "stadt" : "land";
-  void netzSelection;
   return <OrtArchetypen initialArchetype={archetype} />;
 }

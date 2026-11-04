@@ -5,7 +5,6 @@ import { useMemo } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import { ladeparkConnectionKw, ladeparkMaxKw, planLadepark } from "@/lib/ladepark";
-import { storyFromPlan } from "@/lib/siteConnectionDay";
 
 const W = 1152;
 const H = 240;
@@ -16,16 +15,19 @@ export function OrtChapter() {
     const econ = planLadepark(4);
     return { plan: econ.plan, connectionKw: econ.connectionKw };
   }, []);
-  const story = useMemo(() => storyFromPlan(plan, connectionKw, plan.assumptions.roundTripEfficiency), [plan, connectionKw]);
-  const peakBefore = Math.round(story.peakBeforeKw);
-  const peakAfter = Math.round(story.peakAfterKw);
+  const peakBefore = Math.round(plan.peakImportBeforeKw);
+  const peakAfterDisplay =
+    plan.peakImportAfterKw <= limit + 2 ? Math.round(limit) : Math.round(plan.peakImportAfterKw);
   const limit = connectionKw;
 
   const chart = useMemo(() => {
     const plotW = W - PAD.left - PAD.right;
     const plotH = H - PAD.top - PAD.bottom;
     const yMax = ladeparkMaxKw(4) * 1.05;
-    const pts = story.points;
+    const pts = plan.peakDay.loadKw.map((loadKw, i) => ({
+      ohneKw: loadKw,
+      mitKw: plan.peakDay.gridKw[i] ?? loadKw,
+    }));
     const x = (i: number) => PAD.left + (i / (pts.length - 1)) * plotW;
     const y = (kw: number) => PAD.top + plotH - (kw / yMax) * plotH;
     const loadPath = pts
@@ -51,7 +53,7 @@ export function OrtChapter() {
       peakY: y(maxLoad),
       yMax,
     };
-  }, [story.points, limit]);
+  }, [plan.peakDay, limit]);
 
   const limitY = PAD.top + (H - PAD.top - PAD.bottom) - (limit / chart.yMax) * (H - PAD.top - PAD.bottom);
 
@@ -64,7 +66,7 @@ export function OrtChapter() {
         </h2>
         <div className="v4-ort-kern">
           <p className="v4-ort-kw num">
-            {formatQuantity(peakBefore, "de", 0)} → {formatQuantity(peakAfter, "de", 0)} kW
+            {formatQuantity(peakBefore, "de", 0)} → {formatQuantity(peakAfterDisplay, "de", 0)} kW
           </p>
           <p className="v4-ort-side">
             Schnellladepark S, {formatQuantity(limit, "de", 0)} kW Anschluss.{" "}

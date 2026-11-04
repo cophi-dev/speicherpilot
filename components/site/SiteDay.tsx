@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 
 import { ConnectionStory } from "@/components/home/ConnectionStory";
 import { PageLead } from "@/components/PageLead";
-import { SiteOperatorSections } from "@/components/site/SiteOperatorSections";
 import { SiteNetzPrinciple } from "@/components/site/SiteNetzPrinciple";
 import { DayRing, DayValuesTable, type RingCallout } from "@/components/day-ring/DayRing";
 import { ModelChip } from "@/components/day-ring/ModelChip";
@@ -29,17 +28,14 @@ import { parsePerspective, parseScenario, sitePath, type Perspective, type Scena
 import { storyFromPlan, supermarketConnectionStory, type ConnectionPoint, type SiteConnectionStory } from "@/lib/siteConnectionDay";
 import { GRID_SUPPORT_CONFIG, parseLoadProfileCsv, planSite, type LoadProfile, type SitePlan } from "@/lib/sitePlanner";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
-import type { NetzSelection } from "@/lib/netzDemo";
 
 export function SiteDay({
   modelDay = null,
-  netzSelection,
   shellHidden = false,
   view: viewProp,
   scenario: scenarioProp,
 }: {
   modelDay?: ReferenceParkModelDay | null;
-  netzSelection: NetzSelection;
   shellHidden?: boolean;
   view?: Perspective;
   scenario?: ScenarioId;
@@ -131,7 +127,6 @@ export function SiteDay({
       />
       <ExampleCards language={language} view={view} scenario={scenario} />
       {view === "projekt" && scenario !== "grossspeicher" ? <ConnectionStory /> : null}
-      {view === "netz" ? <SiteOperatorSections selection={netzSelection} /> : null}
     </div>
   );
 }
@@ -222,7 +217,7 @@ function ExampleHero({
             </div>
             {view === "projekt" ? (
               <p className="site-quiet">
-                <Link href="/site?view=netz#testnetz-n1">{tx("Testnetz (n-1) für Netzbetreiber →", "Test grid (n-1) for grid operators →")}</Link>
+                <Link href="/ort?sicht=netz">{tx("Netzsicht: zwei Orte →", "Grid view: two places →")}</Link>
               </p>
             ) : null}
           </div>

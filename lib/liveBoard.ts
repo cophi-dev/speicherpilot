@@ -26,10 +26,16 @@ export type LiveLevelId =
   | "keine-reihe";
 
 const LEVEL: Record<LiveLevelId, LiveCopy> = {
-  "regelzone-50hertz": { de: "Regelzone 50Hertz", en: "50Hertz control area" },
-  "offshore-50hertz-tennet": { de: "Wind auf See · Regelzone 50Hertz und TenneT", en: "Offshore wind · 50Hertz and TenneT control areas" },
+  "regelzone-50hertz": { de: "Regelzone Nordost", en: "Northeast control area" },
+  "offshore-50hertz-tennet": {
+    de: "Wind auf See · Regelzone Nordost und Nord-Süd (Mitte)",
+    en: "Offshore wind · Northeast and north–south (central) control areas",
+  },
   "gebotszone-de-lu": { de: "Gebotszone DE-LU", en: "DE-LU bidding zone" },
-  "regelzone-50hertz-transnetbw": { de: "Regelzone 50Hertz und TransnetBW", en: "50Hertz and TransnetBW control areas" },
+  "regelzone-50hertz-transnetbw": {
+    de: "Regelzone Nordost und Südwest",
+    en: "Northeast and southwest control areas",
+  },
   deutschland: { de: "Deutschland", en: "Germany" },
   "keine-reihe": { de: "Keine freie Reihe", en: "No free series" },
 };
@@ -279,12 +285,12 @@ function hertzCopy(reading: WindSolarReading): { sentence: LiveCopy; takeaway: L
   const clock = berlinClock(reading.unixMs);
   return {
     sentence: {
-      de: `In der Regelzone 50Hertz decken Wind und Photovoltaik um ${clock} Uhr ${deShare} % der Last. Hamburg liegt in dieser Zone. Die Zahl gilt für die ganze Zone, nicht für die Stadt.`,
-      en: `In the 50Hertz control area, wind and solar cover ${enShare}% of load at ${clock}. Hamburg sits in this area. The figure is the whole area, not the city.`,
+      de: `In der Regelzone Nordost decken Wind und Photovoltaik um ${clock} Uhr ${deShare} % der Last. Hamburg liegt in dieser Zone. Die Zahl gilt für die ganze Zone, nicht für die Stadt.`,
+      en: `In the northeast control area, wind and solar cover ${enShare}% of load at ${clock}. Hamburg sits in this area. The figure is the whole area, not the city.`,
     },
     takeaway: {
-      de: `In der Regelzone 50Hertz decken Wind und Photovoltaik um ${clock} Uhr ${deShare} % der Last, und die Zahl gilt für die ganze Zone, nicht für die Stadt Hamburg.`,
-      en: `In the 50Hertz control area, wind and solar cover ${enShare}% of load at ${clock}, and the figure is the whole area, not the city of Hamburg.`,
+      de: `In der Regelzone Nordost decken Wind und Photovoltaik um ${clock} Uhr ${deShare} % der Last, und die Zahl gilt für die ganze Zone, nicht für die Stadt Hamburg.`,
+      en: `In the northeast control area, wind and solar cover ${enShare}% of load at ${clock}, and the figure is the whole area, not the city of Hamburg.`,
     },
   };
 }
@@ -331,12 +337,12 @@ function offshoreCopy(unixMs: number, hertzMw: number, tennetMw: number): { sent
   const enTennet = qty(tennetMw, "en", 0);
   return {
     sentence: {
-      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone 50Hertz, angeschlossen über die Ostsee, und ${deTennet} MW in der Regelzone TenneT, angeschlossen über die Nordsee. Das ist nicht die Last von Norddeutschland.`,
-      en: `Offshore wind at ${clock}: ${enHertz} MW in the 50Hertz control area, connected through the Baltic, and ${enTennet} MW in the TenneT control area, connected through the North Sea. That is not northern Germany’s load.`,
+      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone Nordost, angeschlossen über die Ostsee, und ${deTennet} MW in der Regelzone Nord-Süd (Mitte), angeschlossen über die Nordsee. Das ist nicht die Last von Norddeutschland.`,
+      en: `Offshore wind at ${clock}: ${enHertz} MW in the northeast control area, connected through the Baltic, and ${enTennet} MW in the north–south (central) control area, connected through the North Sea. That is not northern Germany’s load.`,
     },
     takeaway: {
-      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone 50Hertz über die Ostsee und ${deTennet} MW in der Regelzone TenneT über die Nordsee, und das ist nicht die Last von Norddeutschland.`,
-      en: `Offshore wind at ${clock}: ${enHertz} MW in the 50Hertz control area via the Baltic and ${enTennet} MW in the TenneT control area via the North Sea, and that is not northern Germany’s load.`,
+      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone Nordost über die Ostsee und ${deTennet} MW in der Regelzone Nord-Süd (Mitte) über die Nordsee, und das ist nicht die Last von Norddeutschland.`,
+      en: `Offshore wind at ${clock}: ${enHertz} MW in the northeast control area via the Baltic and ${enTennet} MW in the north–south (central) control area via the North Sea, and that is not northern Germany’s load.`,
     },
   };
 }
@@ -348,8 +354,8 @@ function zoneCopy(unixMs: number, hertzPct: number, transnetPct: number): { sent
   const deSouth = qty(transnetPct, "de", 0);
   const enSouth = qty(transnetPct, "en", 0);
   const line = {
-    de: `Um ${clock} Uhr decken Wind und Photovoltaik ${deHertz} % der Last in der Regelzone 50Hertz und ${deSouth} % in der Regelzone TransnetBW, weil im Norden mehr Wind steht als im Süden.`,
-    en: `At ${clock}, wind and solar cover ${enHertz}% of load in the 50Hertz control area and ${enSouth}% in the TransnetBW control area, because the north has more wind than the south.`,
+    de: `Um ${clock} Uhr decken Wind und Photovoltaik ${deHertz} % der Last in der Regelzone Nordost und ${deSouth} % in der Regelzone Südwest, weil im Norden mehr Wind steht als im Süden.`,
+    en: `At ${clock}, wind and solar cover ${enHertz}% of load in the northeast control area and ${enSouth}% in the southwest control area, because the north has more wind than the south.`,
   };
   return { sentence: line, takeaway: line };
 }
@@ -376,12 +382,12 @@ function germanyCopy(input: { unixMs: number; loadMw: number; generationMw: numb
   const enWord = netMw >= 0 ? "more" : "less";
   return {
     sentence: {
-      de: `Deutschland erzeugt um ${clock} Uhr ${deNet} GW ${deWord} als die Last. Das ist das Land, nicht Hamburg und nicht die Regelzone 50Hertz.`,
-      en: `At ${clock}, Germany generates ${enNet} GW ${enWord} than its load. That is the country, not Hamburg and not the 50Hertz control area.`,
+      de: `Deutschland erzeugt um ${clock} Uhr ${deNet} GW ${deWord} als die Last. Das ist das Land, nicht Hamburg und nicht die Regelzone Nordost.`,
+      en: `At ${clock}, Germany generates ${enNet} GW ${enWord} than its load. That is the country, not Hamburg and not the northeast control area.`,
     },
     takeaway: {
-      de: `Deutschland erzeugt um ${clock} Uhr ${deNet} GW ${deWord} als die Last, und das ist das Land, nicht Hamburg und nicht die Regelzone 50Hertz.`,
-      en: `At ${clock}, Germany generates ${enNet} GW ${enWord} than its load, and that is the country, not Hamburg and not the 50Hertz control area.`,
+      de: `Deutschland erzeugt um ${clock} Uhr ${deNet} GW ${deWord} als die Last, und das ist das Land, nicht Hamburg und nicht die Regelzone Nordost.`,
+      en: `At ${clock}, Germany generates ${enNet} GW ${enWord} than its load, and that is the country, not Hamburg and not the northeast control area.`,
     },
   };
 }
@@ -427,12 +433,12 @@ const CURTAILMENT: LiveModule = {
   digits: 0,
   unit: null,
   sentence: {
-    de: "Für heute liegt keine freie Viertelstundenreihe der Abregelung oder des Redispatch für Hamburg oder für die Regelzone 50Hertz. Netztransparenz veröffentlicht diese Mengen, der Maschinenabruf braucht einen registrierten Zugang. Hier steht deshalb keine Megawattzahl.",
-    en: "There is no free quarter-hour series of curtailment or redispatch for Hamburg or the 50Hertz control area today. Netztransparenz publishes those volumes, and the machine feed needs a registered login. So there is no megawatt figure here.",
+    de: "Für heute liegt keine freie Viertelstundenreihe der Abregelung oder des Redispatch für Hamburg oder für die Regelzone Nordost. Netztransparenz veröffentlicht diese Mengen, der Maschinenabruf braucht einen registrierten Zugang. Hier steht deshalb keine Megawattzahl.",
+    en: "There is no free quarter-hour series of curtailment or redispatch for Hamburg or the northeast control area today. Netztransparenz publishes those volumes, and the machine feed needs a registered login. So there is no megawatt figure here.",
   },
   takeaway: {
-    de: "Abregelung und Redispatch von heute stehen hier nicht als Zahl, weil keine freie Maschinenreihe für Hamburg oder die Regelzone 50Hertz angebunden ist.",
-    en: "Today’s curtailment and redispatch are not shown as a number, because no free machine series for Hamburg or the 50Hertz control area is connected.",
+    de: "Abregelung und Redispatch von heute stehen hier nicht als Zahl, weil keine freie Maschinenreihe für Hamburg oder die Regelzone Nordost angebunden ist.",
+    en: "Today’s curtailment and redispatch are not shown as a number, because no free machine series for Hamburg or the northeast control area is connected.",
   },
 };
 
@@ -644,7 +650,7 @@ export function buildLiveBoard(input: LiveBoardInput): LiveBoard {
           available: true,
           value: `${qty(north.shareOfLoadPct, "de", 0)} / ${qty(south.shareOfLoadPct, "de", 0)}`,
           figure: null,
-          figureLabel: { de: "Anteil 50Hertz / TransnetBW", en: "50Hertz / TransnetBW share" },
+          figureLabel: { de: "Anteil Nordost / Südwest", en: "Northeast / southwest share" },
           digits: 0,
           unit: "%",
         });
@@ -753,7 +759,7 @@ export const LIVE_SOURCE_TABLE: Array<{
   {
     module: { de: "Zwei Regelzonen", en: "Two control areas" },
     level: LEVEL["regelzone-50hertz-transnetbw"],
-    latency: { de: "Viertelstunde, letzte gemeinsame Messung. TransnetBW ohne Offshore-Reihe", en: "Quarter-hour, latest shared measurement. TransnetBW has no offshore series" },
+    latency: { de: "Viertelstunde, letzte gemeinsame Messung. Südwest ohne Offshore-Reihe", en: "Quarter-hour, latest shared measurement. Southwest has no offshore series" },
     licence: "CC BY 4.0 · Bundesnetzagentur | SMARD.de",
     href: "https://www.smard.de/en/datennutzung",
   },

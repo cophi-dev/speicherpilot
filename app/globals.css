@@ -7551,6 +7551,78 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   min-width: 4.5rem;
   padding: 0.55rem 0.75rem;
 }
+.ort-netz-lead {
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  margin: 0 0 1.25rem;
+  color: hsl(var(--foreground));
+  max-width: 46rem;
+}
+.ort-netz-step {
+  margin-bottom: 1.25rem;
+}
+.ort-netz-step-label {
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: hsl(var(--foreground));
+}
+.ort-netz-step-note {
+  margin: 0.65rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: hsl(var(--foreground));
+  opacity: 0.92;
+  max-width: 46rem;
+}
+.ort-netz-meta {
+  margin-top: 0.5rem;
+}
+.ort-kpi-explain {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+  opacity: 0.9;
+}
+.ort-netz-warning {
+  font-size: 0.9375rem;
+  color: hsl(var(--foreground));
+  opacity: 0.92;
+}
+.ort-chart-legend {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+  opacity: 0.92;
+}
+.ort-legend-swatch {
+  display: inline-block;
+  width: 1rem;
+  height: 0.2rem;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+.ort-legend-n0 {
+  background: var(--netz-line-below-80, #2d6a4f);
+}
+.ort-legend-n1 {
+  background: var(--netz-line-80-100, #40916c);
+  border-bottom: 1px dashed currentColor;
+}
+.ort-legend-l1 {
+  background: var(--netz-line-over-100, #c1121f);
+  height: 0.25rem;
+}
+.ort-legend-bar {
+  background: hsl(var(--muted-foreground));
+  opacity: 0.5;
+  height: 0.65rem;
+  width: 0.35rem;
+}
 .ort-archetype-kpi-grid {
   display: grid;
   gap: 0.75rem 1.25rem;

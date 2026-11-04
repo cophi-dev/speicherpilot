@@ -428,8 +428,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             <MethodikSection id="ort-archetypen" title={methodikSectionLabel("ort-archetypen", language)}>
               <p>
                 {tx(
-                  "Zwei SimBench-Mittelspannungsnetze: 1-MV-rural--0-no_sw (ländlich, Wind und PV) und 1-MV-urban--0-no_sw (Stadt). Typtag = Tag mit minimaler bzw. maximaler Residuallast. Engpass = höchste Auslastung am Typtag im Normalbetrieb und im kritischen (n-1)-Ausfall mit einer besten Einzelschaltung. Speicherknoten = MS-Knoten mit größter Impedanz zum Umspannwerk auf dem Pfad zum Engpass. Netzlast 2016, Day-ahead-Preise 2025/26 — kein gemeinsames Wetter.",
-                  "Two SimBench medium-voltage grids: 1-MV-rural--0-no_sw (rural, wind and PV) and 1-MV-urban--0-no_sw (urban). Typical day = day with minimum or maximum residual load. Bottleneck = highest loading on that day in normal operation and in the critical (n-1) outage with one best tie switch. Storage node = MV bus with largest impedance to the substation on the path to the bottleneck. Grid load 2016, day-ahead prices 2025/26 — not shared weather.",
+                  "Zwei SimBench-Mittelspannungsnetze: 1-MV-rural--2-no_sw (Land, Zukunftsszenario mit mehr Photovoltaik) und 1-MV-urban--0-no_sw (Stadt). Typtag Land = Tag mit maximaler Einspeisung, Stadt = maximaler Restbezug. Engpass = höchste Auslastung am Typtag im Normalbetrieb und im kritischen (n-1)-Ausfall. Speicherknoten = MS-Knoten mit größter Impedanz zum Umspannwerk auf dem Pfad zum Engpass. Netzlast 2016, Day-ahead-Preise 2025/26 — kein gemeinsames Wetter.",
+                  "Two SimBench medium-voltage grids: 1-MV-rural--2-no_sw (rural, future scenario with more PV) and 1-MV-urban--0-no_sw (urban). Rural typical day = max feed-in; urban = max residual demand. Bottleneck = peak loading on the typical day in normal operation and critical (n-1) outage. Storage node = MV bus with largest impedance to the substation on the path to the bottleneck. Grid load 2016, day-ahead prices 2025/26 — not shared weather.",
                 )}
               </p>
             </MethodikSection>

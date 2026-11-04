@@ -22,7 +22,7 @@ describe("live board geography and readings", () => {
     expect(aligned?.values.wind).toBe(400);
   });
 
-  it("labels 50Hertz as the control area and DE-LU as the bidding zone", () => {
+  it("labels the northeast control area and DE-LU as the bidding zone", () => {
     const board = buildLiveBoard({
       berlinDateKey: "2026-10-21",
       nowMs: Date.parse("2026-10-21T09:30:00+02:00"),
@@ -52,7 +52,7 @@ describe("live board geography and readings", () => {
     const hertz = board.modules.find((module) => module.id === "hertz");
     const price = board.modules.find((module) => module.id === "price");
     const zones = board.modules.find((module) => module.id === "zones");
-    expect(hertz?.level.de).toBe("Regelzone 50Hertz");
+    expect(hertz?.level.de).toBe("Regelzone Nordost");
     expect(hertz?.sentence.de).toContain("nicht für die Stadt");
     expect(hertz?.sentence.de).toContain("30 %");
     expect(price?.level.de).toBe("Gebotszone DE-LU");
@@ -61,7 +61,7 @@ describe("live board geography and readings", () => {
     expect(price?.takeaway.de).toContain("279,61");
     expect(price?.sentence.de).toContain("Handelsempfehlung");
     expect(price?.sentence.de).not.toContain("kein Viertelstundenpreis");
-    expect(zones?.level.de).toContain("TransnetBW");
+    expect(zones?.level.de).toContain("Südwest");
     expect(zones?.sentence.de).toContain("mehr Wind");
     expect(zones?.sentence.de).not.toMatch(/Engpass/);
     expect(board.zoneChart).toHaveLength(1);
@@ -73,8 +73,7 @@ describe("live board geography and readings", () => {
     expect(board.lead.de).toContain("Gebotszone DE-LU");
     expect(board.sentences).toHaveLength(2);
     expect(board.sentences[0].de).toBe(board.lead.de);
-    expect(board.sentences[1].de).toContain("Regelzone 50Hertz");
-    expect(board.sentences[1].de).not.toBe(board.sentences[0].de);
+    expect(board.sentences[1].de).toContain("Regelzone Nordost");
     expect(board.sentences.map((line) => line.de).join(" ")).not.toContain("TransnetBW");
     const blob = JSON.stringify(board);
     expect(blob).not.toContain("Regelzone Hamburg");

@@ -175,10 +175,11 @@ export function planLadepark(category: LadeparkCategory = 4): LadeparkEconomics 
   const dt = 0.25;
   const beforeStats = annualImportStats(profile.samplesKw, dt);
   const afterStats = annualImportStats(plan.gridKw, dt);
+  const pAfterKw = Math.max(plan.peakImportAfterKw, arbPlan.peakImportAfterKw);
   const stromNev = stromNevSavings({
     pBeforeKw: plan.peakImportBeforeKw,
     wBeforeKwh: beforeStats.kwh,
-    pAfterKw: plan.peakImportAfterKw,
+    pAfterKw,
     wAfterKwh: afterStats.kwh,
   });
   const arbitrageEur = arbPlan.arbitrageEur;

@@ -20,5 +20,5 @@ export default async function NetzRedirect({
       params.set(key, value);
     }
   }
-  permanentRedirect(`/ort?${params.toString()}#testnetz-n1`);
+  permanentRedirect(`/ort?${params.toString()}`);
 }
