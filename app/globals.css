@@ -7549,7 +7549,8 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .ort-netz-tabs button {
   flex: 1 1 auto;
   min-width: 4.5rem;
-  padding: 0.55rem 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.85rem;
 }
 .ort-netz-lead {
   font-size: 1.0625rem;
