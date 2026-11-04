@@ -7541,6 +7541,78 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
+.ort-netz-tabs {
+  gap: 0.35rem;
+  padding: 0.35rem;
+  max-width: 42rem;
+}
+.ort-netz-tabs button {
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  padding: 0.55rem 0.75rem;
+}
+.ort-archetype-kpi-grid {
+  display: grid;
+  gap: 0.75rem 1.25rem;
+  margin: 1.25rem 0;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .ort-archetype-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 960px) {
+  .ort-archetype-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.ort-archetype-kpi-grid dt {
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+  opacity: 0.88;
+}
+.ort-archetype-kpi-grid dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.9375rem;
+}
+.ort-archetype-badge {
+  color: hsl(var(--foreground));
+}
+.ort-chart-axis,
+.ort-chart-caption {
+  color: hsl(var(--foreground));
+  opacity: 0.88;
+}
+.ort-ladepark-kpi {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .ort-ladepark-kpi {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ort-ladepark-kpi dt {
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+  opacity: 0.88;
+}
+.ort-kpi-value {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+.ort-kpi-span,
+.ort-kpi-note {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+.ort-kpi-nowrap {
+  white-space: nowrap;
+}
 .ort-v4 .site-card,
 .ort-v4 .site-examples a {
   border-radius: 0;
