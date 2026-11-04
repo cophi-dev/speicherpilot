@@ -36,14 +36,18 @@ export function SiteDay({
   modelDay = null,
   netzSelection,
   shellHidden = false,
+  view: viewProp,
+  scenario: scenarioProp,
 }: {
   modelDay?: ReferenceParkModelDay | null;
   netzSelection: NetzSelection;
   shellHidden?: boolean;
+  view?: Perspective;
+  scenario?: ScenarioId;
 }) {
   const params = useSearchParams();
-  const view = parsePerspective(params.get("sicht")) ?? parsePerspective(params.get("view")) ?? "projekt";
-  const scenario = parseScenario(params.get("scenario")) ?? "supermarkt";
+  const view = viewProp ?? parsePerspective(params.get("sicht")) ?? parsePerspective(params.get("view")) ?? "projekt";
+  const scenario = scenarioProp ?? parseScenario(params.get("scenario")) ?? "ladepark";
   const { language } = useLanguage();
   const [csv, setCsv] = useState<LoadProfile | null>(null);
   const [limitDraft, setLimitDraft] = useState("");
@@ -79,6 +83,10 @@ export function SiteDay({
     });
     return { plan, profile: csv, story: storyFromPlan(plan, connectionLimitKw, HAMBURG_SUPERMARKET.roundTripEfficiency) };
   }, [csv, connectionLimitKw]);
+
+  if (shellHidden && scenario !== "grossspeicher") {
+    return null;
+  }
 
   const active = uploaded ?? example;
   const missingLimit = csv !== null && uploaded === null;
@@ -324,6 +332,23 @@ function siteCallouts(story: SiteConnectionStory, language: AppLanguage, netz: b
   ];
 }
 
+
+function referenceRegisterSource(facts: typeof REFERENCE_PARK) {
+  return facts.sources[0] ?? { href: "https://www.marktstammdatenregister.de/MaStR", publisher: "MaStR" };
+}
+
+function ReferenceParkSourceLinks({ facts, language }: { facts: typeof REFERENCE_PARK; language: AppLanguage }) {
+  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const reg = referenceRegisterSource(facts);
+  return (
+    <p className="site-quiet">
+      <a href={reg.href}>{reg.publisher}</a>
+      {" · "}
+      <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
+    </p>
+  );
+}
+
 function ReferenceParkGridHero({
   language,
   modelDay,
@@ -374,22 +399,29 @@ function ReferenceParkGridHero({
                 </p>
                 <h1 id="site-hero-title">
                   {language === "de" ? (
-                    <>Bollingstedt am <span className="site-keep">110-kV-Netz</span> von SH Netz.</>
+                    <>{facts.nameDe} am <span className="site-keep">110-kV-Knoten</span>.</>
                   ) : (
-                    "Bollingstedt on the 110 kV grid of SH Netz."
+                    `${facts.nameEn} at a 110 kV node.`
                   )}
                 </h1>
               </>
             ) : null}
             <dl className="site-facts">
-              <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={facts.mastrUnits[0].href} source={`MaStR ${facts.mastrUnits[0].seeId}`} />
-              <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${energy} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
-              <ReferenceParkFact
-                label={<><GlossaryTip id="hs" language={language} /> {tx("Spannung", "Voltage")}</>}
-                value={`${voltage} kV`}
-                href={facts.sources[3].href}
-                source={facts.gridOperator}
-              />
+              {(() => {
+                const reg = referenceRegisterSource(facts);
+                return (
+                  <>
+                    <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={reg.href} source={reg.publisher} />
+                    <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${energy} MWh`} href={reg.href} source={reg.publisher} />
+                    <ReferenceParkFact
+                      label={<><GlossaryTip id="hs" language={language} /> {tx("Spannung", "Voltage")}</>}
+                      value={`${voltage} kV`}
+                      href={reg.href}
+                      source={tx("Modellanker", "Model anchor")}
+                    />
+                  </>
+                );
+              })()}
             </dl>
           </div>
           <div className="site-model-ring">
@@ -463,8 +495,8 @@ function ReferenceParkGridHero({
             </aside>
             <p>
               {tx(
-                "Laden ist Bezug aus dem Netz von SH Netz. Abgeben ist Einspeisung in dasselbe Netz. Beides im Ring ist eine Modellschätzung, nicht die gemessene Fahrweise.",
-                "Charging is withdrawal from the SH Netz grid. Discharging is feed-in to the same grid. Both on the ring are a model estimate, not the measured operation."
+                "Laden ist Bezug aus dem Netz. Abgeben ist Einspeisung ins Netz. Beides im Ring ist eine Modellschätzung, nicht die gemessene Fahrweise.",
+                "Charging is withdrawal from the grid. Discharging is feed-in to the grid. Both on the ring are a model estimate, not the measured operation."
               )}
             </p>
             <p>{tx(REFERENCE_PARK_DISPATCH_RULE.de, REFERENCE_PARK_DISPATCH_RULE.en)}</p>
@@ -483,8 +515,8 @@ function ReferenceParkGridHero({
                 </p>
                 <p>
                   {tx(
-                    "Bei Bollingstedt sind Bezug und Einspeisung dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.",
-                    "At Bollingstedt, withdrawal and feed-in are limited dynamically. The limits are not published."
+                    "Am Modellanker sind Bezug und Einspeisung dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.",
+                    "At the model anchor, withdrawal and feed-in are limited dynamically. The limits are not published."
                   )}
                 </p>
                 <p>
@@ -516,11 +548,7 @@ function ReferenceParkGridHero({
                 </p>
               </div>
             </aside>
-            <p className="site-quiet">
-              <a href={facts.dashboardHref}>{tx("echte Fahrweise beim Betreiber", "real operation at the operator")}</a>
-              {" · "}
-              <a href={facts.sources[3].href}>SH Netz</a>
-            </p>
+            <ReferenceParkSourceLinks facts={facts} language={language} />
           </div>
         </div>
       </div>
@@ -658,13 +686,20 @@ function ReferenceParkHero({
             {!omitHeader ? (
               <>
                 <p className="day-kicker">{tx("Standort · öffentliche Referenz", "Site · public reference")} <span className="site-chip site-chip-public">{tx("Öffentliche Eckdaten", "Public key figures")}</span></p>
-                <h1 id="site-hero-title">{tx("Großspeicher Bollingstedt am Hochspannungsnetz.", "Bollingstedt large storage on the high-voltage grid.")}</h1>
+                <h1 id="site-hero-title">{tx(`${facts.nameDe} am Hochspannungsnetz.`, `${facts.nameEn} on the high-voltage grid.`)}</h1>
               </>
             ) : null}
             <dl className="site-facts">
-              <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={facts.mastrUnits[0].href} source={`MaStR ${facts.mastrUnits[0].seeId}`} />
-              <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${formatQuantity(facts.energyMwh, language, 1)} MWh`} href={facts.mastrUnits[1].href} source={`MaStR ${facts.mastrUnits[1].seeId}`} />
-              <ReferenceParkFact label={tx("Volle Leistung", "Full power")} value={`${formatQuantity(hours, language, 1)} h`} href={facts.sources[2].href} source={facts.sources[2].publisher} />
+              {(() => {
+                const reg = referenceRegisterSource(facts);
+                return (
+                  <>
+                    <ReferenceParkFact label={tx("Leistung", "Power")} value={`${figure} MW`} href={reg.href} source={reg.publisher} />
+                    <ReferenceParkFact label={tx("Inhalt", "Energy")} value={`${formatQuantity(facts.energyMwh, language, 1)} MWh`} href={reg.href} source={reg.publisher} />
+                    <ReferenceParkFact label={tx("Volle Leistung", "Full power")} value={`${formatQuantity(hours, language, 1)} h`} href={reg.href} source={reg.publisher} />
+                  </>
+                );
+              })()}
             </dl>
           </div>
           <div className="site-model-ring">
@@ -724,18 +759,18 @@ function ReferenceParkHero({
             <dl className="site-meta">
               <div>
                 <dt>{tx("Standort", "Site")}</dt>
-                <dd>{tx(`${facts.placeDe}, ${facts.districtDe} (${facts.state}). ${facts.project}.`, `${facts.placeEn}, ${facts.districtEn} (${facts.state}). ${facts.project}.`)}</dd>
+                <dd>{tx("Anonymisierter Modellanker, ländlicher 110-kV-Knoten.", "Anonymised model anchor, rural 110 kV node.")}</dd>
               </div>
               <div>
                 <dt>{tx("In Betrieb", "In operation")}</dt>
-                <dd>{tx("seit 2025 (MaStR: 13.03.2025).", "since 2025 (MaStR: 13 March 2025).")}</dd>
+                <dd>{tx(facts.statusDe, facts.statusEn)}</dd>
               </div>
               <div>
                 <dt>{tx("Betreiber", "Operator")}</dt>
                 <dd>
                   {tx(
-                    `${facts.operator}. Eigentümer ${facts.owner} seit 25.08.2026. Die Betreiber-Meldung nennt ${facts.operatorEnergyMwh} MWh. C-Rate ${formatQuantity(cRate, language, 2)}.`,
-                    `${facts.operator}. Owner ${facts.owner} since 25 August 2026. The operator’s release says ${facts.operatorEnergyMwh} MWh. C-rate ${formatQuantity(cRate, language, 2)}.`
+                    `Größenordnung aus öffentlichen Registerdaten. C-Rate ${formatQuantity(cRate, language, 2)}.`,
+                    `Order of magnitude from public register data. C-rate ${formatQuantity(cRate, language, 2)}.`
                   )}
                 </dd>
               </div>
@@ -743,8 +778,8 @@ function ReferenceParkHero({
                 <dt>{tx("Anschluss", "Connection")}</dt>
                 <dd>
                   {tx(
-                    `Hochspannung (${facts.voltageKv} kV), ${facts.gridOperator}. Bezug und Einspeisung sind dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.`,
-                    `High voltage (${facts.voltageKv} kV), ${facts.gridOperator}. Withdrawal and feed-in are limited dynamically. The limits are not published.`
+                    `Hochspannung (${facts.voltageKv} kV). Bezug und Einspeisung sind dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.`,
+                    `High voltage (${facts.voltageKv} kV). Withdrawal and feed-in are limited dynamically. The limits are not published.`
                   )}
                 </dd>
               </div>
@@ -752,8 +787,8 @@ function ReferenceParkHero({
             <h2 className="site-block-title">{tx("Laden und Abgeben", "Charging and discharging")}</h2>
             <p>
               {tx(
-                "Laden ist Bezug aus dem Netz von SH Netz. Abgeben ist Einspeisung in dasselbe Netz. Beides im Ring ist eine Modellschätzung, nicht die gemessene Fahrweise.",
-                "Charging is withdrawal from the SH Netz grid. Discharging is feed-in to the same grid. Both on the ring are a model estimate, not the measured operation."
+                "Laden ist Bezug aus dem Netz. Abgeben ist Einspeisung ins Netz. Beides im Ring ist eine Modellschätzung, nicht die gemessene Fahrweise.",
+                "Charging is withdrawal from the grid. Discharging is feed-in to the grid. Both on the ring are a model estimate, not the measured operation."
               )}
             </p>
             <p>
@@ -776,13 +811,7 @@ function ReferenceParkHero({
                 </p>
               </div>
             </aside>
-            <p className="site-quiet">
-              <a href={facts.dashboardHref}>{tx("echte Fahrweise beim Betreiber", "real operation at the operator")}</a>
-              {" · "}
-              <a href={facts.sources[3].href}>SH Netz</a>
-              {" · "}
-              <Link href="/szenarien">{tx("Szenarien rechnen", "Run scenarios")}</Link>
-            </p>
+<ReferenceParkSourceLinks facts={facts} language={language} />
           </div>
         </div>
       </div>
@@ -897,7 +926,7 @@ function ExampleCards({ language, view, scenario }: { language: AppLanguage; vie
   const cards: Array<{ id: ScenarioId; kicker: string; title: string; body: string }> = [
     { id: "supermarkt", kicker: tx("Beispieldaten", "Example data"), title: tx("Supermarkt", "Supermarket"), body: tx("Fiktives Profil. Bleibt der Anschluss unter der Grenze?", "Fictional profile. Does the connection stay under the limit?") },
     { id: "quartier", kicker: tx("Beispieldaten", "Example data"), title: tx("Quartier", "Neighbourhood"), body: tx("150 Haushalte. Hält die Ortsnetzstation ihre Planleistung?", "150 households. Does the local substation hold its planning rating?") },
-    { id: "grossspeicher", kicker: tx("Öffentliche Eckdaten", "Public key figures"), title: tx("Großspeicher Bollingstedt", "Bollingstedt large storage"), body: tx("Schleswig-Holstein. Modelltag, nicht die echte Fahrweise.", "Schleswig-Holstein. Model day, not the real operation.") },
+    { id: "grossspeicher", kicker: tx("Modellanker", "Model anchor"), title: tx("Großspeicher 110 kV", "110 kV large storage"), body: tx("100 MW / 230 MWh. Modelltag, nicht die echte Fahrweise.", "100 MW / 230 MWh. Model day, not the real operation.") },
   ];
   return (
     <section className="day-paper">

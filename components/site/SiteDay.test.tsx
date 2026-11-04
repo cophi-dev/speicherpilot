@@ -88,10 +88,10 @@ describe("site v2 heroes", () => {
     expect(screen.getByText(/Rückzahlung/)).toBeInTheDocument();
   });
 
-  it("shows Bollingstedt as a labelled model day with sourced figures and no statute", () => {
+  it("shows the model anchor as a labelled model day with sourced figures and no statute", () => {
     query = "view=projekt&scenario=grossspeicher";
     const { container } = renderSite();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Bollingstedt/);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/110-kV-Knoten|Hochspannungsnetz/);
     expect(screen.getAllByText("MODELLTAG").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/nicht die echte Fahrweise/).length).toBeGreaterThan(0);
     expect(container.querySelector(".day-model-caption")?.textContent).toMatch(/Gestrige Day-Ahead-Preise/);
@@ -105,11 +105,11 @@ describe("site v2 heroes", () => {
     expect(caption?.compareDocumentPosition(rule!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(container.querySelector(".day-ring-solid")).not.toBeNull();
     expect(container.querySelector("[fill*='url(#']")).toBeNull();
-    expect(screen.getAllByRole("link", { name: /MaStR/ })[0]).toHaveAttribute("href", expect.stringContaining("marktstammdatenregister.de"));
-    expect(screen.getByRole("link", { name: "echte Fahrweise beim Betreiber" })).toHaveAttribute(
+    expect(screen.getAllByRole("link", { name: /MaStR|Marktstammdatenregister/i })[0]).toHaveAttribute(
       "href",
-      "https://www.eco-stor.de/grid_stability_dashboard"
+      expect.stringContaining("marktstammdatenregister.de")
     );
+    expect(screen.queryByRole("link", { name: "echte Fahrweise beim Betreiber" })).toBeNull();
     expect(screen.getByRole("link", { name: "Rechnung in der Methodik" })).toHaveAttribute("href", "/methodik#modelltag");
     expect(container.querySelector(".day-ring-key-charge")?.textContent).toMatch(/Laden/);
     expect(container.querySelector(".day-ring-key-discharge")?.textContent).toMatch(/Abgeben/);
@@ -133,24 +133,24 @@ describe("site v2 heroes", () => {
     expect(screen.getByRole("link", { name: "Beispieltage auf der Startseite ansehen" })).toHaveAttribute("href", "/#beispieltage");
   });
 
-  it("gives the grid operator a Bollingstedt view without a support badge", () => {
+  it("gives the grid operator a model-anchor view without a support badge", () => {
     query = "view=netz&scenario=grossspeicher";
     const { container } = renderSite();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/110-kV-Netz von SH Netz/);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/110-kV-Knoten/);
     expect(screen.getByRole("heading", { level: 2, name: "Anschlussauslastung am Modelltag" })).toBeInTheDocument();
     expect(screen.getAllByText(/Laden ist Bezug aus dem Netz/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Abgeben ist Einspeisung/).length).toBeGreaterThan(0);
     expect(screen.getByText(/§ 17 Abs\. 2b EnWG/)).toBeInTheDocument();
     expect(screen.getByText(/Grenzwerte sind nicht veröffentlicht/)).toBeInTheDocument();
-    expect(screen.getByText(/Der höchste Bezug und die höchste Einspeisung im Modell liegen bei der gemeldeten Leistung von 103,5 MW/)).toBeInTheDocument();
-    expect(screen.queryByText("Der höchste Bezug im Modell liegt bei der gemeldeten Leistung von 103,5 MW.")).toBeNull();
+    expect(screen.getByText(/Der höchste Bezug und die höchste Einspeisung im Modell liegen bei der gemeldeten Leistung von 100,0 MW/)).toBeInTheDocument();
+    expect(screen.queryByText("Der höchste Bezug im Modell liegt bei der gemeldeten Leistung von 100,0 MW.")).toBeNull();
     expect(screen.getByText(/Auslastung der gemeldeten Leistung/)).toBeInTheDocument();
     const storageNote = [...container.querySelectorAll(".site-note")].find((note) => note.textContent?.includes("Der Speicher steht direkt am Netz"));
     expect(storageNote?.querySelector("button")?.getAttribute("aria-label")).toMatch(/Front-of-Meter/);
     expect(screen.getAllByText("MODELLTAG").length).toBeGreaterThan(0);
     expect(container.querySelector(".day-model-caption")?.textContent).toMatch(/nicht die echte Fahrweise/);
-    expect(screen.getAllByText(/103,5/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/238,5/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/100/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/230/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/110 kV/).length).toBeGreaterThan(0);
     expect(screen.queryByText(/Eigentümer/)).toBeNull();
     expect(screen.queryByText(/C-Rate/)).toBeNull();

@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ZoneSharePoint } from "@/lib/liveBoard";
+import { REGELZONE_LABELS } from "@/lib/netzbetreiberNamen";
 import { mirrorShareAxis } from "@/lib/niceTicks";
 
 function useWidth() {
@@ -46,8 +47,8 @@ export function NorthSouthChart({ points, language }: { points: ZoneSharePoint[]
   const axis = mirrorShareAxis(points.flatMap((point) => [point.northPct, point.southPct]));
   const label =
     language === "de"
-      ? "Regelzone 50Hertz nach oben, Regelzone TransnetBW nach unten. Anteil von Wind und Photovoltaik an der Last, in Prozent ohne Minus."
-      : "50Hertz control area upward, TransnetBW control area downward. Wind and solar as a share of load, in percent, without a minus.";
+      ? `${REGELZONE_LABELS.nordost} nach oben, ${REGELZONE_LABELS.suedwest} nach unten. Anteil von Wind und Photovoltaik an der Last, in Prozent ohne Minus.`
+      : `${REGELZONE_LABELS.nordost} upward, ${REGELZONE_LABELS.suedwest} downward. Wind and solar as a share of load, in percent, without a minus.`;
 
   return (
     <div ref={ref} className="mt-4 min-w-0">
@@ -61,8 +62,8 @@ export function NorthSouthChart({ points, language }: { points: ZoneSharePoint[]
       )}
       <p className="mt-2 max-w-[68ch] text-[12px] text-muted-foreground">
         {language === "de"
-          ? "Anteil an der Last. 50Hertz schließt Wind auf See ein, TransnetBW hat diese Reihe nicht. Die 100-%-Linie ist eine Gitterlinie."
-          : "Share of load. 50Hertz includes offshore wind. TransnetBW has no offshore series. The 100% line is a gridline."}
+          ? `Anteil an der Last. ${REGELZONE_LABELS.nordost} schließt Wind auf See ein, ${REGELZONE_LABELS.suedwest} hat diese Reihe nicht. Die 100-%-Linie ist eine Gitterlinie.`
+          : `Share of load. ${REGELZONE_LABELS.nordost} includes offshore wind. ${REGELZONE_LABELS.suedwest} has no offshore series. The 100% line is a gridline.`}
       </p>
     </div>
   );
@@ -172,10 +173,10 @@ function ChartBody({
       {northLabel && width >= 560 ? (
         <>
           <text x={width - 8} y={yNorth(northLabel.northPct)} fill="hsl(var(--foreground))" fontSize="13" fontFamily="var(--font-space-grotesk), sans-serif">
-            50Hertz
+            {language === "de" ? "Nordost" : "North-east"}
           </text>
           <text x={width - 8} y={ySouth(northLabel.southPct)} fill="hsl(var(--foreground))" fontSize="13" fontFamily="var(--font-space-grotesk), sans-serif">
-            TransnetBW
+            {language === "de" ? "Südwest" : "South-west"}
           </text>
         </>
       ) : null}

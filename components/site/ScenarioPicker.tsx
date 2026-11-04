@@ -41,10 +41,10 @@ const ITEMS: {
     titleEn: "Grid-scale storage",
     badgeDe: "ÖFFENTLICHE ECKDATEN",
     badgeEn: "PUBLIC FIGURES",
-    projektDe: "Großspeicher Bollingstedt (SH): öffentliche Eckdaten. Der Ring ist ein Modelltag.",
-    projektEn: "Bollingstedt large storage (SH): published figures. The ring is a model day.",
-    netzDe: "Großspeicher Bollingstedt (SH): Speicher vor dem Zähler. Bezug und Einspeisung sind dynamisch begrenzt.",
-    netzEn: "Bollingstedt large storage (SH): storage in front of the meter. Withdrawal and feed-in are limited dynamically.",
+    projektDe: "Großspeicher am ländlichen 110-kV-Knoten (100 MW, 230 MWh): Modellanker. Der Ring ist ein Modelltag.",
+    projektEn: "Large storage at a rural 110 kV node (100 MW, 230 MWh): model anchor. The ring is a model day.",
+    netzDe: "Großspeicher am 110-kV-Knoten: Speicher vor dem Zähler. Bezug und Einspeisung sind dynamisch begrenzt.",
+    netzEn: "Large storage at a 110 kV node: storage in front of the meter. Withdrawal and feed-in are limited dynamically.",
   },
 ];
 

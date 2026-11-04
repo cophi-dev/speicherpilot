@@ -78,8 +78,8 @@ export function ReferenceParkReference({ language, view }: { language: "de" | "e
           <h2 className="text-lg font-medium">{tx("Anschluss", "Connection")}</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {tx(
-              "Hochspannung (110 kV), Anschluss bei SH Netz. Bezug und Einspeisung sind dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.",
-              "High voltage (110 kV), connected to SH Netz. Withdrawal and feed-in are limited dynamically. The limits are not published."
+              "Hochspannung (110 kV), Anschluss am ländlichen 110-kV-Knoten. Bezug und Einspeisung sind dynamisch begrenzt. Die Grenzwerte sind nicht veröffentlicht.",
+              "High voltage (110 kV), connected at a rural 110 kV node. Withdrawal and feed-in are limited dynamically. The limits are not published."
             )}
           </p>
           <a className="mt-3 inline-block text-sm underline underline-offset-[3px]" href="/methodik#modelltag">

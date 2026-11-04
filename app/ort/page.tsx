@@ -3,7 +3,7 @@ import { OrtSiteDayClient } from "@/components/site/OrtSiteDayClient";
 import { capRingPoints } from "@/lib/capRingPoints";
 import { loadReferenceParkModelDay } from "@/lib/loadReferenceParkModelDay";
 import { parseSelection } from "@/lib/netzDemo";
-import { parsePerspective, parseScenario } from "@/lib/perspective";
+import { parsePerspective, parseScenario, defaultScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
 
 function first(value: string | string[] | undefined): string | null {
   if (Array.isArray(value)) {
@@ -38,7 +38,7 @@ export default async function OrtPage({
 }) {
   const query = await searchParams;
   const view = parsePerspective(first(query.sicht)) ?? parsePerspective(first(query.view)) ?? "projekt";
-  const scenario = parseScenario(first(query.scenario)) ?? "supermarkt";
+  const scenario = parseScenario(first(query.scenario)) ?? defaultScenario(view);
   const modelDay = await loadReferenceParkModelDay();
   const netzSelection = parseSelection({
     fall: first(query.fall),

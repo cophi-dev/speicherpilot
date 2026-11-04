@@ -50,7 +50,7 @@ export const METHODIK_SECTIONS = [
   { id: "ampel", chapter: "C", num: 1, de: "Anschluss-Ampel", en: "Connection light" },
   { id: "netzdienlichkeit", chapter: "C", num: 2, de: "Einschätzung netzdienlich", en: "Grid-support estimate" },
   { id: "peak-erklaert", chapter: "C", num: 3, de: "Peak Shaving", en: "Peak shaving" },
-  { id: "modelltag", chapter: "C", num: 4, de: "Modelltag Bollingstedt", en: "Bollingstedt model day" },
+  { id: "modelltag", chapter: "C", num: 4, de: "Modelltag Großspeicher", en: "Large-storage model day" },
   { id: "beispieltage", chapter: "C", num: 5, de: "Beispieltage", en: "Example days" },
   { id: "szenarien", chapter: "C", num: 6, de: "Szenarien", en: "Scenarios" },
   { id: "netz", chapter: "C", num: 7, de: "Netzwirkung im Testnetz", en: "Grid effect in a test grid" },

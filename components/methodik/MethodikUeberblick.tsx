@@ -275,8 +275,8 @@ function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFle
     {
       name: tx("Marktstammdatenregister", "Marktstammdatenregister"),
       use: tx(
-        "Öffentliche Registerdaten der Speicher. Die Flottengröße kommt über Battery Charts, die Eckdaten von Bollingstedt aus den SEE-Nummern.",
-        "Public register data for storage. Fleet size comes via Battery Charts. Bollingstedt’s key figures come from the SEE numbers."
+        "Öffentliche Registerdaten der Speicher. Die Flottengröße kommt über Battery Charts, die Eckdaten des Modellankers aus öffentlichen Summen im MaStR.",
+        "Public register data for storage. Fleet size comes via Battery Charts. The model anchor’s key figures come from public totals in the MaStR."
       ),
       licence: tx(
         "Datenlizenz Deutschland – Namensnennung – Version 2.0",

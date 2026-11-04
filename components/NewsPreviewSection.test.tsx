@@ -39,7 +39,7 @@ describe("NewsPreviewSection", () => {
     expect(document.querySelector(".news-source")).toHaveAttribute("title", "energate / Windindustrie in Deutschland");
     expect(document.querySelector(".news-go-keep")?.textContent).toBe("energate\u00a0↗");
     expect(document.body.textContent).not.toContain("Windindustrie");
-    expect(screen.getByText(/Mirai Power gegen TenneT/)).toBeInTheDocument();
+    expect(screen.getByText(/Gerichtsverfahren eines Speicherentwicklers gegen einen Übertragungsnetzbetreiber/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: /Prüfgebühr/ })).toBeInTheDocument();
     expect(document.querySelectorAll(".news-list article")).toHaveLength(1);
     expect(document.querySelector(".is-new .news-row")).toBe(headline);

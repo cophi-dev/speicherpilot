@@ -83,7 +83,7 @@ export function ExampleDays() {
             "Four real days from the last twelve months. A battery the size of the "
           )}
           <GlossaryTip id="grossspeicher" language={language} />{" "}
-          {tx("Großspeichers Bollingstedt fährt gegen die ", "Bollingstedt large storage trades against the ")}
+          {tx("Modellankers (100 MW / 230 MWh) fährt gegen die ", "model anchor (100 MW / 230 MWh) trades against the ")}
           <GlossaryTip id="day-ahead-price" language={language} />{" "}
           {tx(
             "Day-Ahead-Preise dieser Tage. Das ist eine Rechnung im Modell und keine Abrechnung.",
@@ -269,7 +269,7 @@ function ScalePicker({
   return (
     <div
       role="radiogroup"
-      aria-label={tx("Anzahl Speicher wie Bollingstedt", "Number of batteries like Bollingstedt")}
+      aria-label={tx("Anzahl Speicher wie der Modellanker", "Number of batteries like the model anchor")}
       className="beispieltage-scales"
       onKeyDown={(event) => moveRadio(event, BEISPIEL_SCALES.map(String), String(scale), (value) => onChoose(Number(value) as BeispielScale), "data-scale")}
     >

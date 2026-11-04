@@ -569,8 +569,8 @@ export function scenarioCopy(inputs: FcaInputs, series: ScenarioSeries, language
   return {
     hero,
     disclaimer: de
-      ? "Das ist eine Modellrechnung. Es ist keine Prüfung des Netzanschlusses und keine Aussage, ob der Netzknoten den Speicher aufnehmen kann. Das beurteilt der Netzbetreiber."
-      : "This is a model calculation. It is not a check of the grid connection and not a statement about whether the node can take the battery. The grid operator decides that.",
+      ? "Das ist eine Modellrechnung. Sie ersetzt keine Entscheidung des Netzbetreibers, ob der Netzknoten den Speicher aufnehmen kann. Das beurteilt der Netzbetreiber."
+      : "This is a model calculation. It does not replace the grid operator’s decision on whether the node can take the battery. The grid operator decides that.",
     result,
     cardA: de ? "Anschluss voll: 100\u00A0% Modellerlös (Bezugswert)." : "Full connection: 100\u00A0% model revenue (reference).",
     cardB: de

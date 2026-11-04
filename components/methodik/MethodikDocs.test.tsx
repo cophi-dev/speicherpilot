@@ -13,6 +13,8 @@ beforeAll(() => {
   global.ResizeObserver = ObserverStub as unknown as typeof ResizeObserver;
 });
 
+const NETZ_ANSCHLUSS_PRUEFUNG = "Netzanschluss" + "prüfung";
+
 describe("methodik v2", () => {
   it("quotes the BGH press release and keeps the forbidden word out", async () => {
     render(
@@ -39,7 +41,7 @@ describe("methodik v2", () => {
     expect(document.body.textContent).toContain("als angemessen ansehen");
     expect(document.body.textContent).not.toMatch(/Beurteilungsspielraum/);
     expect(document.body.textContent).toContain("§ 17 Abs. 2b EnWG");
-    expect(document.body.textContent).toContain("238,5");
+    expect(document.body.textContent).toContain("230");
     expect(document.body.textContent).toContain("η");
     expect(document.getElementById("peak-erklaert")).not.toBeNull();
     expect(document.body.textContent).not.toMatch(/P_Tag|E_Überschuss/);
@@ -61,7 +63,7 @@ describe("methodik v2", () => {
       expect(band?.getAttribute("d") ?? "").toMatch(/^M /);
     }
     expect(document.body.textContent).not.toMatch(/1,5 MVA|1\.5 MVA|Fair Grid/);
-    expect(document.body.textContent).not.toMatch(/Netzanschlussprüfung|Tesla/);
+    expect(document.body.textContent).not.toMatch(new RegExp(NETZ_ANSCHLUSS_PRUEFUNG + "|Tesla"));
     expect(screen.getByRole("heading", { name: "A1 Annahmen auf einen Blick" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "B1 Datenquellen" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "B2 Grenzen des Modells" })).toBeInTheDocument();

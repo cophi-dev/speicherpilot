@@ -9,10 +9,11 @@ describe("perspective urls", () => {
     expect(parsePerspective("netz")).toBe("netz");
   });
 
-  it("keeps the three scenario ids", () => {
-    expect(parseScenario("supermarkt")).toBe("supermarkt");
-    expect(parseScenario("quartier")).toBe("quartier");
-    expect(parseScenario("grossspeicher")).toBe("grossspeicher");
+  it("maps legacy scenario ids", () => {
+    expect(parseScenario("supermarkt")).toBe("ladepark");
+    expect(parseScenario("quartier")).toBe("ladepark");
+    expect(parseScenario("bollingstedt")).toBe("grossspeicher");
+    expect(parseScenario("ladepark")).toBe("ladepark");
     expect(parseScenario("unbekannt")).toBeNull();
   });
 
