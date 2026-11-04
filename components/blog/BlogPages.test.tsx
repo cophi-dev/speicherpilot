@@ -105,7 +105,8 @@ describe("blog article wann-der-speicher-laden-will", () => {
     expect(screen.getByRole("img", { name: BLOG_FIGURES.a2zweiNetze.alt })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: BLOG_FIGURES.a3dreiBausteine.alt })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /teilen|share/i })).toBeNull();
-    expect(screen.getAllByRole("region", { name: "Abbildung, seitlich wischen" })).toHaveLength(2);
+    expect(screen.queryByRole("region", { name: "Abbildung, seitlich wischen" })).toBeNull();
+    expect(screen.queryByText("← wischen →")).toBeNull();
     const zweiNetze = screen.getByRole("img", { name: BLOG_FIGURES.a2zweiNetze.alt });
     const dreiBausteine = screen.getByRole("img", { name: BLOG_FIGURES.a3dreiBausteine.alt });
     expect(zweiNetze.getAttribute("loading")).toBe("lazy");

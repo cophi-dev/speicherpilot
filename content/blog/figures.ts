@@ -1,9 +1,24 @@
+export type BlogFigureMobile = {
+  src: string;
+  width: number;
+  height: number;
+  /** Defaults to (max-width: 639px). */
+  media?: string;
+};
+
 export type BlogFigure = {
   src: string;
   width: number;
   height: number;
   alt: string;
+  mobile?: BlogFigureMobile;
 };
+
+export function isResponsiveBlogFigure(
+  figure: BlogFigure
+): figure is BlogFigure & { mobile: BlogFigureMobile } {
+  return figure.mobile != null;
+}
 
 /** Alt texts are the approved wording from the visual brief, unchanged. */
 export const BLOG_FIGURES = {
@@ -24,12 +39,22 @@ export const BLOG_FIGURES = {
     width: 1920,
     height: 1080,
     alt: "Schema: Im ländlichen Netz mit viel PV ist mittags die Einspeisung knapp, bei Dunkelflaute der Bezug. Im Stadtnetz ist eher der Bezug knapp, Laden zählt dort als Bezug. Der Preis gilt für ganz Deutschland, Engpässe sind lokal.",
+    mobile: {
+      src: "/blog/A2_zwei-netze_1200x1500.png",
+      width: 1200,
+      height: 1500,
+    },
   },
   a3dreiBausteine: {
     src: "/blog/A3_drei-bausteine_1920x1080.png",
     width: 1920,
     height: 1080,
     alt: "Drei Bausteine, mit denen Speicher- und Netzbetreiber zusammenkommen: flexible Anschlussverträge nach § 17 Abs. 2b EnWG, geordnete Vergabe nach Stichtag und Planungsreife, künftig Netzentgelte mit Ortsbezug.",
+    mobile: {
+      src: "/blog/A3_drei-bausteine_1200x1500.png",
+      width: 1200,
+      height: 1500,
+    },
   },
   b: {
     src: "/blog/B_mw_mwh_1200x700.svg",

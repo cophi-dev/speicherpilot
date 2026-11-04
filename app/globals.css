@@ -5765,6 +5765,21 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .dark .day-hero .blog-stand { color: #c5ced6; }
 .blog-hero .blog-figure { margin-top: 28px; }
 .blog-figure { margin: 0; max-width: 100%; min-width: 0; }
+.blog-figure-responsive {
+  width: 100%;
+  max-width: 100%;
+}
+.blog-figure-picture {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+.blog-figure-responsive img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
 .blog-figure-title img,
 .blog-figure img {
   display: block;
