@@ -9,9 +9,9 @@ const demo = loadNetzDemo();
 
 export function SiteOperatorSectionsServer({ selection }: { selection: NetzSelection }) {
   return (
-    <div className="site-operator-extra mx-auto max-w-[1200px] px-4">
+    <div className="site-operator-extra v4-content mx-auto max-w-[1240px]">
       <TestnetzHashScroll />
-      <p className="day-kicker site-section-kicker">Netzbetreiber</p>
+      <p className="v4-kicker num">Netzbetreiber</p>
       <SiteGrenzeEloes />
       <section id="testnetz-n1" className="site-testnetz day-paper scroll-mt-24" aria-labelledby="testnetz-n1-title">
         <div className="day-hero-inner">

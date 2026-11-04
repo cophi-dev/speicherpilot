@@ -27,16 +27,15 @@ function kicker(view: Perspective, scenario: ScenarioId): string {
 
 export function OrtServerShell({ view, scenario }: { view: Perspective; scenario: ScenarioId }) {
   return (
-    <div className="site-v2 ort-v4">
-      <div className="mx-auto max-w-[1200px] px-4 pt-4">
-        <p className="page-lead">
-          Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze
-          und Netzwirkung.
-        </p>
-      </div>
-      <section className="day-hero site-hero" aria-labelledby="site-hero-title">
-        <div className="day-hero-inner">
-          <div className="site-toggle" role="group" aria-label="Perspektive">
+    <div className="site-v2 v4-subpage ort-v4">
+      <section className="v4-subpage-hero ort-hero" aria-labelledby="site-hero-title">
+        <div className="v4-content">
+          <p className="v4-kicker num">03 · Der Ort</p>
+          <p className="page-lead v4-subline">
+            Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze
+            und Netzwirkung.
+          </p>
+          <div className="v4-tab-bar site-toggle" role="group" aria-label="Perspektive">
             <Link href={sitePath("projekt", scenario)} aria-current={view === "projekt" ? "page" : undefined}>
               Projektierer
             </Link>
@@ -44,16 +43,18 @@ export function OrtServerShell({ view, scenario }: { view: Perspective; scenario
               Netzbetreiber
             </Link>
           </div>
-          <p className="day-kicker">{kicker(view, scenario)}</p>
-          <h1 id="site-hero-title">{heroH1(view, scenario)}</h1>
+          <p className="v4-kicker num">{kicker(view, scenario)}</p>
+          <h1 id="site-hero-title" className="v4-h1">
+            {heroH1(view, scenario)}
+          </h1>
           {view === "netz" ? (
-            <p className="site-netz-principle" role="note">
+            <p className="site-netz-principle v4-subline" role="note">
               Speichern von Überschuss ist nicht automatisch netzdienlich — ob ein Speicher entlastet, hängt vom Anschluss
               und von der Fahrweise ab.
             </p>
           ) : null}
           {scenario === "grossspeicher" && view === "netz" ? (
-            <p>
+            <p className="v4-subline">
               Laden ist Bezug aus dem Netz. Abgeben ist Einspeisung ins Netz. Der Ring unten ist eine Modellschätzung, nicht
               die gemessene Fahrweise.
             </p>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 
 import { DayRing } from "@/components/day-ring/DayRing";
@@ -33,20 +32,12 @@ import {
   methodikSectionNavLabel,
 } from "@/components/methodik/methodikSections";
 
-const MethodikHeroRings = dynamic(
-  () => import("@/components/methodik/MethodikHeroRings").then((m) => ({ default: m.MethodikHeroRings })),
-  {
-    ssr: false,
-    loading: () => <div className="methodik-scales methodik-scales-placeholder" aria-hidden="true" />,
-  }
-);
-
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
   return (
-    <div className="methodik">
+    <div className="methodik v4-subpage methodik-v4">
       <MethodikHashScroll />
       <section className="day-hero methodik-hero" aria-labelledby="methodik-title">
         <div className="methodik-layout">
@@ -72,13 +63,12 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
           </nav>
           <div className="methodik-main">
             <div className="day-hero-inner methodik-hero-copy">
-          <p className="day-kicker">{tx("Methodik · Referenz", "Method · reference")}</p>
-          <h1 id="methodik-title">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
+          <p className="v4-kicker num">{tx("Methodik · Referenz", "Method · reference")}</p>
+          <h1 id="methodik-title" className="v4-h1">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
           <PageLead
             de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
             en="Assumptions, formulas and sources — traceable for every figure on the site."
           />
-          <MethodikHeroRings language={language} />
             </div>
             <div className="methodik-paper day-paper">
           <article>

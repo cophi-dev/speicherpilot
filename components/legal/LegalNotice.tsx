@@ -7,8 +7,8 @@ const MAIL = "pzarindast@gmail.com";
 export function LegalNotice() {
   const { language } = useLanguage();
   return (
-    <article className="legal-doc">
-      <div className="legal-doc-inner prose">
+    <article className="legal-doc v4-subpage">
+      <div className="legal-doc-inner v4-content prose">
         {language === "en" ? (
           <p className="legal-en">The binding text of this page is the German legal notice below.</p>
         ) : null}
