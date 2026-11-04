@@ -8382,18 +8382,49 @@ article.legal-doc.v4-subpage .legal-doc-inner {
     padding: 10px 7.5% 0;
   }
 
-  .blog-figure-a2-mobile-foot .blog-figure-a2-label,
-  .blog-figure-a2-mobile-foot .blog-figure-a2-source {
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min,
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
     position: static;
+    inset: auto;
+    left: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    transform: none;
     margin: 0;
+    padding: 3px 8px;
     font-size: 12px;
     line-height: 1.35;
-  }
-
-  .blog-figure-a2-mobile-foot .blog-figure-a2-label {
-    justify-self: start;
     max-width: 100%;
     white-space: normal;
+    text-align: left;
+    color: #14181c;
+    background: #f4f3ee;
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+  }
+
+  .dark .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min,
+  .dark .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
+    background: var(--bg);
+    color: #e9eef2;
+  }
+
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min {
+    justify-self: start;
+  }
+
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
+    color: #5c5548;
+  }
+
+  .blog-figure-a2-kicker {
+    top: 4%;
+    line-height: 1.25;
+  }
+
+  .blog-figure-a2-date {
+    top: calc(4% + 2 * 1.25em + 4px);
+    line-height: 1.1;
   }
 
   .blog-figure-a2-kicker,
@@ -8418,8 +8449,8 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   background: var(--bg);
 }
 
-.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-label,
-.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-source {
+.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min,
+.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
   background: var(--bg);
 }
 

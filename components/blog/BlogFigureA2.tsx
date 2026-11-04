@@ -50,8 +50,8 @@ function BlogFigureA2Inner({ figure }: { figure: BlogFigureAsset }) {
         </div>
       </div>
       <div className="blog-figure-a2-mobile-foot" aria-hidden="true">
-        <p className="blog-figure-a2-label blog-figure-a2-label-min">218,62 €/MWh · 12:00</p>
-        <p className="blog-figure-a2-source">Quelle: SMARD (Bundesnetzagentur), Filter 4169, CC BY 4.0</p>
+        <p className="blog-figure-a2-label blog-figure-a2-foot-min">218,62 €/MWh · 12:00</p>
+        <p className="blog-figure-a2-foot-source">Quelle: SMARD (Bundesnetzagentur), Filter 4169, CC BY 4.0</p>
       </div>
     </div>
   );
