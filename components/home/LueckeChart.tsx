@@ -272,15 +272,22 @@ export function LueckeChart({
             </>
           ) : null}
         </svg>
-        {compact ? (
+      </div>
+      {compact ? (
+        <div className="v4-luecke-compact-foot">
           <div className="v4-luecke-mobile-axis num" aria-hidden="true">
             {hours.map((h) => (
               <span key={h}>{String(h).padStart(2, "0")}</span>
             ))}
           </div>
-        ) : null}
-      </div>
-      {peakGw !== null && (!labelInsideSvg || compact) ? (
+          {peakGw !== null ? (
+            <figcaption className="v4-luecke-peak-banner num">
+              <span className="v4-luecke-peak-banner-value">{peakTimeLabel}</span>
+              <span className="v4-luecke-peak-banner-caption">{peakCaption}</span>
+            </figcaption>
+          ) : null}
+        </div>
+      ) : peakGw !== null && !labelInsideSvg ? (
         <figcaption className="v4-luecke-peak-banner num">
           <span className="v4-luecke-peak-banner-value">{peakTimeLabel}</span>
           <span className="v4-luecke-peak-banner-caption">{peakCaption}</span>

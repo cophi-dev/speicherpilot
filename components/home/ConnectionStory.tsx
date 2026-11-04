@@ -244,7 +244,7 @@ export function ConnectionStory({ hideEuro = false }: { hideEuro?: boolean } = {
                       <div className="mt-8 flex flex-wrap items-center gap-3">
                         <Link
                           href={sitePath("projekt", "supermarkt")}
-                          className="story-market-link inline-flex h-12 w-fit items-center rounded-md px-5 text-[15px] font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          className="story-market-link inline-flex h-12 w-fit items-center px-5 text-[15px] font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           {tx("Eigenen Markt rechnen →", "Calculate your own store →")}
                         </Link>

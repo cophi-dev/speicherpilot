@@ -738,6 +738,7 @@
 .stagePaper .seg {
   border-color: hsl(var(--border));
   color: hsl(var(--foreground));
+  border-radius: 0;
 }
 
 .stagePaper .seg:has(input:checked) {
@@ -802,9 +803,13 @@
   background: hsl(var(--card));
   border-color: hsl(var(--border));
   color: hsl(var(--foreground));
+  border-radius: 0;
 }
 
-.stagePaper .howto summary,
+.stagePaper .howto summary {
+  border-radius: 0;
+}
+
 .stagePaper .howto dt {
   color: hsl(var(--foreground));
 }
