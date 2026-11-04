@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { LueckeChart } from "@/components/home/LueckeChart";
 import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
-import { prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualDay } from "@/lib/windSolarResidual";
@@ -69,10 +68,9 @@ export function TagChapter({
   const wsGw = (peakSlot.windMw + peakSlot.solarMw) / 1000;
   const lastLine = tagLastSurplusLine(lastSurplusKey);
   const dayLabel = formatBerlinDayLabel(day.dateBerlin);
-  const chapterTitle =
-    useTagDateHeading && todayKey && day.dateBerlin !== prevBerlinDateKey(todayKey)
-      ? `Was am ${dayLabel} im Stromnetz passiert ist`
-      : "Was gestern im Stromnetz passiert ist";
+  const chapterTitle = useTagDateHeading
+    ? `Was am ${dayLabel} im Stromnetz passiert ist`
+    : "Was gestern im Stromnetz passiert ist";
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag">

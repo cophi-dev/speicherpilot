@@ -113,8 +113,16 @@ export function AuffaelligkeitKopf({
   const kopfH1 = seriePresentation?.h1 ?? result.kopfH1;
   const kopfSubline = seriePresentation?.subline ?? result.kopfSubline;
 
-  const priceSpreadLabel = isTagPage && !isYesterday ? `Spanne am ${dayLabel}` : "Spanne gestern";
-  const priceDayLabel = isTagPage && !isYesterday ? `Börsenpreis am ${dayLabel}` : "Börsenpreis gestern";
+  const priceSpreadLabel = isTagPage
+    ? `Spanne am ${dayLabel}`
+    : isYesterday
+      ? "Spanne gestern"
+      : `Spanne am ${dayLabel}`;
+  const priceDayLabel = isTagPage
+    ? `Börsenpreis am ${dayLabel}`
+    : isYesterday
+      ? "Börsenpreis gestern"
+      : `Börsenpreis am ${dayLabel}`;
 
   const priceLine =
     record?.pmin != null && record.pmax != null && metricKey !== "spread"

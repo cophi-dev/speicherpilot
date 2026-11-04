@@ -7088,11 +7088,15 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .v4-luecke-figure {
   margin: 0;
 }
-.v4-luecke-figure.is-narrow .v4-luecke-chart {
+.v4-luecke-figure.is-compact .v4-luecke-svg-shell {
   width: 100%;
-  min-width: 0;
+  height: 240px;
+}
+.v4-luecke-figure.is-compact .v4-luecke-chart {
+  width: 100%;
   height: 240px;
   min-height: 240px;
+  display: block;
 }
 .v4-luecke-mobile-meta {
   margin-top: 0.5rem;
@@ -7194,7 +7198,8 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 
 .v4-st-steps {
   list-style: none;
-  padding: 0;
+  padding-top: 0;
+  padding-bottom: 0;
   margin: 1.25rem auto 0;
   display: grid;
   gap: 0;
