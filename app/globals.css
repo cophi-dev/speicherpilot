@@ -8272,3 +8272,190 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   background: var(--bg);
 }
 
+.blog-figure-a2-frame {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.blog-figure-a2-chart-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.blog-figure-title.blog-figure-a2 .blog-figure-a2-chart,
+.blog-figure-pan.blog-figure-a2 .blog-figure-a2-chart {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: fill;
+}
+
+.blog-figure-a2-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.blog-figure-a2-mobile-foot {
+  display: none;
+}
+
+.blog-figure-a2-kicker {
+  position: absolute;
+  top: 5.5%;
+  left: 7.5%;
+  margin: 0;
+  max-width: 88%;
+  color: #5c5548;
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(12px, 0.55rem + 1.1vw, 28px);
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+}
+
+.blog-figure-a2-date {
+  position: absolute;
+  top: 11.5%;
+  left: 7.5%;
+  margin: 0;
+  color: #14181c;
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(14px, 0.75rem + 1.6vw, 36px);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.blog-figure-a2-label {
+  position: absolute;
+  margin: 0;
+  padding: 3px 8px;
+  color: #14181c;
+  background: #f4f3ee;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: clamp(12px, 0.45rem + 0.95vw, 22px);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.dark .blog-figure-a2-label {
+  background: var(--bg);
+  color: #e9eef2;
+}
+
+.blog-figure-a2-label-min {
+  left: 51.7%;
+  top: 87.2%;
+  transform: translate(calc(-100% - 10px), 0);
+}
+
+.blog-figure-a2-label-max {
+  left: 72%;
+  top: 16%;
+  transform: translate(-100%, 0);
+}
+
+.blog-figure-a2-source {
+  position: absolute;
+  left: 7.5%;
+  bottom: 5%;
+  margin: 0;
+  max-width: 88%;
+  color: #5c5548;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: clamp(12px, 0.4rem + 0.85vw, 20px);
+  line-height: 1.35;
+}
+
+@media (max-width: 639px) {
+  .blog-figure-a2-overlay .blog-figure-a2-label-min,
+  .blog-figure-a2-overlay .blog-figure-a2-source {
+    display: none;
+  }
+
+  .blog-figure-a2-mobile-foot {
+    display: grid;
+    gap: 8px;
+    padding: 10px 7.5% 0;
+  }
+
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min,
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
+    position: static;
+    inset: auto;
+    left: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    transform: none;
+    margin: 0;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    color: #14181c;
+    background: #f4f3ee;
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+  }
+
+  .dark .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min,
+  .dark .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
+    background: var(--bg);
+    color: #e9eef2;
+  }
+
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min {
+    justify-self: start;
+  }
+
+  .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
+    color: #5c5548;
+  }
+
+  .blog-figure-a2-kicker {
+    top: 4%;
+    line-height: 1.25;
+  }
+
+  .blog-figure-a2-date {
+    top: calc(4% + 2 * 1.25em + 4px);
+    line-height: 1.1;
+  }
+
+  .blog-figure-a2-kicker,
+  .blog-figure-a2-date,
+  .blog-figure-a2-label,
+  .blog-figure-a2-source {
+    font-size: 12px;
+  }
+
+  .blog-figure-a2-label-max {
+    left: auto;
+    right: 7.5%;
+    top: 24%;
+    transform: none;
+    max-width: 46%;
+    white-space: normal;
+    text-align: right;
+  }
+}
+
+.v4-subpage .blog-figure-a2-label {
+  background: var(--bg);
+}
+
+.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-foot-min,
+.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-foot-source {
+  background: var(--bg);
+}
+
+.v4-subpage .blog-figure-title.blog-figure-a2 .blog-figure-a2-chart,
+.v4-subpage .blog-figure-pan.blog-figure-a2 .blog-figure-a2-chart {
+  background: var(--bg);
+}
+

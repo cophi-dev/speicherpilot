@@ -18,7 +18,7 @@ export type Block =
   | { type: "p"; inlines: Inline[] }
   | { type: "ul"; items: Inline[][] }
   | { type: "ol"; items: Inline[][] }
-  | { type: "callout"; title: string; items: Inline[][]; question: Inline[] }
+  | { type: "callout"; title: string; items: Inline[][]; question: Inline[] | null }
   | { type: "figure"; figure: BlogFigureId }
   | { type: "sources"; intro: string; headers: string[]; rows: SourceRow[]; note: string };
 
@@ -180,7 +180,7 @@ function parseCallout(quoted: string[]): Block {
     }
     question = parseInlines(paragraph.join(" "));
   }
-  if (!question || items.length === 0) {
+  if (items.length === 0) {
     throw new Error("Hervorgehobener Kasten unvollständig");
   }
   return { type: "callout", title, items, question };
@@ -353,7 +353,9 @@ function pushBlockText(parts: string[], block: Block, linkMode: "all" | "extra")
     for (const item of block.items) {
       parts.push(inlineText(item));
     }
-    parts.push(inlineText(block.question));
+    if (block.question) {
+      parts.push(inlineText(block.question));
+    }
   } else if (block.type === "sources") {
     parts.push(block.intro, ...block.headers);
     for (const row of block.rows) {

@@ -36,6 +36,14 @@ type PostFile = {
  */
 const POST_FILES: readonly PostFile[] = [
   {
+    slug: "wann-der-speicher-laden-will",
+    file: "wann-der-speicher-laden-will.md",
+    published: "2026-11-04",
+    publishedLabel: "04.11.2026",
+    hero: "a2",
+    inserts: [],
+  },
+  {
     slug: "warum-grossspeicher-das-netz-flexibler-machen",
     file: "warum-grossspeicher-das-netz-flexibler-machen.md",
     published: "2026-10-28",

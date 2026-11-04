@@ -1,6 +1,12 @@
 import type { BlogFigure as BlogFigureAsset } from "@/content/blog/figures";
 
+import { BlogFigureA2, isBlogFigureA2 } from "@/components/blog/BlogFigureA2";
+
 export function BlogFigure({ figure, swipe = false }: { figure: BlogFigureAsset; swipe?: boolean }) {
+  if (isBlogFigureA2(figure)) {
+    return <BlogFigureA2 figure={figure} swipe={swipe} />;
+  }
+
   if (!swipe) {
     return (
       <figure className="blog-figure blog-figure-title">

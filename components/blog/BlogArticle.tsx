@@ -108,9 +108,11 @@ export function BlogArticle({
               </li>
             ))}
           </ul>
-          <p>
-            <Inlines items={block.question} sources={sources} />
-          </p>
+          {block.question ? (
+            <p>
+              <Inlines items={block.question} sources={sources} />
+            </p>
+          ) : null}
         </aside>
       );
       return;
