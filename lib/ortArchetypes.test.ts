@@ -3,10 +3,23 @@ import { assessBadgeV2, loadOrtArchetypes } from "@/lib/ortArchetypes";
 describe("ortArchetypes", () => {
   it("validates file schema", () => {
     const data = loadOrtArchetypes();
-    expect(data.archetypes.land.xMw).toBeLessThanOrEqual(data.archetypes.land.yMw);
-    expect(data.archetypes.stadt.xMw).toBeLessThanOrEqual(data.archetypes.stadt.yMw);
-    expect(data.archetypes.land.yMw).toBeGreaterThan(data.archetypes.land.xMw);
-    expect(data.archetypes.stadt.yMw).toBeGreaterThan(data.archetypes.stadt.xMw);
+    const stadt = data.archetypes.stadt;
+    expect(stadt.hasEngpass).toBe(true);
+    expect(stadt.peakN1Pct).toBeGreaterThanOrEqual(0);
+    expect(stadt.xMw).not.toBeNull();
+    expect(stadt.yMw).not.toBeNull();
+    if (stadt.xMw != null && stadt.yMw != null) {
+      expect(stadt.yMw).toBeGreaterThanOrEqual(stadt.xMw);
+    }
+    const land = data.archetypes.land;
+    if (land.hasEngpass) {
+      expect(land.peakN1Pct).toBeGreaterThanOrEqual(90);
+      expect(land.xMw).not.toBeNull();
+      expect(land.yMw).not.toBeNull();
+    } else {
+      expect(land.xMw).toBeNull();
+      expect(land.yMw).toBeNull();
+    }
   });
 
   it("badge v2 neutral when C empty", () => {

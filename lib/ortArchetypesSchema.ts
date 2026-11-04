@@ -17,6 +17,7 @@ export const ortSeriesModeSchema = z.object({
 export const ortArchetypeSchema = z.object({
   code: z.string(),
   labelDe: z.string(),
+  scenarioDe: z.string().nullable().optional(),
   typtag: z.string(),
   priceDay: z.string(),
   bottleneck: z.object({
@@ -28,8 +29,10 @@ export const ortArchetypeSchema = z.object({
   contingency: z.object({ id: z.string() }),
   node: z.object({ id: z.number(), label: z.string() }),
   tStar: z.number(),
-  xMw: z.number(),
-  yMw: z.number(),
+  hasEngpass: z.boolean(),
+  peakN1Pct: z.number(),
+  xMw: z.number().nullable(),
+  yMw: z.number().nullable(),
   xLimitedByBase: z.boolean(),
   storage: z.object({ pMw: z.number(), eMwh: z.number() }),
   windowQh: z.array(z.number()),

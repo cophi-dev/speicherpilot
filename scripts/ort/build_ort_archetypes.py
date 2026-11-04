@@ -40,20 +40,48 @@ DT = 0.25
 OUT_PATH = ROOT / "data" / "ort" / "ort-archetypes.json"
 PRICES_PATH = ROOT / "data" / "fca" / "prices-12m.json"
 
+NETZ_EPS = 0.02  # MW Strafterm gegen gleichzeitiges Laden/Entladen (netz-Modus)
+
+LAND_NET_CODES = (
+    "1-MV-rural--2-no_sw",
+    "1-MV-rural--1-no_sw",
+    "1-MV-rural--0-no_sw",
+)
+
 ARCHETYPES = {
     "land": {
-        "code": "1-MV-rural--0-no_sw",
+        "code": "1-MV-rural--2-no_sw",
         "labelDe": "Ländliches Mittelspannungsnetz (SimBench)",
-        "pick": "min",
+        "scenarioDe": "SimBench-Zukunftsszenario mit mehr Photovoltaik-Zubau.",
+        "pick": "feed_max",
         "storageMode": "entladen",
+        "defaultPowerMw": 6.0,
     },
     "stadt": {
         "code": "1-MV-urban--0-no_sw",
         "labelDe": "Städtisches Mittelspannungsnetz (SimBench)",
         "pick": "max",
         "storageMode": "laden",
+        "defaultPowerMw": 10.0,
     },
 }
+
+
+def resolve_land_code(pick: str) -> tuple[str, int, dict]:
+    """Pick first rural net whose Typtag reaches ≥ 90 % n-1 on the bottleneck (else last candidate)."""
+    last: tuple[str, int, dict] | None = None
+    for code in LAND_NET_CODES:
+        net = load_net(code)
+        mv = mv_buses(net)
+        abs_values = profile_absolute(net)
+        day_index = typtag_day_index(abs_values, pick)
+        net.trafo["tap_pos"] = choose_tap(net, mv, abs_values, day_index)
+        eng = scan_engpass(net, mv, abs_values, day_index)
+        last = (code, day_index, eng)
+        if eng["peak_n1"] >= 90.0 - 1e-6:
+            return code, day_index, eng
+    assert last is not None
+    return last
 
 
 def load_net(code: str):
@@ -81,6 +109,21 @@ def residual_by_day(abs_values) -> list[tuple[float, float, int]]:
 
 
 def typtag_day_index(abs_values, pick: str) -> int:
+    load_p = abs_values[("load", "p_mw")]
+    gen_p = abs_values[("sgen", "p_mw")]
+    net_import = load_p.sum(axis=1) - gen_p.sum(axis=1)
+    net_export = gen_p.sum(axis=1) - load_p.sum(axis=1)
+    n_days = len(net_import) // 96
+    if pick == "feed_max":
+        best_day = 0
+        best_val = -1e18
+        for day in range(n_days):
+            chunk = net_export.iloc[day * 96 : (day + 1) * 96]
+            value = float(chunk.max())
+            if value > best_val:
+                best_val = value
+                best_day = day
+        return best_day
     stats = residual_by_day(abs_values)
     if pick == "min":
         return min(stats, key=lambda item: item[0])[2]
@@ -147,23 +190,25 @@ def bottleneck_meta(net, kind: str, index: int) -> dict:
 
 
 def scan_engpass(net, mv, abs_values, day_index: int):
-    l0_n0: list[float] = []
-    best = ("line", int(net.line.index[0]), -1.0)
+    peak_element = ("line", int(net.line.index[0]), -1.0)
     for qh in range(96):
         apply_profile_row(net, abs_values, day_index * 96 + qh)
         run(net)
         for index in net.line.index:
             value = float(net.res_line.at[index, "loading_percent"])
-            if value > best[2]:
-                best = ("line", int(index), value)
+            if value > peak_element[2]:
+                peak_element = ("line", int(index), value)
         for index in net.trafo.index:
             value = float(net.res_trafo.at[index, "loading_percent"])
-            if value > best[2]:
-                best = ("trafo", int(index), value)
-        b_kind, b_idx, _ = best
-        l0_n0.append(round(element_loading(net, b_kind, b_idx), 2))
+            if value > peak_element[2]:
+                peak_element = ("trafo", int(index), value)
 
-    b_kind, b_idx, peak = best
+    b_kind, b_idx, peak = peak_element
+    l0_n0: list[float] = []
+    for qh in range(96):
+        apply_profile_row(net, abs_values, day_index * 96 + qh)
+        run(net)
+        l0_n0.append(round(element_loading(net, b_kind, b_idx), 2))
     t_star = int(np.argmax(l0_n0))
     apply_profile_row(net, abs_values, day_index * 96 + t_star)
     run(net)
@@ -184,6 +229,8 @@ def scan_engpass(net, mv, abs_values, day_index: int):
     k_kind, k_idx, _ = critical
 
     l0_n1: list[float] = []
+    vm_min: list[float] = []
+    vm_max: list[float] = []
     for qh in range(96):
         apply_profile_row(net, abs_values, day_index * 96 + qh)
         net[k_kind].at[k_idx, "in_service"] = False
@@ -191,8 +238,13 @@ def scan_engpass(net, mv, abs_values, day_index: int):
         try:
             run(net)
             value = element_loading(net, b_kind, b_idx)
+            voltage = net.res_bus.loc[mv].vm_pu
+            vm_min.append(round(float(voltage.min()) * 100.0, 2))
+            vm_max.append(round(float(voltage.max()) * 100.0, 2))
         except Exception:
             value = float("nan")
+            vm_min.append(0.0)
+            vm_max.append(0.0)
         net[k_kind].at[k_idx, "in_service"] = True
         l0_n1.append(round(value, 2) if math.isfinite(value) else 0.0)
 
@@ -205,6 +257,10 @@ def scan_engpass(net, mv, abs_values, day_index: int):
         t_star=t_star,
         L0_n0=l0_n0,
         L0_n1=l0_n1,
+        vm_min=vm_min,
+        vm_max=vm_max,
+        peak_n0=max(l0_n0),
+        peak_n1=max(l0_n1),
     )
 
 
@@ -329,6 +385,181 @@ def bisect_power(
     return round(lower, 1)
 
 
+def normal_ok_at_qh(
+    net,
+    mv,
+    abs_values,
+    day_index: int,
+    qh: int,
+    bus: int,
+    mode: str,
+    power: float,
+) -> bool:
+    if power <= 0:
+        return True
+    apply_profile_row(net, abs_values, day_index * 96 + qh)
+    handle = add_storage(net, bus, mode, power)
+    ok = state_ok_n0(net, mv)
+    remove_storage(net, handle)
+    return ok
+
+
+def bisect_x_firm(
+    net,
+    mv,
+    abs_values,
+    day_index: int,
+    k_kind: str,
+    k_idx: int,
+    bus: int,
+    *,
+    hi: float = 80.0,
+    tol: float = 0.1,
+) -> float:
+    qh_list = list(range(96))
+
+    def ok(power: float) -> bool:
+        if power <= 0:
+            return True
+        for mode in ("laden", "entladen"):
+            if not with_contingency(net, mv, abs_values, day_index, qh_list, k_kind, k_idx, bus, mode, power):
+                return False
+        return True
+
+    if not ok(tol):
+        return 0.0
+    if ok(hi):
+        return round(hi, 1)
+    lower, upper = tol, hi
+    while upper - lower > tol + 1e-9:
+        mid = round((lower + upper) / 2.0 / tol) * tol
+        if mid <= lower or mid >= upper:
+            break
+        if ok(mid):
+            lower = mid
+        else:
+            upper = mid
+    return round(lower, 1)
+
+
+def bisect_y_flex(
+    net,
+    mv,
+    abs_values,
+    day_index: int,
+    bus: int,
+    forbid_discharge: list[bool],
+    forbid_charge: list[bool],
+    *,
+    hi: float = 80.0,
+    tol: float = 0.1,
+) -> float:
+    def ok(power: float) -> bool:
+        if power <= 0:
+            return True
+        for qh in range(96):
+            modes: list[str] = []
+            if not forbid_discharge[qh]:
+                modes.append("entladen")
+            if not forbid_charge[qh]:
+                modes.append("laden")
+            for mode in modes:
+                if not normal_ok_at_qh(net, mv, abs_values, day_index, qh, bus, mode, power):
+                    return False
+        return True
+
+    if not ok(tol):
+        return 0.0
+    if ok(hi):
+        return round(hi, 1)
+    lower, upper = tol, hi
+    while upper - lower > tol + 1e-9:
+        mid = round((lower + upper) / 2.0 / tol) * tol
+        if mid <= lower or mid >= upper:
+            break
+        if ok(mid):
+            lower = mid
+        else:
+            upper = mid
+    return round(lower, 1)
+
+
+def build_l0_n1_day(
+    net,
+    mv,
+    abs_values,
+    day_index: int,
+    b_kind: str,
+    b_idx: int,
+    k_kind: str,
+    k_idx: int,
+) -> list[float]:
+    open_switches = net.switch[(net.switch.et == "l") & (~net.switch.closed)]
+    series: list[float] = []
+    for qh in range(96):
+        row = day_index * 96 + qh
+        apply_profile_row(net, abs_values, row)
+        net[k_kind].at[k_idx, "in_service"] = False
+        _eval_outage(net, mv, open_switches)
+        try:
+            run(net)
+            value = element_loading(net, b_kind, b_idx)
+        except Exception:
+            value = float("nan")
+        net[k_kind].at[k_idx, "in_service"] = True
+        series.append(round(value, 2) if math.isfinite(value) else 0.0)
+    return series
+
+
+class L0N1DayCache:
+    def __init__(self, net, mv, abs_values, b_kind: str, b_idx: int, k_kind: str, k_idx: int) -> None:
+        self.net = net
+        self.mv = mv
+        self.abs_values = abs_values
+        self.b_kind = b_kind
+        self.b_idx = b_idx
+        self.k_kind = k_kind
+        self.k_idx = k_idx
+        self._days: dict[int, list[float]] = {}
+
+    def at(self, day_index: int, qh: int) -> float:
+        day = day_index % max(1, len(self.abs_values[("load", "p_mw")]) // 96)
+        qh96 = qh % 96
+        if day not in self._days:
+            self._days[day] = build_l0_n1_day(
+                self.net,
+                self.mv,
+                self.abs_values,
+                day,
+                self.b_kind,
+                self.b_idx,
+                self.k_kind,
+                self.k_idx,
+            )
+        return self._days[day][qh96]
+
+
+def build_l0_n1_year(net, mv, abs_values, b_kind: str, b_idx: int, k_kind: str, k_idx: int) -> list[float]:
+    """Full-year series (slow). Prefer L0N1DayCache in build."""
+    n_rows = len(abs_values[("load", "p_mw")])
+    cache = L0N1DayCache(net, mv, abs_values, b_kind, b_idx, k_kind, k_idx)
+    return [cache.at(row // 96, row % 96) for row in range(n_rows)]
+
+
+def day_index_for_iso(net, abs_values, iso_date: str) -> int:
+    suffix = iso_date[5:10] if len(iso_date) >= 10 else iso_date
+    n_rows = len(abs_values[("load", "p_mw")])
+    n_days = n_rows // 96
+    for day in range(n_days):
+        if typtag_label(net, day).endswith(suffix) or typtag_label(net, day)[5:] == suffix:
+            return day
+    try:
+        ordinal = int(iso_date.split("-")[2])
+    except (IndexError, ValueError):
+        ordinal = 0
+    return ordinal % max(1, n_days)
+
+
 def flow_slope(net, mv, abs_values, day_index: int, qh: int, bus: int, mode: str, b_kind: str, b_idx: int, n1: bool, k_kind: str, k_idx: int) -> float:
     open_switches = net.switch[(net.switch.et == "l") & (~net.switch.closed)]
     apply_profile_row(net, abs_values, day_index * 96 + qh)
@@ -390,13 +621,6 @@ def conflict_masks(key: str, load: list[float], gen: list[float]) -> tuple[list[
     return forbid_discharge, forbid_charge
 
 
-def conflict_masks_clock(key: str, n: int) -> tuple[list[bool], list[bool]]:
-    """Hour-of-day conflict template for 12m scans (simplified)."""
-    load = [1.0] * n
-    gen = [0.2 + 0.6 * math.sin(2 * math.pi * qh / n) ** 2 for qh in range(n)]
-    return conflict_masks(key, load, gen)
-
-
 def contract_window(key: str, forbid_discharge: list[bool], forbid_charge: list[bool]) -> list[int]:
     if key == "land":
         return [qh for qh, blocked in enumerate(forbid_discharge) if not blocked]
@@ -443,8 +667,8 @@ class OrtDayModel:
             weights = np.asarray([max(0.0, value - 90.0) for value in l0], dtype=float)
             if weights.sum() <= 1e-9:
                 weights = np.ones(n)
-            self.cost[:n] = weights * beta
-            self.cost[n:] = -weights * beta
+            self.cost[:n] = weights * beta + NETZ_EPS
+            self.cost[n:] = -weights * beta + NETZ_EPS
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
         else:
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
@@ -468,9 +692,7 @@ class OrtDayModel:
         soc[0] = s0
         for t in range(n):
             soc[t + 1] = soc[t] + ETA * DT * charge[t] - (DT / ETA) * discharge[t]
-        revenue = float(self.h.getObjectiveValue())
-        if objective == "netz":
-            revenue = 0.0
+        revenue = float(np.sum(np.asarray(prices, dtype=float) * DT * (discharge - charge)))
         return {
             "c": charge.tolist(),
             "d": discharge.tolist(),
@@ -491,6 +713,8 @@ def dispatch_modes(
     forbid_discharge: list[bool],
     forbid_charge: list[bool],
     window: list[int],
+    vm_min: list[float],
+    vm_max: list[float],
 ) -> dict:
     n = len(prices)
     model = OrtDayModel(n)
@@ -514,16 +738,16 @@ def dispatch_modes(
     def series(mode_result: dict) -> dict:
         c = mode_result["c"]
         d = mode_result["d"]
-        l1n0 = [round(l0_n0[t] + beta_n0 * (d[t] - c[t]), 2) for t in range(n)]
-        l1n1 = [round(l0_n1[t] + beta_n1 * (d[t] - c[t]), 2) for t in range(n)]
+        l1n0 = [round(abs(l0_n0[t] + beta_n0 * (d[t] - c[t])), 2) for t in range(n)]
+        l1n1 = [round(abs(l0_n1[t] + beta_n1 * (d[t] - c[t])), 2) for t in range(n)]
         return {
             "c": [round(v, 4) for v in c],
             "d": [round(v, 4) for v in d],
             "soc": [round(v, 4) for v in mode_result["soc"]],
             "L1n0": l1n0,
             "L1n1": l1n1,
-            "vmin": l0_n0,
-            "vmax": l0_n0,
+            "vmin": vm_min,
+            "vmax": vm_max,
         }
 
     return {
@@ -548,58 +772,78 @@ def assess_badge_v2(l0_n1: list[float], l1_n1: list[float]) -> str:
     return "neutral"
 
 
-def count_conflicts_12m(key: str, days: list[dict], power: float, energy: float) -> dict:
+def count_conflicts_12m(
+    key: str,
+    net,
+    abs_values,
+    l0_cache: L0N1DayCache,
+    beta_n1: float,
+    price_days: list[dict],
+    power: float,
+    energy: float,
+) -> dict:
     qh_total = 0
     day_total = 0
     mwh_total = 0.0
     models: dict[int, OrtDayModel] = {}
-    for day in days:
+    for day in price_days:
         n = len(day["prices"])
         model = models.setdefault(n, OrtDayModel(n))
-        forbid_discharge, forbid_charge = conflict_masks_clock(key, n)
+        day_index = day_index_for_iso(net, abs_values, day["date"])
+        load_series, gen_series = profile_row_series(abs_values, day_index)
+        forbid_discharge, forbid_charge = conflict_masks(key, load_series, gen_series)
+        l0_day = [l0_cache.at(day_index, qh) for qh in range(n)]
         full_c = np.full(n, power)
         full_d = np.full(n, power)
-        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", [0.0] * n, 0.0)
-        window = contract_window(key, forbid_discharge, forbid_charge)
-        cap_c = np.zeros(n)
-        cap_d = np.zeros(n)
+        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", l0_day, beta_n1)
+        day_conflict = False
         for qh in range(n):
-            if qh in window:
-                cap_c[qh] = 0.0 if forbid_charge[qh] else power
-                cap_d[qh] = 0.0 if forbid_discharge[qh] else power
-        vertrag = model.solve(day["prices"], power, energy, cap_c, cap_d, "markt", [0.0] * n, 0.0)
-        for qh in range(n):
-            block_d = forbid_discharge[qh % len(forbid_discharge)]
-            block_c = forbid_charge[qh % len(forbid_charge)]
-            wants_d = markt["d"][qh] > 1e-4 and block_d
-            wants_c = markt["c"][qh] > 1e-4 and block_c
-            if wants_d or wants_c:
+            l0 = l0_day[qh]
+            d = markt["d"][qh]
+            c = markt["c"][qh]
+            l1 = l0 + beta_n1 * (d - c)
+            if abs(l1) > 100.0 + 1e-6 and abs(l1) > abs(l0) + 1e-6:
                 qh_total += 1
-                mwh_total += power * DT
-        if any(abs(markt["d"][qh] - vertrag["d"][qh]) > 1e-3 or abs(markt["c"][qh] - vertrag["c"][qh]) > 1e-3 for qh in range(n)):
+                mwh_total += abs(d - c) * DT
+                day_conflict = True
+        if day_conflict:
             day_total += 1
     return {"qh": qh_total, "days": day_total, "mwh": round(mwh_total, 2)}
 
 
-def revenue_pct_12m(key: str, days: list[dict], power: float, energy: float, window: list[int]) -> dict:
+def revenue_pct_12m(
+    key: str,
+    net,
+    abs_values,
+    l0_cache: L0N1DayCache,
+    beta_n1: float,
+    price_days: list[dict],
+    power: float,
+    energy: float,
+    window: list[int],
+) -> dict:
     models: dict[int, OrtDayModel] = {}
     totals = {"markt": 0.0, "vertrag": 0.0, "netz": 0.0}
-    for day in days:
+    for day in price_days:
         n = len(day["prices"])
         model = models.setdefault(n, OrtDayModel(n))
-        forbid_discharge, forbid_charge = conflict_masks_clock(key, n)
+        day_index = day_index_for_iso(net, abs_values, day["date"])
+        load_series, gen_series = profile_row_series(abs_values, day_index)
+        forbid_discharge, forbid_charge = conflict_masks(key, load_series, gen_series)
+        l0_day = [l0_cache.at(day_index, qh) for qh in range(n)]
         full_c = np.full(n, power)
         full_d = np.full(n, power)
-        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", [0.0] * n, 0.0)
+        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", l0_day, beta_n1)
         cap_c = np.zeros(n)
         cap_d = np.zeros(n)
-        window_set = set(i % n for i in window)
+        window_set = set(i % 96 for i in window)
         for qh in range(n):
-            if qh in window_set:
-                cap_c[qh] = 0.0 if forbid_charge[qh % 96] else power
-                cap_d[qh] = 0.0 if forbid_discharge[qh % 96] else power
-        vertrag = model.solve(day["prices"], power, energy, cap_c, cap_d, "markt", [0.0] * n, 0.0)
-        netz = model.solve(day["prices"], power, energy, full_c, full_d, "netz", [0.0] * n, 0.0)
+            qh96 = qh % 96
+            if qh96 in window_set:
+                cap_c[qh] = 0.0 if forbid_charge[qh96] else power
+                cap_d[qh] = 0.0 if forbid_discharge[qh96] else power
+        vertrag = model.solve(day["prices"], power, energy, cap_c, cap_d, "markt", l0_day, beta_n1)
+        netz = model.solve(day["prices"], power, energy, full_c, full_d, "netz", l0_day, beta_n1)
         totals["markt"] += markt["revenue"]
         totals["vertrag"] += vertrag["revenue"]
         totals["netz"] += netz["revenue"]
@@ -607,48 +851,43 @@ def revenue_pct_12m(key: str, days: list[dict], power: float, energy: float, win
     return {mode: round(100.0 * totals[mode] / base, 2) for mode in totals}
 
 
+def has_engpass_for_archetype(key: str, eng: dict, modes: dict) -> bool:
+    if key == "land":
+        return eng["peak_n1"] >= 90.0 - 1e-6
+    if eng["peak_n1"] >= 90.0 - 1e-6 or max(eng["L0_n0"]) >= 90.0 - 1e-6:
+        return True
+    return max(modes["markt"]["L1n1"]) >= 90.0 - 1e-6
+
+
 def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
     warnings_local: list[str] = []
-    net = load_net(meta["code"])
+    net_code = meta["code"]
+    eng: dict | None = None
+    day_index = 0
+    if key == "land":
+        net_code, day_index, eng = resolve_land_code(meta["pick"])
+    net = load_net(net_code)
     mv = mv_buses(net)
     abs_values = profile_absolute(net)
-    day_index = typtag_day_index(abs_values, meta["pick"])
+    if eng is None:
+        day_index = typtag_day_index(abs_values, meta["pick"])
+        net.trafo["tap_pos"] = choose_tap(net, mv, abs_values, day_index)
+        eng = scan_engpass(net, mv, abs_values, day_index)
+    else:
+        net.trafo["tap_pos"] = choose_tap(net, mv, abs_values, day_index)
     typtag = typtag_label(net, day_index)
-    tap = choose_tap(net, mv, abs_values, day_index)
-    net.trafo["tap_pos"] = tap
-    eng = scan_engpass(net, mv, abs_values, day_index)
     bus = pick_storage_bus(net, mv, eng["b_kind"], eng["b_idx"])
-    critical_qh = [t for t, value in enumerate(eng["L0_n0"]) if value >= 90] or [eng["t_star"]]
+    load_series, gen_series = profile_row_series(abs_values, day_index)
+    forbid_discharge, forbid_charge = conflict_masks(key, load_series, gen_series)
     mode = meta["storageMode"]
-    opposite_mode = "laden" if mode == "entladen" else "entladen"
-    x_n1 = bisect_power(
-        net, mv, abs_values, day_index, critical_qh, eng["k_kind"], eng["k_idx"], bus, mode, n1=True
-    )
-    x_n0 = bisect_power(net, mv, abs_values, day_index, critical_qh, eng["k_kind"], eng["k_idx"], bus, mode, n1=False)
-    x_mw = x_n1
-    # Y: Kipppunkt im Normalbetrieb (n0) am Engpass — richtungsgetrennt (kritische + Gegenrichtung).
-    y_critical = bisect_power(
-        net, mv, abs_values, day_index, critical_qh, eng["k_kind"], eng["k_idx"], bus, mode, n1=False
-    )
-    y_at_tstar = bisect_power(
-        net, mv, abs_values, day_index, [eng["t_star"]], eng["k_kind"], eng["k_idx"], bus, mode, n1=False
-    )
-    y_opposite = bisect_power(
-        net, mv, abs_values, day_index, [eng["t_star"]], eng["k_kind"], eng["k_idx"], bus, opposite_mode, n1=False
-    )
-    y_mw = round(max(x_mw, y_critical, y_at_tstar, y_opposite), 1)
-    x_limited = x_n0 + 1e-6 < x_n1
-    if x_mw < 0.1:
-        warnings_local.append("X unter 0,1 MW — sehr kleiner Engpass-Spielraum")
-    power = max(2.0, round(1.5 * x_mw))
+    default_power = float(meta.get("defaultPowerMw", 6.0))
+    power = default_power
     energy = 2.0 * power
     price_day = pick_price_day(typtag, price_days)
     day_prices = next(item for item in price_days if item["date"] == price_day)["prices"]
     if len(day_prices) != 96:
         warnings_local.append(f"priceDay {price_day} hat {len(day_prices)} Viertelstunden")
         day_prices = (day_prices + day_prices)[:96]
-    load_series, gen_series = profile_row_series(abs_values, day_index)
-    forbid_discharge, forbid_charge = conflict_masks(key, load_series, gen_series)
     window = contract_window(key, forbid_discharge, forbid_charge)
     beta_n0 = flow_slope(
         net, mv, abs_values, day_index, eng["t_star"], bus, mode, eng["b_kind"], eng["b_idx"], False, eng["k_kind"], eng["k_idx"]
@@ -656,6 +895,7 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
     beta_n1 = flow_slope(
         net, mv, abs_values, day_index, eng["t_star"], bus, mode, eng["b_kind"], eng["b_idx"], True, eng["k_kind"], eng["k_idx"]
     )
+    l0_cache = L0N1DayCache(net, mv, abs_values, eng["b_kind"], eng["b_idx"], eng["k_kind"], eng["k_idx"])
     modes = dispatch_modes(
         key,
         day_prices,
@@ -668,27 +908,70 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
         forbid_discharge,
         forbid_charge,
         window,
+        eng["vm_min"],
+        eng["vm_max"],
     )
+    has_engpass = has_engpass_for_archetype(key, eng, modes)
+    x_mw: float | None = None
+    y_mw: float | None = None
+    x_limited = False
+    if has_engpass:
+        x_mw = bisect_x_firm(net, mv, abs_values, day_index, eng["k_kind"], eng["k_idx"], bus)
+        y_mw = bisect_y_flex(net, mv, abs_values, day_index, bus, forbid_discharge, forbid_charge)
+        x_n0 = bisect_power(
+            net, mv, abs_values, day_index, list(range(96)), eng["k_kind"], eng["k_idx"], bus, mode, n1=False
+        )
+        x_limited = x_n0 + 1e-6 < (x_mw or 0)
+        if (x_mw or 0) < 0.1:
+            warnings_local.append(
+                "Fester Anschluss X ≈ 0 MW — unter n-1 in allen Viertelstunden kein Spielraum in beiden Richtungen."
+            )
+        if (x_mw or 0) >= 0.1:
+            power = max(2.0, round(1.5 * x_mw))
+            energy = 2.0 * power
+            modes = dispatch_modes(
+                key,
+                day_prices,
+                power,
+                energy,
+                eng["L0_n0"],
+                eng["L0_n1"],
+                beta_n0,
+                beta_n1,
+                forbid_discharge,
+                forbid_charge,
+                window,
+                eng["vm_min"],
+                eng["vm_max"],
+            )
+    else:
+        warnings_local.append(
+            "Kein Engpass ≥ 90 % am Typtag — feste und flexible Anschlussleistung (X/Y) entfallen im Modell."
+        )
     badge = {
         mode: assess_badge_v2(eng["L0_n1"], modes[mode]["L1n1"]) for mode in ("markt", "vertrag", "netz")
     }
-    conflicts = count_conflicts_12m(key, price_days, power, energy)
-    revenue_pct = revenue_pct_12m(key, price_days, power, energy, window)
+    conflicts = count_conflicts_12m(key, net, abs_values, l0_cache, beta_n1, price_days, power, energy)
+    revenue_pct = revenue_pct_12m(key, net, abs_values, l0_cache, beta_n1, price_days, power, energy, window)
     over100 = {
         "n0": sum(1 for value in eng["L0_n0"] if value > 100),
         "n1Markt": sum(1 for value in modes["markt"]["L1n1"] if value > 100),
         "n1Vertrag": sum(1 for value in modes["vertrag"]["L1n1"] if value > 100),
         "n1Netz": sum(1 for value in modes["netz"]["L1n1"] if value > 100),
     }
+    scenario_de = meta.get("scenarioDe") if key == "land" else None
     return {
-        "code": meta["code"],
+        "code": net_code,
         "labelDe": meta["labelDe"],
+        "scenarioDe": scenario_de,
         "typtag": typtag,
         "priceDay": price_day,
         "bottleneck": eng["b_meta"],
         "contingency": {"id": f"{eng['k_kind']}:{eng['k_idx']}"},
         "node": {"id": int(bus), "label": f"MS-{int(bus)}"},
         "tStar": eng["t_star"],
+        "hasEngpass": has_engpass,
+        "peakN1Pct": round(eng["peak_n1"], 2),
         "xMw": x_mw,
         "yMw": y_mw,
         "xLimitedByBase": bool(x_limited),
