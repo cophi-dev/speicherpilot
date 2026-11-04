@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Space+Grotesk&display=swap" rel="stylesheet" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; background: #f4f3ee; color: #14181c; font-family: "Space Grotesk", system-ui, sans-serif; }
+      .wrap { padding: 72px 96px; height: 100%; display: grid; grid-template-rows: auto 1fr auto; gap: 40px; }
+      h1 { margin: 0; font-size: 40px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: #5c5548; }
+      .blocks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; align-items: stretch; }
+      .block { border: 1px solid #2a323b; padding: 36px 32px; background: rgba(179, 54, 26, 0.08); display: grid; gap: 16px; align-content: start; }
+      .num { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 22px; color: #b3361a; letter-spacing: 0.08em; }
+      .block h2 { margin: 0; font-size: 28px; font-weight: 500; line-height: 1.25; }
+      .block p { margin: 0; font-size: 22px; line-height: 1.45; color: #2a323b; }
+      .foot { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 20px; color: #5c5548; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Wo Speicher- und Netzbetreiber zusammenkommen</h1>
+      <div class="blocks">
+        <article class="block">
+          <p class="num">01</p>
+          <h2>Flexible Anschlussverträge</h2>
+          <p>§ 17 Abs. 2b EnWG · Fahrpläne und Leistungsbänder</p>
+        </article>
+        <article class="block">
+          <p class="num">02</p>
+          <h2>Geordnete Vergabe</h2>
+          <p>Stichtag · Planungsreife · Repartierung statt Windhund</p>
+        </article>
+        <article class="block">
+          <p class="num">03</p>
+          <h2>Netzentgelte mit Ortsbezug</h2>
+          <p>Kapazitätspreis · dynamische Signale (frühestens 2030)</p>
+        </article>
+      </div>
+      <p class="foot">Quelle: SpeicherPilot · Schema zum Abschnitt „Wo beide zusammenkommen“</p>
+    </div>
+  </body>
+</html>

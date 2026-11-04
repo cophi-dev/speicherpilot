@@ -309,7 +309,8 @@ export function parseArticleMarkdown(markdown: string): ParsedArticle {
 
 export type FigureInsert =
   | { kind: "after-list-item"; startsWith: string; figure: BlogFigureId }
-  | { kind: "after-paragraph"; startsWith: string; figure: BlogFigureId };
+  | { kind: "after-paragraph"; startsWith: string; figure: BlogFigureId }
+  | { kind: "after-h2"; heading: string; figure: BlogFigureId };
 
 export function insertFigures(blocks: Block[], inserts: readonly FigureInsert[]): Block[] {
   const pending = [...inserts];
@@ -325,6 +326,9 @@ export function insertFigures(blocks: Block[], inserts: readonly FigureInsert[])
     const hit = pending.findIndex((insert) => {
       if (insert.kind === "after-list-item") {
         return block.type === "ul" && text.includes(insert.startsWith);
+      }
+      if (insert.kind === "after-h2") {
+        return block.type === "h2" && block.text === insert.heading;
       }
       return block.type === "p" && text.startsWith(insert.startsWith);
     });

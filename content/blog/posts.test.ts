@@ -123,6 +123,8 @@ describe("blog post wann-der-speicher-laden-will", () => {
     expect(post2.publishedLabel).toBe("04.11.2026");
     expect(post2.standLine.startsWith("Stand der Zahlen und Rechtslage: 04.11.2026")).toBe(true);
     expect(post2.sources.map((row) => row.id)).toEqual(Array.from({ length: 11 }, (_, index) => `Q${index + 1}`));
+    const figureBlocks = post2.blocks.filter((block) => block.type === "figure");
+    expect(figureBlocks.map((block) => block.figure)).toEqual(["a2zweiNetze", "a3dreiBausteine"]);
     const known = new Set(post2.sources.map((row) => row.id));
     const cited = [...markdown2.matchAll(/\[(Q\d+(?:\s*,\s*Q\d+)*)\]/g)].flatMap((match) => match[1].split(/\s*,\s*/));
     for (const id of cited) {

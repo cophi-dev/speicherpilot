@@ -19,6 +19,18 @@ export const BLOG_FIGURES = {
     height: 900,
     alt: "Liniendiagramm der Day-Ahead-Viertelstundenpreise am 03.11.2026 in DE-LU. Minimum 218,62 Euro pro Megawattstunde um 12:00 Uhr, Maximum 324,95 Euro um 17:30 Uhr. Quelle SMARD, Bundesnetzagentur.",
   },
+  a2zweiNetze: {
+    src: "/blog/A2_zwei-netze_1920x1080.png",
+    width: 1920,
+    height: 1080,
+    alt: "Schema: Im ländlichen Netz mit viel PV ist mittags die Einspeisung knapp, bei Dunkelflaute der Bezug. Im Stadtnetz ist eher der Bezug knapp, Laden zählt dort als Bezug. Der Preis gilt für ganz Deutschland, Engpässe sind lokal.",
+  },
+  a3dreiBausteine: {
+    src: "/blog/A3_drei-bausteine_1920x1080.png",
+    width: 1920,
+    height: 1080,
+    alt: "Drei Bausteine, mit denen Speicher- und Netzbetreiber zusammenkommen: flexible Anschlussverträge nach § 17 Abs. 2b EnWG, geordnete Vergabe nach Stichtag und Planungsreife, künftig Netzentgelte mit Ortsbezug.",
+  },
   b: {
     src: "/blog/B_mw_mwh_1200x700.svg",
     width: 1200,

@@ -12,7 +12,14 @@ export function BlogFigure({ figure, swipe = false }: { figure: BlogFigureAsset;
       <figure className="blog-figure blog-figure-title">
         {/* SVG keeps its vectors. next/image does not optimize SVG, same as the lockup. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={figure.src} alt={figure.alt} width={figure.width} height={figure.height} />
+        <img
+          src={figure.src}
+          alt={figure.alt}
+          width={figure.width}
+          height={figure.height}
+          loading="lazy"
+          decoding="async"
+        />
       </figure>
     );
   }
@@ -22,7 +29,14 @@ export function BlogFigure({ figure, swipe = false }: { figure: BlogFigureAsset;
       <div className="blog-figure-frame">
         <div className="blog-figure-scroll" role="region" tabIndex={0} aria-label="Abbildung, seitlich wischen">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={figure.src} alt={figure.alt} width={figure.width} height={figure.height} />
+          <img
+          src={figure.src}
+          alt={figure.alt}
+          width={figure.width}
+          height={figure.height}
+          loading="lazy"
+          decoding="async"
+        />
         </div>
         <span className="blog-figure-fade" aria-hidden="true" />
         <p className="blog-figure-swipe blog-figure-swipe-over">← wischen →</p>
