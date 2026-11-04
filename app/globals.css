@@ -8276,20 +8276,32 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   position: relative;
   width: 100%;
   max-width: 100%;
+}
+
+.blog-figure-a2-chart-area {
+  position: relative;
+  width: 100%;
   aspect-ratio: 16 / 9;
 }
 
-.blog-figure-a2-chart {
+.blog-figure-title.blog-figure-a2 .blog-figure-a2-chart,
+.blog-figure-pan.blog-figure-a2 .blog-figure-a2-chart {
   display: block;
   width: 100%;
   height: 100%;
+  max-width: 100%;
   object-fit: fill;
 }
 
 .blog-figure-a2-overlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
+}
+
+.blog-figure-a2-mobile-foot {
+  display: none;
 }
 
 .blog-figure-a2-kicker {
@@ -8359,13 +8371,29 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 }
 
 @media (max-width: 639px) {
-  .blog-figure-a2-frame {
-    aspect-ratio: 4 / 5;
+  .blog-figure-a2-overlay .blog-figure-a2-label-min,
+  .blog-figure-a2-overlay .blog-figure-a2-source {
+    display: none;
   }
 
-  .blog-figure-a2-chart {
-    object-fit: cover;
-    object-position: center 38%;
+  .blog-figure-a2-mobile-foot {
+    display: grid;
+    gap: 8px;
+    padding: 10px 7.5% 0;
+  }
+
+  .blog-figure-a2-mobile-foot .blog-figure-a2-label,
+  .blog-figure-a2-mobile-foot .blog-figure-a2-source {
+    position: static;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .blog-figure-a2-mobile-foot .blog-figure-a2-label {
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
   }
 
   .blog-figure-a2-kicker,
@@ -8373,15 +8401,6 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   .blog-figure-a2-label,
   .blog-figure-a2-source {
     font-size: 12px;
-  }
-
-  .blog-figure-a2-label-min {
-    left: 7.5%;
-    top: auto;
-    bottom: 14%;
-    transform: none;
-    max-width: 46%;
-    white-space: normal;
   }
 
   .blog-figure-a2-label-max {
@@ -8393,17 +8412,19 @@ article.legal-doc.v4-subpage .legal-doc-inner {
     white-space: normal;
     text-align: right;
   }
-
-  .blog-figure-a2-source {
-    bottom: 4%;
-  }
 }
 
 .v4-subpage .blog-figure-a2-label {
   background: var(--bg);
 }
 
-.v4-subpage .blog-figure-a2-chart {
+.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-label,
+.v4-subpage .blog-figure-a2-mobile-foot .blog-figure-a2-source {
+  background: var(--bg);
+}
+
+.v4-subpage .blog-figure-title.blog-figure-a2 .blog-figure-a2-chart,
+.v4-subpage .blog-figure-pan.blog-figure-a2 .blog-figure-a2-chart {
   background: var(--bg);
 }
 
