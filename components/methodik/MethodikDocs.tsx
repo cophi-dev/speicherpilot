@@ -41,6 +41,16 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
       <MethodikHashScroll />
       <section className="day-hero methodik-hero" aria-labelledby="methodik-title">
         <div className="methodik-layout">
+          <div className="methodik-hero-copy">
+            <p className="v4-kicker num">{tx("Methodik · Referenz", "Method · reference")}</p>
+            <h1 id="methodik-title" className="v4-h1">
+              {tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}
+            </h1>
+            <PageLead
+              de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
+              en="Assumptions, formulas and sources — traceable for every figure on the site."
+            />
+          </div>
           <nav className="methodik-toc" aria-label={tx("Kapitel", "Chapters")}>
             <ol className="methodik-chapter-nav">
               {METHODIK_CHAPTERS.map((chapter) => (
@@ -61,16 +71,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </ol>
             </details>
           </nav>
-          <div className="methodik-main">
-            <div className="day-hero-inner methodik-hero-copy">
-          <p className="v4-kicker num">{tx("Methodik · Referenz", "Method · reference")}</p>
-          <h1 id="methodik-title" className="v4-h1">{tx("Jede Zahl auf SpeicherPilot lässt sich hier nachrechnen.", "Every figure on SpeicherPilot can be recomputed here.")}</h1>
-          <PageLead
-            de="Annahmen, Formeln und Quellen — nachvollziehbar an jeder Zahl auf der Seite."
-            en="Assumptions, formulas and sources — traceable for every figure on the site."
-          />
-            </div>
-            <div className="methodik-paper day-paper">
+          <div className="methodik-paper day-paper">
           <article>
             <section id="a-modell" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("A · Modell", "A · Model")}</h2>
@@ -459,7 +460,6 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p><Link href="/site?view=netz">{tx("Zum Standort", "To the site")}</Link></p>
             </section>
           </article>
-            </div>
           </div>
         </div>
       </section>

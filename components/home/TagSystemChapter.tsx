@@ -28,6 +28,8 @@ export function TagSystemChapter({
   const absorbed = dayRow?.absorbedGwh ?? record.absorbedGwh;
   const surplus = record.surplusGwh;
   const hasSurplus = surplus >= 0.05;
+  const sharePct =
+    hasSurplus && surplus > 0 ? Math.round((absorbed / surplus) * 100) : Math.round((factor?.absorbedShare ?? 0) * 100);
   const socEnd = dayRow?.socEndFraction ?? factor?.socSeries.find((s) => s.dateBerlin === dayKey)?.socFraction;
   const socPct = socEnd != null ? Math.round(socEnd * 100) : null;
   const priceLine =
@@ -44,11 +46,10 @@ export function TagSystemChapter({
         </h2>
         {hasSurplus ? (
           <>
-            <p className="v4-tag-kern num">{formatQuantity(absorbed, "de", 1)} GWh</p>
+            <p className="v4-system-pct num v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
             <p className="v4-tag-side">
-              hätte die heutige Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW,{" "}
-              {formatQuantity(fleetEnergyGwh, "de", 2)} GWh) aus dem Überschuss von{" "}
-              {formatQuantity(surplus, "de", 1)} GWh aufgenommen.{" "}
+              des Überschusses hätte die heutige Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW,{" "}
+              {formatQuantity(fleetEnergyGwh, "de", 2)} GWh) bei ×1 aufgenommen.{" "}
               <span className="v4-chip num">Modellschätzung</span>
             </p>
             {socPct != null ? (
@@ -57,13 +58,12 @@ export function TagSystemChapter({
           </>
         ) : (
           <>
-            <p className="v4-tag-kern">Kein Überschuss</p>
+            <p className="v4-tag-kern num">{formatQuantity(fleetEnergyGwh, "de", 2)} GWh</p>
             <p className="v4-tag-side">
-              An diesem Tag blieb keine überschüssige Wind- und Solarstrom-Menge zum Laden.{" "}
-              {tagLastSurplusLine(lastSurplusKey)}{" "}
+              standen bereit, im Modell nichts zu laden. {tagLastSurplusLine(lastSurplusKey)}{" "}
               {lastSurplusKey ? (
-                <Link href={`/tag/${lastSurplusKey}`} className="v4-text-link">
-                  Tag ansehen →
+                <Link href={`/tag/${lastSurplusKey}`} className="v4-chapter-next-link">
+                  Letzter Überschusstag →
                 </Link>
               ) : null}
             </p>
@@ -75,8 +75,8 @@ export function TagSystemChapter({
           </p>
         ) : null}
       </div>
-      <p className="v4-chapter-foot v4-content num">
-        <Link href="/ort?sicht=projekt" className="v4-text-link">
+      <p className="v4-chapter-foot v4-content">
+        <Link href="/ort?sicht=projekt" className="v4-chapter-next-link">
           03 · Ort — Speicher am Anschluss →
         </Link>
       </p>

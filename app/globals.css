@@ -3838,7 +3838,7 @@ html:not(.dark) .day-story .day-ink-arc {
 
 .site-testnetz {
   margin-top: 24px;
-  border-radius: 12px;
+  border-radius: 0;
   background: transparent;
 }
 
@@ -5147,7 +5147,7 @@ html:not(.dark) .szen-disclaimer {
   margin: 0;
   padding: 16px;
   border: 1px solid rgb(20 24 28 / 14%);
-  border-radius: 16px;
+  border-radius: 0;
   background: #fff;
   color: #14181c;
 }
@@ -7975,5 +7975,173 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 
 .v4-subpage .blog-prose .blog-callout {
   border-left-color: var(--v4-warm);
+}
+
+/* R3 — Ort column, netz cards, legal, news, methodik, lücke overlays */
+.ort-v4-page {
+  box-sizing: border-box;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+@media (min-width: 768px) {
+  .ort-v4-page {
+    padding-inline: 44px;
+  }
+}
+
+.ort-v4-page .ort-v4-copy,
+.ort-v4-page .ort-calc-wrap {
+  padding-inline: 0;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.ort-v4-page .day-hero-inner {
+  max-width: none;
+  margin-inline: 0;
+}
+
+.ort-v4-page .szen-card,
+.ort-v4-page .site-testnetz.day-paper {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ort-v4-page .szen-card-a,
+.ort-v4-page .szen-card-b,
+.ort-v4-page .szen-card-c {
+  border-radius: 0;
+}
+
+.v4-subpage .legal-doc {
+  padding-inline: 0;
+}
+
+.v4-subpage .beitraege-extern .news-sheet.day-paper {
+  padding-inline: 0;
+  background: transparent;
+}
+
+.v4-subpage .beitraege-extern .news-v2 .news-sheet .is-new .news-title {
+  font-size: clamp(1.125rem, 6vw, 1.75rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.v4-subpage .beitraege-extern .is-new .news-row {
+  padding-left: 12px;
+}
+
+.v4-subpage .beitraege-extern .is-new .news-row::before {
+  width: 1px;
+  border-radius: 0;
+  background: var(--linie);
+}
+
+.methodik-v4 .methodik-layout {
+  display: grid;
+  gap: 28px;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: 0;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "hero"
+    "toc"
+    "paper";
+}
+
+.methodik-v4 .methodik-hero-copy {
+  grid-area: hero;
+}
+
+.methodik-v4 .methodik-toc {
+  grid-area: toc;
+}
+
+.methodik-v4 .methodik-paper {
+  grid-area: paper;
+}
+
+@media (min-width: 960px) {
+  .methodik-v4 .methodik-layout {
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-areas:
+      "toc hero"
+      "toc paper";
+  }
+}
+
+@media (max-width: 959px) {
+  .methodik-v4 .methodik-chapter-nav {
+    display: none;
+  }
+
+  .methodik-v4 .methodik-chapter-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+.v4-luecke-svg-shell {
+  position: relative;
+}
+
+.v4-luecke-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.v4-luecke-overlay-label {
+  position: absolute;
+  transform: translate(-4%, -100%);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: hsl(var(--foreground));
+  max-width: 42%;
+}
+
+.v4-luecke-overlay-ws {
+  transform: translate(0, -50%);
+}
+
+.v4-luecke-overlay-gap {
+  transform: translate(-10%, -50%);
+}
+
+.v4-luecke-figure.is-compact .v4-luecke-mobile-meta {
+  display: none;
+}
+
+.v4-chapter-next-link {
+  font-family: var(--font-space-grotesk), ui-sans-serif, sans-serif;
+  font-size: 1rem;
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.v4-chapter-foot .v4-chapter-next-link {
+  font-size: 1.05rem;
+}
+
+.v4-subpage .blog-figure-title img {
+  background: var(--bg);
 }
 

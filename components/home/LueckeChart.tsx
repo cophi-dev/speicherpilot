@@ -49,6 +49,9 @@ function buildGeometry(
       peakYWs: 0,
       plotTop: frame.pad.top,
       plotBottom: frame.pad.top + plotH,
+      labelLoad: { x: 0, y: 0 },
+      labelWs: { x: 0, y: 0 },
+      labelGap: { x: 0, y: 0 },
     };
   }
   const x = (i: number) => frame.pad.left + (i / Math.max(1, slots.length - 1)) * plotW;
@@ -101,6 +104,9 @@ function buildGeometry(
     peakYWs: y(slotGw(peakSlot).ws),
     plotTop: frame.pad.top,
     plotBottom: frame.pad.top + plotH,
+    labelLoad: { x: frame.pad.left + plotW * 0.34, y: frame.pad.top + 14 },
+    labelWs: { x: frame.pad.left + plotW * 0.16, y: frame.pad.top + plotH * 0.58 },
+    labelGap: { x: frame.pad.left + plotW * 0.52, y: frame.pad.top + plotH * 0.4 },
   };
 }
 
@@ -142,8 +148,7 @@ export function LueckeChart({
   const peakLabel =
     peakGw !== null ? `${formatQuantity(peakGw, "de", 1).replace(/\s/g, "")} GW` : "—";
   const peakTimeLabel = peakAt !== null ? `${peakLabel} · ${peakAt} Uhr` : peakLabel;
-  const peakCaption =
-    peakAt !== null ? `Abendspitze der Residuallast, ${peakAt} Uhr` : "Abendspitze der Residuallast";
+  const peakCaption = "Abendspitze der Residuallast";
 
   const labelInsideSvg = !compact && peakGw !== null && geometry.peakYLoad > frame.pad.top + 72;
   const hours = [0, 6, 12, 18, 24];
@@ -153,6 +158,37 @@ export function LueckeChart({
   return (
     <figure className={`v4-luecke-figure ${compact ? "is-compact" : ""}`}>
       <div ref={shellRef} className="v4-luecke-svg-shell">
+        {compact ? (
+          <div className="v4-luecke-overlay" aria-hidden="true">
+            <span
+              className="v4-luecke-overlay-label"
+              style={{
+                left: `${(geometry.labelLoad.x / frame.w) * 100}%`,
+                top: `${(geometry.labelLoad.y / frame.h) * 100}%`,
+              }}
+            >
+              Verbrauch
+            </span>
+            <span
+              className="v4-luecke-overlay-label v4-luecke-overlay-ws"
+              style={{
+                left: `${(geometry.labelWs.x / frame.w) * 100}%`,
+                top: `${(geometry.labelWs.y / frame.h) * 100}%`,
+              }}
+            >
+              Wind und Sonne
+            </span>
+            <span
+              className="v4-luecke-overlay-label v4-luecke-overlay-gap"
+              style={{
+                left: `${(geometry.labelGap.x / frame.w) * 100}%`,
+                top: `${(geometry.labelGap.y / frame.h) * 100}%`,
+              }}
+            >
+              andere Quellen
+            </span>
+          </div>
+        ) : null}
         <svg
           className="v4-luecke-chart"
           viewBox={`0 0 ${frame.w} ${frame.h}`}
@@ -236,21 +272,14 @@ export function LueckeChart({
             </>
           ) : null}
         </svg>
-      </div>
-      {compact ? (
-        <div className="v4-luecke-mobile-meta">
-          <div className="v4-luecke-mobile-legend" aria-hidden="true">
-            <span>Verbrauch</span>
-            <span>Wind und Sonne</span>
-            <span>andere Quellen</span>
-          </div>
+        {compact ? (
           <div className="v4-luecke-mobile-axis num" aria-hidden="true">
             {hours.map((h) => (
               <span key={h}>{String(h).padStart(2, "0")}</span>
             ))}
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
       {peakGw !== null && (!labelInsideSvg || compact) ? (
         <figcaption className="v4-luecke-peak-banner num">
           <span className="v4-luecke-peak-banner-value">{peakTimeLabel}</span>

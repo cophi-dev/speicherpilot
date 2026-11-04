@@ -27,9 +27,9 @@ function kicker(view: Perspective, scenario: ScenarioId): string {
 
 export function OrtServerShell({ view, scenario }: { view: Perspective; scenario: ScenarioId }) {
   return (
-    <div className="site-v2 v4-subpage ort-v4">
+    <div className="site-v2 ort-hero-shell">
       <section className="v4-subpage-hero ort-hero" aria-labelledby="site-hero-title">
-        <div className="v4-content">
+        <div className="ort-v4-copy">
           <p className="v4-kicker num">03 · Der Ort</p>
           <p className="page-lead v4-subline">
             Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze
