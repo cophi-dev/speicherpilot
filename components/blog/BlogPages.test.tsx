@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { BlogArticle } from "@/components/blog/BlogArticle";
 import { BlogIndex } from "@/components/blog/BlogIndex";
 import { BLOG_FIGURES } from "@/content/blog/figures";
-import { getBlogPost, getBlogPosts, readingLabel } from "@/content/blog/posts";
+import { getBlogPost, getBlogPosts } from "@/content/blog/posts";
 
 const post = getBlogPost("warum-grossspeicher-das-netz-flexibler-machen");
 
@@ -13,14 +13,15 @@ describe("blog pages", () => {
   }
   const article = post;
 
-  it("lists the article with its date, reading time and title image", () => {
+  it("lists articles newest first with dates and hero images", () => {
     render(<BlogIndex posts={getBlogPosts()} />);
     expect(screen.getByRole("heading", { level: 1, name: "Blog" })).toBeInTheDocument();
-    const title = screen.getByRole("link", { name: article.title });
-    expect(title).toHaveAttribute("href", `/blog/${article.slug}`);
-    expect(screen.getByText(article.description)).toBeInTheDocument();
+    const links = screen.getAllByRole("link").filter((link) => link.getAttribute("href")?.startsWith("/blog/"));
+    expect(links[0]).toHaveAttribute("href", "/blog/wann-der-speicher-laden-will");
+    expect(links[1]).toHaveAttribute("href", `/blog/${article.slug}`);
+    expect(screen.getByText("04.11.2026")).toBeInTheDocument();
     expect(screen.getByText("28.10.2026")).toBeInTheDocument();
-    expect(screen.getByText(readingLabel(article.readingMinutes))).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: BLOG_FIGURES.a2.alt })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: BLOG_FIGURES.a1.alt })).toBeInTheDocument();
   });
 
@@ -84,5 +85,24 @@ describe("blog pages", () => {
     expect(screen.getByRole("columnheader", { name: "Quelle" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Stand" })).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Link" })).toBeNull();
+  });
+});
+
+describe("blog article wann-der-speicher-laden-will", () => {
+  const article = getBlogPost("wann-der-speicher-laden-will");
+  if (!article) {
+    throw new Error("missing post");
+  }
+
+  it("renders wording, hero figure and sources without share controls", () => {
+    render(<BlogArticle post={article} />);
+    expect(screen.getByRole("heading", { level: 1, name: article.title })).toBeInTheDocument();
+    expect(screen.getByText(/Stand der Zahlen und Rechtslage: 04\.11\.2026/)).toBeInTheDocument();
+    expect(screen.getByText(/218,62 Euro pro Megawattstunde/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Was dieser Beitrag vereinfacht" })).toBeInTheDocument();
+    expect(screen.queryByText(/Welche Gegenfrage ein Profi stellen würde/)).toBeNull();
+    expect(screen.getByRole("img", { name: BLOG_FIGURES.a2.alt })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /teilen|share/i })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Abbildung, seitlich wischen" })).toBeNull();
   });
 });

@@ -34,7 +34,10 @@ describe("blog posts", () => {
   );
 
   it("publishes the first article from the markdown, with every citation pointing at a source", () => {
-    expect(posts.map((entry) => entry.slug)).toEqual([SLUG]);
+    expect(posts.map((entry) => entry.slug)).toEqual([
+      "wann-der-speicher-laden-will",
+      SLUG,
+    ]);
     expect(post).toBeDefined();
     if (!post) {
       return;
@@ -76,7 +79,11 @@ describe("blog posts", () => {
           return block.items.map((item) => inlineText(item));
         }
         if (block.type === "callout") {
-          return [block.title, ...block.items.map((item) => inlineText(item)), inlineText(block.question)];
+          return [
+            block.title,
+            ...block.items.map((item) => inlineText(item)),
+            ...(block.question ? [inlineText(block.question)] : []),
+          ];
         }
         if (block.type === "sources") {
           return [
@@ -99,6 +106,27 @@ describe("blog posts", () => {
         continue;
       }
       expect(rendered).toContain(text);
+    }
+  });
+});
+
+describe("blog post wann-der-speicher-laden-will", () => {
+  const SLUG2 = "wann-der-speicher-laden-will";
+  const post2 = getBlogPost(SLUG2);
+  const markdown2 = fs.readFileSync(path.join(process.cwd(), "content/blog", `${SLUG2}.md`), "utf8");
+
+  it("loads from markdown with citations and sources", () => {
+    expect(post2).toBeDefined();
+    if (!post2) {
+      return;
+    }
+    expect(post2.publishedLabel).toBe("04.11.2026");
+    expect(post2.standLine.startsWith("Stand der Zahlen und Rechtslage: 04.11.2026")).toBe(true);
+    expect(post2.sources.map((row) => row.id)).toEqual(Array.from({ length: 11 }, (_, index) => `Q${index + 1}`));
+    const known = new Set(post2.sources.map((row) => row.id));
+    const cited = [...markdown2.matchAll(/\[(Q\d+(?:\s*,\s*Q\d+)*)\]/g)].flatMap((match) => match[1].split(/\s*,\s*/));
+    for (const id of cited) {
+      expect(known.has(id)).toBe(true);
     }
   });
 });
