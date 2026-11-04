@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import rawArchetypes from "@/data/ort/ort-archetypes.json";
 
 import {
   ortArchetypesFileSchema,
@@ -9,16 +8,13 @@ import {
   type OrtMode,
 } from "@/lib/ortArchetypesSchema";
 
-const PATH = join(process.cwd(), "data", "ort", "ort-archetypes.json");
-
 let cached: OrtArchetypesFile | null = null;
 
 export function loadOrtArchetypes(): OrtArchetypesFile {
   if (cached) {
     return cached;
   }
-  const raw = JSON.parse(readFileSync(PATH, "utf8"));
-  cached = ortArchetypesFileSchema.parse(raw);
+  cached = ortArchetypesFileSchema.parse(rawArchetypes);
   return cached;
 }
 

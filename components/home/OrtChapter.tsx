@@ -3,41 +3,44 @@
 import Link from "next/link";
 import { useMemo } from "react";
 
-import { supermarketTeachingDay } from "@/lib/peakShavingExplain";
 import { formatQuantity } from "@/lib/formatQuantity";
-import { HAMBURG_SUPERMARKET } from "@/lib/hamburgSupermarket";
+import { ladeparkConnectionKw, ladeparkMaxKw, planLadepark } from "@/lib/ladepark";
+import { storyFromPlan } from "@/lib/siteConnectionDay";
 
 const W = 1152;
 const H = 240;
 const PAD = { top: 16, right: 48, bottom: 36, left: 40 };
 
 export function OrtChapter() {
-  const teach = useMemo(() => supermarketTeachingDay(), []);
-  const peakBefore = Math.round(teach.peakBeforeKw);
-  const peakAfter = Math.round(teach.peakAfterKw);
-  const limit = teach.limitKw;
-  const peakHour = teach.peakHour;
+  const { plan, connectionKw } = useMemo(() => {
+    const econ = planLadepark(4);
+    return { plan: econ.plan, connectionKw: econ.connectionKw };
+  }, []);
+  const story = useMemo(() => storyFromPlan(plan, connectionKw, plan.assumptions.roundTripEfficiency), [plan, connectionKw]);
+  const peakBefore = Math.round(story.peakBeforeKw);
+  const peakAfter = Math.round(story.peakAfterKw);
+  const limit = connectionKw;
 
-  const { path, overPath, peakX, peakY } = useMemo(() => {
+  const chart = useMemo(() => {
     const plotW = W - PAD.left - PAD.right;
     const plotH = H - PAD.top - PAD.bottom;
-    const yMax = 125;
-    const pts = teach.quarters;
+    const yMax = ladeparkMaxKw(4) * 1.05;
+    const pts = story.points;
     const x = (i: number) => PAD.left + (i / (pts.length - 1)) * plotW;
     const y = (kw: number) => PAD.top + plotH - (kw / yMax) * plotH;
     const loadPath = pts
-      .map((q, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(q.loadKw).toFixed(1)}`)
+      .map((q, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(q.ohneKw).toFixed(1)}`)
       .join(" ");
     let maxLoad = 0;
     let maxI = 0;
     const overParts: string[] = [];
     pts.forEach((q, i) => {
-      if (q.loadKw > limit) {
-        overParts.push(`${overParts.length ? "L" : "M"} ${x(i).toFixed(1)} ${y(q.loadKw).toFixed(1)}`);
+      if (q.ohneKw > limit) {
+        overParts.push(`${overParts.length ? "L" : "M"} ${x(i).toFixed(1)} ${y(q.ohneKw).toFixed(1)}`);
         overParts.push(`L ${x(i).toFixed(1)} ${y(limit).toFixed(1)}`);
       }
-      if (q.loadKw > maxLoad) {
-        maxLoad = q.loadKw;
+      if (q.ohneKw > maxLoad) {
+        maxLoad = q.ohneKw;
         maxI = i;
       }
     });
@@ -46,10 +49,11 @@ export function OrtChapter() {
       overPath: overParts.join(" "),
       peakX: x(maxI),
       peakY: y(maxLoad),
+      yMax,
     };
-  }, [teach.quarters, limit]);
+  }, [story.points, limit]);
 
-  const limitY = PAD.top + (H - PAD.top - PAD.bottom) - (limit / 125) * (H - PAD.top - PAD.bottom);
+  const limitY = PAD.top + (H - PAD.top - PAD.bottom) - (limit / chart.yMax) * (H - PAD.top - PAD.bottom);
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-ort">
@@ -63,7 +67,7 @@ export function OrtChapter() {
             {formatQuantity(peakBefore, "de", 0)} → {formatQuantity(peakAfter, "de", 0)} kW
           </p>
           <p className="v4-ort-side">
-            Spitze eines Supermarkts, {formatQuantity(limit, "de", 0)} kW Anschluss.{" "}
+            Schnellladepark S, {formatQuantity(limit, "de", 0)} kW Anschluss.{" "}
             <span className="v4-chip num">Beispieldaten</span>
           </p>
         </div>
@@ -71,38 +75,30 @@ export function OrtChapter() {
       <ol className="v4-st-steps v4-content">
         <li>
           <span className="v4-st-num num">01</span>
-          <p>Gegen {formatQuantity(Math.floor(peakHour), "de", 0)}:{peakHour % 1 >= 0.5 ? "30" : "00"} Uhr braucht der Markt {formatQuantity(peakBefore, "de", 0)} kW.</p>
+          <p>
+            Spitze {formatQuantity(ladeparkMaxKw(4), "de", 0)} kW gegen Anschluss {formatQuantity(limit, "de", 0)} kW.
+          </p>
         </li>
         <li>
           <span className="v4-st-num num">02</span>
-          <p>Der Anschluss lässt {formatQuantity(limit, "de", 0)} kW zu.</p>
+          <p>Der Speicher nimmt die Spitze.</p>
         </li>
         <li>
           <span className="v4-st-num num">03</span>
           <p>
-            Ein Speicher mit {formatQuantity(HAMBURG_SUPERMARKET.powerKw, "de", 0)} kW und{" "}
-            {formatQuantity(HAMBURG_SUPERMARKET.energyKwh, "de", 0)} kWh gibt die{" "}
-            {formatQuantity(peakBefore - limit, "de", 0)} kW darüber ab. Die Spitze bleibt bei{" "}
-            {formatQuantity(limit, "de", 0)} kW (Modell).
+            Benutzungsdauer und Netzentgelt — <span className="v4-chip num">Modellschätzung</span>.
           </p>
         </li>
       </ol>
       <div className="v4-content v4-ort-chart-wrap">
-        <svg className="v4-ort-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Lastgang Supermarkt und Anschlussgrenze">
-          <line
-            x1={PAD.left}
-            x2={W - PAD.right}
-            y1={limitY}
-            y2={limitY}
-            className="v4-ort-limit"
-            strokeDasharray="4 4"
-          />
+        <svg className="v4-ort-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Lastgang Ladepark und Anschlussgrenze">
+          <line x1={PAD.left} x2={W - PAD.right} y1={limitY} y2={limitY} className="v4-ort-limit" strokeDasharray="4 4" />
           <text x={W - PAD.right} y={limitY - 6} textAnchor="end" className="v4-ort-limit-label num">
             Anschluss {formatQuantity(limit, "de", 0)} kW
           </text>
-          <path d={overPath} className="v4-ort-over" />
-          <path d={path} className="v4-ort-line" fill="none" />
-          <text x={peakX + 8} y={peakY} className="v4-ort-peak-label num">
+          <path d={chart.overPath} className="v4-ort-over" />
+          <path d={chart.path} className="v4-ort-line" fill="none" />
+          <text x={chart.peakX + 8} y={chart.peakY} className="v4-ort-peak-label num">
             {formatQuantity(peakBefore, "de", 0)} kW
           </text>
           {[0, 12, 24].map((h) => {
@@ -121,7 +117,7 @@ export function OrtChapter() {
           <span className="v4-door-label num">→</span>
         </Link>
         <Link href="/ort?sicht=netz" className="v4-door">
-          <span className="v4-door-title">Ort prüfen</span>
+          <span className="v4-door-title">Netzwirkung am Ort</span>
           <span className="v4-door-label num">Netz</span>
         </Link>
       </div>

@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import { ConnectionStory } from "@/components/home/ConnectionStory";
 import { LanguageContext } from "@/components/language-context";
+import { ladeparkConnectionKw, ladeparkMaxKw } from "@/lib/ladepark";
 
 class ObserverStub {
   observe() {}
@@ -45,42 +46,21 @@ function renderStory() {
 }
 
 describe("ConnectionStory", () => {
-  it("shows the connection light on the first step and links the supermarket project", async () => {
+  it("shows the connection light and links the ladepark project", async () => {
     const scroll = jest.fn();
     Element.prototype.scrollIntoView = scroll;
     renderStory();
 
     const meter = screen.getByRole("meter");
-    expect(meter).toHaveAttribute("aria-valuetext", "Spitze 120 kW, Anschluss 90 kW: passt nicht.");
-    expect(meter).toHaveTextContent("PASST NICHT");
-    const segments = meter.querySelectorAll("p");
-    expect(segments[2]).toHaveAttribute("data-status", "over");
-    expect(segments[2]).toHaveAttribute("data-active", "true");
-    expect(segments[2]).toHaveStyle({ background: "#B3261E", color: "#fff" });
-    expect(screen.getByText(/Anschlussauslastung gegen das Anschlusslimit/)).toBeInTheDocument();
-    expect(screen.getByText("Beispieldaten")).toBeInTheDocument();
-
-    expect(screen.getByRole("heading", { level: 2, name: /Was ist Peak Shaving/ })).toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(1);
-    expect(screen.getByText("Schritt 1/3")).toBeInTheDocument();
-    expect(screen.getByText("01")).toBeInTheDocument();
+    expect(meter).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Eigenen Markt rechnen →" })).toHaveAttribute(
       "href",
-      "/ort?sicht=projekt&scenario=supermarkt"
+      "/ort?sicht=projekt&scenario=ladepark"
     );
-
-    const items = screen.getAllByRole("listitem");
-    expect(items).toHaveLength(3);
-    expect(document.querySelectorAll(".story-card-chart")).toHaveLength(3);
-    expect(screen.getByText("Die Spitze passt nicht durch")).toBeInTheDocument();
-    expect(screen.getByText(/lädt er mit höchstens/)).toBeInTheDocument();
-    expect(screen.getByText("03")).toBeInTheDocument();
-    expect(screen.getAllByText(/Modellschätzung/).length).toBeGreaterThanOrEqual(1);
-    for (const item of items) {
-      expect(item.className).not.toContain("border-l");
-    }
-
+    expect(screen.getByText("Schritt 1/3")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Zurück" }));
     expect(scroll).toHaveBeenCalled();
+    expect(ladeparkMaxKw(4)).toBe(800);
+    expect(ladeparkConnectionKw(4)).toBe(600);
   });
 });

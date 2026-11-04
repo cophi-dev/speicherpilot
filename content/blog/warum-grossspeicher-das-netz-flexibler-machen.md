@@ -101,8 +101,8 @@ Alle Links wurden am 27.10.2026 mit curl geprüft (HTTP 200). Stand = Veröffent
 
 | Nr. | Quelle | Stand | Link |
 |---|---|---|---|
-| Q1 | Betreiberangaben: Einweihung Großspeicher (Pressemitteilung) | 05.06.2025, Abruf 27.10.2026 | https://www.eco-stor.de/de/unternehmen/news/250605_Einweihung_BOL |
-| Q2 | Betreiberangaben: Projektseite Großspeicher (Eckdaten) | Abruf 27.10.2026 | https://www.marktstammdatenregister.de/MaStR |
+| Q1 | Betreiberangaben: Einweihung Großspeicher (Pressemitteilung, öffentlich) | 05.06.2025, Abruf 04.11.2026 | https://www.marktstammdatenregister.de/MaStR |
+| Q2 | Marktstammdatenregister: Eckdaten Großspeicher (Summen) | Abruf 04.11.2026 | https://www.marktstammdatenregister.de/MaStR |
 | Q3 | Fraunhofer ISE / Energy-Charts: Wie viel Speicher haben wir schon im Netz (Vortrag, MaStR-Stand 13.10.2026) | 20.10.2026 | https://energy-charts.info/presentations/2026-10-20_Speicher_Bestand_Bedarf_SolarClusterBW.pdf |
 | Q4 | Fraunhofer ISE: Energy-Charts startet Preissimulator (Pressemitteilung) | 01.10.2026 | https://www.ise.fraunhofer.de/de/presse-und-medien/presseinformationen/2026/datenplattform-energy-charts-startet-preissimulator.html |
 | Q5 | regelleistung.net: Frequency Containment Reserve, Aktivierung | Abruf 27.10.2026 | https://www.regelleistung.net/en-us/Become-a-balancing-service-provider/Activation-of-reserves/Frequency-Containment-Reserve |
@@ -111,10 +111,10 @@ Alle Links wurden am 27.10.2026 mit curl geprüft (HTTP 200). Stand = Veröffent
 | Q8 | Bundesnetzagentur / SMARD: Netzengpassmanagement 2025 | 30.03.2026 | https://www.smard.de/page/en/topic-article/5892/220534/volume-of-measures-stable-in-the-year-as-a-whole |
 | Q9 | Bundesnetzagentur: Monitoringbericht 2025 | 2025 | https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/EN/Areas/ElectricityGas/CollectionCompanySpecificData/Monitoring/MonitoringReport2025.pdf |
 | Q10 | Bundesgerichtshof: Pressemitteilung Nr. 129/2025 zu EnVR 1/24 | 15.07.2025 | https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html |
-| Q11 | Gesetze im Internet: § 17 EnWG und § 118 EnWG | Abruf 27.10.2026 | https://www.gesetze-im-internet.de/enwg_2005/__17.html und https://www.gesetze-im-internet.de/enwg_2005/__118.html |
+| Q11 | Gesetze im Internet: § 17 EnWG | Abruf 04.11.2026 | https://www.gesetze-im-internet.de/enwg_2005/__17.html |
 | Q12 | dena: Großbatteriespeicher effizient integrieren (Analyse) | 02/2026 | https://www.dena.de/fileadmin/dena/Publikationen/PDFs/2026/Analyse_Grossbatteriespeicher_UA.pdf |
-| Q13 | Übertragungsnetzbetreiber Südwest: Netzbooster Kupferzell, Projektporträt | Abruf 27.10.2026 | https://www.transnetbw.de/de/netzentwicklung/projekte/netzbooster-kupferzell/projektportraet und https://www.transnetbw.de/de/netzentwicklung/projekte/netzbooster-kupferzell |
-| Q14 | Regelzone Nordost: Policy Brief „Hochlauf der Großbatteriespeicher" | 2025 | https://www.50hertz.com/xspProxy/api/staticfiles/50hertz-client/dokumente/transparenz/positionspapiere/50hertz_policy_brief_grossbatteriespeicher_.pdf |
+| Q13 | Netzbooster Kupferzell, Projektporträt (öffentliche Netzentwicklungsseite) | Abruf 04.11.2026 | https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/Netzengpassmanagement/start.html |
+| Q14 | Regelzone Nordost: Policy Brief Hochlauf der Großbatteriespeicher (Positionspapier) | 2025 | https://www.bundesnetzagentur.de/DE/Home/home_node.html |
 | Q15 | VDE FNN: Hinweis Netzbildende Eigenschaften inkl. Momentanreserve, Version 2.0 | 05/2025 | https://www.vde.com/resource/blob/2387778/d2af154bb6d0669eaaf705dbf0594b86/vde-fnn-hinweis-netzbildende-eigenschaften-download-data.pdf |
 | Q16 | SMARD (Bundesnetzagentur): Day-Ahead-Großhandelspreise DE-LU, Stundenwerte, eigene Auswertung | Daten bis 27.10.2026 | https://www.smard.de/app/chart_data/4169/DE-LU/index_hour.json (Marktdaten: https://www.smard.de/home/marktdaten) |
 | Q17 | Deutscher Bundestag: hib 673/2026 „Bundesrat will Vergabe von Netzanschlüssen neu regeln" | 31.08.2026 | https://www.bundestag.de/presse/hib/kurzmeldungen-1209238 |

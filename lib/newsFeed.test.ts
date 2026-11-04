@@ -12,7 +12,7 @@ describe("news feed", () => {
         url: "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27",
         headline: "Bundesnetzagentur: Keine Prüfgebühr für Netzanschlussanträge",
         teaser:
-          "Netzbetreiber dürfen für die Prüfung eines Anschlussantrags keine Gebühr verlangen, die später nicht auf das Projekt angerechnet wird. Anlass war ein Verfahren des Speicherentwicklers Mirai Power gegen TenneT.",
+          "Netzbetreiber dürfen für die Prüfung eines Anschlussantrags keine Gebühr verlangen, die später nicht auf das Projekt angerechnet wird. Anlass war ein Gerichtsverfahren eines Speicherentwicklers gegen einen Übertragungsnetzbetreiber.",
       },
     ]);
   });

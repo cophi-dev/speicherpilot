@@ -26,7 +26,6 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { REFERENCE_PARK, referenceParkCRate, referenceParkHoursAtFullPower } from "@/lib/referencePark";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile, planHamburgSupermarket } from "@/lib/hamburgSupermarket";
 import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
-import { QUARTIER, planQuartier, quartierProfile } from "@/lib/quartierExample";
 import { storyFromPlan, supermarketConnectionStory, type ConnectionPoint, type SiteConnectionStory } from "@/lib/siteConnectionDay";
 import { GRID_SUPPORT_CONFIG, parseLoadProfileCsv, planSite, type LoadProfile, type SitePlan } from "@/lib/sitePlanner";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
@@ -141,10 +140,6 @@ function exampleBundle(scenario: ScenarioId): { plan: SitePlan; profile: LoadPro
   if (scenario === "grossspeicher") {
     return null;
   }
-  if (scenario === "quartier") {
-    const plan = planQuartier();
-    return { plan, profile: quartierProfile(), story: storyFromPlan(plan, QUARTIER.transformerKw, QUARTIER.roundTripEfficiency) };
-  }
   const plan = planHamburgSupermarket();
   return { plan, profile: hamburgSupermarketProfile(), story: supermarketConnectionStory() };
 }
@@ -177,12 +172,8 @@ function ExampleHero({
   const beforeLight = connectionLight(story.peakBeforeKw, story.limitKw);
   const afterLight = connectionLight(story.peakAfterKw, story.limitKw);
   const sentence = netz
-    ? scenario === "quartier"
-      ? tx("Abends liegt die Ortsnetzstation über ihrer Planleistung. Der Speicher hält sie darunter.", "In the evening the local substation sits above its planning rating. Storage holds it under that rating.")
-      : tx("Abends will der Supermarkt mehr, als sein Anschluss hergibt. Der Speicher hält ihn darunter.", "In the evening the supermarket wants more than its connection can give. Storage holds it under that limit.")
-    : scenario === "quartier"
-      ? tx("Der Speicher an der Ortsnetzstation nimmt die Abendspitze des Quartiers auf.", "Storage at the local substation takes the neighbourhood evening peak.")
-      : tx("Eine Stunde Speicher reicht, um die Abendspitze dieses Supermarkts zu kappen.", "One hour of storage is enough to shave this supermarket’s evening peak.");
+    ? tx("Abends will der Anschluss mehr, als die Grenze hergibt. Der Speicher hält darunter.", "In the evening the connection wants more than the limit allows. Storage holds it under.")
+    : tx("Speicher am Anschluss.", "Storage at the connection.");
   const points = toRing(story.points);
   const callouts = siteCallouts(story, language, netz);
 
@@ -202,7 +193,7 @@ function ExampleHero({
               {netz ? (
                 <>
                   <Stat value={peak} unit="kW" label={tx("Spitze ohne Speicher", "Peak without storage")} />
-                  <Stat value={limit} unit="kW" label={scenario === "quartier" ? tx("Planleistung", "Planning rating") : tx("Anschlussgrenze", "Connection limit")} />
+                  <Stat value={limit} unit="kW" label={tx("Anschlussgrenze", "Connection limit")} />
                   <Stat value={hours} unit="h" label={tx("über der Grenze am Spitzentag", "over the limit on the peak day")} />
                 </>
               ) : (
@@ -227,7 +218,7 @@ function ExampleHero({
             )}
             <div className="day-cta-row">
               <a className="day-cta" href="#csv-drop">{tx("Eigenes CSV prüfen →", "Check your own CSV →")}</a>
-              <PdfLink view={view} language={language} plan={plan} profile={scenario === "quartier" ? quartierProfile() : hamburgSupermarketProfile()} />
+              <PdfLink view={view} language={language} plan={plan} profile={hamburgSupermarketProfile()} />
             </div>
             {view === "projekt" ? (
               <p className="site-quiet">
@@ -924,8 +915,8 @@ function CsvZone({
 function ExampleCards({ language, view, scenario }: { language: AppLanguage; view: Perspective; scenario: ScenarioId }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const cards: Array<{ id: ScenarioId; kicker: string; title: string; body: string }> = [
-    { id: "supermarkt", kicker: tx("Beispieldaten", "Example data"), title: tx("Supermarkt", "Supermarket"), body: tx("Fiktives Profil. Bleibt der Anschluss unter der Grenze?", "Fictional profile. Does the connection stay under the limit?") },
-    { id: "quartier", kicker: tx("Beispieldaten", "Example data"), title: tx("Quartier", "Neighbourhood"), body: tx("150 Haushalte. Hält die Ortsnetzstation ihre Planleistung?", "150 households. Does the local substation hold its planning rating?") },
+    { id: "ladepark", kicker: tx("Beispieldaten", "Example data"), title: tx("Schnellladepark", "Fast-charging hub"), body: tx("Peak und Modellschätzung.", "Peak and model estimate.") },
+    { id: "land", kicker: tx("SimBench", "SimBench"), title: tx("Ländlicher Knoten", "Rural node"), body: tx("Einspeisung mittags.", "Midday feed-in.") },
     { id: "grossspeicher", kicker: tx("Modellanker", "Model anchor"), title: tx("Großspeicher 110 kV", "110 kV large storage"), body: tx("100 MW / 230 MWh. Modelltag, nicht die echte Fahrweise.", "100 MW / 230 MWh. Model day, not the real operation.") },
   ];
   return (

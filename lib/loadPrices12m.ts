@@ -1,9 +1,4 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
-import { z } from "zod";
-
-const ROOT = join(process.cwd(), "data", "fca", "prices-12m.json");
+import pricesRaw from "@/data/fca/prices-12m.json";
 
 let cached: number[] | null = null;
 
@@ -11,7 +6,7 @@ export function loadDayAheadPrices12m(): number[] {
   if (cached) {
     return cached;
   }
-  const raw = JSON.parse(readFileSync(ROOT, "utf8")) as {
+  const raw = pricesRaw as {
     pricesEurPerMwh?: number[];
     days?: Array<{ prices: number[] }>;
   };
@@ -57,8 +52,3 @@ export function alignPricesToProfile(profileSamples: number, intervalMinutes: 15
   }
   return out.slice(0, profileSamples);
 }
-
-export const prices12mMetaSchema = z.object({
-  source: z.string().optional(),
-  start: z.string().optional(),
-});

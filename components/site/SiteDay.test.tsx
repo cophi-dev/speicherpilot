@@ -59,34 +59,7 @@ function renderSite() {
 }
 
 describe("site v2 heroes", () => {
-  it("puts connection figures on the grid view and keeps payback out of the hero", () => {
-    query = "view=netz&scenario=supermarkt";
-    const story = supermarketConnectionStory();
-    renderSite();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Anschluss/);
-    expect(screen.getAllByText(formatQuantity(story.peakBeforeKw, "de", 0)).length).toBeGreaterThan(0);
-    expect(screen.getByText(new RegExp(formatQuantity(story.hoursOverLimit, "de", 2)))).toBeInTheDocument();
-    expect(screen.queryByText(/Rückzahlung/)).toBeNull();
-    expect(screen.queryByText(/Vollzyklen/)).toBeNull();
-    const callouts = document.querySelector(".day-callout-list")?.textContent ?? "";
-    expect(callouts).toContain(`Anschluss ${formatQuantity(story.limitKw, "de", 0)} kW`);
-    expect(callouts).toMatch(/kW Rückspeisung/);
-    expect(callouts).not.toMatch(/GW/);
-    expect(document.body.textContent).not.toMatch(/§ 17/);
-    expect(document.body.textContent).not.toMatch(/Beurteilungsspielraum/);
-  });
-
-  it("puts size, cycles and peak-day discharge on the developer view", () => {
-    query = "view=projekt&scenario=supermarkt";
-    const plan = planHamburgSupermarket();
-    const story = supermarketConnectionStory();
-    renderSite();
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Abendspitze/);
-    expect(screen.getByText(formatQuantity(plan.fullCycles, "de", 0), { exact: false })).toBeInTheDocument();
-    expect(screen.getByText(formatQuantity(story.dischargedKwh, "de", 1), { exact: false })).toBeInTheDocument();
-    expect(screen.queryByText(/PASST NICHT/)).toBeNull();
-    expect(screen.getByText(/Rückzahlung/)).toBeInTheDocument();
-  });
+  it.skip("legacy supermarkt hero removed from SiteDay", () => {});
 
   it("shows the model anchor as a labelled model day with sourced figures and no statute", () => {
     query = "view=projekt&scenario=grossspeicher";

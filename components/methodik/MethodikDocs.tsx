@@ -425,6 +425,70 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 <NetzMethodik language={language} bodyOnly />
               </LazyMethodikBody>
             </MethodikSection>
+            <MethodikSection id="ort-archetypen" title={methodikSectionLabel("ort-archetypen", language)}>
+              <p>
+                {tx(
+                  "Zwei SimBench-Mittelspannungsnetze: 1-MV-rural--0-no_sw (ländlich, Wind und PV) und 1-MV-urban--0-no_sw (Stadt). Typtag = Tag mit minimaler bzw. maximaler Residuallast. Engpass = höchste Auslastung am Typtag im Normalbetrieb und im kritischen (n-1)-Ausfall mit einer besten Einzelschaltung. Speicherknoten = MS-Knoten mit größter Impedanz zum Umspannwerk auf dem Pfad zum Engpass. Netzlast 2016, Day-ahead-Preise 2025/26 — kein gemeinsames Wetter.",
+                  "Two SimBench medium-voltage grids: 1-MV-rural--0-no_sw (rural, wind and PV) and 1-MV-urban--0-no_sw (urban). Typical day = day with minimum or maximum residual load. Bottleneck = highest loading on that day in normal operation and in the critical (n-1) outage with one best tie switch. Storage node = MV bus with largest impedance to the substation on the path to the bottleneck. Grid load 2016, day-ahead prices 2025/26 — not shared weather.",
+                )}
+              </p>
+            </MethodikSection>
+            <MethodikSection id="fahrweisen" title={methodikSectionLabel("fahrweisen", language)}>
+              <p>
+                {tx(
+                  "Drei lineare Programme auf dem Preis-Tag: Markt maximiert Σ p·(d−c)·Δt mit getrennten Obergrenzen für Laden und Entladen; Markt + flexibler Vertrag begrenzt in Fenster W die kritische Richtung auf X; netzorientiert minimiert z ≥ s·(f+c−d). η_rt = 0,85, SoC 10–90 %, perfekte Day-ahead-Voraussicht, kein Intraday.",
+                  "Three linear programmes on the price day: market maximises Σ p·(d−c)·Δt with separate charge and discharge caps; market + flexible contract limits the critical direction to X in window W; grid-oriented minimises z ≥ s·(f+c−d). η_rt = 0.85, SoC 10–90%, perfect day-ahead foresight, no intraday.",
+                )}
+              </p>
+            </MethodikSection>
+            <MethodikSection id="fest-flexibel" title={methodikSectionLabel("fest-flexibel", language)}>
+              <p>
+                {tx(
+                  "X = größte Leistung, bei der Normalbetrieb und alle (n-1)-Ausfälle halten (BAND_N1, Auslastung ≤ 100 %). Y = größte Leistung im Normalbetrieb (BAND). Bisektion 0,1 MW. § 17 Abs. 2b EnWG: getrennte Grenzen für Bezug und Einspeisung.",
+                  "X = largest power where normal operation and all (n-1) outages hold (BAND_N1, loading ≤ 100%). Y = largest power in normal operation (BAND). Bisection 0.1 MW. Section 17 (2b) EnWG: separate limits for withdrawal and feed-in.",
+                )}
+              </p>
+            </MethodikSection>
+            <MethodikSection id="netzdienlich-v2" title={methodikSectionLabel("netzdienlich-v2", language)}>
+              <p>
+                {tx(
+                  "Badge v2 auf kritischer Menge C (L0_n1 oder L1_n1 ≥ 90 %): belastend wenn L1_n1 > 100 % und steigt; netzdienlich wenn Entlastungsintegral > 0 und max L1 ≤ max L0. v1 am Anschluss heißt „Anschluss-Auslastung“ und ersetzt keine netzdienliche Beurteilung (BGH EnVR 1/24).",
+                  "Badge v2 on critical set C (L0_n1 or L1_n1 ≥ 90%): burdensome if L1_n1 > 100% and rises; grid-supportive if relief integral > 0 and max L1 ≤ max L0. v1 at the connection is “connection loading” and does not replace a grid-support finding (BGH EnVR 1/24).",
+                )}
+              </p>
+            </MethodikSection>
+            <MethodikSection id="konfliktviertelstunden" title={methodikSectionLabel("konfliktviertelstunden", language)}>
+              <p>
+                {tx(
+                  "Maske M(Monat, Stunde) aus SimBench-Proxy ≥ 80 % des Jahresextrems an ≥ 10 % der Tage. Konflikt = Markt-LP entlädt (land) bzw. lädt (stadt) in M. Ergebnisse stehen in data/ort/ort-archetypes.json.",
+                  "Mask M(month, hour) from SimBench proxy ≥ 80% of annual extreme on ≥ 10% of days. Conflict = market LP discharges (rural) or charges (urban) in M. Results are in data/ort/ort-archetypes.json.",
+                )}
+              </p>
+            </MethodikSection>
+            <MethodikSection id="vergabe" title={methodikSectionLabel("vergabe", language)}>
+              <p>
+                {tx(
+                  "Generisches Modell: Windhund in Eingangsreihenfolge vs. geordnete Vergabe mit Planungsreife — ohne Bezug zu einem konkreten Netzbetreiberverfahren.",
+                  "Generic model: first-come vs. ordered allocation with planning maturity — not tied to any specific grid-operator procedure.",
+                )}
+              </p>
+            </MethodikSection>
+            <MethodikSection id="ladepark" title={methodikSectionLabel("ladepark", language)}>
+              <p>
+                {tx(
+                  "Schnellladepark nach Deutschlandnetz (NLL/NOW): 4/8/12/16 Ladepunkte à ≥ 200 kW, Gleichzeitigkeit 1 am Anschluss. Profil synthetisch, 120 MWh/a je Ladepunkt, Bestandsanschluss 0,75·P_max. CAPEX-Annahme 500 €/kWh.",
+                  "Fast-charging hub per Germany network (NLL/NOW): 4/8/12/16 points at ≥ 200 kW, simultaneity 1 at the connection. Profile synthetic, 120 MWh/a per point, existing connection 0.75·P_max. CAPEX assumption €500/kWh.",
+                )}
+              </p>
+            </MethodikSection>
+            <MethodikSection id="netzentgelt-benutzungsdauer" title={methodikSectionLabel("netzentgelt-benutzungsdauer", language)}>
+              <p>
+                {tx(
+                  "§ 17 StromNEV, Anlage 4: Benutzungsdauer T = W/P_max, Gleichzeitigkeitsfunktion mit Knick bei 2.500 h, Modell-Preisblatt MS K = 250 €/kW·a (± 30 % Unsicherheit). Nicht modelliert: § 19 Abs. 2, BKZ, AgNes.",
+                  "Section 17 StromNEV, annex 4: utilisation T = W/P_max, coincidence function with kink at 2,500 h, model MS sheet K = €250/kW·a (± 30% uncertainty). Not modelled: section 19 (2), connection charges, AgNes.",
+                )}
+              </p>
+            </MethodikSection>
             <span id="beispiele" className="sr-only" aria-hidden="true" />
             <span id="quartier" className="sr-only" aria-hidden="true" />
             </section>

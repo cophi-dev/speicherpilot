@@ -130,10 +130,10 @@ export function SiteConnectionSim({ view }: { view: Perspective }) {
         )}
       </p>
       <div className="sim-seg" role="group" aria-label={tx("Perspektive", "Perspective")}>
-        <Link href={sitePath("projekt", "supermarkt")} aria-current={view === "projekt" ? "page" : undefined} className={view === "projekt" ? "on" : undefined}>
+        <Link href={sitePath("projekt", "ladepark")} aria-current={view === "projekt" ? "page" : undefined} className={view === "projekt" ? "on" : undefined}>
           {tx("Entwickler", "Developer")} <em>{tx("Größe · Spitze", "Size · peak")}</em>
         </Link>
-        <Link href={sitePath("netz", "supermarkt")} aria-current={view === "netz" ? "page" : undefined} className={view === "netz" ? "on" : undefined}>
+        <Link href={sitePath("netz", "land")} aria-current={view === "netz" ? "page" : undefined} className={view === "netz" ? "on" : undefined}>
           {tx("Netzbetreiber", "Grid operator")} <em>{tx("Anschluss · Netzlast", "Connection · grid load")}</em>
         </Link>
       </div>
