@@ -4,14 +4,18 @@ import Link from "next/link";
 import { useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
+import { OrtChapter } from "@/components/home/OrtChapter";
+import { TagDayNav } from "@/components/home/TagDayNav";
+import { TagSystemChapter } from "@/components/home/TagSystemChapter";
 import { TagChapter } from "@/components/home/TagChapter";
 import { tagSurplusLine } from "@/lib/kopfTagCopy";
 import type { AuffaelligkeitResult } from "@/lib/auffaelligkeit";
-import { kopfMetric, type TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { kopfMetric, type TagesKennzahlRecord, weekdayLabelDe } from "@/lib/auffaelligkeit";
 import { prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { barValue, kopfHero } from "@/lib/kopfHero";
 import { formatQuantity } from "@/lib/formatQuantity";
+import type { OverviewEvaluation } from "@/lib/overviewChain";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -28,6 +32,7 @@ export function AuffaelligkeitKopf({
   result,
   records,
   kickerPrefix = "Gestern",
+  hideTagLink = false,
 }: {
   dayKey: string;
   todayKey: string;
@@ -35,6 +40,7 @@ export function AuffaelligkeitKopf({
   result: AuffaelligkeitResult;
   records: TagesKennzahlRecord[];
   kickerPrefix?: string;
+  hideTagLink?: boolean;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
   const winner = result.kind === "metric" ? kopfMetric(records, dayKey) : null;
@@ -45,9 +51,48 @@ export function AuffaelligkeitKopf({
   const isTagPage = kickerPrefix === "Tag";
   const isYesterday = dayKey === prevBerlinDateKey(todayKey);
 
-  const hero = record && winner && metricKey === winner.key ? kopfHero(record, winner) : null;
+  const seriePresentation = useMemo(() => {
+    if (result.kind !== "serie" || !record) {
+      return null;
+    }
+    const index = records.findIndex((r) => r.dateKey === dayKey);
+    const lastSurplus = [...records.slice(0, index + 1)].reverse().find((d) => d.surplusGwh >= 0.05);
+    const slice = records.slice(Math.max(0, index - 30), index + 1);
+    const bars = slice.map((r) => ({
+      dateKey: r.dateKey,
+      value: r.surplusGwh >= 0.05 ? r.surplusGwh : 0,
+      highlight: r.dateKey === dayKey,
+      record: false,
+      zero: r.surplusGwh < 0.05,
+    }));
+    return {
+      h1: `${record.dryStreak}. Tag in Folge ohne Überschuss`,
+      subline: lastSurplus
+        ? `Zuletzt war am ${weekdayLabelDe(lastSurplus.dateKey)} Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.`
+        : "Speicher hatten im Modell seitdem nichts zum Laden.",
+      hero: {
+        value: String(record.dryStreak),
+        unit: "Tage",
+        kernLabel: "ohne Überschuss",
+      },
+      bars,
+    };
+  }, [dayKey, record, records, result.kind]);
+
+  const metricHero =
+    record && winner && metricKey === winner.key && !seriePresentation ? kopfHero(record, winner) : null;
+
+  const hero = useMemo(() => {
+    if (seriePresentation) {
+      return seriePresentation.hero;
+    }
+    return metricHero;
+  }, [metricHero, seriePresentation]);
 
   const bars = useMemo(() => {
+    if (seriePresentation) {
+      return seriePresentation.bars;
+    }
     if (!metricKey) {
       return [];
     }
@@ -63,7 +108,10 @@ export function AuffaelligkeitKopf({
       const recordBar = w?.rank === 1 && w.key === metricKey && !highlight;
       return { dateKey: r.dateKey, value, highlight, record: recordBar };
     });
-  }, [dayKey, metricKey, records]);
+  }, [dayKey, metricKey, records, seriePresentation]);
+
+  const kopfH1 = seriePresentation?.h1 ?? result.kopfH1;
+  const kopfSubline = seriePresentation?.subline ?? result.kopfSubline;
 
   const priceSpreadLabel = isTagPage && !isYesterday ? `Spanne am ${dayLabel}` : "Spanne gestern";
   const priceDayLabel = isTagPage && !isYesterday ? `Börsenpreis am ${dayLabel}` : "Börsenpreis gestern";
@@ -81,17 +129,23 @@ export function AuffaelligkeitKopf({
           }
         : null;
 
+  const methodikLink = (
+    <Link href="/methodik#auffaelligkeit" className="v4-text-link">
+      Wie die Auffälligkeit gewählt wird
+    </Link>
+  );
+
   return (
     <section className="v4-kopf" aria-labelledby="auffaelligkeit-h1">
       <div className="v4-kopf-inner v4-content">
         <p className="v4-kicker num">{kicker}</p>
         <div className="v4-kopf-intro">
           <h1 id="auffaelligkeit-h1" className="v4-h1">
-            {result.kopfH1}
+            {kopfH1}
           </h1>
-          {result.kopfSubline ? (
+          {kopfSubline ? (
             <div className="v4-kopf-subgrid">
-              <p className="v4-subline">{result.kopfSubline}</p>
+              <p className="v4-subline">{kopfSubline}</p>
               {priceLine ? (
                 <div className="v4-preis-block">
                   <p className="v4-preis-label num">{priceLine.label}</p>
@@ -119,30 +173,33 @@ export function AuffaelligkeitKopf({
               </p>
               <div className="v4-kern-row num">
                 <span>{hero.kernLabel}</span>
-                {hero.rankLabel ? <span>{hero.rankLabel}</span> : null}
+                {metricHero?.rankLabel ? <span>{metricHero.rankLabel}</span> : null}
               </div>
               <div className="v4-kopf-links">
-                <Link href={`/tag/${dayKey}`} className="v4-text-link">
-                  Tag ansehen →
-                </Link>
-                <Link href="/methodik#auffaelligkeit" className="v4-text-link">
-                  Wie die Auffälligkeit gewählt wird
-                </Link>
+                {!hideTagLink && !isTagPage ? (
+                  <Link href={`/tag/${dayKey}`} className="v4-text-link">
+                    Tag ansehen →
+                  </Link>
+                ) : null}
+                {methodikLink}
               </div>
             </div>
-            <RangLeiste bars={bars} metricLabel={hero.kernLabel} rankLabel={undefined} />
+            <RangLeiste
+              bars={bars}
+              metricLabel={hero.kernLabel}
+              rankLabel={seriePresentation ? "Überschuss je Tag" : undefined}
+            />
           </div>
         ) : (
           <div className="v4-kopf-links v4-kopf-links-standalone">
-            <Link href={`/tag/${dayKey}`} className="v4-text-link">
-              Tag ansehen →
-            </Link>
-            <Link href="/methodik#auffaelligkeit" className="v4-text-link">
-              Wie die Auffälligkeit gewählt wird
-            </Link>
+            {!hideTagLink && !isTagPage ? (
+              <Link href={`/tag/${dayKey}`} className="v4-text-link">
+                Tag ansehen →
+              </Link>
+            ) : null}
+            {methodikLink}
           </div>
         )}
-        <p className="v4-kopf-chapter-foot num">01 · Der Tag</p>
       </div>
     </section>
   );
@@ -151,23 +208,35 @@ export function AuffaelligkeitKopf({
 export function TagPageV4({
   dayKey,
   todayKey,
+  lastCompleteDayKey,
   dataStand,
   result,
   records,
   day,
   lastSurplusKey,
+  dayOverview,
+  fleetPowerGw,
+  fleetEnergyGwh,
 }: {
   dayKey: string;
   todayKey: string;
+  lastCompleteDayKey: string;
   dataStand: string;
   result: AuffaelligkeitResult;
   records: TagesKennzahlRecord[];
   day: ResidualDay;
   lastSurplusKey: string | null;
+  dayOverview: OverviewEvaluation | null;
+  fleetPowerGw: number;
+  fleetEnergyGwh: number;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
+  if (!record) {
+    return null;
+  }
   return (
     <div className="v4-start">
+      <TagDayNav dayKey={dayKey} lastCompleteDayKey={lastCompleteDayKey} />
       <AuffaelligkeitKopf
         dayKey={dayKey}
         todayKey={todayKey}
@@ -175,16 +244,27 @@ export function TagPageV4({
         result={result}
         records={records}
         kickerPrefix="Tag"
+        hideTagLink
       />
       <TagChapter
         day={day}
         lastSurplusKey={lastSurplusKey}
-        surplusLine={tagSurplusLine(record?.surplusGwh ?? 0)}
-        peakGw={record?.eveningPeakGw ?? null}
-        peakAt={record?.eveningPeakAt ?? null}
+        surplusLine={tagSurplusLine(record.surplusGwh ?? 0)}
+        peakGw={record.eveningPeakGw ?? null}
+        peakAt={record.eveningPeakAt ?? null}
         todayKey={todayKey}
         useTagDateHeading
+        showFooterLink={false}
       />
+      <TagSystemChapter
+        dayKey={dayKey}
+        record={record}
+        dayOverview={dayOverview}
+        fleetPowerGw={fleetPowerGw}
+        fleetEnergyGwh={fleetEnergyGwh}
+        lastSurplusKey={lastSurplusKey}
+      />
+      <OrtChapter />
     </div>
   );
 }

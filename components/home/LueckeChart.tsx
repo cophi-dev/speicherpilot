@@ -1,13 +1,13 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useId, useMemo, useSyncExternalStore } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
 const W = 1152;
 const H = 360;
-const PAD = { top: 56, right: 24, bottom: 44, left: 48 };
+const PAD = { top: 40, right: 24, bottom: 36, left: 56 };
 const Y_MAX_GW = 80;
 
 function slotGw(slot: ResidualSlot) {
@@ -16,6 +16,20 @@ function slotGw(slot: ResidualSlot) {
     ws: (slot.windMw + slot.solarMw) / 1000,
     gap: Math.max(0, slot.loadMw - slot.windMw - slot.solarMw) / 1000,
   };
+}
+
+function subscribeNarrow(onStoreChange: () => void) {
+  const mq = window.matchMedia("(max-width: 767px)");
+  mq.addEventListener("change", onStoreChange);
+  return () => mq.removeEventListener("change", onStoreChange);
+}
+
+function getNarrowSnapshot() {
+  return window.matchMedia("(max-width: 767px)").matches;
+}
+
+function getNarrowServerSnapshot() {
+  return false;
 }
 
 export function LueckeChart({
@@ -28,10 +42,11 @@ export function LueckeChart({
   peakAt: string | null;
 }) {
   const patternId = useId();
+  const narrow = useSyncExternalStore(subscribeNarrow, getNarrowSnapshot, getNarrowServerSnapshot);
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
 
-  const { loadPath, wsPath, gapPath, peakX, peakYLoad, peakYWs, peakIndex } = useMemo(() => {
+  const geometry = useMemo(() => {
     if (slots.length === 0) {
       return {
         loadPath: "",
@@ -40,7 +55,6 @@ export function LueckeChart({
         peakX: 0,
         peakYLoad: 0,
         peakYWs: 0,
-        peakIndex: 0,
       };
     }
     const x = (i: number) => PAD.left + (i / Math.max(1, slots.length - 1)) * plotW;
@@ -81,94 +95,127 @@ export function LueckeChart({
           )
         )
       : maxIdx;
+    const useIdx = idx >= 0 ? idx : maxIdx;
+    const peakSlot = slots[useIdx] ?? slots[0];
 
     return {
       loadPath: line((p) => p.load),
       wsPath: wsArea,
       gapPath: `${gapArea} Z`,
-      peakX: x(idx >= 0 ? idx : maxIdx),
-      peakYLoad: y(slotGw(slots[idx >= 0 ? idx : maxIdx] ?? slots[0]).load),
-      peakYWs: y(slotGw(slots[idx >= 0 ? idx : maxIdx] ?? slots[0]).ws),
-      peakIndex: idx >= 0 ? idx : maxIdx,
+      peakX: x(useIdx),
+      peakYLoad: y(slotGw(peakSlot).load),
+      peakYWs: y(slotGw(peakSlot).ws),
     };
   }, [peakAt, plotH, plotW, slots]);
 
   const peakLabel =
     peakGw !== null ? `${formatQuantity(peakGw, "de", 1).replace(/\s/g, "")} GW` : "—";
   const peakTimeLabel =
+    peakAt !== null ? `${peakLabel} · ${peakAt} Uhr` : peakLabel;
+  const peakCaption =
     peakAt !== null ? `Abendspitze der Residuallast, ${peakAt} Uhr` : "Abendspitze der Residuallast";
-  const peakOnRight = peakGw !== null && peakX > PAD.left + plotW * 0.5;
-  const gapLabelX = peakOnRight ? PAD.left + plotW * 0.38 : PAD.left + plotW * 0.55;
-  const gapLabelY = peakOnRight ? PAD.top + plotH * 0.48 : PAD.top + plotH * 0.35;
 
+  const labelInsideSvg = !narrow && peakGw !== null && geometry.peakYLoad > PAD.top + 72;
   const hours = [0, 6, 12, 18, 24];
 
   return (
-    <svg
-      className="v4-luecke-chart"
-      viewBox={`0 0 ${W} ${H}`}
-      role="img"
-      aria-label={`Tagesverlauf Verbrauch, Wind und Sonne, Lücke andere Quellen. Spitze ${peakLabel}.`}
-    >
-      <defs>
-        <pattern id={patternId} width={6} height={6} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1={0} y1={0} x2={0} y2={6} className="v4-luecke-hatch" strokeWidth={1.1} />
-        </pattern>
-      </defs>
-      {hours.map((h) => {
-        const x = PAD.left + (h / 24) * plotW;
-        return (
-          <g key={h}>
-            <line x1={x} x2={x} y1={PAD.top} y2={PAD.top + plotH} className="v4-luecke-grid" />
-            <text x={x} y={H - 12} textAnchor="middle" className="v4-luecke-axis num">
-              {String(h).padStart(2, "0")}
+    <figure className={`v4-luecke-figure ${narrow ? "is-narrow" : ""}`}>
+      <svg
+        className="v4-luecke-chart"
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        aria-label={`Tagesverlauf Verbrauch, Wind und Sonne, Lücke andere Quellen. Spitze ${peakLabel}.`}
+      >
+        <defs>
+          <pattern id={patternId} width={6} height={6} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1={0} y1={0} x2={0} y2={6} className="v4-luecke-hatch" strokeWidth={1.1} />
+          </pattern>
+        </defs>
+        {hours.map((h) => {
+          const x = PAD.left + (h / 24) * plotW;
+          return (
+            <g key={h}>
+              <line x1={x} x2={x} y1={PAD.top} y2={PAD.top + plotH} className="v4-luecke-grid" />
+              {!narrow ? (
+                <text x={x} y={H - 10} textAnchor="middle" className="v4-luecke-axis num">
+                  {String(h).padStart(2, "0")}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
+        <path d={geometry.wsPath} className="v4-luecke-ws-fill" />
+        <path d={geometry.wsPath} className="v4-luecke-ws-line" fill="none" />
+        <path d={geometry.gapPath} fill={`url(#${patternId})`} className="v4-luecke-gap" />
+        <path d={geometry.loadPath} className="v4-luecke-load" fill="none" />
+        {!narrow ? (
+          <>
+            <text x={PAD.left + plotW * 0.34} y={PAD.top + 18} className="v4-luecke-label">
+              Verbrauch
             </text>
-          </g>
-        );
-      })}
-      <path d={wsPath} className="v4-luecke-ws-fill" />
-      <path d={wsPath} className="v4-luecke-ws-line" fill="none" />
-      <path d={gapPath} fill={`url(#${patternId})`} className="v4-luecke-gap" />
-      <path d={loadPath} className="v4-luecke-load" fill="none" />
-      <text x={PAD.left + plotW * 0.32} y={PAD.top + 24} className="v4-luecke-label">
-        Verbrauch
-      </text>
-      <text x={PAD.left + plotW * 0.2} y={PAD.top + plotH * 0.55} className="v4-luecke-label">
-        Wind und Sonne
-      </text>
-      <text x={gapLabelX} y={gapLabelY} className="v4-luecke-gap-label">
-        andere Quellen
-      </text>
-      {peakGw !== null ? (
-        <>
-          <line
-            x1={peakX}
-            x2={peakX}
-            y1={peakYWs}
-            y2={peakYLoad}
-            className="v4-luecke-peak-line"
-          />
-          <circle cx={peakX} cy={peakYWs} r={4.5} className="v4-luecke-peak-dot" />
-          <circle cx={peakX} cy={peakYLoad} r={4.5} className="v4-luecke-peak-dot" />
-          <line x1={peakX} x2={peakX} y1={PAD.top + 8} y2={peakYLoad} className="v4-luecke-peak-hair" />
-          <text
-            x={peakOnRight ? peakX + 14 : peakX - 12}
-            y={PAD.top + 44}
-            textAnchor={peakOnRight ? "start" : "end"}
-            className="v4-luecke-peak-value num"
-          >
-            {peakLabel}
-          </text>
-          <text
-            x={peakOnRight ? peakX + 14 : peakX - 12}
-            y={PAD.top + 62}
-            textAnchor={peakOnRight ? "start" : "end"}
-            className="v4-luecke-peak-caption"
-          >
-            {peakTimeLabel}
-          </text>
-        </>
+            <text x={PAD.left + plotW * 0.18} y={PAD.top + plotH * 0.58} className="v4-luecke-label">
+              Wind und Sonne
+            </text>
+            <text x={PAD.left + plotW * 0.52} y={PAD.top + plotH * 0.42} className="v4-luecke-gap-label">
+              andere Quellen
+            </text>
+          </>
+        ) : null}
+        {peakGw !== null ? (
+          <>
+            <line
+              x1={geometry.peakX}
+              x2={geometry.peakX}
+              y1={geometry.peakYWs}
+              y2={geometry.peakYLoad}
+              className="v4-luecke-peak-line"
+            />
+            <circle cx={geometry.peakX} cy={geometry.peakYWs} r={4.5} className="v4-luecke-peak-dot" />
+            <circle cx={geometry.peakX} cy={geometry.peakYLoad} r={4.5} className="v4-luecke-peak-dot" />
+            {labelInsideSvg ? (
+              <>
+                <text
+                  x={geometry.peakX + 12}
+                  y={PAD.top + 28}
+                  textAnchor="start"
+                  className="v4-luecke-peak-value num"
+                >
+                  {peakLabel}
+                </text>
+                <text
+                  x={geometry.peakX + 12}
+                  y={PAD.top + 46}
+                  textAnchor="start"
+                  className="v4-luecke-peak-caption"
+                >
+                  {peakCaption}
+                </text>
+              </>
+            ) : null}
+          </>
+        ) : null}
+      </svg>
+      {narrow ? (
+        <div className="v4-luecke-mobile-meta">
+          <div className="v4-luecke-mobile-legend" aria-hidden="true">
+            <span>Verbrauch</span>
+            <span>Wind und Sonne</span>
+            <span>andere Quellen</span>
+          </div>
+          <div className="v4-luecke-mobile-axis num" aria-hidden="true">
+            {hours.map((h) => (
+              <span key={h}>{String(h).padStart(2, "0")}</span>
+            ))}
+          </div>
+        </div>
       ) : null}
-    </svg>
+      {peakGw !== null && (!labelInsideSvg || narrow) ? (
+        <figcaption className="v4-luecke-peak-banner num">
+          <span className="v4-luecke-peak-banner-value">{peakTimeLabel}</span>
+          <span className="v4-luecke-peak-banner-caption">{peakCaption}</span>
+        </figcaption>
+      ) : null}
+    </figure>
   );
 }

@@ -27,7 +27,7 @@ function kicker(view: Perspective, scenario: ScenarioId): string {
 
 export function OrtServerShell({ view, scenario }: { view: Perspective; scenario: ScenarioId }) {
   return (
-    <div className="site-v2">
+    <div className="site-v2 ort-v4">
       <div className="mx-auto max-w-[1200px] px-4 pt-4">
         <p className="page-lead">
           Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze

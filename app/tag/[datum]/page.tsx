@@ -1,11 +1,12 @@
 import { Suspense } from "react";
+import { permanentRedirect } from "next/navigation";
 
 import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
 import { TagUnavailable } from "@/components/home/TagUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
 import { loadGermanyView } from "@/lib/germanyView";
-import { lastSurplusBefore, tagSurplusLine } from "@/lib/kopfTagCopy";
+import { lastSurplusBefore } from "@/lib/kopfTagCopy";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -31,14 +32,24 @@ export default async function TagDetailPage({
 
   const records = view.auffaelligkeitRecords;
   const record = records?.find((r) => r.dateKey === datum) ?? null;
+  const lastComplete = view.lastCompleteDayKey;
 
-  if (view.requestedTagStatus === "ausserhalb" || view.requestedTagStatus === "unvollstaendig") {
+  if (datum > view.todayKey) {
+    permanentRedirect(`/tag/${lastComplete}`);
+  }
+
+  if (view.requestedTagStatus === "unvollstaendig" || datum > lastComplete) {
+    permanentRedirect(`/tag/${lastComplete}`);
+  }
+
+  if (view.requestedTagStatus === "ausserhalb") {
     return (
       <TagUnavailable
         requested={datum}
         todayKey={view.todayKey}
-        status={view.requestedTagStatus === "ausserhalb" ? "ausserhalb" : "unvollstaendig"}
+        status="ausserhalb"
         record={record}
+        lastCompleteDayKey={lastComplete}
       />
     );
   }
@@ -48,30 +59,51 @@ export default async function TagDetailPage({
 
   if (!records || !day || day.dateBerlin !== datum) {
     return (
-      <TagUnavailable requested={datum} todayKey={view.todayKey} status="ausserhalb" record={record} />
+      <TagUnavailable
+        requested={datum}
+        todayKey={view.todayKey}
+        status="ausserhalb"
+        record={record}
+        lastCompleteDayKey={lastComplete}
+      />
     );
   }
 
   const recordIndex = records.findIndex((r) => r.dateKey === dayKey);
   if (recordIndex >= 0 && recordIndex < 30) {
     return (
-      <TagUnavailable requested={datum} todayKey={view.todayKey} status="vorlauf" record={records[recordIndex]} />
+      <TagUnavailable
+        requested={datum}
+        todayKey={view.todayKey}
+        status="vorlauf"
+        record={records[recordIndex]}
+        lastCompleteDayKey={lastComplete}
+      />
     );
   }
 
   const result = auffaelligkeitForDay(records, dayKey);
   const lastSurplus = lastSurplusBefore(records, dayKey);
+  const fleet = view.dispatch.fleet;
+
+  if (!fleet) {
+    return null;
+  }
 
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
       <TagPageV4
         dayKey={dayKey}
         todayKey={view.todayKey}
+        lastCompleteDayKey={lastComplete}
         dataStand={view.stand}
         result={result}
         records={records}
         day={day}
         lastSurplusKey={lastSurplus}
+        dayOverview={view.dayOverview}
+        fleetPowerGw={fleet.powerGw}
+        fleetEnergyGwh={fleet.energyGwh}
       />
     </Suspense>
   );

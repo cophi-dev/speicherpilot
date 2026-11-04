@@ -365,7 +365,7 @@ export function auffaelligkeitForDay(
         (r.peakCutGw ?? 0) < 0.05
           ? "Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden."
           : `Die heutige Flotte hätte die Spitze um ${deNum(r.peakCutGw ?? 0)} GW gesenkt (Modell).`;
-      kopfSubline = withModellSubline(V, subline);
+      kopfSubline = nearDay ? subline : withModellSubline(V, subline);
       break;
     case "spread":
       headline = `${weekdayLabelDe(dateKey)}: Der Börsenpreis lag zwischen ${deNum(r.pmin ?? 0, 0)} und ${deNum(r.pmax ?? 0, 0)} €/MWh. ${Vcap}`;

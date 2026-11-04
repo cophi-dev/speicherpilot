@@ -52,6 +52,7 @@ export function TagChapter({
   peakAt,
   todayKey,
   useTagDateHeading = false,
+  showFooterLink = true,
 }: {
   day: ResidualDay;
   lastSurplusKey: string | null;
@@ -61,6 +62,7 @@ export function TagChapter({
   todayKey?: string;
   /** On /tag for days before „gestern“, use „Was am … passiert ist“. */
   useTagDateHeading?: boolean;
+  showFooterLink?: boolean;
 }) {
   const peakSlot = eveningSlot(day);
   const loadGw = peakSlot.loadMw / 1000;
@@ -100,11 +102,13 @@ export function TagChapter({
           </li>
         ))}
       </ol>
-      <p className="v4-chapter-foot v4-content num">
-        <Link href={`/tag/${day.dateBerlin}`} className="v4-text-link">
-          Tag ansehen →
-        </Link>
-      </p>
+      {showFooterLink ? (
+        <p className="v4-chapter-foot v4-content num">
+          <Link href={`/tag/${day.dateBerlin}`} className="v4-text-link">
+            Tag ansehen →
+          </Link>
+        </p>
+      ) : null}
     </section>
   );
 }
