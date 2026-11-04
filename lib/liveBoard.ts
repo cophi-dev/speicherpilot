@@ -241,7 +241,7 @@ export type LiveBoard = {
   priceLightLabel: LiveCopy | null;
   hertzChart: LiveChartPoint[];
   priceChart: LiveChartPoint[];
-  /** 50Hertz (north) and TransnetBW (south), wind plus solar as a share of load. */
+  /** Regelzone Nordost and Regelzone Südwest, wind plus solar as a share of load. */
   zoneChart: ZoneSharePoint[];
 };
 
@@ -333,16 +333,16 @@ function offshoreCopy(unixMs: number, hertzMw: number, tennetMw: number): { sent
   const clock = berlinClock(unixMs);
   const deHertz = qty(hertzMw, "de", 0);
   const enHertz = qty(hertzMw, "en", 0);
-  const deTennet = qty(tennetMw, "de", 0);
-  const enTennet = qty(tennetMw, "en", 0);
+  const deNorthSeaMw = qty(tennetMw, "de", 0);
+  const enNorthSeaMw = qty(tennetMw, "en", 0);
   return {
     sentence: {
-      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone Nordost, angeschlossen über die Ostsee, und ${deTennet} MW in der Regelzone Nord-Süd (Mitte), angeschlossen über die Nordsee. Das ist nicht die Last von Norddeutschland.`,
-      en: `Offshore wind at ${clock}: ${enHertz} MW in the northeast control area, connected through the Baltic, and ${enTennet} MW in the north–south (central) control area, connected through the North Sea. That is not northern Germany’s load.`,
+      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone Nordost, angeschlossen über die Ostsee, und ${deNorthSeaMw} MW in der Regelzone Nord-Süd (Mitte), angeschlossen über die Nordsee. Das ist nicht die Last von Norddeutschland.`,
+      en: `Offshore wind at ${clock}: ${enHertz} MW in the northeast control area, connected through the Baltic, and ${enNorthSeaMw} MW in the north–south (central) control area, connected through the North Sea. That is not northern Germany’s load.`,
     },
     takeaway: {
-      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone Nordost über die Ostsee und ${deTennet} MW in der Regelzone Nord-Süd (Mitte) über die Nordsee, und das ist nicht die Last von Norddeutschland.`,
-      en: `Offshore wind at ${clock}: ${enHertz} MW in the northeast control area via the Baltic and ${enTennet} MW in the north–south (central) control area via the North Sea, and that is not northern Germany’s load.`,
+      de: `Wind auf See um ${clock} Uhr: ${deHertz} MW in der Regelzone Nordost über die Ostsee und ${deNorthSeaMw} MW in der Regelzone Nord-Süd (Mitte) über die Nordsee, und das ist nicht die Last von Norddeutschland.`,
+      en: `Offshore wind at ${clock}: ${enHertz} MW in the northeast control area via the Baltic and ${enNorthSeaMw} MW in the north–south (central) control area via the North Sea, and that is not northern Germany’s load.`,
     },
   };
 }

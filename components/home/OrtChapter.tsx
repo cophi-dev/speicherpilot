@@ -15,10 +15,10 @@ export function OrtChapter() {
     const econ = planLadepark(4);
     return { plan: econ.plan, connectionKw: econ.connectionKw };
   }, []);
+  const limit = connectionKw;
   const peakBefore = Math.round(plan.peakImportBeforeKw);
   const peakAfterDisplay =
     plan.peakImportAfterKw <= limit + 2 ? Math.round(limit) : Math.round(plan.peakImportAfterKw);
-  const limit = connectionKw;
 
   const chart = useMemo(() => {
     const plotW = W - PAD.left - PAD.right;

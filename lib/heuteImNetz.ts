@@ -247,7 +247,7 @@ export function buildHeuteImNetz(input: {
   if (input.hertzSharePct !== null) {
     ticker.push({
       id: "hertz",
-      label: { de: "50Hertz", en: "50Hertz" },
+      label: { de: "Regelzone Nordost", en: "Northeast control area" },
       value: `${formatQuantity(input.hertzSharePct, "de", 0)} %`,
     });
   }

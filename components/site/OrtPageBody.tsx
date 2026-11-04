@@ -75,5 +75,10 @@ export function OrtPageBody({
     );
   }
   const archetype = scenario === "stadt" ? "stadt" : "land";
-  return <OrtArchetypen initialArchetype={archetype} />;
+  return (
+    <>
+      <OrtArchetypen initialArchetype={archetype} />
+      <ExampleCards view={view} scenario={scenario} />
+    </>
+  );
 }
