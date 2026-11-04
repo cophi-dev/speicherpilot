@@ -43,7 +43,7 @@ const proposalStyles = StyleSheet.create({
     paddingTop: 44,
     paddingBottom: 52,
     paddingHorizontal: 44,
-    fontFamily: "IBM Plex Sans",
+    fontFamily: "Space Grotesk",
     backgroundColor: "#0A0A0C",
     color: "#E5E7EB",
   },

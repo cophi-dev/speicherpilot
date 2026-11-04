@@ -44,7 +44,7 @@
   padding: 8px 20px;
   background: #0a0f14;
   border-bottom: 1px solid rgba(225, 230, 234, 0.18);
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -77,7 +77,7 @@
 
 .kicker {
   margin: 0 0 8px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -174,7 +174,7 @@
 .controlLabel {
   display: block;
   margin-bottom: 8px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -293,7 +293,7 @@
   position: absolute;
   left: 0;
   transform: translateY(-50%);
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 12px;
   color: #c5d0da;
 }
@@ -398,7 +398,7 @@
 .kpi b {
   display: block;
   margin: 4px 0;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 22px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -579,7 +579,7 @@
 
 .numCell {
   text-align: right;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
 
@@ -587,7 +587,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 2px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 12px;
   color: #c5d0da;
 }

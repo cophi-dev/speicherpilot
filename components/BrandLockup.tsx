@@ -2,7 +2,7 @@ import Link from "next/link";
 
 /** Artboard height of the approved lockup SVGs (viewBox height). */
 const VIEWBOX_HEIGHT = 32;
-/** Header and anything below the regular cut use the Plex 400 “klein” files. */
+/** Header lockup SVGs: “klein” below 32px nominal height, regular from 32px up. */
 const REGULAR_FROM = 32;
 const MIN_HEIGHT = 20;
 
@@ -26,7 +26,7 @@ export function lockupAsset(height: number) {
 }
 
 type BrandLockupProps = {
-  /** Nominal lockup height H in px. Minimum 20. From 32 the regular Plex 300 files are used. */
+  /** Nominal lockup height H in px. Minimum 20. From 32 the regular lockup files are used. */
   height?: number;
 };
 

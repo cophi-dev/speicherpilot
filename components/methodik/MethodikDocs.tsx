@@ -501,7 +501,7 @@ function Gauge({ pct, label }: { pct: number; label: string }) {
         <path d={arc(48, 200, 200 + 300)} fill="none" stroke="#C5CED6" strokeWidth="8" />
         <path d={arc(48, 200, 200 + sweep)} fill="none" stroke="#1E9CB0" strokeWidth="8" />
         <path d={arc(48, 200 + (100 / 130) * 300 - 1, 200 + (100 / 130) * 300 + 1)} fill="none" stroke="#FF5A4E" strokeWidth="8" />
-        <text x="0" y="6" textAnchor="middle" fontSize="16" fontFamily="var(--font-plex-mono), monospace" fill="currentColor">{pct}%</text>
+        <text x="0" y="6" textAnchor="middle" fontSize="16" fontFamily="var(--font-jetbrains), monospace" fill="currentColor">{pct}%</text>
       </svg>
       <figcaption>{label}</figcaption>
     </figure>

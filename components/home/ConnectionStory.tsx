@@ -459,7 +459,7 @@ function StoryChart({
                 <g key={hour}>
                   <line x1={tickX} x2={tickX} y1={axisY} y2={axisY + 4} className="stroke-muted-foreground" strokeWidth={1} />
                   {labelHour ? (
-                    <text x={tickX} y={axisY + 16} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+                    <text x={tickX} y={axisY + 16} textAnchor="middle" className="num fill-muted-foreground" fontSize={12} fontFamily="var(--font-jetbrains), ui-monospace, monospace">
                       {clockLabel(hour)}
                     </text>
                   ) : null}
@@ -531,7 +531,7 @@ function StoryChart({
               textAnchor="middle"
               className="story-halo fill-foreground"
               fontSize={stacked ? 12 : 13}
-              fontFamily={stacked ? "var(--font-plex-mono), ui-monospace, monospace" : undefined}
+              fontFamily={stacked ? "var(--font-jetbrains), ui-monospace, monospace" : undefined}
             >
               {tx("Netzbezug", "Grid import")}
             </text>

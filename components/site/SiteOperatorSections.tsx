@@ -9,7 +9,7 @@ const demo = loadNetzDemo();
 
 export function SiteOperatorSectionsServer({ selection }: { selection: NetzSelection }) {
   return (
-    <div className="site-operator-extra v4-content mx-auto max-w-[1240px]">
+    <div className="site-operator-extra mx-auto max-w-[1240px]">
       <TestnetzHashScroll />
       <p className="v4-kicker num">Netzbetreiber</p>
       <SiteGrenzeEloes />

@@ -24,14 +24,14 @@ export function EmptyRing({
         return (
           <g key={hour}>
             <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#C5CED6" strokeWidth="2" />
-            <text x={Math.sin(rad) * 124} y={-Math.cos(rad) * 124 + 4} textAnchor="middle" fill="#C5CED6" fontSize="12" fontFamily="var(--font-plex-mono), monospace">
+            <text x={Math.sin(rad) * 124} y={-Math.cos(rad) * 124 + 4} textAnchor="middle" fill="#C5CED6" fontSize="12" fontFamily="var(--font-jetbrains), monospace">
               {labelText}
             </text>
           </g>
         );
       })}
       {center ? (
-        <text x="0" y="6" textAnchor="middle" fill="#C5CED6" fontSize="28" fontFamily="var(--font-plex-mono), monospace">
+        <text x="0" y="6" textAnchor="middle" fill="#C5CED6" fontSize="28" fontFamily="var(--font-jetbrains), monospace">
           {center}
         </text>
       ) : null}

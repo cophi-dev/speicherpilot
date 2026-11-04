@@ -1471,7 +1471,7 @@ function DurationChart({
               y={limitKw * 0.9}
               stroke={cssVar("warning")}
               strokeDasharray="2 3"
-              label={{ value: "90 %", position: "insideTopRight", fill: cssVar("warning"), fontSize: 12, fontFamily: "var(--font-plex-mono)" }}
+              label={{ value: "90 %", position: "insideTopRight", fill: cssVar("warning"), fontSize: 12, fontFamily: "var(--font-jetbrains)" }}
             />
           ) : null}
           {limitKw > 0 ? (
@@ -1481,7 +1481,7 @@ function DurationChart({
                 value: limitText ?? "Netzanschluss",
                 position: narrow ? "insideTopLeft" : "insideTopRight",
                 fill: cssVar("c-limit"),
-                fontFamily: "var(--font-plex-mono)",
+                fontFamily: "var(--font-jetbrains)",
                 fontSize: 12,
               }}
             />
@@ -1503,7 +1503,7 @@ function PaybackLabel({ viewBox, value, plotWidth }: { viewBox?: { x?: number; y
   const x = paybackLabelX(lineX, plotLeft, 8, plotRight, labelWidth);
   const y = (viewBox?.y ?? 0) + Math.max(16, (viewBox?.height ?? 0) * 0.42);
   return (
-    <text x={x} y={y} fill={cssVar("foreground")} fontSize={12} fontFamily="var(--font-plex-mono)">
+    <text x={x} y={y} fill={cssVar("foreground")} fontSize={12} fontFamily="var(--font-jetbrains)">
       {value}
     </text>
   );

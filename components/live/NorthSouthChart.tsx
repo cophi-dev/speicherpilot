@@ -134,11 +134,11 @@ function ChartBody({
           {tick > 0 ? (
             <line x1={pad.l} x2={width - pad.r} y1={ySouth(tick)} y2={ySouth(tick)} stroke="hsl(var(--gridline))" />
           ) : null}
-          <text x={pad.l - 8} y={yNorth(tick) + 4} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+          <text x={pad.l - 8} y={yNorth(tick) + 4} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-jetbrains), ui-monospace, monospace">
             {tick === ticks[ticks.length - 1] ? `${formatQuantity(tick, language, 0)} %` : formatQuantity(tick, language, 0)}
           </text>
           {tick > 0 ? (
-            <text x={pad.l - 8} y={ySouth(tick) + 4} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+            <text x={pad.l - 8} y={ySouth(tick) + 4} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-jetbrains), ui-monospace, monospace">
               {formatQuantity(tick, language, 0)}
             </text>
           ) : null}
@@ -153,7 +153,7 @@ function ChartBody({
       {hours.map((hour) => {
         const x = xOfHour(hour);
         return (
-          <text key={hour} x={x} y={height - 8} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-plex-mono), ui-monospace, monospace">
+          <text key={hour} x={x} y={height - 8} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="12" fontFamily="var(--font-jetbrains), ui-monospace, monospace">
             {String(hour).padStart(2, "0")}
           </text>
         );
@@ -171,10 +171,10 @@ function ChartBody({
       })}
       {northLabel && width >= 560 ? (
         <>
-          <text x={width - 8} y={yNorth(northLabel.northPct)} fill="hsl(var(--foreground))" fontSize="13" fontFamily="var(--font-plex-sans), sans-serif">
+          <text x={width - 8} y={yNorth(northLabel.northPct)} fill="hsl(var(--foreground))" fontSize="13" fontFamily="var(--font-space-grotesk), sans-serif">
             50Hertz
           </text>
-          <text x={width - 8} y={ySouth(northLabel.southPct)} fill="hsl(var(--foreground))" fontSize="13" fontFamily="var(--font-plex-sans), sans-serif">
+          <text x={width - 8} y={ySouth(northLabel.southPct)} fill="hsl(var(--foreground))" fontSize="13" fontFamily="var(--font-space-grotesk), sans-serif">
             TransnetBW
           </text>
         </>
