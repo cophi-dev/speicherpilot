@@ -5,7 +5,7 @@ import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 export default function sitemap(): MetadataRoute.Sitemap {
   const origin = getPublicSiteOrigin();
   const lastModified = new Date();
-  return ["/", "/live", "/methodik", "/site", "/szenarien", "/netz", "/blog"].map((path) => ({
+  return ["/", "/live", "/methodik", "/site", "/szenarien", "/netz", "/blog", "/monat", "/tag"].map((path) => ({
     url: `${origin}${path}`,
     lastModified,
     changeFrequency: path === "/" || path === "/live" ? "hourly" : "weekly",

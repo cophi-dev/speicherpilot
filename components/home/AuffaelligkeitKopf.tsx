@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
-import { OrtChapter } from "@/components/home/OrtChapter";
+import { TagOrtTeaser } from "@/components/home/OrtTeasers";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
 import { TagChapter } from "@/components/home/TagChapter";
@@ -110,8 +110,11 @@ export function AuffaelligkeitKopf({
     });
   }, [dayKey, metricKey, records, seriePresentation]);
 
-  const kopfH1 = seriePresentation?.h1 ?? result.kopfH1;
+  const rawKopfH1 = seriePresentation?.h1 ?? result.kopfH1;
   const kopfSubline = seriePresentation?.subline ?? result.kopfSubline;
+  const kopfH1 = isTagPage
+    ? `${weekdayShort(dayKey, "de")}, ${dayLabel} — ${rawKopfH1}`
+    : rawKopfH1;
 
   const priceSpreadLabel = isTagPage
     ? `Spanne am ${dayLabel}`
@@ -272,7 +275,7 @@ export function TagPageV4({
         fleetEnergyGwh={fleetEnergyGwh}
         lastSurplusKey={lastSurplusKey}
       />
-      <OrtChapter />
+      <TagOrtTeaser dayLabel={formatBerlinDayLabel(dayKey)} />
     </div>
   );
 }

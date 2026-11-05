@@ -150,7 +150,9 @@ export function LueckeChart({
   const peakTimeLabel = peakAt !== null ? `${peakLabel} · ${peakAt} Uhr` : peakLabel;
   const peakCaption = "Abendspitze der Residuallast";
 
-  const labelInsideSvg = !compact && peakGw !== null && geometry.peakYLoad > frame.pad.top + 72;
+  const peakLabelY =
+    peakGw !== null ? Math.max(frame.pad.top + 16, geometry.peakYLoad - 20) : frame.pad.top + 28;
+  const labelInsideSvg = !compact && peakGw !== null && peakLabelY > frame.pad.top + 12;
   const hours = [0, 6, 12, 18, 24];
   const plotW = frame.w - frame.pad.left - frame.pad.right;
   const plotH = frame.h - frame.pad.top - frame.pad.bottom;
@@ -253,7 +255,7 @@ export function LueckeChart({
                 <>
                   <text
                     x={geometry.peakX + 12}
-                    y={frame.pad.top + 28}
+                    y={peakLabelY}
                     textAnchor="start"
                     className="v4-luecke-peak-value num"
                   >
@@ -261,7 +263,7 @@ export function LueckeChart({
                   </text>
                   <text
                     x={geometry.peakX + 12}
-                    y={frame.pad.top + 46}
+                    y={peakLabelY + 18}
                     textAnchor="start"
                     className="v4-luecke-peak-caption"
                   >

@@ -1,13 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
-
-import { AuffaelligkeitKopf } from "@/components/home/AuffaelligkeitKopf";
-import { OrtChapter } from "@/components/home/OrtChapter";
+import { StartGesternTeaser } from "@/components/home/StartGesternTeaser";
+import { StartKopf } from "@/components/home/StartKopf";
+import { StartOrtTeaser } from "@/components/home/OrtTeasers";
 import { SystemChapter } from "@/components/home/SystemChapter";
-import { TagChapter } from "@/components/home/TagChapter";
-import { tagSurplusLine, lastSurplusBefore } from "@/lib/kopfTagCopy";
-import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewsBundle } from "@/lib/germanyView";
 import type { LiveDispatchInput } from "@/lib/liveFleetDispatch";
@@ -27,45 +23,30 @@ export function StartPageV4({
   auffaelligkeitRecords: TagesKennzahlRecord[];
   dataStand: string;
 }) {
-  const auff = useMemo(
-    () => auffaelligkeitForDay(auffaelligkeitRecords, kopfDayKey),
-    [auffaelligkeitRecords, kopfDayKey]
-  );
-
   const tagRecord = auffaelligkeitRecords.find((r) => r.dateKey === kopfDayKey);
   const systemModel = overviews?.byBlick["30tage"];
   const fleet = dispatch.fleet;
-  const tagDay = dispatch.day;
 
-  if (!overviews || !fleet || !tagDay) {
+  if (!overviews || !fleet) {
     return null;
   }
 
-  const lastSurplus = lastSurplusBefore(auffaelligkeitRecords, kopfDayKey);
-
   return (
     <div className="v4-start start-page">
-      <AuffaelligkeitKopf
-        dayKey={kopfDayKey}
+      <StartKopf
+        kopfDayKey={kopfDayKey}
         todayKey={todayKey}
         dataStand={dataStand}
-        result={auff}
         records={auffaelligkeitRecords}
       />
 
-      <TagChapter
-        day={tagDay}
-        lastSurplusKey={lastSurplus}
-        surplusLine={tagSurplusLine(tagRecord?.surplusGwh ?? 0)}
-        peakGw={tagRecord?.eveningPeakGw ?? null}
-        peakAt={tagRecord?.eveningPeakAt ?? null}
-      />
+      <StartGesternTeaser kopfDayKey={kopfDayKey} record={tagRecord} />
 
       {systemModel ? (
         <SystemChapter model={systemModel} fleetPowerGw={fleet.powerGw} fleetEnergyGwh={fleet.energyGwh} />
       ) : null}
 
-      <OrtChapter />
+      <StartOrtTeaser />
     </div>
   );
 }

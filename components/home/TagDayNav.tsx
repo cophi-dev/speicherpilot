@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { addBerlinCalendarDays, prevBerlinDateKey } from "@/lib/berlinCalendar";
+import { berlinMonthKeyFromDateKey } from "@/lib/monatCalendar";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 
 export function TagDayNav({
@@ -59,6 +60,9 @@ export function TagDayNav({
           Folgetag →
         </span>
       )}
+      <Link href={`/monat/${berlinMonthKeyFromDateKey(dayKey)}`} prefetch={false} className="v4-tag-nav-btn v4-tag-nav-monat">
+        Monat
+      </Link>
     </nav>
   );
 }

@@ -138,6 +138,12 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
   return (
     <div className="ort-archetypen day-paper">
       <div className="day-hero-inner">
+        <p className="v4-subline ort-netz-nutzen">
+          {tx(
+            "Hier vergleichen Sie zwei Musterorte (ländlicher Netzknoten und Stadtnetz) und drei Fahrweisen (Markt, Markt + flexibel, Netzorientiert) an einem typischen Tag. Kein eigener Standort, keine freie Leistung, kein Baukasten-Netz.",
+            "Here you compare two sample places (rural grid node and urban grid) and three operating modes (market, market + flexible, grid-oriented) on a typical day. No custom site, no free capacity, no build-your-own grid.",
+          )}
+        </p>
         <div className="ort-netz-step">
           <p className="ort-netz-step-label">{tx("1. Ort wählen", "1. Choose place")}</p>
           <div className="ort-netz-tabs ort-netz-tabs--place v4-tab-bar site-toggle" role="tablist" aria-label={tx("Ort", "Place")}>
@@ -218,7 +224,10 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
           windowQh={data.windowQh}
           palette={palette}
           tx={tx}
-          ariaLabel={tx("Tagesauslastung am Engpass", "Daily loading at the bottleneck")}
+          ariaLabel={tx(
+            "Tagesauslastung am Engpass. Uhrzeit Mustertag horizontal, Auslastung der Leitung in Prozent vertikal.",
+            "Daily loading at the bottleneck. Sample-day time horizontal, line loading in percent vertical.",
+          )}
         />
 
         <dl className="ort-archetype-kpi-grid">
@@ -328,7 +337,7 @@ function ArchetypeDayChart({
 }) {
   const W = 960;
   const H = 280;
-  const pad = { l: 48, r: 16, t: 16, b: 40 };
+  const pad = { l: 56, r: 16, t: 16, b: 48 };
   const n = Math.min(l0n0.length, 96);
   const maxY = Math.max(110, ...l0n0.slice(0, n), ...l1n1.slice(0, n));
   const x = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r);
@@ -382,6 +391,19 @@ function ArchetypeDayChart({
         </text>
         <text x={W - pad.r} y={H - 8} className="num ort-chart-axis" fontSize={11} textAnchor="end">
           24 h
+        </text>
+        <text x={(pad.l + W - pad.r) / 2} y={H - 2} className="ort-chart-axis-title" fontSize={11} textAnchor="middle">
+          {tx("Uhrzeit (Mustertag)", "Time (sample day)")}
+        </text>
+        <text
+          x={12}
+          y={(pad.t + H - pad.b) / 2}
+          className="ort-chart-axis-title"
+          fontSize={11}
+          textAnchor="middle"
+          transform={`rotate(-90 12 ${(pad.t + H - pad.b) / 2})`}
+        >
+          {tx("Auslastung der Leitung in %", "Line loading in %")}
         </text>
       </svg>
       <figcaption className="ort-chart-caption">

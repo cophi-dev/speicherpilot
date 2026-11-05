@@ -13,6 +13,7 @@ import {
   type MethodikFleetStand,
 } from "@/components/methodik/MethodikUeberblick";
 import { MethodikHashScroll } from "@/components/methodik/MethodikHashScroll";
+import { MethodikTocSections } from "@/components/methodik/MethodikTocSections";
 import { MethodikSection } from "@/components/methodik/MethodikSection";
 import { LazyMethodikBody } from "@/components/methodik/LazyMethodikBody";
 import { NetzMethodik } from "@/components/methodik/NetzMethodik";
@@ -60,8 +61,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 </li>
               ))}
             </ol>
-            <details className="methodik-toc-sections">
-              <summary>{tx("Alle Abschnitte (17)", "All sections (17)")}</summary>
+            <MethodikTocSections summary={tx("Alle Abschnitte (17)", "All sections (17)")}>
               <ol className="methodik-section-nav">
                 {METHODIK_SECTIONS.map((section) => (
                   <li key={section.id}>
@@ -69,7 +69,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   </li>
                 ))}
               </ol>
-            </details>
+            </MethodikTocSections>
           </nav>
           <div className="methodik-paper day-paper">
           <article>
