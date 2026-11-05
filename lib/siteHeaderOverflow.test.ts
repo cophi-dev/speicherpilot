@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { chromium } from "playwright";
 
 const BASE = process.env.SITE_HEADER_OVERFLOW_BASE_URL ?? "http://127.0.0.1:3000";
-const PATHS = ["/", "/live", "/netz", "/site", "/methodik"] as const;
+const PATHS = ["/", "/live", "/netz", "/site", "/methodik", "/monat"] as const;
 const WIDTHS = [640, 768, 800, 900, 1024, 1100, 1440] as const;
 
 describe("site header layout", () => {
@@ -16,6 +16,7 @@ describe("site header layout", () => {
     expect(src).toMatch(/matchMedia\("\(min-width: 1024px\)"\)/);
     expect(src).toMatch(/isLgNav[\s\S]*id="site-desktop-nav"[\s\S]*aria-label="Hauptnavigation"/);
     expect(src).toMatch(/whitespace-nowrap/);
+    expect(src).toMatch(/label: "Monat"/);
     expect(src).toMatch(/lg:hidden[\s\S]*aria-expanded=\{menuOpen\}/);
   });
 });

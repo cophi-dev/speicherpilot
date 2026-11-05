@@ -18,6 +18,7 @@ type ThemePreference = "light" | "dark" | "system";
 const NAV = [
   { href: "/", label: "Start" },
   { href: "/tag", label: "Tag" },
+  { href: "/monat", label: "Monat" },
   { href: "/ort", label: "Ort" },
   { href: "/methodik", label: "Methodik" },
   { href: "/beitraege", label: "Beiträge" },
@@ -185,7 +186,7 @@ export function SiteShell({ children }: SiteShellProps) {
             {isLgNav ? (
             <nav
               id="site-desktop-nav"
-              className="flex min-h-6 min-w-0 items-center gap-7 text-sm font-medium"
+              className="flex min-h-6 min-w-0 items-center gap-5 text-sm font-medium"
               aria-label="Hauptnavigation"
             >
               {NAV.map((item) => {
@@ -194,7 +195,9 @@ export function SiteShell({ children }: SiteShellProps) {
                     ? pathname === "/"
                     : item.href === "/tag"
                       ? pathname.startsWith("/tag")
-                      : pathname.startsWith(item.href);
+                      : item.href === "/monat"
+                        ? pathname.startsWith("/monat")
+                        : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}
@@ -255,52 +258,19 @@ export function SiteShell({ children }: SiteShellProps) {
         </header>
         <main id="inhalt">{children}</main>
         <footer className="border-t border-border">
-          <div className="mx-auto max-w-[1200px] px-5 pt-4 md:px-8">
-            <nav className="legal-footer" aria-label="Rechtliches">
+          <div className="mx-auto max-w-[1200px] px-5 py-8 text-sm text-muted-foreground md:px-8">
+            <nav className="legal-footer" aria-label="Rechtliches und Methodik">
               <Link href="/impressum">Impressum</Link>
               <Link href="/datenschutz">Datenschutz</Link>
+              <Link href="/methodik">Methodik</Link>
             </nav>
-          </div>
-          <div className="mx-auto grid max-w-[1200px] gap-8 px-5 py-8 text-sm text-muted-foreground md:grid-cols-3 md:px-8 site-footer-cols">
-            <div className="site-footer-col">
-              <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Quellen</p>
-              <ul className="mt-3 space-y-1.5">
-                <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://energy-charts.info/" target="_blank" rel="noreferrer">
-                    Energy-Charts (Fraunhofer ISE), CC BY 4.0
-                  </a>
-                </li>
-                <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://battery-charts.info/" target="_blank" rel="noreferrer">
-                    Battery Charts (RWTH Aachen), CC BY 4.0
-                  </a>
-                </li>
-                <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://www.smard.de/" target="_blank" rel="noreferrer">
-                    Bundesnetzagentur | SMARD.de
-                  </a>
-                </li>
-                <li>
-                  <a className="text-primary underline underline-offset-[3px]" href="https://www.marktstammdatenregister.de/" target="_blank" rel="noreferrer">
-                    MaStR
-                  </a>
-                </li>
-              </ul>
-              <p className="num mt-6 text-[12px] tracking-[0.08em] text-muted-foreground uppercase">Glossar</p>
-              <p className="mt-3">
-                <Link href="/methodik#glossar">Begriffe in der Methodik</Link>
-              </p>
-            </div>
-            <p className="flex flex-col items-start gap-1">
-              <Link className="inline-flex min-h-11 items-center" href="/methodik">
+            <p className="mt-6 max-w-[52rem] leading-relaxed">
+              Quellen und Glossar stehen in der{" "}
+              <Link href="/methodik#quellen" className="text-primary underline underline-offset-[3px]">
                 Methodik
               </Link>
-              <Link className="inline-flex min-h-11 items-center" href="/beitraege" prefetch={false}>
-                Beiträge
-              </Link>
-            </p>
-            <p>
-              Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung. Wo Euro stehen, ist das als Modellschätzung gekennzeichnet.
+              . Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung. Wo Euro stehen, ist
+              das als Modellschätzung gekennzeichnet.
             </p>
           </div>
         </footer>

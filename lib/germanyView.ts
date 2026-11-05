@@ -179,13 +179,17 @@ async function loadSurplusDayReportForView(
   return null;
 }
 
+export type GermanyViewPath = "/" | "/live" | "/tag" | "/monat";
+
 export async function loadGermanyView(
   now: Date,
-  path: "/" | "/live" | "/tag",
+  path: GermanyViewPath,
   query: { tag?: string | string[]; zeitraum?: string | string[] }
 ): Promise<GermanyView> {
   const todayKey = formatBerlinDateKeyFromUtcDate(now);
-  const requestedTagRaw = path !== "/" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
+  const homeLike = path === "/" || path === "/monat";
+  const requestedTagRaw =
+    path === "/tag" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
   const requestedRange = Array.isArray(query.zeitraum) ? query.zeitraum[0] : query.zeitraum;
   const yesterdayKey = prevBerlinDateKey(todayKey);
   const priceStart = addBerlinCalendarDays(todayKey, -61);
@@ -224,7 +228,7 @@ export async function loadGermanyView(
     !chosen &&
     !(requestedTag && (requestedTagStatus === "ausserhalb" || requestedTagStatus === "unvollstaendig"))
   ) {
-    if (path === "/") {
+    if (homeLike) {
       const key = pickLastCompleteDayKey(days, todayKey);
       const completeDay = days.find((day) => day.dateBerlin === key);
       if (completeDay && dayIsUsable(completeDay)) {
@@ -253,13 +257,13 @@ export async function loadGermanyView(
   const board = buildPowerBoard({
     slots: parsed?.slots ?? [],
     offshorePresent: parsed?.offshorePresent ?? true,
-    range: path === "/" ? parseMixRange(requestedRange) : "tag",
+    range: homeLike ? parseMixRange(requestedRange) : "tag",
     endDate,
     todayKey,
     path,
     fleet: publicFleet ? { powerGw: publicFleet.powerGw, energyGwh: publicFleet.energyGwh } : null,
     stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
-    tag: path !== "/" && chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
+    tag: path === "/tag" && chosen && chosen.day.dateBerlin !== todayKey ? chosen.day.dateBerlin : null,
   });
 
   let surplusDay: SurplusDayReport | null = null;
