@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { getBerlinIsoWeekdayForDateKey } from "@/lib/berlinCalendar";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
 import {
   adjacentMonthWithData,
   buildMonatGrid,
@@ -13,7 +14,7 @@ import {
 } from "@/lib/monatCalendar";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 
-function dayMark(cell: MonatDayCell): string {
+function dayMark(cell: MonatDayCell, compact = false): string {
   if (!cell.inSeries || !cell.record) {
     if (cell.future) {
       return "noch nicht";
@@ -23,7 +24,33 @@ function dayMark(cell: MonatDayCell): string {
   if (cell.record.surplusGwh >= 0.05) {
     return `${formatQuantity(cell.record.surplusGwh, "de", 1)} GWh`;
   }
-  return "kein Übersch.";
+  return compact ? "kein Übersch." : "kein Überschuss";
+}
+
+function cellClassName(cell: MonatDayCell): string {
+  return [
+    "v4-monat-cell",
+    cell.record && cell.record.surplusGwh < 0.05 ? "is-dry" : "",
+    cell.record && cell.record.surplusGwh >= 0.05 ? "is-surplus" : "",
+    !cell.inSeries ? "is-empty" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function listRowClassName(cell: MonatDayCell): string {
+  return [
+    "v4-monat-list-row",
+    cell.record && cell.record.surplusGwh < 0.05 ? "is-dry" : "",
+    cell.record && cell.record.surplusGwh >= 0.05 ? "is-surplus" : "",
+    !cell.inSeries ? "is-empty" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function isClickable(cell: MonatDayCell): boolean {
+  return Boolean(cell.inSeries && cell.record && !cell.future);
 }
 
 export function MonatNav({
@@ -60,6 +87,71 @@ export function MonatNav({
   );
 }
 
+function MonatCalendarGrid({ grid, pad, monthKey }: { grid: MonatDayCell[]; pad: number; monthKey: string }) {
+  return (
+    <div className="v4-monat-grid v4-content" role="grid" aria-label={`Monat ${monthKey}`}>
+      {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((d) => (
+        <span key={d} className="v4-monat-dow num" role="columnheader">
+          {d}
+        </span>
+      ))}
+      {Array.from({ length: pad }).map((_, i) => (
+        <span key={`pad-${i}`} className="v4-monat-pad" aria-hidden />
+      ))}
+      {grid.map((cell) => {
+        const mark = dayMark(cell, true);
+        const className = cellClassName(cell);
+        const inner = (
+          <>
+            <span className="v4-monat-day num">{cell.dayNum}</span>
+            <span className="v4-monat-mark num">{mark}</span>
+          </>
+        );
+        return isClickable(cell) ? (
+          <Link key={cell.dateKey} href={`/tag/${cell.dateKey}`} className={className} role="gridcell">
+            {inner}
+          </Link>
+        ) : (
+          <div key={cell.dateKey} className={className} role="gridcell" aria-disabled={!cell.inSeries}>
+            {inner}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MonatCalendarList({ grid, monthKey }: { grid: MonatDayCell[]; monthKey: string }) {
+  return (
+    <ul className="v4-monat-list v4-content" aria-label={`Tage im ${monthKey}`}>
+      {grid.map((cell) => {
+        const mark = dayMark(cell, false);
+        const dateLabel = `${weekdayShort(cell.dateKey, "de")}, ${formatBerlinDayLabel(cell.dateKey)}`;
+        const className = listRowClassName(cell);
+        const inner = (
+          <>
+            <span className="v4-monat-list-date num">{dateLabel}</span>
+            <span className="v4-monat-list-mark num">{mark}</span>
+          </>
+        );
+        return (
+          <li key={cell.dateKey}>
+            {isClickable(cell) ? (
+              <Link href={`/tag/${cell.dateKey}`} className={className}>
+                {inner}
+              </Link>
+            ) : (
+              <div className={className} aria-disabled={!cell.inSeries}>
+                {inner}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function MonatPageV4({
   monthKey,
   todayKey,
@@ -89,10 +181,6 @@ export function MonatPageV4({
             {h1}
           </h1>
           <p className="v4-subline">{subline}</p>
-          <p className="v4-subline">
-            Die Reihe zeigt Tage aus der geladenen Kennzahlenfolge — keine erfundenen Kalendertage, keine
-            Jahreskonflikte.
-          </p>
         </div>
       </section>
 
@@ -103,43 +191,10 @@ export function MonatPageV4({
             Tage im {formatBerlinMonthLabel(monthKey)}
           </h2>
         </div>
-        <div className="v4-monat-grid v4-content" role="grid" aria-label={`Monat ${monthKey}`}>
-          {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((d) => (
-            <span key={d} className="v4-monat-dow num" role="columnheader">
-              {d}
-            </span>
-          ))}
-          {Array.from({ length: pad }).map((_, i) => (
-            <span key={`pad-${i}`} className="v4-monat-pad" aria-hidden />
-          ))}
-          {grid.map((cell) => {
-            const mark = dayMark(cell);
-            const clickable = cell.inSeries && cell.record && !cell.future;
-            const className = [
-              "v4-monat-cell",
-              cell.record && cell.record.surplusGwh < 0.05 ? "is-dry" : "",
-              cell.record && cell.record.surplusGwh >= 0.05 ? "is-surplus" : "",
-              !cell.inSeries ? "is-empty" : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
-            const inner = (
-              <>
-                <span className="v4-monat-day num">{cell.dayNum}</span>
-                <span className="v4-monat-mark num">{mark}</span>
-              </>
-            );
-            return clickable ? (
-              <Link key={cell.dateKey} href={`/tag/${cell.dateKey}`} className={className} role="gridcell">
-                {inner}
-              </Link>
-            ) : (
-              <div key={cell.dateKey} className={className} role="gridcell" aria-disabled={!cell.inSeries}>
-                {inner}
-              </div>
-            );
-          })}
+        <div className="v4-monat-grid-wrap">
+          <MonatCalendarGrid grid={grid} pad={pad} monthKey={monthKey} />
         </div>
+        <MonatCalendarList grid={grid} monthKey={monthKey} />
       </section>
 
       <p className="v4-chapter-foot v4-content num">

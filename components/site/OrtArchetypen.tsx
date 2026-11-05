@@ -336,8 +336,8 @@ function ArchetypeDayChart({
   ariaLabel: string;
 }) {
   const W = 960;
-  const H = 280;
-  const pad = { l: 56, r: 16, t: 16, b: 48 };
+  const H = 300;
+  const pad = { l: 72, r: 16, t: 16, b: 58 };
   const n = Math.min(l0n0.length, 96);
   const maxY = Math.max(110, ...l0n0.slice(0, n), ...l1n1.slice(0, n));
   const x = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r);
@@ -383,25 +383,29 @@ function ArchetypeDayChart({
         <path d={line(l0n0)} fill="none" stroke={palette.lineBelow80} strokeWidth={1.5} />
         <path d={line(l0n1)} fill="none" stroke={palette.line80to100} strokeWidth={1.5} strokeDasharray="6 4" />
         <path d={line(l1n1)} fill="none" stroke={palette.lineOver100} strokeWidth={2} />
-        <text x={pad.l} y={H - 8} className="num ort-chart-axis" fontSize={11}>
+        <text x={pad.l} y={H - 14} className="num ort-chart-axis" fontSize={11}>
           0
         </text>
         <text x={pad.l - 4} y={y(100) + 4} className="num ort-chart-axis" fontSize={11} textAnchor="end">
           100 %
         </text>
-        <text x={W - pad.r} y={H - 8} className="num ort-chart-axis" fontSize={11} textAnchor="end">
+        <text x={W - pad.r} y={H - 14} className="num ort-chart-axis" fontSize={11} textAnchor="end">
           24 h
         </text>
-        <text x={(pad.l + W - pad.r) / 2} y={H - 2} className="ort-chart-axis-title" fontSize={11} textAnchor="middle">
+        <text
+          x={(pad.l + W - pad.r) / 2}
+          y={H - 4}
+          className="ort-chart-axis-title"
+          textAnchor="middle"
+        >
           {tx("Uhrzeit (Mustertag)", "Time (sample day)")}
         </text>
         <text
-          x={12}
+          x={26}
           y={(pad.t + H - pad.b) / 2}
-          className="ort-chart-axis-title"
-          fontSize={11}
+          className="ort-chart-axis-title ort-chart-axis-title-y"
           textAnchor="middle"
-          transform={`rotate(-90 12 ${(pad.t + H - pad.b) / 2})`}
+          transform={`rotate(-90 26 ${(pad.t + H - pad.b) / 2})`}
         >
           {tx("Auslastung der Leitung in %", "Line loading in %")}
         </text>

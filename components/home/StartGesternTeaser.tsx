@@ -24,9 +24,6 @@ export function StartGesternTeaser({
           Was am {label} auffiel
         </h2>
         <p className="v4-tag-kern">{surplus}</p>
-        <p className="v4-tag-side">
-          Den Tagesverlauf mit Lücke und Abendspitze gibt es auf der Tag-Seite — nicht noch einmal hier.
-        </p>
       </div>
       <p className="v4-chapter-foot v4-content num">
         <Link href={`/tag/${kopfDayKey}`} className="v4-text-link">
