@@ -7604,8 +7604,46 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .dark .ort-chart-axis-title {
   fill: hsl(var(--muted-foreground));
 }
+.ort-archetype-chart {
+  overflow: visible;
+}
+.ort-archetype-chart-frame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px;
+  align-items: stretch;
+  overflow: visible;
+}
+.ort-chart-axis-html-y {
+  margin: 0;
+  padding: 0 2px;
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: #3a3a36;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+  align-self: center;
+  flex-shrink: 0;
+}
+.dark .ort-chart-axis-html-y {
+  color: hsl(var(--muted-foreground));
+}
 .ort-archetype-chart-shell {
   width: 100%;
+  overflow: visible;
+  min-width: 0;
+}
+.ort-archetype-chart-shell .ort-archetype-chart-svg {
+  overflow: visible;
+  display: block;
+}
+@media (max-width: 639px) {
+  .ort-archetype-chart-shell .ort-archetype-chart-svg {
+    min-height: 200px;
+  }
 }
 .ort-netz-nutzen {
   max-width: 52rem;

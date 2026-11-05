@@ -375,8 +375,18 @@ function ArchetypeDayChart({
 
   return (
     <figure className="ort-archetype-chart">
-      <div ref={shellRef} className="ort-archetype-chart-shell">
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="v4-ort-chart">
+      <div className="ort-archetype-chart-frame">
+        <p className="ort-chart-axis-html-y" aria-hidden="true">
+          {tx("Auslastung der Leitung in %", "Line loading in %")}
+        </p>
+        <div ref={shellRef} className="ort-archetype-chart-shell">
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            role="img"
+            aria-label={ariaLabel}
+            className="v4-ort-chart ort-archetype-chart-svg"
+            overflow="visible"
+          >
         <line x1={pad.l} x2={W - pad.r} y1={y(100)} y2={y(100)} stroke={palette.lineOver100} strokeDasharray="4 4" />
         {windowQh.map((qh) => (
           <rect
@@ -427,17 +437,8 @@ function ArchetypeDayChart({
         >
           {tx("Uhrzeit (Mustertag)", "Time (sample day)")}
         </text>
-        <text
-          x={26}
-          y={(pad.t + H - pad.b) / 2}
-          className="ort-chart-axis-title ort-chart-axis-title-y"
-          fontSize={titleFont}
-          textAnchor="middle"
-          transform={`rotate(-90 26 ${(pad.t + H - pad.b) / 2})`}
-        >
-          {tx("Auslastung der Leitung in %", "Line loading in %")}
-        </text>
       </svg>
+        </div>
       </div>
       <figcaption className="ort-chart-caption">
         <ul className="ort-chart-legend">
