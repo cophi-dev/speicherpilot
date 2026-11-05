@@ -17,7 +17,7 @@
     }
   },
   "park": {
-    "nameDe": "Großspeicher Bollingstedt",
+    "nameDe": "Großspeicher Beispiel",
     "powerMw": 103.5,
     "energyMwh": 238.5,
     "roundTrip": 0.85,

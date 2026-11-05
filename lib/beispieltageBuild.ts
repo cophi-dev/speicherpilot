@@ -302,7 +302,7 @@ export function buildBeispieltageFile(year = yearRevenuesFromRaw()): Beispieltag
       },
     },
     park: {
-      nameDe: "Großspeicher Bollingstedt",
+      nameDe: "Großspeicher Beispiel",
       powerMw: POWER_MW,
       energyMwh: ENERGY_MWH,
       roundTrip: ROUND_TRIP_EFFICIENCY,

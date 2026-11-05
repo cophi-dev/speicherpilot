@@ -182,8 +182,8 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
           <p className="szen-disclaimer">
             {copy?.disclaimer ??
               tx(
-                "Das ist eine Modellrechnung. Es ist keine Prüfung des Netzanschlusses und keine Aussage, ob der Netzknoten den Speicher aufnehmen kann. Das beurteilt der Netzbetreiber.",
-                "This is a model calculation. It is not a check of the grid connection and not a statement about whether the node can take the battery. The grid operator decides that."
+                "Das ist eine Modellrechnung. Sie ersetzt keine Entscheidung des Netzbetreibers, ob der Netzknoten den Speicher aufnehmen kann. Das beurteilt der Netzbetreiber.",
+                "This is a model calculation. It does not replace the grid operator’s decision on whether the node can take the battery. The grid operator decides that."
               )}
           </p>
         </div>
@@ -244,7 +244,7 @@ export function SzenarienRechner({ table: given }: { table?: FcaTable | null }) 
           </form>
 
           <p className="szen-assumption-line">
-            {assumptionLine(raw, language)} {tx("Beispielgröße, nicht die echten Werte von Bollingstedt.", "Example size, not the real Bollingstedt figures.")}
+            {assumptionLine(raw, language)} {tx("Beispielgröße 100 MW / 230 MWh (Modellanker), nicht ein konkreter Standort.", "Example size 100 MW / 230 MWh (model anchor), not a specific site.")}
           </p>
           <details
             id="szen-assumptions"

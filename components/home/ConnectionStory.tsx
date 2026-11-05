@@ -9,7 +9,8 @@ import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
 import { connectionLight } from "@/lib/connectionLight";
 import { formatQuantity } from "@/lib/formatQuantity";
-import { supermarketTeachingDay, type PeakQuarter, type PeakShavingExplain } from "@/lib/peakShavingExplain";
+import { ladeparkConnectionKw, ladeparkMaxKw, planLadepark, LADEPARK } from "@/lib/ladepark";
+import { explainPeakShaving, type PeakQuarter, type PeakShavingExplain } from "@/lib/peakShavingExplain";
 import { sitePath } from "@/lib/perspective";
 
 function clockLabel(hour: number) {
@@ -34,7 +35,21 @@ function axisFor(peakKw: number) {
 export function ConnectionStory({ hideEuro = false }: { hideEuro?: boolean } = {}) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const story = useMemo(() => supermarketTeachingDay(), []);
+  const story = useMemo(() => {
+    const econ = planLadepark(4);
+    const limitKw = ladeparkConnectionKw(4);
+    const shaveKw = ladeparkMaxKw(4) - limitKw;
+    return explainPeakShaving({
+      loadKw: econ.plan.peakDay.loadKw,
+      limitKw,
+      powerKw: shaveKw,
+      energyKwh: shaveKw * 2.5,
+      roundTripEfficiency: LADEPARK.roundTripEfficiency,
+      rechargeFromHour: 19,
+      rechargeCapKw: Math.min(shaveKw, limitKw * 0.3),
+      demandChargeEurPerKwYear: null,
+    });
+  }, []);
   const [step, setStep] = useState(0);
   const [narrow, setNarrow] = useState(false);
   const [phone, setPhone] = useState(false);
@@ -153,7 +168,7 @@ export function ConnectionStory({ hideEuro = false }: { hideEuro?: boolean } = {
   return (
     <section ref={sectionRef} id="peak-shaving" aria-labelledby={titleId} className="border-b border-border py-12 md:py-16">
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-        <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Supermarkt", "Example · supermarket")}</p>
+        <p className="num text-[12px] tracking-[0.16em] text-muted-foreground uppercase">{tx("Beispiel · Ladepark", "Example · charging hub")}</p>
 
         <div className="connection-story mt-4">
           <div className="connection-story-pin">
@@ -243,7 +258,7 @@ export function ConnectionStory({ hideEuro = false }: { hideEuro?: boolean } = {
                     {last ? (
                       <div className="mt-8 flex flex-wrap items-center gap-3">
                         <Link
-                          href={sitePath("projekt", "supermarkt")}
+                          href={sitePath("projekt", "ladepark")}
                           className="story-market-link inline-flex h-12 w-fit items-center px-5 text-[15px] font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           {tx("Eigenen Markt rechnen →", "Calculate your own store →")}

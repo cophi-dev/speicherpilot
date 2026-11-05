@@ -120,7 +120,7 @@ export function DayRing({
   smoothSeries?: boolean;
   /** Keep the painted band outside the state-of-charge inner edge. */
   clearCenter?: boolean;
-  /** Bollingstedt model day: px geometry, monotone state of charge, solid sign colours. */
+  /** Reference-anchor model day: px geometry, monotone state of charge, solid sign colours. */
   referenceRing?: boolean;
   /** Cap polar path complexity (homepage story rings). */
   maxCurveSamples?: number;

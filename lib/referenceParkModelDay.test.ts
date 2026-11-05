@@ -25,13 +25,13 @@ function quarters(value: (hour: number) => number): DayAheadPricePoint[] {
 
 const spread = () => quarters((hour) => (hour < 10 ? 20 : hour < 17 ? 50 : 180));
 
-describe("Bollingstedt model day", () => {
+describe("Modellanker model day", () => {
   it("runs the park on a price spread and keeps the engine efficiency and SoC window", () => {
     const result = dispatchReferencePark({ prices: spread(), dateBerlin: DAY });
     expect(result).not.toBeNull();
     expect(result?.params.efficiency).toBe(ROUND_TRIP_EFFICIENCY);
-    expect(result?.params.powerMW).toBe(103.5);
-    expect(result?.params.energyMWh).toBe(238.5);
+    expect(result?.params.powerMW).toBe(100);
+    expect(result?.params.energyMWh).toBe(230);
     expect(result?.quarters.some((quarter) => quarter.powerMw < 0)).toBe(true);
     expect(result?.quarters.some((quarter) => quarter.powerMw > 0)).toBe(true);
     for (const quarter of result?.quarters ?? []) {
@@ -83,12 +83,12 @@ describe("Bollingstedt model day", () => {
 
   it("measures model-day peaks against the published nameplate only", () => {
     const view = referenceParkModelDay({ prices: spread(), dateBerlin: DAY });
-    const use = referenceParkConnectionUse(view?.points ?? [], 103.5);
+    const use = referenceParkConnectionUse(view?.points ?? [], 100);
     expect(use.maxChargeMw).toBeGreaterThan(0);
     expect(use.maxDischargeMw).toBeGreaterThan(0);
-    expect(use.maxChargeMw).toBeLessThanOrEqual(103.5 + 1e-6);
-    expect(use.maxDischargeMw).toBeLessThanOrEqual(103.5 + 1e-6);
-    expect(referenceParkConnectionUse([], 103.5)).toEqual({
+    expect(use.maxChargeMw).toBeLessThanOrEqual(100 + 1e-6);
+    expect(use.maxDischargeMw).toBeLessThanOrEqual(100 + 1e-6);
+    expect(referenceParkConnectionUse([], 100)).toEqual({
       maxChargeMw: 0,
       maxDischargeMw: 0,
       chargeAtNameplate: false,
@@ -109,9 +109,9 @@ describe("Bollingstedt model day", () => {
     const center = socRingGeometry("kW").innerEdge;
     expect(limits.center).toBe(center);
     expect(limits.inner).toBeGreaterThan(center);
-    expect(kwRadius(referenceParkRingKw(103.5, 103.5))).toBeCloseTo(limits.outer, 5);
-    expect(kwRadius(referenceParkRingKw(-103.5, 103.5))).toBeCloseTo(limits.inner, 5);
-    expect(kwRadius(referenceParkRingKw(0, 103.5))).toBeCloseTo(limits.zero, 5);
+    expect(kwRadius(referenceParkRingKw(100, 100))).toBeCloseTo(limits.outer, 5);
+    expect(kwRadius(referenceParkRingKw(-100, 100))).toBeCloseTo(limits.inner, 5);
+    expect(kwRadius(referenceParkRingKw(0, 100))).toBeCloseTo(limits.zero, 5);
 
     const day = referenceParkModelDay({ prices: spread(), dateBerlin: DAY });
     const zero = kwRadius(0);
@@ -133,8 +133,8 @@ describe("Bollingstedt model day", () => {
     const zero = kwRadius(0);
     const hours = Array.from({ length: 96 }, (_, index) => index / 4);
     const draw = hours.map((hour) => {
-      if (hour === 12) return referenceParkRingKw(-103.5, 103.5);
-      if (hour === 18.5) return referenceParkRingKw(103.5, 103.5);
+      if (hour === 12) return referenceParkRingKw(-100, 100);
+      if (hour === 18.5) return referenceParkRingKw(100, 100);
       return 0;
     });
     const series = hours.map((hour, index) => ({

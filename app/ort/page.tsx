@@ -2,8 +2,7 @@ import { OrtServerShell } from "@/components/site/OrtServerShell";
 import { OrtSiteDayClient } from "@/components/site/OrtSiteDayClient";
 import { capRingPoints } from "@/lib/capRingPoints";
 import { loadReferenceParkModelDay } from "@/lib/loadReferenceParkModelDay";
-import { parseSelection } from "@/lib/netzDemo";
-import { parsePerspective, parseScenario } from "@/lib/perspective";
+import { parsePerspective, parseScenario, defaultScenario, type ScenarioId } from "@/lib/perspective";
 
 function first(value: string | string[] | undefined): string | null {
   if (Array.isArray(value)) {
@@ -22,7 +21,7 @@ export async function generateMetadata({
   if (sicht === "netz") {
     return {
       title: "Ort · Netz und Anschluss",
-      description: "Netzperspektive: Anschlussgrenze, Szenarien und Testnetz am Beispielanschluss.",
+      description: "Netzsicht: derselbe Speicher an zwei SimBench-Orten, fest und flexibel angeschlossen.",
     };
   }
   return {
@@ -38,14 +37,8 @@ export default async function OrtPage({
 }) {
   const query = await searchParams;
   const view = parsePerspective(first(query.sicht)) ?? parsePerspective(first(query.view)) ?? "projekt";
-  const scenario = parseScenario(first(query.scenario)) ?? "supermarkt";
+  const scenario = parseScenario(first(query.scenario)) ?? defaultScenario(view);
   const modelDay = await loadReferenceParkModelDay();
-  const netzSelection = parseSelection({
-    fall: first(query.fall),
-    richtung: first(query.richtung),
-    knoten: first(query.knoten),
-    p: first(query.p),
-  });
   const cappedDay =
     modelDay && modelDay.points.length > 0
       ? { ...modelDay, points: capRingPoints(modelDay.points) }
@@ -54,12 +47,7 @@ export default async function OrtPage({
   return (
     <div className="ort-v4-page v4-subpage ort-v4">
       <OrtServerShell view={view} scenario={scenario} />
-      <OrtSiteDayClient
-        modelDay={cappedDay}
-        netzSelection={netzSelection}
-        view={view}
-        scenario={scenario}
-      />
+      <OrtSiteDayClient modelDay={cappedDay} view={view} scenario={scenario} />
     </div>
   );
 }

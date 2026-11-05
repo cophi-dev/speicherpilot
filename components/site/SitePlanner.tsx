@@ -15,7 +15,7 @@ import { NewsList } from "@/components/sim/NewsList";
 import { SiteConnectionSim } from "@/components/sim/SiteConnectionSim";
 import { formatQuantity, formatYears } from "@/lib/formatQuantity";
 import { HAMBURG_SUPERMARKET, hamburgSupermarketProfile } from "@/lib/hamburgSupermarket";
-import { QUARTIER, quartierProfile, quartierPvKwp } from "@/lib/quartierExample";
+import { LADEPARK, ladeparkConnectionKw, ladeparkProfile } from "@/lib/ladepark";
 import { connectionLight } from "@/lib/connectionLight";
 import { parsePerspective, parseScenario, sitePath, type Perspective, type ScenarioId } from "@/lib/perspective";
 import { rateConnection, rateGridSupport, ratePayback, rateStorage } from "@/lib/readability";
@@ -52,7 +52,7 @@ import {
   type VoltageLevel,
 } from "@/lib/sitePlanner";
 
-type ProfileMode = ExampleProfileId | "manual" | "csv" | "supermarkt" | "quartier" | "grossspeicher";
+type ProfileMode = ExampleProfileId | "manual" | "csv" | "ladepark" | "grossspeicher";
 
 type Draft = {
   mode: ProfileMode;
@@ -87,7 +87,7 @@ const economics = defaultPlannerEconomics();
 function defaultDraft(): Draft {
   const example = HAMBURG_SUPERMARKET;
   return {
-    mode: "supermarkt",
+    mode: "ladepark",
     csv: null,
     csvError: null,
     annualKwh: 3_100_000,
@@ -122,11 +122,8 @@ function profileFromDraft(draft: Draft): LoadProfile | null {
   if (draft.mode === "manual") {
     return manualAnnualProfile(draft.shape, draft.annualKwh);
   }
-  if (draft.mode === "supermarkt") {
-    return hamburgSupermarketProfile();
-  }
-  if (draft.mode === "quartier") {
-    return quartierProfile();
+  if (draft.mode === "ladepark") {
+    return ladeparkProfile(4);
   }
   if (draft.mode === "grossspeicher") {
     return null;
@@ -135,26 +132,19 @@ function profileFromDraft(draft: Draft): LoadProfile | null {
 }
 
 function draftForScenario(id: ScenarioId): Draft {
-  if (id === "quartier") {
+  if (id === "ladepark" || id === "land" || id === "stadt") {
     return {
       ...defaultDraft(),
-      mode: "quartier",
-      pvEnabled: true,
-      pvKwp: quartierPvKwp(),
-      limitKw: QUARTIER.transformerKw,
-      voltage: QUARTIER.voltage,
-      transformerKw: QUARTIER.transformerKw,
-      dynamic: QUARTIER.dynamicTariff,
-      autoSize: false,
-      powerKw: QUARTIER.powerKw,
-      energyKwh: QUARTIER.energyKwh,
-      demand: QUARTIER.demandChargeEurPerKwYear,
-      energyCt: QUARTIER.energyPriceCtPerKwh,
-      feedIn: QUARTIER.feedInCtPerKwh,
-      rtePct: QUARTIER.roundTripEfficiency * 100,
-      capex: QUARTIER.capexEurPerKwh,
-      cycles: QUARTIER.maxCyclesPerYear,
-      life: QUARTIER.lifetimeYears,
+      mode: "ladepark",
+      pvEnabled: false,
+      limitKw: ladeparkConnectionKw(4),
+      voltage: LADEPARK.voltage,
+      dynamic: true,
+      autoSize: true,
+      rtePct: LADEPARK.roundTripEfficiency * 100,
+      capex: LADEPARK.capexEurPerKwh,
+      cycles: LADEPARK.maxCyclesPerYear,
+      life: LADEPARK.lifetimeYears,
     };
   }
   if (id === "grossspeicher") {
@@ -163,11 +153,8 @@ function draftForScenario(id: ScenarioId): Draft {
   return defaultDraft();
 }
 
-function operationForScenario(id: ScenarioId): OperationMode {
-  if (id === "quartier") {
-    return QUARTIER.operation;
-  }
-  return HAMBURG_SUPERMARKET.operation;
+function operationForScenario(_id: ScenarioId): OperationMode {
+  return "market";
 }
 
 function run(
@@ -221,7 +208,7 @@ function resolvedScenario(params: { get: (key: string) => string | null }): Scen
   if (params.get("profile") || params.get("limit")) {
     return null;
   }
-  return "supermarkt";
+  return "ladepark";
 }
 
 function openingDraft(params: { get: (key: string) => string | null }): Draft {
@@ -281,7 +268,7 @@ export function SitePlanner() {
       changed = true;
     }
     if (!parseScenario(params.get("scenario")) && !params.get("profile") && !params.get("limit")) {
-      params.set("scenario", "supermarkt");
+      params.set("scenario", "ladepark");
       changed = true;
     }
     if (changed) {
@@ -333,7 +320,7 @@ export function SitePlanner() {
     near: tx("An der Grenze", "On the limit"),
     over: tx("Darüber", "Above"),
   };
-  const showingExample = draft.mode === "supermarkt" || draft.mode === "quartier";
+  const showingExample = draft.mode === "ladepark";
   const referenceCase = scenario === "grossspeicher";
 
   function chooseScenario(next: ScenarioId) {
@@ -418,7 +405,7 @@ export function SitePlanner() {
     }
   }
 
-  const showConnectionSim = scenario === "supermarkt";
+  const showConnectionSim = scenario === "ladepark";
   const PlannerTitle = showConnectionSim ? "h2" : "h1";
   return (
     <div className="relative mx-auto max-w-[1360px] px-5 py-8 md:px-8">
@@ -451,7 +438,7 @@ export function SitePlanner() {
             {tx("Netzbetreiber", "Grid operator")}
           </Link>
         </div>
-        {scenario === "supermarkt" || scenario === "quartier" ? (
+        {scenario === "ladepark" ? (
           <p className="num mt-3 inline-flex border border-warning/50 bg-warning/10 px-2 py-1 text-[12px] text-foreground">{tx("Beispieldaten", "Example data")}</p>
         ) : null}
       </div>
@@ -558,12 +545,12 @@ export function SitePlanner() {
             {view === "netz" ? <VoltageField draft={draft} setDraft={setDraft} tx={tx} language={language} required /> : null}
             <Field
               id="limit"
-              label={draft.mode === "quartier" ? tx("Planleistung der Station", "Station planning rating") : tx("Anschlussleistung", "Connection capacity")}
+              label={tx("Anschlussleistung", "Connection capacity")}
               unit="kW"
               value={draft.limitKw}
-              onChange={(limitKw) => setDraft({ ...draft, limitKw, transformerKw: draft.mode === "quartier" ? limitKw : draft.transformerKw })}
+              onChange={(limitKw) => setDraft({ ...draft, limitKw, transformerKw: draft.transformerKw })}
               required={view === "netz"}
-              tip={draft.mode === "quartier" ? <GlossaryTip id="ortsnetzstation" language={language} /> : undefined}
+              tip={undefined}
             />
             <p className="mt-1 text-[12px] text-muted-foreground">
               {tx("Profilspitze", "Profile peak")}: {formatQuantity(peakKw, language, 0)} kW
@@ -648,7 +635,7 @@ export function SitePlanner() {
                   {tx("ANSCHLUSSLEISTUNG FEHLT", "CONNECTION CAPACITY MISSING")}
                 </button>
               ) : null}
-              <button type="button" className="mt-4 h-10 rounded-md border border-border px-3 text-sm" onClick={() => chooseScenario("supermarkt")}>
+              <button type="button" className="mt-4 h-10 rounded-md border border-border px-3 text-sm" onClick={() => chooseScenario("ladepark")}>
                 {tx("Beispiel Supermarkt", "Supermarket example")}
               </button>
             </div>
@@ -660,51 +647,17 @@ export function SitePlanner() {
                   <div className="mt-3 rounded-md border border-border-strong bg-card p-4 md:p-5">
                     <p className="num text-[12px] tracking-[0.08em] text-muted-foreground uppercase">BEISPIELDATEN</p>
                     <h2 className="mt-1 text-xl font-medium">
-                      {draft.mode === "quartier"
-                        ? language === "de" ? QUARTIER.labelDe : QUARTIER.labelEn
-                        : language === "de" ? HAMBURG_SUPERMARKET.labelDe : HAMBURG_SUPERMARKET.labelEn}
+                      {tx("Beispiel Schnellladepark", "Example fast-charging hub")}
                     </h2>
                     <p className="mt-2 max-w-[62ch] text-sm text-muted-foreground">
-                      {draft.mode === "quartier"
-                        ? view === "netz"
-                          ? tx(
-                              "Fiktives Wohngebiet, keine Messung und kein Hamburger Netz. Die Frage: hält der Speicher die Ortsnetzstation unter ihrer Planleistung, oder braucht die Station einen größeren Trafo? Die Annahmen stehen in der Methodik.",
-                              "A fictional neighbourhood, not a measurement and not the Hamburg grid. The question: does the battery keep the distribution substation under its planning rating, or does the station need a larger transformer? The assumptions are in the method."
-                            )
-                          : tx(
-                              "Fiktives Wohngebiet, keine Messung. 150 Haushalte mit Wärmepumpen, Wallboxen und Dach-PV hinter einer Ortsnetzstation. Die Frage: welche Speichergröße und welche Rückzahlung. Die Annahmen stehen in der Methodik.",
-                              "A fictional neighbourhood, not a measurement. 150 households with heat pumps, chargers and rooftop PV behind one distribution substation. The question: which battery size, and what payback. The assumptions are in the method."
-                            )
-                        : view === "netz"
-                          ? tx(
-                              "Fiktiver Betrieb hinter dem Zähler, keine Messung. Die Frage: bleibt die Lastspitze in dem Anschluss, der schon da ist. Ein eigenes CSV ergibt das echte Ergebnis.",
-                              "A fictional site behind the meter, not a measurement. The question: does the load peak fit the connection that is already there. Your own CSV gives the real result."
-                            )
-                          : tx(
-                              "Fiktiver Betrieb hinter dem Zähler, keine Messung. Der Speicher kappt die Abendspitze auf die Anschlussgrenze. Ein CSV mit 15-Minuten- oder Stundenwerten deines eigenen Lastprofils ergibt das echte Ergebnis.",
-                              "A fictional site behind the meter, not a measurement. The battery cuts the evening peak to the connection limit. A CSV of 15-minute or hourly values from your own load profile gives the real result."
-                            )}
-                    </p>
-                    <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                      {draft.mode === "quartier" ? (
-                        <>
-                          <span>{tx("Quartier", "Neighbourhood")}</span>
-                          <GlossaryTip id="quartier" language={language} />
-                          <span>{tx("Ortsnetzstation", "Distribution substation")}</span>
-                          <GlossaryTip id="ortsnetzstation" language={language} />
-                        </>
-                      ) : (
-                        <>
-                          <span>{tx("Hinter dem Zähler", "Behind the meter")}</span>
-                          <GlossaryTip id="behind-the-meter" language={language} />
-                        </>
+                      {tx(
+                        "Synthetisches Profil, Day-ahead-Preise, Netzentgelt nach Benutzungsdauer — alles Modellschätzung.",
+                        "Synthetic profile, day-ahead prices, grid fees by utilisation — all a model estimate.",
                       )}
                     </p>
-                    {draft.mode === "quartier" ? (
-                      <a className="mt-3 inline-block text-sm underline underline-offset-[3px]" href="/methodik#beispiele">
-                        {tx("Annahmen in der Methodik", "Assumptions in the method")}
-                      </a>
-                    ) : null}
+                    <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                      <span>{tx("Mittelspannung", "Medium voltage")}</span>
+                    </p>
                     <button
                       type="button"
                       className="mt-4 hidden h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:inline-flex"
@@ -1282,7 +1235,7 @@ function DsoView({
 function draftFromParams(params: { get: (key: string) => string | null }): Draft {
   const base = defaultDraft();
   const mode = params.get("profile");
-  if (!mode || mode === "supermarkt") {
+  if (!mode || mode === "ladepark") {
     return base;
   }
   const legacy: Draft = {

@@ -200,11 +200,11 @@ function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFle
     },
     {
       assumption: tx("Netz-Demo", "Grid demo"),
-      value: tx("Testnetz", "test grid"),
+      value: tx("/ort Netzsicht", "/ort grid view"),
       unit: "—",
       why: tx(
-        "Öffentliches Mittelspannungs-Testnetz SimBench 1-MV-semiurb--0-no_sw. Kein reales Netz.",
-        "Public medium-voltage test grid SimBench 1-MV-semiurb--0-no_sw. Not a real grid."
+        "Zwei SimBench-Archetypen: 1-MV-rural (Land, optional Zukunftsszenario mit mehr PV) und 1-MV-urban (Stadt). Typtag = Tag mit maximaler Einspeisung bzw. Restbezug. Kein reales Netz.",
+        "Two SimBench archetypes: 1-MV-rural (rural, optional future PV scenario) and 1-MV-urban (urban). Typical day = max feed-in or residual demand. Not a real grid."
       ),
       uncertainty: tx("Keine Anschlusszusage.", "Not a connection offer."),
     },
@@ -275,8 +275,8 @@ function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFle
     {
       name: tx("Marktstammdatenregister", "Marktstammdatenregister"),
       use: tx(
-        "Öffentliche Registerdaten der Speicher. Die Flottengröße kommt über Battery Charts, die Eckdaten von Bollingstedt aus den SEE-Nummern.",
-        "Public register data for storage. Fleet size comes via Battery Charts. Bollingstedt’s key figures come from the SEE numbers."
+        "Öffentliche Registerdaten der Speicher. Die Flottengröße kommt über Battery Charts, die Eckdaten des Modellankers aus öffentlichen Summen im MaStR.",
+        "Public register data for storage. Fleet size comes via Battery Charts. The model anchor’s key figures come from public totals in the MaStR."
       ),
       licence: tx(
         "Datenlizenz Deutschland – Namensnennung – Version 2.0",
@@ -312,8 +312,8 @@ function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFle
     {
       name: "SimBench",
       use: tx(
-        "Testnetz 1-MV-semiurb--0-no_sw für die Netz-Demo.",
-        "Test grid 1-MV-semiurb--0-no_sw for the grid demo."
+        "Archetypen 1-MV-rural / 1-MV-urban für /ort?sicht=netz.",
+        "Archetypes 1-MV-rural / 1-MV-urban for /ort?sicht=netz."
       ),
       licence: "ODbL 1.0 + DbCL 1.0",
       credit: tx(

@@ -51,6 +51,7 @@ export function SiteShell({ children }: SiteShellProps) {
   const [mounted, setMounted] = useState(false);
   const language: AppLanguage = "de";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLgNav, setIsLgNav] = useState(false);
   const nightHero = pathname === "/" || pathname.startsWith("/tag");
   const [overHero, setOverHero] = useState(nightHero);
   const [atTop, setAtTop] = useState(true);
@@ -67,6 +68,14 @@ export function SiteShell({ children }: SiteShellProps) {
       setMounted(true);
     });
     return () => cancelAnimationFrame(id);
+  }, []);
+
+  useLayoutEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsLgNav(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
@@ -161,7 +170,10 @@ export function SiteShell({ children }: SiteShellProps) {
   return (
     <LanguageContext.Provider value={{ language, setLanguage: () => {} }}>
       <div className="relative min-h-screen bg-background text-foreground">
-        <a href="#inhalt" className="site-shell-skip sr-only focus:not-sr-only">
+        <a
+          href="#inhalt"
+          className="site-shell-skip fixed -top-32 left-2 z-[80] inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-card px-4 py-2.5 text-sm shadow-[0_0_0_2px_var(--ring)] focus:top-2 focus-visible:top-2"
+        >
           Zum Inhalt
         </a>
         <NavigationProgress label="Seite wird geladen." />
@@ -170,7 +182,12 @@ export function SiteShell({ children }: SiteShellProps) {
         >
           <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
             <BrandLockup />
-            <nav className="hidden min-h-6 min-w-0 items-center gap-7 text-sm font-medium lg:flex" aria-label="Hauptnavigation">
+            {isLgNav ? (
+            <nav
+              id="site-desktop-nav"
+              className="flex min-h-6 min-w-0 items-center gap-7 text-sm font-medium"
+              aria-label="Hauptnavigation"
+            >
               {NAV.map((item) => {
                 const active =
                   item.href === "/"
@@ -191,6 +208,7 @@ export function SiteShell({ children }: SiteShellProps) {
                 );
               })}
             </nav>
+            ) : null}
             <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
@@ -219,9 +237,15 @@ export function SiteShell({ children }: SiteShellProps) {
           </div>
           {menuOpen ? (
             <div className="border-t border-border bg-card px-5 py-4 md:px-8 lg:hidden">
-              <nav id="site-mobile-nav" className="flex flex-col gap-3 text-sm font-medium" aria-label="Hauptnavigation">
+              <nav id="site-mobile-nav" className="flex flex-col gap-1 text-sm font-medium" aria-label="Hauptnavigation">
                 {NAV.map((item) => (
-                  <Link key={item.href} href={item.href} prefetch={false} onClick={() => setMenuOpen(false)}>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    prefetch={false}
+                    className="inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => setMenuOpen(false)}
+                  >
                     {item.label}
                   </Link>
                 ))}

@@ -210,8 +210,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "regelzone",
     term: { de: "Regelzone", en: "Control area" },
     text: {
-      de: "Das Gebiet eines Übertragungsnetzbetreibers. Hamburg liegt in der Regelzone 50Hertz. Die Zahl gilt für die ganze Zone, unter anderem Berlin, Brandenburg und Sachsen, nicht für die Stadt.",
-      en: "The area of a transmission operator. Hamburg sits in the 50Hertz control area. The figure is the whole area, including Berlin, Brandenburg and Saxony, not the city.",
+      de: "Das Gebiet eines Übertragungsnetzbetreibers. Hamburg liegt in der Regelzone Nordost. Die Zahl gilt für die ganze Zone, unter anderem Berlin, Brandenburg und Sachsen, nicht für die Stadt.",
+      en: "The area of a transmission operator. Hamburg sits in the north-east control area. The figure is the whole area, including Berlin, Brandenburg and Saxony, not the city.",
     },
   },
   {
@@ -226,8 +226,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "wind-auf-see",
     term: { de: "Wind auf See", en: "Offshore wind" },
     text: {
-      de: "Windparks im Meer. Die Reihe der Regelzone 50Hertz ist an die Ostsee angeschlossen, die Reihe der Regelzone TenneT an die Nordsee. Das ist nicht die Stromlast von Norddeutschland.",
-      en: "Wind farms at sea. The 50Hertz series is connected to the Baltic, the TenneT series to the North Sea. That is not northern Germany’s electricity load.",
+      de: "Windparks im Meer. Die Reihe der Regelzone Nordost ist an die Ostsee angeschlossen, die Reihe der Regelzone Nord-Süd (Mitte) an die Nordsee. Das ist nicht die Stromlast von Norddeutschland.",
+      en: "Wind farms at sea. The north-east control-area series is connected to the Baltic, the north–south (central) series to the North Sea. That is not northern Germany’s electricity load.",
     },
   },
   {
@@ -314,8 +314,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "front-of-meter",
     term: { de: "Front-of-Meter", en: "Front of the meter" },
     text: {
-      de: "Ein Speicher direkt am Netz, ohne Last eines Betriebs dahinter. Der Großspeicher Bollingstedt ist so ein Fall. Dieser Rechner kann dann keine Lastspitze eines Standorts kappen.",
-      en: "A battery on the grid itself, with no site load behind it. The Bollingstedt large storage is that kind of case. This calculator then cannot shave a site peak.",
+      de: "Ein Speicher direkt am Netz, ohne Last eines Betriebs dahinter. Der Modellanker Großspeicher am 110-kV-Knoten ist so ein Fall. Dieser Rechner kann dann keine Lastspitze eines Standorts kappen.",
+      en: "A battery on the grid itself, with no site load behind it. The model anchor at a 110 kV node is that kind of case. This calculator then cannot shave a site peak.",
     },
   },
   {

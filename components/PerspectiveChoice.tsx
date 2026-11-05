@@ -27,7 +27,7 @@ export function PerspectiveChoice({ language, columns = true }: { language: Lang
       {CHOICES.map((choice) => (
         <Link
           key={choice.view}
-          href={sitePath(choice.view, "supermarkt")}
+          href={sitePath(choice.view, "ladepark")}
           className="flex min-h-32 flex-col justify-between rounded-md border border-border-strong bg-card p-5 text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <span className="text-lg leading-snug font-medium">{language === "de" ? choice.titleDe : choice.titleEn}</span>

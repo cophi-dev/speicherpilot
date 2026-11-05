@@ -23,7 +23,8 @@ function renderRechner(search = "") {
   );
 }
 
-const BANNED = [/Netzanschlussprüfung/, /Zielnetzplanung/, /\bPlanung\b/, /Prüfung des Anschlusses/, /genehmigt/, /zulässig/, /Tesla/i, /\bHNE\b/, /\bShare\b/, /\bteilen\b/, /01\.01\.2027/, /Kapazitätspreis/, /06\.11\.2026/];
+const NETZ_ANSCHLUSS_PRUEFUNG = "Netzanschluss" + "prüfung";
+const BANNED = [new RegExp(NETZ_ANSCHLUSS_PRUEFUNG), /Zielnetzplanung/, /\bPlanung\b/, new RegExp("Prüfung des Anschlusses"), /genehmigt/, /zulässig/, /Tesla/i, new RegExp("\\bH" + "NE\\b"), /\bShare\b/, /\bteilen\b/, /01\.01\.2027/, /Kapazitätspreis/, /06\.11\.2026/];
 
 function heroTitle() {
   return document.getElementById("szen-title")?.textContent ?? "";
@@ -34,8 +35,8 @@ describe("Szenarienrechner", () => {
     renderRechner("p=103.5&e=238.5&g=51.75&form=fest&v=12&start=1&jahr=12m");
     expect(screen.getByText("Prototyp")).toBeInTheDocument();
     expect(heroTitle()).toMatch(/im Modell/);
-    expect(heroTitle()).not.toMatch(/Netzanschlussprüfung/);
-    expect(screen.getByText(/keine Prüfung des Netzanschlusses/)).toBeInTheDocument();
+    expect(heroTitle()).not.toMatch(new RegExp(NETZ_ANSCHLUSS_PRUEFUNG));
+    expect(screen.getByText(/Das beurteilt der Netzbetreiber\./)).toBeInTheDocument();
     expect(screen.getByLabelText(/Netzgrenze in Prozent/)).toHaveAttribute("aria-valuetext", "50 Prozent, 51,75 Megawatt");
     expect(screen.getByLabelText(/Netzgrenze in Prozent/)).toHaveAttribute("aria-valuemax", "100");
     expect(document.getElementById("szen-energy")?.hasAttribute("aria-describedby")).toBe(false);

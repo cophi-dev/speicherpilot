@@ -198,6 +198,8 @@ export type SitePlan = {
   assumptions: PlannerAssumptions;
   /** Grid import after storage, same length as the profile. Positive = import. */
   gridKw: number[];
+  totalChargeKwh: number;
+  totalDischargeKwh: number;
 };
 
 export type DaySeries = {
@@ -1201,6 +1203,12 @@ export function planSite(input: SitePlannerInput): SitePlan {
 
   const pricesAreSupplied = Array.isArray(input.priceEurPerMwh) && input.priceEurPerMwh.length > 0;
   const pvIsSupplied = Array.isArray(input.pvSeriesKw) && input.pvSeriesKw.length > 0;
+  let totalChargeKwh = 0;
+  let totalDischargeKwh = 0;
+  for (let i = 0; i < dispatched.chargeKw.length; i += 1) {
+    totalChargeKwh += Math.max(0, dispatched.chargeKw[i] ?? 0) * dt;
+    totalDischargeKwh += Math.max(0, dispatched.dischargeKw[i] ?? 0) * dt;
+  }
 
   const gridSupport = assessGridSupport({
     loadKw: profile.samplesKw,
@@ -1293,6 +1301,8 @@ export function planSite(input: SitePlannerInput): SitePlan {
     cashflow,
     sensitivity,
     gridKw: dispatched.gridKw,
+    totalChargeKwh,
+    totalDischargeKwh,
     assumptions: {
       syntheticProfile: profile.synthetic,
       syntheticPv: input.pvEnabled && !pvIsSupplied,

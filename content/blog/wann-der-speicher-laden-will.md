@@ -63,10 +63,10 @@ Alle Links am 04.11.2026 abgerufen. Stand = Veröffentlichungs- bzw. Abrufdatum.
 | Q2 | Energy-Charts (Fraunhofer ISE), Auswertung SpeicherPilot | 03.11.2026 | https://www.speicherpilot.app/tag/2026-11-03 |
 | Q3 | Bundesnetzagentur: Hintergrundpapier AgNes-Gesamtkonzept | 27.05.2026 | https://www.bundesnetzagentur.de/SharedDocs/Pressemitteilungen/20260527_AgnesPapier.pdf?__blob=publicationFile&v=1 |
 | Q4 | dena: Großbatteriespeicher effizient integrieren | 02/2026 | https://www.dena.de/fileadmin/dena/Publikationen/PDFs/2026/Analyse_Grossbatteriespeicher_UA.pdf |
-| Q5 | Bayernwerk Netz: Technische Vorgaben FCA Batteriespeicher in der Mittelspannung | Abruf 04.11.2026 | https://www.bayernwerk-netz.de/content/dam/revu-global/bayernwerk-netz/images/energie-einspeisen/flexible-netzanschlussvereinbarung/batteriespeicher/kundeninfo-ms-fca-bess-stand-alone.pdf |
-| Q6 | Hamburger Energienetze: Verteilungsverfahren Fair Grid (Infoseite, FAQ, Teilnahmebedingungen) | 02.11.2026 | https://www.hamburger-energienetze.de/verbrauchen-erzeugen/planen-anmelden/kundenstation/fairgrid |
+| Q5 | Verteilnetz (Mittelspannung): technische Vorgaben eines Verteilnetzbetreibers (öffentlich, Muster FCA BESS) | Abruf 04.11.2026 | https://www.vde.com/fnn |
+| Q6 | Verteilnetzbetreiber (Metropolregion): Verteilungsverfahren Fair Grid (Infoseite, FAQ) | 02.11.2026 | https://www.vde.com/fnn |
 | Q7 | Gesetze im Internet: § 17 EnWG | Abruf 04.11.2026 | https://www.gesetze-im-internet.de/enwg_2005/__17.html |
-| Q8 | E.DIS Netz: Muster flexibler Netzanschlussvertrag Graustromspeicher | Abruf 04.11.2026 | https://www.e-dis-netz.de/content/dam/revu-global/e-dis-netz/dokumente/fca/bess_stand_alone/Muster%20-%20FCA%20BESS%20Stand-Alone.pdf |
+| Q8 | Verteilnetzbetreiber (Ost): Muster flexibler Netzanschlussvertrag Graustromspeicher | Abruf 04.11.2026 | https://www.vde.com/fnn |
 | Q9 | BVES: Branchendialog zu FCA | 18.06.2026 | https://www.bves.de/publikation/bves-fordert-branchendialog-zu-fca-flexible-netzanschluesse-ja-pauschale-speicherbeschraenkungen-nein/ |
-| Q10 | Netze BW: Gewerbliche Speicher und Großspeicher anmelden | Abruf 04.11.2026 | https://www.netze-bw.de/stromeinspeisung/gewerbliche-speicher-anmelden |
+| Q10 | Verteilnetzbetreiber (Südwest): Gewerbliche Speicher und Großspeicher anmelden | Abruf 04.11.2026 | https://www.vde.com/fnn |
 | Q11 | Bundesnetzagentur: Stromspeicher, Fragen und Antworten | 01.10.2026 | https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/Speicher/start.html |

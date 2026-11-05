@@ -39,16 +39,15 @@ export function NetzMethodik({ language, bodyOnly = false }: { language: AppLang
     <>
       <p>
         {tx(
-          "Die Seite /netz schlägt einen vorab gerechneten Lastfluss nach. Sie rechnet nichts im Browser. Ein Speicher sitzt an einem von vier Knoten, mit 2, 5, 10 oder 20 MW, laden oder entladen.",
-          "The page /netz looks up a load flow that was calculated in advance. It calculates nothing in the browser. A storage unit sits at one of four nodes, at 2, 5, 10 or 20 MW, charging or discharging."
-        )}{" "}
-        <GlossaryTip id="lastfluss" language={language} />
+          "Die interaktive Netzsicht liegt unter /ort?sicht=netz: zwei SimBench-Archetypen (Land mit optional mehr Photovoltaik, Stadt) mit Typtag, Engpass, X/Y und Fahrweisen. Der folgende Abschnitt dokumentiert zusätzlich das ältere statische Prüfnetz (SimBench halbstädtisch), das für Spannungs- und Lastflussreferenzen noch ausgewertet wird.",
+          "The interactive grid view is at /ort?sicht=netz: two SimBench archetypes (rural with optional extra PV, urban) with typical day, bottleneck, X/Y and dispatch modes. The section below additionally documents the older static test grid (SimBench semi-urban) still used for voltage and load-flow references."
+        )}
       </p>
-      <h3>{tx("Netz und Studienfälle", "Grid and study cases")}</h3>
+      <h3>{tx("Netz und Studienfälle (Referenz)", "Grid and study cases (reference)")}</h3>
       <p>
         {tx(
-          `Das Netz ist das öffentliche Mittelspannungs-Testnetz SimBench 1-MV-semiurb--0-no_sw, halbstädtisch, 20 kV. Im Strangbild stehen ${data.mvBusIds.length} Mittelspannungsknoten, ${data.lines.length} Leitungen (${cables} Kabel, ${overhead} Freileitung, ${openEnds} offene Trennstellen) und ${data.trafos.length} Transformatoren zu je ${num(data.trafos[0]?.snMva ?? 40, 0)} MVA. Dazu kommt ein Hochspannungsknoten, der nicht in der Karte liegt.`,
-          `The grid is the public medium-voltage test grid SimBench 1-MV-semiurb--0-no_sw, semi-urban, 20 kV. The feeder diagram has ${data.mvBusIds.length} medium-voltage nodes, ${data.lines.length} lines (${cables} cables, ${overhead} overhead lines, ${openEnds} open tie switches) and ${data.trafos.length} transformers of ${num(data.trafos[0]?.snMva ?? 40, 0)} MVA each. One high-voltage node is not on the map.`
+          `Referenznetz SimBench 1-MV-semiurb--0-no_sw, halbstädtisch, 20 kV. Im Strangbild stehen ${data.mvBusIds.length} Mittelspannungsknoten, ${data.lines.length} Leitungen (${cables} Kabel, ${overhead} Freileitung, ${openEnds} offene Trennstellen) und ${data.trafos.length} Transformatoren zu je ${num(data.trafos[0]?.snMva ?? 40, 0)} MVA. Dazu kommt ein Hochspannungsknoten, der nicht in der Karte liegt.`,
+          `Reference grid SimBench 1-MV-semiurb--0-no_sw, semi-urban, 20 kV. The feeder diagram has ${data.mvBusIds.length} medium-voltage nodes, ${data.lines.length} lines (${cables} cables, ${overhead} overhead lines, ${openEnds} open tie switches) and ${data.trafos.length} transformers of ${num(data.trafos[0]?.snMva ?? 40, 0)} MVA each. One high-voltage node is not on the map.`
         )}{" "}
         <GlossaryTip id="testnetz" language={language} />
       </p>
