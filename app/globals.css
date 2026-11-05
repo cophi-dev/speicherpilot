@@ -7598,23 +7598,14 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .ort-chart-axis-title {
   fill: #3a3a36;
-  font-size: 14px;
   font-family: var(--font-space-grotesk), sans-serif;
   font-weight: 500;
 }
 .dark .ort-chart-axis-title {
   fill: hsl(var(--muted-foreground));
 }
-.ort-chart-axis-title-y {
-  font-size: 13px;
-}
-@media (min-width: 640px) {
-  .ort-chart-axis-title {
-    font-size: 14px;
-  }
-  .ort-chart-axis-title-y {
-    font-size: 14px;
-  }
+.ort-archetype-chart-shell {
+  width: 100%;
 }
 .ort-netz-nutzen {
   max-width: 52rem;

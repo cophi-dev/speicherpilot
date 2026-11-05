@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useLanguage } from "@/components/language-context";
 import { archetypeByKey, badgeForArchetype } from "@/lib/ortArchetypes";
@@ -348,9 +348,35 @@ function ArchetypeDayChart({
       .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
       .join(" ");
 
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [fontScale, setFontScale] = useState(W / 335);
+
+  useEffect(() => {
+    const node = shellRef.current;
+    if (!node) {
+      return undefined;
+    }
+    const sync = () => {
+      const width = node.clientWidth;
+      if (width > 0) {
+        setFontScale(W / width);
+      }
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, []);
+
+  /** Screen px × (viewBox / render width) → SVG user units (constant apparent size). */
+  const svgFont = (screenPx: number) => screenPx * fontScale;
+  const titleFont = svgFont(14);
+  const tickFont = svgFont(11);
+
   return (
     <figure className="ort-archetype-chart">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="v4-ort-chart">
+      <div ref={shellRef} className="ort-archetype-chart-shell">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="v4-ort-chart">
         <line x1={pad.l} x2={W - pad.r} y1={y(100)} y2={y(100)} stroke={palette.lineOver100} strokeDasharray="4 4" />
         {windowQh.map((qh) => (
           <rect
@@ -383,19 +409,20 @@ function ArchetypeDayChart({
         <path d={line(l0n0)} fill="none" stroke={palette.lineBelow80} strokeWidth={1.5} />
         <path d={line(l0n1)} fill="none" stroke={palette.line80to100} strokeWidth={1.5} strokeDasharray="6 4" />
         <path d={line(l1n1)} fill="none" stroke={palette.lineOver100} strokeWidth={2} />
-        <text x={pad.l} y={H - 14} className="num ort-chart-axis" fontSize={11}>
+        <text x={pad.l} y={H - 14} className="num ort-chart-axis" fontSize={tickFont}>
           0
         </text>
-        <text x={pad.l - 4} y={y(100) + 4} className="num ort-chart-axis" fontSize={11} textAnchor="end">
+        <text x={pad.l - 4} y={y(100) + 4} className="num ort-chart-axis" fontSize={tickFont} textAnchor="end">
           100 %
         </text>
-        <text x={W - pad.r} y={H - 14} className="num ort-chart-axis" fontSize={11} textAnchor="end">
+        <text x={W - pad.r} y={H - 14} className="num ort-chart-axis" fontSize={tickFont} textAnchor="end">
           24 h
         </text>
         <text
           x={(pad.l + W - pad.r) / 2}
           y={H - 4}
           className="ort-chart-axis-title"
+          fontSize={titleFont}
           textAnchor="middle"
         >
           {tx("Uhrzeit (Mustertag)", "Time (sample day)")}
@@ -404,12 +431,14 @@ function ArchetypeDayChart({
           x={26}
           y={(pad.t + H - pad.b) / 2}
           className="ort-chart-axis-title ort-chart-axis-title-y"
+          fontSize={titleFont}
           textAnchor="middle"
           transform={`rotate(-90 26 ${(pad.t + H - pad.b) / 2})`}
         >
           {tx("Auslastung der Leitung in %", "Line loading in %")}
         </text>
       </svg>
+      </div>
       <figcaption className="ort-chart-caption">
         <ul className="ort-chart-legend">
           <li>
