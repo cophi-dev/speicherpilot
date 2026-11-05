@@ -13,7 +13,8 @@ const WIDTHS = [640, 768, 800, 900, 1024, 1100, 1440] as const;
 describe("site header layout", () => {
   it("uses lg breakpoint for inline navigation", () => {
     const src = readFileSync(join(process.cwd(), "components/site-shell.tsx"), "utf8");
-    expect(src).toMatch(/hidden[\s\S]*lg:flex[\s\S]*Hauptnavigation/);
+    expect(src).toMatch(/matchMedia\("\(min-width: 1024px\)"\)/);
+    expect(src).toMatch(/isLgNav[\s\S]*id="site-desktop-nav"[\s\S]*aria-label="Hauptnavigation"/);
     expect(src).toMatch(/whitespace-nowrap/);
     expect(src).toMatch(/lg:hidden[\s\S]*aria-expanded=\{menuOpen\}/);
   });
@@ -38,7 +39,7 @@ describe("site header horizontal overflow", () => {
             failures.push(`${path}@${width}px scroll=${metrics.scrollWidth} inner=${metrics.innerWidth}`);
           }
           if (width >= 1024) {
-            const navLinks = page.locator("header nav.lg\\:flex a");
+            const navLinks = page.locator("header #site-desktop-nav a");
             const count = await navLinks.count();
             if (count > 0) {
               const wraps = await navLinks.evaluateAll((nodes) =>

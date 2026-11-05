@@ -4,12 +4,14 @@ describe("ortArchetypes", () => {
   it("validates file schema", () => {
     const data = loadOrtArchetypes();
     const stadt = data.archetypes.stadt;
-    expect(stadt.hasEngpass).toBe(true);
+    expect(stadt.hasEngpass).toBe(false);
     expect(stadt.peakN1Pct).toBeGreaterThanOrEqual(0);
+    expect(stadt.peakN1Pct).toBeLessThan(90);
     expect(stadt.xMw).not.toBeNull();
     expect(stadt.yMw).not.toBeNull();
     if (stadt.xMw != null && stadt.yMw != null) {
       expect(stadt.yMw).toBeGreaterThanOrEqual(stadt.xMw);
+      expect(stadt.yMw).toBeCloseTo(1.1, 0);
     }
     const land = data.archetypes.land;
     if (land.hasEngpass) {
