@@ -140,7 +140,7 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
       <div className="day-hero-inner">
         <div className="ort-netz-step">
           <p className="ort-netz-step-label">{tx("1. Ort wählen", "1. Choose place")}</p>
-          <div className="ort-netz-tabs v4-tab-bar site-toggle" role="tablist" aria-label={tx("Ort", "Place")}>
+          <div className="ort-netz-tabs ort-netz-tabs--place v4-tab-bar site-toggle" role="tablist" aria-label={tx("Ort", "Place")}>
             {(["land", "stadt"] as const).map((key) => (
               <button
                 key={key}
@@ -159,19 +159,28 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
 
         <div className="ort-netz-step">
           <p className="ort-netz-step-label">{tx("2. Fahrweise wählen", "2. Choose operation mode")}</p>
-          <div className="ort-netz-tabs v4-tab-bar site-toggle" role="tablist" aria-label={tx("Fahrweise", "Operation mode")}>
+          <div
+            className="ort-netz-tabs ort-netz-tabs--mode v4-tab-bar site-toggle"
+            role="tablist"
+            aria-label={tx("Fahrweise", "Operation mode")}
+          >
             {(
               [
-                ["markt", tx("Markt", "Market")],
-                ["vertrag", tx("Markt + flexibler Vertrag", "Market + flexible contract")],
-                ["netz", tx("Netzorientiert", "Grid-oriented")],
+                ["markt", tx("Markt", "Market"), tx("Markt", "Market")],
+                [
+                  "vertrag",
+                  tx("Markt + flexibel", "Market + flexible"),
+                  tx("Markt + flexibler Vertrag", "Market + flexible contract"),
+                ],
+                ["netz", tx("Netzorientiert", "Grid-oriented"), tx("Netzorientiert", "Grid-oriented")],
               ] as const
-            ).map(([id, label]) => (
+            ).map(([id, label, aria]) => (
               <button
                 key={id}
                 type="button"
                 role="tab"
                 aria-selected={mode === id}
+                aria-label={aria}
                 className={mode === id ? "is-active" : undefined}
                 onClick={() => setMode(id)}
               >

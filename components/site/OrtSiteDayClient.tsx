@@ -11,12 +11,12 @@ const SiteDay = dynamic(() => import("@/components/site/SiteDay").then((m) => ({
   loading: () => null,
 });
 
-function reserveMinHeight(view: Perspective, scenario: ScenarioId): number {
+function reserveMinHeight(view: Perspective, scenario: ScenarioId): number | undefined {
   if (scenario === "grossspeicher") {
     return view === "netz" ? 4200 : 2400;
   }
   if (view === "netz") {
-    return 1800;
+    return undefined;
   }
   return 2200;
 }
@@ -30,8 +30,9 @@ export function OrtSiteDayClient({
   view: Perspective;
   scenario: ScenarioId;
 }) {
+  const minHeight = reserveMinHeight(view, scenario);
   return (
-    <div className="ort-calc-wrap" style={{ minHeight: reserveMinHeight(view, scenario) }}>
+    <div className="ort-calc-wrap" style={minHeight ? { minHeight } : undefined}>
       {scenario === "grossspeicher" ? (
         <SiteDay modelDay={modelDay} shellHidden view={view} scenario={scenario} />
       ) : (

@@ -48,7 +48,7 @@ function ExampleCards({ view, scenario }: { view: Perspective; scenario: Scenari
               <li key={card.id}>
                 <Link href={sitePath(view, card.id)} aria-current={scenario === card.id ? "page" : undefined}>
                   <span className="site-example-title">{card.title}</span>
-                  <span>{card.body}</span>
+                  <span className="site-example-body">{card.body}</span>
                 </Link>
               </li>
             ))}
