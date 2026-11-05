@@ -13,6 +13,16 @@ function deNum(value: number, fraction = 1): string {
   return value.toLocaleString("de-DE", { minimumFractionDigits: fraction, maximumFractionDigits: fraction });
 }
 
+function showConnectionMw(data: OrtArchetype): boolean {
+  if (data.xMw == null || data.yMw == null) {
+    return false;
+  }
+  if (data.hasEngpass) {
+    return true;
+  }
+  return data.xMw >= 0.1 || data.yMw >= 0.1;
+}
+
 function countQhOver100(values: number[]): number {
   return values.filter((v) => v > 100).length;
 }
@@ -128,13 +138,6 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
   return (
     <div className="ort-archetypen day-paper">
       <div className="day-hero-inner">
-        <p className="ort-netz-lead">
-          {tx(
-            "Dieselbe Speichergröße an zwei SimBench-Orten: Sie wählen Ort und Fahrweise und sehen, wie Leitung und Speicher den Tag über ausgelastet sind.",
-            "The same storage size at two SimBench sites: pick place and operation mode to see how the line and storage load through the day.",
-          )}
-        </p>
-
         <div className="ort-netz-step">
           <p className="ort-netz-step-label">{tx("1. Ort wählen", "1. Choose place")}</p>
           <div className="ort-netz-tabs v4-tab-bar site-toggle" role="tablist" aria-label={tx("Ort", "Place")}>
@@ -220,23 +223,14 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
           <div>
             <dt>{tx("Fest / flexibel (n-1 / n-0)", "Firm / flexible (n-1 / n-0)")}</dt>
             <dd className="num">
-              {data.hasEngpass && data.xMw != null && data.yMw != null
-                ? `${deNum(data.xMw, 1)} / ${deNum(data.yMw, 1)} MW`
+              {showConnectionMw(data)
+                ? `${deNum(data.xMw ?? 0, 1)} / ${deNum(data.yMw ?? 0, 1)} MW`
                 : tx("Am Mustertag kein Engpass ≥ 90 % — X/Y entfallen", "No ≥ 90 % bottleneck on sample day — X/Y omitted")}
             </dd>
             <dd className="ort-kpi-explain">
               {tx(
                 "Fest = in allen Viertelstunden und Richtungen sicher unter n-1; flexibel = nur erlaubte Richtung je Viertelstunde (n-0).",
                 "Firm = safe in every quarter-hour and direction under n-1; flexible = allowed direction per quarter-hour (n-0).",
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>{tx("Jahres-Konflikte Markt vs. Netz", "Annual market vs. grid conflicts")}</dt>
-            <dd className="ort-kpi-explain">
-              {tx(
-                "Wie oft Markt und Netz sich über ein ganzes Jahr in die Quere kommen, kommt als Nächstes.",
-                "How often market and grid clash across a full year is coming next.",
               )}
             </dd>
           </div>
@@ -402,27 +396,29 @@ function ArchetypeDayChart({
           <li>{tx("Schattierung = Engpassfenster (flexibler Vertrag)", "Shading = bottleneck window (flexible contract)")}</li>
         </ul>
       </figcaption>
-      <table className="sr-only">
-        <caption>{ariaLabel}</caption>
-        <thead>
-          <tr>
-            <th>qh</th>
-            <th>L0 n0</th>
-            <th>L0 n1</th>
-            <th>L1 n1</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Array.from({ length: n }).map((_, i) => (
-            <tr key={i}>
-              <td>{i}</td>
-              <td>{l0n0[i]?.toFixed(1)}</td>
-              <td>{l0n1[i]?.toFixed(1)}</td>
-              <td>{l1n1[i]?.toFixed(1)}</td>
+      <div className="day-sr">
+        <table>
+          <caption>{ariaLabel}</caption>
+          <thead>
+            <tr>
+              <th>qh</th>
+              <th>L0 n0</th>
+              <th>L0 n1</th>
+              <th>L1 n1</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {Array.from({ length: n }).map((_, i) => (
+              <tr key={i}>
+                <td>{i}</td>
+                <td>{l0n0[i]?.toFixed(1)}</td>
+                <td>{l0n1[i]?.toFixed(1)}</td>
+                <td>{l1n1[i]?.toFixed(1)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

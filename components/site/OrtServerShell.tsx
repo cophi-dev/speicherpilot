@@ -13,7 +13,7 @@ function heroH1(view: Perspective, scenario: ScenarioId): string {
       : `${GROSSSPEICHER_ANKER.nameDe}.`;
   }
   if (view === "netz") {
-    return "Derselbe Speicher, derselbe Preis, zwei Orte.";
+    return CORE;
   }
   return "Ein Schnellladepark will mehr Leistung, als sein Anschluss hergibt.";
 }
@@ -31,10 +31,12 @@ export function OrtServerShell({ view, scenario }: { view: Perspective; scenario
       <section className="v4-subpage-hero ort-hero" aria-labelledby="site-hero-title">
         <div className="ort-v4-copy">
           <p className="v4-kicker num">03 · Der Ort</p>
-          <p className="page-lead v4-subline">
-            Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze
-            und Netzwirkung.
-          </p>
+          {view === "projekt" || scenario === "grossspeicher" ? (
+            <p className="page-lead v4-subline">
+              Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze
+              und Netzwirkung.
+            </p>
+          ) : null}
           <div className="v4-tab-bar site-toggle" role="group" aria-label="Perspektive">
             <Link href={sitePath("projekt", scenario)} aria-current={view === "projekt" ? "page" : undefined}>
               Projektierer
@@ -47,11 +49,6 @@ export function OrtServerShell({ view, scenario }: { view: Perspective; scenario
           <h1 id="site-hero-title" className="v4-h1">
             {heroH1(view, scenario)}
           </h1>
-          {view === "netz" && scenario !== "grossspeicher" ? (
-            <p className="site-netz-principle v4-subline" role="note">
-              {CORE}
-            </p>
-          ) : null}
           {scenario === "grossspeicher" && view === "netz" ? (
             <p className="v4-subline">
               Laden ist Bezug aus dem Netz. Abgeben ist Einspeisung ins Netz. Der Ring unten ist eine Modellschätzung, nicht

@@ -33,8 +33,8 @@ function ExampleCards({ view, scenario }: { view: Perspective; scenario: Scenari
     {
       id: "grossspeicher",
       title: tx("Großspeicher 110 kV", "110 kV large storage"),
-      body: tx("Grenze und Erlös · Modell", "Limit and revenue · model"),
-      views: ["projekt", "netz"],
+      body: tx("Modellanker · Modelltag", "Model anchor · model day"),
+      views: ["projekt"],
     },
   ];
   return (
@@ -78,7 +78,7 @@ export function OrtPageBody({
   return (
     <>
       <OrtArchetypen initialArchetype={archetype} />
-      <ExampleCards view={view} scenario={scenario} />
+      {scenario !== "grossspeicher" ? <ExampleCards view={view} scenario={scenario} /> : null}
     </>
   );
 }

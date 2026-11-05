@@ -43,6 +43,7 @@ OUT_PATH = ROOT / "data" / "ort" / "ort-archetypes.json"
 PRICES_PATH = ROOT / "data" / "fca" / "prices-12m.json"
 
 NETZ_EPS = 0.02  # MW Strafterm gegen gleichzeitiges Laden/Entladen (netz-Modus)
+VM_TOL = 1e-3  # pandapower-Rundung vs. BAND-Grenzen (Bisect X/Y)
 NETZ_PRICE_PULL = 0.35  # Anteil Spot-Ziel im netz-Modus (Ertrag aus Fahrplan ≠ 0 %)
 
 LAND_NET_CODES = (
@@ -300,7 +301,7 @@ def state_ok(net, mv) -> bool:
     except Exception:
         return False
     voltage = net.res_bus.loc[mv].vm_pu
-    if ((voltage < BAND_N1[0]) | (voltage > BAND_N1[1])).any():
+    if ((voltage < BAND_N1[0] - VM_TOL) | (voltage > BAND_N1[1] + VM_TOL)).any():
         return False
     if float(net.res_line.loading_percent.max()) > LOAD_MAX:
         return False
@@ -315,7 +316,7 @@ def state_ok_n0(net, mv) -> bool:
     except Exception:
         return False
     voltage = net.res_bus.loc[mv].vm_pu
-    if ((voltage < BAND[0]) | (voltage > BAND[1])).any():
+    if ((voltage < BAND[0] - VM_TOL) | (voltage > BAND[1] + VM_TOL)).any():
         return False
     if float(net.res_line.loading_percent.max()) > LOAD_MAX:
         return False
@@ -461,13 +462,19 @@ def bisect_y_flex(
         if power <= 0:
             return True
         for qh in range(96):
+            apply_profile_row(net, abs_values, day_index * 96 + qh)
+            if not state_ok_n0(net, mv):
+                continue
             modes: list[str] = []
             if not forbid_discharge[qh]:
                 modes.append("entladen")
             if not forbid_charge[qh]:
                 modes.append("laden")
             for mode in modes:
-                if not normal_ok_at_qh(net, mv, abs_values, day_index, qh, bus, mode, power):
+                handle = add_storage(net, bus, mode, power)
+                good = state_ok_n0(net, mv)
+                remove_storage(net, handle)
+                if not good:
                     return False
         return True
 
@@ -909,11 +916,8 @@ def revenue_pct_typtag(modes: dict) -> dict:
 
 
 def has_engpass_for_archetype(key: str, eng: dict, modes: dict) -> bool:
-    if key == "land":
-        return eng["peak_n1"] >= 90.0 - 1e-6
-    if eng["peak_n1"] >= 90.0 - 1e-6 or max(eng["L0_n0"]) >= 90.0 - 1e-6:
-        return True
-    return max(modes["markt"]["L1n1"]) >= 90.0 - 1e-6
+    del key, modes
+    return eng["peak_n1"] >= 90.0 - 1e-6 or max(eng["L0_n0"]) >= 90.0 - 1e-6
 
 
 def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
@@ -971,37 +975,37 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
     x_mw: float | None = None
     y_mw: float | None = None
     x_limited = False
-    if has_engpass:
-        print(f"  bisect X/Y ({key}) …", flush=True)
-        x_mw = bisect_x_firm(net, mv, abs_values, day_index, eng["k_kind"], eng["k_idx"], bus)
-        y_mw = bisect_y_flex(net, mv, abs_values, day_index, bus, forbid_discharge, forbid_charge)
-        x_n0 = bisect_power(
-            net, mv, abs_values, day_index, list(range(96)), eng["k_kind"], eng["k_idx"], bus, mode, n1=False
-        )
-        x_limited = x_n0 + 1e-6 < (x_mw or 0)
-        if (x_mw or 0) < 0.1:
+    print(f"  bisect X/Y ({key}) …", flush=True)
+    x_mw = bisect_x_firm(net, mv, abs_values, day_index, eng["k_kind"], eng["k_idx"], bus)
+    y_mw = bisect_y_flex(net, mv, abs_values, day_index, bus, forbid_discharge, forbid_charge)
+    x_n0 = bisect_power(
+        net, mv, abs_values, day_index, list(range(96)), eng["k_kind"], eng["k_idx"], bus, mode, n1=False
+    )
+    x_limited = x_n0 + 1e-6 < (x_mw or 0)
+    if (x_mw or 0) < 0.1:
+        if has_engpass:
             warnings_local.append(
                 "Fester Anschluss X ≈ 0 MW — unter n-1 in allen Viertelstunden kein Spielraum in beiden Richtungen."
             )
-        if (x_mw or 0) >= 0.1:
-            power = max(2.0, round(1.5 * x_mw))
-            energy = 2.0 * power
-            modes = dispatch_modes(
-                key,
-                day_prices,
-                power,
-                energy,
-                eng["L0_n0"],
-                eng["L0_n1"],
-                beta_n0,
-                beta_n1,
-                forbid_discharge,
-                forbid_charge,
-                window,
-                eng["vm_min"],
-                eng["vm_max"],
-            )
-    else:
+    elif has_engpass:
+        power = max(2.0, round(1.5 * x_mw))
+        energy = 2.0 * power
+        modes = dispatch_modes(
+            key,
+            day_prices,
+            power,
+            energy,
+            eng["L0_n0"],
+            eng["L0_n1"],
+            beta_n0,
+            beta_n1,
+            forbid_discharge,
+            forbid_charge,
+            window,
+            eng["vm_min"],
+            eng["vm_max"],
+        )
+    if not has_engpass and (x_mw or 0) < 0.1 and (y_mw or 0) < 0.1:
         warnings_local.append(
             "An diesem Mustertag kein Engpass ≥ 90 % — feste und flexible Anschlussleistung (X/Y) entfallen im Modell."
         )

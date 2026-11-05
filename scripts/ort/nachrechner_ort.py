@@ -53,23 +53,22 @@ def check_archetype(key: str, arch: dict) -> list[str]:
         errors.append(f"{key}: revenuePctTyptag.markt soll 100 % sein, ist {rev.get('markt')}")
 
     has_engpass = bool(arch.get("hasEngpass"))
-    if not has_engpass:
-        if key == "stadt":
-            errors.append(f"{key}: Stadt braucht Engpass in der Netzsicht")
-        if arch.get("xMw") is not None or arch.get("yMw") is not None:
-            errors.append(f"{key}: ohne Engpass müssen xMw/yMw null sein")
-        if arch["peakN1Pct"] >= 90:
-            errors.append(f"{key}: peakN1Pct ≥ 90 % widerspricht hasEngpass false")
-        return errors
-
-    if arch["peakN1Pct"] < 90 and key == "land":
+    if arch["peakN1Pct"] >= 90 and not has_engpass:
+        errors.append(f"{key}: peakN1Pct ≥ 90 % widerspricht hasEngpass false")
+    if has_engpass and arch["peakN1Pct"] < 90 and key == "land":
         errors.append(f"{key}: peakN1Pct {arch['peakN1Pct']} < 90 bei hasEngpass")
 
     x, y = arch.get("xMw"), arch.get("yMw")
+    show_xy = has_engpass or (x or 0) >= 0.1 or (y or 0) >= 0.1
+    if not show_xy:
+        if x is not None or y is not None:
+            errors.append(f"{key}: ohne Engpass und ohne Band müssen xMw/yMw entfallen")
+        return errors
+
     if y is None:
-        errors.append(f"{key}: yMw fehlt trotz Engpass")
+        errors.append(f"{key}: yMw fehlt trotz ausgewiesenem Band")
     if x is None:
-        errors.append(f"{key}: xMw fehlt trotz Engpass")
+        errors.append(f"{key}: xMw fehlt trotz ausgewiesenem Band")
     if x is not None and y is not None and y + 1e-6 < x:
         errors.append(f"{key}: Y {y} < X {x}")
 

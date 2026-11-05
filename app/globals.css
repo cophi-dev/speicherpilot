@@ -2171,7 +2171,8 @@ html:not(.dark) .day-hero .empty-sweep {
   max-width: 100%;
 }
 
-.day-sr {
+.day-sr,
+.sr-only {
   position: absolute;
   width: 1px;
   height: 1px;

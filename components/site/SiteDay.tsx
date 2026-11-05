@@ -83,6 +83,12 @@ export function SiteDay({
     return null;
   }
 
+  if (shellHidden && view === "netz" && scenario === "grossspeicher") {
+    return (
+      <ReferenceParkGridHero language={language} modelDay={modelDay} omitHeader />
+    );
+  }
+
   const active = uploaded ?? example;
   const missingLimit = csv !== null && uploaded === null;
 
@@ -100,9 +106,6 @@ export function SiteDay({
         <ReferenceParkHero view={view} language={language} modelDay={modelDay} />
       ) : !shellHidden && active ? (
         <ExampleHero view={view} scenario={scenario} language={language} plan={active.plan} story={active.story} example={!uploaded} />
-      ) : null}
-      {shellHidden && scenario === "grossspeicher" ? (
-        <ReferenceParkHero view={view} language={language} modelDay={modelDay} omitHeader />
       ) : null}
       {scenario !== "grossspeicher" && active && !missingLimit ? (
         <SiteSimulator view={view} story={active.story} language={language} limitKw={simLimitKw} onLimitKwChange={setSimLimitKw} />

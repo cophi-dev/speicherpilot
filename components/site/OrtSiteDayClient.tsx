@@ -16,7 +16,7 @@ function reserveMinHeight(view: Perspective, scenario: ScenarioId): number {
     return view === "netz" ? 4200 : 2400;
   }
   if (view === "netz") {
-    return 3200;
+    return 1800;
   }
   return 2200;
 }
