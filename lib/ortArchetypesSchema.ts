@@ -51,16 +51,29 @@ export const ortArchetypeSchema = z.object({
     vertrag: ortBadgeSchema,
     netz: ortBadgeSchema,
   }),
-  conflicts12m: z.object({
-    qh: z.number(),
-    days: z.number(),
-    mwh: z.number(),
-  }),
-  revenuePct12m: z.object({
+  /** Jahres-Konflikte folgen in separater Datenlieferung — null = noch nicht berechnet. */
+  conflicts12m: z
+    .object({
+      qh: z.number(),
+      days: z.number(),
+      mwh: z.number(),
+    })
+    .nullable(),
+  /** Relativer Modellerlös am Typtag (Markt = 100 %). */
+  revenuePctTyptag: z.object({
     markt: z.number(),
     vertrag: z.number(),
     netz: z.number(),
   }),
+  /** @deprecated Jahreswerte — nicht mehr befüllt (UX R4). */
+  revenuePct12m: z
+    .object({
+      markt: z.number(),
+      vertrag: z.number(),
+      netz: z.number(),
+    })
+    .nullable()
+    .optional(),
   over100Qh: z.object({
     n0: z.number(),
     n1Markt: z.number(),

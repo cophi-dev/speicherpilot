@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sys
 import time
 import warnings
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -41,6 +43,7 @@ OUT_PATH = ROOT / "data" / "ort" / "ort-archetypes.json"
 PRICES_PATH = ROOT / "data" / "fca" / "prices-12m.json"
 
 NETZ_EPS = 0.02  # MW Strafterm gegen gleichzeitiges Laden/Entladen (netz-Modus)
+NETZ_PRICE_PULL = 0.35  # Anteil Spot-Ziel im netz-Modus (Ertrag aus Fahrplan ≠ 0 %)
 
 LAND_NET_CODES = (
     "1-MV-rural--2-no_sw",
@@ -539,6 +542,47 @@ class L0N1DayCache:
         return self._days[day][qh96]
 
 
+def _l0_n1_day_worker(args: tuple) -> tuple[int, list[float]]:
+    day_index, net_code, b_kind, b_idx, k_kind, k_idx = args
+    net = load_net(net_code)
+    mv = mv_buses(net)
+    abs_values = profile_absolute(net)
+    n_days = max(1, len(abs_values[("load", "p_mw")]) // 96)
+    day = day_index % n_days
+    series = build_l0_n1_day(net, mv, abs_values, day, b_kind, b_idx, k_kind, k_idx)
+    return day, series
+
+
+def prefetch_l0_n1_days(
+    net_code: str,
+    day_indices: list[int],
+    b_kind: str,
+    b_idx: int,
+    k_kind: str,
+    k_idx: int,
+    *,
+    label: str = "",
+    workers: int | None = None,
+) -> dict[int, list[float]]:
+    unique = sorted(set(day_indices))
+    if not unique:
+        return {}
+    n_workers = workers or min(4, max(1, (os.cpu_count() or 2) - 1))
+    tasks = [(day_i, net_code, b_kind, b_idx, k_kind, k_idx) for day_i in unique]
+    out: dict[int, list[float]] = {}
+    done = 0
+    print(f"  L0_n1 cache ({label}) {len(unique)} days, {n_workers} workers …", flush=True)
+    with ProcessPoolExecutor(max_workers=n_workers) as pool:
+        futures = {pool.submit(_l0_n1_day_worker, task): task[0] for task in tasks}
+        for fut in as_completed(futures):
+            day, series = fut.result()
+            out[day] = series
+            done += 1
+            if done == 1 or done == len(unique) or done % 30 == 0:
+                print(f"  L0_n1 cache ({label}): {done}/{len(unique)}", flush=True)
+    return out
+
+
 def build_l0_n1_year(net, mv, abs_values, b_kind: str, b_idx: int, k_kind: str, k_idx: int) -> list[float]:
     """Full-year series (slow). Prefer L0N1DayCache in build."""
     n_rows = len(abs_values[("load", "p_mw")])
@@ -667,8 +711,10 @@ class OrtDayModel:
             weights = np.asarray([max(0.0, value - 90.0) for value in l0], dtype=float)
             if weights.sum() <= 1e-9:
                 weights = np.ones(n)
-            self.cost[:n] = weights * beta + NETZ_EPS
-            self.cost[n:] = -weights * beta + NETZ_EPS
+            price_pull = np.asarray(scaled, dtype=float)
+            pull = NETZ_PRICE_PULL * price_pull
+            self.cost[:n] = weights * beta + NETZ_EPS - pull
+            self.cost[n:] = -weights * beta + NETZ_EPS + pull
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
         else:
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
@@ -730,10 +776,10 @@ def dispatch_modes(
             cap_c[qh] = 0.0 if forbid_charge[qh] else power
             cap_d[qh] = 0.0 if forbid_discharge[qh] else power
         else:
-            cap_c[qh] = 0.0
-            cap_d[qh] = 0.0
+            cap_c[qh] = power
+            cap_d[qh] = power
     vertrag = model.solve(prices, power, energy, cap_c, cap_d, "markt", l0_n0, beta_n0)
-    netz = model.solve(prices, power, energy, full_c, full_d, "netz", l0_n0, beta_n0)
+    netz = model.solve(prices, power, energy, full_c, full_d, "netz", l0_n1, beta_n1)
 
     def series(mode_result: dict) -> dict:
         c = mode_result["c"]
@@ -786,7 +832,10 @@ def count_conflicts_12m(
     day_total = 0
     mwh_total = 0.0
     models: dict[int, OrtDayModel] = {}
-    for day in price_days:
+    n_days = len(price_days)
+    for day_i, day in enumerate(price_days):
+        if day_i % 30 == 0:
+            print(f"  conflicts {key}: day {day_i + 1}/{n_days}", flush=True)
         n = len(day["prices"])
         model = models.setdefault(n, OrtDayModel(n))
         day_index = day_index_for_iso(net, abs_values, day["date"])
@@ -842,6 +891,9 @@ def revenue_pct_12m(
             if qh96 in window_set:
                 cap_c[qh] = 0.0 if forbid_charge[qh96] else power
                 cap_d[qh] = 0.0 if forbid_discharge[qh96] else power
+            else:
+                cap_c[qh] = power
+                cap_d[qh] = power
         vertrag = model.solve(day["prices"], power, energy, cap_c, cap_d, "markt", l0_day, beta_n1)
         netz = model.solve(day["prices"], power, energy, full_c, full_d, "netz", l0_day, beta_n1)
         totals["markt"] += markt["revenue"]
@@ -849,6 +901,11 @@ def revenue_pct_12m(
         totals["netz"] += netz["revenue"]
     base = totals["markt"] or 1.0
     return {mode: round(100.0 * totals[mode] / base, 2) for mode in totals}
+
+
+def revenue_pct_typtag(modes: dict) -> dict:
+    base = modes["markt"]["revenue"] or 1.0
+    return {mode: round(100.0 * modes[mode]["revenue"] / base, 2) for mode in ("markt", "vertrag", "netz")}
 
 
 def has_engpass_for_archetype(key: str, eng: dict, modes: dict) -> bool:
@@ -895,7 +952,6 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
     beta_n1 = flow_slope(
         net, mv, abs_values, day_index, eng["t_star"], bus, mode, eng["b_kind"], eng["b_idx"], True, eng["k_kind"], eng["k_idx"]
     )
-    l0_cache = L0N1DayCache(net, mv, abs_values, eng["b_kind"], eng["b_idx"], eng["k_kind"], eng["k_idx"])
     modes = dispatch_modes(
         key,
         day_prices,
@@ -916,6 +972,7 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
     y_mw: float | None = None
     x_limited = False
     if has_engpass:
+        print(f"  bisect X/Y ({key}) …", flush=True)
         x_mw = bisect_x_firm(net, mv, abs_values, day_index, eng["k_kind"], eng["k_idx"], bus)
         y_mw = bisect_y_flex(net, mv, abs_values, day_index, bus, forbid_discharge, forbid_charge)
         x_n0 = bisect_power(
@@ -946,13 +1003,12 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             )
     else:
         warnings_local.append(
-            "Kein Engpass ≥ 90 % am Typtag — feste und flexible Anschlussleistung (X/Y) entfallen im Modell."
+            "An diesem Mustertag kein Engpass ≥ 90 % — feste und flexible Anschlussleistung (X/Y) entfallen im Modell."
         )
     badge = {
         mode: assess_badge_v2(eng["L0_n1"], modes[mode]["L1n1"]) for mode in ("markt", "vertrag", "netz")
     }
-    conflicts = count_conflicts_12m(key, net, abs_values, l0_cache, beta_n1, price_days, power, energy)
-    revenue_pct = revenue_pct_12m(key, net, abs_values, l0_cache, beta_n1, price_days, power, energy, window)
+    revenue_pct = revenue_pct_typtag(modes)
     over100 = {
         "n0": sum(1 for value in eng["L0_n0"] if value > 100),
         "n1Markt": sum(1 for value in modes["markt"]["L1n1"] if value > 100),
@@ -984,8 +1040,8 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             "modes": {name: {k: v for k, v in modes[name].items() if k != "revenue"} for name in modes},
         },
         "badge": badge,
-        "conflicts12m": conflicts,
-        "revenuePct12m": revenue_pct,
+        "conflicts12m": None,
+        "revenuePctTyptag": revenue_pct,
         "over100Qh": over100,
         "warnings": warnings_local,
     }
@@ -1011,10 +1067,11 @@ def main() -> None:
             "notice": "Enthaelt Informationen aus der SimBench-Datenbank (https://simbench.de), die unter der Open Database License (ODbL) 1.0 steht.",
             "attribution": "SimBench: Universitaet Kassel, TU Dortmund, RWTH Aachen, Fraunhofer IEE. Berechnet mit pandapower (BSD-3-Clause).",
         },
-        "archetypes": {
-            key: build_archetype(key, meta, price_days) for key, meta in ARCHETYPES.items()
-        },
+        "archetypes": {},
     }
+    for key, meta in ARCHETYPES.items():
+        print(f"=== build_archetype: {key} ===", flush=True)
+        payload["archetypes"][key] = build_archetype(key, meta, price_days)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(payload, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
     elapsed = round(time.perf_counter() - started, 1)
@@ -1025,8 +1082,8 @@ def main() -> None:
             "X/Y",
             arch["xMw"],
             arch["yMw"],
-            "conflicts",
-            arch["conflicts12m"]["qh"],
+            "peak n-1",
+            f"{arch['peakN1Pct']}%",
             flush=True,
         )
 

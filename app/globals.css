@@ -6239,18 +6239,38 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .day-ring-wrap-quiet .day-ring-frame {
   opacity: 0.4;
 }
-.site-shell-skip:focus {
-  position: absolute;
-  top: 8px;
+.site-shell-skip {
+  position: fixed;
+  top: -120px;
   left: 8px;
   z-index: 80;
   min-height: 44px;
+  min-width: 44px;
   display: inline-flex;
   align-items: center;
-  padding: 0 12px;
+  justify-content: center;
+  padding: 10px 16px;
+  line-height: 1.25;
+  margin: 0;
   background: var(--card);
   color: var(--foreground);
   box-shadow: 0 0 0 2px var(--ring);
+}
+.site-shell-skip:focus,
+.site-shell-skip:focus-visible {
+  top: 8px;
+}
+@media (max-width: 1023px) {
+  #site-desktop-nav {
+    display: none !important;
+  }
+}
+.site-footer-col ul.mt-3 a.text-primary,
+.site-examples a {
+  display: inline-block;
+  min-height: 24px;
+  padding-block: 4px;
+  line-height: 1.35;
 }
 .mix-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; }
 .mix-head h2, .mix-soc h3, .mix-period { margin: 0; }
@@ -7575,6 +7595,15 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   opacity: 0.92;
   max-width: 46rem;
 }
+.ort-netz-annual-note {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  border-left: 3px solid var(--v4-warm);
+  background: hsl(var(--muted) / 0.35);
+  max-width: 46rem;
+}
 .ort-netz-meta {
   margin-top: 0.5rem;
 }
@@ -7817,8 +7846,11 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 
 .v4-subpage .v4-tab-bar a,
+.v4-subpage .v4-tab-bar button,
 .v4-subpage.ort-v4 .site-toggle a,
-.v4-subpage .ort-v4 .site-toggle a {
+.v4-subpage .ort-v4 .site-toggle a,
+.v4-subpage .ort-v4 .site-toggle button,
+.ort-netz-tabs button {
   flex: 1;
   display: flex;
   align-items: center;

@@ -26,9 +26,10 @@ describe("ortArchetypes", () => {
     expect(assessBadgeV2({ L0n1: [10, 20], L1n1: [10, 20] }).id).toBe("neutral");
   });
 
-  it("revenue ordering", () => {
+  it("revenue ordering on sample day", () => {
     const d = loadOrtArchetypes();
-    expect(d.archetypes.land.revenuePct12m.vertrag).toBeLessThanOrEqual(100);
-    expect(d.archetypes.land.revenuePct12m.netz).toBeLessThanOrEqual(100);
+    expect(d.archetypes.land.revenuePctTyptag.markt).toBe(100);
+    expect(d.archetypes.land.revenuePctTyptag.vertrag).toBeLessThanOrEqual(100);
+    expect(d.archetypes.land.conflicts12m).toBeNull();
   });
 });

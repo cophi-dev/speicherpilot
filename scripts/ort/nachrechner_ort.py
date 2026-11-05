@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent checker for data/ort/ort-archetypes.json (R2 spec)."""
+"""Independent checker for data/ort/ort-archetypes.json (Typtag + optional Jahres-Konflikte)."""
 
 from __future__ import annotations
 
@@ -14,15 +14,12 @@ sys.path.insert(0, str(ROOT / "scripts" / "netz"))
 
 from build_ort_archetypes import (  # noqa: E402
     ARCHETYPES,
-    L0N1DayCache,
     bisect_x_firm,
     bisect_y_flex,
     choose_tap,
     conflict_masks,
-    count_conflicts_12m,
     flow_slope,
     load_net,
-    load_prices_12m,
     mv_buses,
     pick_storage_bus,
     profile_absolute,
@@ -36,15 +33,24 @@ from build_ort_archetypes import (  # noqa: E402
 def check_archetype(key: str, arch: dict) -> list[str]:
     errors: list[str] = []
     meta = ARCHETYPES[key]
-    if arch["code"] not in (meta["code"], *([] if key != "land" else ("1-MV-rural--1-no_sw", "1-MV-rural--0-no_sw"))):
-        if key == "land" and arch["code"] not in (
-            "1-MV-rural--2-no_sw",
-            "1-MV-rural--1-no_sw",
-            "1-MV-rural--0-no_sw",
-        ):
-            errors.append(f"{key}: unexpected land code {arch['code']}")
+    if key == "land" and arch["code"] not in (
+        "1-MV-rural--2-no_sw",
+        "1-MV-rural--1-no_sw",
+        "1-MV-rural--0-no_sw",
+    ):
+        errors.append(f"{key}: unexpected land code {arch['code']}")
     elif key == "stadt" and arch["code"] != meta["code"]:
         errors.append(f"{key}: code mismatch {arch['code']} != {meta['code']}")
+
+    conflicts = arch.get("conflicts12m")
+    if conflicts is not None:
+        errors.append(f"{key}: conflicts12m gesetzt — UX R4 erwartet null bis Jahreslieferung")
+
+    rev = arch.get("revenuePctTyptag")
+    if not rev:
+        errors.append(f"{key}: revenuePctTyptag fehlt")
+    elif abs(rev.get("markt", 0) - 100.0) > 0.05:
+        errors.append(f"{key}: revenuePctTyptag.markt soll 100 % sein, ist {rev.get('markt')}")
 
     has_engpass = bool(arch.get("hasEngpass"))
     if not has_engpass:
@@ -102,18 +108,14 @@ def check_archetype(key: str, arch: dict) -> list[str]:
     if abs(beta_n1) < 1e-6:
         errors.append(f"{key}: beta_n1 ≈ 0 at bottleneck")
 
-    l0_cache = L0N1DayCache(net, mv, abs_values, eng["b_kind"], eng["b_idx"], eng["k_kind"], eng["k_idx"])
-    power = arch["storage"]["pMw"]
-    energy = arch["storage"]["eMwh"]
-    price_days = load_prices_12m()
-    conflicts = count_conflicts_12m(key, net, abs_values, l0_cache, beta_n1, price_days, power, energy)
-    for field in ("qh", "days", "mwh"):
-        if conflicts[field] != arch["conflicts12m"][field]:
-            errors.append(f"{key}: conflicts12m.{field} {arch['conflicts12m'][field]} != {conflicts[field]}")
-
-    netz_rev = arch["revenuePct12m"]["netz"]
-    if netz_rev <= 0 and arch["badge"]["netz"] == "netzdienlich":
-        errors.append(f"{key}: netz revenue 0 % but badge netzdienlich")
+    if rev:
+        netz_rev = rev.get("netz", 0)
+        netz_series = arch["series"]["modes"]["netz"]
+        activity = sum(abs(v) for v in netz_series["c"]) + sum(abs(v) for v in netz_series["d"])
+        if activity > 0.1 and netz_rev == 0:
+            errors.append(f"{key}: netz revenue 0 % bei Speicheraktivität am Typtag")
+        if netz_rev <= 0 and arch["badge"]["netz"] == "netzdienlich":
+            errors.append(f"{key}: netz revenue 0 % but badge netzdienlich")
 
     return errors
 
@@ -121,18 +123,18 @@ def check_archetype(key: str, arch: dict) -> list[str]:
 def main(path: str | None = None) -> int:
     target = Path(path) if path else ROOT / "data" / "ort" / "ort-archetypes.json"
     payload = json.loads(target.read_text(encoding="utf-8"))
-    print(f"{'key':<6} {'typtag':<12} {'X':>5} {'Y':>5} {'peak n1':>8} {'conf qh':>8} {'days':>5} {'MWh':>10}")
+    print(f"{'key':<6} {'typtag':<12} {'X':>5} {'Y':>5} {'peak n1':>8} {'rev netz':>9}")
     all_errors: list[str] = []
     for key in ("land", "stadt"):
         arch = payload["archetypes"][key]
         x = arch["xMw"]
         y = arch["yMw"]
+        rev = arch.get("revenuePctTyptag") or {}
         print(
             f"{key:<6} {arch['typtag']:<12} "
             f"{(x if x is not None else 0):>5.1f} {(y if y is not None else 0):>5.1f} "
-            f"{arch.get('peakN1Pct', 0):>7.1f}% {arch['conflicts12m']['qh']:>8d} "
-            f"{arch['conflicts12m']['days']:>5d} {arch['conflicts12m']['mwh']:>10.1f} "
-            f"engpass={arch.get('hasEngpass')}"
+            f"{arch.get('peakN1Pct', 0):>7.1f}% {rev.get('netz', 0):>8.1f}% "
+            f"engpass={arch.get('hasEngpass')} conflicts12m={arch.get('conflicts12m')}"
         )
         all_errors.extend(check_archetype(key, arch))
     if all_errors:
@@ -140,7 +142,7 @@ def main(path: str | None = None) -> int:
         for line in all_errors:
             print(" -", line)
         return 1
-    print("\nOK: Nachrechner bestätigt Engpass-Logik, X/Y, Konflikte und β.")
+    print("\nOK: Nachrechner bestätigt Typtag-Engpass, X/Y, Badge und Modellerlös.")
     return 0
 
 

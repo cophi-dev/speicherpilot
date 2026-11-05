@@ -118,9 +118,6 @@ def test_nachrechner_ok():
     payload_path = ROOT / "data" / "ort" / "ort-archetypes.json"
     if not payload_path.exists():
         pytest.skip("ort-archetypes.json missing")
-    payload = json.loads(payload_path.read_text(encoding="utf-8"))
-    if not payload["archetypes"]["land"].get("hasEngpass"):
-        pytest.skip("land JSON interim without engpass — run pnpm run data:ort when build finishes")
     import subprocess
 
     result = subprocess.run(

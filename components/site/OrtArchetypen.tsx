@@ -48,13 +48,13 @@ function explainOrtChoice(
     if (data.scenarioDe) {
       if (!data.hasEngpass) {
         return tx(
-          `${data.scenarioDe} Am gewählten Typtag bleibt die Leitung unter 90 % — im Modell kein Engpass, daher keine festen Anschlusswerte X/Y.`,
-          `${data.scenarioDe} On this typical day the line stays below 90 % — no bottleneck in the model, so no firm X/Y values.`,
+          `${data.scenarioDe} An diesem Mustertag bleibt die Leitung unter 90 % — kein Engpass, daher keine festen Anschlusswerte X/Y.`,
+          `${data.scenarioDe} On this sample day the line stays below 90 % — no bottleneck, so no firm X/Y values.`,
         );
       }
       return tx(
-        `${data.scenarioDe} Mittags dominiert Einspeisung: Am Engpass erreicht die Leitung bis ${deNum(data.peakN1Pct, 1)} % Auslastung bei Netzausfall (n-1).`,
-        `${data.scenarioDe} Midday feed-in dominates: at the bottleneck loading reaches up to ${deNum(data.peakN1Pct, 1)} % under contingency (n-1).`,
+        `${data.scenarioDe} An diesem Mustertag dominiert Einspeisung: Am Engpass bis ${deNum(data.peakN1Pct, 1)} % Auslastung bei Netzausfall (n-1).`,
+        `${data.scenarioDe} On this sample day feed-in dominates: up to ${deNum(data.peakN1Pct, 1)} % loading at the bottleneck under contingency (n-1).`,
       );
     }
   }
@@ -78,26 +78,26 @@ function explainModeChoice(
 ): string {
   const series = data.series.modes[mode];
   const over = countQhOver100(series.L1n1);
-  const rev = data.revenuePct12m[mode];
+  const rev = data.revenuePctTyptag[mode];
   if (mode === "markt") {
     return tx(
       over > 0
-        ? `Markt: Der Speicher handelt Day-ahead-Preise. Mit Speicher überschreitet die Leitung in ${deNum(over, 0)} Viertelstunden 100 % (n-1). Modellerlös ≈ ${deNum(rev, 1)} % vom Markt.`
-        : `Markt: Der Speicher handelt Day-ahead-Preise ohne Überschreitung über 100 % an diesem Tag. Modellerlös ≈ ${deNum(rev, 1)} % vom Markt.`,
+        ? `Markt am Mustertag: Day-ahead-Preise. Mit Speicher überschreitet die Leitung in ${deNum(over, 0)} Viertelstunden 100 % (n-1). Modellerlös am Tag ≈ ${deNum(rev, 1)} % vom Markt.`
+        : `Markt am Mustertag: Day-ahead ohne Überschreitung über 100 %. Modellerlös ≈ ${deNum(rev, 1)} % vom Markt.`,
       over > 0
-        ? `Market: storage trades day-ahead prices. With storage the line exceeds 100 % in ${deNum(over, 0)} quarter-hours (n-1). Model revenue ≈ ${deNum(rev, 1)} % of market.`
-        : `Market: day-ahead trading without exceeding 100 % on this day. Model revenue ≈ ${deNum(rev, 1)} % of market.`,
+        ? `Market on the sample day: day-ahead prices. With storage the line exceeds 100 % in ${deNum(over, 0)} quarter-hours (n-1). Model revenue ≈ ${deNum(rev, 1)} % of market.`
+        : `Market on the sample day without exceeding 100 %. Model revenue ≈ ${deNum(rev, 1)} % of market.`,
     );
   }
   if (mode === "vertrag") {
     return tx(
-      `Markt + flexibler Vertrag: Im Engpassfenster ist eine Richtung gesperrt (n-1). Überschreitungen > 100 %: ${deNum(over, 0)} qh. Modellerlös ≈ ${deNum(rev, 1)} % vom Markt.`,
-      `Market + flexible contract: one direction blocked in the bottleneck window (n-1). Excursions > 100 %: ${deNum(over, 0)} qh. Model revenue ≈ ${deNum(rev, 1)} % of market.`,
+      `Vertrag am Mustertag: Im Engpassfenster ist eine Richtung gesperrt (n-1). Überschreitungen > 100 %: ${deNum(over, 0)} qh. Modellerlös ≈ ${deNum(rev, 1)} % vom Markt.`,
+      `Contract on the sample day: one direction blocked in the bottleneck window (n-1). Excursions > 100 %: ${deNum(over, 0)} qh. Model revenue ≈ ${deNum(rev, 1)} % of market.`,
     );
   }
   return tx(
-    `Netzorientiert: Der Speicher vermeidet gleichzeitiges Laden und Entladen und priorisiert Entlastung. Überschreitungen > 100 %: ${deNum(over, 0)} qh. Modellerlös ≈ ${deNum(rev, 1)} % vom Markt.`,
-    `Grid-oriented: avoids simultaneous charge and discharge and prioritises relief. Excursions > 100 %: ${deNum(over, 0)} qh. Model revenue ≈ ${deNum(rev, 1)} % of market.`,
+    `Netzorientiert am Mustertag: Entlastung priorisieren, kein gleichzeitiges Laden/Entladen. Überschreitungen > 100 %: ${deNum(over, 0)} qh. Modellerlös ≈ ${deNum(rev, 1)} % vom Markt.`,
+    `Grid-oriented on the sample day: prioritise relief, no simultaneous charge and discharge. Excursions > 100 %: ${deNum(over, 0)} qh. Model revenue ≈ ${deNum(rev, 1)} % of market.`,
   );
 }
 
@@ -181,11 +181,18 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
 
         <p className="v4-subline ort-netz-meta">
           {data.labelDe}
-          {data.scenarioDe ? ` · ${data.scenarioDe}` : null} · {tx("Typtag Netzlast", "Typical-day grid load")}{" "}
+          {data.scenarioDe ? ` · ${data.scenarioDe}` : null} · {tx("Mustertag Netzlast", "Sample-day grid load")}{" "}
           {data.typtag} · {tx("Preis", "Price")} {data.priceDay}.{" "}
           {tx(
-            "Netzlast SimBench 2016, Preis eigener Kalender — kein gemeinsames Wetter.",
-            "Grid load SimBench 2016, prices from another calendar — not shared weather.",
+            "Alle Kennzahlen unten beziehen sich auf diesen Mustertag — nicht auf ein Kalenderjahr.",
+            "All figures below refer to this sample day — not a calendar year.",
+          )}
+        </p>
+
+        <p className="ort-netz-annual-note" role="note">
+          {tx(
+            "Wie oft Markt und Netz sich über ein ganzes Jahr in die Quere kommen, kommt als Nächstes.",
+            "How often market and grid clash across a full year is coming next.",
           )}
         </p>
 
@@ -204,7 +211,7 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
 
         <dl className="ort-archetype-kpi-grid">
           <div>
-            <dt>{tx("Einschätzung (n-1)", "Assessment (n-1)")}</dt>
+            <dt>{tx("Einschätzung am Mustertag (n-1)", "Assessment on sample day (n-1)")}</dt>
             <dd>
               <span className="site-badge ort-archetype-badge">{badgeLabel}</span>
               <p className="ort-kpi-explain">{badgeExplain}</p>
@@ -215,7 +222,7 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
             <dd className="num">
               {data.hasEngpass && data.xMw != null && data.yMw != null
                 ? `${deNum(data.xMw, 1)} / ${deNum(data.yMw, 1)} MW`
-                : tx("Kein Engpass ≥ 90 % — X/Y entfallen", "No ≥ 90 % bottleneck — X/Y omitted")}
+                : tx("Am Mustertag kein Engpass ≥ 90 % — X/Y entfallen", "No ≥ 90 % bottleneck on sample day — X/Y omitted")}
             </dd>
             <dd className="ort-kpi-explain">
               {tx(
@@ -225,25 +232,24 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
             </dd>
           </div>
           <div>
-            <dt>{tx("Konflikte 12 Monate", "Conflicts 12 months")}</dt>
-            <dd className="num">
-              {deNum(data.conflicts12m.qh, 0)} qh · {deNum(data.conflicts12m.days, 0)} {tx("Tage", "days")} ·{" "}
-              {deNum(data.conflicts12m.mwh, 1)} MWh
-            </dd>
+            <dt>{tx("Jahres-Konflikte Markt vs. Netz", "Annual market vs. grid conflicts")}</dt>
             <dd className="ort-kpi-explain">
               {tx(
-                "Tage, an denen Markt-Fahrplan und Engpass unter n-1 kollidieren (Modell, gekoppelt SimBench 2016 + Preise).",
-                "Days when market dispatch clashes with the n-1 bottleneck (model, SimBench 2016 + prices).",
+                "Wie oft Markt und Netz sich über ein ganzes Jahr in die Quere kommen, kommt als Nächstes.",
+                "How often market and grid clash across a full year is coming next.",
               )}
             </dd>
           </div>
           <div>
-            <dt>{tx("Modellerlös", "Model revenue")}</dt>
+            <dt>{tx("Modellerlös am Mustertag", "Model revenue on sample day")}</dt>
             <dd className="num">
-              {deNum(data.revenuePct12m[mode], 1)} % {tx("von Markt", "of market")}
+              {deNum(data.revenuePctTyptag[mode], 1)} % {tx("vom Markt am selben Tag", "of market on that day")}
             </dd>
             <dd className="ort-kpi-explain">
-              {tx("Jahreserlös dieser Fahrweise relativ zum reinen Markt-Modus.", "Annual revenue vs pure market mode.")}
+              {tx(
+                "Day-ahead-Erlös dieser Fahrweise am Mustertag relativ zum reinen Markt-Modus — Modellschätzung.",
+                "Day-ahead revenue of this mode on the sample day vs pure market mode — model estimate.",
+              )}
             </dd>
           </div>
           <div>
@@ -260,12 +266,12 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
             </dd>
           </div>
           <div>
-            <dt>{tx("Engpass max (n-1)", "Bottleneck max (n-1)")}</dt>
+            <dt>{tx("Engpass max am Mustertag (n-1)", "Bottleneck max on sample day (n-1)")}</dt>
             <dd className="num">{deNum(data.peakN1Pct, 1)} %</dd>
             <dd className="ort-kpi-explain">
               {tx(
-                "Höchste Auslastung am Engpasselement bei Netzausfall (n-1) am Typtag.",
-                "Peak loading on the bottleneck element under contingency (n-1) on the typical day.",
+                "Höchste Auslastung am Engpasselement bei Netzausfall (n-1) an diesem Mustertag.",
+                "Peak loading on the bottleneck element under contingency (n-1) on this sample day.",
               )}
             </dd>
           </div>
