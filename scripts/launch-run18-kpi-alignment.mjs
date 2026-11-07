@@ -55,15 +55,16 @@ async function setTheme(page, theme) {
 }
 
 async function measureAlignment(page) {
-  const beleg = page.locator(".v4-fleet-day-beleg").first();
   const kpis = page.locator(".v4-fleet-kpis").first();
-  await kpis.waitFor({ state: "visible", timeout: 60_000 });
-  const bBox = await beleg.boundingBox();
+  await kpis.waitFor({ state: "visible", timeout: 90_000 });
+  const refLocator = page.locator(".v4-fleet-day-beleg, .v4-fleet-controls.v4-content").first();
+  await refLocator.waitFor({ state: "visible", timeout: 90_000 });
+  const bBox = await refLocator.boundingBox();
   const kBox = await kpis.boundingBox();
   if (!kBox) {
     return { error: "kein KPI-Box" };
   }
-  const refX = bBox?.x ?? (await page.locator(".v4-fleet-controls").first().boundingBox())?.x;
+  const refX = bBox?.x;
   if (refX == null) {
     return { error: "kein Referenz-Element" };
   }
@@ -82,7 +83,8 @@ async function main() {
       const page = await browser.newPage();
       await page.setViewportSize({ width: vp.width, height: vp.height });
       for (const route of ROUTES) {
-        await page.goto(`${BASE}${route.path}`, { waitUntil: "networkidle", timeout: 120_000 });
+        await page.goto(`${BASE}${route.path}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+        await page.locator(".v4-fleet-kpis").first().waitFor({ state: "visible", timeout: 90_000 });
         await setTheme(page, theme);
         await page.waitForTimeout(200);
         const align = await measureAlignment(page);
