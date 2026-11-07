@@ -31,6 +31,54 @@ const ARCHETYPES: Array<"land" | "stadt"> = ["land", "stadt"];
 const MODES: OrtMode[] = ["markt", "vertrag", "netz"];
 const DT_H = 0.25;
 
+type PriceDayRow = { date: string; prices: number[] };
+
+function loadPriceDays(): PriceDayRow[] {
+  const root = JSON.parse(readFileSync(join(process.cwd(), "data/fca/prices-12m.json"), "utf8")) as {
+    days: PriceDayRow[];
+  };
+  return root.days;
+}
+
+function pricesForDay(days: PriceDayRow[], date: string): number[] {
+  const row = days.find((d) => d.date === date);
+  if (!row || row.prices.length < 1) {
+    throw new Error(`kein Day-Ahead-Preistag ${date} in prices-12m.json`);
+  }
+  return row.prices.slice(0, 96);
+}
+
+function countSimultaneousChargeDischarge(chargeMw: number[], dischargeMw: number[]): number {
+  let count = 0;
+  const n = Math.min(chargeMw.length, dischargeMw.length);
+  for (let i = 0; i < n; i += 1) {
+    if (chargeMw[i] > 1e-4 && dischargeMw[i] > 1e-4) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function revenueEurTyptag(prices: number[], chargeMw: number[], dischargeMw: number[]): number {
+  let total = 0;
+  const n = Math.min(prices.length, chargeMw.length, dischargeMw.length);
+  for (let i = 0; i < n; i += 1) {
+    total += prices[i] * DT_H * (dischargeMw[i] - chargeMw[i]);
+  }
+  return total;
+}
+
+function endSocMwh(socSeries: number[], energyMwh: number): { startSocMwh: number; endSocMwh: number } {
+  if (socSeries.length === 0) {
+    return { startSocMwh: 0.5 * energyMwh, endSocMwh: 0.5 * energyMwh };
+  }
+  return { startSocMwh: socSeries[0], endSocMwh: socSeries[socSeries.length - 1] };
+}
+
+function round4(value: number): number {
+  return Math.round(value * 10_000) / 10_000;
+}
+
 function gitHead(): string {
   try {
     return execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
@@ -112,7 +160,7 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
 
     const surplusSlots: GermanyDispatchSlot[] = [
       slot({
-        timestampIso: "2026-10-25T11:00:00+02:00",
+        timestampIso: "2026-10-25T11:00:00+01:00",
         hourBerlin: 11,
         loadMw: 10_000,
         windOnshoreMw: 25_000,
@@ -121,7 +169,7 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
         windSolarMw: 35_000,
       }),
       slot({
-        timestampIso: "2026-10-25T18:00:00+02:00",
+        timestampIso: "2026-10-25T18:00:00+01:00",
         hourBerlin: 18,
         loadMw: 55_000,
         windOnshoreMw: 8_000,
@@ -253,20 +301,58 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       sumSurplusGwhFromGraphBars: graphSum,
       factorNote: "Euro nicht skaliert; Tageskennzahl surplusGwh aus Fixture",
       uiMonthLabelMustMatch: monthKey,
+      dailyOriginalAndGraphPoints: bars.map((b) => ({
+        dateKey: b.dateKey,
+        surplusGwhFromRecord: b.surplusGwh,
+        graphSurplusGwh: b.surplusGwh === null ? null : b.surplusGwh < 0.05 ? 0 : b.surplusGwh,
+        future: b.future,
+        missing: b.missing,
+      })),
+    };
+
+    const monthNov = "2026-11";
+    const gridNov = buildMonatGrid({
+      monthKey: monthNov,
+      records,
+      todayKey: "2026-11-04",
+      lastCompleteDayKey: "2026-11-03",
+    });
+    const barsNov = barsFromMonatGrid(gridNov);
+    const monatNovEvidence = {
+      sourceCommit,
+      monthKey: monthNov,
+      archivedComplete: false,
+      daysInCalendar: daysInBerlinMonth(monthNov).length,
+      daysWithRecords: records.filter((r) => berlinMonthKeyFromDateKey(r.dateKey) === monthNov).length,
+      dailyOriginalAndGraphPoints: barsNov.map((b) => ({
+        dateKey: b.dateKey,
+        surplusGwhFromRecord: b.surplusGwh,
+        graphSurplusGwh: b.surplusGwh === null ? null : b.surplusGwh < 0.05 ? 0 : b.surplusGwh,
+        future: b.future,
+        missing: b.missing,
+      })),
     };
 
     const dst = {
       sourceCommit,
       spring: exportDstSeries("2025-03-30"),
       fall: exportDstSeries("2025-10-26"),
+      fallTyptag2026: exportDstSeries("2026-10-25"),
       normal: exportDstSeries("2026-07-15"),
     };
+
+    const priceDays = loadPriceDays();
 
     const netzExports = ARCHETYPES.flatMap((archKey) =>
       MODES.map((mode) => {
         const data = archetypeByKey(archKey);
         const series = data.series.modes[mode];
         const audit = auditBadgeV2({ L0n1: data.series.L0n1, L1n1: series.L1n1 });
+        const dayPrices = pricesForDay(priceDays, data.priceDay);
+        const soc = endSocMwh(series.soc, data.storage.eMwh);
+        const revenueEur = revenueEurTyptag(dayPrices, series.c, series.d);
+        const signedDispatchMw = series.d.map((d, i) => round4(d - series.c[i]));
+        const flowDeltaL1Mw = series.L1n1.map((l1, i) => round4(l1 - data.series.L0n1[i]));
         return {
           file: `netz-${archKey}-${mode}-timeseries.json`,
           meta: {
@@ -278,13 +364,26 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
             einspeisFlexMw: data.yMw,
             storagePMw: data.storage.pMw,
             storageEMwh: data.storage.eMwh,
+            socConvention:
+              "LP: Start 0,5·E_MWh, Bounds 0,1·E … 0,9·E; soc[] = SoC zu Beginn jedes qh (MWh nutzbar)",
+            solverMutualExclusiveChargeDischarge:
+              "Nach LP: in jedem qh max(c,d); kein gleichzeitiges Laden/Entladen (Ort-Netzmodell)",
             revenuePctVsMarkt: data.revenuePctTyptag[mode],
+            revenueEurTyptag: round4(revenueEur),
+            revenueUnit: "EUR/MWh Day-Ahead·0,25 h",
             revenueNote:
-              "Prozent = Modellerlös am Mustertag relativ zum Markt-Modus am selben Tag (100 % Basis). Negativ = netto schlechter als reiner Markt.",
+              "Prozent = Modellerlös am Mustertag relativ zum Markt-Modus am selben Tag (100 % Basis). Erlöse absolut nur bei gleichem End-SoC fair vergleichbar — siehe revenueFairness.",
+            revenueFairness: {
+              startSocMwh: soc.startSocMwh,
+              endSocMwh: soc.endSocMwh,
+              restEnergyMwhVsStart: round4(soc.endSocMwh - soc.startSocMwh),
+              note: "Unbereinigter EUR-Vergleich across Modi nur mit gleichem endSocMwh oder Restbewertung",
+            },
             badgeRule: audit.ruleSummary,
             badgeStoredInJson: data.badge[mode],
           },
           audit,
+          pricesEurPerMwh: dayPrices.map((p) => round4(p)),
           series: {
             hour: data.series.hour,
             L0n0: data.series.L0n0,
@@ -292,6 +391,8 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
             L1n1: series.L1n1,
             chargeMw: series.c,
             dischargeMw: series.d,
+            signedDispatchMw,
+            flowDeltaL1n1Mw: flowDeltaL1Mw,
             socMwh: series.soc,
             vmin: series.vmin,
             vmax: series.vmax,
@@ -299,6 +400,23 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
         };
       }),
     );
+
+    const ortRevenueCompare = ARCHETYPES.map((archKey) => {
+      const data = archetypeByKey(archKey);
+      const prices = pricesForDay(priceDays, data.priceDay);
+      const modes = data.series.modes;
+      const pick = (m: OrtMode) => {
+        const s = modes[m];
+        const soc = endSocMwh(s.soc, data.storage.eMwh);
+        return {
+          revenueEurTyptag: round4(revenueEurTyptag(prices, s.c, s.d)),
+          revenuePctVsMarkt: data.revenuePctTyptag[m],
+          startSocMwh: round4(soc.startSocMwh),
+          endSocMwh: round4(soc.endSocMwh),
+        };
+      };
+      return { archetype: archKey, priceDay: data.priceDay, markt: pick("markt"), vertrag: pick("vertrag"), netz: pick("netz") };
+    });
 
     const gridV1Sample = assessConnectionGridBadge({
       netKw: [400, 500, 300],
@@ -319,10 +437,13 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
         "dispatch-evidence.json",
         "chain-fleet-evidence.json",
         "monat-2026-10-aggregate.json",
+        "monat-2026-11-partial.json",
+        "ort-revenue-compare.json",
         "dst-timestamps.json",
         ...netzExports.map((n) => n.file),
         "grid-v1-sample.json",
       ],
+      deprecatedNotEvidence: ["pruefmatrix.json if present — not regenerated by this test"],
       tolerances: { socResidualMwh: 1e-4, gwh: 0.02 },
       ui: {
         monatPrimaryGraph: readFileSync(join(process.cwd(), "components/home/MonatPageV4.tsx"), "utf8").includes(
@@ -335,6 +456,8 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
     writeFileSync(join(ARTIFACT_DIR, "dispatch-evidence.json"), JSON.stringify(dispatchEvidence, null, 2));
     writeFileSync(join(ARTIFACT_DIR, "chain-fleet-evidence.json"), JSON.stringify(chainEvidence, null, 2));
     writeFileSync(join(ARTIFACT_DIR, "monat-2026-10-aggregate.json"), JSON.stringify(monatEvidence, null, 2));
+    writeFileSync(join(ARTIFACT_DIR, "monat-2026-11-partial.json"), JSON.stringify(monatNovEvidence, null, 2));
+    writeFileSync(join(ARTIFACT_DIR, "ort-revenue-compare.json"), JSON.stringify(ortRevenueCompare, null, 2));
     writeFileSync(join(ARTIFACT_DIR, "dst-timestamps.json"), JSON.stringify(dst, null, 2));
     writeFileSync(join(ARTIFACT_DIR, "grid-v1-sample.json"), JSON.stringify(gridV1Sample, null, 2));
     for (const pack of netzExports) {
@@ -345,11 +468,19 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
     expect(balanceDry.maxResidualMwh).toBeLessThan(1e-4);
     expect(dst.spring.slotCount).toBe(92);
     expect(dst.fall.slotCount).toBe(100);
+    expect(dst.fallTyptag2026.slotCount).toBe(100);
     expect(dst.normal.slotCount).toBe(96);
+    expect(surplusSlots.every((s) => s.timestampIso.includes("+01:00"))).toBe(true);
+    expect(monatEvidence.dailyOriginalAndGraphPoints).toHaveLength(31);
+    expect(missingDays).toHaveLength(0);
     expect(Math.abs(sumSurplusGwh - graphSum)).toBeLessThan(1e-6);
     for (const pack of netzExports) {
       expect(pack.audit.id).toBe(pack.meta.badgeStoredInJson);
+      expect(typeof pack.audit.reliefPpHours).toBe("number");
+      expect(pack.pricesEurPerMwh).toHaveLength(96);
+      expect(countSimultaneousChargeDischarge(pack.series.chargeMw, pack.series.dischargeMw)).toBe(0);
     }
+    expect(ortRevenueCompare[0].netz.endSocMwh).not.toBe(ortRevenueCompare[0].markt.endSocMwh);
     expect(readme.ui.monatPrimaryGraph).toBe(true);
     expect(addBerlinCalendarDays("2025-03-29", 1)).toBe("2025-03-30");
   });

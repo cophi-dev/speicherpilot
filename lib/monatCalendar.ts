@@ -71,6 +71,55 @@ export function monthHasAnyRecord(monthKey: string, records: TagesKennzahlRecord
   return records.some((r) => berlinMonthKeyFromDateKey(r.dateKey) === monthKey);
 }
 
+/**
+ * Month is „archiv-vollständig“ if every calendar day through `lastCompleteDayKey`
+ * that falls in this month has a record in the loaded series (no arbitrary %-Schwelle).
+ */
+export function isMonthArchivedComplete(
+  monthKey: string,
+  records: TagesKennzahlRecord[],
+  lastCompleteDayKey: string,
+): boolean {
+  const byDate = new Map(records.map((r) => [r.dateKey, r]));
+  const bounds = recordSeriesBounds(records);
+  if (!bounds) {
+    return false;
+  }
+  const days = daysInBerlinMonth(monthKey).filter((d) => d <= lastCompleteDayKey);
+  if (days.length === 0) {
+    return false;
+  }
+  return days.every((d) => d >= bounds.firstKey && d <= bounds.lastKey && byDate.has(d));
+}
+
+/** Calendar month fully in the past relative to the last complete archive day. */
+export function isBerlinMonthCalendarClosed(monthKey: string, lastCompleteDayKey: string): boolean {
+  const days = daysInBerlinMonth(monthKey);
+  const lastCalendarDay = days[days.length - 1];
+  return lastCompleteDayKey >= lastCalendarDay;
+}
+
+/** Default /monat entry: latest closed month with every day present in the archive (no 80 %-rule). */
+export function pickDefaultMonatMonthKey(records: TagesKennzahlRecord[], lastCompleteDayKey: string): string {
+  const months = monthsWithData(records);
+  for (let i = months.length - 1; i >= 0; i -= 1) {
+    const key = months[i];
+    if (
+      isBerlinMonthCalendarClosed(key, lastCompleteDayKey) &&
+      isMonthArchivedComplete(key, records, lastCompleteDayKey)
+    ) {
+      return key;
+    }
+  }
+  for (let i = months.length - 1; i >= 0; i -= 1) {
+    const key = months[i];
+    if (isBerlinMonthCalendarClosed(key, lastCompleteDayKey) && monthHasAnyRecord(key, records)) {
+      return key;
+    }
+  }
+  return berlinMonthKeyFromDateKey(lastCompleteDayKey);
+}
+
 export function adjacentMonthWithData(
   monthKey: string,
   direction: "prev" | "next",

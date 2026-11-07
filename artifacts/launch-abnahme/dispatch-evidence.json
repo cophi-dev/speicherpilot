@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "c68196fe4cbc25396ae31a72351fb0f96e0e7fd7",
+  "sourceCommit": "8243b1476b90ab39cdc57ec17747d269be0c3d9a",
   "convention": {
     "rteOnDischargeOnly": 0.85,
     "socWindowFraction": [
@@ -34,7 +34,7 @@
             "windSolarMw": 35000,
             "crossBorderElectricityTradingMw": 0,
             "curtailmentMw": null,
-            "timestampIso": "2026-10-25T11:00:00+02:00",
+            "timestampIso": "2026-10-25T11:00:00+01:00",
             "hourBerlin": 11
           },
           {
@@ -48,7 +48,7 @@
             "windSolarMw": 10000,
             "crossBorderElectricityTradingMw": 0,
             "curtailmentMw": null,
-            "timestampIso": "2026-10-25T18:00:00+02:00",
+            "timestampIso": "2026-10-25T18:00:00+01:00",
             "hourBerlin": 18
           }
         ]
@@ -56,9 +56,9 @@
       "output": {
         "quarters": [
           {
-            "timestampIso": "2026-10-25T11:00:00+02:00",
+            "timestampIso": "2026-10-25T11:00:00+01:00",
             "hourBerlin": 11,
-            "hour": 10,
+            "hour": 11,
             "surplusMw": 25000,
             "chargeMw": 4580,
             "dischargeMw": 0,
@@ -69,9 +69,9 @@
             "residualMw": -25000
           },
           {
-            "timestampIso": "2026-10-25T18:00:00+02:00",
+            "timestampIso": "2026-10-25T18:00:00+01:00",
             "hourBerlin": 18,
-            "hour": 17,
+            "hour": 18,
             "surplusMw": 0,
             "chargeMw": 0,
             "dischargeMw": 3893,

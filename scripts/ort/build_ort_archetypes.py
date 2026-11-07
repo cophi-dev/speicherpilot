@@ -739,8 +739,14 @@ class OrtDayModel:
         self.h.run()
         sol = self.h.getSolution()
         col_values = np.array(sol.col_value)
-        charge = col_values[:n]
-        discharge = col_values[n:]
+        charge = np.asarray(col_values[:n], dtype=float)
+        discharge = np.asarray(col_values[n:], dtype=float)
+        for t in range(n):
+            if charge[t] > 1e-6 and discharge[t] > 1e-6:
+                if charge[t] >= discharge[t]:
+                    discharge[t] = 0.0
+                else:
+                    charge[t] = 0.0
         soc = np.zeros(n + 1)
         soc[0] = s0
         for t in range(n):
@@ -749,6 +755,7 @@ class OrtDayModel:
         return {
             "c": charge.tolist(),
             "d": discharge.tolist(),
+            "endSocMwh": float(soc[-1]),
             "soc": soc[:-1].tolist(),
             "revenue": 0.0 if abs(revenue) < 1e-8 else revenue,
         }

@@ -5,7 +5,8 @@ export type BadgeV2Audit = BadgeV2Result & {
   ruleSummary: string;
   criticalQuarterHours: number[];
   worseningEvidence: Array<{ qh: number; l0: number; l1: number; delta: number }>;
-  reliefMwh: number;
+  /** Σ(L0−L1)·dt über kritische qh — Einheit Prozentpunkt·Stunden (pp·h), nicht MWh. */
+  reliefPpHours: number;
   maxL0Critical: number;
   maxL1Critical: number;
 };
@@ -50,7 +51,7 @@ export function auditBadgeV2(input: BadgeV2Input): BadgeV2Audit {
       "Kritisch: L0 oder L1 ≥ 90 % Auslastung. Belastend: L1 > 100 % und L1 > L0+0,5 pp. Netzdienlich: Σ(L0−L1)·dt > 0 über kritische qh und max(L1) ≤ max(L0). Sonst neutral.",
     criticalQuarterHours: [...critical].sort((a, b) => a - b),
     worseningEvidence: worsening.slice(0, 8),
-    reliefMwh: relief,
+    reliefPpHours: relief,
     maxL0Critical: maxL0,
     maxL1Critical: maxL1,
     hint:
@@ -58,7 +59,7 @@ export function auditBadgeV2(input: BadgeV2Input): BadgeV2Audit {
       (worsening.length > 0
         ? `Verschärfung ab qh ${worsening[0].qh} (+${worsening[0].delta.toFixed(1)} pp)`
         : base.id === "netzdienlich"
-          ? `Entlastung ${relief.toFixed(2)} MWh·h-kritisch`
+          ? `Entlastung ${relief.toFixed(2)} pp·h über kritische Intervalle`
           : null),
   };
 }
