@@ -28,6 +28,12 @@ import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 import { auditOrtStorageDispatch } from "@/lib/ortStorageDispatchAudit";
 import { exportNationalDayEvidence } from "@/lib/exportLaunchNationalDays";
 import { auditNationalFactorRun, expectedNationalCaps } from "@/lib/nationalFactorGate";
+import {
+  auditSignedLoading,
+  loadingPctFromSignedMw,
+  signedWithBatteryMw,
+} from "@/lib/signedLoadingGate";
+import { createHash } from "node:crypto";
 
 const BUNDLE_ID =
   process.env.LAUNCH_R4_STAMP != null
@@ -76,43 +82,50 @@ function revenueEurTyptag(prices: number[], chargeMw: number[], dischargeMw: num
   return total;
 }
 
-function recomputeL1n1(
-  l0: number[],
-  charge: number[],
-  discharge: number[],
-  betaCharge: number,
-  betaDischarge: number,
-): number[] {
-  return l0.map((base, i) =>
-    Math.round(
-      Math.max(0, base + betaCharge * (charge[i] ?? 0) + betaDischarge * (discharge[i] ?? 0)) * 100,
-    ) / 100,
-  );
-}
-
-function loadingBetasFromPhysics(physics: Record<string, unknown> | null | undefined): {
-  betaCharge: number;
-  betaDischarge: number;
+function loadingSlopesFromPhysics(physics: Record<string, unknown> | null | undefined): {
+  slopeChargeMw: number;
+  slopeDischargeMw: number;
+  ratingMw: number;
   formula: string;
+  flowSignConvention: string;
 } {
   const p = physics ?? {};
-  const betaCharge =
-    typeof p.betaChargePpPerMwN1 === "number"
-      ? p.betaChargePpPerMwN1
-      : typeof p.betaN1 === "number"
-        ? p.betaN1
+  const slopeChargeMw =
+    typeof p.slopeChargeMwN1 === "number"
+      ? p.slopeChargeMwN1
+      : typeof p.betaChargePpPerMwN1 === "number"
+        ? p.betaChargePpPerMwN1
         : 0;
-  const betaDischarge =
-    typeof p.betaDischargePpPerMwN1 === "number"
-      ? p.betaDischargePpPerMwN1
-      : typeof p.betaN1 === "number"
-        ? -p.betaN1
+  const slopeDischargeMw =
+    typeof p.slopeDischargeMwN1 === "number"
+      ? p.slopeDischargeMwN1
+      : typeof p.betaDischargePpPerMwN1 === "number"
+        ? p.betaDischargePpPerMwN1
         : 0;
+  const ratingMw = typeof p.ratingMw === "number" ? p.ratingMw : 0;
   const formula =
     typeof p.loadingLinearModel === "string"
       ? p.loadingLinearModel
-      : "L1n1_pp = max(0, L0_n1_pp + betaCharge*c + betaDischarge*d)";
-  return { betaCharge, betaDischarge, formula };
+      : "signed_battery_mw = s0 + slope_c*c + slope_d*d; loading_pct = 100*abs(signed)/rating_mw";
+  const flowSignConvention =
+    typeof p.flowSignConvention === "string" ? p.flowSignConvention : "unknown";
+  return { slopeChargeMw, slopeDischargeMw, ratingMw, formula, flowSignConvention };
+}
+
+function recomputeL1FromSigned(
+  signedBaseMw: number[],
+  charge: number[],
+  discharge: number[],
+  ratingMw: number,
+  slopeChargeMw: number,
+  slopeDischargeMw: number,
+): number[] {
+  return signedBaseMw.map((s0, i) =>
+    loadingPctFromSignedMw(
+      signedWithBatteryMw(s0, charge[i] ?? 0, discharge[i] ?? 0, slopeChargeMw, slopeDischargeMw),
+      ratingMw,
+    ),
+  );
 }
 
 function round4(value: number): number {
@@ -390,11 +403,30 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       MODES.map((mode) => {
         const data = archetypeByKey(archKey);
         const series = data.series.modes[mode];
-        const { betaCharge, betaDischarge, formula: loadingFormula } = loadingBetasFromPhysics(
-          data.dispatchPhysics as Record<string, unknown> | undefined,
+        const slopes = loadingSlopesFromPhysics(data.dispatchPhysics as Record<string, unknown> | undefined);
+        const signedBaseMw = data.series.S0signedMwN1 ?? [];
+        const ratingMw = data.series.ratingMw ?? slopes.ratingMw;
+        const signedWithBatteryMwSeries = signedBaseMw.map((s0, i) =>
+          round4(signedWithBatteryMw(s0, series.c[i], series.d[i], slopes.slopeChargeMw, slopes.slopeDischargeMw)),
         );
-        const l1Recomputed = recomputeL1n1(data.series.L0n1, series.c, series.d, betaCharge, betaDischarge);
+        const l1Recomputed = recomputeL1FromSigned(
+          signedBaseMw,
+          series.c,
+          series.d,
+          ratingMw,
+          slopes.slopeChargeMw,
+          slopes.slopeDischargeMw,
+        );
         const maxL1RecomputeGap = Math.max(...series.L1n1.map((l1, i) => Math.abs(l1 - l1Recomputed[i])));
+        const signedAudit = auditSignedLoading({
+          ratingMw,
+          signedBaseMw,
+          chargeMw: series.c,
+          dischargeMw: series.d,
+          loadingPct: series.L1n1,
+          slopeChargeMw: slopes.slopeChargeMw,
+          slopeDischargeMw: slopes.slopeDischargeMw,
+        });
         const audit = auditBadgeV2({ L0n1: data.series.L0n1, L1n1: series.L1n1 });
         const storageAudit = auditOrtStorageDispatch({
           chargeMw: series.c,
@@ -416,9 +448,12 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
             voltageModeled:
               "vmin/vmax pandapower Typtag-Baseline ohne Speicher — keine Spannungswirkung des Batterie-Dispatch",
             dispatchPhysics: data.dispatchPhysics ?? null,
-            loadingLinearModel: loadingFormula,
-            betaChargePpPerMwN1: betaCharge,
-            betaDischargePpPerMwN1: betaDischarge,
+            loadingLinearModel: slopes.formula,
+            flowSignConvention: slopes.flowSignConvention,
+            ratingMw,
+            slopeChargeMwN1: slopes.slopeChargeMw,
+            slopeDischargeMwN1: slopes.slopeDischargeMw,
+            signedLoadingAudit: { ok: signedAudit.length === 0, violations: signedAudit },
             bezugFestMw: data.xMw,
             einspeisFlexMw: data.yMw,
             storagePMw: data.storage.pMw,
@@ -451,6 +486,9 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
             L1n1: series.L1n1,
             L1n1RecomputedFromDispatch: l1Recomputed.map((v) => round4(v)),
             maxL1RecomputeGapPp: round4(maxL1RecomputeGap),
+            signedBaseMw: signedBaseMw.map((v) => round4(v)),
+            signedWithBatteryMw: signedWithBatteryMwSeries,
+            loadingPctN1: series.L1n1.map((v) => round4(v)),
             chargeMw: series.c,
             dischargeMw: series.d,
             signedBatteryMw,
@@ -522,11 +560,30 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
     }
     writeFileSync(join(ARTIFACT_DIR, "national-factor-gate.json"), JSON.stringify(nationalFactorAudit, null, 2));
 
+    const ortArchetypesSha = createHash("sha256")
+      .update(readFileSync(join(process.cwd(), "data/ort/ort-archetypes.json")))
+      .digest("hex");
+
+    const signedLoadingGate: Record<string, { ok: boolean; violations: string[] }> = {};
+    for (const pack of netzExports) {
+      signedLoadingGate[pack.file] = pack.meta.signedLoadingAudit as { ok: boolean; violations: string[] };
+    }
+    writeFileSync(join(ARTIFACT_DIR, "signed-loading-gate.json"), JSON.stringify(signedLoadingGate, null, 2));
+
     const readme = {
       bundleId: BUNDLE_ID,
+      codeCommitAtBundleWrite: sourceCommit,
       sourceCommit,
+      artifactRulesVersion: "ort-badge-v2 + signed-flow-mw-v1",
       generatedAt: new Date().toISOString(),
       generator: "lib/launchAbnahme.test.ts",
+      provenance: {
+        note:
+          "sourceCommit/codeCommitAtBundleWrite = git HEAD beim Schreiben dieses Bundles; Lighthouse-summary.commit kann abweichen wenn separat gelaufen",
+        inputContentHashes: {
+          "data/ort/ort-archetypes.json": `sha256:${ortArchetypesSha}`,
+        },
+      },
       mirrorPath: join(MIRROR_ROOT, BUNDLE_ID),
       supersededBundles: ["artifacts/launch-abnahme (R2; nicht für R3/R4 verwenden)"],
       rules: {
@@ -543,6 +600,7 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
         "dst-timestamps.json",
         ...nationalFiles,
         "national-factor-gate.json",
+        "signed-loading-gate.json",
         ...netzExports.map((n) => n.file),
         "grid-v1-sample.json",
       ],
@@ -584,7 +642,16 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       expect(countSimultaneousChargeDischarge(pack.series.chargeMw, pack.series.dischargeMw)).toBe(0);
       expect(pack.meta.storageDispatchAudit.ok).toBe(true);
       expect(pack.series.maxL1RecomputeGapPp).toBeLessThan(0.05);
+      expect((pack.meta.signedLoadingAudit as { ok: boolean }).ok).toBe(true);
     }
+    const stadtMarkt = netzExports.find((p) => p.file === "netz-stadt-markt-timeseries.json");
+    expect(stadtMarkt).toBeDefined();
+    const qh31 = 31;
+    expect(stadtMarkt!.series.signedBaseMw[qh31]).toBeDefined();
+    expect(stadtMarkt!.series.signedWithBatteryMw[qh31]).toBeDefined();
+    // qh31: 10 MW Entladung bei kleinem Export-Baseline → Umkehr, Auslastung steigt (kein max(0)-Clipping auf 0 %)
+    expect(stadtMarkt!.series.loadingPctN1[qh31]).toBeGreaterThan(stadtMarkt!.series.L0n1[qh31]);
+    expect(stadtMarkt!.series.loadingPctN1[qh31]).toBeGreaterThan(50);
     for (const arch of ortRevenueCompare) {
       expect(arch.markt.endSocMwh).toBeCloseTo(arch.netz.endSocMwh, 1);
       expect(arch.markt.storageDispatchAudit.ok).toBe(true);

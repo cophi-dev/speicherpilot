@@ -1,0 +1,231 @@
+{
+  "sourceCommit": "89a837f5245fd3dd51673dc5d740282c9d0a6ddd",
+  "monthKey": "2026-10",
+  "monthLabel": "Oktober 2026",
+  "daysInCalendar": 31,
+  "daysWithRecords": 31,
+  "missingDayKeys": [],
+  "sumSurplusGwhFromRecords": 134.24197499999997,
+  "sumSurplusGwhFromGraphBars": 134.24197499999997,
+  "factorNote": "Euro nicht skaliert; Tageskennzahl surplusGwh aus Fixture",
+  "uiMonthLabelMustMatch": "2026-10",
+  "dailyOriginalAndGraphPoints": [
+    {
+      "dateKey": "2026-10-01",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-02",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-03",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-04",
+      "surplusGwhFromRecord": 0.7255499999999994,
+      "graphSurplusGwh": 0.7255499999999994,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-05",
+      "surplusGwhFromRecord": 9.761175,
+      "graphSurplusGwh": 9.761175,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-06",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-07",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-08",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-09",
+      "surplusGwhFromRecord": 8.19165,
+      "graphSurplusGwh": 8.19165,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-10",
+      "surplusGwhFromRecord": 15.002625000000002,
+      "graphSurplusGwh": 15.002625000000002,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-11",
+      "surplusGwhFromRecord": 22.83500000000001,
+      "graphSurplusGwh": 22.83500000000001,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-12",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-13",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-14",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-15",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-16",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-17",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-18",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-19",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-20",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-21",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-22",
+      "surplusGwhFromRecord": 6.984374999999996,
+      "graphSurplusGwh": 6.984374999999996,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-23",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-24",
+      "surplusGwhFromRecord": 61.10389999999999,
+      "graphSurplusGwh": 61.10389999999999,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-25",
+      "surplusGwhFromRecord": 9.637699999999995,
+      "graphSurplusGwh": 9.637699999999995,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-26",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-27",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-28",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-29",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-30",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-10-31",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    }
+  ]
+}

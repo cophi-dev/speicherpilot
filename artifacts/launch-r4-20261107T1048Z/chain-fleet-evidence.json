@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "89a837f5245fd3dd51673dc5d740282c9d0a6ddd",
+  "roundTrip": 0.85,
+  "startSocMwh": 800,
+  "endSocMwh": 800,
+  "chargedMwh": 1000,
+  "dischargedMwh": 850,
+  "balanceCheck": 800,
+  "points": [
+    {
+      "timestampIso": "2026-10-26T11:00:00+01:00",
+      "unixSeconds": 1793008800,
+      "dateBerlin": "2026-10-26",
+      "chargeMw": 4000,
+      "dischargeMw": 0,
+      "socFraction": 0.225,
+      "socMwh": 1800
+    },
+    {
+      "timestampIso": "2026-10-26T18:00:00+01:00",
+      "unixSeconds": 1793034000,
+      "dateBerlin": "2026-10-26",
+      "chargeMw": 0,
+      "dischargeMw": 3400,
+      "socFraction": 0.1,
+      "socMwh": 800
+    }
+  ]
+}

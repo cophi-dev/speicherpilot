@@ -80,7 +80,7 @@ def resolve_land_code(pick: str) -> tuple[str, int, dict]:
         abs_values = profile_absolute(net)
         day_index = typtag_day_index(abs_values, pick)
         net.trafo["tap_pos"] = choose_tap(net, mv, abs_values, day_index)
-        eng = scan_engpass(net, mv, abs_values, day_index)
+        eng = scan_engpass(net, mv, abs_values, day_index, "land")
         last = (code, day_index, eng)
         if eng["peak_n1"] >= 90.0 - 1e-6:
             return code, day_index, eng
@@ -175,6 +175,71 @@ def element_loading(net, kind: str, index: int) -> float:
     return float(net.res_trafo.at[index, "loading_percent"])
 
 
+def bottleneck_rating_mw(net, kind: str, index: int) -> float:
+    if kind == "line":
+        line = net.line.loc[index]
+        vn_kv = float(net.bus.at[int(line.from_bus), "vn_kv"])
+        max_i = float(line.max_i_ka)
+        return max(1e-6, math.sqrt(3) * vn_kv * max_i)
+    trafo = net.trafo.loc[index]
+    return max(1e-6, float(trafo.sn_mva))
+
+
+def resolve_reference_buses(net, kind: str, index: int, archetype_key: str) -> tuple[int, int]:
+    """Positive signed MW convention: stadt = import toward MV busbar; land = export away from MV busbar."""
+    busbar = int(net.trafo.lv_bus.iloc[0])
+    if kind == "line":
+        from_bus = int(net.line.at[index, "from_bus"])
+        to_bus = int(net.line.at[index, "to_bus"])
+        if archetype_key == "stadt":
+            if to_bus == busbar:
+                return from_bus, to_bus
+            if from_bus == busbar:
+                return to_bus, from_bus
+            return from_bus, to_bus
+        if from_bus == busbar:
+            return from_bus, to_bus
+        if to_bus == busbar:
+            return to_bus, from_bus
+        return from_bus, to_bus
+    hv = int(net.trafo.at[index, "hv_bus"])
+    lv = int(net.trafo.at[index, "lv_bus"])
+    if archetype_key == "stadt":
+        return hv, lv
+    return lv, hv
+
+
+def element_signed_power_mw(net, kind: str, index: int, positive_from: int, positive_to: int) -> float:
+    if kind == "line":
+        from_bus = int(net.line.at[index, "from_bus"])
+        to_bus = int(net.line.at[index, "to_bus"])
+        p_from = float(net.res_line.at[index, "p_from_mw"])
+        if from_bus == positive_from and to_bus == positive_to:
+            return p_from
+        if from_bus == positive_to and to_bus == positive_from:
+            return -p_from
+        return p_from if from_bus == positive_from else -p_from
+    p_hv = float(net.res_trafo.at[index, "p_hv_mw"])
+    hv = int(net.trafo.at[index, "hv_bus"])
+    return p_hv if positive_from == hv else -p_hv
+
+
+def loading_percent_from_signed_mw(signed_mw: float, rating_mw: float) -> float:
+    if rating_mw <= 1e-9:
+        return 0.0
+    return round(100.0 * abs(signed_mw) / rating_mw, 2)
+
+
+def signed_flow_with_battery(
+    s0_signed_mw: float,
+    charge_mw: float,
+    discharge_mw: float,
+    slope_charge_mw: float,
+    slope_discharge_mw: float,
+) -> float:
+    return s0_signed_mw + slope_charge_mw * charge_mw + slope_discharge_mw * discharge_mw
+
+
 def bottleneck_meta(net, kind: str, index: int) -> dict:
     if kind == "line":
         line = net.line.loc[index]
@@ -193,7 +258,7 @@ def bottleneck_meta(net, kind: str, index: int) -> dict:
     }
 
 
-def scan_engpass(net, mv, abs_values, day_index: int):
+def scan_engpass(net, mv, abs_values, day_index: int, archetype_key: str):
     peak_element = ("line", int(net.line.index[0]), -1.0)
     for qh in range(96):
         apply_profile_row(net, abs_values, day_index * 96 + qh)
@@ -208,11 +273,16 @@ def scan_engpass(net, mv, abs_values, day_index: int):
                 peak_element = ("trafo", int(index), value)
 
     b_kind, b_idx, peak = peak_element
+    rating_mw = bottleneck_rating_mw(net, b_kind, b_idx)
+    pos_from, pos_to = resolve_reference_buses(net, b_kind, b_idx, archetype_key)
     l0_n0: list[float] = []
+    s0_n0_signed: list[float] = []
     for qh in range(96):
         apply_profile_row(net, abs_values, day_index * 96 + qh)
         run(net)
-        l0_n0.append(round(element_loading(net, b_kind, b_idx), 2))
+        signed = element_signed_power_mw(net, b_kind, b_idx, pos_from, pos_to)
+        s0_n0_signed.append(round(signed, 4))
+        l0_n0.append(loading_percent_from_signed_mw(signed, rating_mw))
     t_star = int(np.argmax(l0_n0))
     apply_profile_row(net, abs_values, day_index * 96 + t_star)
     run(net)
@@ -233,6 +303,7 @@ def scan_engpass(net, mv, abs_values, day_index: int):
     k_kind, k_idx, _ = critical
 
     l0_n1: list[float] = []
+    s0_n1_signed: list[float] = []
     vm_min: list[float] = []
     vm_max: list[float] = []
     for qh in range(96):
@@ -241,16 +312,20 @@ def scan_engpass(net, mv, abs_values, day_index: int):
         _eval_outage(net, mv, open_switches)
         try:
             run(net)
-            value = element_loading(net, b_kind, b_idx)
+            signed = element_signed_power_mw(net, b_kind, b_idx, pos_from, pos_to)
             voltage = net.res_bus.loc[mv].vm_pu
             vm_min.append(round(float(voltage.min()) * 100.0, 2))
             vm_max.append(round(float(voltage.max()) * 100.0, 2))
+            s0_n1_signed.append(round(signed, 4))
+            value = loading_percent_from_signed_mw(signed, rating_mw)
         except Exception:
             value = float("nan")
+            signed = 0.0
             vm_min.append(0.0)
             vm_max.append(0.0)
+            s0_n1_signed.append(0.0)
         net[k_kind].at[k_idx, "in_service"] = True
-        l0_n1.append(round(value, 2) if math.isfinite(value) else 0.0)
+        l0_n1.append(value if math.isfinite(value) else 0.0)
 
     return dict(
         b_kind=b_kind,
@@ -261,6 +336,11 @@ def scan_engpass(net, mv, abs_values, day_index: int):
         t_star=t_star,
         L0_n0=l0_n0,
         L0_n1=l0_n1,
+        S0_signed_n0=s0_n0_signed,
+        S0_signed_n1=s0_n1_signed,
+        rating_mw=round(rating_mw, 4),
+        flow_positive_from_bus=pos_from,
+        flow_positive_to_bus=pos_to,
         vm_min=vm_min,
         vm_max=vm_max,
         peak_n0=max(l0_n0),
@@ -503,9 +583,13 @@ def build_l0_n1_day(
     b_idx: int,
     k_kind: str,
     k_idx: int,
-) -> list[float]:
+    rating_mw: float,
+    positive_from: int,
+    positive_to: int,
+) -> tuple[list[float], list[float]]:
     open_switches = net.switch[(net.switch.et == "l") & (~net.switch.closed)]
-    series: list[float] = []
+    loading: list[float] = []
+    signed: list[float] = []
     for qh in range(96):
         row = day_index * 96 + qh
         apply_profile_row(net, abs_values, row)
@@ -513,16 +597,31 @@ def build_l0_n1_day(
         _eval_outage(net, mv, open_switches)
         try:
             run(net)
-            value = element_loading(net, b_kind, b_idx)
+            s_mw = element_signed_power_mw(net, b_kind, b_idx, positive_from, positive_to)
+            value = loading_percent_from_signed_mw(s_mw, rating_mw)
         except Exception:
             value = float("nan")
+            s_mw = 0.0
         net[k_kind].at[k_idx, "in_service"] = True
-        series.append(round(value, 2) if math.isfinite(value) else 0.0)
-    return series
+        loading.append(value if math.isfinite(value) else 0.0)
+        signed.append(round(s_mw, 4))
+    return loading, signed
 
 
 class L0N1DayCache:
-    def __init__(self, net, mv, abs_values, b_kind: str, b_idx: int, k_kind: str, k_idx: int) -> None:
+    def __init__(
+        self,
+        net,
+        mv,
+        abs_values,
+        b_kind: str,
+        b_idx: int,
+        k_kind: str,
+        k_idx: int,
+        rating_mw: float,
+        positive_from: int,
+        positive_to: int,
+    ) -> None:
         self.net = net
         self.mv = mv
         self.abs_values = abs_values
@@ -530,13 +629,17 @@ class L0N1DayCache:
         self.b_idx = b_idx
         self.k_kind = k_kind
         self.k_idx = k_idx
+        self.rating_mw = rating_mw
+        self.positive_from = positive_from
+        self.positive_to = positive_to
         self._days: dict[int, list[float]] = {}
+        self._signed_days: dict[int, list[float]] = {}
 
     def at(self, day_index: int, qh: int) -> float:
         day = day_index % max(1, len(self.abs_values[("load", "p_mw")]) // 96)
         qh96 = qh % 96
         if day not in self._days:
-            self._days[day] = build_l0_n1_day(
+            loading, signed = build_l0_n1_day(
                 self.net,
                 self.mv,
                 self.abs_values,
@@ -545,19 +648,32 @@ class L0N1DayCache:
                 self.b_idx,
                 self.k_kind,
                 self.k_idx,
+                self.rating_mw,
+                self.positive_from,
+                self.positive_to,
             )
+            self._days[day] = loading
+            self._signed_days[day] = signed
         return self._days[day][qh96]
+
+    def signed_at(self, day_index: int, qh: int) -> float:
+        self.at(day_index, qh)
+        day = day_index % max(1, len(self.abs_values[("load", "p_mw")]) // 96)
+        qh96 = qh % 96
+        return self._signed_days[day][qh96]
 
 
 def _l0_n1_day_worker(args: tuple) -> tuple[int, list[float]]:
-    day_index, net_code, b_kind, b_idx, k_kind, k_idx = args
+    day_index, net_code, b_kind, b_idx, k_kind, k_idx, rating_mw, pos_from, pos_to = args
     net = load_net(net_code)
     mv = mv_buses(net)
     abs_values = profile_absolute(net)
     n_days = max(1, len(abs_values[("load", "p_mw")]) // 96)
     day = day_index % n_days
-    series = build_l0_n1_day(net, mv, abs_values, day, b_kind, b_idx, k_kind, k_idx)
-    return day, series
+    loading, _ = build_l0_n1_day(
+        net, mv, abs_values, day, b_kind, b_idx, k_kind, k_idx, rating_mw, pos_from, pos_to
+    )
+    return day, loading
 
 
 def prefetch_l0_n1_days(
@@ -567,6 +683,9 @@ def prefetch_l0_n1_days(
     b_idx: int,
     k_kind: str,
     k_idx: int,
+    rating_mw: float,
+    positive_from: int,
+    positive_to: int,
     *,
     label: str = "",
     workers: int | None = None,
@@ -575,7 +694,7 @@ def prefetch_l0_n1_days(
     if not unique:
         return {}
     n_workers = workers or min(4, max(1, (os.cpu_count() or 2) - 1))
-    tasks = [(day_i, net_code, b_kind, b_idx, k_kind, k_idx) for day_i in unique]
+    tasks = [(day_i, net_code, b_kind, b_idx, k_kind, k_idx, rating_mw, positive_from, positive_to) for day_i in unique]
     out: dict[int, list[float]] = {}
     done = 0
     print(f"  L0_n1 cache ({label}) {len(unique)} days, {n_workers} workers …", flush=True)
@@ -590,10 +709,21 @@ def prefetch_l0_n1_days(
     return out
 
 
-def build_l0_n1_year(net, mv, abs_values, b_kind: str, b_idx: int, k_kind: str, k_idx: int) -> list[float]:
+def build_l0_n1_year(
+    net,
+    mv,
+    abs_values,
+    b_kind: str,
+    b_idx: int,
+    k_kind: str,
+    k_idx: int,
+    rating_mw: float,
+    positive_from: int,
+    positive_to: int,
+) -> list[float]:
     """Full-year series (slow). Prefer L0N1DayCache in build."""
     n_rows = len(abs_values[("load", "p_mw")])
-    cache = L0N1DayCache(net, mv, abs_values, b_kind, b_idx, k_kind, k_idx)
+    cache = L0N1DayCache(net, mv, abs_values, b_kind, b_idx, k_kind, k_idx, rating_mw, positive_from, positive_to)
     return [cache.at(row // 96, row % 96) for row in range(n_rows)]
 
 
@@ -611,35 +741,39 @@ def day_index_for_iso(net, abs_values, iso_date: str) -> int:
     return ordinal % max(1, n_days)
 
 
-def flow_slope(net, mv, abs_values, day_index: int, qh: int, bus: int, mode: str, b_kind: str, b_idx: int, n1: bool, k_kind: str, k_idx: int) -> float:
+def flow_slope_mw(
+    net,
+    mv,
+    abs_values,
+    day_index: int,
+    qh: int,
+    bus: int,
+    mode: str,
+    b_kind: str,
+    b_idx: int,
+    n1: bool,
+    k_kind: str,
+    k_idx: int,
+    positive_from: int,
+    positive_to: int,
+) -> float:
     open_switches = net.switch[(net.switch.et == "l") & (~net.switch.closed)]
     apply_profile_row(net, abs_values, day_index * 96 + qh)
     if n1:
         net[k_kind].at[k_idx, "in_service"] = False
         _eval_outage(net, mv, open_switches)
     run(net)
-    base = element_loading(net, b_kind, b_idx)
+    base = element_signed_power_mw(net, b_kind, b_idx, positive_from, positive_to)
     handle = add_storage(net, bus, mode, 1.0)
     if n1:
         net[k_kind].at[k_idx, "in_service"] = False
         _eval_outage(net, mv, open_switches)
     run(net)
-    stressed = element_loading(net, b_kind, b_idx)
+    stressed = element_signed_power_mw(net, b_kind, b_idx, positive_from, positive_to)
     remove_storage(net, handle)
     if n1:
         net[k_kind].at[k_idx, "in_service"] = True
     return stressed - base
-
-
-def loading_pp_with_storage(
-    l0: float,
-    charge_mw: float,
-    discharge_mw: float,
-    beta_charge: float,
-    beta_discharge: float,
-) -> float:
-    """Linearized bottleneck loading (pp); clamp at 0 — no abs() (avoids false flip past zero)."""
-    return max(0.0, l0 + beta_charge * charge_mw + beta_discharge * discharge_mw)
 
 
 def load_prices_12m() -> list[dict]:
@@ -839,10 +973,13 @@ def dispatch_modes(
     energy: float,
     l0_n0: list[float],
     l0_n1: list[float],
-    beta_n0_charge: float,
-    beta_n0_discharge: float,
-    beta_n1_charge: float,
-    beta_n1_discharge: float,
+    s0_n0_signed: list[float],
+    s0_n1_signed: list[float],
+    rating_mw: float,
+    slope_n0_charge: float,
+    slope_n0_discharge: float,
+    slope_n1_charge: float,
+    slope_n1_discharge: float,
     forbid_discharge: list[bool],
     forbid_charge: list[bool],
     window: list[int],
@@ -874,24 +1011,24 @@ def dispatch_modes(
         full_d,
         "netz",
         l0_n1,
-        beta_n1_charge,
-        beta_n1_discharge,
+        slope_n1_charge,
+        slope_n1_discharge,
     )
 
     def series(mode_result: dict) -> dict:
         c = mode_result["c"]
         d = mode_result["d"]
         l1n0 = [
-            round(
-                loading_pp_with_storage(l0_n0[t], c[t], d[t], beta_n0_charge, beta_n0_discharge),
-                2,
+            loading_percent_from_signed_mw(
+                signed_flow_with_battery(s0_n0_signed[t], c[t], d[t], slope_n0_charge, slope_n0_discharge),
+                rating_mw,
             )
             for t in range(n)
         ]
         l1n1 = [
-            round(
-                loading_pp_with_storage(l0_n1[t], c[t], d[t], beta_n1_charge, beta_n1_discharge),
-                2,
+            loading_percent_from_signed_mw(
+                signed_flow_with_battery(s0_n1_signed[t], c[t], d[t], slope_n1_charge, slope_n1_discharge),
+                rating_mw,
             )
             for t in range(n)
         ]
@@ -932,8 +1069,9 @@ def count_conflicts_12m(
     net,
     abs_values,
     l0_cache: L0N1DayCache,
-    beta_n1_charge: float,
-    beta_n1_discharge: float,
+    slope_n1_charge: float,
+    slope_n1_discharge: float,
+    rating_mw: float,
     price_days: list[dict],
     power: float,
     energy: float,
@@ -960,8 +1098,10 @@ def count_conflicts_12m(
             l0 = l0_day[qh]
             d = markt["d"][qh]
             c = markt["c"][qh]
-            l1 = loading_pp_with_storage(l0, c, d, beta_n1_charge, beta_n1_discharge)
-            if l1 > 100.0 + 1e-6 and l1 > abs(l0) + 1e-6:
+            s0 = l0_cache.signed_at(day_index, qh)
+            signed = signed_flow_with_battery(s0, c, d, slope_n1_charge, slope_n1_discharge)
+            l1 = loading_percent_from_signed_mw(signed, rating_mw)
+            if l1 > 100.0 + 1e-6 and l1 > l0 + 1e-6:
                 qh_total += 1
                 mwh_total += abs(d - c) * DT
                 day_conflict = True
@@ -975,8 +1115,8 @@ def revenue_pct_12m(
     net,
     abs_values,
     l0_cache: L0N1DayCache,
-    beta_n1_charge: float,
-    beta_n1_discharge: float,
+    slope_n1_charge: float,
+    slope_n1_discharge: float,
     price_days: list[dict],
     power: float,
     energy: float,
@@ -1014,8 +1154,8 @@ def revenue_pct_12m(
             full_d,
             "netz",
             l0_day,
-            beta_n1_charge,
-            beta_n1_discharge,
+            slope_n1_charge,
+            slope_n1_discharge,
         )
         totals["markt"] += markt["revenue"]
         totals["vertrag"] += vertrag["revenue"]
@@ -1047,10 +1187,13 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
     if eng is None:
         day_index = typtag_day_index(abs_values, meta["pick"])
         net.trafo["tap_pos"] = choose_tap(net, mv, abs_values, day_index)
-        eng = scan_engpass(net, mv, abs_values, day_index)
+        eng = scan_engpass(net, mv, abs_values, day_index, key)
     else:
         net.trafo["tap_pos"] = choose_tap(net, mv, abs_values, day_index)
     typtag = typtag_label(net, day_index)
+    pos_from = int(eng["flow_positive_from_bus"])
+    pos_to = int(eng["flow_positive_to_bus"])
+    rating_mw = float(eng["rating_mw"])
     bus = pick_storage_bus(net, mv, eng["b_kind"], eng["b_idx"])
     load_series, gen_series = profile_row_series(abs_values, day_index)
     forbid_discharge, forbid_charge = conflict_masks(key, load_series, gen_series)
@@ -1064,17 +1207,69 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
         warnings_local.append(f"priceDay {price_day} hat {len(day_prices)} Viertelstunden")
         day_prices = (day_prices + day_prices)[:96]
     window = contract_window(key, forbid_discharge, forbid_charge)
-    beta_n0_charge = flow_slope(
-        net, mv, abs_values, day_index, eng["t_star"], bus, "laden", eng["b_kind"], eng["b_idx"], False, eng["k_kind"], eng["k_idx"]
+    slope_n0_charge = flow_slope_mw(
+        net,
+        mv,
+        abs_values,
+        day_index,
+        eng["t_star"],
+        bus,
+        "laden",
+        eng["b_kind"],
+        eng["b_idx"],
+        False,
+        eng["k_kind"],
+        eng["k_idx"],
+        pos_from,
+        pos_to,
     )
-    beta_n0_discharge = flow_slope(
-        net, mv, abs_values, day_index, eng["t_star"], bus, "entladen", eng["b_kind"], eng["b_idx"], False, eng["k_kind"], eng["k_idx"]
+    slope_n0_discharge = flow_slope_mw(
+        net,
+        mv,
+        abs_values,
+        day_index,
+        eng["t_star"],
+        bus,
+        "entladen",
+        eng["b_kind"],
+        eng["b_idx"],
+        False,
+        eng["k_kind"],
+        eng["k_idx"],
+        pos_from,
+        pos_to,
     )
-    beta_n1_charge = flow_slope(
-        net, mv, abs_values, day_index, eng["t_star"], bus, "laden", eng["b_kind"], eng["b_idx"], True, eng["k_kind"], eng["k_idx"]
+    slope_n1_charge = flow_slope_mw(
+        net,
+        mv,
+        abs_values,
+        day_index,
+        eng["t_star"],
+        bus,
+        "laden",
+        eng["b_kind"],
+        eng["b_idx"],
+        True,
+        eng["k_kind"],
+        eng["k_idx"],
+        pos_from,
+        pos_to,
     )
-    beta_n1_discharge = flow_slope(
-        net, mv, abs_values, day_index, eng["t_star"], bus, "entladen", eng["b_kind"], eng["b_idx"], True, eng["k_kind"], eng["k_idx"]
+    slope_n1_discharge = flow_slope_mw(
+        net,
+        mv,
+        abs_values,
+        day_index,
+        eng["t_star"],
+        bus,
+        "entladen",
+        eng["b_kind"],
+        eng["b_idx"],
+        True,
+        eng["k_kind"],
+        eng["k_idx"],
+        pos_from,
+        pos_to,
     )
     modes = dispatch_modes(
         key,
@@ -1083,10 +1278,13 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
         energy,
         eng["L0_n0"],
         eng["L0_n1"],
-        beta_n0_charge,
-        beta_n0_discharge,
-        beta_n1_charge,
-        beta_n1_discharge,
+        eng["S0_signed_n0"],
+        eng["S0_signed_n1"],
+        rating_mw,
+        slope_n0_charge,
+        slope_n0_discharge,
+        slope_n1_charge,
+        slope_n1_discharge,
         forbid_discharge,
         forbid_charge,
         window,
@@ -1119,10 +1317,13 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             energy,
             eng["L0_n0"],
             eng["L0_n1"],
-            beta_n0_charge,
-            beta_n0_discharge,
-            beta_n1_charge,
-            beta_n1_discharge,
+            eng["S0_signed_n0"],
+            eng["S0_signed_n1"],
+            rating_mw,
+            slope_n0_charge,
+            slope_n0_discharge,
+            slope_n1_charge,
+            slope_n1_discharge,
             forbid_discharge,
             forbid_charge,
             window,
@@ -1165,6 +1366,8 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             "hour": [round((qh + 1) * DT, 2) for qh in range(96)],
             "L0n0": eng["L0_n0"],
             "L0n1": eng["L0_n1"],
+            "S0signedMwN1": eng["S0_signed_n1"],
+            "ratingMw": rating_mw,
             "modes": {name: {k: v for k, v in modes[name].items() if k != "revenue"} for name in modes},
         },
         "badge": badge,
@@ -1181,13 +1384,16 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             "socMaxFraction": 0.9,
             "terminalSocEqualsStart": True,
             "mipExclusiveChargeDischarge": True,
-            "loadingLinearModel": "L1n1_pp = max(0, L0_n1_pp + betaCharge_pp_per_MW*c_MW + betaDischarge_pp_per_MW*d_MW)",
-            "betaChargePpPerMwN0": beta_n0_charge,
-            "betaDischargePpPerMwN0": beta_n0_discharge,
-            "betaChargePpPerMwN1": beta_n1_charge,
-            "betaDischargePpPerMwN1": beta_n1_discharge,
-            "betaN0": beta_n0_charge,
-            "betaN1": beta_n1_discharge,
+            "flowSignConvention": "stadt_positive_import_mw" if key == "stadt" else "land_positive_export_mw",
+            "ratingMw": rating_mw,
+            "bottleneckPositiveFromBus": pos_from,
+            "bottleneckPositiveToBus": pos_to,
+            "loadingFromSignedMw": "loading_pct = 100 * abs(signed_mw) / rating_mw",
+            "loadingLinearModel": "signed_battery_mw = s0_signed_mw + slope_charge_mw*c + slope_discharge_mw*d (local pandapower linear)",
+            "slopeChargeMwN0": round(slope_n0_charge, 6),
+            "slopeDischargeMwN0": round(slope_n0_discharge, 6),
+            "slopeChargeMwN1": round(slope_n1_charge, 6),
+            "slopeDischargeMwN1": round(slope_n1_discharge, 6),
         },
     }
 
