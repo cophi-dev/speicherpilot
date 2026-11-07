@@ -19,6 +19,8 @@ export default async function Home() {
       kopfDayKey={view.kopfDayKey}
       auffaelligkeitRecords={view.auffaelligkeitRecords}
       dataStand={view.stand}
+      homeDayPanel={view.homeDayPanel}
+      kopfDay={view.kopfDay}
     />
   );
 }

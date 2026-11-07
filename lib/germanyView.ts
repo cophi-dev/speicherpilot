@@ -22,6 +22,7 @@ import { uniqueQuarterLabels } from "@/lib/quarterMarks";
 import { buildTagesKennzahlRecords } from "@/lib/auffaelligkeitRecords";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
+import { buildHomeDayPanelData, type HomeDayPanelData } from "@/lib/homeDayPanel";
 import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
 
 export type OverviewUiModel = OverviewEvaluation & {
@@ -65,6 +66,8 @@ export type GermanyView = {
   kopfDayKey: string | null;
   /** Newest Berlin day with a full quarter-hour series (redirect target for /tag). */
   lastCompleteDayKey: string;
+  homeDayPanel: HomeDayPanelData | null;
+  kopfDay: ResidualDay | null;
 };
 
 function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): LiveFleetPublic | null {
@@ -310,6 +313,7 @@ export async function loadGermanyView(
 
   const lastCompleteDayKey = pickLastCompleteDayKey(days, todayKey);
   const kopfDayKey = lastCompleteDayKey;
+  const kopfDay = days.find((day) => day.dateBerlin === kopfDayKey) ?? null;
   let auffaelligkeitRecords: TagesKennzahlRecord[] | null = null;
   if (parsed && publicFleet) {
     const mergedPrices = mergeDayAheadPrices(priceRange.prices, price.prices);
@@ -322,6 +326,23 @@ export async function loadGermanyView(
       energyMwh: publicFleet.energyMwh,
     });
   }
+
+  const modelWindow =
+    path === "/" && overviews ? overviews.byBlick["30tage"].bounds : null;
+  const homeDayPanel =
+    path === "/" && parsed && publicFleet
+      ? buildHomeDayPanelData({
+          dateKey: kopfDayKey,
+          todayKey,
+          slots: parsed.slots,
+          offshorePresent: parsed.offshorePresent,
+          allDays: days,
+          day: kopfDay,
+          fleet: publicFleet,
+          fetchStand: readings.stand,
+          modelWindow,
+        })
+      : null;
 
   return {
     todayKey,
@@ -347,5 +368,7 @@ export async function loadGermanyView(
     auffaelligkeitRecords,
     kopfDayKey,
     lastCompleteDayKey,
+    homeDayPanel,
+    kopfDay,
   };
 }
