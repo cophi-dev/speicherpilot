@@ -87,13 +87,7 @@ export function MonatSurplusGraph({
             );
             return (
               <div key={bar.dateKey} className="v4-monat-chart-slot">
-                {bar.clickable ? (
-                  <Link href={tagLink(bar.dateKey)} className="v4-monat-chart-link" aria-label={formatBerlinDayLabel(bar.dateKey)}>
-                    {inner}
-                  </Link>
-                ) : (
-                  inner
-                )}
+                {inner}
               </div>
             );
           })}
@@ -111,8 +105,8 @@ export function MonatSurplusGraph({
         <p className="v4-monat-chart-x-title">Kalendertag</p>
       </div>
       <figcaption className="v4-monat-graph-note">
-        Balken = Tagesüberschuss in der geladenen Reihe. Grau = 0 GWh, kein Balken = fehlend oder Zukunft. Tab auf
-        farbige Tage springt zum Tag.
+        Balken = Tagesüberschuss in der geladenen Reihe. Grau = 0 GWh, kein Balken = fehlend oder Zukunft. Tageslinks
+        stehen in der Tabelle darunter.
       </figcaption>
       <div className="v4-monat-graph-table-wrap">
         <table className="v4-monat-graph-table num">
@@ -141,7 +135,9 @@ export function MonatSurplusGraph({
                 </td>
                 <td>
                   {bar.clickable ? (
-                    <Link href={tagLink(bar.dateKey)}>ansehen</Link>
+                    <Link href={tagLink(bar.dateKey)} className="v4-monat-graph-day-link">
+                      ansehen
+                    </Link>
                   ) : (
                     "—"
                   )}

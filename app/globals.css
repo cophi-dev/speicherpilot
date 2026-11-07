@@ -7680,6 +7680,12 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   padding: 8px 10px;
   text-align: left;
 }
+.v4-monat-graph-day-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 8px;
+}
 .v4-monat-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
