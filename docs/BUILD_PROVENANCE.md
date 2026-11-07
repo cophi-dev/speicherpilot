@@ -18,7 +18,9 @@ Das Skript `scripts/generate-build-provenance.mjs` läuft am Anfang und Ende von
 
 ## Vercel-Hinweis (Metadaten, kein Maskieren)
 
-Auf Vercel kann die **zweite** Provenance-Generierung nach `next build` trotzdem `dirty: true` melden, wenn der Build andere **getrackte** Dateien verändert (z. B. durch Hooks, Font-Caching, oder Lockfile-Updates). Dann stehen die Ursachen in `dirtyPaths` im **lokal erzeugten** JSON; das ist ein Befund des CI-Arbeitsverzeichnisses, keine automatische Freigabe.
+Im Repository gibt es **keine** `vercel.json` und keinen Vercel-Cron, der den Build auslöst (siehe Root-`README.md`). Ein in Run-18-Logs ggf. genannter `vercel.json`-Pfad in `dirtyPaths` stammt nicht aus dieser Konfiguration — typisch sind stattdessen vom Build geschriebene Dateien, Hook-Artefakte oder Änderungen im CI-Arbeitsbaum nach `next build`.
+
+Auf Vercel kann die **zweite** Provenance-Generierung nach `next build` trotzdem `dirty: true` melden, wenn der Build andere **getrackte** Dateien verändert (z. B. durch Hooks, Font-Caching, oder Lockfile-Updates). Dann stehen die konkreten Pfade in `dirtyPaths` im erzeugten JSON; das ist ein Befund des CI-Arbeitsverzeichnisses, keine automatische Freigabe und keine Anweisung, den Marker zu ignorieren.
 
 Lokal (sauberer App-Code-Checkout, nur Build-Artefakte unten) ist `dirty` nach abgeschlossenem `npm run build` in der Regel `false`.
 

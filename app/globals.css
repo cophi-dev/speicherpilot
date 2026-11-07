@@ -6984,6 +6984,14 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   margin-top: 0.25rem;
 }
 
+.v4-kopf-intro .v4-subline {
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 767px) {
+  .v4-kopf-intro .v4-subline {
+    margin-bottom: 1.75rem;
+  }
+}
 .v4-kopf-hero {
   display: grid;
   gap: 2rem;
@@ -7168,8 +7176,11 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   line-height: 1.3;
   color: hsl(var(--muted-foreground));
 }
-.v4-luecke-mobile-axis {
+.v4-luecke-figure.is-compact .v4-luecke-mobile-axis {
   justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: var(--v4-luecke-pad-left, 36px) var(--v4-luecke-pad-right, 10px);
 }
 .v4-luecke-peak-banner {
   margin-top: 0.75rem;
@@ -9098,6 +9109,11 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   flex-direction: column;
   gap: 16px;
   margin-bottom: 20px;
+}
+@media (min-width: 768px) {
+  .v4-chapter-head + .v4-fleet-subline-disclosure + .v4-fleet-controls {
+    margin-top: 1rem;
+  }
 }
 .v4-fleet-fieldset {
   border: 0;

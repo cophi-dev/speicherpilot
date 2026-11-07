@@ -189,7 +189,7 @@ export function monatPointe(monthKey: string, records: TagesKennzahlRecord[]): {
   const missing = daysInBerlinMonth(monthKey).filter((d) => !monthRecords.some((r) => r.dateKey === d));
   const h1 = `${noSurplus} Tage unter der Überschuss-Schwelle im ${label}`;
   const subParts = [
-    `${monthRecords.length} Tage mit Kennzahlen in der geladenen Reihe. Überschuss-Kennzahl ≠ vollständiger Speicher-Nutzen.`,
+    `${monthRecords.length} Tage mit Kennzahlen in der geladenen Reihe. Überschuss-Kennzahl ist nicht dasselbe wie vollständiger Speicher-Nutzen.`,
     strongest
       ? `Stärkster Tages-Überschuss: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${formatBerlinDayLabel(strongest.dateKey)}.`
       : null,

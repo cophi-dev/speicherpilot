@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
+import { plotXFromHour, plotXFromSlot } from "@/lib/lueckeChartGeometry";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
 const DESKTOP = { w: 1152, h: 360, pad: { top: 40, right: 24, bottom: 36, left: 56 } };
 const MOBILE_H = 240;
-const MOBILE_PAD = { top: 8, right: 10, bottom: 8, left: 36 };
+const MOBILE_PAD = { top: 8, right: 10, bottom: 22, left: 36 };
 const Y_MAX_GW = 80;
 
 function slotGw(slot: ResidualSlot) {
@@ -54,7 +63,7 @@ function buildGeometry(
       labelGap: { x: 0, y: 0 },
     };
   }
-  const x = (i: number) => frame.pad.left + (i / Math.max(1, slots.length - 1)) * plotW;
+  const xSlot = (slot: ResidualSlot) => plotXFromSlot(slot, frame.pad.left, plotW);
   const y = (gw: number) => frame.pad.top + plotH - (gw / Y_MAX_GW) * plotH;
 
   let maxGap = -1;
@@ -69,17 +78,25 @@ function buildGeometry(
   });
 
   const line = (pick: (p: (typeof pts)[0]) => number) =>
-    pts.map((p, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(pick(p)).toFixed(1)}`).join(" ");
+    pts
+      .map((p, i) => {
+        const px = xSlot(slots[p.i]);
+        return `${i === 0 ? "M" : "L"} ${px.toFixed(1)} ${y(pick(p)).toFixed(1)}`;
+      })
+      .join(" ");
 
+  const last = slots[slots.length - 1];
+  const first = slots[0];
   const wsArea =
     line((p) => p.ws) +
-    ` L ${x(pts.length - 1).toFixed(1)} ${y(0).toFixed(1)} L ${x(0).toFixed(1)} ${y(0).toFixed(1)} Z`;
+    ` L ${xSlot(last).toFixed(1)} ${y(0).toFixed(1)} L ${xSlot(first).toFixed(1)} ${y(0).toFixed(1)} Z`;
 
   const gapArea = pts
     .map((p, i) => {
+      const px = xSlot(slots[p.i]);
       const top = y(p.load);
       const bottom = y(p.ws);
-      return `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${top.toFixed(1)} L ${x(i).toFixed(1)} ${bottom.toFixed(1)}`;
+      return `${i === 0 ? "M" : "L"} ${px.toFixed(1)} ${top.toFixed(1)} L ${px.toFixed(1)} ${bottom.toFixed(1)}`;
     })
     .join(" ");
 
@@ -99,7 +116,7 @@ function buildGeometry(
     loadPath: line((p) => p.load),
     wsPath: wsArea,
     gapPath: `${gapArea} Z`,
-    peakX: x(useIdx),
+    peakX: xSlot(peakSlot),
     peakYLoad: y(slotGw(peakSlot).load),
     peakYWs: y(slotGw(peakSlot).ws),
     plotTop: frame.pad.top,
@@ -157,8 +174,15 @@ export function LueckeChart({
   const plotW = frame.w - frame.pad.left - frame.pad.right;
   const plotH = frame.h - frame.pad.top - frame.pad.bottom;
 
+  const padVars = compact
+    ? ({
+        "--v4-luecke-pad-left": `${MOBILE_PAD.left}px`,
+        "--v4-luecke-pad-right": `${MOBILE_PAD.right}px`,
+      } as CSSProperties)
+    : undefined;
+
   return (
-    <figure className={`v4-luecke-figure ${compact ? "is-compact" : ""}`}>
+    <figure className={`v4-luecke-figure ${compact ? "is-compact" : ""}`} style={padVars}>
       <div ref={shellRef} className="v4-luecke-svg-shell">
         {compact ? (
           <div className="v4-luecke-overlay" aria-hidden="true">
@@ -204,7 +228,7 @@ export function LueckeChart({
             </pattern>
           </defs>
           {hours.map((h) => {
-            const x = frame.pad.left + (h / 24) * plotW;
+            const x = plotXFromHour(h, frame.pad.left, plotW);
             return (
               <g key={h}>
                 <line
@@ -214,11 +238,15 @@ export function LueckeChart({
                   y2={geometry.plotBottom}
                   className="v4-luecke-grid"
                 />
-                {!compact ? (
-                  <text x={x} y={frame.h - 10} textAnchor="middle" className="v4-luecke-axis num">
-                    {String(h).padStart(2, "0")}
-                  </text>
-                ) : null}
+                <text
+                  x={x}
+                  y={compact ? frame.h - 6 : frame.h - 10}
+                  textAnchor="middle"
+                  className="v4-luecke-axis num"
+                  fontSize={compact ? 11 : undefined}
+                >
+                  {String(h).padStart(2, "0")}
+                </text>
               </g>
             );
           })}
@@ -277,11 +305,6 @@ export function LueckeChart({
       </div>
       {compact ? (
         <div className="v4-luecke-compact-foot">
-          <div className="v4-luecke-mobile-axis num" aria-hidden="true">
-            {hours.map((h) => (
-              <span key={h}>{String(h).padStart(2, "0")}</span>
-            ))}
-          </div>
           {peakGw !== null ? (
             <figcaption className="v4-luecke-peak-banner num">
               <span className="v4-luecke-peak-banner-value">{peakTimeLabel}</span>
