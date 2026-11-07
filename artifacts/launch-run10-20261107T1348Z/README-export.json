@@ -1,0 +1,9 @@
+{
+  "purpose": "Product-embedded Run9 national fleet month 2026-10",
+  "urls": [
+    "/monat/2026-10?faktor=1&fahrweise=ueberschuss",
+    "/monat/2026-10?faktor=1&fahrweise=spitze",
+    "/tag/2026-10-29?faktor=1&fahrweise=ueberschuss"
+  ],
+  "run9AgentStore": "/cursor/stores/self/october-fleet-factor-run9-20261107"
+}

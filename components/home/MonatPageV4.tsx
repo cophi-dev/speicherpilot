@@ -5,6 +5,13 @@ import Link from "next/link";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
+import { NationalFleetMonthChapter } from "@/components/home/NationalFleetMonthChapter";
+import type {
+  NationalFleetFactor,
+  NationalFleetMonthBundle,
+  NationalFleetMonthStats,
+  NationalFleetStrategyUi,
+} from "@/lib/nationalMonthFleetModel";
 import {
   adjacentMonthWithData,
   buildMonatGrid,
@@ -114,12 +121,20 @@ export function MonatPageV4({
   lastCompleteDayKey,
   records,
   dataStand,
+  fleetBundle,
+  fleetFactor,
+  fleetStrategy,
+  fleetStats,
 }: {
   monthKey: string;
   todayKey: string;
   lastCompleteDayKey: string;
   records: TagesKennzahlRecord[];
   dataStand: string;
+  fleetBundle?: NationalFleetMonthBundle | null;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
+  fleetStats?: NationalFleetMonthStats | null;
 }) {
   const { h1, subline } = monatPointe(monthKey, records);
   const grid = buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey });
@@ -141,12 +156,26 @@ export function MonatPageV4({
         </div>
       </section>
 
+      {fleetBundle && fleetFactor && fleetStrategy && fleetStats ? (
+        <NationalFleetMonthChapter
+          monthKey={monthKey}
+          bundle={fleetBundle}
+          factor={fleetFactor}
+          strategy={fleetStrategy}
+          stats={fleetStats}
+          bars={bars}
+        />
+      ) : null}
+
       <section className="v4-chapter" aria-labelledby="monat-graph-title">
         <div className="v4-chapter-head v4-content">
-          <p className="v4-chapter-num num">Monatsverlauf</p>
+          <p className="v4-chapter-num num">Beobachteter Überschuss</p>
           <h2 id="monat-graph-title" className="v4-chapter-h2">
-            Überschuss je Tag im {monthLabel}
+            Positive Wind-Solar-Differenz je Tag im Monat
           </h2>
+          <p className="v4-subline">
+            Gemessene Viertelstunden (Energy-Charts), vor Speicher-Overlay — nicht identisch mit der Modellflotte oben.
+          </p>
         </div>
         <MonatSurplusGraph monthKey={monthKey} bars={bars} />
         <details className="v4-monat-list-fallback v4-content">

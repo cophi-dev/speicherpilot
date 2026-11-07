@@ -9087,3 +9087,82 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   background: var(--bg);
 }
 
+.v4-fleet-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.v4-fleet-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.v4-fleet-legend {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.v4-fleet-factor-row,
+.v4-fleet-strategy-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.v4-fleet-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--linie);
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+.v4-fleet-pill-wide {
+  min-width: auto;
+}
+.v4-fleet-pill.is-active {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+}
+.v4-fleet-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 20px;
+  margin: 0 0 24px;
+}
+.v4-fleet-kpis dt {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+.v4-fleet-kpis dd {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.v4-fleet-soc-chart .v4-fleet-soc-bar {
+  background: hsl(var(--primary) / 0.35);
+}
+.v4-fleet-soc-plot {
+  align-items: end;
+}
+.v4-fleet-day-table-scroll {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+.v4-fleet-day-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.v4-fleet-day-table th,
+.v4-fleet-day-table td {
+  border: 1px solid var(--linie);
+  padding: 6px 8px;
+}
+

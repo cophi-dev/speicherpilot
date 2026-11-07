@@ -1,0 +1,10 @@
+{
+  "bundleFile": "fleet-month-bundle.json",
+  "sha256": "7ec0acf4320164d4a616f11c123d34d1903e8db9c22ac41788e80367dc95aa2f",
+  "monthKey": "2026-10",
+  "quarters": 2980,
+  "hours": 745,
+  "dstOct25Quarters": 100,
+  "inputCsvSha256": "f9d795a924cb80054a5ede5ecfa7d41f366869ec87d4d0559c7cf5769fbe60f4",
+  "run9SummarySha256": "8d34bcc55806d428c39225441741e7ef51e317fac1b31ae5bf855ebcb07e2be7"
+}

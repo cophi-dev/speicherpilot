@@ -16,6 +16,8 @@ import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { barValue, kopfHero } from "@/lib/kopfHero";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
+import { NationalFleetDayChapter } from "@/components/home/NationalFleetDayChapter";
+import type { NationalFleetDaySlice, NationalFleetFactor, NationalFleetRunSeries, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -228,6 +230,7 @@ export function TagPageV4({
   dayOverview,
   fleetPowerGw,
   fleetEnergyGwh,
+  fleetDay,
 }: {
   dayKey: string;
   todayKey: string;
@@ -240,6 +243,12 @@ export function TagPageV4({
   dayOverview: OverviewEvaluation | null;
   fleetPowerGw: number;
   fleetEnergyGwh: number;
+  fleetDay?: {
+    run: NationalFleetRunSeries;
+    slice: NationalFleetDaySlice;
+    factor: NationalFleetFactor;
+    strategy: NationalFleetStrategyUi;
+  } | null;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
   if (!record) {
@@ -257,6 +266,15 @@ export function TagPageV4({
         kickerPrefix="Tag"
         hideTagLink
       />
+      {fleetDay ? (
+        <NationalFleetDayChapter
+          dayKey={dayKey}
+          factor={fleetDay.factor}
+          strategy={fleetDay.strategy}
+          run={fleetDay.run}
+          slice={fleetDay.slice}
+        />
+      ) : null}
       <TagChapter
         day={day}
         lastSurplusKey={lastSurplusKey}
