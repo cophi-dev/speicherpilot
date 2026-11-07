@@ -260,7 +260,8 @@ async function preflightPage(page, spec) {
   }
 
   if (spec.expect?.tagSystemSplit) {
-    const sys = (await page.locator("#kapitel-tag-system").innerText().catch(() => "")) ?? "";
+    const sys =
+      (await page.locator('section[aria-labelledby="kapitel-tag-system"]').innerText().catch(() => "")) ?? "";
     if (sys.includes("standen bereit, im Modell nichts zu laden")) {
       errors.push("Kapitel 02: veralteter Gesamt-Satz „nichts zu laden“");
     }

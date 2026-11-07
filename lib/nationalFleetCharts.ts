@@ -109,18 +109,13 @@ export function scaleLinear(values: number[], height: number, pad: number, minOv
 /** Tages-Restlast: Skala nur aus beobachteten, mit-Speicher- und Vergleichswerten — ohne Zwang auf 0. */
 export function dayResidualLoadScale(
   points: { rGw: number; rpGw: number }[],
-  compareRpGw: number[] | null,
+  _compareRpMw: number[] | null,
   height: number,
   pad: number,
 ): ReturnType<typeof scaleLinear> {
   const vals: number[] = [];
   for (const p of points) {
     vals.push(p.rGw, p.rpGw);
-  }
-  if (compareRpGw) {
-    for (const v of compareRpGw) {
-      vals.push(v / 1000);
-    }
   }
   if (vals.length === 0) {
     return scaleLinear([0, 1], height, pad, 0, 1);

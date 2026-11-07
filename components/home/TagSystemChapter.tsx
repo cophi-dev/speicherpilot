@@ -18,6 +18,7 @@ export function TagSystemChapter({
   lastSurplusKey,
   showFleetMonthBelow,
   fleetStrategyBelow,
+  fleetDayNoWindSolarSurplus,
 }: {
   dayKey: string;
   record: TagesKennzahlRecord;
@@ -28,12 +29,14 @@ export function TagSystemChapter({
   /** Monatslauf-Kapitel folgt auf dieser Seite (Oktober-Modell). */
   showFleetMonthBelow?: boolean;
   fleetStrategyBelow?: NationalFleetStrategyUi | null;
+  /** Monatslauf: max(0,W+S−Last) durchgehend 0 (29.10-Spitze). */
+  fleetDayNoWindSolarSurplus?: boolean;
 }) {
   const factor = dayOverview?.factors[1];
   const dayRow = factor?.dayRows.find((row) => row.dateBerlin === dayKey);
   const absorbed = dayRow?.absorbedGwh ?? record.absorbedGwh;
   const surplus = record.surplusGwh;
-  const hasSurplus = surplus >= 0.05;
+  const hasSurplus = surplus >= 0.05 && !fleetDayNoWindSolarSurplus;
   const sharePct =
     hasSurplus && surplus > 0 ? Math.round((absorbed / surplus) * 100) : Math.round((factor?.absorbedShare ?? 0) * 100);
   const socEnd = dayRow?.socEndFraction ?? factor?.socSeries.find((s) => s.dateBerlin === dayKey)?.socFraction;

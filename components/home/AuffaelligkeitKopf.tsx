@@ -231,6 +231,7 @@ export function TagPageV4({
   fleetEnergyGwh,
   fleetFactor,
   fleetStrategy,
+  fleetDayNoWindSolarSurplus,
   children,
 }: {
   dayKey: string;
@@ -246,6 +247,7 @@ export function TagPageV4({
   fleetEnergyGwh: number;
   fleetFactor?: NationalFleetFactor;
   fleetStrategy?: NationalFleetStrategyUi;
+  fleetDayNoWindSolarSurplus?: boolean;
   children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
@@ -288,6 +290,7 @@ export function TagPageV4({
         lastSurplusKey={lastSurplusKey}
         showFleetMonthBelow={nationalFleetMonthAvailable(dayKey.slice(0, 7)) && Boolean(children)}
         fleetStrategyBelow={fleetStrategy ?? null}
+        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
       />
       {children}
       <TagOrtTeaser dayLabel={formatBerlinDayLabel(dayKey)} />
