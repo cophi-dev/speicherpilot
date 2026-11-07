@@ -72,7 +72,7 @@ export function NationalFleetMonthChapter({
     <section className="v4-chapter" aria-labelledby="fleet-month-title">
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">Modellflotte · {monthKey}</p>
-        <h2 id="fleet-month-title" className="v4-chapter-h2">
+        <h2 id="fleet-month-title" className="v4-chapter-h2 v4-fleet-month-h2">
           So hätte die Referenzflotte im Monat fahren können
         </h2>
         <p className="v4-subline">

@@ -58,6 +58,13 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
     expect(slice!.indices.length).toBe(96);
   });
 
+  it("DST 2026-10-25 has 100 quarters", () => {
+    const run = getFleetRun(bundle, 2, "spitze");
+    const slice = sliceFleetDay(run, "2026-10-25");
+    expect(slice).not.toBeNull();
+    expect(slice!.indices.length).toBe(100);
+  });
+
   it("month stats charge equals qh sum for x1 ueberschuss", () => {
     const run = getFleetRun(bundle, 1, "ueberschuss");
     let charge = 0;

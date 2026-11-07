@@ -44,7 +44,7 @@ export function MonatSurplusGraph({
   const maxGwh = Math.max(...withData.map((b) => Math.max(0, b.surplusGwh ?? 0)), 0.05);
   const ticks = new Set(mobileTicks(bars.length));
   const emptyMonth = withData.length > 0 && surplusDays.length === 0;
-  const colMinPx = 28;
+  const colMinPx = 36;
   const gridCols = { gridTemplateColumns: `repeat(${bars.length}, minmax(${colMinPx}px, 1fr))` } as const;
 
   return (
@@ -53,8 +53,8 @@ export function MonatSurplusGraph({
         <p className="v4-monat-chart-y-label">GWh</p>
         {emptyMonth ? (
           <p className="v4-monat-chart-empty">
-            In diesem Monat hat kein geladener Tag Überschuss (Schwelle 0,05 GWh). Das ist Modellnull — nicht
-            fehlende Daten.
+            In diesem Monat hat kein geladener Tag die Überschuss-Schwelle (0,05 GWh) erreicht — kein Chart-Balken, nicht
+            „fehlende Daten“.
           </p>
         ) : null}
         <div className="v4-monat-chart-scroll">

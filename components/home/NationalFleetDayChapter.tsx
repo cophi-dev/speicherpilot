@@ -50,13 +50,16 @@ export function NationalFleetDayChapter({
     <section className="v4-chapter" aria-labelledby="fleet-day-title">
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">Modellflotte · {formatBerlinDayLabel(dayKey)}</p>
-        <h2 id="fleet-day-title" className="v4-chapter-h2">
-          Ausschnitt aus dem Monatslauf (×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe})
+        <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
+          Monatslauf-Ausschnitt (×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe})
         </h2>
         <p className="v4-subline">
-          Durchgängiger Speicherfüllstand ohne Tages-Reset — gleiche Fahrweise wie im{" "}
+          Hypothetische Referenzflotte im durchgängigen Oktober-Lauf (kein Reset um Mitternacht). Modellwirkung — nicht
+          beobachteter BESS-Bestand, nicht lokales Netz. Hero und „01 · Der Tag“ beschreiben den beobachteten Tag;
+          positiver Tagesüberschuss schließt zeitweisen Überschuss nicht aus — Min-Peak-Fahrweise lädt keinen positiven
+          Überschuss.{" "}
           <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, factor, strategy)} className="v4-text-link">
-            Oktober-Monatsmodell
+            Zum Monatsmodell
           </Link>
           .
         </p>
@@ -133,6 +136,8 @@ export function NationalFleetDayChapter({
         dateKey={dayKey}
         peakReductionGw={monthStats.peakReductionGw}
         peakReductionPct={monthStats.peakReductionPct}
+        peakReductionDayGw={peakReductionDayGw}
+        peakObservedDayGw={peakRGw}
         scrollHint={`${slice.indices.length} Viertelstunden am ${formatBerlinDayLabel(dayKey)}`}
       />
 

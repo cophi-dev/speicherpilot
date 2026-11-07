@@ -269,7 +269,6 @@ export function TagPageV4({
         kickerPrefix="Tag"
         hideTagLink
       />
-      {children}
       <TagChapter
         day={day}
         lastSurplusKey={lastSurplusKey}
@@ -288,6 +287,7 @@ export function TagPageV4({
         fleetEnergyGwh={fleetEnergyGwh}
         lastSurplusKey={lastSurplusKey}
       />
+      {children}
       <TagOrtTeaser dayLabel={formatBerlinDayLabel(dayKey)} />
     </div>
   );

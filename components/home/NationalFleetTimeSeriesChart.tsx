@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   fleetChartPointsForIndices,
+  fleetChartTickIndices,
+  formatPeakCaptionDay,
+  formatPeakCaptionMonthContext,
   formatPeakEffectLine,
   peakIndexRp,
   polylinePoints,
@@ -14,7 +17,7 @@ import {
 } from "@/lib/nationalFleetCharts";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
-const PX_PER_QH = 2.4;
+const PX_PER_QH_MONTH = 2.4;
 
 type SeriesPayload = {
   timestamp_berlin: string[];
@@ -76,6 +79,9 @@ export function NationalFleetTimeSeriesChart({
   dateKey,
   peakReductionGw,
   peakReductionPct,
+  peakReductionDayGw,
+  peakObservedDayGw,
+  monthContextNote,
   scrollHint,
 }: {
   monthKey: string;
@@ -84,12 +90,21 @@ export function NationalFleetTimeSeriesChart({
   dateKey?: string;
   peakReductionGw: number;
   peakReductionPct: number;
+  /** Nur Tagesansicht: Senkung am gewählten Tag (nicht Monatswert). */
+  peakReductionDayGw?: number;
+  peakObservedDayGw?: number;
+  /** Optionaler kleiner Monatsvergleich unter Tagescaption. */
+  monthContextNote?: string;
   scrollHint?: string;
 }) {
   const [selected, setSelected] = useState<SeriesPayload | null>(null);
   const [compareRp, setCompareRp] = useState<number[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hover, setHover] = useState<FleetChartPoint | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollWidth, setScrollWidth] = useState(0);
+
+  const isDay = Boolean(dateKey);
 
   useEffect(() => {
     const params = new URLSearchParams({
@@ -116,6 +131,18 @@ export function NationalFleetTimeSeriesChart({
         setLoadError("Zeitreihe konnte nicht geladen werden.");
       });
   }, [monthKey, factor, strategy, dateKey]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    const measure = () => setScrollWidth(el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [selected]);
 
   const runLike = useMemo(() => (selected ? toRunLike(selected) : null), [selected]);
 
@@ -151,20 +178,10 @@ export function NationalFleetTimeSeriesChart({
     return best;
   }, [points]);
 
-  const tickEvery = points.length <= 120 ? 4 : 96;
-  const tickIndices = useMemo(() => {
-    if (points.length === 0) {
-      return [0];
-    }
-    const ticks: number[] = [0];
-    for (let j = tickEvery; j < points.length; j += tickEvery) {
-      ticks.push(j);
-    }
-    if (ticks[ticks.length - 1] !== points.length - 1) {
-      ticks.push(points.length - 1);
-    }
-    return ticks;
-  }, [points.length, tickEvery]);
+  const xTicks = useMemo(
+    () => fleetChartTickIndices(points, isDay ? "day" : "month"),
+    [points, isDay],
+  );
 
   if (loadError) {
     return <p className="v4-fleet-ts-tooltip num v4-fleet-error">{loadError}</p>;
@@ -174,11 +191,18 @@ export function NationalFleetTimeSeriesChart({
     return <p className="v4-fleet-ts-tooltip num muted">Zeitreihe wird geladen …</p>;
   }
 
-  const peakI = dateKey ? peakLocal : peakIndexRp(runLike);
-  const width = points.length * PX_PER_QH;
+  const peakI = isDay ? peakLocal : peakIndexRp(runLike);
+  const n = points.length;
+  const pxPerQh =
+    isDay && scrollWidth > 0
+      ? Math.max(4, scrollWidth / n)
+      : isDay
+        ? 8
+        : PX_PER_QH_MONTH;
+  const width = isDay && scrollWidth > 0 ? scrollWidth : n * pxPerQh;
   const panelH = 92;
   const pad = 6;
-  const xs = points.map((_, j) => j * PX_PER_QH + PX_PER_QH / 2);
+  const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
   const rScale = scaleLinear(
     points.flatMap((p) => [p.rGw, p.rpGw]),
     panelH,
@@ -186,12 +210,13 @@ export function NationalFleetTimeSeriesChart({
     Math.min(...points.flatMap((p) => [p.rGw, p.rpGw]), 0),
     Math.max(...points.map((p) => p.rpGw)) * 1.02,
   );
+  const powerMax = Math.max(...points.flatMap((p) => [p.cMw, p.dMw]), 1);
   const powerScale = scaleLinear(
     points.flatMap((p) => [p.cMw, p.dMw]),
     panelH,
     pad,
     0,
-    Math.max(...points.flatMap((p) => [p.cMw, p.dMw]), 1) * 1.05,
+    powerMax * 1.05,
   );
   const socScale = scaleLinear(
     points.map((p) => p.socGwh),
@@ -199,54 +224,74 @@ export function NationalFleetTimeSeriesChart({
     pad,
   );
   const peakRpGw = points[peakI].rpGw;
+  const dayReduction = peakReductionDayGw ?? 0;
+  const dayObserved = peakObservedDayGw ?? points[peakI]?.rGw ?? peakRpGw;
+
+  const captionMain = isDay
+    ? formatPeakCaptionDay(peakRpGw, dayReduction, dayObserved)
+    : formatPeakEffectLine(peakRpGw, peakReductionGw, peakReductionPct);
+
+  const captionMonth =
+    isDay && monthContextNote
+      ? monthContextNote
+      : isDay
+        ? formatPeakCaptionMonthContext(peakReductionGw, peakReductionPct)
+        : null;
 
   const onMove = (ev: React.MouseEvent<HTMLDivElement>) => {
     const scroll = ev.currentTarget;
     const rect = scroll.getBoundingClientRect();
     const x = ev.clientX - rect.left + scroll.scrollLeft;
-    const j = Math.min(points.length - 1, Math.max(0, Math.round(x / PX_PER_QH)));
+    const j = Math.min(points.length - 1, Math.max(0, Math.round(x / pxPerQh)));
     setHover(points[j]);
   };
+
+  const showPowerNote = powerMax < 0.5;
 
   return (
     <figure className="v4-fleet-ts-wrap v4-content">
       <figcaption className="v4-fleet-caption">
-        {formatPeakEffectLine(peakRpGw, peakReductionGw, peakReductionPct)}
-        {scrollHint ? ` · ${scrollHint}` : null}
+        <span className="v4-fleet-caption-main">{captionMain}</span>
+        {captionMonth ? <span className="v4-fleet-caption-month num"> {captionMonth}</span> : null}
+        {scrollHint ? <span className="v4-fleet-caption-hint"> · {scrollHint}</span> : null}
       </figcaption>
       <div className="v4-fleet-ts-legend num" aria-hidden="true">
-        <span className="v4-fleet-ts-legend-r">Restlast beobachtet</span>
-        <span className="v4-fleet-ts-legend-rp">Restlast mit Speicher</span>
-        {comparePoints ? <span className="v4-fleet-ts-legend-compare">×1 Restlast mit Speicher (Vergleich)</span> : null}
-        <span className="v4-fleet-ts-legend-c">Laden</span>
-        <span className="v4-fleet-ts-legend-d">Entladen</span>
-        <span className="v4-fleet-ts-legend-e">Speicherfüllstand</span>
+        <span className="v4-fleet-ts-legend-r">Restlast beobachtet (GW)</span>
+        <span className="v4-fleet-ts-legend-rp">Restlast mit Speicher (GW)</span>
+        {comparePoints ? <span className="v4-fleet-ts-legend-compare">×1 mit Speicher (Vergleich, GW)</span> : null}
+        <span className="v4-fleet-ts-legend-c">Laden (MW)</span>
+        <span className="v4-fleet-ts-legend-d">Entladen (MW)</span>
+        <span className="v4-fleet-ts-legend-e">SoC Beginn Viertelstunde (GWh)</span>
       </div>
+      {showPowerNote ? (
+        <p className="v4-fleet-ts-power-note num">
+          An diesem Tag kaum oder keine Modell-Ladung/Abgabe — bei Fahrweise „Spitze senken“ wird positiver Überschuss nicht
+          geladen.
+        </p>
+      ) : null}
       {hover ? (
-        <p className="v4-fleet-ts-tooltip num" role="status">
+        <p className="v4-fleet-ts-tooltip num" role="status" data-testid="fleet-ts-tooltip">
           {hover.ts}: Restlast {formatQuantity(hover.rGw, "de", 2)} GW · mit Speicher{" "}
           {formatQuantity(hover.rpGw, "de", 2)} GW · Laden {formatQuantity(hover.cMw, "de", 0)} MW · Entladen{" "}
-          {formatQuantity(hover.dMw, "de", 0)} MW · SoC {formatQuantity(hover.socGwh, "de", 2)} GWh
+          {formatQuantity(hover.dMw, "de", 0)} MW · SoC {formatQuantity(hover.socGwh, "de", 2)} GWh (Beginn)
         </p>
       ) : (
         <p className="v4-fleet-ts-tooltip num muted">Zeiger über die Kurven bewegen für die Viertelstunde</p>
       )}
       <div
-        className="v4-fleet-ts-scroll"
+        ref={scrollRef}
+        className={`v4-fleet-ts-scroll${isDay ? " is-day" : " is-month"}`}
         onMouseMove={onMove}
         onMouseLeave={() => setHover(null)}
         role="img"
-        aria-label={`Zeitverlauf Referenzspitze beobachtet ${formatQuantity(REF_RESIDUAL_PEAK_GW, "de", 2)} Gigawatt`}
+        aria-label={
+          isDay
+            ? `Tagesverlauf Restlast und Speicher am ${dateKey}`
+            : `Monatsverlauf Referenzspitze ${formatQuantity(REF_RESIDUAL_PEAK_GW, "de", 2)} Gigawatt`
+        }
       >
-        <div className="v4-fleet-ts-inner" style={{ width }}>
-          <SinglePanel
-            title="Restlast"
-            unit="GW"
-            width={width}
-            height={panelH}
-            yMin={rScale.min}
-            yMax={rScale.max}
-          >
+        <div className="v4-fleet-ts-inner" style={{ width: isDay ? "100%" : width, minWidth: isDay ? undefined : width }}>
+          <SinglePanel title="Restlast" unit="GW" width={width} height={panelH} yMin={rScale.min} yMax={rScale.max}>
             <polyline
               className="v4-fleet-line-r"
               fill="none"
@@ -283,22 +328,26 @@ export function NationalFleetTimeSeriesChart({
             yMin={powerScale.min}
             yMax={powerScale.max}
           >
-            <polyline
-              className="v4-fleet-line-c"
-              fill="none"
-              points={polylinePoints(
-                xs,
-                points.map((p) => powerScale.y(p.cMw)),
-              )}
-            />
-            <polyline
-              className="v4-fleet-line-d"
-              fill="none"
-              points={polylinePoints(
-                xs,
-                points.map((p) => powerScale.y(p.dMw)),
-              )}
-            />
+            {showPowerNote ? null : (
+              <polyline
+                className="v4-fleet-line-c"
+                fill="none"
+                points={polylinePoints(
+                  xs,
+                  points.map((p) => powerScale.y(p.cMw)),
+                )}
+              />
+            )}
+            {showPowerNote ? null : (
+              <polyline
+                className="v4-fleet-line-d"
+                fill="none"
+                points={polylinePoints(
+                  xs,
+                  points.map((p) => powerScale.y(p.dMw)),
+                )}
+              />
+            )}
           </SinglePanel>
           <SinglePanel
             title="Speicherinhalt (Beginn Viertelstunde)"
@@ -317,10 +366,14 @@ export function NationalFleetTimeSeriesChart({
               )}
             />
           </SinglePanel>
-          <div className="v4-fleet-ts-x num" aria-hidden="true">
-            {tickIndices.map((j) => (
-              <span key={j} className="v4-fleet-ts-tick" style={{ left: xs[j] }}>
-                {points[j].ts.includes("T") ? points[j].ts.slice(11, 16) : points[j].label}
+          <div className="v4-fleet-ts-x num" style={{ width }} aria-hidden="true">
+            {xTicks.map(({ index, label }) => (
+              <span
+                key={`${index}-${label}`}
+                className="v4-fleet-ts-tick"
+                style={{ left: Math.min(Math.max(xs[index], 14), width - 14) }}
+              >
+                {label}
               </span>
             ))}
           </div>

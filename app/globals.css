@@ -7644,6 +7644,11 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   color: hsl(var(--muted-foreground));
   max-width: 46rem;
 }
+.v4-start {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
 .monat-page {
   width: 100%;
   max-width: 100%;
@@ -9134,6 +9139,9 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   background: hsl(var(--primary) / 0.08);
 }
 .v4-fleet-kpis {
+  max-width: min(72rem, 100%);
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px 20px;
@@ -9217,6 +9225,36 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   border-radius: 4px;
   padding: 8px 4px;
   max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+.v4-fleet-ts-scroll.is-day {
+  overflow-x: hidden;
+}
+.v4-fleet-ts-scroll.is-month {
+  overflow-x: auto;
+}
+.v4-fleet-caption-main {
+  display: inline;
+}
+.v4-fleet-caption-month {
+  display: inline;
+  font-size: 0.92em;
+  color: hsl(var(--muted-foreground));
+}
+.v4-fleet-caption-hint {
+  display: inline;
+  font-size: 0.92em;
+  color: hsl(var(--muted-foreground));
+}
+.v4-fleet-ts-power-note {
+  font-size: 13px;
+  margin: 0 0 8px;
+  color: hsl(var(--muted-foreground));
+}
+.v4-fleet-day-h2,
+.v4-fleet-month-h2 {
+  font-size: clamp(20px, 4vw, 24px);
 }
 .v4-fleet-ts-panel {
   margin-bottom: 4px;
@@ -9291,11 +9329,23 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   font-size: 15px;
   margin: 0 0 12px;
 }
+.v4-fleet-marginal-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
 .v4-fleet-marginal-table {
   width: 100%;
+  min-width: 520px;
   border-collapse: collapse;
   font-size: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
+}
+.v4-fleet-marginal-pool {
+  font-size: 14px;
+  margin: 0 0 10px;
+  color: hsl(var(--muted-foreground));
 }
 .v4-fleet-marginal-table th,
 .v4-fleet-marginal-table td {

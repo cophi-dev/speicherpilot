@@ -173,9 +173,13 @@ export function MonatPageV4({
             Positive Wind-Solar-Differenz je Tag im Monat
           </h2>
           <p className="v4-subline">
-            {observationLive
-              ? "Gemessene Viertelstunden (Energy-Charts) — nicht identisch mit der Modellflotte oben."
-              : "Eingefrorener Beobachtungsstand aus öffentlichen Energy-Charts-Daten (Live-API gerade nicht verfügbar). Modellflotte oben bleibt aus dem vorberechneten Oktober-Bundle."}
+            {nationalFleetMonthAvailable(monthKey)
+              ? observationLive
+                ? "Gemessene Viertelstunden (Energy-Charts) — nicht identisch mit der Modellflotte oben."
+                : "Eingefrorener Beobachtungsstand aus öffentlichen Energy-Charts-Daten (Live-API gerade nicht verfügbar). Modellflotte oben bleibt aus dem vorberechneten Oktober-Bundle."
+              : observationLive
+                ? "Gemessene Tageswerte — für diesen Monat liegt keine vorberechnete Modellflotte vor."
+                : "Beobachtung aus eingefrorenen bzw. Live-Daten — kein Monatslauf der Modellflotte für diesen Monat."}
           </p>
           {!observationLive && observationFallbackNote ? (
             <p className="v4-fleet-observation-note num">{observationFallbackNote}</p>
