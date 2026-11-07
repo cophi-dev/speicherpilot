@@ -46,4 +46,10 @@ describe("Ort netz chart axes (Paket 05.11)", () => {
     expect(src).toMatch(/Uhrzeit \(Mustertag\)/);
     expect(src).toMatch(/Auslastung der Leitung in %/);
   });
+
+  it("drops the Jahresreihe placeholder copy", () => {
+    const src = readFileSync(join(process.cwd(), "components/site/OrtArchetypen.tsx"), "utf8");
+    expect(src).not.toMatch(/kommt als Nächstes/);
+    expect(src).not.toMatch(/ort-netz-annual-note/);
+  });
 });

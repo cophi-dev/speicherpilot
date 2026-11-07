@@ -1,59 +1,55 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
-import { ladeparkConnectionKw, ladeparkMaxKw, planLadepark } from "@/lib/ladepark";
+import { ladeparkMaxKw, planLadepark } from "@/lib/ladepark";
 
 const W = 1152;
 const H = 240;
 const PAD = { top: 16, right: 48, bottom: 36, left: 40 };
 
 export function OrtChapter() {
-  const { plan, connectionKw } = useMemo(() => {
-    const econ = planLadepark(4);
-    return { plan: econ.plan, connectionKw: econ.connectionKw };
-  }, []);
+  const econ = planLadepark(4);
+  const plan = econ.plan;
+  const connectionKw = econ.connectionKw;
   const limit = connectionKw;
   const peakBefore = Math.round(plan.peakImportBeforeKw);
   const peakAfterDisplay =
     plan.peakImportAfterKw <= limit + 2 ? Math.round(limit) : Math.round(plan.peakImportAfterKw);
 
-  const chart = useMemo(() => {
-    const plotW = W - PAD.left - PAD.right;
-    const plotH = H - PAD.top - PAD.bottom;
-    const yMax = ladeparkMaxKw(4) * 1.05;
-    const pts = plan.peakDay.loadKw.map((loadKw, i) => ({
-      ohneKw: loadKw,
-      mitKw: plan.peakDay.gridKw[i] ?? loadKw,
-    }));
-    const x = (i: number) => PAD.left + (i / (pts.length - 1)) * plotW;
-    const y = (kw: number) => PAD.top + plotH - (kw / yMax) * plotH;
-    const loadPath = pts
-      .map((q, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(q.ohneKw).toFixed(1)}`)
-      .join(" ");
-    let maxLoad = 0;
-    let maxI = 0;
-    const overParts: string[] = [];
-    pts.forEach((q, i) => {
-      if (q.ohneKw > limit) {
-        overParts.push(`${overParts.length ? "L" : "M"} ${x(i).toFixed(1)} ${y(q.ohneKw).toFixed(1)}`);
-        overParts.push(`L ${x(i).toFixed(1)} ${y(limit).toFixed(1)}`);
-      }
-      if (q.ohneKw > maxLoad) {
-        maxLoad = q.ohneKw;
-        maxI = i;
-      }
-    });
-    return {
-      path: loadPath,
-      overPath: overParts.join(" "),
-      peakX: x(maxI),
-      peakY: y(maxLoad),
-      yMax,
-    };
-  }, [plan.peakDay, limit]);
+  const plotW = W - PAD.left - PAD.right;
+  const plotH = H - PAD.top - PAD.bottom;
+  const yMax = ladeparkMaxKw(4) * 1.05;
+  const pts = plan.peakDay.loadKw.map((loadKw, i) => ({
+    ohneKw: loadKw,
+    mitKw: plan.peakDay.gridKw[i] ?? loadKw,
+  }));
+  const x = (i: number) => PAD.left + (i / (pts.length - 1)) * plotW;
+  const y = (kw: number) => PAD.top + plotH - (kw / yMax) * plotH;
+  const loadPath = pts
+    .map((q, i) => `${i === 0 ? "M" : "L"} ${x(i).toFixed(1)} ${y(q.ohneKw).toFixed(1)}`)
+    .join(" ");
+  let maxLoad = 0;
+  let maxI = 0;
+  const overParts: string[] = [];
+  pts.forEach((q, i) => {
+    if (q.ohneKw > limit) {
+      overParts.push(`${overParts.length ? "L" : "M"} ${x(i).toFixed(1)} ${y(q.ohneKw).toFixed(1)}`);
+      overParts.push(`L ${x(i).toFixed(1)} ${y(limit).toFixed(1)}`);
+    }
+    if (q.ohneKw > maxLoad) {
+      maxLoad = q.ohneKw;
+      maxI = i;
+    }
+  });
+  const chart = {
+    path: loadPath,
+    overPath: overParts.join(" "),
+    peakX: x(maxI),
+    peakY: y(maxLoad),
+    yMax,
+  };
 
   const limitY = PAD.top + (H - PAD.top - PAD.bottom) - (limit / chart.yMax) * (H - PAD.top - PAD.bottom);
 

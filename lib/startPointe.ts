@@ -28,7 +28,7 @@ export function startPointe(
   const win = windowEndingAt(records, kopfDayKey);
   const end = win[win.length - 1];
   const tagAuff = auffaelligkeitForDay(records, kopfDayKey);
-  let tagH1ForCompare =
+  const tagH1ForCompare =
     end && end.dryStreak >= 3
       ? `${end.dryStreak}. Tag in Folge ohne Überschuss`
       : tagAuff.kopfH1;

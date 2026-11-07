@@ -13,6 +13,19 @@ function deNum(value: number, fraction = 1): string {
   return value.toLocaleString("de-DE", { minimumFractionDigits: fraction, maximumFractionDigits: fraction });
 }
 
+function usePrefersDarkChart(): boolean {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => setDark(root.classList.contains("dark"));
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return dark;
+}
+
 function showConnectionMw(data: OrtArchetype): boolean {
   if (data.xMw == null || data.yMw == null) {
     return false;
@@ -119,7 +132,8 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
   const data = useMemo(() => archetypeByKey(archetype), [archetype]);
   const badge = useMemo(() => badgeForArchetype(data, mode), [data, mode]);
   const series = data.series.modes[mode];
-  const palette = NETZ_PALETTE.paper;
+  const prefersDark = usePrefersDarkChart();
+  const palette = NETZ_PALETTE[prefersDark ? "night" : "paper"];
 
   const badgeLabel =
     badge.id === "netzdienlich"
@@ -207,13 +221,6 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
           )}
         </p>
 
-        <p className="ort-netz-annual-note" role="note">
-          {tx(
-            "Wie oft Markt und Netz sich über ein ganzes Jahr in die Quere kommen, kommt als Nächstes.",
-            "How often market and grid clash across a full year is coming next.",
-          )}
-        </p>
-
         <ArchetypeDayChart
           hours={data.series.hour}
           l0n0={data.series.L0n0}
@@ -223,6 +230,7 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
           discharge={series.d}
           windowQh={data.windowQh}
           palette={palette}
+          emphasizeStrokes={prefersDark}
           tx={tx}
           ariaLabel={tx(
             "Tagesauslastung am Engpass. Uhrzeit Mustertag horizontal, Auslastung der Leitung in Prozent vertikal.",
@@ -321,6 +329,7 @@ function ArchetypeDayChart({
   discharge,
   windowQh,
   palette,
+  emphasizeStrokes = false,
   tx,
   ariaLabel,
 }: {
@@ -332,9 +341,12 @@ function ArchetypeDayChart({
   discharge: number[];
   windowQh: number[];
   palette: (typeof NETZ_PALETTE)["paper"];
+  emphasizeStrokes?: boolean;
   tx: (de: string, en: string) => string;
   ariaLabel: string;
 }) {
+  const strokeThin = emphasizeStrokes ? 2.25 : 1.5;
+  const strokeThick = emphasizeStrokes ? 3 : 2;
   const W = 960;
   const H = 300;
   const pad = { l: 72, r: 16, t: 16, b: 58 };
@@ -416,9 +428,9 @@ function ArchetypeDayChart({
             />
           );
         })}
-        <path d={line(l0n0)} fill="none" stroke={palette.lineBelow80} strokeWidth={1.5} />
-        <path d={line(l0n1)} fill="none" stroke={palette.line80to100} strokeWidth={1.5} strokeDasharray="6 4" />
-        <path d={line(l1n1)} fill="none" stroke={palette.lineOver100} strokeWidth={2} />
+        <path d={line(l0n0)} fill="none" stroke={palette.lineBelow80} strokeWidth={strokeThin} />
+        <path d={line(l0n1)} fill="none" stroke={palette.line80to100} strokeWidth={strokeThin} strokeDasharray="6 4" />
+        <path d={line(l1n1)} fill="none" stroke={palette.lineOver100} strokeWidth={strokeThick} />
         <text x={pad.l} y={H - 14} className="num ort-chart-axis" fontSize={tickFont}>
           0
         </text>

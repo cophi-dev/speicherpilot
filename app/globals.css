@@ -7062,6 +7062,11 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
     height: 64px;
   }
 }
+@media (min-width: 640px) and (max-width: 1199px) {
+  .v4-kopf-hero {
+    margin-top: 0.875rem;
+  }
+}
 @media (max-width: 1199px) {
   .v4-kopf-hero {
     grid-template-columns: 1fr;
@@ -7234,6 +7239,13 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .v4-luecke-peak-caption {
   font-size: 14px;
   fill: hsl(var(--muted-foreground));
+  paint-order: stroke;
+  stroke: var(--v4-paper, #f6f6f3);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.dark .v4-luecke-peak-caption {
+  stroke: hsl(var(--background));
 }
 
 .v4-st-steps {
@@ -7639,6 +7651,16 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .ort-archetype-chart-shell .ort-archetype-chart-svg {
   overflow: visible;
   display: block;
+}
+.dark .ort-archetype-chart-svg .ort-chart-axis {
+  fill: hsl(var(--foreground));
+  opacity: 0.88;
+}
+.dark .ort-archetype-chart-svg path[stroke] {
+  stroke-width: 2.5px;
+}
+.dark .ort-archetype-chart-svg path[stroke-width="2"] {
+  stroke-width: 3px;
 }
 @media (max-width: 639px) {
   .ort-archetype-chart-shell .ort-archetype-chart-svg {
