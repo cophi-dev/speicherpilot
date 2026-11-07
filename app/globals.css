@@ -9140,14 +9140,17 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 }
 .v4-fleet-kpis {
   width: 100%;
-  max-width: 1240px;
-  margin-left: auto;
-  margin-right: auto;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px 20px;
-  margin: 0 0 24px;
+  margin-block: 0 24px;
+  /* margin: 0 0 24px would override v4-content margin-inline: auto (KPI-Raster links) */
+  margin-inline: auto;
+}
+/* Gleiche Inhaltsspalte wie .v4-fleet-day-beleg (72rem), nicht breiteres v4-content (1240px) */
+.v4-fleet-kpis.v4-content {
+  max-width: 72rem;
 }
 .v4-fleet-kpis dt {
   font-size: 13px;
