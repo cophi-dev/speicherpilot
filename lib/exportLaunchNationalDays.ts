@@ -5,7 +5,9 @@ import { evaluateSurplusDayFactor } from "@/lib/surplusDaySimulation";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
-const BASE_FLEET = { powerMw: 4_580, energyMwh: 8_000 };
+export const NATIONAL_BASE_FLEET = { powerMw: 4_580, energyMwh: 8_000 };
+
+const USABLE_SOC_FRACTION = CHAIN_SOC_MAX - CHAIN_SOC_MIN;
 
 export type NationalDayEvidence = {
   dayKey: string;
@@ -13,8 +15,10 @@ export type NationalDayEvidence = {
     provider: "energy-charts.info";
     endpoint: "total_power (v1 client) + v2 raw snapshot optional";
     license: "CC BY 4.0";
+    apiUrlTemplate: "https://api.energy-charts.info/v2/total_power?country=de&start={startKey}&end={endKey}";
     range: { startKey: string; endKey: string };
     samplePoints: number;
+    fetchedAt: string;
   };
   convention: {
     surplusGwh: "max(0, wind+solar-load) quarter integration × factor",
@@ -28,6 +32,10 @@ export type NationalDayEvidence = {
     absorbedMwh: number;
     dischargedMwh: number;
     balanceMaxResidualMwh: number;
+    nameplateEnergyMwh: number;
+    nameplatePowerMw: number;
+    usableEnergyCapMwh: number;
+    maxSocMwhObserved: number;
     quarters: ReturnType<typeof evaluateSurplusDayFactor>["quarters"];
   }>;
 };
@@ -44,18 +52,23 @@ export async function exportNationalDayEvidence(
   if (!flow || flow.slots.length < 1) {
     throw new Error(`keine Slots für ${dayKey}`);
   }
+  const fetchedAt = new Date().toISOString();
   const factorRuns = factors.map((factor) => {
-    const fleet = {
-      powerMw: BASE_FLEET.powerMw * factor,
-      energyMwh: BASE_FLEET.energyMwh * factor,
-    };
-    const day = evaluateSurplusDayFactor(flow.slots, fleet, factor);
+    const day = evaluateSurplusDayFactor(flow.slots, NATIONAL_BASE_FLEET, factor);
     const balance = verifySurplusDispatchEnergyBalance(day.quarters);
+    const nameplateEnergyMwh = NATIONAL_BASE_FLEET.energyMwh * factor;
+    const nameplatePowerMw = NATIONAL_BASE_FLEET.powerMw * factor;
+    const usableEnergyCapMwh = nameplateEnergyMwh * USABLE_SOC_FRACTION;
+    const maxSocMwhObserved = Math.max(...day.quarters.map((q) => q.socMwh));
     return {
       factor,
       absorbedMwh: day.absorbedMwh,
       dischargedMwh: day.dischargedMwh,
       balanceMaxResidualMwh: balance.maxResidualMwh,
+      nameplateEnergyMwh,
+      nameplatePowerMw,
+      usableEnergyCapMwh,
+      maxSocMwhObserved,
       quarters: day.quarters,
     };
   });
@@ -65,8 +78,10 @@ export async function exportNationalDayEvidence(
       provider: "energy-charts.info",
       endpoint: "total_power (v1 client) + v2 raw snapshot optional",
       license: "CC BY 4.0",
+      apiUrlTemplate: "https://api.energy-charts.info/v2/total_power?country=de&start={startKey}&end={endKey}",
       range: { startKey: range.startKey, endKey: range.endKey },
       samplePoints: flow.samplePoints,
+      fetchedAt,
     },
     convention: {
       surplusGwh: "max(0, wind+solar-load) quarter integration × factor",

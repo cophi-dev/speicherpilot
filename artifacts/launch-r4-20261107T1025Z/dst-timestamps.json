@@ -1,0 +1,3135 @@
+{
+  "sourceCommit": "28fd4d31148997714e8a8d9d9b3797fede510fc5",
+  "spring": {
+    "dayKey": "2025-03-30",
+    "slotCount": 92,
+    "integratedPlaceholderMwhPerMw": 23,
+    "slots": [
+      {
+        "index": 0,
+        "unixSeconds": 1743289200,
+        "utcIso": "2025-03-29T23:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "00:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 1,
+        "unixSeconds": 1743290100,
+        "utcIso": "2025-03-29T23:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "00:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 2,
+        "unixSeconds": 1743291000,
+        "utcIso": "2025-03-29T23:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "00:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 3,
+        "unixSeconds": 1743291900,
+        "utcIso": "2025-03-29T23:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "00:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 4,
+        "unixSeconds": 1743292800,
+        "utcIso": "2025-03-30T00:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "01:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 5,
+        "unixSeconds": 1743293700,
+        "utcIso": "2025-03-30T00:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "01:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 6,
+        "unixSeconds": 1743294600,
+        "utcIso": "2025-03-30T00:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "01:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 7,
+        "unixSeconds": 1743295500,
+        "utcIso": "2025-03-30T00:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "01:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 8,
+        "unixSeconds": 1743296400,
+        "utcIso": "2025-03-30T01:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "03:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 9,
+        "unixSeconds": 1743297300,
+        "utcIso": "2025-03-30T01:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "03:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 10,
+        "unixSeconds": 1743298200,
+        "utcIso": "2025-03-30T01:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "03:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 11,
+        "unixSeconds": 1743299100,
+        "utcIso": "2025-03-30T01:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "03:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 12,
+        "unixSeconds": 1743300000,
+        "utcIso": "2025-03-30T02:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "04:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 13,
+        "unixSeconds": 1743300900,
+        "utcIso": "2025-03-30T02:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "04:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 14,
+        "unixSeconds": 1743301800,
+        "utcIso": "2025-03-30T02:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "04:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 15,
+        "unixSeconds": 1743302700,
+        "utcIso": "2025-03-30T02:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "04:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 16,
+        "unixSeconds": 1743303600,
+        "utcIso": "2025-03-30T03:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "05:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 17,
+        "unixSeconds": 1743304500,
+        "utcIso": "2025-03-30T03:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "05:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 18,
+        "unixSeconds": 1743305400,
+        "utcIso": "2025-03-30T03:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "05:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 19,
+        "unixSeconds": 1743306300,
+        "utcIso": "2025-03-30T03:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "05:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 20,
+        "unixSeconds": 1743307200,
+        "utcIso": "2025-03-30T04:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "06:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 21,
+        "unixSeconds": 1743308100,
+        "utcIso": "2025-03-30T04:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "06:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 22,
+        "unixSeconds": 1743309000,
+        "utcIso": "2025-03-30T04:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "06:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 23,
+        "unixSeconds": 1743309900,
+        "utcIso": "2025-03-30T04:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "06:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 24,
+        "unixSeconds": 1743310800,
+        "utcIso": "2025-03-30T05:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "07:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 25,
+        "unixSeconds": 1743311700,
+        "utcIso": "2025-03-30T05:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "07:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 26,
+        "unixSeconds": 1743312600,
+        "utcIso": "2025-03-30T05:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "07:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 27,
+        "unixSeconds": 1743313500,
+        "utcIso": "2025-03-30T05:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "07:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 28,
+        "unixSeconds": 1743314400,
+        "utcIso": "2025-03-30T06:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "08:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 29,
+        "unixSeconds": 1743315300,
+        "utcIso": "2025-03-30T06:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "08:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 30,
+        "unixSeconds": 1743316200,
+        "utcIso": "2025-03-30T06:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "08:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 31,
+        "unixSeconds": 1743317100,
+        "utcIso": "2025-03-30T06:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "08:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 32,
+        "unixSeconds": 1743318000,
+        "utcIso": "2025-03-30T07:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "09:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 33,
+        "unixSeconds": 1743318900,
+        "utcIso": "2025-03-30T07:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "09:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 34,
+        "unixSeconds": 1743319800,
+        "utcIso": "2025-03-30T07:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "09:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 35,
+        "unixSeconds": 1743320700,
+        "utcIso": "2025-03-30T07:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "09:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 36,
+        "unixSeconds": 1743321600,
+        "utcIso": "2025-03-30T08:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "10:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 37,
+        "unixSeconds": 1743322500,
+        "utcIso": "2025-03-30T08:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "10:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 38,
+        "unixSeconds": 1743323400,
+        "utcIso": "2025-03-30T08:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "10:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 39,
+        "unixSeconds": 1743324300,
+        "utcIso": "2025-03-30T08:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "10:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 40,
+        "unixSeconds": 1743325200,
+        "utcIso": "2025-03-30T09:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "11:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 41,
+        "unixSeconds": 1743326100,
+        "utcIso": "2025-03-30T09:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "11:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 42,
+        "unixSeconds": 1743327000,
+        "utcIso": "2025-03-30T09:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "11:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 43,
+        "unixSeconds": 1743327900,
+        "utcIso": "2025-03-30T09:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "11:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 44,
+        "unixSeconds": 1743328800,
+        "utcIso": "2025-03-30T10:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "12:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 45,
+        "unixSeconds": 1743329700,
+        "utcIso": "2025-03-30T10:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "12:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 46,
+        "unixSeconds": 1743330600,
+        "utcIso": "2025-03-30T10:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "12:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 47,
+        "unixSeconds": 1743331500,
+        "utcIso": "2025-03-30T10:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "12:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 48,
+        "unixSeconds": 1743332400,
+        "utcIso": "2025-03-30T11:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "13:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 49,
+        "unixSeconds": 1743333300,
+        "utcIso": "2025-03-30T11:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "13:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 50,
+        "unixSeconds": 1743334200,
+        "utcIso": "2025-03-30T11:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "13:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 51,
+        "unixSeconds": 1743335100,
+        "utcIso": "2025-03-30T11:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "13:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 52,
+        "unixSeconds": 1743336000,
+        "utcIso": "2025-03-30T12:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "14:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 53,
+        "unixSeconds": 1743336900,
+        "utcIso": "2025-03-30T12:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "14:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 54,
+        "unixSeconds": 1743337800,
+        "utcIso": "2025-03-30T12:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "14:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 55,
+        "unixSeconds": 1743338700,
+        "utcIso": "2025-03-30T12:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "14:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 56,
+        "unixSeconds": 1743339600,
+        "utcIso": "2025-03-30T13:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "15:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 57,
+        "unixSeconds": 1743340500,
+        "utcIso": "2025-03-30T13:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "15:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 58,
+        "unixSeconds": 1743341400,
+        "utcIso": "2025-03-30T13:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "15:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 59,
+        "unixSeconds": 1743342300,
+        "utcIso": "2025-03-30T13:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "15:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 60,
+        "unixSeconds": 1743343200,
+        "utcIso": "2025-03-30T14:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "16:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 61,
+        "unixSeconds": 1743344100,
+        "utcIso": "2025-03-30T14:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "16:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 62,
+        "unixSeconds": 1743345000,
+        "utcIso": "2025-03-30T14:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "16:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 63,
+        "unixSeconds": 1743345900,
+        "utcIso": "2025-03-30T14:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "16:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 64,
+        "unixSeconds": 1743346800,
+        "utcIso": "2025-03-30T15:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "17:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 65,
+        "unixSeconds": 1743347700,
+        "utcIso": "2025-03-30T15:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "17:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 66,
+        "unixSeconds": 1743348600,
+        "utcIso": "2025-03-30T15:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "17:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 67,
+        "unixSeconds": 1743349500,
+        "utcIso": "2025-03-30T15:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "17:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 68,
+        "unixSeconds": 1743350400,
+        "utcIso": "2025-03-30T16:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "18:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 69,
+        "unixSeconds": 1743351300,
+        "utcIso": "2025-03-30T16:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "18:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 70,
+        "unixSeconds": 1743352200,
+        "utcIso": "2025-03-30T16:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "18:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 71,
+        "unixSeconds": 1743353100,
+        "utcIso": "2025-03-30T16:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "18:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 72,
+        "unixSeconds": 1743354000,
+        "utcIso": "2025-03-30T17:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "19:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 73,
+        "unixSeconds": 1743354900,
+        "utcIso": "2025-03-30T17:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "19:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 74,
+        "unixSeconds": 1743355800,
+        "utcIso": "2025-03-30T17:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "19:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 75,
+        "unixSeconds": 1743356700,
+        "utcIso": "2025-03-30T17:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "19:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 76,
+        "unixSeconds": 1743357600,
+        "utcIso": "2025-03-30T18:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "20:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 77,
+        "unixSeconds": 1743358500,
+        "utcIso": "2025-03-30T18:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "20:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 78,
+        "unixSeconds": 1743359400,
+        "utcIso": "2025-03-30T18:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "20:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 79,
+        "unixSeconds": 1743360300,
+        "utcIso": "2025-03-30T18:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "20:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 80,
+        "unixSeconds": 1743361200,
+        "utcIso": "2025-03-30T19:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "21:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 81,
+        "unixSeconds": 1743362100,
+        "utcIso": "2025-03-30T19:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "21:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 82,
+        "unixSeconds": 1743363000,
+        "utcIso": "2025-03-30T19:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "21:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 83,
+        "unixSeconds": 1743363900,
+        "utcIso": "2025-03-30T19:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "21:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 84,
+        "unixSeconds": 1743364800,
+        "utcIso": "2025-03-30T20:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "22:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 85,
+        "unixSeconds": 1743365700,
+        "utcIso": "2025-03-30T20:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "22:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 86,
+        "unixSeconds": 1743366600,
+        "utcIso": "2025-03-30T20:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "22:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 87,
+        "unixSeconds": 1743367500,
+        "utcIso": "2025-03-30T20:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "22:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 88,
+        "unixSeconds": 1743368400,
+        "utcIso": "2025-03-30T21:00:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "23:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 89,
+        "unixSeconds": 1743369300,
+        "utcIso": "2025-03-30T21:15:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "23:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 90,
+        "unixSeconds": 1743370200,
+        "utcIso": "2025-03-30T21:30:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "23:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 91,
+        "unixSeconds": 1743371100,
+        "utcIso": "2025-03-30T21:45:00.000Z",
+        "berlinDate": "2025-03-30",
+        "berlinHm": "23:45",
+        "dtHours": 0.25
+      }
+    ]
+  },
+  "fall": {
+    "dayKey": "2025-10-26",
+    "slotCount": 100,
+    "integratedPlaceholderMwhPerMw": 25,
+    "slots": [
+      {
+        "index": 0,
+        "unixSeconds": 1761429600,
+        "utcIso": "2025-10-25T22:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "00:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 1,
+        "unixSeconds": 1761430500,
+        "utcIso": "2025-10-25T22:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "00:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 2,
+        "unixSeconds": 1761431400,
+        "utcIso": "2025-10-25T22:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "00:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 3,
+        "unixSeconds": 1761432300,
+        "utcIso": "2025-10-25T22:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "00:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 4,
+        "unixSeconds": 1761433200,
+        "utcIso": "2025-10-25T23:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "01:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 5,
+        "unixSeconds": 1761434100,
+        "utcIso": "2025-10-25T23:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "01:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 6,
+        "unixSeconds": 1761435000,
+        "utcIso": "2025-10-25T23:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "01:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 7,
+        "unixSeconds": 1761435900,
+        "utcIso": "2025-10-25T23:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "01:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 8,
+        "unixSeconds": 1761436800,
+        "utcIso": "2025-10-26T00:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 9,
+        "unixSeconds": 1761437700,
+        "utcIso": "2025-10-26T00:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 10,
+        "unixSeconds": 1761438600,
+        "utcIso": "2025-10-26T00:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 11,
+        "unixSeconds": 1761439500,
+        "utcIso": "2025-10-26T00:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 12,
+        "unixSeconds": 1761440400,
+        "utcIso": "2025-10-26T01:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 13,
+        "unixSeconds": 1761441300,
+        "utcIso": "2025-10-26T01:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 14,
+        "unixSeconds": 1761442200,
+        "utcIso": "2025-10-26T01:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 15,
+        "unixSeconds": 1761443100,
+        "utcIso": "2025-10-26T01:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "02:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 16,
+        "unixSeconds": 1761444000,
+        "utcIso": "2025-10-26T02:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "03:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 17,
+        "unixSeconds": 1761444900,
+        "utcIso": "2025-10-26T02:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "03:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 18,
+        "unixSeconds": 1761445800,
+        "utcIso": "2025-10-26T02:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "03:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 19,
+        "unixSeconds": 1761446700,
+        "utcIso": "2025-10-26T02:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "03:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 20,
+        "unixSeconds": 1761447600,
+        "utcIso": "2025-10-26T03:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "04:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 21,
+        "unixSeconds": 1761448500,
+        "utcIso": "2025-10-26T03:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "04:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 22,
+        "unixSeconds": 1761449400,
+        "utcIso": "2025-10-26T03:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "04:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 23,
+        "unixSeconds": 1761450300,
+        "utcIso": "2025-10-26T03:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "04:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 24,
+        "unixSeconds": 1761451200,
+        "utcIso": "2025-10-26T04:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "05:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 25,
+        "unixSeconds": 1761452100,
+        "utcIso": "2025-10-26T04:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "05:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 26,
+        "unixSeconds": 1761453000,
+        "utcIso": "2025-10-26T04:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "05:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 27,
+        "unixSeconds": 1761453900,
+        "utcIso": "2025-10-26T04:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "05:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 28,
+        "unixSeconds": 1761454800,
+        "utcIso": "2025-10-26T05:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "06:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 29,
+        "unixSeconds": 1761455700,
+        "utcIso": "2025-10-26T05:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "06:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 30,
+        "unixSeconds": 1761456600,
+        "utcIso": "2025-10-26T05:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "06:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 31,
+        "unixSeconds": 1761457500,
+        "utcIso": "2025-10-26T05:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "06:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 32,
+        "unixSeconds": 1761458400,
+        "utcIso": "2025-10-26T06:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "07:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 33,
+        "unixSeconds": 1761459300,
+        "utcIso": "2025-10-26T06:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "07:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 34,
+        "unixSeconds": 1761460200,
+        "utcIso": "2025-10-26T06:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "07:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 35,
+        "unixSeconds": 1761461100,
+        "utcIso": "2025-10-26T06:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "07:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 36,
+        "unixSeconds": 1761462000,
+        "utcIso": "2025-10-26T07:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "08:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 37,
+        "unixSeconds": 1761462900,
+        "utcIso": "2025-10-26T07:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "08:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 38,
+        "unixSeconds": 1761463800,
+        "utcIso": "2025-10-26T07:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "08:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 39,
+        "unixSeconds": 1761464700,
+        "utcIso": "2025-10-26T07:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "08:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 40,
+        "unixSeconds": 1761465600,
+        "utcIso": "2025-10-26T08:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "09:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 41,
+        "unixSeconds": 1761466500,
+        "utcIso": "2025-10-26T08:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "09:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 42,
+        "unixSeconds": 1761467400,
+        "utcIso": "2025-10-26T08:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "09:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 43,
+        "unixSeconds": 1761468300,
+        "utcIso": "2025-10-26T08:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "09:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 44,
+        "unixSeconds": 1761469200,
+        "utcIso": "2025-10-26T09:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "10:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 45,
+        "unixSeconds": 1761470100,
+        "utcIso": "2025-10-26T09:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "10:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 46,
+        "unixSeconds": 1761471000,
+        "utcIso": "2025-10-26T09:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "10:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 47,
+        "unixSeconds": 1761471900,
+        "utcIso": "2025-10-26T09:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "10:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 48,
+        "unixSeconds": 1761472800,
+        "utcIso": "2025-10-26T10:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "11:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 49,
+        "unixSeconds": 1761473700,
+        "utcIso": "2025-10-26T10:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "11:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 50,
+        "unixSeconds": 1761474600,
+        "utcIso": "2025-10-26T10:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "11:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 51,
+        "unixSeconds": 1761475500,
+        "utcIso": "2025-10-26T10:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "11:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 52,
+        "unixSeconds": 1761476400,
+        "utcIso": "2025-10-26T11:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "12:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 53,
+        "unixSeconds": 1761477300,
+        "utcIso": "2025-10-26T11:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "12:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 54,
+        "unixSeconds": 1761478200,
+        "utcIso": "2025-10-26T11:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "12:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 55,
+        "unixSeconds": 1761479100,
+        "utcIso": "2025-10-26T11:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "12:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 56,
+        "unixSeconds": 1761480000,
+        "utcIso": "2025-10-26T12:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "13:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 57,
+        "unixSeconds": 1761480900,
+        "utcIso": "2025-10-26T12:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "13:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 58,
+        "unixSeconds": 1761481800,
+        "utcIso": "2025-10-26T12:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "13:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 59,
+        "unixSeconds": 1761482700,
+        "utcIso": "2025-10-26T12:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "13:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 60,
+        "unixSeconds": 1761483600,
+        "utcIso": "2025-10-26T13:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "14:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 61,
+        "unixSeconds": 1761484500,
+        "utcIso": "2025-10-26T13:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "14:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 62,
+        "unixSeconds": 1761485400,
+        "utcIso": "2025-10-26T13:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "14:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 63,
+        "unixSeconds": 1761486300,
+        "utcIso": "2025-10-26T13:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "14:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 64,
+        "unixSeconds": 1761487200,
+        "utcIso": "2025-10-26T14:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "15:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 65,
+        "unixSeconds": 1761488100,
+        "utcIso": "2025-10-26T14:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "15:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 66,
+        "unixSeconds": 1761489000,
+        "utcIso": "2025-10-26T14:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "15:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 67,
+        "unixSeconds": 1761489900,
+        "utcIso": "2025-10-26T14:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "15:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 68,
+        "unixSeconds": 1761490800,
+        "utcIso": "2025-10-26T15:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "16:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 69,
+        "unixSeconds": 1761491700,
+        "utcIso": "2025-10-26T15:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "16:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 70,
+        "unixSeconds": 1761492600,
+        "utcIso": "2025-10-26T15:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "16:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 71,
+        "unixSeconds": 1761493500,
+        "utcIso": "2025-10-26T15:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "16:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 72,
+        "unixSeconds": 1761494400,
+        "utcIso": "2025-10-26T16:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "17:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 73,
+        "unixSeconds": 1761495300,
+        "utcIso": "2025-10-26T16:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "17:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 74,
+        "unixSeconds": 1761496200,
+        "utcIso": "2025-10-26T16:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "17:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 75,
+        "unixSeconds": 1761497100,
+        "utcIso": "2025-10-26T16:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "17:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 76,
+        "unixSeconds": 1761498000,
+        "utcIso": "2025-10-26T17:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "18:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 77,
+        "unixSeconds": 1761498900,
+        "utcIso": "2025-10-26T17:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "18:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 78,
+        "unixSeconds": 1761499800,
+        "utcIso": "2025-10-26T17:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "18:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 79,
+        "unixSeconds": 1761500700,
+        "utcIso": "2025-10-26T17:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "18:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 80,
+        "unixSeconds": 1761501600,
+        "utcIso": "2025-10-26T18:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "19:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 81,
+        "unixSeconds": 1761502500,
+        "utcIso": "2025-10-26T18:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "19:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 82,
+        "unixSeconds": 1761503400,
+        "utcIso": "2025-10-26T18:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "19:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 83,
+        "unixSeconds": 1761504300,
+        "utcIso": "2025-10-26T18:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "19:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 84,
+        "unixSeconds": 1761505200,
+        "utcIso": "2025-10-26T19:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "20:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 85,
+        "unixSeconds": 1761506100,
+        "utcIso": "2025-10-26T19:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "20:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 86,
+        "unixSeconds": 1761507000,
+        "utcIso": "2025-10-26T19:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "20:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 87,
+        "unixSeconds": 1761507900,
+        "utcIso": "2025-10-26T19:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "20:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 88,
+        "unixSeconds": 1761508800,
+        "utcIso": "2025-10-26T20:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "21:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 89,
+        "unixSeconds": 1761509700,
+        "utcIso": "2025-10-26T20:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "21:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 90,
+        "unixSeconds": 1761510600,
+        "utcIso": "2025-10-26T20:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "21:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 91,
+        "unixSeconds": 1761511500,
+        "utcIso": "2025-10-26T20:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "21:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 92,
+        "unixSeconds": 1761512400,
+        "utcIso": "2025-10-26T21:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "22:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 93,
+        "unixSeconds": 1761513300,
+        "utcIso": "2025-10-26T21:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "22:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 94,
+        "unixSeconds": 1761514200,
+        "utcIso": "2025-10-26T21:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "22:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 95,
+        "unixSeconds": 1761515100,
+        "utcIso": "2025-10-26T21:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "22:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 96,
+        "unixSeconds": 1761516000,
+        "utcIso": "2025-10-26T22:00:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "23:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 97,
+        "unixSeconds": 1761516900,
+        "utcIso": "2025-10-26T22:15:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "23:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 98,
+        "unixSeconds": 1761517800,
+        "utcIso": "2025-10-26T22:30:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "23:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 99,
+        "unixSeconds": 1761518700,
+        "utcIso": "2025-10-26T22:45:00.000Z",
+        "berlinDate": "2025-10-26",
+        "berlinHm": "23:45",
+        "dtHours": 0.25
+      }
+    ]
+  },
+  "fallTyptag2026": {
+    "dayKey": "2026-10-25",
+    "slotCount": 100,
+    "integratedPlaceholderMwhPerMw": 25,
+    "slots": [
+      {
+        "index": 0,
+        "unixSeconds": 1792879200,
+        "utcIso": "2026-10-24T22:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "00:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 1,
+        "unixSeconds": 1792880100,
+        "utcIso": "2026-10-24T22:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "00:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 2,
+        "unixSeconds": 1792881000,
+        "utcIso": "2026-10-24T22:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "00:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 3,
+        "unixSeconds": 1792881900,
+        "utcIso": "2026-10-24T22:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "00:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 4,
+        "unixSeconds": 1792882800,
+        "utcIso": "2026-10-24T23:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "01:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 5,
+        "unixSeconds": 1792883700,
+        "utcIso": "2026-10-24T23:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "01:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 6,
+        "unixSeconds": 1792884600,
+        "utcIso": "2026-10-24T23:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "01:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 7,
+        "unixSeconds": 1792885500,
+        "utcIso": "2026-10-24T23:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "01:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 8,
+        "unixSeconds": 1792886400,
+        "utcIso": "2026-10-25T00:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 9,
+        "unixSeconds": 1792887300,
+        "utcIso": "2026-10-25T00:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 10,
+        "unixSeconds": 1792888200,
+        "utcIso": "2026-10-25T00:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 11,
+        "unixSeconds": 1792889100,
+        "utcIso": "2026-10-25T00:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 12,
+        "unixSeconds": 1792890000,
+        "utcIso": "2026-10-25T01:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 13,
+        "unixSeconds": 1792890900,
+        "utcIso": "2026-10-25T01:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 14,
+        "unixSeconds": 1792891800,
+        "utcIso": "2026-10-25T01:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 15,
+        "unixSeconds": 1792892700,
+        "utcIso": "2026-10-25T01:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "02:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 16,
+        "unixSeconds": 1792893600,
+        "utcIso": "2026-10-25T02:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "03:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 17,
+        "unixSeconds": 1792894500,
+        "utcIso": "2026-10-25T02:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "03:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 18,
+        "unixSeconds": 1792895400,
+        "utcIso": "2026-10-25T02:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "03:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 19,
+        "unixSeconds": 1792896300,
+        "utcIso": "2026-10-25T02:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "03:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 20,
+        "unixSeconds": 1792897200,
+        "utcIso": "2026-10-25T03:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "04:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 21,
+        "unixSeconds": 1792898100,
+        "utcIso": "2026-10-25T03:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "04:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 22,
+        "unixSeconds": 1792899000,
+        "utcIso": "2026-10-25T03:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "04:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 23,
+        "unixSeconds": 1792899900,
+        "utcIso": "2026-10-25T03:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "04:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 24,
+        "unixSeconds": 1792900800,
+        "utcIso": "2026-10-25T04:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "05:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 25,
+        "unixSeconds": 1792901700,
+        "utcIso": "2026-10-25T04:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "05:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 26,
+        "unixSeconds": 1792902600,
+        "utcIso": "2026-10-25T04:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "05:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 27,
+        "unixSeconds": 1792903500,
+        "utcIso": "2026-10-25T04:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "05:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 28,
+        "unixSeconds": 1792904400,
+        "utcIso": "2026-10-25T05:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "06:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 29,
+        "unixSeconds": 1792905300,
+        "utcIso": "2026-10-25T05:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "06:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 30,
+        "unixSeconds": 1792906200,
+        "utcIso": "2026-10-25T05:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "06:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 31,
+        "unixSeconds": 1792907100,
+        "utcIso": "2026-10-25T05:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "06:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 32,
+        "unixSeconds": 1792908000,
+        "utcIso": "2026-10-25T06:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "07:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 33,
+        "unixSeconds": 1792908900,
+        "utcIso": "2026-10-25T06:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "07:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 34,
+        "unixSeconds": 1792909800,
+        "utcIso": "2026-10-25T06:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "07:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 35,
+        "unixSeconds": 1792910700,
+        "utcIso": "2026-10-25T06:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "07:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 36,
+        "unixSeconds": 1792911600,
+        "utcIso": "2026-10-25T07:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "08:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 37,
+        "unixSeconds": 1792912500,
+        "utcIso": "2026-10-25T07:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "08:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 38,
+        "unixSeconds": 1792913400,
+        "utcIso": "2026-10-25T07:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "08:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 39,
+        "unixSeconds": 1792914300,
+        "utcIso": "2026-10-25T07:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "08:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 40,
+        "unixSeconds": 1792915200,
+        "utcIso": "2026-10-25T08:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "09:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 41,
+        "unixSeconds": 1792916100,
+        "utcIso": "2026-10-25T08:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "09:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 42,
+        "unixSeconds": 1792917000,
+        "utcIso": "2026-10-25T08:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "09:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 43,
+        "unixSeconds": 1792917900,
+        "utcIso": "2026-10-25T08:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "09:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 44,
+        "unixSeconds": 1792918800,
+        "utcIso": "2026-10-25T09:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "10:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 45,
+        "unixSeconds": 1792919700,
+        "utcIso": "2026-10-25T09:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "10:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 46,
+        "unixSeconds": 1792920600,
+        "utcIso": "2026-10-25T09:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "10:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 47,
+        "unixSeconds": 1792921500,
+        "utcIso": "2026-10-25T09:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "10:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 48,
+        "unixSeconds": 1792922400,
+        "utcIso": "2026-10-25T10:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "11:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 49,
+        "unixSeconds": 1792923300,
+        "utcIso": "2026-10-25T10:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "11:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 50,
+        "unixSeconds": 1792924200,
+        "utcIso": "2026-10-25T10:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "11:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 51,
+        "unixSeconds": 1792925100,
+        "utcIso": "2026-10-25T10:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "11:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 52,
+        "unixSeconds": 1792926000,
+        "utcIso": "2026-10-25T11:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "12:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 53,
+        "unixSeconds": 1792926900,
+        "utcIso": "2026-10-25T11:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "12:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 54,
+        "unixSeconds": 1792927800,
+        "utcIso": "2026-10-25T11:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "12:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 55,
+        "unixSeconds": 1792928700,
+        "utcIso": "2026-10-25T11:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "12:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 56,
+        "unixSeconds": 1792929600,
+        "utcIso": "2026-10-25T12:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "13:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 57,
+        "unixSeconds": 1792930500,
+        "utcIso": "2026-10-25T12:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "13:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 58,
+        "unixSeconds": 1792931400,
+        "utcIso": "2026-10-25T12:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "13:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 59,
+        "unixSeconds": 1792932300,
+        "utcIso": "2026-10-25T12:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "13:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 60,
+        "unixSeconds": 1792933200,
+        "utcIso": "2026-10-25T13:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "14:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 61,
+        "unixSeconds": 1792934100,
+        "utcIso": "2026-10-25T13:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "14:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 62,
+        "unixSeconds": 1792935000,
+        "utcIso": "2026-10-25T13:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "14:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 63,
+        "unixSeconds": 1792935900,
+        "utcIso": "2026-10-25T13:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "14:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 64,
+        "unixSeconds": 1792936800,
+        "utcIso": "2026-10-25T14:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "15:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 65,
+        "unixSeconds": 1792937700,
+        "utcIso": "2026-10-25T14:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "15:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 66,
+        "unixSeconds": 1792938600,
+        "utcIso": "2026-10-25T14:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "15:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 67,
+        "unixSeconds": 1792939500,
+        "utcIso": "2026-10-25T14:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "15:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 68,
+        "unixSeconds": 1792940400,
+        "utcIso": "2026-10-25T15:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "16:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 69,
+        "unixSeconds": 1792941300,
+        "utcIso": "2026-10-25T15:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "16:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 70,
+        "unixSeconds": 1792942200,
+        "utcIso": "2026-10-25T15:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "16:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 71,
+        "unixSeconds": 1792943100,
+        "utcIso": "2026-10-25T15:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "16:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 72,
+        "unixSeconds": 1792944000,
+        "utcIso": "2026-10-25T16:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "17:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 73,
+        "unixSeconds": 1792944900,
+        "utcIso": "2026-10-25T16:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "17:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 74,
+        "unixSeconds": 1792945800,
+        "utcIso": "2026-10-25T16:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "17:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 75,
+        "unixSeconds": 1792946700,
+        "utcIso": "2026-10-25T16:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "17:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 76,
+        "unixSeconds": 1792947600,
+        "utcIso": "2026-10-25T17:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "18:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 77,
+        "unixSeconds": 1792948500,
+        "utcIso": "2026-10-25T17:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "18:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 78,
+        "unixSeconds": 1792949400,
+        "utcIso": "2026-10-25T17:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "18:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 79,
+        "unixSeconds": 1792950300,
+        "utcIso": "2026-10-25T17:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "18:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 80,
+        "unixSeconds": 1792951200,
+        "utcIso": "2026-10-25T18:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "19:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 81,
+        "unixSeconds": 1792952100,
+        "utcIso": "2026-10-25T18:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "19:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 82,
+        "unixSeconds": 1792953000,
+        "utcIso": "2026-10-25T18:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "19:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 83,
+        "unixSeconds": 1792953900,
+        "utcIso": "2026-10-25T18:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "19:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 84,
+        "unixSeconds": 1792954800,
+        "utcIso": "2026-10-25T19:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "20:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 85,
+        "unixSeconds": 1792955700,
+        "utcIso": "2026-10-25T19:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "20:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 86,
+        "unixSeconds": 1792956600,
+        "utcIso": "2026-10-25T19:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "20:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 87,
+        "unixSeconds": 1792957500,
+        "utcIso": "2026-10-25T19:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "20:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 88,
+        "unixSeconds": 1792958400,
+        "utcIso": "2026-10-25T20:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "21:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 89,
+        "unixSeconds": 1792959300,
+        "utcIso": "2026-10-25T20:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "21:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 90,
+        "unixSeconds": 1792960200,
+        "utcIso": "2026-10-25T20:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "21:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 91,
+        "unixSeconds": 1792961100,
+        "utcIso": "2026-10-25T20:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "21:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 92,
+        "unixSeconds": 1792962000,
+        "utcIso": "2026-10-25T21:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "22:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 93,
+        "unixSeconds": 1792962900,
+        "utcIso": "2026-10-25T21:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "22:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 94,
+        "unixSeconds": 1792963800,
+        "utcIso": "2026-10-25T21:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "22:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 95,
+        "unixSeconds": 1792964700,
+        "utcIso": "2026-10-25T21:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "22:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 96,
+        "unixSeconds": 1792965600,
+        "utcIso": "2026-10-25T22:00:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "23:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 97,
+        "unixSeconds": 1792966500,
+        "utcIso": "2026-10-25T22:15:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "23:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 98,
+        "unixSeconds": 1792967400,
+        "utcIso": "2026-10-25T22:30:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "23:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 99,
+        "unixSeconds": 1792968300,
+        "utcIso": "2026-10-25T22:45:00.000Z",
+        "berlinDate": "2026-10-25",
+        "berlinHm": "23:45",
+        "dtHours": 0.25
+      }
+    ]
+  },
+  "normal": {
+    "dayKey": "2026-07-15",
+    "slotCount": 96,
+    "integratedPlaceholderMwhPerMw": 24,
+    "slots": [
+      {
+        "index": 0,
+        "unixSeconds": 1784066400,
+        "utcIso": "2026-07-14T22:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "00:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 1,
+        "unixSeconds": 1784067300,
+        "utcIso": "2026-07-14T22:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "00:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 2,
+        "unixSeconds": 1784068200,
+        "utcIso": "2026-07-14T22:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "00:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 3,
+        "unixSeconds": 1784069100,
+        "utcIso": "2026-07-14T22:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "00:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 4,
+        "unixSeconds": 1784070000,
+        "utcIso": "2026-07-14T23:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "01:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 5,
+        "unixSeconds": 1784070900,
+        "utcIso": "2026-07-14T23:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "01:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 6,
+        "unixSeconds": 1784071800,
+        "utcIso": "2026-07-14T23:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "01:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 7,
+        "unixSeconds": 1784072700,
+        "utcIso": "2026-07-14T23:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "01:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 8,
+        "unixSeconds": 1784073600,
+        "utcIso": "2026-07-15T00:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "02:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 9,
+        "unixSeconds": 1784074500,
+        "utcIso": "2026-07-15T00:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "02:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 10,
+        "unixSeconds": 1784075400,
+        "utcIso": "2026-07-15T00:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "02:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 11,
+        "unixSeconds": 1784076300,
+        "utcIso": "2026-07-15T00:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "02:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 12,
+        "unixSeconds": 1784077200,
+        "utcIso": "2026-07-15T01:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "03:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 13,
+        "unixSeconds": 1784078100,
+        "utcIso": "2026-07-15T01:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "03:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 14,
+        "unixSeconds": 1784079000,
+        "utcIso": "2026-07-15T01:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "03:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 15,
+        "unixSeconds": 1784079900,
+        "utcIso": "2026-07-15T01:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "03:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 16,
+        "unixSeconds": 1784080800,
+        "utcIso": "2026-07-15T02:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "04:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 17,
+        "unixSeconds": 1784081700,
+        "utcIso": "2026-07-15T02:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "04:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 18,
+        "unixSeconds": 1784082600,
+        "utcIso": "2026-07-15T02:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "04:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 19,
+        "unixSeconds": 1784083500,
+        "utcIso": "2026-07-15T02:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "04:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 20,
+        "unixSeconds": 1784084400,
+        "utcIso": "2026-07-15T03:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "05:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 21,
+        "unixSeconds": 1784085300,
+        "utcIso": "2026-07-15T03:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "05:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 22,
+        "unixSeconds": 1784086200,
+        "utcIso": "2026-07-15T03:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "05:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 23,
+        "unixSeconds": 1784087100,
+        "utcIso": "2026-07-15T03:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "05:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 24,
+        "unixSeconds": 1784088000,
+        "utcIso": "2026-07-15T04:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "06:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 25,
+        "unixSeconds": 1784088900,
+        "utcIso": "2026-07-15T04:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "06:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 26,
+        "unixSeconds": 1784089800,
+        "utcIso": "2026-07-15T04:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "06:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 27,
+        "unixSeconds": 1784090700,
+        "utcIso": "2026-07-15T04:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "06:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 28,
+        "unixSeconds": 1784091600,
+        "utcIso": "2026-07-15T05:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "07:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 29,
+        "unixSeconds": 1784092500,
+        "utcIso": "2026-07-15T05:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "07:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 30,
+        "unixSeconds": 1784093400,
+        "utcIso": "2026-07-15T05:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "07:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 31,
+        "unixSeconds": 1784094300,
+        "utcIso": "2026-07-15T05:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "07:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 32,
+        "unixSeconds": 1784095200,
+        "utcIso": "2026-07-15T06:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "08:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 33,
+        "unixSeconds": 1784096100,
+        "utcIso": "2026-07-15T06:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "08:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 34,
+        "unixSeconds": 1784097000,
+        "utcIso": "2026-07-15T06:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "08:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 35,
+        "unixSeconds": 1784097900,
+        "utcIso": "2026-07-15T06:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "08:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 36,
+        "unixSeconds": 1784098800,
+        "utcIso": "2026-07-15T07:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "09:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 37,
+        "unixSeconds": 1784099700,
+        "utcIso": "2026-07-15T07:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "09:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 38,
+        "unixSeconds": 1784100600,
+        "utcIso": "2026-07-15T07:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "09:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 39,
+        "unixSeconds": 1784101500,
+        "utcIso": "2026-07-15T07:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "09:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 40,
+        "unixSeconds": 1784102400,
+        "utcIso": "2026-07-15T08:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "10:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 41,
+        "unixSeconds": 1784103300,
+        "utcIso": "2026-07-15T08:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "10:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 42,
+        "unixSeconds": 1784104200,
+        "utcIso": "2026-07-15T08:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "10:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 43,
+        "unixSeconds": 1784105100,
+        "utcIso": "2026-07-15T08:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "10:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 44,
+        "unixSeconds": 1784106000,
+        "utcIso": "2026-07-15T09:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "11:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 45,
+        "unixSeconds": 1784106900,
+        "utcIso": "2026-07-15T09:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "11:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 46,
+        "unixSeconds": 1784107800,
+        "utcIso": "2026-07-15T09:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "11:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 47,
+        "unixSeconds": 1784108700,
+        "utcIso": "2026-07-15T09:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "11:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 48,
+        "unixSeconds": 1784109600,
+        "utcIso": "2026-07-15T10:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "12:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 49,
+        "unixSeconds": 1784110500,
+        "utcIso": "2026-07-15T10:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "12:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 50,
+        "unixSeconds": 1784111400,
+        "utcIso": "2026-07-15T10:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "12:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 51,
+        "unixSeconds": 1784112300,
+        "utcIso": "2026-07-15T10:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "12:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 52,
+        "unixSeconds": 1784113200,
+        "utcIso": "2026-07-15T11:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "13:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 53,
+        "unixSeconds": 1784114100,
+        "utcIso": "2026-07-15T11:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "13:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 54,
+        "unixSeconds": 1784115000,
+        "utcIso": "2026-07-15T11:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "13:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 55,
+        "unixSeconds": 1784115900,
+        "utcIso": "2026-07-15T11:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "13:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 56,
+        "unixSeconds": 1784116800,
+        "utcIso": "2026-07-15T12:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "14:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 57,
+        "unixSeconds": 1784117700,
+        "utcIso": "2026-07-15T12:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "14:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 58,
+        "unixSeconds": 1784118600,
+        "utcIso": "2026-07-15T12:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "14:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 59,
+        "unixSeconds": 1784119500,
+        "utcIso": "2026-07-15T12:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "14:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 60,
+        "unixSeconds": 1784120400,
+        "utcIso": "2026-07-15T13:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "15:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 61,
+        "unixSeconds": 1784121300,
+        "utcIso": "2026-07-15T13:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "15:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 62,
+        "unixSeconds": 1784122200,
+        "utcIso": "2026-07-15T13:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "15:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 63,
+        "unixSeconds": 1784123100,
+        "utcIso": "2026-07-15T13:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "15:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 64,
+        "unixSeconds": 1784124000,
+        "utcIso": "2026-07-15T14:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "16:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 65,
+        "unixSeconds": 1784124900,
+        "utcIso": "2026-07-15T14:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "16:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 66,
+        "unixSeconds": 1784125800,
+        "utcIso": "2026-07-15T14:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "16:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 67,
+        "unixSeconds": 1784126700,
+        "utcIso": "2026-07-15T14:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "16:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 68,
+        "unixSeconds": 1784127600,
+        "utcIso": "2026-07-15T15:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "17:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 69,
+        "unixSeconds": 1784128500,
+        "utcIso": "2026-07-15T15:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "17:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 70,
+        "unixSeconds": 1784129400,
+        "utcIso": "2026-07-15T15:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "17:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 71,
+        "unixSeconds": 1784130300,
+        "utcIso": "2026-07-15T15:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "17:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 72,
+        "unixSeconds": 1784131200,
+        "utcIso": "2026-07-15T16:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "18:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 73,
+        "unixSeconds": 1784132100,
+        "utcIso": "2026-07-15T16:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "18:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 74,
+        "unixSeconds": 1784133000,
+        "utcIso": "2026-07-15T16:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "18:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 75,
+        "unixSeconds": 1784133900,
+        "utcIso": "2026-07-15T16:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "18:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 76,
+        "unixSeconds": 1784134800,
+        "utcIso": "2026-07-15T17:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "19:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 77,
+        "unixSeconds": 1784135700,
+        "utcIso": "2026-07-15T17:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "19:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 78,
+        "unixSeconds": 1784136600,
+        "utcIso": "2026-07-15T17:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "19:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 79,
+        "unixSeconds": 1784137500,
+        "utcIso": "2026-07-15T17:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "19:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 80,
+        "unixSeconds": 1784138400,
+        "utcIso": "2026-07-15T18:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "20:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 81,
+        "unixSeconds": 1784139300,
+        "utcIso": "2026-07-15T18:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "20:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 82,
+        "unixSeconds": 1784140200,
+        "utcIso": "2026-07-15T18:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "20:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 83,
+        "unixSeconds": 1784141100,
+        "utcIso": "2026-07-15T18:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "20:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 84,
+        "unixSeconds": 1784142000,
+        "utcIso": "2026-07-15T19:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "21:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 85,
+        "unixSeconds": 1784142900,
+        "utcIso": "2026-07-15T19:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "21:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 86,
+        "unixSeconds": 1784143800,
+        "utcIso": "2026-07-15T19:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "21:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 87,
+        "unixSeconds": 1784144700,
+        "utcIso": "2026-07-15T19:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "21:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 88,
+        "unixSeconds": 1784145600,
+        "utcIso": "2026-07-15T20:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "22:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 89,
+        "unixSeconds": 1784146500,
+        "utcIso": "2026-07-15T20:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "22:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 90,
+        "unixSeconds": 1784147400,
+        "utcIso": "2026-07-15T20:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "22:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 91,
+        "unixSeconds": 1784148300,
+        "utcIso": "2026-07-15T20:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "22:45",
+        "dtHours": 0.25
+      },
+      {
+        "index": 92,
+        "unixSeconds": 1784149200,
+        "utcIso": "2026-07-15T21:00:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "23:00",
+        "dtHours": 0.25
+      },
+      {
+        "index": 93,
+        "unixSeconds": 1784150100,
+        "utcIso": "2026-07-15T21:15:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "23:15",
+        "dtHours": 0.25
+      },
+      {
+        "index": 94,
+        "unixSeconds": 1784151000,
+        "utcIso": "2026-07-15T21:30:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "23:30",
+        "dtHours": 0.25
+      },
+      {
+        "index": 95,
+        "unixSeconds": 1784151900,
+        "utcIso": "2026-07-15T21:45:00.000Z",
+        "berlinDate": "2026-07-15",
+        "berlinHm": "23:45",
+        "dtHours": 0.25
+      }
+    ]
+  }
+}

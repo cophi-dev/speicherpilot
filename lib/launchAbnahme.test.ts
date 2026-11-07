@@ -27,6 +27,7 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
 import { auditOrtStorageDispatch } from "@/lib/ortStorageDispatchAudit";
 import { exportNationalDayEvidence } from "@/lib/exportLaunchNationalDays";
+import { auditNationalFactorRun, expectedNationalCaps } from "@/lib/nationalFactorGate";
 
 const BUNDLE_ID =
   process.env.LAUNCH_R4_STAMP != null
@@ -75,10 +76,43 @@ function revenueEurTyptag(prices: number[], chargeMw: number[], dischargeMw: num
   return total;
 }
 
-function recomputeL1n1(l0: number[], charge: number[], discharge: number[], beta: number): number[] {
+function recomputeL1n1(
+  l0: number[],
+  charge: number[],
+  discharge: number[],
+  betaCharge: number,
+  betaDischarge: number,
+): number[] {
   return l0.map((base, i) =>
-    Math.round(Math.abs(base + beta * ((discharge[i] ?? 0) - (charge[i] ?? 0))) * 100) / 100,
+    Math.round(
+      Math.max(0, base + betaCharge * (charge[i] ?? 0) + betaDischarge * (discharge[i] ?? 0)) * 100,
+    ) / 100,
   );
+}
+
+function loadingBetasFromPhysics(physics: Record<string, unknown> | null | undefined): {
+  betaCharge: number;
+  betaDischarge: number;
+  formula: string;
+} {
+  const p = physics ?? {};
+  const betaCharge =
+    typeof p.betaChargePpPerMwN1 === "number"
+      ? p.betaChargePpPerMwN1
+      : typeof p.betaN1 === "number"
+        ? p.betaN1
+        : 0;
+  const betaDischarge =
+    typeof p.betaDischargePpPerMwN1 === "number"
+      ? p.betaDischargePpPerMwN1
+      : typeof p.betaN1 === "number"
+        ? -p.betaN1
+        : 0;
+  const formula =
+    typeof p.loadingLinearModel === "string"
+      ? p.loadingLinearModel
+      : "L1n1_pp = max(0, L0_n1_pp + betaCharge*c + betaDischarge*d)";
+  return { betaCharge, betaDischarge, formula };
 }
 
 function round4(value: number): number {
@@ -356,8 +390,10 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       MODES.map((mode) => {
         const data = archetypeByKey(archKey);
         const series = data.series.modes[mode];
-        const beta = data.dispatchPhysics?.betaN1 ?? 0;
-        const l1Recomputed = recomputeL1n1(data.series.L0n1, series.c, series.d, beta);
+        const { betaCharge, betaDischarge, formula: loadingFormula } = loadingBetasFromPhysics(
+          data.dispatchPhysics as Record<string, unknown> | undefined,
+        );
+        const l1Recomputed = recomputeL1n1(data.series.L0n1, series.c, series.d, betaCharge, betaDischarge);
         const maxL1RecomputeGap = Math.max(...series.L1n1.map((l1, i) => Math.abs(l1 - l1Recomputed[i])));
         const audit = auditBadgeV2({ L0n1: data.series.L0n1, L1n1: series.L1n1 });
         const storageAudit = auditOrtStorageDispatch({
@@ -380,6 +416,9 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
             voltageModeled:
               "vmin/vmax pandapower Typtag-Baseline ohne Speicher — keine Spannungswirkung des Batterie-Dispatch",
             dispatchPhysics: data.dispatchPhysics ?? null,
+            loadingLinearModel: loadingFormula,
+            betaChargePpPerMwN1: betaCharge,
+            betaDischargePpPerMwN1: betaDischarge,
             bezugFestMw: data.xMw,
             einspeisFlexMw: data.yMw,
             storagePMw: data.storage.pMw,
@@ -458,12 +497,30 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
 
     const nationalDays = ["2026-10-24", "2026-10-02", "2026-10-25", "2025-03-30"];
     const nationalFiles: string[] = [];
+    const nationalFactorAudit: Record<string, unknown> = {};
     for (const dayKey of nationalDays) {
       const pack = await exportNationalDayEvidence(dayKey, [1, 2, 5, 10]);
       const file = `national-day-${dayKey}.json`;
       writeFileSync(join(ARTIFACT_DIR, file), JSON.stringify(pack, null, 2));
       nationalFiles.push(file);
+      for (const run of pack.factorRuns) {
+        const errs = auditNationalFactorRun(run);
+        nationalFactorAudit[`${dayKey}×${run.factor}`] = {
+          expected: expectedNationalCaps(run.factor),
+          observed: {
+            nameplateEnergyMwh: run.nameplateEnergyMwh,
+            nameplatePowerMw: run.nameplatePowerMw,
+            usableEnergyCapMwh: run.usableEnergyCapMwh,
+            maxSocMwhObserved: run.maxSocMwhObserved,
+            absorbedMwh: run.absorbedMwh,
+            dischargedMwh: run.dischargedMwh,
+          },
+          ok: errs.length === 0,
+          errors: errs,
+        };
+      }
     }
+    writeFileSync(join(ARTIFACT_DIR, "national-factor-gate.json"), JSON.stringify(nationalFactorAudit, null, 2));
 
     const readme = {
       bundleId: BUNDLE_ID,
@@ -485,6 +542,7 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
         "ort-revenue-compare.json",
         "dst-timestamps.json",
         ...nationalFiles,
+        "national-factor-gate.json",
         ...netzExports.map((n) => n.file),
         "grid-v1-sample.json",
       ],
@@ -534,6 +592,24 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
     }
     expect(readme.ui.monatPrimaryGraph).toBe(true);
     expect(addBerlinCalendarDays("2025-03-29", 1)).toBe("2025-03-30");
+
+    for (const [key, row] of Object.entries(nationalFactorAudit)) {
+      const ok = (row as { ok: boolean }).ok;
+      if (!ok) {
+        throw new Error(`national factor gate ${key}: ${JSON.stringify(row)}`);
+      }
+      expect(ok).toBe(true);
+    }
+    const okt24 = JSON.parse(
+      readFileSync(join(ARTIFACT_DIR, "national-day-2026-10-24.json"), "utf8"),
+    ) as Awaited<ReturnType<typeof exportNationalDayEvidence>>;
+    for (const factor of [1, 2, 5, 10] as const) {
+      const run = okt24.factorRuns.find((r) => r.factor === factor);
+      expect(run).toBeDefined();
+      const cap = expectedNationalCaps(factor);
+      expect(run!.usableEnergyCapMwh).toBeCloseTo(cap.usableMwh, 1);
+      expect(run!.maxSocMwhObserved).toBeLessThanOrEqual(cap.usableMwh + 0.05);
+    }
 
     mkdirSync(join(MIRROR_ROOT, BUNDLE_ID), { recursive: true });
     cpSync(ARTIFACT_DIR, join(MIRROR_ROOT, BUNDLE_ID), { recursive: true });

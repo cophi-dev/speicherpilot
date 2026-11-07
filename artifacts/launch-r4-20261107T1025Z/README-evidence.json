@@ -1,0 +1,62 @@
+{
+  "bundleId": "launch-r4-20261107T1025Z",
+  "sourceCommit": "28fd4d31148997714e8a8d9d9b3797fede510fc5",
+  "generatedAt": "2026-11-07T09:31:23.612Z",
+  "generator": "lib/launchAbnahme.test.ts",
+  "mirrorPath": "/opt/cursor/artifacts/launch-r4-20261107T1025Z",
+  "supersededBundles": [
+    "artifacts/launch-abnahme (R2; nicht für R3/R4 verwenden)"
+  ],
+  "rules": {
+    "ortNetzBadge": "ort-badge-v2 (see badge audits in netz-*-timeseries.json)",
+    "siteConnectionBadge": "grid-support v1 (60 % discharge in ≥90 % peak intervals, no new charge peak)",
+    "notMixed": "Ort /ort uses v2 only; /site connection uses v1 — documented separately"
+  },
+  "files": [
+    "dispatch-evidence.json",
+    "chain-fleet-evidence.json",
+    "monat-2026-10-aggregate.json",
+    "monat-2026-11-partial.json",
+    "ort-revenue-compare.json",
+    "dst-timestamps.json",
+    "national-day-2026-10-24.json",
+    "national-day-2026-10-02.json",
+    "national-day-2026-10-25.json",
+    "national-day-2025-03-30.json",
+    "national-factor-gate.json",
+    "netz-land-markt-timeseries.json",
+    "netz-land-vertrag-timeseries.json",
+    "netz-land-netz-timeseries.json",
+    "netz-stadt-markt-timeseries.json",
+    "netz-stadt-vertrag-timeseries.json",
+    "netz-stadt-netz-timeseries.json",
+    "grid-v1-sample.json",
+    "lighthouse-a11y-summary.json",
+    "a11y-root.json",
+    "a11y-monat_2026-10.json",
+    "a11y-tag_2026-10-24.json",
+    "a11y-ort_sicht_netz.json",
+    "ort-netz-legend-800w.png"
+  ],
+  "deprecatedNotEvidence": [
+    "artifacts/launch-abnahme/*",
+    "pruefmatrix.json"
+  ],
+  "tolerances": {
+    "socResidualMwh": 0.0001,
+    "gwh": 0.02
+  },
+  "ui": {
+    "monatPrimaryGraph": true,
+    "legendN1Screenshot800w": "ort-netz-legend-800w.png"
+  },
+  "lighthouse": {
+    "summary": "lighthouse-a11y-summary.json",
+    "reports": [
+      "a11y-root.json",
+      "a11y-monat_2026-10.json",
+      "a11y-tag_2026-10-24.json",
+      "a11y-ort_sicht_netz.json"
+    ]
+  }
+}

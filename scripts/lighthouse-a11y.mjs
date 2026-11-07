@@ -22,7 +22,25 @@ async function main() {
     );
     const report = JSON.parse(readFileSync(outFile, "utf8"));
     const score = Math.round((report.categories?.accessibility?.score ?? 0) * 100);
-    summary.routes.push({ path, score, outFile, audits: report.audits ? Object.keys(report.audits).length : 0 });
+    summary.routes.push({
+      path,
+      score,
+      outFile,
+      audits: report.audits ? Object.keys(report.audits).length : 0,
+      requestedUrl: report.requestedUrl ?? `${BASE}${path}`,
+      fetchTime: report.fetchTime ?? null,
+      lighthouseVersion: report.lighthouseVersion ?? null,
+      userAgent: report.userAgent ?? null,
+      runWarnings: report.runWarnings ?? [],
+      accessibilityScore: report.categories?.accessibility?.score ?? null,
+      settings: report.configSettings
+        ? {
+            onlyCategories: report.configSettings.onlyCategories,
+            formFactor: report.configSettings.formFactor,
+            screenEmulation: report.configSettings.screenEmulation,
+          }
+        : null,
+    });
   }
   writeFileSync(join(OUT, "lighthouse-a11y-summary.json"), JSON.stringify(summary, null, 2));
   console.log(JSON.stringify(summary, null, 2));

@@ -1,0 +1,274 @@
+{
+  "2026-10-24×1": {
+    "expected": {
+      "energyMwh": 8000,
+      "powerMw": 4580,
+      "usableMwh": 6400
+    },
+    "observed": {
+      "nameplateEnergyMwh": 8000,
+      "nameplatePowerMw": 4580,
+      "usableEnergyCapMwh": 6400,
+      "maxSocMwhObserved": 6400,
+      "absorbedMwh": 6400,
+      "dischargedMwh": 5440
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-24×2": {
+    "expected": {
+      "energyMwh": 16000,
+      "powerMw": 9160,
+      "usableMwh": 12800
+    },
+    "observed": {
+      "nameplateEnergyMwh": 16000,
+      "nameplatePowerMw": 9160,
+      "usableEnergyCapMwh": 12800,
+      "maxSocMwhObserved": 12800,
+      "absorbedMwh": 12800,
+      "dischargedMwh": 10880
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-24×5": {
+    "expected": {
+      "energyMwh": 40000,
+      "powerMw": 22900,
+      "usableMwh": 32000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 40000,
+      "nameplatePowerMw": 22900,
+      "usableEnergyCapMwh": 32000,
+      "maxSocMwhObserved": 32000,
+      "absorbedMwh": 32000,
+      "dischargedMwh": 27199.999999999996
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-24×10": {
+    "expected": {
+      "energyMwh": 80000,
+      "powerMw": 45800,
+      "usableMwh": 64000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 80000,
+      "nameplatePowerMw": 45800,
+      "usableEnergyCapMwh": 64000,
+      "maxSocMwhObserved": 61103.90000000001,
+      "absorbedMwh": 61103.90000000001,
+      "dischargedMwh": 51938.31500000001
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-02×1": {
+    "expected": {
+      "energyMwh": 8000,
+      "powerMw": 4580,
+      "usableMwh": 6400
+    },
+    "observed": {
+      "nameplateEnergyMwh": 8000,
+      "nameplatePowerMw": 4580,
+      "usableEnergyCapMwh": 6400,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-02×2": {
+    "expected": {
+      "energyMwh": 16000,
+      "powerMw": 9160,
+      "usableMwh": 12800
+    },
+    "observed": {
+      "nameplateEnergyMwh": 16000,
+      "nameplatePowerMw": 9160,
+      "usableEnergyCapMwh": 12800,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-02×5": {
+    "expected": {
+      "energyMwh": 40000,
+      "powerMw": 22900,
+      "usableMwh": 32000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 40000,
+      "nameplatePowerMw": 22900,
+      "usableEnergyCapMwh": 32000,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-02×10": {
+    "expected": {
+      "energyMwh": 80000,
+      "powerMw": 45800,
+      "usableMwh": 64000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 80000,
+      "nameplatePowerMw": 45800,
+      "usableEnergyCapMwh": 64000,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-25×1": {
+    "expected": {
+      "energyMwh": 8000,
+      "powerMw": 4580,
+      "usableMwh": 6400
+    },
+    "observed": {
+      "nameplateEnergyMwh": 8000,
+      "nameplatePowerMw": 4580,
+      "usableEnergyCapMwh": 6400,
+      "maxSocMwhObserved": 6400,
+      "absorbedMwh": 6400,
+      "dischargedMwh": 5440.000000000001
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-25×2": {
+    "expected": {
+      "energyMwh": 16000,
+      "powerMw": 9160,
+      "usableMwh": 12800
+    },
+    "observed": {
+      "nameplateEnergyMwh": 16000,
+      "nameplatePowerMw": 9160,
+      "usableEnergyCapMwh": 12800,
+      "maxSocMwhObserved": 9637.699999999995,
+      "absorbedMwh": 9637.699999999995,
+      "dischargedMwh": 8192.044999999991
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-25×5": {
+    "expected": {
+      "energyMwh": 40000,
+      "powerMw": 22900,
+      "usableMwh": 32000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 40000,
+      "nameplatePowerMw": 22900,
+      "usableEnergyCapMwh": 32000,
+      "maxSocMwhObserved": 9637.699999999995,
+      "absorbedMwh": 9637.699999999995,
+      "dischargedMwh": 8192.044999999991
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2026-10-25×10": {
+    "expected": {
+      "energyMwh": 80000,
+      "powerMw": 45800,
+      "usableMwh": 64000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 80000,
+      "nameplatePowerMw": 45800,
+      "usableEnergyCapMwh": 64000,
+      "maxSocMwhObserved": 9637.699999999995,
+      "absorbedMwh": 9637.699999999995,
+      "dischargedMwh": 8192.044999999991
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2025-03-30×1": {
+    "expected": {
+      "energyMwh": 8000,
+      "powerMw": 4580,
+      "usableMwh": 6400
+    },
+    "observed": {
+      "nameplateEnergyMwh": 8000,
+      "nameplatePowerMw": 4580,
+      "usableEnergyCapMwh": 6400,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2025-03-30×2": {
+    "expected": {
+      "energyMwh": 16000,
+      "powerMw": 9160,
+      "usableMwh": 12800
+    },
+    "observed": {
+      "nameplateEnergyMwh": 16000,
+      "nameplatePowerMw": 9160,
+      "usableEnergyCapMwh": 12800,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2025-03-30×5": {
+    "expected": {
+      "energyMwh": 40000,
+      "powerMw": 22900,
+      "usableMwh": 32000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 40000,
+      "nameplatePowerMw": 22900,
+      "usableEnergyCapMwh": 32000,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  },
+  "2025-03-30×10": {
+    "expected": {
+      "energyMwh": 80000,
+      "powerMw": 45800,
+      "usableMwh": 64000
+    },
+    "observed": {
+      "nameplateEnergyMwh": 80000,
+      "nameplatePowerMw": 45800,
+      "usableEnergyCapMwh": 64000,
+      "maxSocMwhObserved": 0,
+      "absorbedMwh": 0,
+      "dischargedMwh": 0
+    },
+    "ok": true,
+    "errors": []
+  }
+}

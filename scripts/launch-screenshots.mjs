@@ -61,6 +61,18 @@ async function main() {
 
   const browser = await chromium.launch();
 
+  {
+    const page = await browser.newPage();
+    await page.setViewportSize({ width: 800, height: 900 });
+    await page.goto(`${BASE}/ort?sicht=netz`, { waitUntil: "networkidle", timeout: 120_000 });
+    await setTheme(page, "light");
+    await page.waitForSelector(".ort-netz-legend, [class*='legend']", { timeout: 60_000 }).catch(() => {});
+    const shot = `${OUT}/ort-netz-legend-800w.png`;
+    await page.screenshot({ path: shot, fullPage: false });
+    report.files.push({ name: "ort-netz-legend-800w", path: shot, viewportWidth: 800, purpose: "n-1 palette legend below 960px" });
+    await page.close();
+  }
+
   for (const width of [375, 1280]) {
     const page = await browser.newPage();
     await page.setViewportSize({ width, height: width < 500 ? 900 : 960 });

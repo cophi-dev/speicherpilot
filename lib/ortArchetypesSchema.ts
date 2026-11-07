@@ -91,6 +91,11 @@ export const ortArchetypeSchema = z.object({
       socMaxFraction: z.number(),
       terminalSocEqualsStart: z.boolean(),
       mipExclusiveChargeDischarge: z.boolean(),
+      loadingLinearModel: z.string().optional(),
+      betaChargePpPerMwN0: z.number().optional(),
+      betaDischargePpPerMwN0: z.number().optional(),
+      betaChargePpPerMwN1: z.number().optional(),
+      betaDischargePpPerMwN1: z.number().optional(),
       betaN0: z.number(),
       betaN1: z.number(),
     })

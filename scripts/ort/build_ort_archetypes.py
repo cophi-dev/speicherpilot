@@ -631,6 +631,17 @@ def flow_slope(net, mv, abs_values, day_index: int, qh: int, bus: int, mode: str
     return stressed - base
 
 
+def loading_pp_with_storage(
+    l0: float,
+    charge_mw: float,
+    discharge_mw: float,
+    beta_charge: float,
+    beta_discharge: float,
+) -> float:
+    """Linearized bottleneck loading (pp); clamp at 0 — no abs() (avoids false flip past zero)."""
+    return max(0.0, l0 + beta_charge * charge_mw + beta_discharge * discharge_mw)
+
+
 def load_prices_12m() -> list[dict]:
     payload = json.loads(PRICES_PATH.read_text(encoding="utf-8"))
     return payload["days"]
@@ -743,7 +754,18 @@ class OrtDayModel:
         self.row_lo = np.zeros(num_soc)
         self.row_hi = np.zeros(num_soc)
 
-    def solve(self, prices: list[float], power: float, energy: float, cap_c: np.ndarray, cap_d: np.ndarray, objective: str, l0: list[float], beta: float) -> dict:
+    def solve(
+        self,
+        prices: list[float],
+        power: float,
+        energy: float,
+        cap_c: np.ndarray,
+        cap_d: np.ndarray,
+        objective: str,
+        l0: list[float],
+        beta_charge: float,
+        beta_discharge: float,
+    ) -> dict:
         n = self.n
         scaled = np.asarray(prices, dtype=float) * DT
         self.cost[:n] = -scaled
@@ -755,8 +777,8 @@ class OrtDayModel:
                 weights = np.ones(n)
             price_pull = np.asarray(scaled, dtype=float)
             pull = NETZ_PRICE_PULL * price_pull
-            self.cost[:n] = weights * beta + NETZ_EPS - pull
-            self.cost[n : 2 * n] = -weights * beta + NETZ_EPS + pull
+            self.cost[:n] = weights * beta_charge + NETZ_EPS - pull
+            self.cost[n : 2 * n] = weights * beta_discharge + NETZ_EPS + pull
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
         else:
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
@@ -817,8 +839,10 @@ def dispatch_modes(
     energy: float,
     l0_n0: list[float],
     l0_n1: list[float],
-    beta_n0: float,
-    beta_n1: float,
+    beta_n0_charge: float,
+    beta_n0_discharge: float,
+    beta_n1_charge: float,
+    beta_n1_discharge: float,
     forbid_discharge: list[bool],
     forbid_charge: list[bool],
     window: list[int],
@@ -829,7 +853,7 @@ def dispatch_modes(
     model = OrtDayModel(n)
     full_c = np.full(n, power)
     full_d = np.full(n, power)
-    markt = model.solve(prices, power, energy, full_c, full_d, "markt", l0_n0, beta_n0)
+    markt = model.solve(prices, power, energy, full_c, full_d, "markt", l0_n0, 0.0, 0.0)
 
     cap_c = np.zeros(n)
     cap_d = np.zeros(n)
@@ -841,14 +865,36 @@ def dispatch_modes(
         else:
             cap_c[qh] = power
             cap_d[qh] = power
-    vertrag = model.solve(prices, power, energy, cap_c, cap_d, "markt", l0_n0, beta_n0)
-    netz = model.solve(prices, power, energy, full_c, full_d, "netz", l0_n1, beta_n1)
+    vertrag = model.solve(prices, power, energy, cap_c, cap_d, "markt", l0_n0, 0.0, 0.0)
+    netz = model.solve(
+        prices,
+        power,
+        energy,
+        full_c,
+        full_d,
+        "netz",
+        l0_n1,
+        beta_n1_charge,
+        beta_n1_discharge,
+    )
 
     def series(mode_result: dict) -> dict:
         c = mode_result["c"]
         d = mode_result["d"]
-        l1n0 = [round(abs(l0_n0[t] + beta_n0 * (d[t] - c[t])), 2) for t in range(n)]
-        l1n1 = [round(abs(l0_n1[t] + beta_n1 * (d[t] - c[t])), 2) for t in range(n)]
+        l1n0 = [
+            round(
+                loading_pp_with_storage(l0_n0[t], c[t], d[t], beta_n0_charge, beta_n0_discharge),
+                2,
+            )
+            for t in range(n)
+        ]
+        l1n1 = [
+            round(
+                loading_pp_with_storage(l0_n1[t], c[t], d[t], beta_n1_charge, beta_n1_discharge),
+                2,
+            )
+            for t in range(n)
+        ]
         return {
             "c": [round(v, 4) for v in c],
             "d": [round(v, 4) for v in d],
@@ -886,7 +932,8 @@ def count_conflicts_12m(
     net,
     abs_values,
     l0_cache: L0N1DayCache,
-    beta_n1: float,
+    beta_n1_charge: float,
+    beta_n1_discharge: float,
     price_days: list[dict],
     power: float,
     energy: float,
@@ -907,14 +954,14 @@ def count_conflicts_12m(
         l0_day = [l0_cache.at(day_index, qh) for qh in range(n)]
         full_c = np.full(n, power)
         full_d = np.full(n, power)
-        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", l0_day, beta_n1)
+        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", l0_day, 0.0, 0.0)
         day_conflict = False
         for qh in range(n):
             l0 = l0_day[qh]
             d = markt["d"][qh]
             c = markt["c"][qh]
-            l1 = l0 + beta_n1 * (d - c)
-            if abs(l1) > 100.0 + 1e-6 and abs(l1) > abs(l0) + 1e-6:
+            l1 = loading_pp_with_storage(l0, c, d, beta_n1_charge, beta_n1_discharge)
+            if l1 > 100.0 + 1e-6 and l1 > abs(l0) + 1e-6:
                 qh_total += 1
                 mwh_total += abs(d - c) * DT
                 day_conflict = True
@@ -928,7 +975,8 @@ def revenue_pct_12m(
     net,
     abs_values,
     l0_cache: L0N1DayCache,
-    beta_n1: float,
+    beta_n1_charge: float,
+    beta_n1_discharge: float,
     price_days: list[dict],
     power: float,
     energy: float,
@@ -945,7 +993,7 @@ def revenue_pct_12m(
         l0_day = [l0_cache.at(day_index, qh) for qh in range(n)]
         full_c = np.full(n, power)
         full_d = np.full(n, power)
-        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", l0_day, beta_n1)
+        markt = model.solve(day["prices"], power, energy, full_c, full_d, "markt", l0_day, 0.0, 0.0)
         cap_c = np.zeros(n)
         cap_d = np.zeros(n)
         window_set = set(i % 96 for i in window)
@@ -957,8 +1005,18 @@ def revenue_pct_12m(
             else:
                 cap_c[qh] = power
                 cap_d[qh] = power
-        vertrag = model.solve(day["prices"], power, energy, cap_c, cap_d, "markt", l0_day, beta_n1)
-        netz = model.solve(day["prices"], power, energy, full_c, full_d, "netz", l0_day, beta_n1)
+        vertrag = model.solve(day["prices"], power, energy, cap_c, cap_d, "markt", l0_day, 0.0, 0.0)
+        netz = model.solve(
+            day["prices"],
+            power,
+            energy,
+            full_c,
+            full_d,
+            "netz",
+            l0_day,
+            beta_n1_charge,
+            beta_n1_discharge,
+        )
         totals["markt"] += markt["revenue"]
         totals["vertrag"] += vertrag["revenue"]
         totals["netz"] += netz["revenue"]
@@ -1006,11 +1064,17 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
         warnings_local.append(f"priceDay {price_day} hat {len(day_prices)} Viertelstunden")
         day_prices = (day_prices + day_prices)[:96]
     window = contract_window(key, forbid_discharge, forbid_charge)
-    beta_n0 = flow_slope(
-        net, mv, abs_values, day_index, eng["t_star"], bus, mode, eng["b_kind"], eng["b_idx"], False, eng["k_kind"], eng["k_idx"]
+    beta_n0_charge = flow_slope(
+        net, mv, abs_values, day_index, eng["t_star"], bus, "laden", eng["b_kind"], eng["b_idx"], False, eng["k_kind"], eng["k_idx"]
     )
-    beta_n1 = flow_slope(
-        net, mv, abs_values, day_index, eng["t_star"], bus, mode, eng["b_kind"], eng["b_idx"], True, eng["k_kind"], eng["k_idx"]
+    beta_n0_discharge = flow_slope(
+        net, mv, abs_values, day_index, eng["t_star"], bus, "entladen", eng["b_kind"], eng["b_idx"], False, eng["k_kind"], eng["k_idx"]
+    )
+    beta_n1_charge = flow_slope(
+        net, mv, abs_values, day_index, eng["t_star"], bus, "laden", eng["b_kind"], eng["b_idx"], True, eng["k_kind"], eng["k_idx"]
+    )
+    beta_n1_discharge = flow_slope(
+        net, mv, abs_values, day_index, eng["t_star"], bus, "entladen", eng["b_kind"], eng["b_idx"], True, eng["k_kind"], eng["k_idx"]
     )
     modes = dispatch_modes(
         key,
@@ -1019,8 +1083,10 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
         energy,
         eng["L0_n0"],
         eng["L0_n1"],
-        beta_n0,
-        beta_n1,
+        beta_n0_charge,
+        beta_n0_discharge,
+        beta_n1_charge,
+        beta_n1_discharge,
         forbid_discharge,
         forbid_charge,
         window,
@@ -1053,8 +1119,10 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             energy,
             eng["L0_n0"],
             eng["L0_n1"],
-            beta_n0,
-            beta_n1,
+            beta_n0_charge,
+            beta_n0_discharge,
+            beta_n1_charge,
+            beta_n1_discharge,
             forbid_discharge,
             forbid_charge,
             window,
@@ -1113,8 +1181,13 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             "socMaxFraction": 0.9,
             "terminalSocEqualsStart": True,
             "mipExclusiveChargeDischarge": True,
-            "betaN0": beta_n0,
-            "betaN1": beta_n1,
+            "loadingLinearModel": "L1n1_pp = max(0, L0_n1_pp + betaCharge_pp_per_MW*c_MW + betaDischarge_pp_per_MW*d_MW)",
+            "betaChargePpPerMwN0": beta_n0_charge,
+            "betaDischargePpPerMwN0": beta_n0_discharge,
+            "betaChargePpPerMwN1": beta_n1_charge,
+            "betaDischargePpPerMwN1": beta_n1_discharge,
+            "betaN0": beta_n0_charge,
+            "betaN1": beta_n1_discharge,
         },
     }
 
