@@ -386,7 +386,16 @@ function ArchetypeDayChart({
   const tickFont = svgFont(11);
 
   return (
-    <figure className="ort-archetype-chart">
+    <figure
+      className="ort-archetype-chart"
+      style={
+        {
+          "--ort-line-n0": palette.lineBelow80,
+          "--ort-line-n1": palette.line80to100,
+          "--ort-line-l1": palette.lineOver100,
+        } as React.CSSProperties
+      }
+    >
       <div className="ort-archetype-chart-frame">
         <p className="ort-chart-axis-html-y" aria-hidden="true">
           {tx("Auslastung der Leitung in %", "Line loading in %")}
@@ -471,6 +480,12 @@ function ArchetypeDayChart({
             {tx("Speicherleistung (Laden/Entladen)", "Storage power (charge/discharge)")}
           </li>
           <li>{tx("Schattierung = Engpassfenster (flexibler Vertrag)", "Shading = bottleneck window (flexible contract)")}</li>
+          <li>
+            {tx(
+              "vmin/vmax: pandapower-Baseline ohne Speicher — keine abgebildete Spannungswirkung des Mustertags-Dispatch.",
+              "vmin/vmax: pandapower baseline without storage — no modelled voltage effect from the sample-day dispatch.",
+            )}
+          </li>
         </ul>
       </figcaption>
       <div className="day-sr">

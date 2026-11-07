@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import { execSync } from "node:child_process";
-import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
+import { cpSync, writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import fixture from "@/lib/__fixtures__/auffaelligkeit-records.json";
@@ -25,8 +25,15 @@ import { berlinMonthKeyFromDateKey, buildMonatGrid, daysInBerlinMonth, formatBer
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
+import { auditOrtStorageDispatch } from "@/lib/ortStorageDispatchAudit";
+import { exportNationalDayEvidence } from "@/lib/exportLaunchNationalDays";
 
-const ARTIFACT_DIR = join(process.cwd(), "artifacts/launch-abnahme");
+const BUNDLE_ID =
+  process.env.LAUNCH_R4_STAMP != null
+    ? `launch-r4-${process.env.LAUNCH_R4_STAMP}`
+    : `launch-r4-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`;
+const ARTIFACT_DIR = join(process.cwd(), "artifacts", BUNDLE_ID);
+const MIRROR_ROOT = "/opt/cursor/artifacts";
 const ARCHETYPES: Array<"land" | "stadt"> = ["land", "stadt"];
 const MODES: OrtMode[] = ["markt", "vertrag", "netz"];
 const DT_H = 0.25;
@@ -68,11 +75,10 @@ function revenueEurTyptag(prices: number[], chargeMw: number[], dischargeMw: num
   return total;
 }
 
-function endSocMwh(socSeries: number[], energyMwh: number): { startSocMwh: number; endSocMwh: number } {
-  if (socSeries.length === 0) {
-    return { startSocMwh: 0.5 * energyMwh, endSocMwh: 0.5 * energyMwh };
-  }
-  return { startSocMwh: socSeries[0], endSocMwh: socSeries[socSeries.length - 1] };
+function recomputeL1n1(l0: number[], charge: number[], discharge: number[], beta: number): number[] {
+  return l0.map((base, i) =>
+    Math.round(Math.abs(base + beta * ((discharge[i] ?? 0) - (charge[i] ?? 0))) * 100) / 100,
+  );
 }
 
 function round4(value: number): number {
@@ -154,7 +160,7 @@ function residualSlot(date: string, hour: number, loadMw: number, windMw: number
 describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
   const records = fixture as TagesKennzahlRecord[];
 
-  it("writes INPUT/OUTPUT evidence under artifacts/launch-abnahme", () => {
+  it("writes R4 evidence bundle under artifacts/launch-r4-*", async () => {
     mkdirSync(ARTIFACT_DIR, { recursive: true });
     const sourceCommit = gitHead();
 
@@ -311,15 +317,18 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
     };
 
     const monthNov = "2026-11";
+    const asOfBerlin = "2026-11-07";
     const gridNov = buildMonatGrid({
       monthKey: monthNov,
       records,
-      todayKey: "2026-11-04",
-      lastCompleteDayKey: "2026-11-03",
+      todayKey: asOfBerlin,
+      lastCompleteDayKey: "2026-11-06",
     });
     const barsNov = barsFromMonatGrid(gridNov);
     const monatNovEvidence = {
       sourceCommit,
+      bundleId: BUNDLE_ID,
+      asOfBerlin,
       monthKey: monthNov,
       archivedComplete: false,
       daysInCalendar: daysInBerlinMonth(monthNov).length,
@@ -347,38 +356,50 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       MODES.map((mode) => {
         const data = archetypeByKey(archKey);
         const series = data.series.modes[mode];
+        const beta = data.dispatchPhysics?.betaN1 ?? 0;
+        const l1Recomputed = recomputeL1n1(data.series.L0n1, series.c, series.d, beta);
+        const maxL1RecomputeGap = Math.max(...series.L1n1.map((l1, i) => Math.abs(l1 - l1Recomputed[i])));
         const audit = auditBadgeV2({ L0n1: data.series.L0n1, L1n1: series.L1n1 });
+        const storageAudit = auditOrtStorageDispatch({
+          chargeMw: series.c,
+          dischargeMw: series.d,
+          socStartMwh: series.soc,
+          energyMwh: data.storage.eMwh,
+          powerMw: data.storage.pMw,
+        });
         const dayPrices = pricesForDay(priceDays, data.priceDay);
-        const soc = endSocMwh(series.soc, data.storage.eMwh);
         const revenueEur = revenueEurTyptag(dayPrices, series.c, series.d);
-        const signedDispatchMw = series.d.map((d, i) => round4(d - series.c[i]));
-        const flowDeltaL1Mw = series.L1n1.map((l1, i) => round4(l1 - data.series.L0n1[i]));
+        const signedBatteryMw = series.d.map((d, i) => round4(d - series.c[i]));
+        const loadingDeltaPp = data.series.L0n1.map((l0, i) => round4(l1Recomputed[i] - l0));
         return {
           file: `netz-${archKey}-${mode}-timeseries.json`,
           meta: {
             archetype: archKey,
             mode,
             syntheticExample: `SimBench-Typtag ${data.typtag}, Day-Ahead ${data.priceDay}; kein Messjahr`,
-            voltageModeled: "vmin/vmax arrays per qh (pandapower); keine n-1-Physik im Badge v2",
+            voltageModeled:
+              "vmin/vmax pandapower Typtag-Baseline ohne Speicher — keine Spannungswirkung des Batterie-Dispatch",
+            dispatchPhysics: data.dispatchPhysics ?? null,
             bezugFestMw: data.xMw,
             einspeisFlexMw: data.yMw,
             storagePMw: data.storage.pMw,
             storageEMwh: data.storage.eMwh,
             socConvention:
-              "LP: Start 0,5·E_MWh, Bounds 0,1·E … 0,9·E; soc[] = SoC zu Beginn jedes qh (MWh nutzbar)",
+              "MIP: Start 0,5·E, nutzbar 0,1·E…0,9·E; soc[] = SoC zu qh-Beginn; socEndMwh = nach letztem Intervall",
             solverMutualExclusiveChargeDischarge:
-              "Nach LP: in jedem qh max(c,d); kein gleichzeitiges Laden/Entladen (Ort-Netzmodell)",
+              "HiGHS-MIP: Binary z pro qh; c≤Pc·z, d≤Pd·(1−z); terminal SoC = Start",
             revenuePctVsMarkt: data.revenuePctTyptag[mode],
             revenueEurTyptag: round4(revenueEur),
             revenueUnit: "EUR/MWh Day-Ahead·0,25 h",
             revenueNote:
               "Prozent = Modellerlös am Mustertag relativ zum Markt-Modus am selben Tag (100 % Basis). Erlöse absolut nur bei gleichem End-SoC fair vergleichbar — siehe revenueFairness.",
             revenueFairness: {
-              startSocMwh: soc.startSocMwh,
-              endSocMwh: soc.endSocMwh,
-              restEnergyMwhVsStart: round4(soc.endSocMwh - soc.startSocMwh),
-              note: "Unbereinigter EUR-Vergleich across Modi nur mit gleichem endSocMwh oder Restbewertung",
+              startSocMwh: round4(series.soc[0] ?? 0),
+              endSocMwh: round4(storageAudit.socEndMwh),
+              restEnergyMwhVsStart: round4(storageAudit.socEndMwh - (series.soc[0] ?? 0)),
+              terminalSocEqualsStart: true,
             },
+            storageDispatchAudit: storageAudit,
             badgeRule: audit.ruleSummary,
             badgeStoredInJson: data.badge[mode],
           },
@@ -389,11 +410,14 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
             L0n0: data.series.L0n0,
             L0n1: data.series.L0n1,
             L1n1: series.L1n1,
+            L1n1RecomputedFromDispatch: l1Recomputed.map((v) => round4(v)),
+            maxL1RecomputeGapPp: round4(maxL1RecomputeGap),
             chargeMw: series.c,
             dischargeMw: series.d,
-            signedDispatchMw,
-            flowDeltaL1n1Mw: flowDeltaL1Mw,
-            socMwh: series.soc,
+            signedBatteryMw,
+            loadingDeltaPp,
+            socStartMwh: series.soc,
+            socEndMwh: round4(storageAudit.socEndMwh),
             vmin: series.vmin,
             vmax: series.vmax,
           },
@@ -407,12 +431,19 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       const modes = data.series.modes;
       const pick = (m: OrtMode) => {
         const s = modes[m];
-        const soc = endSocMwh(s.soc, data.storage.eMwh);
+        const audit = auditOrtStorageDispatch({
+          chargeMw: s.c,
+          dischargeMw: s.d,
+          socStartMwh: s.soc,
+          energyMwh: data.storage.eMwh,
+          powerMw: data.storage.pMw,
+        });
         return {
           revenueEurTyptag: round4(revenueEurTyptag(prices, s.c, s.d)),
           revenuePctVsMarkt: data.revenuePctTyptag[m],
-          startSocMwh: round4(soc.startSocMwh),
-          endSocMwh: round4(soc.endSocMwh),
+          startSocMwh: round4(s.soc[0] ?? 0),
+          endSocMwh: round4(audit.socEndMwh),
+          storageDispatchAudit: audit,
         };
       };
       return { archetype: archKey, priceDay: data.priceDay, markt: pick("markt"), vertrag: pick("vertrag"), netz: pick("netz") };
@@ -425,9 +456,22 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       limitKw: 450,
     });
 
+    const nationalDays = ["2026-10-24", "2026-10-02", "2026-10-25", "2025-03-30"];
+    const nationalFiles: string[] = [];
+    for (const dayKey of nationalDays) {
+      const pack = await exportNationalDayEvidence(dayKey, [1, 2, 5, 10]);
+      const file = `national-day-${dayKey}.json`;
+      writeFileSync(join(ARTIFACT_DIR, file), JSON.stringify(pack, null, 2));
+      nationalFiles.push(file);
+    }
+
     const readme = {
+      bundleId: BUNDLE_ID,
       sourceCommit,
       generatedAt: new Date().toISOString(),
+      generator: "lib/launchAbnahme.test.ts",
+      mirrorPath: join(MIRROR_ROOT, BUNDLE_ID),
+      supersededBundles: ["artifacts/launch-abnahme (R2; nicht für R3/R4 verwenden)"],
       rules: {
         ortNetzBadge: "ort-badge-v2 (see badge audits in netz-*-timeseries.json)",
         siteConnectionBadge: "grid-support v1 (60 % discharge in ≥90 % peak intervals, no new charge peak)",
@@ -440,10 +484,11 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
         "monat-2026-11-partial.json",
         "ort-revenue-compare.json",
         "dst-timestamps.json",
+        ...nationalFiles,
         ...netzExports.map((n) => n.file),
         "grid-v1-sample.json",
       ],
-      deprecatedNotEvidence: ["pruefmatrix.json if present — not regenerated by this test"],
+      deprecatedNotEvidence: ["artifacts/launch-abnahme/*", "pruefmatrix.json"],
       tolerances: { socResidualMwh: 1e-4, gwh: 0.02 },
       ui: {
         monatPrimaryGraph: readFileSync(join(process.cwd(), "components/home/MonatPageV4.tsx"), "utf8").includes(
@@ -479,9 +524,18 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
       expect(typeof pack.audit.reliefPpHours).toBe("number");
       expect(pack.pricesEurPerMwh).toHaveLength(96);
       expect(countSimultaneousChargeDischarge(pack.series.chargeMw, pack.series.dischargeMw)).toBe(0);
+      expect(pack.meta.storageDispatchAudit.ok).toBe(true);
+      expect(pack.series.maxL1RecomputeGapPp).toBeLessThan(0.05);
     }
-    expect(ortRevenueCompare[0].netz.endSocMwh).not.toBe(ortRevenueCompare[0].markt.endSocMwh);
+    for (const arch of ortRevenueCompare) {
+      expect(arch.markt.endSocMwh).toBeCloseTo(arch.netz.endSocMwh, 1);
+      expect(arch.markt.storageDispatchAudit.ok).toBe(true);
+      expect(arch.netz.storageDispatchAudit.ok).toBe(true);
+    }
     expect(readme.ui.monatPrimaryGraph).toBe(true);
     expect(addBerlinCalendarDays("2025-03-29", 1)).toBe("2025-03-30");
-  });
+
+    mkdirSync(join(MIRROR_ROOT, BUNDLE_ID), { recursive: true });
+    cpSync(ARTIFACT_DIR, join(MIRROR_ROOT, BUNDLE_ID), { recursive: true });
+  }, 300_000);
 });

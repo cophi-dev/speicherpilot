@@ -7,9 +7,13 @@ import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
 
 function mobileTicks(dayCount: number): number[] {
-  const picks = [1, 8, 15, 22, 29].filter((d) => d <= dayCount);
-  if (picks[picks.length - 1] !== dayCount) {
-    picks.push(dayCount);
+  const picks = [1, 8, 15, 22].filter((d) => d < dayCount);
+  const last = dayCount;
+  if (picks.length > 0 && last - picks[picks.length - 1] < 3) {
+    picks.pop();
+  }
+  if (picks[picks.length - 1] !== last) {
+    picks.push(last);
   }
   return picks;
 }
@@ -24,8 +28,9 @@ export function MonatSurplusGraph({
   const withData = bars.filter((b) => b.surplusGwh !== null && !b.future);
   const surplusDays = withData.filter((b) => (b.surplusGwh ?? 0) >= 0.05);
   const maxGwh = Math.max(...withData.map((b) => Math.max(0, b.surplusGwh ?? 0)), 0.05);
-  const ticks = mobileTicks(bars.length);
+  const ticks = new Set(mobileTicks(bars.length));
   const emptyMonth = withData.length > 0 && surplusDays.length === 0;
+  const gridCols = { gridTemplateColumns: `repeat(${bars.length}, minmax(24px, 1fr))` } as const;
 
   return (
     <figure className="v4-monat-graph-wrap v4-content">
@@ -37,7 +42,8 @@ export function MonatSurplusGraph({
             fehlende Daten.
           </p>
         ) : null}
-        <div className="v4-monat-chart-plot">
+        <div className="v4-monat-chart-scroll">
+        <div className="v4-monat-chart-plot" style={{ ...gridCols, minWidth: `${bars.length * 24}px` }}>
           {bars.map((bar) => {
             const hasValue = bar.surplusGwh !== null && !bar.future && !bar.missing;
             const surplus = hasValue ? Math.max(0, bar.surplusGwh ?? 0) : 0;
@@ -78,12 +84,15 @@ export function MonatSurplusGraph({
             );
           })}
         </div>
-        <div className="v4-monat-chart-x num" aria-hidden="true">
-          {ticks.map((day) => (
-            <span key={day} style={{ left: `${((day - 1) / Math.max(1, bars.length - 1)) * 100}%` }}>
-              {day}
-            </span>
-          ))}
+        <div className="v4-monat-chart-x num" style={{ ...gridCols, minWidth: `${bars.length * 24}px` }} aria-hidden="true">
+          {bars.map((bar, index) => {
+            const day = index + 1;
+            if (!ticks.has(day)) {
+              return <span key={bar.dateKey} className="v4-monat-chart-x-empty" />;
+            }
+            return <span key={bar.dateKey}>{day}</span>;
+          })}
+        </div>
         </div>
         <p className="v4-monat-chart-x-title">Kalendertag</p>
       </div>

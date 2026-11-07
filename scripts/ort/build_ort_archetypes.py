@@ -679,41 +679,76 @@ def contract_window(key: str, forbid_discharge: list[bool], forbid_charge: list[
 
 
 class OrtDayModel:
+    """Daily Bess: MIP with per-qh binary exclusivity (charge XOR discharge)."""
+
     def __init__(self, n: int) -> None:
         self.n = n
         self.h = highspy.Highs()
         self.h.setOptionValue("output_flag", False)
         self.h.setOptionValue("log_to_console", False)
+        num_col = 3 * n
+        num_soc = n
+        num_excl = 2 * n
+        num_row = num_soc + num_excl
         a_c = ETA * DT
         a_d = -(DT / ETA)
-        zeros = np.zeros(2 * n)
-        ones = np.ones(2 * n)
-        self.h.addCols(2 * n, zeros, zeros, ones, 0, [], [], [])
+        col_lo = np.zeros(num_col)
+        col_hi = np.full(num_col, highspy.kHighsInf)
+        col_cost = np.zeros(num_col)
+        self.h.addCols(num_col, col_cost, col_lo, col_hi, 0, [], [], [])
+        self.col_index = np.arange(num_col, dtype=np.int32)
+        integrality = np.zeros(num_col, dtype=np.int32)
+        integrality[2 * n :] = 1
+        self.h.changeColsIntegrality(num_col, self.col_index, integrality)
         self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
-        starts = [0]
-        index: list[int] = []
-        value: list[float] = []
+
+        soc_starts = [0]
+        soc_idx: list[int] = []
+        soc_val: list[float] = []
         for quarter in range(n):
             for i in range(quarter + 1):
-                index.append(i)
-                value.append(a_c)
-                index.append(n + i)
-                value.append(a_d)
-            starts.append(len(index))
-        self.h.addRows(n, np.full(n, -1.0), np.full(n, 1.0), len(index), starts, index, value)
-        self.col_index = np.arange(2 * n, dtype=np.int32)
-        self.row_index = np.arange(n, dtype=np.int32)
-        self.lower = np.zeros(2 * n)
-        self.upper = np.zeros(2 * n)
-        self.cost = np.zeros(2 * n)
-        self.row_lo = np.zeros(n)
-        self.row_hi = np.zeros(n)
+                soc_idx.append(i)
+                soc_val.append(a_c)
+                soc_idx.append(n + i)
+                soc_val.append(a_d)
+            soc_starts.append(len(soc_idx))
+        soc_lo = np.full(num_soc, -highspy.kHighsInf)
+        soc_hi = np.full(num_soc, highspy.kHighsInf)
+        self.h.addRows(num_soc, soc_lo, soc_hi, len(soc_idx), soc_starts, soc_idx, soc_val)
+
+        excl_lo = np.full(num_excl, -highspy.kHighsInf)
+        excl_hi = np.zeros(num_excl)
+        excl_starts = [0]
+        excl_idx: list[int] = []
+        excl_val: list[float] = []
+        for t in range(n):
+            excl_idx.extend([t, 2 * n + t])
+            excl_val.extend([1.0, -1.0])
+            excl_starts.append(len(excl_idx))
+            excl_idx.extend([n + t, 2 * n + t])
+            excl_val.extend([1.0, 1.0])
+            excl_starts.append(len(excl_idx))
+            excl_hi[2 * t + 1] = 1.0
+        self.h.addRows(num_excl, excl_lo, excl_hi, len(excl_idx), excl_starts, excl_idx, excl_val)
+        self.excl_hi = excl_hi.copy()
+
+        self.c_cols = np.arange(n, dtype=np.int32)
+        self.d_cols = np.arange(n, 2 * n, dtype=np.int32)
+        self.z_cols = np.arange(2 * n, 3 * n, dtype=np.int32)
+        self.soc_row_index = np.arange(num_soc, dtype=np.int32)
+        self.excl_row_index = np.arange(num_soc, num_row, dtype=np.int32)
+        self.lower = np.zeros(num_col)
+        self.upper = np.zeros(num_col)
+        self.cost = np.zeros(num_col)
+        self.row_lo = np.zeros(num_soc)
+        self.row_hi = np.zeros(num_soc)
 
     def solve(self, prices: list[float], power: float, energy: float, cap_c: np.ndarray, cap_d: np.ndarray, objective: str, l0: list[float], beta: float) -> dict:
         n = self.n
         scaled = np.asarray(prices, dtype=float) * DT
         self.cost[:n] = -scaled
-        self.cost[n:] = scaled
+        self.cost[n : 2 * n] = scaled
+        self.cost[2 * n :] = 0.0
         if objective == "netz":
             weights = np.asarray([max(0.0, value - 90.0) for value in l0], dtype=float)
             if weights.sum() <= 1e-9:
@@ -721,32 +756,45 @@ class OrtDayModel:
             price_pull = np.asarray(scaled, dtype=float)
             pull = NETZ_PRICE_PULL * price_pull
             self.cost[:n] = weights * beta + NETZ_EPS - pull
-            self.cost[n:] = -weights * beta + NETZ_EPS + pull
+            self.cost[n : 2 * n] = -weights * beta + NETZ_EPS + pull
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
         else:
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
-        self.upper[:n] = np.minimum(cap_c, power)
-        self.upper[n:] = np.minimum(cap_d, power)
-        self.h.changeColsCost(2 * n, self.col_index, self.cost)
-        self.h.changeColsBounds(2 * n, self.col_index, self.lower, self.upper)
+
+        cap_c = np.minimum(np.asarray(cap_c, dtype=float), power)
+        cap_d = np.minimum(np.asarray(cap_d, dtype=float), power)
+        self.upper[:n] = cap_c
+        self.upper[n : 2 * n] = cap_d
+        self.upper[2 * n :] = 1.0
+        self.h.changeColsCost(3 * n, self.col_index, self.cost)
+        self.h.changeColsBounds(3 * n, self.col_index, self.lower, self.upper)
+
+        for t in range(n):
+            pc = float(cap_c[t]) if cap_c[t] > 1e-9 else 0.0
+            pd = float(cap_d[t]) if cap_d[t] > 1e-9 else 0.0
+            row_c = n + 2 * t
+            row_d = n + 2 * t + 1
+            self.h.changeCoeff(int(row_c), int(2 * n + t), -pc if pc > 0 else -1.0)
+            self.h.changeCoeff(int(row_d), int(2 * n + t), pd if pd > 0 else 1.0)
+            self.h.changeRowBounds(int(row_d), -highspy.kHighsInf, pd)
+
         s0 = 0.5 * energy
-        span_down = s0 - 0.1 * energy
-        span_up = 0.9 * energy - s0
+        soc_min = 0.1 * energy
+        soc_max = 0.9 * energy
+        span_down = s0 - soc_min
+        span_up = soc_max - s0
         self.row_lo.fill(-span_down)
         self.row_hi.fill(span_up)
         self.row_lo[-1] = 0.0
-        self.h.changeRowsBounds(n, self.row_index, self.row_lo, self.row_hi)
+        self.row_hi[-1] = 0.0
+        self.h.changeRowsBounds(n, self.soc_row_index, self.row_lo, self.row_hi)
+
         self.h.run()
-        sol = self.h.getSolution()
-        col_values = np.array(sol.col_value)
+        col_values = np.array(self.h.getSolution().col_value, dtype=float)
+        if col_values.size != 3 * n:
+            raise RuntimeError("OrtDayModel MIP: keine Lösung")
         charge = np.asarray(col_values[:n], dtype=float)
-        discharge = np.asarray(col_values[n:], dtype=float)
-        for t in range(n):
-            if charge[t] > 1e-6 and discharge[t] > 1e-6:
-                if charge[t] >= discharge[t]:
-                    discharge[t] = 0.0
-                else:
-                    charge[t] = 0.0
+        discharge = np.asarray(col_values[n : 2 * n], dtype=float)
         soc = np.zeros(n + 1)
         soc[0] = s0
         for t in range(n):
@@ -755,8 +803,9 @@ class OrtDayModel:
         return {
             "c": charge.tolist(),
             "d": discharge.tolist(),
-            "endSocMwh": float(soc[-1]),
-            "soc": soc[:-1].tolist(),
+            "endSocMwh": float(soc[n]),
+            "socStartMwh": soc[:n].tolist(),
+            "soc": soc[:n].tolist(),
             "revenue": 0.0 if abs(revenue) < 1e-8 else revenue,
         }
 
@@ -1055,6 +1104,18 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
         "revenuePctTyptag": revenue_pct,
         "over100Qh": over100,
         "warnings": warnings_local,
+        "dispatchPhysics": {
+            "etaCharge": ETA,
+            "etaDischarge": ETA,
+            "dtHours": DT,
+            "socStartFraction": 0.5,
+            "socMinFraction": 0.1,
+            "socMaxFraction": 0.9,
+            "terminalSocEqualsStart": True,
+            "mipExclusiveChargeDischarge": True,
+            "betaN0": beta_n0,
+            "betaN1": beta_n1,
+        },
     }
 
 

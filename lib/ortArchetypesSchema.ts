@@ -81,6 +81,20 @@ export const ortArchetypeSchema = z.object({
     n1Netz: z.number(),
   }),
   warnings: z.array(z.string()),
+  dispatchPhysics: z
+    .object({
+      etaCharge: z.number(),
+      etaDischarge: z.number(),
+      dtHours: z.number(),
+      socStartFraction: z.number(),
+      socMinFraction: z.number(),
+      socMaxFraction: z.number(),
+      terminalSocEqualsStart: z.boolean(),
+      mipExclusiveChargeDischarge: z.boolean(),
+      betaN0: z.number(),
+      betaN1: z.number(),
+    })
+    .optional(),
 });
 
 export const ortArchetypesFileSchema = z.object({
