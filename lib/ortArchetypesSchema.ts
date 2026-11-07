@@ -40,6 +40,8 @@ export const ortArchetypeSchema = z.object({
     hour: z.array(z.number()),
     L0n0: z.array(z.number()),
     L0n1: z.array(z.number()),
+    S0signedMwN1: z.array(z.number()).optional(),
+    ratingMw: z.number().optional(),
     modes: z.object({
       markt: ortSeriesModeSchema,
       vertrag: ortSeriesModeSchema,
@@ -81,6 +83,35 @@ export const ortArchetypeSchema = z.object({
     n1Netz: z.number(),
   }),
   warnings: z.array(z.string()),
+  dispatchPhysics: z
+    .object({
+      etaCharge: z.number(),
+      etaDischarge: z.number(),
+      dtHours: z.number(),
+      socStartFraction: z.number(),
+      socMinFraction: z.number(),
+      socMaxFraction: z.number(),
+      terminalSocEqualsStart: z.boolean(),
+      mipExclusiveChargeDischarge: z.boolean(),
+      flowSignConventionId: z.string().optional(),
+      flowSignConventionDe: z.string().optional(),
+      szenarioBezugDe: z.string().optional(),
+      flowSignConvention: z.string().optional(),
+      ratingMw: z.number().optional(),
+      loadingFromSignedMw: z.string().optional(),
+      loadingLinearModel: z.string().optional(),
+      slopeChargeMwN0: z.number().optional(),
+      slopeDischargeMwN0: z.number().optional(),
+      slopeChargeMwN1: z.number().optional(),
+      slopeDischargeMwN1: z.number().optional(),
+      betaChargePpPerMwN0: z.number().optional(),
+      betaDischargePpPerMwN0: z.number().optional(),
+      betaChargePpPerMwN1: z.number().optional(),
+      betaDischargePpPerMwN1: z.number().optional(),
+      betaN0: z.number().optional(),
+      betaN1: z.number().optional(),
+    })
+    .optional(),
 });
 
 export const ortArchetypesFileSchema = z.object({

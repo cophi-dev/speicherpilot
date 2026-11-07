@@ -1,0 +1,31 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "commit": "1d0db6960921718b6a2116bf47d442bef48b21bb",
+  "at": "2026-11-07T09:17:22.981Z",
+  "routes": [
+    {
+      "path": "/",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T0918Z/a11y-root.json",
+      "audits": 73
+    },
+    {
+      "path": "/monat/2026-10",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T0918Z/a11y-monat_2026-10.json",
+      "audits": 73
+    },
+    {
+      "path": "/tag/2026-10-24",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T0918Z/a11y-tag_2026-10-24.json",
+      "audits": 73
+    },
+    {
+      "path": "/ort?sicht=netz",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T0918Z/a11y-ort_sicht_netz.json",
+      "audits": 73
+    }
+  ]
+}

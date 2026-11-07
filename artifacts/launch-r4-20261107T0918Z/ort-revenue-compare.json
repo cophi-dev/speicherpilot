@@ -1,0 +1,130 @@
+[
+  {
+    "archetype": "land",
+    "priceDay": "2026-07-25",
+    "markt": {
+      "revenueEurTyptag": 1697.6021,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 6,
+      "endSocMwh": 6,
+      "storageDispatchAudit": {
+        "simultaneousIntervals": 0,
+        "socMinMwh": 1.2,
+        "socMaxMwh": 10.8,
+        "socEndMwh": 6,
+        "socBounds": {
+          "min": 1.2000000000000002,
+          "max": 10.8
+        },
+        "maxEnergyResidualMwh": 0.00006833140606676835,
+        "maxPowerViolationMw": 0,
+        "ok": true,
+        "violations": []
+      }
+    },
+    "vertrag": {
+      "revenueEurTyptag": 1697.6021,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 6,
+      "endSocMwh": 6,
+      "storageDispatchAudit": {
+        "simultaneousIntervals": 0,
+        "socMinMwh": 1.2,
+        "socMaxMwh": 10.8,
+        "socEndMwh": 6,
+        "socBounds": {
+          "min": 1.2000000000000002,
+          "max": 10.8
+        },
+        "maxEnergyResidualMwh": 0.00006833140606676835,
+        "maxPowerViolationMw": 0,
+        "ok": true,
+        "violations": []
+      }
+    },
+    "netz": {
+      "revenueEurTyptag": -191.5778,
+      "revenuePctVsMarkt": -11.29,
+      "startSocMwh": 6,
+      "endSocMwh": 6,
+      "storageDispatchAudit": {
+        "simultaneousIntervals": 0,
+        "socMinMwh": 1.2,
+        "socMaxMwh": 10.8,
+        "socEndMwh": 6.000031668593933,
+        "socBounds": {
+          "min": 1.2000000000000002,
+          "max": 10.8
+        },
+        "maxEnergyResidualMwh": 0.00007843363992110497,
+        "maxPowerViolationMw": 0,
+        "ok": true,
+        "violations": []
+      }
+    }
+  },
+  {
+    "archetype": "stadt",
+    "priceDay": "2026-01-27",
+    "markt": {
+      "revenueEurTyptag": 1050.0347,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 10,
+      "endSocMwh": 10,
+      "storageDispatchAudit": {
+        "simultaneousIntervals": 0,
+        "socMinMwh": 2,
+        "socMaxMwh": 18,
+        "socEndMwh": 9.999986114323221,
+        "socBounds": {
+          "min": 2,
+          "max": 18
+        },
+        "maxEnergyResidualMwh": 0.00008611432322069845,
+        "maxPowerViolationMw": 0,
+        "ok": true,
+        "violations": []
+      }
+    },
+    "vertrag": {
+      "revenueEurTyptag": 1050.0347,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 10,
+      "endSocMwh": 10,
+      "storageDispatchAudit": {
+        "simultaneousIntervals": 0,
+        "socMinMwh": 2,
+        "socMaxMwh": 18,
+        "socEndMwh": 9.999986114323221,
+        "socBounds": {
+          "min": 2,
+          "max": 18
+        },
+        "maxEnergyResidualMwh": 0.00008611432322069845,
+        "maxPowerViolationMw": 0,
+        "ok": true,
+        "violations": []
+      }
+    },
+    "netz": {
+      "revenueEurTyptag": 221.882,
+      "revenuePctVsMarkt": 21.13,
+      "startSocMwh": 10,
+      "endSocMwh": 10,
+      "storageDispatchAudit": {
+        "simultaneousIntervals": 0,
+        "socMinMwh": 2,
+        "socMaxMwh": 18,
+        "socEndMwh": 9.999986114323221,
+        "socBounds": {
+          "min": 2,
+          "max": 18
+        },
+        "maxEnergyResidualMwh": 0.00008611432322069845,
+        "maxPowerViolationMw": 0,
+        "ok": true,
+        "violations": []
+      }
+    }
+  }
+]

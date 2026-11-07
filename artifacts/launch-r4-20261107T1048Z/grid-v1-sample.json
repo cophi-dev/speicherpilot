@@ -1,0 +1,7 @@
+{
+  "id": "belastend",
+  "dischargeShareInPeaks": 1,
+  "createsNewPeak": false,
+  "exceedsLimit": true,
+  "neutralHint": null
+}

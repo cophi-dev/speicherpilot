@@ -1,0 +1,46 @@
+[
+  {
+    "archetype": "land",
+    "priceDay": "2026-07-25",
+    "markt": {
+      "revenueEurTyptag": 1780.0568,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 6,
+      "endSocMwh": 35.1221
+    },
+    "vertrag": {
+      "revenueEurTyptag": 1780.0568,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 6,
+      "endSocMwh": 35.1221
+    },
+    "netz": {
+      "revenueEurTyptag": -6227.279,
+      "revenuePctVsMarkt": -349.84,
+      "startSocMwh": 6,
+      "endSocMwh": 84.7453
+    }
+  },
+  {
+    "archetype": "stadt",
+    "priceDay": "2026-01-27",
+    "markt": {
+      "revenueEurTyptag": 1050.0347,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 10,
+      "endSocMwh": 7.6951
+    },
+    "vertrag": {
+      "revenueEurTyptag": 1050.0347,
+      "revenuePctVsMarkt": 100,
+      "startSocMwh": 10,
+      "endSocMwh": 7.6951
+    },
+    "netz": {
+      "revenueEurTyptag": -1481.1847,
+      "revenuePctVsMarkt": -141.06,
+      "startSocMwh": 10,
+      "endSocMwh": 22.2016
+    }
+  }
+]

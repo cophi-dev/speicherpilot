@@ -1,0 +1,107 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "commit": "28fd4d31148997714e8a8d9d9b3797fede510fc5",
+  "at": "2026-11-07T09:31:44.944Z",
+  "routes": [
+    {
+      "path": "/",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T1025Z/a11y-root.json",
+      "audits": 73,
+      "requestedUrl": "http://127.0.0.1:3000/",
+      "fetchTime": "2026-11-07T09:31:47.703Z",
+      "lighthouseVersion": "12.6.1",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "runWarnings": [],
+      "accessibilityScore": 1,
+      "settings": {
+        "onlyCategories": [
+          "accessibility"
+        ],
+        "formFactor": "mobile",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        }
+      }
+    },
+    {
+      "path": "/monat/2026-10",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T1025Z/a11y-monat_2026-10.json",
+      "audits": 73,
+      "requestedUrl": "http://127.0.0.1:3000/monat/2026-10",
+      "fetchTime": "2026-11-07T09:31:58.079Z",
+      "lighthouseVersion": "12.6.1",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "runWarnings": [],
+      "accessibilityScore": 1,
+      "settings": {
+        "onlyCategories": [
+          "accessibility"
+        ],
+        "formFactor": "mobile",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        }
+      }
+    },
+    {
+      "path": "/tag/2026-10-24",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T1025Z/a11y-tag_2026-10-24.json",
+      "audits": 73,
+      "requestedUrl": "http://127.0.0.1:3000/tag/2026-10-24",
+      "fetchTime": "2026-11-07T09:32:10.274Z",
+      "lighthouseVersion": "12.6.1",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "runWarnings": [],
+      "accessibilityScore": 1,
+      "settings": {
+        "onlyCategories": [
+          "accessibility"
+        ],
+        "formFactor": "mobile",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        }
+      }
+    },
+    {
+      "path": "/ort?sicht=netz",
+      "score": 100,
+      "outFile": "/agent/repos/speicherpilot/artifacts/launch-r4-20261107T1025Z/a11y-ort_sicht_netz.json",
+      "audits": 73,
+      "requestedUrl": "http://127.0.0.1:3000/ort?sicht=netz",
+      "fetchTime": "2026-11-07T09:32:26.313Z",
+      "lighthouseVersion": "12.6.1",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+      "runWarnings": [],
+      "accessibilityScore": 1,
+      "settings": {
+        "onlyCategories": [
+          "accessibility"
+        ],
+        "formFactor": "mobile",
+        "screenEmulation": {
+          "mobile": true,
+          "width": 412,
+          "height": 823,
+          "deviceScaleFactor": 1.75,
+          "disabled": false
+        }
+      }
+    }
+  ]
+}

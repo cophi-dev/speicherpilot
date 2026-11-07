@@ -3,8 +3,11 @@ import {
   berlinMonthKeyFromDateKey,
   daysInBerlinMonth,
   isBerlinMonthKey,
+  isBerlinMonthCalendarClosed,
+  isMonthArchivedComplete,
   monthHasAnyRecord,
   nextBerlinMonthKey,
+  pickDefaultMonatMonthKey,
   prevBerlinMonthKey,
 } from "@/lib/monatCalendar";
 import fixture from "@/lib/__fixtures__/auffaelligkeit-records.json";
@@ -22,6 +25,15 @@ describe("monatCalendar", () => {
   it("steps prev/next month", () => {
     expect(prevBerlinMonthKey("2026-01")).toBe("2025-12");
     expect(nextBerlinMonthKey("2026-12")).toBe("2027-01");
+  });
+
+  it("picks latest archived-complete month as default", () => {
+    const lastComplete = records[records.length - 1].dateKey;
+    expect(isMonthArchivedComplete("2026-10", records, lastComplete)).toBe(true);
+    expect(isBerlinMonthCalendarClosed("2026-10", lastComplete)).toBe(true);
+    expect(isBerlinMonthCalendarClosed("2026-11", lastComplete)).toBe(false);
+    expect(isMonthArchivedComplete("2026-11", records, lastComplete)).toBe(true);
+    expect(pickDefaultMonatMonthKey(records, lastComplete)).toBe("2026-10");
   });
 
   it("finds adjacent months with data", () => {

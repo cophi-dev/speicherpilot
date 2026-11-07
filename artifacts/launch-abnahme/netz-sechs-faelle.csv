@@ -1,0 +1,7 @@
+archetype,mode,badge,over100_n0,over100_mit,x_mw,y_mw,revenue_pct
+land,markt,belastend,35,27,0,17,100
+land,vertrag,belastend,35,27,0,17,100
+land,netz,belastend,35,29,0,17,-81.99
+stadt,markt,belastend,0,11,0,1.1,100
+stadt,vertrag,belastend,0,11,0,1.1,100
+stadt,netz,belastend,0,29,0,1.1,-1.42

@@ -1,0 +1,143 @@
+{
+  "sourceCommit": "8243b1476b90ab39cdc57ec17747d269be0c3d9a",
+  "convention": {
+    "rteOnDischargeOnly": 0.85,
+    "socWindowFraction": [
+      0.1,
+      0.9
+    ],
+    "chargeBeforeHourBerlin": 17,
+    "dtHours": 0.25,
+    "units": {
+      "power": "MW",
+      "energy": "MWh",
+      "surplus": "GWh in Tageskennzahl"
+    }
+  },
+  "cases": [
+    {
+      "id": "surplus-partial-day",
+      "input": {
+        "fleetFactor1": {
+          "powerMw": 4580,
+          "energyMwh": 8000
+        },
+        "slots": [
+          {
+            "residualLoadMw": 0,
+            "loadMw": 10000,
+            "totalGenerationMw": 40000,
+            "renewableGenerationMw": 35000,
+            "windOnshoreMw": 25000,
+            "windOffshoreMw": 5000,
+            "solarMw": 5000,
+            "windSolarMw": 35000,
+            "crossBorderElectricityTradingMw": 0,
+            "curtailmentMw": null,
+            "timestampIso": "2026-10-25T11:00:00+01:00",
+            "hourBerlin": 11
+          },
+          {
+            "residualLoadMw": 0,
+            "loadMw": 55000,
+            "totalGenerationMw": 40000,
+            "renewableGenerationMw": 35000,
+            "windOnshoreMw": 8000,
+            "windOffshoreMw": 2000,
+            "solarMw": 0,
+            "windSolarMw": 10000,
+            "crossBorderElectricityTradingMw": 0,
+            "curtailmentMw": null,
+            "timestampIso": "2026-10-25T18:00:00+01:00",
+            "hourBerlin": 18
+          }
+        ]
+      },
+      "output": {
+        "quarters": [
+          {
+            "timestampIso": "2026-10-25T11:00:00+01:00",
+            "hourBerlin": 11,
+            "hour": 11,
+            "surplusMw": 25000,
+            "chargeMw": 4580,
+            "dischargeMw": 0,
+            "exportObservedMw": 0,
+            "exportSimulatedMw": 0,
+            "socMwh": 1145,
+            "socFraction": 0.17890625,
+            "residualMw": -25000
+          },
+          {
+            "timestampIso": "2026-10-25T18:00:00+01:00",
+            "hourBerlin": 18,
+            "hour": 18,
+            "surplusMw": 0,
+            "chargeMw": 0,
+            "dischargeMw": 3893,
+            "exportObservedMw": 0,
+            "exportSimulatedMw": 0,
+            "socMwh": 0,
+            "socFraction": 0,
+            "residualMw": 45000
+          }
+        ],
+        "absorbedMwh": 1145,
+        "dischargedMwh": 973.25,
+        "balanceMaxResidualMwh": 0
+      }
+    },
+    {
+      "id": "no-surplus",
+      "input": {
+        "fleetFactor1": {
+          "powerMw": 4580,
+          "energyMwh": 8000
+        },
+        "slots": [
+          {
+            "residualLoadMw": 0,
+            "loadMw": 50000,
+            "totalGenerationMw": 40000,
+            "renewableGenerationMw": 35000,
+            "windOnshoreMw": 5000,
+            "windOffshoreMw": 2000,
+            "solarMw": 3000,
+            "windSolarMw": 8000,
+            "crossBorderElectricityTradingMw": 0,
+            "curtailmentMw": null,
+            "timestampIso": "2026-11-02T12:00:00+01:00",
+            "hourBerlin": 12
+          }
+        ]
+      },
+      "output": {
+        "quarters": [
+          {
+            "timestampIso": "2026-11-02T12:00:00+01:00",
+            "hourBerlin": 12,
+            "hour": 12,
+            "surplusMw": 0,
+            "chargeMw": 0,
+            "dischargeMw": 0,
+            "exportObservedMw": 0,
+            "exportSimulatedMw": 0,
+            "socMwh": 0,
+            "socFraction": 0,
+            "residualMw": 40000
+          }
+        ],
+        "absorbedMwh": 0,
+        "balanceMaxResidualMwh": 0
+      }
+    },
+    {
+      "id": "capacity-limit",
+      "output": {
+        "absorbedMwh": 64,
+        "nameplateEnergyMwh": 80,
+        "usableCapMwh": 64
+      }
+    }
+  ]
+}

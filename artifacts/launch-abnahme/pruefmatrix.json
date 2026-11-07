@@ -1,0 +1,162 @@
+{
+  "generatedAt": "2026-11-07T07:53:05.121Z",
+  "dataStand": "repo snapshot main @ launch-checkliste run",
+  "tolerance": {
+    "soc": 0.0001,
+    "energyMwh": 0.001,
+    "percent": 0.05
+  },
+  "model": {
+    "roundTripEfficiency": 0.85,
+    "moreStorageRoundTrip": 0.85,
+    "socWindow": {
+      "min": 0.1,
+      "max": 0.9
+    },
+    "dischargeHourBerlin": 17,
+    "rteDeclaredBand": "80–90 % (methodik); implemented 85 %",
+    "quarterHourHours": 0.25,
+    "euroScope": "×1 Modellschätzung only",
+    "dataStandOrtArchetypes": "2026-11-05 build_ort_archetypes.py"
+  },
+  "dst": {
+    "springForward": {
+      "dayBefore": "2025-03-29",
+      "dstDay": "2025-03-30",
+      "quarters": 92
+    },
+    "fallBack": {
+      "dayBefore": "2025-10-25",
+      "dstDay": "2025-10-26",
+      "quarters": 100
+    },
+    "normal": {
+      "day": "2026-07-15",
+      "quarters": 96
+    }
+  },
+  "routes": {
+    "monatRedirect": "/monat → /monat/YYYY-MM",
+    "tagDeepLink": "/tag/YYYY-MM-DD",
+    "ortNetz": "/ort?sicht=netz"
+  },
+  "netzCases": [
+    {
+      "archetype": "land",
+      "mode": "markt",
+      "typtag": "2016-07-25",
+      "priceDay": "2026-07-25",
+      "badgeComputed": "belastend",
+      "badgeStored": "belastend",
+      "over100Before": 35,
+      "over100After": 27,
+      "criticalHours": 21.25,
+      "bezugMaxMw": 0,
+      "einspeisMaxMw": 17,
+      "storagePMw": 6,
+      "storageEMwh": 12,
+      "revenuePctTyptag": 100,
+      "socMinAssumed": 0.1,
+      "socMaxAssumed": 0.9,
+      "badgeReason": null
+    },
+    {
+      "archetype": "land",
+      "mode": "vertrag",
+      "typtag": "2016-07-25",
+      "priceDay": "2026-07-25",
+      "badgeComputed": "belastend",
+      "badgeStored": "belastend",
+      "over100Before": 35,
+      "over100After": 27,
+      "criticalHours": 21.25,
+      "bezugMaxMw": 0,
+      "einspeisMaxMw": 17,
+      "storagePMw": 6,
+      "storageEMwh": 12,
+      "revenuePctTyptag": 100,
+      "socMinAssumed": 0.1,
+      "socMaxAssumed": 0.9,
+      "badgeReason": null
+    },
+    {
+      "archetype": "land",
+      "mode": "netz",
+      "typtag": "2016-07-25",
+      "priceDay": "2026-07-25",
+      "badgeComputed": "belastend",
+      "badgeStored": "belastend",
+      "over100Before": 35,
+      "over100After": 29,
+      "criticalHours": 21.25,
+      "bezugMaxMw": 0,
+      "einspeisMaxMw": 17,
+      "storagePMw": 6,
+      "storageEMwh": 12,
+      "revenuePctTyptag": -81.99,
+      "socMinAssumed": 0.1,
+      "socMaxAssumed": 0.9,
+      "badgeReason": null
+    },
+    {
+      "archetype": "stadt",
+      "mode": "markt",
+      "typtag": "2016-01-27",
+      "priceDay": "2026-01-27",
+      "badgeComputed": "belastend",
+      "badgeStored": "belastend",
+      "over100Before": 0,
+      "over100After": 11,
+      "criticalHours": 3.75,
+      "bezugMaxMw": 0,
+      "einspeisMaxMw": 1.1,
+      "storagePMw": 10,
+      "storageEMwh": 20,
+      "revenuePctTyptag": 100,
+      "socMinAssumed": 0.1,
+      "socMaxAssumed": 0.9,
+      "badgeReason": null
+    },
+    {
+      "archetype": "stadt",
+      "mode": "vertrag",
+      "typtag": "2016-01-27",
+      "priceDay": "2026-01-27",
+      "badgeComputed": "belastend",
+      "badgeStored": "belastend",
+      "over100Before": 0,
+      "over100After": 11,
+      "criticalHours": 3.75,
+      "bezugMaxMw": 0,
+      "einspeisMaxMw": 1.1,
+      "storagePMw": 10,
+      "storageEMwh": 20,
+      "revenuePctTyptag": 100,
+      "socMinAssumed": 0.1,
+      "socMaxAssumed": 0.9,
+      "badgeReason": null
+    },
+    {
+      "archetype": "stadt",
+      "mode": "netz",
+      "typtag": "2016-01-27",
+      "priceDay": "2026-01-27",
+      "badgeComputed": "belastend",
+      "badgeStored": "belastend",
+      "over100Before": 0,
+      "over100After": 29,
+      "criticalHours": 10.75,
+      "bezugMaxMw": 0,
+      "einspeisMaxMw": 1.1,
+      "storagePMw": 10,
+      "storageEMwh": 20,
+      "revenuePctTyptag": -1.42,
+      "socMinAssumed": 0.1,
+      "socMaxAssumed": 0.9,
+      "badgeReason": null
+    }
+  ],
+  "uiChecks": {
+    "jahresreiheTeaserRemoved": true
+  }
+}

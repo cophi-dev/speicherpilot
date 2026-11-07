@@ -1,0 +1,221 @@
+{
+  "sourceCommit": "89a837f5245fd3dd51673dc5d740282c9d0a6ddd",
+  "bundleId": "launch-r4-20261107T1048Z",
+  "asOfBerlin": "2026-11-07",
+  "monthKey": "2026-11",
+  "archivedComplete": false,
+  "daysInCalendar": 30,
+  "daysWithRecords": 2,
+  "dailyOriginalAndGraphPoints": [
+    {
+      "dateKey": "2026-11-01",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-02",
+      "surplusGwhFromRecord": 0,
+      "graphSurplusGwh": 0,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-03",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-04",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-05",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-06",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": false,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-07",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-08",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-09",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-10",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-11",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-12",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-13",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-14",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-15",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-16",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-17",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-18",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-19",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-20",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-21",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-22",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-23",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-24",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-25",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-26",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-27",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-28",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-29",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    },
+    {
+      "dateKey": "2026-11-30",
+      "surplusGwhFromRecord": null,
+      "graphSurplusGwh": null,
+      "future": true,
+      "missing": false
+    }
+  ]
+}

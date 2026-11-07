@@ -1,0 +1,69 @@
+{
+  "bundleId": "launch-r4-20261107T1048Z",
+  "artifactRulesVersion": "ort-badge-v2 + signed-flow-mw-v1",
+  "generatedAt": "2026-11-07T09:57:27.915Z",
+  "generator": "lib/launchAbnahme.test.ts",
+  "provenance": {
+    "note": "modelPhysicsCommit = numerische signed-MW-Zeitreihen (9c5524e); artifactBundleWriterCommit = Commit mit korrigierten Labels+Manifest; ort-archetypes nur Textfelder dispatchPhysics geändert.",
+    "inputContentHashes": {
+      "data/ort/ort-archetypes.json": "sha256:1f4b14b0567d851f8c469cbb36fef6cd5973981d48ca915cd5ebaa5692e32de4"
+    },
+    "modelPhysicsCommit": "9c5524e8569f409ed5340e10de2384869273a8cf",
+    "priorOrtArchetypesHashSameNumerics": "sha256:61c26eac3917e476cfe0797bb4ccdc8ac00e619880e2eecb166805f7f9496c09",
+    "artifactBundleWriterCommit": "2ce2063e4a2b6fea3489a4d59dc84769cd8227df",
+    "manifestLineCommit": "7ca69c9d75da7583a2c886eb7b191072a9988d56"
+  },
+  "mirrorPath": "/opt/cursor/artifacts/launch-r4-20261107T1048Z",
+  "supersededBundles": [
+    "artifacts/launch-abnahme (R2; nicht für R3/R4 verwenden)"
+  ],
+  "rules": {
+    "ortNetzBadge": "ort-badge-v2 (see badge audits in netz-*-timeseries.json)",
+    "siteConnectionBadge": "grid-support v1 (60 % discharge in ≥90 % peak intervals, no new charge peak)",
+    "notMixed": "Ort /ort uses v2 only; /site connection uses v1 — documented separately"
+  },
+  "files": [
+    "dispatch-evidence.json",
+    "chain-fleet-evidence.json",
+    "monat-2026-10-aggregate.json",
+    "monat-2026-11-partial.json",
+    "ort-revenue-compare.json",
+    "dst-timestamps.json",
+    "national-day-2026-10-24.json",
+    "national-day-2026-10-02.json",
+    "national-day-2026-10-25.json",
+    "national-day-2025-03-30.json",
+    "national-factor-gate.json",
+    "signed-loading-gate.json",
+    "netz-land-markt-timeseries.json",
+    "netz-land-vertrag-timeseries.json",
+    "netz-land-netz-timeseries.json",
+    "netz-stadt-markt-timeseries.json",
+    "netz-stadt-vertrag-timeseries.json",
+    "netz-stadt-netz-timeseries.json",
+    "grid-v1-sample.json"
+  ],
+  "deprecatedNotEvidence": [
+    "artifacts/launch-abnahme/*",
+    "pruefmatrix.json"
+  ],
+  "tolerances": {
+    "socResidualMwh": 0.0001,
+    "gwh": 0.02
+  },
+  "ui": {
+    "monatPrimaryGraph": true
+  },
+  "lighthouse": {
+    "summary": "lighthouse-a11y-summary.json",
+    "unchangedFrom": "launch-r4-20261107T1025Z"
+  },
+  "modelInputHashVerified": {
+    "path": "data/ort/ort-archetypes.json",
+    "sha256": "1f4b14b0567d851f8c469cbb36fef6cd5973981d48ca915cd5ebaa5692e32de4",
+    "note": "Hash nach reiner Metadaten-Labelkorrektur; alle seriellen Zahlen in ort-archetypes unverändert."
+  },
+  "modelPhysicsCommit": "9c5524e8569f409ed5340e10de2384869273a8cf",
+  "artifactBundleWriterCommit": "2ce2063e4a2b6fea3489a4d59dc84769cd8227df",
+  "repositoryHeadForHandoff": "7ca69c9d75da7583a2c886eb7b191072a9988d56"
+}
