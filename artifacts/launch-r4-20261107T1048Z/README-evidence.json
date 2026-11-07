@@ -10,7 +10,7 @@
     },
     "modelPhysicsCommit": "9c5524e8569f409ed5340e10de2384869273a8cf",
     "priorOrtArchetypesHashSameNumerics": "sha256:61c26eac3917e476cfe0797bb4ccdc8ac00e619880e2eecb166805f7f9496c09",
-    "artifactBundleWriterCommit": "209125b765dac68b7a58c06d6e9e4e47c278317b"
+    "artifactBundleWriterCommit": "2ce2063e4a2b6fea3489a4d59dc84769cd8227df"
   },
   "mirrorPath": "/opt/cursor/artifacts/launch-r4-20261107T1048Z",
   "supersededBundles": [
@@ -63,5 +63,5 @@
     "note": "Hash nach reiner Metadaten-Labelkorrektur; alle seriellen Zahlen in ort-archetypes unverändert."
   },
   "modelPhysicsCommit": "9c5524e8569f409ed5340e10de2384869273a8cf",
-  "artifactBundleWriterCommit": "209125b765dac68b7a58c06d6e9e4e47c278317b"
+  "artifactBundleWriterCommit": "2ce2063e4a2b6fea3489a4d59dc84769cd8227df"
 }
