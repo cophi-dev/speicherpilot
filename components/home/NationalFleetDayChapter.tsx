@@ -52,13 +52,13 @@ export function NationalFleetDayChapter({
   }));
 
   return (
-    <section className="v4-chapter" aria-labelledby="fleet-day-title">
+    <section className="v4-chapter v4-chapter-fleet-day" aria-labelledby="fleet-day-title">
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">Modellflotte · {formatBerlinDayLabel(dayKey)}</p>
         <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
           Monatslauf-Ausschnitt (×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe})
         </h2>
-        <p className="v4-subline">
+        <p className="v4-subline v4-fleet-subline-desktop">
           Hypothetischer Monatslauf-Ausschnitt (kein Tages-Reset). Hero/„01 · Der Tag“ = Beobachtung; hier die gewählte
           Fahrweise über alle Viertelstunden — auch ohne Tages-Überschuss kann Spitzen senken oder Energie verschieben.{" "}
           <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, factor, strategy)} className="v4-text-link">
@@ -67,6 +67,17 @@ export function NationalFleetDayChapter({
           .
         </p>
       </div>
+      <details className="v4-fleet-subline-disclosure">
+        <summary>Kontext zum Monatslauf-Ausschnitt</summary>
+        <p className="v4-subline">
+          Hypothetischer Monatslauf-Ausschnitt (kein Tages-Reset). Hero/„01 · Der Tag“ = Beobachtung; hier die gewählte
+          Fahrweise über alle Viertelstunden — auch ohne Tages-Überschuss kann Spitzen senken oder Energie verschieben.{" "}
+          <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, factor, strategy)} className="v4-text-link">
+            Zum Monatsmodell
+          </Link>
+          .
+        </p>
+      </details>
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
@@ -139,22 +150,10 @@ export function NationalFleetDayChapter({
           </dd>
         </div>
         <div>
-          <dt>SoC Tagesanfang (kontinuierlich)</dt>
-          <dd>{formatQuantity(slice.socStartMwh / 1000, "de", 2)} GWh</dd>
-        </div>
-        <div>
-          <dt>SoC Tagesende</dt>
-          <dd>{formatQuantity(slice.socEndMwh / 1000, "de", 2)} GWh</dd>
-        </div>
-        <div>
           <dt>Netz-Ladung / -Abgabe (Tag)</dt>
           <dd>
             {formatQuantity(slice.chargeMwh / 1000, "de", 2)} / {formatQuantity(slice.dischargeMwh / 1000, "de", 2)} GWh
           </dd>
-        </div>
-        <div>
-          <dt>Ladung minus Abgabe (Verlustkette)</dt>
-          <dd>{formatQuantity(gridLossGwh, "de", 2)} GWh</dd>
         </div>
         <div>
           <dt>Max. Restlast / mit Speicher (Tag)</dt>
@@ -166,11 +165,44 @@ export function NationalFleetDayChapter({
             )
           </dd>
         </div>
-        <div>
+        <div className="v4-fleet-kpi-tier2">
+          <dt>SoC Tagesanfang (kontinuierlich)</dt>
+          <dd>{formatQuantity(slice.socStartMwh / 1000, "de", 2)} GWh</dd>
+        </div>
+        <div className="v4-fleet-kpi-tier2">
+          <dt>SoC Tagesende</dt>
+          <dd>{formatQuantity(slice.socEndMwh / 1000, "de", 2)} GWh</dd>
+        </div>
+        <div className="v4-fleet-kpi-tier2">
+          <dt>Ladung minus Abgabe (Verlustkette)</dt>
+          <dd>{formatQuantity(gridLossGwh, "de", 2)} GWh</dd>
+        </div>
+        <div className="v4-fleet-kpi-tier2">
           <dt>Monatskontext Spitze</dt>
           <dd>{formatPeakKpi(monthStats.peakAfterGw, monthStats.peakReductionGw, monthStats.peakReductionPct)}</dd>
         </div>
       </dl>
+      <details className="v4-fleet-kpis-secondary v4-content num">
+        <summary>Weitere Kennzahlen (SoC, Verluste, Monatskontext)</summary>
+        <dl className="v4-fleet-kpis">
+          <div>
+            <dt>SoC Tagesanfang (kontinuierlich)</dt>
+            <dd>{formatQuantity(slice.socStartMwh / 1000, "de", 2)} GWh</dd>
+          </div>
+          <div>
+            <dt>SoC Tagesende</dt>
+            <dd>{formatQuantity(slice.socEndMwh / 1000, "de", 2)} GWh</dd>
+          </div>
+          <div>
+            <dt>Ladung minus Abgabe (Verlustkette)</dt>
+            <dd>{formatQuantity(gridLossGwh, "de", 2)} GWh</dd>
+          </div>
+          <div>
+            <dt>Monatskontext Spitze</dt>
+            <dd>{formatPeakKpi(monthStats.peakAfterGw, monthStats.peakReductionGw, monthStats.peakReductionPct)}</dd>
+          </div>
+        </dl>
+      </details>
 
       <NationalFleetTimeSeriesChart
         monthKey={NATIONAL_FLEET_MONTH_KEY}

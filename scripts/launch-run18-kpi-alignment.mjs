@@ -14,6 +14,8 @@ const OUT = process.env.RUN18_OUT ?? "/cursor/stores/self/launch-run18-kpi-align
 const ROUTES = [
   { name: "tag-2910-spitze", path: "/tag/2026-10-29?faktor=1&fahrweise=spitze" },
   { name: "tag-2410-x2-spitze", path: "/tag/2026-10-24?faktor=2&fahrweise=spitze" },
+  { name: "monat-spitze", path: "/monat/2026-10?faktor=1&fahrweise=spitze" },
+  { name: "start", path: "/" },
 ];
 
 const VIEWPORTS = [
@@ -56,8 +58,11 @@ async function setTheme(page, theme) {
 
 async function measureAlignment(page) {
   const kpis = page.locator(".v4-fleet-kpis").first();
+  if (!(await kpis.count())) {
+    return { skip: true };
+  }
   await kpis.waitFor({ state: "visible", timeout: 90_000 });
-  const refLocator = page.locator(".v4-fleet-day-beleg, .v4-fleet-controls.v4-content").first();
+  const refLocator = page.locator(".v4-content.v4-fleet-controls, .v4-fleet-day-beleg.v4-content").first();
   await refLocator.waitFor({ state: "visible", timeout: 90_000 });
   const bBox = await refLocator.boundingBox();
   const kBox = await kpis.boundingBox();
@@ -88,9 +93,13 @@ async function main() {
         await setTheme(page, theme);
         await page.waitForTimeout(200);
         const align = await measureAlignment(page);
-        const shot = join(OUT, "screenshots", `${route.name}-${vp.label}-${theme}-kpi.png`);
+        const shot = join(OUT, "screenshots", `after-${route.name}-${vp.label}-${theme}.png`);
+        await page.screenshot({ path: shot, fullPage: true });
         const kpi = page.locator(".v4-fleet-kpis").first();
-        await kpi.screenshot({ path: shot });
+        if (route.path.includes("/tag/") && (await kpi.count())) {
+          const alignOnly = join(OUT, "screenshots", `after-${route.name}-${vp.label}-${theme}-kpi.png`);
+          await kpi.screenshot({ path: alignOnly });
+        }
         report.routes.push({
           ...route,
           viewport: vp.label,
@@ -99,7 +108,7 @@ async function main() {
           screenshot: shot,
           sha256: sha256File(shot),
         });
-        if (align.delta != null && align.delta > 2) {
+        if (route.path.includes("/tag/") && align.delta != null && align.delta > 2) {
           throw new Error(`KPI-Raster Δx=${align.delta.toFixed(1)}px bei ${route.name} ${vp.label} ${theme}`);
         }
       }
