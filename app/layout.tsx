@@ -4,6 +4,7 @@ import { jetbrainsMono, spaceGrotesk } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
 import { ThemeInitScript } from "@/components/ThemeInitScript";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
+import { BUILD_PROVENANCE } from "@/lib/buildProvenance.generated";
 
 const siteOrigin = getPublicSiteOrigin();
 
@@ -34,6 +35,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
+      <head>
+        <meta name="speicherpilot-source-sha" content={BUILD_PROVENANCE.commit} />
+        <meta name="speicherpilot-build-id" content={BUILD_PROVENANCE.buildId} />
+      </head>
       <body className="min-h-full bg-background text-foreground">
         <ThemeInitScript />
         <SiteShell>{children}</SiteShell>

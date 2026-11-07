@@ -75,7 +75,7 @@ function sha256File(path) {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
-async function assertBuildProvenance(base) {
+function assertBuildProvenanceOnDisk() {
   const dirty = execSync("git status --porcelain -- . ':!artifacts' ':!test-results' ':!*.report.html'", {
     encoding: "utf8",
     cwd: process.cwd(),
@@ -84,21 +84,31 @@ async function assertBuildProvenance(base) {
     throw new Error(`Working tree nicht sauber (App-Quellcode): ${dirty.split("\n")[0]}`);
   }
   const head = execSync("git rev-parse HEAD", { encoding: "utf8", cwd: process.cwd() }).trim();
-  let res = await fetch(`${base}/api/build-provenance`, { cache: "no-store" });
-  if (!res.ok) {
-    res = await fetch(`${base}/build-provenance.json`, { cache: "no-store" });
+  const provPath = join(process.cwd(), "public/build-provenance.json");
+  if (!existsSync(provPath)) {
+    throw new Error("public/build-provenance.json fehlt — zuerst npm run build");
   }
-  if (!res.ok) {
-    throw new Error(`build-provenance fehlt auf ${base} (${res.status}) — nach npm run build starten`);
-  }
-  const prov = await res.json();
+  const prov = JSON.parse(readFileSync(provPath, "utf8"));
   if (prov.dirty) {
     throw new Error("build-provenance.json meldet dirty build");
   }
   if (prov.commit !== head) {
-    throw new Error(`Source-Bindung: UI/Build ${prov.commit} ≠ Repo-HEAD ${head}`);
+    throw new Error(`Source-Bindung: Build-Artefakt ${prov.commit} ≠ Repo-HEAD ${head}`);
   }
   return { commit: prov.commit, buildId: prov.buildId, provenance: prov };
+}
+
+async function assertBuildProvenanceInUi(page, expectedCommit) {
+  await page.goto(`${BASE}/monat/2026-10?faktor=1&fahrweise=spitze`, {
+    waitUntil: "domcontentloaded",
+    timeout: 120_000,
+  });
+  const sha = await page.locator('meta[name="speicherpilot-source-sha"]').getAttribute("content");
+  const buildId = await page.locator('meta[name="speicherpilot-build-id"]').getAttribute("content");
+  if (sha !== expectedCommit) {
+    throw new Error(`UI-Meta speicherpilot-source-sha=${sha} ≠ erwartet ${expectedCommit} (Server nicht frisch gebaut?)`);
+  }
+  return { uiSourceSha: sha, uiBuildId: buildId };
 }
 
 async function setTheme(page, theme) {
@@ -389,7 +399,7 @@ async function scenarioFlow(page) {
 }
 
 async function main() {
-  const binding = await assertBuildProvenance(BASE);
+  const binding = assertBuildProvenanceOnDisk();
   const { commit, buildId, provenance } = binding;
 
   mkdirSync(join(OUT, "screenshots"), { recursive: true });
@@ -405,12 +415,14 @@ async function main() {
     buildProvenance: provenance,
     routes: [],
     scenarioFlow: [],
+    uiSourceBinding: null,
   };
 
   const browser = await chromium.launch();
   const ctx = await browser.newContext();
   const prePage = await ctx.newPage();
   await prePage.setViewportSize({ width: 1280, height: 900 });
+  preflightReport.uiSourceBinding = await assertBuildProvenanceInUi(prePage, commit);
 
   for (const spec of STATIC_MATRIX) {
     const result = await preflightPage(prePage, spec);
