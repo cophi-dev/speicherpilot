@@ -22,10 +22,6 @@ export const metadata: Metadata = {
   },
   description:
     "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien — auf Deutsch.",
-  other: {
-    "speicherpilot-source-sha": BUILD_PROVENANCE.commit,
-    "speicherpilot-build-id": BUILD_PROVENANCE.buildId,
-  },
 };
 
 export default function RootLayout({
@@ -39,7 +35,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-background text-foreground">
+      <body
+        className="min-h-full bg-background text-foreground"
+        data-speicherpilot-source-sha={BUILD_PROVENANCE.commit}
+        data-speicherpilot-build-id={BUILD_PROVENANCE.buildId}
+      >
         <ThemeInitScript />
         <SiteShell>{children}</SiteShell>
       </body>
