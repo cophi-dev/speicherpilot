@@ -224,9 +224,16 @@ export function NationalFleetMonthChapter({
       </figure>
 
       <p className="v4-chapter-foot v4-content">
-        {strategy === "spitze"
-          ? "Vollvoraussicht über den ganzen Monat: optimistische technische Obergrenze, kein realer Netzbetrieb."
-          : strategy === "markt"
+        {strategy === "spitze" ? (
+          <>
+            Vollvoraussicht über den ganzen Monat: optimistische technische Obergrenze, kein realer Netzbetrieb. Beispiel
+            ohne Tages-Überschuss:{" "}
+            <Link href={fleetTagHref("2026-10-29", factor, strategy)} className="v4-text-link">
+              29.10., ×{factor}, Spitze senken
+            </Link>
+            .
+          </>
+        ) : strategy === "markt"
             ? "Historische Day-Ahead-Preise ohne Marktrückwirkung; größere Faktoren können die Restlastspitze auch anheben."
             : "Laden nur bei Wind+Solar über Last, Entladen nur bei positiver Restlast — Modellaufnahme der Differenz."}
         {" "}

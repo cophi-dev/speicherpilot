@@ -16,3 +16,12 @@ Nur Copy an Einstiegspunkten; keine neue Route, kein LinkedIn-Post im Repo.
 | `/monat/2026-11` | `NationalFleetMonthUnavailable` | nur „kein Monatslauf“ | kein Null-Nutzen-Urteil |
 
 Methodik/Doku-Ergänzungen (keine Haupttexte): `MethodikGrenzenSection`, `MONATS_MODELL_DATENWEG.md`.
+
+## 29.10. — Peak ohne Überschuss (grafisch + rechnerisch in vorhandener UI)
+
+| Zugang | Was sichtbar ist |
+|--------|------------------|
+| `/tag/2026-10-29?faktor=1&fahrweise=spitze` | Hinweis-Box „Peaknutzen ohne Wind-Solar-Überschuss“, KPIs (0 GWh Überschuss, 6,94/5,90 GWh, Verlustkette 1,04 GWh, 64,41→60,86 GW), Chart R/R′/c/d/SoC, Viertelstunden-Tabelle |
+| `/monat/2026-10?faktor=1&fahrweise=spitze` (Fuß „Spitze“) | Link „29.10., ×1, Spitze senken“ mit gleicher Parameterwahl |
+
+Bundle unverändert `7ec0acf4…`; Werte gegen unabhängigen Befund 07.11 (96 Intervalle, kein positiver Wind-Solar-Überschuss).

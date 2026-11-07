@@ -58,6 +58,20 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
     expect(slice!.indices.length).toBe(96);
   });
 
+  it("2026-10-29 ×1 spitze: null Wind-Solar-Überschuss, dennoch Peak-Senkung", () => {
+    const run = getFleetRun(bundle, 1, "spitze");
+    const slice = sliceFleetDay(run, "2026-10-29")!;
+    expect(slice.indices.length).toBe(96);
+    expect(slice.positiveSurplusQuarterHours).toBe(0);
+    expect(slice.windSolarSurplusMwh).toBeLessThan(0.001);
+    expect(slice.chargeMwh / 1000).toBeCloseTo(6.94, 2);
+    expect(slice.dischargeMwh / 1000).toBeCloseTo(5.9, 2);
+    expect(slice.maxRMw / 1000).toBeCloseTo(64.4059, 2);
+    expect(slice.maxRPrimeMw / 1000).toBeCloseTo(60.8605, 2);
+    expect(slice.socStartMwh / 1000).toBeCloseTo(0.8, 2);
+    expect(slice.socEndMwh / 1000).toBeCloseTo(0.8, 2);
+  });
+
   it("DST 2026-10-25 has 100 quarters", () => {
     const run = getFleetRun(bundle, 2, "spitze");
     const slice = sliceFleetDay(run, "2026-10-25");

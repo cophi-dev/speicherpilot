@@ -121,7 +121,14 @@ export type NationalFleetDaySlice = {
   dischargeMwh: number;
   maxRMw: number;
   maxRPrimeMw: number;
+  /** max(0, Wind+Sonne − Last) je Viertelstunde, integriert (MWh) */
+  windSolarSurplusMwh: number;
+  positiveSurplusQuarterHours: number;
 };
+
+export function windSolarSurplusMw(residualLoadMw: number): number {
+  return Math.max(0, -residualLoadMw);
+}
 
 export function sliceFleetDay(run: NationalFleetRunSeries, dateKey: string): NationalFleetDaySlice | null {
   const indices: number[] = [];
@@ -139,11 +146,18 @@ export function sliceFleetDay(run: NationalFleetRunSeries, dateKey: string): Nat
   let discharge = 0;
   let maxR = -Infinity;
   let maxRp = -Infinity;
+  let windSolarSurplusMwh = 0;
+  let positiveSurplusQuarterHours = 0;
   for (const i of indices) {
     charge += run.c_mw[i] * DT_H;
     discharge += run.d_mw[i] * DT_H;
     maxR = Math.max(maxR, run.r_mw[i]);
     maxRp = Math.max(maxRp, run.r_prime_mw[i]);
+    const sur = windSolarSurplusMw(run.r_mw[i]);
+    if (sur > 0.05) {
+      positiveSurplusQuarterHours += 1;
+    }
+    windSolarSurplusMwh += sur * DT_H;
   }
   return {
     dateKey,
@@ -154,6 +168,8 @@ export function sliceFleetDay(run: NationalFleetRunSeries, dateKey: string): Nat
     dischargeMwh: discharge,
     maxRMw: maxR,
     maxRPrimeMw: maxRp,
+    windSolarSurplusMwh,
+    positiveSurplusQuarterHours,
   };
 }
 

@@ -9386,6 +9386,15 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   font-size: 18px;
   margin: 0 0 8px;
 }
+.v4-fleet-day-beleg {
+  margin: 0 auto 1rem;
+  max-width: 72rem;
+  padding: 12px 14px;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+}
 .v4-fleet-observation-note {
   font-size: 14px;
   color: hsl(var(--muted-foreground));

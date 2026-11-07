@@ -35,6 +35,11 @@ export function NationalFleetDayChapter({
   const peakRpGw = slice.maxRPrimeMw / 1000;
   const peakRGw = slice.maxRMw / 1000;
   const peakReductionDayGw = peakRGw - peakRpGw;
+  const peakReductionPct = peakRGw > 0 ? (peakReductionDayGw / peakRGw) * 100 : 0;
+  const gridLossGwh = (slice.chargeMwh - slice.dischargeMwh) / 1000;
+  const windSolarSurplusGwh = slice.windSolarSurplusMwh / 1000;
+  const showPeakWithoutSurplus =
+    strategy === "spitze" && slice.positiveSurplusQuarterHours === 0 && slice.chargeMwh > 1;
 
   const rows = slice.indices.map((i) => ({
     ts: run.timestamp_berlin[i],
@@ -96,7 +101,31 @@ export function NationalFleetDayChapter({
         </fieldset>
       </div>
 
+      {showPeakWithoutSurplus ? (
+        <div className="v4-fleet-day-beleg v4-content" role="note">
+          <p>
+            <strong>Peaknutzen ohne Wind-Solar-Überschuss:</strong> an diesem Tag in allen {slice.indices.length}{" "}
+            Viertelstunden max(0, Wind+Sonne − Last) = 0 GWh — die Fahrweise „Spitze senken“ lädt trotzdem{" "}
+            {formatQuantity(slice.chargeMwh / 1000, "de", 2)} GWh aus dem Netz (Restlast steigt in der Ladephase) und
+            gibt {formatQuantity(slice.dischargeMwh / 1000, "de", 2)} GWh ab. Tages-Spitze Restlast{" "}
+            {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW (−
+            {formatQuantity(peakReductionDayGw, "de", 2)} GW, {formatQuantity(peakReductionPct, "de", 1)} %). SoC ohne
+            Tagesreset: {formatQuantity(slice.socStartMwh / 1000, "de", 2)} →{" "}
+            {formatQuantity(slice.socEndMwh / 1000, "de", 2)} GWh. Kein Nachweis für Abregelung, Kraftwerksstarts oder
+            Kostenersparnis.
+          </p>
+        </div>
+      ) : null}
+
       <dl className="v4-fleet-kpis v4-content num">
+        <div>
+          <dt>Wind-Solar-Überschuss (Tag, integriert)</dt>
+          <dd>
+            {slice.positiveSurplusQuarterHours === 0
+              ? "0 GWh (keine positive Viertelstunde)"
+              : `${formatQuantity(windSolarSurplusGwh, "de", 2)} GWh in ${slice.positiveSurplusQuarterHours} Viertelstunden`}
+          </dd>
+        </div>
         <div>
           <dt>SoC Tagesanfang (kontinuierlich)</dt>
           <dd>{formatQuantity(slice.socStartMwh / 1000, "de", 2)} GWh</dd>
@@ -106,10 +135,14 @@ export function NationalFleetDayChapter({
           <dd>{formatQuantity(slice.socEndMwh / 1000, "de", 2)} GWh</dd>
         </div>
         <div>
-          <dt>Ladung / Abgabe (Tag)</dt>
+          <dt>Netz-Ladung / -Abgabe (Tag)</dt>
           <dd>
             {formatQuantity(slice.chargeMwh / 1000, "de", 2)} / {formatQuantity(slice.dischargeMwh / 1000, "de", 2)} GWh
           </dd>
+        </div>
+        <div>
+          <dt>Ladung minus Abgabe (Verlustkette)</dt>
+          <dd>{formatQuantity(gridLossGwh, "de", 2)} GWh</dd>
         </div>
         <div>
           <dt>Max. Restlast / mit Speicher (Tag)</dt>
