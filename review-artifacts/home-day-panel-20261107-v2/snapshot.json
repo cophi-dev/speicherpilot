@@ -1,0 +1,86 @@
+{
+  "generatedAt": "2026-11-07T22:49:59.098Z",
+  "sourceSha": "b1e9f8fd721ed3236c5bb2a8fe9d39027b54fd83",
+  "powerUrl": "https://api.energy-charts.info/v2/total_power?country=de&start=2026-09-07&end=2026-11-07",
+  "fetchedAtIso": "2026-11-07T22:49:59.098Z",
+  "kopfDayKey": "2026-11-06",
+  "quarterCount": 96,
+  "expectedQuarters": 96,
+  "panel": {
+    "dateKey": "2026-11-06",
+    "sourceLabel": "Energy-Charts · total_power (DE, Last inkl. Eigenversorgung)",
+    "fetchStand": "2026-11-07T22:49:59.098Z",
+    "referenceComplete": true,
+    "quarterCount": 96,
+    "expectedQuarters": 96,
+    "observed": {
+      "loadGwh": 1496.9685000000004,
+      "generationGwh": 1695.9034500000005,
+      "generationStatus": "ok",
+      "generationDetailDe": "Summe veröffentlichter Nettoerzeugungsträger je Viertelstunde (Energy-Charts total_power, inkl. Eigenversorgung; Pumpspeicher-Abgabe in Hydro, keine Importe).",
+      "windSolarGwh": 503.4317,
+      "surplusGwh": 0,
+      "surplusQuarters": 0
+    },
+    "model": {
+      "available": true,
+      "unavailableReasonDe": null,
+      "powerGw": 4.51554022,
+      "energyGwh": 7.86001657,
+      "factor": 1,
+      "chargedGwh": 0,
+      "dischargedGwh": 0,
+      "simulationRunLabelDe": "07.09.–06.11.2026 (61 Kalendertage geladen)",
+      "evaluationWindowLabelDe": "08.10.–06.11.2026 (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf)",
+      "disclosureDe": "Simulationsvorlauf (durchgehender SoC, Start 10 %, 07.09.–06.11.2026 (61 Kalendertage geladen)): dieselbe chainFleetSoc-Regel wie 30-Tage-Modell und Tag-Kennzahlen — Laden vor 17:00 bei Wind+Sonne über Last, Abgabe ab 17:00, 85 % RTE. 08.10.–06.11.2026 (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf) Referenzflotte ×1: 4.51554022 GW / 7.86001657 GWh (Battery Charts, Stand 21. Oktober 2026). Lokale Netzwirkung am Anschluss wird nicht aus nationalen Tageswerten abgeleitet."
+    }
+  },
+  "rawKpis": {
+    "loadGwh": 1496.9685000000004,
+    "windSolarGwh": 503.4317,
+    "surplusGwh": 0,
+    "generation": {
+      "gwh": 1695.9034500000005,
+      "status": "ok",
+      "completeQuarters": 96
+    }
+  },
+  "fleet": {
+    "powerMw": 4515.54022,
+    "energyMwh": 7860.01657,
+    "powerGw": 4.51554022,
+    "energyGwh": 7.86001657,
+    "updatedLabel": {
+      "de": "21. Oktober 2026",
+      "en": "21 October 2026"
+    },
+    "source": "battery-charts",
+    "href": "https://battery-charts.de/de/battery-charts-de/"
+  },
+  "tagesRecord": {
+    "dateKey": "2026-11-06",
+    "surplusGwh": 0,
+    "surplusH": 0,
+    "spread": null,
+    "pmin": null,
+    "pminAt": null,
+    "pmax": null,
+    "pmaxAt": null,
+    "negH": null,
+    "eveningPeakGw": 54.747800000000005,
+    "eveningPeakAt": "17:00",
+    "peakCutGw": 0,
+    "absorbedGwh": 0,
+    "fullAt": null,
+    "fullMin": null,
+    "wsShare": 33.630079724456465,
+    "dryStreak": 12
+  },
+  "evaluationWindow": {
+    "blick": "30tage",
+    "startKey": "2026-10-08",
+    "endKey": "2026-11-06",
+    "capEndAtLastSlot": false,
+    "dayCount": 30
+  }
+}

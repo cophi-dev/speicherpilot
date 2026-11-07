@@ -1,4 +1,5 @@
-import { findFirstUnixSecondForBerlinDateKey } from "@/lib/berlinCalendar";
+import { expectedBerlinQuarters } from "@/lib/berlinDayCompleteness";
+import { findFirstUnixSecondForBerlinDateKey, prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { chainFleetSoc } from "@/lib/chainedFleetSoc";
 import { buildHomeDayPanelData, totalGenerationGwhForDay } from "@/lib/homeDayPanel";
 import { overviewBounds } from "@/lib/overviewRange";
@@ -52,13 +53,15 @@ function dstFallDayPayload() {
 }
 
 function weekOfPayload(endKey: string, days: number) {
-  const end = findFirstUnixSecondForBerlinDateKey(endKey);
-  const rows = [];
-  for (let d = days - 1; d >= 0; d -= 1) {
-    const dayStart = end - d * 86_400;
-    for (let q = 0; q < 96; q += 1) {
-      rows.push({
-        timestamp: new Date((dayStart + q * 900) * 1000).toISOString(),
+  const rows: Array<{ timestamp: string; values: Record<string, number | null> }> = [];
+  let key = endKey;
+  for (let d = 0; d < days; d += 1) {
+    const startSec = findFirstUnixSecondForBerlinDateKey(key);
+    const count = expectedBerlinQuarters(key);
+    const dayRows: typeof rows = [];
+    for (let q = 0; q < count; q += 1) {
+      dayRows.push({
+        timestamp: new Date((startSec + q * 900) * 1000).toISOString(),
         values: {
           ...base,
           wind_onshore: 5_000 + q * 10,
@@ -67,6 +70,8 @@ function weekOfPayload(endKey: string, days: number) {
         },
       });
     }
+    rows.unshift(...dayRows);
+    key = prevBerlinDateKey(key);
   }
   return { data: rows };
 }
@@ -117,14 +122,13 @@ describe("buildHomeDayPanelData", () => {
     expect(record).toBeTruthy();
     const panel = buildHomeDayPanelData({
       dateKey: dayKey,
-      todayKey: "2026-11-07",
       slots: parsed!.slots,
       offshorePresent: true,
       allDays: days,
       day: day!,
       fleet: FLEET,
       fetchStand: "test",
-      modelWindow: overviewBounds("30tage", "2026-11-07"),
+      evaluationWindow: overviewBounds("30tage", "2026-11-07"),
     });
     expect(panel?.referenceComplete).toBe(true);
     expect(panel?.model.chargedGwh).toBeCloseTo(record!.absorbedGwh, 5);

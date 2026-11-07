@@ -31,7 +31,7 @@ Economics are **indicative pre-sales** only (see footnotes in UI and PDF). Throu
 ## Startseite · Tagespanel (Bezugstag = neuester vollständiger Berlin-Tag)
 
 - **Verbrauch:** Tagesenergie aus `load_incl_self_consumption` (Energy-Charts `total_power`, MW×¼h/1000 → GWh).
-- **Erzeugung gesamt:** Summe aller disjunkten Erzeugerträger je Viertelstunde (Mapping in `lib/powerMix.ts`), nur wenn jede Viertelstunde vollständige Träger hat; sonst Status „offen“, kein 0-Ersatz. Keine Importe.
+- **Erzeugung gesamt:** Summe der von Energy-Charts veröffentlichten Nettoerzeugung je Träger und Viertelstunde (`total_power`, inkl. industrieller Eigenversorgung; Pumpspeicher-Abgabe in Hydro, Pumpaufnahme nicht als negative Erzeugung abgezogen). Nur wenn jede Viertelstunde vollständige Träger hat; sonst „offen“, kein 0-Ersatz. Keine Importe; Differenz Erzeugung−Last ist keine Export-/Abregelungsbilanz.
 - **Wind+Sonne:** Untermenge Wind on/offshore plus Solar, gleicher Tag.
 - **Überschuss:** Σ max(0, Wind+Sonne−Last)×¼h — identisch zu `periodFigures.surplusGwh` und der Tag-Kennzahl.
 - **Modell:** Rollierender `chainFleetSoc` (×1-Referenzflotte Battery Charts, Laden vor 17 Uhr, Abgabe ab 17 Uhr, RTE 85 %, SoC 10–90 %, Start 10 %). Anzeige **geladen · abgegeben** je Kalendertag (nicht dieselbe Kohorte). **Lokale Netzwirkung:** nicht bewertet.

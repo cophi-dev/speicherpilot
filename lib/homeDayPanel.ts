@@ -1,5 +1,9 @@
 import { chainFleetSoc } from "@/lib/chainedFleetSoc";
-import { isCompleteBerlinDay } from "@/lib/completeBerlinDay";
+import {
+  auditBerlinPowerDay,
+  expectedBerlinQuarters,
+  strictResidualPreludeComplete,
+} from "@/lib/berlinDayCompleteness";
 import type { LiveFleetPublic } from "@/lib/liveFleetDispatch";
 import { MORE_STORAGE_DISCHARGE_HOUR, MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
 import type { OverviewBounds } from "@/lib/overviewRange";
@@ -16,6 +20,7 @@ export type HomeDayPanelData = {
   fetchStand: string;
   referenceComplete: boolean;
   quarterCount: number;
+  expectedQuarters: number;
   observed: {
     loadGwh: number | null;
     generationGwh: number | null;
@@ -31,29 +36,24 @@ export type HomeDayPanelData = {
     powerGw: number;
     energyGwh: number;
     factor: 1;
-    drivingModeDe: string;
-    rtePct: number;
-    fleetSourceDe: string;
-    windowNoteDe: string;
     chargedGwh: number | null;
     dischargedGwh: number | null;
+    simulationRunLabelDe: string;
+    evaluationWindowLabelDe: string | null;
+    disclosureDe: string;
   };
 };
 
-function utcMonotonicUnique(slots: PowerSlot[]): boolean {
-  for (let i = 1; i < slots.length; i += 1) {
-    if (slots[i].unixSeconds <= slots[i - 1].unixSeconds) {
-      return false;
-    }
+export function formatGermanDateRange(startKey: string, endKey: string): string {
+  const [sy, sm, sd] = startKey.split("-");
+  const [ey, em, ed] = endKey.split("-");
+  if (!sy || !ey) {
+    return `${startKey}–${endKey}`;
   }
-  const seen = new Set<number>();
-  for (const slot of slots) {
-    if (seen.has(slot.unixSeconds)) {
-      return false;
-    }
-    seen.add(slot.unixSeconds);
+  if (sy === ey) {
+    return `${sd}.${sm}.–${ed}.${em}.${ey}`;
   }
-  return true;
+  return `${sd}.${sm}.${sy}–${ed}.${em}.${ey}`;
 }
 
 /** Sum carrier MW on quarters where every mapped generation carrier is published (disjoint categories, no imports). */
@@ -119,23 +119,32 @@ function modelDayEnergyFromChain(
   return { chargedGwh: chargedMwh / 1000, dischargedGwh: dischargedMwh / 1000 };
 }
 
+function simulationCalendarKeys(slots: PowerSlot[], endKey: string): string[] {
+  const keys = new Set<string>();
+  for (const slot of slots) {
+    if (slot.dateBerlin <= endKey) {
+      keys.add(slot.dateBerlin);
+    }
+  }
+  return [...keys].sort();
+}
+
 export function buildHomeDayPanelData(args: {
   dateKey: string;
-  todayKey: string;
   slots: PowerSlot[];
   offshorePresent: boolean;
   allDays: ResidualDay[];
   day: ResidualDay | null;
   fleet: LiveFleetPublic | null;
   fetchStand: string;
-  modelWindow: OverviewBounds | null;
+  evaluationWindow: OverviewBounds | null;
 }): HomeDayPanelData | null {
   if (!args.day || args.day.dateBerlin !== args.dateKey || !args.fleet) {
     return null;
   }
   const daySlots = slotsInRange(args.slots, args.dateKey, args.dateKey);
-  const referenceComplete =
-    isCompleteBerlinDay(args.day, args.todayKey) && utcMonotonicUnique(daySlots) && daySlots.length >= 92;
+  const audit = auditBerlinPowerDay(daySlots, args.dateKey, args.offshorePresent);
+  const referenceComplete = audit.ok;
   const figures = periodFigures(daySlots, args.offshorePresent);
   const gen = totalGenerationGwhForDay(daySlots, args.offshorePresent);
 
@@ -152,7 +161,7 @@ export function buildHomeDayPanelData(args: {
 
   const generationDetailDe =
     generationStatus === "ok"
-      ? "Summe veröffentlichter Erzeugerträger je Viertelstunde (Energy-Charts, netto, ohne Importe; Speicherentladung nur, soweit als Träger geführt)."
+      ? "Summe veröffentlichter Nettoerzeugungsträger je Viertelstunde (Energy-Charts total_power, inkl. Eigenversorgung; Pumpspeicher-Abgabe in Hydro, keine Importe)."
       : generationStatus === "partial"
         ? "Erzeugung gesamt: Datenabgrenzung offen — nicht alle Viertelstunden haben vollständige Trägerreihen."
         : "Erzeugung gesamt: für diesen Tag nicht vollständig veröffentlicht.";
@@ -166,20 +175,50 @@ export function buildHomeDayPanelData(args: {
     }
   }
 
-  const modelAvailable = Boolean(referenceComplete && args.fleet);
+  const simKeys = simulationCalendarKeys(args.slots, args.dateKey);
+  const simulationStartKey = simKeys[0] ?? args.dateKey;
+  const simulationRunLabelDe = `${formatGermanDateRange(simulationStartKey, args.dateKey)} (${simKeys.length} Kalendertage geladen)`;
+  const evaluationWindowLabelDe = args.evaluationWindow
+    ? `${formatGermanDateRange(args.evaluationWindow.startKey, args.evaluationWindow.endKey)} (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf)`
+    : null;
+
+  const preludeOk = strictResidualPreludeComplete(
+    args.slots,
+    args.offshorePresent,
+    args.dateKey,
+    simKeys
+  );
+
+  let modelAvailable = Boolean(referenceComplete && args.fleet && preludeOk);
   let chargedGwh: number | null = null;
   let dischargedGwh: number | null = null;
-  if (modelAvailable && args.fleet) {
-    const energies = modelDayEnergyFromChain(args.allDays, args.dateKey, args.fleet.powerMw, args.fleet.energyMwh);
+  let unavailableReasonDe: string | null = null;
+  if (!preludeOk) {
+    modelAvailable = false;
+    unavailableReasonDe = "Modellwerte nicht verfügbar (unvollständiger Simulationsvorlauf in den geladenen Tagesreihen).";
+  } else if (modelAvailable) {
+    const energies = modelDayEnergyFromChain(args.allDays, args.dateKey, args.fleet!.powerMw, args.fleet!.energyMwh);
     if (energies) {
       chargedGwh = energies.chargedGwh;
       dischargedGwh = energies.dischargedGwh;
+    } else {
+      modelAvailable = false;
+      unavailableReasonDe = "Für diesen Tag nicht berechnet";
     }
+  } else {
+    unavailableReasonDe = "Für diesen Tag nicht berechnet";
   }
 
-  const windowNoteDe = args.modelWindow
-    ? `Rollierendes Modell · ${args.modelWindow.startKey}–${args.modelWindow.endKey} · durchgehender SoC, Start 10 %`
-    : `Rollierendes Modell · SoC aus vorherigen Kalendertagen`;
+  const fleetLabel =
+    args.fleet.source === "battery-charts" ? "Battery Charts" : "Energy-Charts";
+  const disclosureDe = [
+    `Simulationsvorlauf (durchgehender SoC, Start 10 %, ${simulationRunLabelDe}): dieselbe chainFleetSoc-Regel wie 30-Tage-Modell und Tag-Kennzahlen — Laden vor ${MORE_STORAGE_DISCHARGE_HOUR}:00 bei Wind+Sonne über Last, Abgabe ab ${MORE_STORAGE_DISCHARGE_HOUR}:00, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % RTE.`,
+    evaluationWindowLabelDe,
+    `Referenzflotte ×1: ${args.fleet.powerGw} GW / ${args.fleet.energyGwh} GWh (${fleetLabel}${args.fleet.updatedLabel.de ? `, Stand ${args.fleet.updatedLabel.de}` : ""}).`,
+    "Lokale Netzwirkung am Anschluss wird nicht aus nationalen Tageswerten abgeleitet.",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return {
     dateKey: args.dateKey,
@@ -187,6 +226,7 @@ export function buildHomeDayPanelData(args: {
     fetchStand: args.fetchStand,
     referenceComplete,
     quarterCount: daySlots.length,
+    expectedQuarters: expectedBerlinQuarters(args.dateKey),
     observed: {
       loadGwh: referenceComplete ? figures.loadGwh : null,
       generationGwh,
@@ -198,18 +238,15 @@ export function buildHomeDayPanelData(args: {
     },
     model: {
       available: modelAvailable,
-      unavailableReasonDe: modelAvailable ? null : "Für diesen Tag nicht berechnet",
+      unavailableReasonDe,
       powerGw: args.fleet.powerGw,
       energyGwh: args.fleet.energyGwh,
       factor: 1,
-      drivingModeDe: `Überschuss-Laden vor ${MORE_STORAGE_DISCHARGE_HOUR}:00, Abgabe ab ${MORE_STORAGE_DISCHARGE_HOUR}:00`,
-      rtePct: Math.round(MORE_STORAGE_ROUND_TRIP * 100),
-      fleetSourceDe:
-        (args.fleet.source === "battery-charts" ? "Battery Charts" : "Energy-Charts") +
-        (args.fleet.updatedLabel.de ? ` · Stand ${args.fleet.updatedLabel.de}` : ""),
-      windowNoteDe,
       chargedGwh,
       dischargedGwh,
+      simulationRunLabelDe,
+      evaluationWindowLabelDe,
+      disclosureDe,
     },
   };
 }

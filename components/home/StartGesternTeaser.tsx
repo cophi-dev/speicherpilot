@@ -29,7 +29,10 @@ export function StartGesternTeaser({
   records: TagesKennzahlRecord[];
 }) {
   const label = formatBerlinDayLabel(kopfDayKey);
-  const surplus = tagSurplusLine(record?.surplusGwh ?? 0);
+  const surplus =
+    record != null
+      ? tagSurplusLine(record.surplusGwh)
+      : "Überschuss-Kennzahl für diesen Tag nicht verfügbar.";
   const lastSurplus = lastSurplusBefore(records, kopfDayKey);
   const lastLine = tagLastSurplusLine(lastSurplus);
   const peakGw = record?.eveningPeakGw ?? null;
@@ -38,7 +41,7 @@ export function StartGesternTeaser({
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-gestern">
       <div className="v4-chapter-head v4-content">
-        <p className="v4-chapter-num num">01 · Gestern</p>
+        <p className="v4-chapter-num num">01 · Tagesübersicht</p>
         <h2 id="kapitel-gestern" className="v4-chapter-h2">
           Was am {label} im Stromnetz passiert ist
         </h2>

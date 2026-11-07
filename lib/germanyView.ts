@@ -21,6 +21,7 @@ import { parseMixRange, powerSeriesFresh, residualDaysFromSlots } from "@/lib/po
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
 import { buildTagesKennzahlRecords } from "@/lib/auffaelligkeitRecords";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { pickNewestStrictCompletePowerDayKey } from "@/lib/berlinDayCompleteness";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { buildHomeDayPanelData, type HomeDayPanelData } from "@/lib/homeDayPanel";
 import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
@@ -64,6 +65,8 @@ export type GermanyView = {
   auffaelligkeitRecords: TagesKennzahlRecord[] | null;
   /** Last complete Berlin day shown in the dashboard head (typically yesterday). */
   kopfDayKey: string | null;
+  /** Strict-grid day for homepage Tagespanel + Lücke chart (can match kopfDayKey). */
+  homeTagesDayKey: string | null;
   /** Newest Berlin day with a full quarter-hour series (redirect target for /tag). */
   lastCompleteDayKey: string;
   homeDayPanel: HomeDayPanelData | null;
@@ -313,7 +316,11 @@ export async function loadGermanyView(
 
   const lastCompleteDayKey = pickLastCompleteDayKey(days, todayKey);
   const kopfDayKey = lastCompleteDayKey;
-  const kopfDay = days.find((day) => day.dateBerlin === kopfDayKey) ?? null;
+  const homeTagesDayKey =
+    path === "/" && parsed
+      ? (pickNewestStrictCompletePowerDayKey(parsed.slots, parsed.offshorePresent, todayKey) ?? kopfDayKey)
+      : kopfDayKey;
+  const kopfDay = days.find((day) => day.dateBerlin === homeTagesDayKey) ?? null;
   let auffaelligkeitRecords: TagesKennzahlRecord[] | null = null;
   if (parsed && publicFleet) {
     const mergedPrices = mergeDayAheadPrices(priceRange.prices, price.prices);
@@ -327,20 +334,19 @@ export async function loadGermanyView(
     });
   }
 
-  const modelWindow =
+  const evaluationWindow =
     path === "/" && overviews ? overviews.byBlick["30tage"].bounds : null;
   const homeDayPanel =
-    path === "/" && parsed && publicFleet
+    path === "/" && parsed && publicFleet && kopfDay
       ? buildHomeDayPanelData({
-          dateKey: kopfDayKey,
-          todayKey,
+          dateKey: homeTagesDayKey,
           slots: parsed.slots,
           offshorePresent: parsed.offshorePresent,
           allDays: days,
           day: kopfDay,
           fleet: publicFleet,
           fetchStand: readings.stand,
-          modelWindow,
+          evaluationWindow,
         })
       : null;
 
@@ -367,6 +373,7 @@ export async function loadGermanyView(
     requestedTagStatus,
     auffaelligkeitRecords,
     kopfDayKey,
+    homeTagesDayKey: path === "/" ? homeTagesDayKey : null,
     lastCompleteDayKey,
     homeDayPanel,
     kopfDay,
