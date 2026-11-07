@@ -105,8 +105,12 @@ async function assertBuildProvenanceInUi(page, expectedCommit) {
     waitUntil: "domcontentloaded",
     timeout: 120_000,
   });
-  const sha = await page.locator('meta[name="speicherpilot-source-sha"]').getAttribute("content");
-  const buildId = await page.locator('meta[name="speicherpilot-build-id"]').getAttribute("content");
+  const sha = await page.evaluate(
+    () => document.querySelector('meta[name="speicherpilot-source-sha"]')?.getAttribute("content") ?? null,
+  );
+  const buildId = await page.evaluate(
+    () => document.querySelector('meta[name="speicherpilot-build-id"]')?.getAttribute("content") ?? null,
+  );
   if (sha !== expectedCommit) {
     throw new Error(`UI-Meta speicherpilot-source-sha=${sha} ≠ erwartet ${expectedCommit} (Server nicht frisch gebaut?)`);
   }
