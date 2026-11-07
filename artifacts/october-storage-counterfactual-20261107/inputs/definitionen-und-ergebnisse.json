@@ -1,0 +1,89 @@
+{
+  "checks": {
+    "power": {
+      "slots": 2980,
+      "unique": 2980,
+      "interval_seconds": 900,
+      "first": "2026-10-01T00:00:00+02:00",
+      "last": "2026-10-31T23:45:00+01:00",
+      "oct25_slots": 100
+    },
+    "price": {
+      "slots": 2980,
+      "unique": 2980,
+      "interval_seconds": 900,
+      "first": "2026-10-01T00:00:00+02:00",
+      "last": "2026-10-31T23:45:00+01:00",
+      "oct25_slots": 100
+    },
+    "cbet": {
+      "slots": 2980,
+      "unique": 2980,
+      "interval_seconds": 900,
+      "first": "2026-10-01T00:00:00+02:00",
+      "last": "2026-10-31T23:45:00+01:00",
+      "oct25_slots": 100
+    }
+  },
+  "definitions": {
+    "residual": "load_incl_self_consumption minus wind_onshore minus wind_offshore minus solar; not all renewables deducted",
+    "threshold_mw": 60000,
+    "threshold_reason": "illustrative round analysis threshold; no real grid capacity",
+    "peak": "maximum quarter-hour mean; no instantaneous peak",
+    "integration": "MW * 0.25 h /1000 = GWh; GW *0.25 h /1000 = TWh",
+    "trade": "scheduled commercial exchanges; positive import, negative export per v2/cbet OpenAPI and attributes; not physical flow",
+    "negative_prices": "strictly <0; count quarter hours, not clock hours",
+    "scope": "Germany total power including industrial self supply; prices DE-LU"
+  },
+  "load_peak": [
+    "2026-10-21T10:45:00+02:00",
+    "73517.4"
+  ],
+  "residual_peak": {
+    "timestamp": "2026-10-29T18:15:00+01:00",
+    "mw": "64405.9"
+  },
+  "hours_residual_above_60gw": "9",
+  "energy_above_60gw_gwh": "17.194525",
+  "runs_above_60gw": [
+    {
+      "start": "2026-10-02T08:15:00+02:00",
+      "end_exclusive": "2026-10-02T08:30:00+02:00",
+      "hours": "0.25"
+    },
+    {
+      "start": "2026-10-02T18:30:00+02:00",
+      "end_exclusive": "2026-10-02T20:00:00+02:00",
+      "hours": "1.5"
+    },
+    {
+      "start": "2026-10-06T18:00:00+02:00",
+      "end_exclusive": "2026-10-06T20:45:00+02:00",
+      "hours": "2.75"
+    },
+    {
+      "start": "2026-10-12T18:15:00+02:00",
+      "end_exclusive": "2026-10-12T19:45:00+02:00",
+      "hours": "1.5"
+    },
+    {
+      "start": "2026-10-29T16:15:00+01:00",
+      "end_exclusive": "2026-10-29T19:15:00+01:00",
+      "hours": "3"
+    }
+  ],
+  "load_twh": "42.48077435",
+  "windsolar_twh": "20.72796675",
+  "negative_price_quarters": 7,
+  "negative_price_duration_hours": "1.75",
+  "price_min": [
+    "2026-10-10T15:00:00+02:00",
+    "-0.01"
+  ],
+  "price_max": [
+    "2026-10-29T17:15:00+01:00",
+    "574.28"
+  ],
+  "net_scheduled_trade_twh": "-0.75928725",
+  "gas_twh": "8.214186825"
+}

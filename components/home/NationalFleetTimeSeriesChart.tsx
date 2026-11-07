@@ -17,7 +17,6 @@ import {
 } from "@/lib/nationalFleetCharts";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
-const PX_PER_QH_MONTH = 2.4;
 
 type SeriesPayload = {
   timestamp_berlin: string[];
@@ -193,13 +192,8 @@ export function NationalFleetTimeSeriesChart({
 
   const peakI = isDay ? peakLocal : peakIndexRp(runLike);
   const n = points.length;
-  const pxPerQh =
-    isDay && scrollWidth > 0
-      ? Math.max(4, scrollWidth / n)
-      : isDay
-        ? 8
-        : PX_PER_QH_MONTH;
-  const width = isDay && scrollWidth > 0 ? scrollWidth : n * pxPerQh;
+  const width = scrollWidth > 0 ? scrollWidth : Math.max(320, n * 4);
+  const pxPerQh = width / n;
   const panelH = 92;
   const pad = 6;
   const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
@@ -280,7 +274,7 @@ export function NationalFleetTimeSeriesChart({
       )}
       <div
         ref={scrollRef}
-        className={`v4-fleet-ts-scroll${isDay ? " is-day" : " is-month"}`}
+        className="v4-fleet-ts-scroll is-fit"
         onMouseMove={onMove}
         onMouseLeave={() => setHover(null)}
         role="img"
@@ -290,7 +284,7 @@ export function NationalFleetTimeSeriesChart({
             : `Monatsverlauf Referenzspitze ${formatQuantity(REF_RESIDUAL_PEAK_GW, "de", 2)} Gigawatt`
         }
       >
-        <div className="v4-fleet-ts-inner" style={{ width: isDay ? "100%" : width, minWidth: isDay ? undefined : width }}>
+        <div className="v4-fleet-ts-inner" style={{ width: "100%" }}>
           <SinglePanel title="Restlast" unit="GW" width={width} height={panelH} yMin={rScale.min} yMax={rScale.max}>
             <polyline
               className="v4-fleet-line-r"
@@ -367,11 +361,15 @@ export function NationalFleetTimeSeriesChart({
             />
           </SinglePanel>
           <div className="v4-fleet-ts-x num" style={{ width }} aria-hidden="true">
-            {xTicks.map(({ index, label }) => (
+            {xTicks.map(({ index, label }, ti) => (
               <span
                 key={`${index}-${label}`}
                 className="v4-fleet-ts-tick"
-                style={{ left: Math.min(Math.max(xs[index], 14), width - 14) }}
+                style={
+                  ti === xTicks.length - 1
+                    ? { right: 0, left: "auto", transform: "none" }
+                    : { left: Math.min(Math.max(xs[index], 8), width - 8) }
+                }
               >
                 {label}
               </span>

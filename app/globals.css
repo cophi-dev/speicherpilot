@@ -7644,15 +7644,9 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   color: hsl(var(--muted-foreground));
   max-width: 46rem;
 }
-.v4-start {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: clip;
-}
 .monat-page {
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
 }
 .monat-page .v4-content {
   max-width: min(72rem, 100%);
@@ -9231,8 +9225,16 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 .v4-fleet-ts-scroll.is-day {
   overflow-x: hidden;
 }
-.v4-fleet-ts-scroll.is-month {
-  overflow-x: auto;
+.v4-fleet-ts-scroll.is-fit {
+  overflow-x: hidden;
+}
+.v4-fleet-line-r,
+.v4-fleet-line-rp,
+.v4-fleet-line-compare,
+.v4-fleet-line-c,
+.v4-fleet-line-d,
+.v4-fleet-line-soc {
+  vector-effect: non-scaling-stroke;
 }
 .v4-fleet-caption-main {
   display: inline;
@@ -9334,6 +9336,13 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   max-width: 100%;
   margin-bottom: 16px;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  border-bottom: 2px solid hsl(var(--primary) / 0.35);
+}
+.v4-fleet-marginal-scroll-hint {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 6px;
 }
 .v4-fleet-marginal-table {
   width: 100%;

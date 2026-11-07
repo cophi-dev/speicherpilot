@@ -88,6 +88,7 @@ export function NationalFleetMarginalBenefit({
         <p className="v4-fleet-marginal-pool num">Überschuss-Pool im Modell: 134,2 GWh (nur Differenz-Fahrweise).</p>
       ) : null}
 
+      <p className="v4-fleet-marginal-scroll-hint num">Tabellen bei schmalem Display horizontal scrollbar (Kante unten).</p>
       <div className="v4-fleet-marginal-scroll">
         <table className="v4-fleet-marginal-table num">
           <caption className="sr-only">Stufenweise Zusatzwirkung zwischen Faktoren</caption>

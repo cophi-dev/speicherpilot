@@ -7,6 +7,7 @@ import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualDay } from "@/lib/windSolarResidual";
+import { tagMiddayStoryBody } from "@/lib/tagDayStory";
 
 const STEPS = [
   {
@@ -15,7 +16,7 @@ const STEPS = [
   },
   {
     title: "Mittag",
-    body: "Wind und Sonne erreichen ihren Höchststand — die Last bleibt darüber. Kein Überschuss zum Laden.",
+    body: (day: ResidualDay) => tagMiddayStoryBody(day),
   },
   {
     title: "Abend",
@@ -93,7 +94,9 @@ export function TagChapter({
               <p className="v4-st-title">{step.title}</p>
               <p className="v4-st-body">
                 {typeof step.body === "function"
-                  ? step.body(peakAt, peakGw, loadGw, wsGw)
+                  ? step.title === "Mittag"
+                    ? step.body(day)
+                    : step.body(peakAt, peakGw, loadGw, wsGw)
                   : step.body}
               </p>
             </div>
