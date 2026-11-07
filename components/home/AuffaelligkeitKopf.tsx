@@ -16,8 +16,7 @@ import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { barValue, kopfHero } from "@/lib/kopfHero";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
-import { NationalFleetDayChapter } from "@/components/home/NationalFleetDayChapter";
-import type { NationalFleetDaySlice, NationalFleetFactor, NationalFleetRunSeries, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -230,7 +229,9 @@ export function TagPageV4({
   dayOverview,
   fleetPowerGw,
   fleetEnergyGwh,
-  fleetDay,
+  fleetFactor,
+  fleetStrategy,
+  children,
 }: {
   dayKey: string;
   todayKey: string;
@@ -243,12 +244,9 @@ export function TagPageV4({
   dayOverview: OverviewEvaluation | null;
   fleetPowerGw: number;
   fleetEnergyGwh: number;
-  fleetDay?: {
-    run: NationalFleetRunSeries;
-    slice: NationalFleetDaySlice;
-    factor: NationalFleetFactor;
-    strategy: NationalFleetStrategyUi;
-  } | null;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
+  children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
   if (!record) {
@@ -256,7 +254,12 @@ export function TagPageV4({
   }
   return (
     <div className="v4-start">
-      <TagDayNav dayKey={dayKey} lastCompleteDayKey={lastCompleteDayKey} />
+      <TagDayNav
+        dayKey={dayKey}
+        lastCompleteDayKey={lastCompleteDayKey}
+        fleetFactor={fleetFactor}
+        fleetStrategy={fleetStrategy}
+      />
       <AuffaelligkeitKopf
         dayKey={dayKey}
         todayKey={todayKey}
@@ -266,15 +269,7 @@ export function TagPageV4({
         kickerPrefix="Tag"
         hideTagLink
       />
-      {fleetDay ? (
-        <NationalFleetDayChapter
-          dayKey={dayKey}
-          factor={fleetDay.factor}
-          strategy={fleetDay.strategy}
-          run={fleetDay.run}
-          slice={fleetDay.slice}
-        />
-      ) : null}
+      {children}
       <TagChapter
         day={day}
         lastSurplusKey={lastSurplusKey}

@@ -1,7 +1,8 @@
-"use client";
-
 import Link from "next/link";
 
+import { NationalFleetMarginalBenefit } from "@/components/home/NationalFleetMarginalBenefit";
+import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
+import { formatPeakKpi } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
 import {
@@ -9,11 +10,12 @@ import {
   fleetTagHref,
   NATIONAL_FLEET_FACTORS,
   NATIONAL_FLEET_STRATEGY_UI,
+  type MarginalCaptureRow,
   type NationalFleetFactor,
+  type NationalFleetFactorCompareRow,
   type NationalFleetMonthStats,
+  type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
-  getFleetRun,
-  type NationalFleetMonthBundle,
 } from "@/lib/nationalMonthFleetModel";
 
 function formatGw(gw: number, digits = 2): string {
@@ -22,26 +24,30 @@ function formatGw(gw: number, digits = 2): string {
 
 export function NationalFleetMonthChapter({
   monthKey,
-  bundle,
   factor,
   strategy,
   stats,
+  run,
+  compareRun,
+  marginal,
+  factorRows,
   bars,
 }: {
   monthKey: string;
-  bundle: NationalFleetMonthBundle;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
   stats: NationalFleetMonthStats;
+  run: NationalFleetRunSeries;
+  compareRun: NationalFleetRunSeries | null;
+  marginal: MarginalCaptureRow[];
+  factorRows: NationalFleetFactorCompareRow[];
   bars: MonatSurplusBar[];
 }) {
-  const run = getFleetRun(bundle, factor, strategy);
   const dailySocMax = 0.9 * stats.fleetEnergyGwh * 1000;
-  const dailySocMin = 0.1 * stats.fleetEnergyGwh * 1000;
 
   const socBands = bars.map((bar) => {
     if (!bar.clickable) {
-      return { dateKey: bar.dateKey, min: null, max: null, chargeMwh: 0, dischargeMwh: 0 };
+      return { dateKey: bar.dateKey, min: null, max: null };
     }
     const idx: number[] = [];
     for (let i = 0; i < run.timestamp_berlin.length; i += 1) {
@@ -50,19 +56,15 @@ export function NationalFleetMonthChapter({
       }
     }
     if (idx.length === 0) {
-      return { dateKey: bar.dateKey, min: null, max: null, chargeMwh: 0, dischargeMwh: 0 };
+      return { dateKey: bar.dateKey, min: null, max: null };
     }
     let min = Infinity;
     let max = -Infinity;
-    let charge = 0;
-    let discharge = 0;
     for (const i of idx) {
       min = Math.min(min, run.e_start_mwh[i], run.e_end_mwh[i]);
       max = Math.max(max, run.e_start_mwh[i], run.e_end_mwh[i]);
-      charge += run.c_mw[i] * 0.25;
-      discharge += run.d_mw[i] * 0.25;
     }
-    return { dateKey: bar.dateKey, min, max, chargeMwh: charge, dischargeMwh: discharge };
+    return { dateKey: bar.dateKey, min, max };
   });
 
   const maxSocBand = Math.max(...socBands.map((b) => b.max ?? 0), dailySocMax * 0.5);
@@ -75,14 +77,14 @@ export function NationalFleetMonthChapter({
           So hätte die Referenzflotte im Monat fahren können
         </h2>
         <p className="v4-subline">
-          Nationales Kurven-Overlay auf beobachteter Last und Erneuerbarer Erzeugung (Oktober 2026). Hypothetisch,
-          nicht amtlicher Bestand — kein Anschlussnetz, keine Netzdienlichkeit, keine Abregelungsquote.
+          Modellrechnung auf beobachteter Last und Erzeugung (Oktober 2026): Referenz 4,58 GW / 8 GWh Nennenergie,
+          skaliert mit ×{factor}. Hypothetisch, nicht amtlicher Bestand — kein Anschlussnetz, keine Netzdienlichkeit.
         </p>
       </div>
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
-          <legend className="v4-fleet-legend">Faktor (×1 = 4,58 GW / 8 GWh nominal)</legend>
+          <legend className="v4-fleet-legend">Größe (×1 = 4,58 GW / 8 GWh Nennenergie)</legend>
           <div className="v4-fleet-factor-row">
             {NATIONAL_FLEET_FACTORS.map((f) => (
               <Link
@@ -115,9 +117,9 @@ export function NationalFleetMonthChapter({
 
       <dl className="v4-fleet-kpis v4-content num">
         <div>
-          <dt>Referenzflotte</dt>
+          <dt>Referenzflotte (gewählt)</dt>
           <dd>
-            {formatGw(stats.fleetPowerGw, 2)} GW · {formatGw(stats.fleetEnergyGwh, 0)} GWh nam.
+            {formatGw(stats.fleetPowerGw, 2)} GW · {formatGw(stats.fleetEnergyGwh, 0)} GWh Nennenergie
           </dd>
         </div>
         <div>
@@ -144,25 +146,39 @@ export function NationalFleetMonthChapter({
           </div>
         ) : null}
         <div>
-          <dt>Monats-Restlastspitze R′</dt>
-          <dd>
-            {formatGw(stats.peakAfterGw, 2)} GW (−{formatGw(stats.peakReductionGw, 2)} GW,{" "}
-            {formatQuantity(stats.peakReductionPct, "de", 1)} %)
-          </dd>
+          <dt>Monats-Restlastspitze mit Speicher</dt>
+          <dd>{formatPeakKpi(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct)}</dd>
         </div>
         <div>
           <dt>SoC Monatsanfang / -ende</dt>
           <dd>
-            {formatGw(stats.socStartGwh, 1)} / {formatGw(stats.socEndGwh, 1)} GWh (50 % nominal, durchgehend)
+            {formatGw(stats.socStartGwh, 1)} / {formatGw(stats.socEndGwh, 1)} GWh (50 % Nennenergie, durchgehend)
           </dd>
         </div>
       </dl>
 
+      <NationalFleetMarginalBenefit
+        strategy={strategy}
+        factor={factor}
+        marginal={marginal}
+        factorRows={factorRows}
+        stats={stats}
+        baseStats={factorRows.find((r) => r.factor === 1)!}
+      />
+
+      <NationalFleetTimeSeriesChart
+        run={run}
+        peakReductionGw={stats.peakReductionGw}
+        peakReductionPct={stats.peakReductionPct}
+        compareRun={compareRun}
+        scrollHint="Alle 2980 Viertelstunden ohne Glättung — horizontal scrollen"
+      />
+
       <figure className="v4-monat-graph-wrap v4-content">
         <figcaption className="v4-fleet-caption">
-          Täglicher SoC-Spielraum (Min–Max) und Energiemengen — Klick springt zum Tag mit gleicher Fahrweise.
+          Zusatz: täglicher SoC-Spielraum (Min–Max je Kalendertag) — kein Ersatz für den Zeitreihenverlauf oben.
         </figcaption>
-        <div className="v4-monat-chart v4-fleet-soc-chart" role="img" aria-label="SoC-Verlauf je Tag">
+        <div className="v4-monat-chart v4-fleet-soc-chart" role="img" aria-label="Täglicher SoC-Spielraum">
           <div className="v4-monat-chart-scroll">
             <div
               className="v4-monat-chart-plot v4-fleet-soc-plot"
@@ -209,8 +225,8 @@ export function NationalFleetMonthChapter({
         {strategy === "spitze"
           ? "Vollvoraussicht über den ganzen Monat: optimistische technische Obergrenze, kein realer Netzbetrieb."
           : strategy === "markt"
-            ? "Historische Day-Ahead-Preise ohne Marktrückwirkung; kein Euro-Vergleich für ×2/×5/×10."
-            : "Laden nur bei Wind+Solar über Last, Entladen nur bei positiver Restlast — Modellaufnahme der Differenz, nicht vermiedene Abregelung."}
+            ? "Historische Day-Ahead-Preise ohne Marktrückwirkung; größere Faktoren können die Restlastspitze auch anheben."
+            : "Laden nur bei Wind+Solar über Last, Entladen nur bei positiver Restlast — Modellaufnahme der Differenz."}
         {" "}
         <Link href="/methodik#grossspeicher" className="v4-text-link">
           Methodik Großspeicher →

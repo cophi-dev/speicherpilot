@@ -1,17 +1,18 @@
 import { Suspense } from "react";
 
 import { MonatPageV4 } from "@/components/home/MonatPageV4";
+import { NationalFleetMonatSlot } from "@/components/home/NationalFleetMonatSlot";
+import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
 import { MonatUnavailable } from "@/components/home/MonatUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { isBerlinMonthKey, monthHasAnyRecord } from "@/lib/monatCalendar";
+import { buildMonatGrid, isBerlinMonthKey, monthHasAnyRecord } from "@/lib/monatCalendar";
 import { loadGermanyView } from "@/lib/germanyView";
 import {
-  monthStatsForRun,
   nationalFleetMonthAvailable,
   parseFleetFactor,
   parseFleetStrategy,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -57,16 +58,21 @@ export default async function MonatDetailPage({
     );
   }
 
-  let fleetBundle = null;
-  let fleetFactor;
-  let fleetStrategy;
-  let fleetStats = null;
-  if (nationalFleetMonthAvailable(monat)) {
-    fleetBundle = loadNationalFleetMonthBundle();
-    fleetFactor = parseFleetFactor(query.faktor);
-    fleetStrategy = parseFleetStrategy(query.fahrweise);
-    fleetStats = monthStatsForRun(fleetBundle, fleetFactor, fleetStrategy);
-  }
+  const fleetFactor = parseFleetFactor(query.faktor);
+  const fleetStrategy = parseFleetStrategy(query.fahrweise);
+  const grid = buildMonatGrid({
+    monthKey: monat,
+    records,
+    todayKey: view.todayKey,
+    lastCompleteDayKey: view.lastCompleteDayKey,
+  });
+  const bars = barsFromMonatGrid(grid);
+
+  const fleetSlot = nationalFleetMonthAvailable(monat) ? (
+    <NationalFleetMonatSlot monthKey={monat} factor={fleetFactor} strategy={fleetStrategy} bars={bars} />
+  ) : (
+    <NationalFleetMonthUnavailable monthKey={monat} />
+  );
 
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[720px] max-w-[1200px]" />}>
@@ -76,11 +82,11 @@ export default async function MonatDetailPage({
         lastCompleteDayKey={view.lastCompleteDayKey}
         records={records}
         dataStand={view.stand}
-        fleetBundle={fleetBundle}
         fleetFactor={fleetFactor}
         fleetStrategy={fleetStrategy}
-        fleetStats={fleetStats}
-      />
+      >
+        {fleetSlot}
+      </MonatPageV4>
     </Suspense>
   );
 }

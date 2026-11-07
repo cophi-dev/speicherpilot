@@ -1,6 +1,17 @@
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
+export type MarginalCaptureRow = {
+  from_factor: number;
+  to_factor: number;
+  delta_factor_units: number;
+  delta_capture_gwh: number;
+  delta_peak_reduction_mw: number;
+  delta_capture_per_added_gw_power_gwh_per_gw: number;
+  delta_capture_per_added_gwh_nameplate?: number;
+  note?: string;
+};
+
 export const NATIONAL_FLEET_MONTH_KEY = "2026-10";
 export const NATIONAL_FLEET_FACTORS = [1, 2, 5, 10] as const;
 export type NationalFleetFactor = (typeof NATIONAL_FLEET_FACTORS)[number];
@@ -55,13 +66,17 @@ export type NationalFleetMonthBundle = {
   bundleId: string;
   provenance: Record<string, unknown>;
   summary: Record<string, Record<string, Record<string, unknown>>>;
-  marginal: unknown[];
+  marginal: MarginalCaptureRow[];
   physics: Record<string, unknown>;
   runs: Record<string, NationalFleetRunSeries>;
 };
 
 export function nationalFleetMonthAvailable(monthKey: string): boolean {
   return monthKey === NATIONAL_FLEET_MONTH_KEY;
+}
+
+export function parseFleetMarginal(bundle: NationalFleetMonthBundle): MarginalCaptureRow[] {
+  return bundle.marginal ?? [];
 }
 
 export function parseFleetFactor(raw: string | undefined): NationalFleetFactor {
@@ -244,4 +259,26 @@ export function fleetTagHref(dateKey: string, factor: NationalFleetFactor, strat
 
 export function fleetMonatHref(monthKey: string, factor: NationalFleetFactor, strategy: NationalFleetStrategyUi): string {
   return `/monat/${monthKey}?${fleetMonatQuery(factor, strategy)}`;
+}
+
+export type NationalFleetFactorCompareRow = {
+  factor: NationalFleetFactor;
+  chargeGwh: number;
+  peakAfterGw: number;
+  peakReductionGw: number;
+};
+
+export function factorCompareRowsForStrategy(
+  bundle: NationalFleetMonthBundle,
+  strategy: NationalFleetStrategyUi,
+): NationalFleetFactorCompareRow[] {
+  return NATIONAL_FLEET_FACTORS.map((factor) => {
+    const st = monthStatsForRun(bundle, factor, strategy);
+    return {
+      factor,
+      chargeGwh: st.chargeGwh,
+      peakAfterGw: st.peakAfterGw,
+      peakReductionGw: st.peakReductionGw,
+    };
+  });
 }

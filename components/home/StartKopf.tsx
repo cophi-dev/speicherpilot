@@ -9,6 +9,7 @@ import { berlinMonthKeyFromDateKey } from "@/lib/monatCalendar";
 import { startPointe } from "@/lib/startPointe";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
+import { NATIONAL_FLEET_MONTH_KEY, fleetMonatHref } from "@/lib/nationalMonthFleetModel";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
   if (dayKey === prevBerlinDateKey(todayKey)) {
@@ -76,7 +77,14 @@ export function StartKopf({
               <Link href={`/tag/${kopfDayKey}`} className="v4-text-link">
                 Tag ansehen →
               </Link>
-              <Link href={`/monat/${monthKey}`} className="v4-text-link">
+              <Link
+                href={
+                  monthKey === NATIONAL_FLEET_MONTH_KEY
+                    ? fleetMonatHref(monthKey, 1, "ueberschuss")
+                    : `/monat/${monthKey}`
+                }
+                className="v4-text-link"
+              >
                 Monat ansehen →
               </Link>
               <Link href="/methodik#auffaelligkeit" className="v4-text-link">

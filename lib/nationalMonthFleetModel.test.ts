@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 import {
   getFleetRun,
+  monthStatsForRun,
   nationalFleetMonthAvailable,
   replaySocFromAsymmetricStart,
   runKey,
@@ -55,5 +56,22 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
     const slice = sliceFleetDay(run, "2026-10-29");
     expect(slice).not.toBeNull();
     expect(slice!.indices.length).toBe(96);
+  });
+
+  it("month stats charge equals qh sum for x1 ueberschuss", () => {
+    const run = getFleetRun(bundle, 1, "ueberschuss");
+    let charge = 0;
+    for (let i = 0; i < run.intervalCount; i += 1) {
+      charge += run.c_mw[i] * 0.25;
+    }
+    const stats = monthStatsForRun(bundle, 1, "ueberschuss");
+    expect(stats.chargeGwh).toBeCloseTo(charge / 1000, 2);
+  });
+
+  it("global month peak from summary matches run max r_prime", () => {
+    const run = getFleetRun(bundle, 1, "spitze");
+    const stats = monthStatsForRun(bundle, 1, "spitze");
+    const maxRp = Math.max(...run.r_prime_mw) / 1000;
+    expect(stats.peakAfterGw).toBeCloseTo(maxRp, 3);
   });
 });

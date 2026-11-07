@@ -21,10 +21,13 @@ function mobileTicks(dayCount: number): number[] {
 export function MonatSurplusGraph({
   monthKey,
   bars,
+  tagHrefFor,
 }: {
   monthKey: string;
   bars: MonatSurplusBar[];
+  tagHrefFor?: (dateKey: string) => string;
 }) {
+  const tagLink = tagHrefFor ?? ((dateKey: string) => `/tag/${dateKey}`);
   const withData = bars.filter((b) => b.surplusGwh !== null && !b.future);
   const surplusDays = withData.filter((b) => (b.surplusGwh ?? 0) >= 0.05);
   const maxGwh = Math.max(...withData.map((b) => Math.max(0, b.surplusGwh ?? 0)), 0.05);
@@ -74,7 +77,7 @@ export function MonatSurplusGraph({
             return (
               <div key={bar.dateKey} className="v4-monat-chart-slot">
                 {bar.clickable ? (
-                  <Link href={`/tag/${bar.dateKey}`} className="v4-monat-chart-link" aria-label={formatBerlinDayLabel(bar.dateKey)}>
+                  <Link href={tagLink(bar.dateKey)} className="v4-monat-chart-link" aria-label={formatBerlinDayLabel(bar.dateKey)}>
                     {inner}
                   </Link>
                 ) : (
@@ -127,7 +130,7 @@ export function MonatSurplusGraph({
                 </td>
                 <td>
                   {bar.clickable ? (
-                    <Link href={`/tag/${bar.dateKey}`}>ansehen</Link>
+                    <Link href={tagLink(bar.dateKey)}>ansehen</Link>
                   ) : (
                     "—"
                   )}

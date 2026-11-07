@@ -7,14 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
 import { loadGermanyView } from "@/lib/germanyView";
 import { lastSurplusBefore } from "@/lib/kopfTagCopy";
-import {
-  getFleetRun,
-  nationalFleetMonthAvailable,
-  parseFleetFactor,
-  parseFleetStrategy,
-  sliceFleetDay,
-} from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+import { nationalFleetMonthAvailable, parseFleetFactor, parseFleetStrategy } from "@/lib/nationalMonthFleetModel";
+import { NationalFleetTagSlot } from "@/components/home/NationalFleetTagSlot";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -98,19 +92,14 @@ export default async function TagDetailPage({
     return null;
   }
 
-  let fleetDay = null;
   const fleetFactor = parseFleetFactor(typeof query.faktor === "string" ? query.faktor : undefined);
   const fleetStrategy = parseFleetStrategy(
     typeof query.fahrweise === "string" ? query.fahrweise : undefined,
   );
-  if (nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
-    const bundle = loadNationalFleetMonthBundle();
-    const run = getFleetRun(bundle, fleetFactor, fleetStrategy);
-    const slice = sliceFleetDay(run, dayKey);
-    if (slice) {
-      fleetDay = { run, slice, factor: fleetFactor, strategy: fleetStrategy };
-    }
-  }
+  const fleetSlot =
+    nationalFleetMonthAvailable(dayKey.slice(0, 7)) ? (
+      <NationalFleetTagSlot dayKey={dayKey} factor={fleetFactor} strategy={fleetStrategy} />
+    ) : null;
 
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
@@ -126,8 +115,11 @@ export default async function TagDetailPage({
         dayOverview={view.dayOverview}
         fleetPowerGw={fleet.powerGw}
         fleetEnergyGwh={fleet.energyGwh}
-        fleetDay={fleetDay}
-      />
+        fleetFactor={fleetFactor}
+        fleetStrategy={fleetStrategy}
+      >
+        {fleetSlot}
+      </TagPageV4>
     </Suspense>
   );
 }

@@ -1,17 +1,10 @@
-"use client";
-
 import Link from "next/link";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
-import { NationalFleetMonthChapter } from "@/components/home/NationalFleetMonthChapter";
-import type {
-  NationalFleetFactor,
-  NationalFleetMonthBundle,
-  NationalFleetMonthStats,
-  NationalFleetStrategyUi,
-} from "@/lib/nationalMonthFleetModel";
+import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import { fleetTagHref, nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
   adjacentMonthWithData,
   buildMonatGrid,
@@ -84,7 +77,21 @@ export function MonatNav({
   );
 }
 
-function MonatCalendarList({ grid, monthKey }: { grid: MonatDayCell[]; monthKey: string }) {
+function MonatCalendarList({
+  grid,
+  monthKey,
+  fleetFactor,
+  fleetStrategy,
+}: {
+  grid: MonatDayCell[];
+  monthKey: string;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
+}) {
+  const tagHref = (dateKey: string) =>
+    fleetFactor && fleetStrategy && nationalFleetMonthAvailable(monthKey)
+      ? fleetTagHref(dateKey, fleetFactor, fleetStrategy)
+      : `/tag/${dateKey}`;
   return (
     <ul className="v4-monat-list v4-content" aria-label={`Tage im ${monthKey}`}>
       {grid.map((cell) => {
@@ -100,7 +107,7 @@ function MonatCalendarList({ grid, monthKey }: { grid: MonatDayCell[]; monthKey:
         return (
           <li key={cell.dateKey}>
             {isClickable(cell) ? (
-              <Link href={`/tag/${cell.dateKey}`} className={className}>
+              <Link href={tagHref(cell.dateKey)} className={className}>
                 {inner}
               </Link>
             ) : (
@@ -121,25 +128,27 @@ export function MonatPageV4({
   lastCompleteDayKey,
   records,
   dataStand,
-  fleetBundle,
   fleetFactor,
   fleetStrategy,
-  fleetStats,
+  children,
 }: {
   monthKey: string;
   todayKey: string;
   lastCompleteDayKey: string;
   records: TagesKennzahlRecord[];
   dataStand: string;
-  fleetBundle?: NationalFleetMonthBundle | null;
   fleetFactor?: NationalFleetFactor;
   fleetStrategy?: NationalFleetStrategyUi;
-  fleetStats?: NationalFleetMonthStats | null;
+  children?: React.ReactNode;
 }) {
   const { h1, subline } = monatPointe(monthKey, records);
   const grid = buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey });
   const bars = barsFromMonatGrid(grid);
   const monthLabel = formatBerlinMonthLabel(monthKey);
+  const fleetTagLink =
+    fleetFactor && fleetStrategy && nationalFleetMonthAvailable(monthKey)
+      ? (dateKey: string) => fleetTagHref(dateKey, fleetFactor, fleetStrategy)
+      : undefined;
 
   return (
     <div className="v4-start monat-page">
@@ -156,16 +165,7 @@ export function MonatPageV4({
         </div>
       </section>
 
-      {fleetBundle && fleetFactor && fleetStrategy && fleetStats ? (
-        <NationalFleetMonthChapter
-          monthKey={monthKey}
-          bundle={fleetBundle}
-          factor={fleetFactor}
-          strategy={fleetStrategy}
-          stats={fleetStats}
-          bars={bars}
-        />
-      ) : null}
+      {children}
 
       <section className="v4-chapter" aria-labelledby="monat-graph-title">
         <div className="v4-chapter-head v4-content">
@@ -174,13 +174,18 @@ export function MonatPageV4({
             Positive Wind-Solar-Differenz je Tag im Monat
           </h2>
           <p className="v4-subline">
-            Gemessene Viertelstunden (Energy-Charts), vor Speicher-Overlay — nicht identisch mit der Modellflotte oben.
+            Gemessene Viertelstunden (Energy-Charts) — nicht identisch mit der Modellflotte oben.
           </p>
         </div>
-        <MonatSurplusGraph monthKey={monthKey} bars={bars} />
+        <MonatSurplusGraph monthKey={monthKey} bars={bars} tagHrefFor={fleetTagLink} />
         <details className="v4-monat-list-fallback v4-content">
           <summary>Tagesliste (Tabellenalternative)</summary>
-          <MonatCalendarList grid={grid} monthKey={monthKey} />
+          <MonatCalendarList
+            grid={grid}
+            monthKey={monthKey}
+            fleetFactor={fleetFactor}
+            fleetStrategy={fleetStrategy}
+          />
         </details>
       </section>
 
