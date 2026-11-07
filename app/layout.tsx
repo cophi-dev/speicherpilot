@@ -35,11 +35,13 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <body
-        className="min-h-full bg-background text-foreground"
-        data-speicherpilot-source-sha={BUILD_PROVENANCE.commit}
-        data-speicherpilot-build-id={BUILD_PROVENANCE.buildId}
-      >
+      <body className="min-h-full bg-background text-foreground">
+        <span
+          id="speicherpilot-build-provenance"
+          hidden
+          data-source-sha={BUILD_PROVENANCE.commit}
+          data-build-id={BUILD_PROVENANCE.buildId}
+        />
         <ThemeInitScript />
         <SiteShell>{children}</SiteShell>
       </body>
