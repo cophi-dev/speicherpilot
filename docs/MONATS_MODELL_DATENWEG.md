@@ -21,6 +21,10 @@
 - November 2026 und andere Monate: **kein Modellmonat**, nur Beobachtung bzw. Hinweis `NationalFleetMonthUnavailable`.
 - Öffentlicher Rebuild weiterer Monate erfordert externe Rechenartefakte (wie Run9) + erneuten `build-national-month-fleet-bundle`-Lauf mit neuem `monthKey`.
 
+## Einordnung (kein reiner Überschuss-Rechner)
+
+Die Monats-Modellflotte rechnet drei durchgehende Monatsstrategien über alle 2980 Viertelstunden. Auch ohne Wind-Solar-Überschuss können Speicher darin Spitzen senken und Energie verschieben; der Überschuss-Tagesbalken unten ist nur Beobachtung, nicht die alleinige Modellbasis. Kraftwerksrampen, Starts und örtliche Abregelung sind **nicht** enthalten — Peak- oder Preisoptimierung hier belegt keine Abregelungswirkung.
+
 ## Grenznutzen in der UI
 
 - `bundle.marginal` beschreibt nur die **Überschuss**-Strategie (Surplus-Pool zwischen ×1/×2/×5/×10).

@@ -54,10 +54,8 @@ export function NationalFleetDayChapter({
           Monatslauf-Ausschnitt (×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe})
         </h2>
         <p className="v4-subline">
-          Hypothetische Referenzflotte im durchgängigen Oktober-Lauf (kein Reset um Mitternacht). Modellwirkung — nicht
-          beobachteter BESS-Bestand, nicht lokales Netz.           Hero und „01 · Der Tag“ (Beobachtung) stehen vor diesem Block. Die Tagesenergiequote Wind+Sonne zu Last kann unter
-          100 % liegen und es gibt trotzdem einzelne Viertelstunden mit positivem Überschuss — Min-Peak-Fahrweise lädt
-          keinen positiven Überschuss (Modell hier: 0 MW).{" "}
+          Hypothetischer Monatslauf-Ausschnitt (kein Tages-Reset). Hero/„01 · Der Tag“ = Beobachtung; hier die gewählte
+          Fahrweise über alle Viertelstunden — auch ohne Tages-Überschuss kann Spitzen senken oder Energie verschieben.{" "}
           <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, factor, strategy)} className="v4-text-link">
             Zum Monatsmodell
           </Link>

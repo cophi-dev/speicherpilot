@@ -333,6 +333,30 @@ def main() -> int:
     return 0
 
 
+def solve_one(factor: int, strategy: str, out_dir: Path) -> int:
+    rows = load_rows()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    c, d, e, stats = solve(rows, factor, strategy)
+    slug = f"x{factor}_{strategy}"
+    write_series(out_dir / f"{slug}.csv", rows, c, d, e, factor, strategy)
+    stats["mip_report_ref"] = stats.get("mip_report") or stats.get("phase2_tiebreak") or stats.get("solve")
+    manifest = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "factor": factor,
+        "strategy": strategy,
+        "input_csv": str(INPUT_CSV),
+        "input_sha256": sha256(INPUT_CSV),
+        "definitions_sha256": sha256(INPUT_DEFS),
+        "intervals": len(rows),
+        "stats": stats,
+        "output_csv": str(out_dir / f"{slug}.csv"),
+        "output_csv_sha256": sha256(out_dir / f"{slug}.csv"),
+    }
+    (out_dir / "solve_manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(json.dumps({"ok": True, "manifest": str(out_dir / "solve_manifest.json"), "stats": stats}, ensure_ascii=False))
+    return 0
+
+
 if __name__ == "__main__":
     if "--validate-inputs" in sys.argv:
         rows = load_rows()
@@ -347,4 +371,18 @@ if __name__ == "__main__":
             )
         )
         raise SystemExit(0)
+    if "--solve-one" in sys.argv:
+        try:
+            fi = sys.argv.index("--factor")
+            si = sys.argv.index("--strategy")
+            oi = sys.argv.index("--out-dir")
+        except ValueError as e:
+            print("Usage: --solve-one --factor 1 --strategy min_peak_perfect_foresight --out-dir PATH", file=sys.stderr)
+            raise SystemExit(2) from e
+        factor = int(sys.argv[fi + 1])
+        strategy = sys.argv[si + 1]
+        out_dir = Path(sys.argv[oi + 1])
+        if strategy not in STRATEGIES:
+            raise SystemExit(f"unknown strategy {strategy}")
+        raise SystemExit(solve_one(factor, strategy, out_dir))
     raise SystemExit(main())

@@ -197,21 +197,12 @@ export function NationalFleetTimeSeriesChart({
   const panelH = 92;
   const pad = 6;
   const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
-  const rScale = scaleLinear(
-    points.flatMap((p) => [p.rGw, p.rpGw]),
-    panelH,
-    pad,
-    Math.min(...points.flatMap((p) => [p.rGw, p.rpGw]), 0),
-    Math.max(...points.map((p) => p.rpGw)) * 1.02,
-  );
-  const powerMax = Math.max(...points.flatMap((p) => [p.cMw, p.dMw]), 1);
-  const powerScale = scaleLinear(
-    points.flatMap((p) => [p.cMw, p.dMw]),
-    panelH,
-    pad,
-    0,
-    powerMax * 1.05,
-  );
+  const rMin = Math.min(...points.flatMap((p) => [p.rGw, p.rpGw]), 0);
+  const rMax = Math.max(...points.flatMap((p) => [p.rGw, p.rpGw])) * 1.02;
+  const rScale = scaleLinear(points.flatMap((p) => [p.rGw, p.rpGw]), panelH, pad, rMin, rMax);
+  const powerGw = points.flatMap((p) => [p.cMw / 1000, p.dMw / 1000]);
+  const powerMaxGw = Math.max(...powerGw, 0.001);
+  const powerScale = scaleLinear(powerGw, panelH, pad, 0, powerMaxGw * 1.05);
   const socScale = scaleLinear(
     points.map((p) => p.socGwh),
     panelH,
@@ -240,7 +231,7 @@ export function NationalFleetTimeSeriesChart({
     setHover(points[j]);
   };
 
-  const showPowerNote = powerMax < 0.5;
+  const showPowerNote = powerMaxGw < 0.0005;
 
   return (
     <figure className="v4-fleet-ts-wrap v4-content">
@@ -259,8 +250,8 @@ export function NationalFleetTimeSeriesChart({
       </div>
       {showPowerNote ? (
         <p className="v4-fleet-ts-power-note num">
-          An diesem Tag kaum oder keine Modell-Ladung/Abgabe — bei Fahrweise „Spitze senken“ wird positiver Überschuss nicht
-          geladen.
+          Kaum Lade-/Abgabeleistung sichtbar: bei „Spitze senken“ zielt das Modell nicht auf Überschuss-Laden — Lastverschiebung
+          und Peakwirkung können trotzdem in Restlast und SoC stecken.
         </p>
       ) : null}
       {hover ? (
@@ -316,7 +307,7 @@ export function NationalFleetTimeSeriesChart({
           </SinglePanel>
           <SinglePanel
             title="Speicherleistung"
-            unit="MW"
+            unit="GW"
             width={width}
             height={panelH}
             yMin={powerScale.min}
@@ -328,7 +319,7 @@ export function NationalFleetTimeSeriesChart({
                 fill="none"
                 points={polylinePoints(
                   xs,
-                  points.map((p) => powerScale.y(p.cMw)),
+                  points.map((p) => powerScale.y(p.cMw / 1000)),
                 )}
               />
             )}
@@ -338,7 +329,7 @@ export function NationalFleetTimeSeriesChart({
                 fill="none"
                 points={polylinePoints(
                   xs,
-                  points.map((p) => powerScale.y(p.dMw)),
+                  points.map((p) => powerScale.y(p.dMw / 1000)),
                 )}
               />
             )}

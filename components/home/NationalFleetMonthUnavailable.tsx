@@ -13,8 +13,8 @@ export function NationalFleetMonthUnavailable({ monthKey }: { monthKey: string }
         Modellflotte für {formatBerlinMonthLabel(monthKey)}
       </h2>
       <p>
-        Für diesen Monat liegt noch keine vorberechnete Modellrechnung vor (nur Beobachtung unten). Vergleichbare
-        Monatsläufe gibt es derzeit für{" "}
+        Für diesen Monat liegt noch keine vorberechnete Modellrechnung vor (nur Beobachtung unten) — das ist kein
+        Urteil „null Speichernutzen“. Vergleichbare Monatsläufe mit Peak- und Preisfahrweisen gibt es derzeit für{" "}
         <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, 1, "ueberschuss")} className="v4-text-link">
           {formatBerlinMonthLabel(NATIONAL_FLEET_MONTH_KEY)}
         </Link>

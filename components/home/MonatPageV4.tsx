@@ -173,13 +173,14 @@ export function MonatPageV4({
             Positive Wind-Solar-Differenz je Tag im Monat
           </h2>
           <p className="v4-subline">
+            Nur die beobachtete Überschuss-Kennzahl je Tag — kein Maß für Peak-Senkung, Preisarbitrage oder Abregelung.{" "}
             {nationalFleetMonthAvailable(monthKey)
               ? observationLive
-                ? "Gemessene Viertelstunden (Energy-Charts) — nicht identisch mit der Modellflotte oben."
-                : "Eingefrorener Beobachtungsstand aus öffentlichen Energy-Charts-Daten (Live-API gerade nicht verfügbar). Modellflotte oben bleibt aus dem vorberechneten Oktober-Bundle."
+                ? "Gemessene Viertelstunden (Energy-Charts); die Modellflotte oben rechnet zusätzlich Spitzen- und Preisfahrweisen über den ganzen Monat."
+                : "Eingefrorener Beobachtungsstand (Live-API gerade nicht verfügbar). Modellflotte oben aus dem Oktober-Bundle."
               : observationLive
-                ? "Gemessene Tageswerte — für diesen Monat liegt keine vorberechnete Modellflotte vor."
-                : "Beobachtung aus eingefrorenen bzw. Live-Daten — kein Monatslauf der Modellflotte für diesen Monat."}
+                ? "Gemessene Tageswerte — für diesen Monat keine vorberechnete Modellflotte (das ist kein Null-Nutzen-Urteil)."
+                : "Beobachtung aus eingefrorenen bzw. Live-Daten — kein Monatsmodell für diesen Monat."}
           </p>
           {!observationLive && observationFallbackNote ? (
             <p className="v4-fleet-observation-note num">{observationFallbackNote}</p>
@@ -191,15 +192,14 @@ export function MonatPageV4({
           fleetFactor={fleetFactor}
           fleetStrategy={fleetStrategy}
         />
-        <details className="v4-monat-list-fallback v4-content">
-          <summary>Tagesliste (Tabellenalternative)</summary>
+        <div className="v4-monat-list-fallback v4-content">
           <MonatCalendarList
             grid={grid}
             monthKey={monthKey}
             fleetFactor={fleetFactor}
             fleetStrategy={fleetStrategy}
           />
-        </details>
+        </div>
       </section>
 
       <p className="v4-chapter-foot v4-content num">

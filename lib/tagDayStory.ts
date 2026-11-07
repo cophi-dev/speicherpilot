@@ -51,18 +51,17 @@ export function digestTagDayEnergy(day: ResidualDay): TagDayEnergyDigest {
 export function tagMiddayStoryBody(day: ResidualDay): string {
   const d = digestTagDayEnergy(day);
   if (d.positiveQuarterHours === 0) {
-    return (
-      "Wind und Sonne liegen an diesem Tag in keiner Viertelstunde über der Last — die Tagesenergiebilanz kann trotzdem Unterschiede zwischen Mittag und Abend haben."
-    );
+    return "Wind und Sonne lagen an diesem Tag in keiner Viertelstunde über der Last.";
   }
-  const quote = formatQuantity(d.energyQuotePct, "de", 1);
   const posGwh = formatQuantity(d.positiveSurplusGwh, "de", 1);
+  const qh = String(d.positiveQuarterHours);
   const peak =
     d.middayPeakSurplusMw !== null && d.middayPeakAt
-      ? ` Um ${d.middayPeakAt} Uhr lag ein Überhang von ${formatQuantity(d.middayPeakSurplusMw, "de", 1)} MW (Wind+Sonne minus Last).`
+      ? ` Am größten war der Überschuss um ${d.middayPeakAt} Uhr mit ${formatQuantity(
+          d.middayPeakSurplusMw / 1000,
+          "de",
+          1,
+        )} GW.`
       : "";
-  return (
-    `Tagesenergie Wind+Sonne zu Last: ${quote} % — das ist ein Tagesschnitt, kein „kein Überschuss“-Ausschluss. ` +
-    `${d.positiveQuarterHours} Viertelstunden hatten zusammen ${posGwh} GWh positiven Überschuss (Wind+Sonne minus Last).${peak}`
-  );
+  return `Wind und Sonne lagen zeitweise über der Last: ${qh} Viertelstunden mit zusammen ${posGwh} GWh Überschuss.${peak}`;
 }

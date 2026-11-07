@@ -135,8 +135,12 @@ export function MonatSurplusGraph({
                 </td>
                 <td>
                   {bar.clickable ? (
-                    <Link href={tagLink(bar.dateKey)} className="v4-monat-graph-day-link">
-                      ansehen
+                    <Link
+                      href={tagLink(bar.dateKey)}
+                      className="v4-monat-graph-day-link v4-text-link"
+                      aria-label={`${formatBerlinDayLabel(bar.dateKey)} ansehen`}
+                    >
+                      {formatBerlinDayLabel(bar.dateKey)} ansehen
                     </Link>
                   ) : (
                     "—"

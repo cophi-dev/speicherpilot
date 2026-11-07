@@ -21,14 +21,18 @@ describe("tagMiddayStory", () => {
     };
     const day: ResidualDay = {
       dateBerlin: "2026-10-24",
-      slots: raw.slots.map((s) => ({
-        timestampIso: s.timestampIso,
-        hourBerlin: s.hourBerlin,
-        minuteBerlin: s.minuteBerlin ?? 0,
-        loadMw: s.loadMw,
-        windMw: s.windOnshoreMw + s.windOffshoreMw,
-        solarMw: s.solarMw,
-      })),
+      slots: raw.slots.map((s) => {
+        const hm = s.timestampIso.slice(11, 16);
+        const minuteBerlin = s.minuteBerlin ?? Number(hm.slice(3, 5));
+        return {
+          timestampIso: s.timestampIso,
+          hourBerlin: s.hourBerlin,
+          minuteBerlin,
+          loadMw: s.loadMw,
+          windMw: s.windOnshoreMw + s.windOffshoreMw,
+          solarMw: s.solarMw,
+        };
+      }),
     };
     const d = digestTagDayEnergy(day);
     expect(d.energyQuotePct).toBeGreaterThan(98);
@@ -37,6 +41,9 @@ describe("tagMiddayStory", () => {
     expect(d.positiveSurplusGwh).toBeGreaterThan(50);
     const text = tagMiddayStoryBody(day);
     expect(text).not.toMatch(/Kein Überschuss zum Laden/i);
-    expect(text).toMatch(/Tagesenergie/);
+    expect(text).not.toMatch(/Tagesschnitt|Ausschluss/i);
+    expect(text).toMatch(/zeitweise über der Last/);
+    expect(text).toMatch(/51/);
+    expect(text).toMatch(/13:30/);
   });
 });

@@ -2,12 +2,14 @@
 /**
  * Öffentlicher Monats-Solver-Pfad (Batch, nicht Render):
  * - validate: prüft eingefrorene Energy-Charts-Eingangs-CSV im Repo (2980 Intervalle)
- * - smoke:    validiert Inputs; voller 12×-Solve nur mit python3 + highspy (siehe Hinweis)
+ * - solve-spitze-x1: eine volle Oktober-Spitze×1-Optimierung in frischem OUT (nicht Produktbundle)
+ * - solve:    voller 12×-Solve nur mit python3 + highspy
  *
  * Oktober-Produkt-Bundle wird hier NICHT neu geschrieben.
  */
 import { execSync, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(process.cwd(), "artifacts/october-storage-counterfactual-20261107");
@@ -31,6 +33,75 @@ function runValidate() {
 
 if (mode === "validate") {
   runValidate();
+  process.exit(0);
+}
+
+if (mode === "solve-spitze-x1") {
+  runValidate();
+  const outDir =
+    process.env.RUN15_SOLVE_OUT ??
+    join(process.cwd(), "artifacts/run15-public-solve-20261107/spitze-x1");
+  mkdirSync(outDir, { recursive: true });
+  const logPath = join(outDir, "solver-cli.log");
+  const cmd = [
+    "python3",
+    PY,
+    "--solve-one",
+    "--factor",
+    "1",
+    "--strategy",
+    "min_peak_perfect_foresight",
+    "--out-dir",
+    outDir,
+  ];
+  const started = new Date().toISOString();
+  const r = spawnSync(cmd[0], cmd.slice(1), { encoding: "utf8", cwd: process.cwd(), timeout: 3_600_000 });
+  const log = [
+    `# solve-spitze-x1`,
+    `started: ${started}`,
+    `finished: ${new Date().toISOString()}`,
+    `exit: ${r.status}`,
+    `command: ${cmd.join(" ")}`,
+    "",
+    "=== stdout ===",
+    r.stdout ?? "",
+    "",
+    "=== stderr ===",
+    r.stderr ?? "",
+  ].join("\n");
+  writeFileSync(logPath, log);
+  if (r.status !== 0) {
+    console.error(log);
+    process.exit(r.status ?? 1);
+  }
+  const manifestPath = join(outDir, "solve_manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  const bundle = JSON.parse(
+    readFileSync(join(process.cwd(), "data/national-fleet/2026-10/fleet-month-bundle.json"), "utf8"),
+  );
+  const ref = bundle.summary["1"].min_peak_perfect_foresight;
+  const got = manifest.stats;
+  const tol = { peak_reduction_mw: 0.05, peak_after_mw: 0.05, grid_charge_energy_gwh: 0.02 };
+  const cmp = {
+    reference_bundle_sha256: "7ec0acf4320164d4a616f11c123d34d1903e8db9c22ac41788e80367dc95aa2f",
+    reference: {
+      peak_reduction_mw: ref.peak_reduction_mw,
+      peak_after_mw: ref.peak_after_mw,
+      grid_charge_energy_gwh: ref.grid_charge_energy_gwh ?? ref.surplus_pool_capture_grid_gwh,
+    },
+    solved: {
+      peak_reduction_mw: got.peak_reduction_mw,
+      peak_after_mw: got.peak_after_mw,
+      grid_charge_energy_gwh: got.grid_charge_energy_gwh ?? got.surplus_pool_capture_grid_gwh,
+    },
+    mip: got.mip_report_ref ?? null,
+  };
+  cmp.within_tolerance = Object.keys(tol).every(
+    (k) => Math.abs((cmp.reference[k] ?? 0) - (cmp.solved[k] ?? 0)) <= tol[k],
+  );
+  const report = { ok: true, outDir, manifestPath, manifest_sha256: createHash("sha256").update(readFileSync(manifestPath)).digest("hex"), cmp };
+  writeFileSync(join(outDir, "bundle-compare.json"), JSON.stringify(report, null, 2));
+  console.log(JSON.stringify(report, null, 2));
   process.exit(0);
 }
 

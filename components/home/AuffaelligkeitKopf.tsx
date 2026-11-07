@@ -69,8 +69,8 @@ export function AuffaelligkeitKopf({
     return {
       h1: `${record.dryStreak}. Tag in Folge ohne Überschuss`,
       subline: lastSurplus
-        ? `Zuletzt war am ${weekdayLabelDe(lastSurplus.dateKey)} Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.`
-        : "Speicher hatten im Modell seitdem nichts zum Laden.",
+        ? `Zuletzt war am ${weekdayLabelDe(lastSurplus.dateKey)} Tages-Überschuss da — seitdem unter der Schwelle. Das betrifft nur die Überschuss-Kennzahl, nicht Peak- oder Preisnutzen im Monatsmodell.`
+        : "Unter der Überschuss-Schwelle — kein vollständiges Speicher-Nutzenbild.",
       hero: {
         value: String(record.dryStreak),
         unit: "Tage",

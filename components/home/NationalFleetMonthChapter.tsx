@@ -73,11 +73,13 @@ export function NationalFleetMonthChapter({
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">Modellflotte · {monthKey}</p>
         <h2 id="fleet-month-title" className="v4-chapter-h2 v4-fleet-month-h2">
-          So hätte die Referenzflotte im Monat fahren können
+          Monatslauf der Referenzflotte — Überschuss-, Spitzen- und Preisfahrweisen
         </h2>
         <p className="v4-subline">
           Modellrechnung auf beobachteter Last und Erzeugung (Oktober 2026): Referenz 4,58 GW / 8 GWh Nennenergie,
           skaliert mit ×{factor}. Hypothetisch, nicht amtlicher Bestand — kein Anschlussnetz, keine Netzdienlichkeit.
+          Nicht nur Überschusstage: die drei Monats-Fahrweisen rechnen alle Viertelstunden (Spitzen senken,
+          Energie verschieben). Rampen, Zusatzstarts und Abregelung am Ort sind hier nicht modelliert.
         </p>
       </div>
 
@@ -172,7 +174,6 @@ export function NationalFleetMonthChapter({
         strategy={strategy}
         peakReductionGw={stats.peakReductionGw}
         peakReductionPct={stats.peakReductionPct}
-        scrollHint="Alle 2980 Viertelstunden ohne Glättung — horizontal scrollen"
       />
 
       <figure className="v4-monat-graph-wrap v4-content">

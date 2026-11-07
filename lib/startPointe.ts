@@ -45,14 +45,14 @@ export function startPointe(
   if (end && end.dryStreak >= 3) {
     const h1 = `30 Tage: ${noSurplus} ohne Überschuss — gestern der ${end.dryStreak}. in Folge`;
     const subline = strongest
-      ? `Stärkster Überschuss im Fenster: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${weekdayLabelDe(strongest.dateKey)}. Gestern (${gesternLabel}) blieb wieder nichts zum Laden.`
-      : `Gestern (${gesternLabel}): ${end.dryStreak}. Tag in Folge ohne Überschuss im Modell.`;
+      ? `Stärkster Tages-Überschuss im Fenster: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${weekdayLabelDe(strongest.dateKey)}. Gestern (${gesternLabel}) ohne Überschuss zum Laden aus Wind+Sonne — Peak- und Preisfahrweisen rechnen im Modellflotte-Monatslauf anders.`
+      : `Gestern (${gesternLabel}): ${end.dryStreak}. Tag in Folge ohne Überschuss-Kennzahl — kein vollständiges Nutzen-Urteil.`;
     return {
       h1,
       subline,
       heroValue: String(noSurplus),
       heroUnit: "Tage",
-      heroKern: "ohne Überschuss (30 Tage)",
+      heroKern: "ohne Tages-Überschuss (30 Tage)",
       tagH1ForCompare,
     };
   }
