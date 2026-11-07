@@ -115,7 +115,7 @@ export function MonatSurplusGraph({
         farbige Tage springt zum Tag.
       </figcaption>
       <div className="v4-monat-graph-table-wrap">
-        <table className="v4-monat-graph-table num day-sr">
+        <table className="v4-monat-graph-table num">
           <caption>Tageswerte Monat {monthKey}</caption>
           <thead>
             <tr>
