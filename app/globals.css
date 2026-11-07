@@ -8748,6 +8748,16 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   gap: 12px;
   margin-top: 6px;
 }
+.v4-luecke-dst-note {
+  margin: 0.5rem 0 0;
+  padding: 0 20px;
+  max-width: 1240px;
+  margin-inline: auto;
+  box-sizing: border-box;
+  font-size: 12px;
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+}
 
 .v4-luecke-figure.is-compact .v4-luecke-peak-banner {
   margin-top: 0;

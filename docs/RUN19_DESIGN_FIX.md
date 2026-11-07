@@ -6,12 +6,13 @@ Gebündelt auf PR #73 / Branch `cursor/launch-run18-kpi-raster-2686`. Kein Model
 
 **Befund (375/390, hydratisiert):** Zeitlabels 00–24 lagen auf Shell-Volbreite; SVG-Plot beginnt bei `padding-left: 36px` → optischer Versatz von Gitter/Marker (~30 px) und „18:15“ wirkte zu spät.
 
-**Ursache (2-fach):**
+**Ursache (3-fach):**
 
-1. Mobil: HTML-Achse unter dem SVG lag auf Volbreite (ersetzt durch Achsentext **im SVG**, gleiche `plotXFromHour`-Logik wie Gitter).
-2. Kurven/Marker: X-Position über Slot-Index `(i/(n-1))` statt Kalenderstunde — bei Viertelstunden-Raster weicht das von Gitter `h/24` ab (sichtbar bei Spitzenmarker).
+1. Mobil: HTML-Achse außerhalb der SVG-Plotbreite (ersetzt durch Achsentext im SVG).
+2. Standardtag 96 qh: Kurven auf Slot-Index, Gitter auf `h/24` — Spitzenmarker wich optisch ab.
+3. **DST (100/92 qh):** reine Wanduhr-Skala ließ doppelte Herbststunde zeitlich **zurücklaufen** (überlappende X).
 
-**Fix:** `plotXFromSlot` / `plotXFromHour` in `lib/lueckeChartGeometry.ts`; CSS-Vars `--v4-luecke-pad-left/right` am Figure.
+**Fix:** Gemeinsame **Slot-Index-Basis** für Kurven, Gitter und Marker (`plotXFromSlotIndex`); Gitterticks über `slotIndexAtLocalHour`; kurze `v4-luecke-dst-note` an Sondertagen; Label „24“ mobil `textAnchor=end`.
 
 ## Weitere Layouts
 

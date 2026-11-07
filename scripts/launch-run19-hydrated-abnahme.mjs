@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Run19: hydrated mobile/desktop screenshots + Lücke-Achsen-Check (kein no-JS-Ersatz).
+ * Run19 regression: hydrated screenshots + Lücke geometry + DST + URL/Controls.
  */
 import { chromium } from "playwright";
 import { execSync } from "node:child_process";
@@ -9,7 +9,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const BASE = process.env.SITE_E2E_BASE_URL ?? "http://127.0.0.1:3001";
-const OUT = process.env.RUN19_OUT ?? "/cursor/stores/self/launch-run19-design-fix-20261107";
+const OUT =
+  process.env.RUN19_OUT ?? "/cursor/stores/self/launch-run19-design-fix-20261107";
 
 function patchTurbopackCssChunk() {
   const chunks = join(process.cwd(), ".next/static/chunks");
@@ -22,6 +23,15 @@ function patchTurbopackCssChunk() {
 
 function sha256File(p) {
   return createHash("sha256").update(readFileSync(p)).digest("hex");
+}
+
+function pageUrl(pathname, searchParams = {}) {
+  const u = new URL(pathname, BASE);
+  for (const [k, v] of Object.entries(searchParams)) {
+    u.searchParams.set(k, v);
+  }
+  u.searchParams.set("_run19", String(Date.now()));
+  return u.href;
 }
 
 function assertProvenanceOnDisk() {
@@ -46,14 +56,16 @@ function assertProvenanceOnDisk() {
 async function measureLueckeAxis(page) {
   return page.evaluate(() => {
     const shell = document.querySelector(".v4-luecke-svg-shell");
+    const fig = document.querySelector(".v4-luecke-figure");
     const svg = document.querySelector(".v4-luecke-chart");
-    if (!shell || !svg) {
-      return { error: "kein Lücke-Chart (mobil)" };
+    if (!shell || !svg || !fig) {
+      return { error: "kein Lücke-Chart" };
     }
     const shellR = shell.getBoundingClientRect();
+    const content = document.querySelector(".v4-content") ?? document.querySelector("main");
+    const contentR = content?.getBoundingClientRect();
     const axisTexts = [...svg.querySelectorAll(".v4-luecke-axis")];
     const gridLines = [...svg.querySelectorAll(".v4-luecke-grid")];
-    const peakLine = svg.querySelector(".v4-luecke-peak-line");
     if (axisTexts.length < 5 || gridLines.length < 5) {
       return { error: "Achse/Gitter unvollständig" };
     }
@@ -69,20 +81,83 @@ async function measureLueckeAxis(page) {
         plotInsetLeft: gridLines[0].getBoundingClientRect().left - shellR.left,
       };
     });
-    const plotInsetLeft = pairs[0]?.plotInsetLeft ?? null;
-    const peakDelta =
-      peakLine != null
-        ? Math.abs(
-            peakLine.getBoundingClientRect().left +
-              peakLine.getBoundingClientRect().width / 2 -
-              shellR.left -
-              (plotInsetLeft ?? 0) -
-              ((18 + 15 / 60) / 24) *
-                (gridLines[4].getBoundingClientRect().left - gridLines[0].getBoundingClientRect().left),
-          )
-        : null;
-    return { pairs, plotInsetLeft, maxLabelDelta: Math.max(...pairs.map((p) => p.deltaPx)), peakDelta };
+    const label24 = axisTexts[axisTexts.length - 1];
+    const label24R = label24.getBoundingClientRect();
+    const label24InsideContent =
+      contentR == null ? true : label24R.right <= contentR.right + 1 && label24R.left >= contentR.left - 1;
+    const slotCount = fig.getAttribute("data-luecke-slot-count");
+    const dayKind = fig.getAttribute("data-luecke-day-kind");
+    return {
+      pairs,
+      plotInsetLeft: pairs[0]?.plotInsetLeft ?? null,
+      maxLabelDelta: Math.max(...pairs.map((p) => p.deltaPx)),
+      label24InsideContent,
+      slotCount: slotCount ? Number(slotCount) : null,
+      dayKind,
+    };
   });
+}
+
+async function readFleetControls(page) {
+  return page.evaluate(() => {
+    const activeFactor = document.querySelector(".v4-fleet-pill.is-active[href*='faktor']");
+    const activeStrategy = document.querySelector(".v4-fleet-pill.is-active[href*='fahrweise']");
+    return {
+      factorHref: activeFactor?.getAttribute("href") ?? null,
+      factorText: activeFactor?.textContent?.trim() ?? null,
+      strategyHref: activeStrategy?.getAttribute("href") ?? null,
+      strategyText: activeStrategy?.textContent?.trim() ?? null,
+    };
+  });
+}
+
+const SCENARIOS = [
+  {
+    label: "mob375-tag-2910",
+    width: 375,
+    height: 812,
+    pathname: "/tag/2026-10-29",
+    params: { faktor: "1", fahrweise: "spitze" },
+    cropLuecke: true,
+    expectSlots: 96,
+    expectDayKind: "standard-96",
+    fleet: true,
+  },
+  {
+    label: "mob390-tag-2910",
+    width: 390,
+    height: 844,
+    pathname: "/tag/2026-10-29",
+    params: { faktor: "1", fahrweise: "spitze" },
+    cropLuecke: true,
+    expectSlots: 96,
+    expectDayKind: "standard-96",
+    fleet: false,
+  },
+  {
+    label: "mob375-tag-2510-dst",
+    width: 375,
+    height: 812,
+    pathname: "/tag/2026-10-25",
+    params: { faktor: "2", fahrweise: "spitze" },
+    cropLuecke: true,
+    expectSlots: 100,
+    expectDayKind: "dst-fall-100",
+    fleet: true,
+  },
+];
+
+function verifySpringDstArtifact() {
+  const p = join(process.cwd(), "artifacts/launch-r4-20261107T0918Z/dst-timestamps.json");
+  if (!existsSync(p)) {
+    return { error: "dst-timestamps.json fehlt" };
+  }
+  const data = JSON.parse(readFileSync(p, "utf8"));
+  const spring = data.spring;
+  if (!spring || spring.slotCount !== 92) {
+    return { error: `spring slotCount ${spring?.slotCount}` };
+  }
+  return { dayKey: spring.dayKey, slotCount: spring.slotCount, note: "92qh Frühling (Artefakt, kein hydr. Tag-Screenshot — Live-Tag ohne Lücke-Daten)" };
 }
 
 async function main() {
@@ -96,40 +171,61 @@ async function main() {
   });
 
   const checks = [];
-  for (const [label, width, height, path, cropLuecke] of [
-    ["mob375-tag", 375, 812, "/tag/2026-10-29?faktor=1&fahrweise=spitze", true],
-    ["mob390-tag", 390, 844, "/tag/2026-10-29?faktor=1&fahrweise=spitze", true],
-    ["desktop1280-tag", 1280, 900, "/tag/2026-10-29?faktor=1&fahrweise=spitze", false],
-    ["mob375-start", 375, 812, "/", false],
-    ["mob390-monat", 390, 844, "/monat/2026-10?faktor=1&fahrweise=spitze", false],
-  ]) {
+  for (const spec of SCENARIOS) {
+    const url = pageUrl(spec.pathname, spec.params);
     const page = await context.newPage();
-    await page.setViewportSize({ width, height });
-    await page.goto(`${BASE}${path}?_run19=${Date.now()}`, { waitUntil: "networkidle", timeout: 120_000 });
+    await page.setViewportSize({ width: spec.width, height: spec.height });
+    await page.goto(url, { waitUntil: "networkidle", timeout: 120_000 });
     await page.locator("main").first().waitFor({ state: "visible", timeout: 90_000 });
-    if (cropLuecke) {
+    const finalUrl = page.url();
+    if (finalUrl.includes("??")) {
+      throw new Error(`Doppeltes ?: ${finalUrl}`);
+    }
+    if (spec.cropLuecke) {
       const fig = page.locator(".v4-luecke-figure").first();
       await fig.waitFor({ state: "visible", timeout: 120_000 });
       await fig.scrollIntoViewIfNeeded();
     }
-    const full = join(OUT, "screenshots", `${label}-full.png`);
-    await page.screenshot({ path: full, fullPage: true });
-    if (cropLuecke) {
-      const fig = page.locator(".v4-luecke-figure").first();
-      const crop = join(OUT, "screenshots", `${label}-luecke-chart.png`);
-      await fig.screenshot({ path: crop });
-      const axis = await measureLueckeAxis(page);
-      checks.push({ label, axis, crop, sha256: sha256File(crop) });
-      if (axis.maxLabelDelta != null && axis.maxLabelDelta > 2.5) {
-        throw new Error(`Lücke-Achse Δ ${axis.maxLabelDelta.toFixed(1)}px bei ${label}`);
+    const crop = spec.cropLuecke
+      ? join(OUT, "screenshots", `${spec.label}-luecke-chart.png`)
+      : null;
+    if (crop) {
+      await page.locator(".v4-luecke-figure").first().screenshot({ path: crop });
+    }
+    const axis = spec.cropLuecke ? await measureLueckeAxis(page) : null;
+    const fleet = spec.fleet ? await readFleetControls(page) : null;
+    const row = {
+      label: spec.label,
+      requestedUrl: url,
+      finalUrl,
+      query: spec.params,
+      axis,
+      fleet,
+      sha256: crop ? sha256File(crop) : null,
+    };
+    checks.push(row);
+    if (axis?.maxLabelDelta != null && axis.maxLabelDelta > 2.5) {
+      throw new Error(`Lücke-Achse Δ ${axis.maxLabelDelta.toFixed(1)}px bei ${spec.label}`);
+    }
+    if (axis?.label24InsideContent === false) {
+      throw new Error(`Label 24 abgeschnitten bei ${spec.label}`);
+    }
+    if (spec.expectSlots != null && axis?.slotCount !== spec.expectSlots) {
+      throw new Error(`Slot-Anzahl ${axis?.slotCount} ≠ ${spec.expectSlots} bei ${spec.label}`);
+    }
+    if (spec.expectDayKind != null && axis?.dayKind !== spec.expectDayKind) {
+      throw new Error(`dayKind ${axis?.dayKind} ≠ ${spec.expectDayKind}`);
+    }
+    if (spec.fleet) {
+      if (!fleet?.strategyHref?.includes("fahrweise=spitze")) {
+        throw new Error(`Fahrweise nicht Spitze: ${JSON.stringify(fleet)} @ ${finalUrl}`);
       }
     }
     await page.close();
   }
 
   const page = await context.newPage();
-  await page.setExtraHTTPHeaders({ "Cache-Control": "no-cache", Pragma: "no-cache" });
-  await page.goto(`${BASE}/monat/2026-10?faktor=1&fahrweise=spitze&_run19=${Date.now()}`, {
+  await page.goto(pageUrl("/monat/2026-10", { faktor: "1", fahrweise: "spitze" }), {
     waitUntil: "domcontentloaded",
   });
   const uiSha = await page.evaluate(
@@ -143,33 +239,22 @@ async function main() {
     throw new Error(`UI source ${uiSha} ≠ ${head}`);
   }
 
+  const springArtifact = verifySpringDstArtifact();
+
   const report = {
     head,
     buildId: prov.buildId,
     at: new Date().toISOString(),
     renderMode: "hydrated",
-    lueckeAxisChecks: checks,
+    scenarios: checks,
+    springDstArtifact: springArtifact,
+    dirtyProvenanceNote: {
+      vercelJsonInDirtyPaths:
+        "Lokal bei sauberem Commit + npm run build: kein vercel.json in dirtyPaths (siehe public/build-provenance.json). CI/LivePreview-Befund ohne Diff-Log hier offen.",
+    },
     uiSourceSha: uiSha,
   };
   writeFileSync(join(OUT, "run19-hydrated-report.json"), JSON.stringify(report, null, 2));
-  writeFileSync(
-    join(OUT, "README.md"),
-    `# Run 19 — Design-Korrektur (hydratisiert)
-
-**SHA:** \`${head}\` · **Build:** \`${prov.buildId}\`
-
-## Ursache Lücke-Achse (mobil)
-- Plot/Gitter/Marker nutzen Berlin-Uhrzeit auf der Plotbreite; mobil lagen die HTML-Achsenlabels ohne linkes/rechtes Padding der SVG-Plotfläche (\`justify-content: space-between\` über volle Shellbreite).
-
-## Korrekturen
-- \`lib/lueckeChartGeometry.ts\`: X aus \`hourBerlin+minuteBerlin\`
-- Mobil: Achsenzeile mit CSS-Vars = SVG-Pad
-- Start: Subline→Hero-Abstand; \`24.10..\` Doppelpunkt
-- Monat: „ist nicht“ statt „≠“; Desktop Abstand Flotten-Steuerung
-
-Siehe \`screenshots/*-luecke-chart.png\` und \`run19-hydrated-report.json\`.
-`,
-  );
   console.log("Run19 hydrated abnahme OK", OUT);
 }
 

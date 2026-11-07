@@ -11,12 +11,17 @@ import {
 } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
-import { plotXFromHour, plotXFromSlot } from "@/lib/lueckeChartGeometry";
+import {
+  lueckeDayKind,
+  plotXForAxisHour,
+  plotXFromSlotIndex,
+  slotIndexForPeakAt,
+} from "@/lib/lueckeChartGeometry";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
 const DESKTOP = { w: 1152, h: 360, pad: { top: 40, right: 24, bottom: 36, left: 56 } };
 const MOBILE_H = 240;
-const MOBILE_PAD = { top: 8, right: 10, bottom: 22, left: 36 };
+const MOBILE_PAD = { top: 8, right: 14, bottom: 22, left: 36 };
 const Y_MAX_GW = 80;
 
 function slotGw(slot: ResidualSlot) {
@@ -63,7 +68,7 @@ function buildGeometry(
       labelGap: { x: 0, y: 0 },
     };
   }
-  const xSlot = (slot: ResidualSlot) => plotXFromSlot(slot, frame.pad.left, plotW);
+  const xAt = (index: number) => plotXFromSlotIndex(index, slots.length, frame.pad.left, plotW);
   const y = (gw: number) => frame.pad.top + plotH - (gw / Y_MAX_GW) * plotH;
 
   let maxGap = -1;
@@ -80,43 +85,32 @@ function buildGeometry(
   const line = (pick: (p: (typeof pts)[0]) => number) =>
     pts
       .map((p, i) => {
-        const px = xSlot(slots[p.i]);
+        const px = xAt(p.i);
         return `${i === 0 ? "M" : "L"} ${px.toFixed(1)} ${y(pick(p)).toFixed(1)}`;
       })
       .join(" ");
 
-  const last = slots[slots.length - 1];
-  const first = slots[0];
   const wsArea =
     line((p) => p.ws) +
-    ` L ${xSlot(last).toFixed(1)} ${y(0).toFixed(1)} L ${xSlot(first).toFixed(1)} ${y(0).toFixed(1)} Z`;
+    ` L ${xAt(slots.length - 1).toFixed(1)} ${y(0).toFixed(1)} L ${xAt(0).toFixed(1)} ${y(0).toFixed(1)} Z`;
 
   const gapArea = pts
     .map((p, i) => {
-      const px = xSlot(slots[p.i]);
+      const px = xAt(p.i);
       const top = y(p.load);
       const bottom = y(p.ws);
       return `${i === 0 ? "M" : "L"} ${px.toFixed(1)} ${top.toFixed(1)} L ${px.toFixed(1)} ${bottom.toFixed(1)}`;
     })
     .join(" ");
 
-  const idx = peakAt
-    ? Math.max(
-        0,
-        slots.findIndex(
-          (s) =>
-            `${String(s.hourBerlin).padStart(2, "0")}:${String(s.minuteBerlin).padStart(2, "0")}` === peakAt
-        )
-      )
-    : maxIdx;
-  const useIdx = idx >= 0 ? idx : maxIdx;
+  const useIdx = peakAt ? slotIndexForPeakAt(slots, peakAt) : maxIdx;
   const peakSlot = slots[useIdx] ?? slots[0];
 
   return {
     loadPath: line((p) => p.load),
     wsPath: wsArea,
     gapPath: `${gapArea} Z`,
-    peakX: xSlot(peakSlot),
+    peakX: xAt(useIdx),
     peakYLoad: y(slotGw(peakSlot).load),
     peakYWs: y(slotGw(peakSlot).ws),
     plotTop: frame.pad.top,
@@ -157,6 +151,8 @@ export function LueckeChart({
     ? { w: shellWidth, h: MOBILE_H, pad: MOBILE_PAD }
     : { w: DESKTOP.w, h: DESKTOP.h, pad: DESKTOP.pad };
 
+  const dayKind = useMemo(() => lueckeDayKind(slots.length), [slots.length]);
+
   const geometry = useMemo(
     () => buildGeometry(slots, peakAt, frame),
     [frame.h, frame.pad.bottom, frame.pad.left, frame.pad.right, frame.pad.top, frame.w, peakAt, slots]
@@ -182,7 +178,12 @@ export function LueckeChart({
     : undefined;
 
   return (
-    <figure className={`v4-luecke-figure ${compact ? "is-compact" : ""}`} style={padVars}>
+    <figure
+      className={`v4-luecke-figure ${compact ? "is-compact" : ""}`}
+      style={padVars}
+      data-luecke-slot-count={slots.length}
+      data-luecke-day-kind={dayKind}
+    >
       <div ref={shellRef} className="v4-luecke-svg-shell">
         {compact ? (
           <div className="v4-luecke-overlay" aria-hidden="true">
@@ -228,7 +229,7 @@ export function LueckeChart({
             </pattern>
           </defs>
           {hours.map((h) => {
-            const x = plotXFromHour(h, frame.pad.left, plotW);
+            const x = plotXForAxisHour(h, slots, frame.pad.left, plotW);
             return (
               <g key={h}>
                 <line
@@ -303,6 +304,18 @@ export function LueckeChart({
           ) : null}
         </svg>
       </div>
+      {dayKind === "dst-fall-100" ? (
+        <p className="v4-luecke-dst-note num">
+          Zeitumstellung (Herbst): 25 Stunden Ortszeit, {slots.length} Viertelstunden — Verlauf in
+          Zeitreihenfolge, nicht als doppelte Wanduhr übereinander.
+        </p>
+      ) : null}
+      {dayKind === "dst-spring-92" ? (
+        <p className="v4-luecke-dst-note num">
+          Zeitumstellung (Frühling): 23 Stunden Ortszeit, {slots.length} Viertelstunden — die fehlende
+          02:00–02:45 ist entfallen.
+        </p>
+      ) : null}
       {compact ? (
         <div className="v4-luecke-compact-foot">
           {peakGw !== null ? (
