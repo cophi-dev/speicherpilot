@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-11-07T22:58:47.619Z",
-  "sourceSha": "8e661d07d99db6efa111462bb4850cd26fa2f46b",
-  "powerUrl": "https://api.energy-charts.info/v2/total_power?country=de&start=2026-09-07&end=2026-11-07",
-  "powerFetchStartedAtIso": "2026-11-07T22:58:47.619Z",
-  "powerFetchCompletedAtIso": "2026-11-07T22:58:48.889Z",
+  "generatedAt": "2026-11-07T23:11:57.083Z",
+  "sourceSha": "5f6615dd0ba6b0e150105983638137c07009223a",
+  "powerUrl": "https://api.energy-charts.info/v2/total_power?country=de&start=2026-09-08&end=2026-11-08",
+  "powerFetchStartedAtIso": "2026-11-07T23:11:57.083Z",
+  "powerFetchCompletedAtIso": "2026-11-07T23:11:59.026Z",
   "powerFetchNote": "powerFetchCompletedAtIso ist Skript-Abrufende, kein Energy-Charts-Datenstand oder Provider-generated_at.",
   "fleetProvenance": "committed-snapshot",
   "kopfDayKey": "2026-11-06",
@@ -12,7 +12,7 @@
   "panel": {
     "dateKey": "2026-11-06",
     "sourceLabel": "Energy-Charts · total_power (DE, Last inkl. Eigenversorgung)",
-    "fetchStand": "2026-11-07T22:58:48.889Z",
+    "fetchStand": "2026-11-07T23:11:59.026Z",
     "referenceComplete": true,
     "quarterCount": 96,
     "expectedQuarters": 96,
@@ -33,10 +33,10 @@
       "factor": 1,
       "chargedGwh": 0,
       "dischargedGwh": 0,
-      "simulationRunLabelDe": "07.09.–06.11.2026 (61 Kalendertage im Simulationsvorlauf)",
-      "evaluationWindowLabelDe": "08.10.–06.11.2026 (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf)",
+      "simulationRunLabelDe": "08.09.–06.11.2026 (60 Kalendertage im Simulationsvorlauf)",
+      "evaluationWindowLabelDe": "09.10.–07.11.2026 (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf)",
       "fleetStandLabelDe": "Battery Charts, gespeicherter Stand (Fallback), 21. Oktober 2026",
-      "disclosureDe": "Hypothetisches ×1-Modell (Modellschätzung, nicht gemessen). Simulationsvorlauf durchgehender SoC, Start 10 %, 07.09.–06.11.2026 (61 Kalendertage im Simulationsvorlauf): chainFleetSoc wie 30-Tage-Kennzahl — Laden vor 17:00 bei Wind+Sonne über Last, Abgabe ab 17:00, 85 % RTE. 08.10.–06.11.2026 (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf) Referenzflotte: 4.51554022 GW / 7.86001657 GWh (Battery Charts, gespeicherter Stand (Fallback), 21. Oktober 2026). Lokale Netzwirkung am Anschluss wird nicht aus nationalen Tageswerten abgeleitet."
+      "disclosureDe": "Hypothetisches ×1-Modell (Modellschätzung, nicht gemessen). Simulationsvorlauf durchgehender SoC, Start 10 %, 08.09.–06.11.2026 (60 Kalendertage im Simulationsvorlauf): chainFleetSoc wie 30-Tage-Kennzahl — Laden vor 17:00 bei Wind+Sonne über Last, Abgabe ab 17:00, 85 % RTE. 09.10.–07.11.2026 (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf) Referenzflotte: 4.51554022 GW / 7.86001657 GWh (Battery Charts, gespeicherter Stand (Fallback), 21. Oktober 2026). Lokale Netzwirkung am Anschluss wird nicht aus nationalen Tageswerten abgeleitet."
     }
   },
   "rawKpis": {
@@ -82,8 +82,8 @@
   },
   "evaluationWindow": {
     "blick": "30tage",
-    "startKey": "2026-10-08",
-    "endKey": "2026-11-06",
+    "startKey": "2026-10-09",
+    "endKey": "2026-11-07",
     "capEndAtLastSlot": false,
     "dayCount": 30
   }
