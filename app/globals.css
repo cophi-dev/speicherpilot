@@ -7557,7 +7557,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .v4-monat-chart-plot {
   display: grid;
   align-items: end;
-  gap: 2px;
+  gap: 8px;
   width: 100%;
   max-width: 100%;
   height: 200px;

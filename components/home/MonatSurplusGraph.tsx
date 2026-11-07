@@ -44,7 +44,7 @@ export function MonatSurplusGraph({
   const maxGwh = Math.max(...withData.map((b) => Math.max(0, b.surplusGwh ?? 0)), 0.05);
   const ticks = new Set(mobileTicks(bars.length));
   const emptyMonth = withData.length > 0 && surplusDays.length === 0;
-  const colMinPx = 36;
+  const colMinPx = 44;
   const gridCols = { gridTemplateColumns: `repeat(${bars.length}, minmax(${colMinPx}px, 1fr))` } as const;
 
   return (
