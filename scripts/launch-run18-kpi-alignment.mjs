@@ -118,7 +118,10 @@ async function main() {
   };
 
   const browser = await chromium.launch();
-  const context = await browser.newContext({ javaScriptEnabled: false });
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    extraHTTPHeaders: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+  });
   for (const vp of VIEWPORTS) {
     for (const theme of ["light", "dark"]) {
       const page = await context.newPage();
@@ -168,7 +171,10 @@ async function main() {
 
   const provBrowser = await chromium.launch();
   const page = await provBrowser.newPage();
-  await page.goto(`${BASE}/monat/2026-10?faktor=1&fahrweise=spitze`, { waitUntil: "domcontentloaded" });
+  await page.setExtraHTTPHeaders({ "Cache-Control": "no-cache", Pragma: "no-cache" });
+  await page.goto(`${BASE}/monat/2026-10?faktor=1&fahrweise=spitze&_run18=${Date.now()}`, {
+    waitUntil: "domcontentloaded",
+  });
   const uiSha = await page.evaluate(
     () => document.getElementById("speicherpilot-build-provenance")?.dataset.sourceSha ?? null,
   );
