@@ -82,13 +82,18 @@ export function TagChapter({
           {chapterTitle}
         </h2>
         <p className="v4-tag-kern">{surplusLine}</p>
-        <p className="v4-tag-side">{tagSurplusDefinitionLine()}</p>
-        {lastLine ? <p className="v4-tag-side">{lastLine}</p> : null}
+        <p className="v4-tag-side v4-tag-side-supplement-desktop">{tagSurplusDefinitionLine()}</p>
+        {lastLine ? <p className="v4-tag-side v4-tag-side-supplement-desktop">{lastLine}</p> : null}
       </div>
       <div className="v4-content v4-luecke-wrap">
         <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
       </div>
-      <ol className="v4-st-steps v4-content">
+      <details className="v4-content v4-tag-side-supplement">
+        <summary>Klarstellung zur Kennzahl</summary>
+        <p className="v4-tag-side">{tagSurplusDefinitionLine()}</p>
+        {lastLine ? <p className="v4-tag-side">{lastLine}</p> : null}
+      </details>
+      <ol className="v4-st-steps v4-content v4-tag-steps-desktop">
         {STEPS.map((step, index) => (
           <li key={step.title}>
             <span className="v4-st-num num">{String(index + 1).padStart(2, "0")}</span>
@@ -105,6 +110,26 @@ export function TagChapter({
           </li>
         ))}
       </ol>
+      <details className="v4-content v4-tag-steps-disclosure">
+        <summary>Tag in drei Phasen (Nacht · Mittag · Abend)</summary>
+        <ol className="v4-st-steps">
+          {STEPS.map((step, index) => (
+            <li key={`m-${step.title}`}>
+              <span className="v4-st-num num">{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <p className="v4-st-title">{step.title}</p>
+                <p className="v4-st-body">
+                  {typeof step.body === "function"
+                    ? step.title === "Mittag"
+                      ? step.body(day)
+                      : step.body(peakAt, peakGw, loadGw, wsGw)
+                    : step.body}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </details>
       {showFooterLink ? (
         <p className="v4-chapter-foot v4-content num">
           <Link href={`/tag/${day.dateBerlin}`} className="v4-text-link">

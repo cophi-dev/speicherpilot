@@ -15,13 +15,19 @@ const dirtyLines = execSync(
   cwd: root,
 }).trim();
 const buildId = process.env.BUILD_ID ?? execSync("date -u +%Y%m%dT%H%MZ", { encoding: "utf8" }).trim();
+const dirtyPaths = dirtyLines ? dirtyLines.split("\n").filter(Boolean) : [];
 const payload = {
   commit,
   buildId,
   builtAt: new Date().toISOString(),
   node: process.version,
-  dirty: Boolean(dirtyLines),
+  dirty: dirtyPaths.length > 0,
+  ...(dirtyPaths.length > 0 ? { dirtyPaths } : {}),
+  ci: Boolean(process.env.VERCEL || process.env.CI),
 };
+if (dirtyPaths.length > 0) {
+  console.warn("[build-provenance] dirty working tree:", dirtyPaths.slice(0, 8).join(" | "));
+}
 mkdirSync(join(root, "public"), { recursive: true });
 mkdirSync(join(root, "lib"), { recursive: true });
 writeFileSync(join(root, "public/build-provenance.json"), `${JSON.stringify(payload, null, 2)}\n`);
