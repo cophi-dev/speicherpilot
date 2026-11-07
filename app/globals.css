@@ -7341,18 +7341,10 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
     gap: 1.25rem 2rem;
   }
   .v4-start-day-stat-ws {
-    display: block;
-  }
-  .v4-start-day-ws-value {
-    display: block;
-    font-family: var(--font-space-grotesk), sans-serif;
-    font-weight: 300;
-    font-size: clamp(2rem, 7vw, 2.75rem);
-    line-height: 0.95;
-    margin: 0;
+    display: none;
   }
   .v4-start-day-stat-gen .v4-start-day-sub {
-    display: none;
+    display: block;
   }
   .v4-start-day-stat-surplus {
     grid-column: auto;

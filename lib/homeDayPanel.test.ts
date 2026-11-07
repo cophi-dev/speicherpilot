@@ -147,4 +147,25 @@ describe("buildHomeDayPanelData", () => {
     expect(panel?.model.chargedGwh).toBeCloseTo(chargedMwh / 1000, 5);
     expect(panel?.observed.surplusGwh).toBeCloseTo(record!.surplusGwh, 5);
   });
+
+  it("formats fleet GW/GWh in disclosure for display while keeping full precision in model fields", () => {
+    const parsed = parsePowerPayload(weekOfPayload("2026-11-06", 14));
+    const days = residualDaysFromSlots(parsed!);
+    const dayKey = "2026-11-06";
+    const day = days.find((d) => d.dateBerlin === dayKey);
+    const panel = buildHomeDayPanelData({
+      dateKey: dayKey,
+      slots: parsed!.slots,
+      offshorePresent: true,
+      allDays: days,
+      day: day!,
+      fleet: FLEET,
+      fetchStand: "test",
+      fleetProvenance: "battery-charts-live",
+      evaluationWindow: overviewBounds("30tage", "2026-11-07"),
+    });
+    expect(panel?.model.powerGw).toBe(FLEET.powerGw);
+    expect(panel?.model.disclosureDe).toContain("4,64 GW / 8,14 GWh");
+    expect(panel?.model.disclosureDe).not.toContain(String(FLEET.powerGw));
+  });
 });

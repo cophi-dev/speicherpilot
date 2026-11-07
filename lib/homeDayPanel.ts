@@ -6,6 +6,7 @@ import {
   strictResidualPreludeComplete,
 } from "@/lib/berlinDayCompleteness";
 import { berlinCalendarKeysInclusive } from "@/lib/berlinCalendar";
+import { formatQuantity } from "@/lib/formatQuantity";
 import { fleetStandLabelDe } from "@/lib/fleetStandLabel";
 import type { FleetDataProvenance } from "@/lib/loadLargeBatteryFleet";
 import type { LiveFleetPublic } from "@/lib/liveFleetDispatch";
@@ -214,7 +215,7 @@ export function buildHomeDayPanelData(args: {
   const disclosureDe = [
     `Hypothetisches ×1-Modell (Modellschätzung, nicht gemessen). Simulationsvorlauf durchgehender SoC, Start 10 %, ${simulationRunLabelDe}: chainFleetSoc wie 30-Tage-Kennzahl — Laden vor ${MORE_STORAGE_DISCHARGE_HOUR}:00 bei Wind+Sonne über Last, Abgabe ab ${MORE_STORAGE_DISCHARGE_HOUR}:00, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % RTE.`,
     evaluationWindowLabelDe,
-    `Referenzflotte: ${args.fleet.powerGw} GW / ${args.fleet.energyGwh} GWh (${fleetStandLabel}).`,
+    `Referenzflotte: ${formatQuantity(args.fleet.powerGw, "de", 2)} GW / ${formatQuantity(args.fleet.energyGwh, "de", 2)} GWh (${fleetStandLabel}).`,
     "Lokale Netzwirkung am Anschluss wird nicht aus nationalen Tageswerten abgeleitet.",
   ]
     .filter(Boolean)

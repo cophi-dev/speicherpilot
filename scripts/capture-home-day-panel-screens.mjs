@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { chromium } from "playwright";
 
-const OUT = join(process.cwd(), "review-artifacts/home-day-panel-20261107-v3/screens");
+const OUT = join(process.cwd(), "review-artifacts/home-day-panel-20261107-v4/screens");
 const BASE = process.env.BASE_URL ?? "http://127.0.0.1:3001";
 
 async function gotoWithPanel(page) {
