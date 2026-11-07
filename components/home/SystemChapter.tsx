@@ -37,15 +37,19 @@ export function SystemChapter({
         <h2 id="kapitel-system" className="v4-chapter-h2">
           Was Speicher in den letzten 30 Tagen geschafft hätten
         </h2>
+        <p className="v4-subline">
+          Nur Anteil des beobachteten Wind-Solar-Überschusses in einem Überschuss-Lade-Modell — keine
+          Spitzen-, Preis- oder Netzwirkung, keine Abregelung oder vermiedene Kraftwerksstarts.
+        </p>
         <div className="v4-system-kern">
           <p className="v4-system-pct num" aria-live="polite">
             {formatQuantity(sharePct, "de", 0)}&nbsp;%
           </p>
           <div className="v4-system-side">
             <p>
-              des Überschusses hätte die heutige Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW,{" "}
-              {formatQuantity(fleetEnergyGwh, "de", 2)} GWh) aufgenommen.{" "}
-              <span className="v4-chip num">Modellschätzung</span>
+              des Tages-Überschusses hätte die Referenzflotte ({formatQuantity(fleetPowerGw, "de", 2)} GW,{" "}
+              {formatQuantity(fleetEnergyGwh, "de", 2)} GWh) in diesem Modell aufgenommen.{" "}
+              <span className="v4-chip num">Modellschätzung · Überschuss-Laden</span>
             </p>
             <p className="v4-system-multi num">
               ×5: {formatQuantity(x5Pct, "de", 0)}&nbsp;% · ×10: {formatQuantity(x10Pct, "de", 0)}&nbsp;%

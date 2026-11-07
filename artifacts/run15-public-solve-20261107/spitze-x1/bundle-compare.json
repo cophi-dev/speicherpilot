@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "outDir": "/agent/repos/speicherpilot/artifacts/run15-public-solve-20261107/spitze-x1",
+  "manifestPath": "/agent/repos/speicherpilot/artifacts/run15-public-solve-20261107/spitze-x1/solve_manifest.json",
+  "manifest_sha256": "848c65945049cc23455a30adaba0ba8cda3309d141c45762f6e56fba1219062c",
+  "cmp": {
+    "reference_bundle_sha256": "7ec0acf4320164d4a616f11c123d34d1903e8db9c22ac41788e80367dc95aa2f",
+    "reference": {
+      "peak_reduction_mw": 3545.383381066982,
+      "grid_charge_energy_gwh": 12.48719644345338
+    },
+    "solved": {
+      "peak_reduction_mw": 3545.383381066982,
+      "grid_charge_energy_gwh": 12.48719644345338
+    },
+    "mip": null,
+    "within_tolerance": true
+  }
+}

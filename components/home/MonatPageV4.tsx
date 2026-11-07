@@ -1,10 +1,9 @@
-"use client";
-
 import Link from "next/link";
 
-import { formatQuantity } from "@/lib/formatQuantity";
-import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
+import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
+import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
   adjacentMonthWithData,
   buildMonatGrid,
@@ -14,34 +13,6 @@ import {
 } from "@/lib/monatCalendar";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
-
-function dayMark(cell: MonatDayCell, compact = false): string {
-  if (!cell.inSeries || !cell.record) {
-    if (cell.future) {
-      return "noch nicht";
-    }
-    return "—";
-  }
-  if (cell.record.surplusGwh >= 0.05) {
-    return `${formatQuantity(cell.record.surplusGwh, "de", 1)} GWh`;
-  }
-  return compact ? "kein Übersch." : "kein Überschuss";
-}
-
-function listRowClassName(cell: MonatDayCell): string {
-  return [
-    "v4-monat-list-row",
-    cell.record && cell.record.surplusGwh < 0.05 ? "is-dry" : "",
-    cell.record && cell.record.surplusGwh >= 0.05 ? "is-surplus" : "",
-    !cell.inSeries ? "is-empty" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
-function isClickable(cell: MonatDayCell): boolean {
-  return Boolean(cell.inSeries && cell.record && !cell.future);
-}
 
 export function MonatNav({
   monthKey,
@@ -77,55 +48,33 @@ export function MonatNav({
   );
 }
 
-function MonatCalendarList({ grid, monthKey }: { grid: MonatDayCell[]; monthKey: string }) {
-  return (
-    <ul className="v4-monat-list v4-content" aria-label={`Tage im ${monthKey}`}>
-      {grid.map((cell) => {
-        const mark = dayMark(cell, false);
-        const dateLabel = `${weekdayShort(cell.dateKey, "de")}, ${formatBerlinDayLabel(cell.dateKey)}`;
-        const className = listRowClassName(cell);
-        const inner = (
-          <>
-            <span className="v4-monat-list-date num">{dateLabel}</span>
-            <span className="v4-monat-list-mark num">{mark}</span>
-          </>
-        );
-        return (
-          <li key={cell.dateKey}>
-            {isClickable(cell) ? (
-              <Link href={`/tag/${cell.dateKey}`} className={className}>
-                {inner}
-              </Link>
-            ) : (
-              <div className={className} aria-disabled={!cell.inSeries}>
-                {inner}
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 export function MonatPageV4({
   monthKey,
   todayKey,
   lastCompleteDayKey,
   records,
   dataStand,
+  fleetFactor,
+  fleetStrategy,
+  observationLive,
+  observationFallbackNote,
+  children,
 }: {
   monthKey: string;
   todayKey: string;
   lastCompleteDayKey: string;
   records: TagesKennzahlRecord[];
   dataStand: string;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
+  observationLive?: boolean;
+  observationFallbackNote?: string | null;
+  children?: React.ReactNode;
 }) {
   const { h1, subline } = monatPointe(monthKey, records);
   const grid = buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey });
   const bars = barsFromMonatGrid(grid);
   const monthLabel = formatBerlinMonthLabel(monthKey);
-
   return (
     <div className="v4-start monat-page">
       <MonatNav monthKey={monthKey} records={records} />
@@ -141,18 +90,34 @@ export function MonatPageV4({
         </div>
       </section>
 
+      {children}
+
       <section className="v4-chapter" aria-labelledby="monat-graph-title">
         <div className="v4-chapter-head v4-content">
-          <p className="v4-chapter-num num">Monatsverlauf</p>
+          <p className="v4-chapter-num num">Beobachteter Überschuss</p>
           <h2 id="monat-graph-title" className="v4-chapter-h2">
-            Überschuss je Tag im {monthLabel}
+            Positive Wind-Solar-Differenz je Tag im Monat
           </h2>
+          <p className="v4-subline">
+            Nur die beobachtete Überschuss-Kennzahl je Tag — kein Maß für Peak-Senkung, Preisarbitrage oder Abregelung.{" "}
+            {nationalFleetMonthAvailable(monthKey)
+              ? observationLive
+                ? "Gemessene Viertelstunden (Energy-Charts); die Modellflotte oben rechnet zusätzlich Spitzen- und Preisfahrweisen über den ganzen Monat."
+                : "Eingefrorener Beobachtungsstand (Live-API gerade nicht verfügbar). Modellflotte oben aus dem Oktober-Bundle."
+              : observationLive
+                ? "Gemessene Tageswerte — für diesen Monat keine vorberechnete Modellflotte (das ist kein Null-Nutzen-Urteil)."
+                : "Beobachtung aus eingefrorenen bzw. Live-Daten — kein Monatsmodell für diesen Monat."}
+          </p>
+          {!observationLive && observationFallbackNote ? (
+            <p className="v4-fleet-observation-note num">{observationFallbackNote}</p>
+          ) : null}
         </div>
-        <MonatSurplusGraph monthKey={monthKey} bars={bars} />
-        <details className="v4-monat-list-fallback v4-content">
-          <summary>Tagesliste (Tabellenalternative)</summary>
-          <MonatCalendarList grid={grid} monthKey={monthKey} />
-        </details>
+        <MonatSurplusGraph
+          monthKey={monthKey}
+          bars={bars}
+          fleetFactor={fleetFactor}
+          fleetStrategy={fleetStrategy}
+        />
       </section>
 
       <p className="v4-chapter-foot v4-content num">

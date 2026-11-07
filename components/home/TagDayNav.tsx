@@ -6,13 +6,35 @@ import { useRouter } from "next/navigation";
 import { addBerlinCalendarDays, prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { berlinMonthKeyFromDateKey } from "@/lib/monatCalendar";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
+import {
+  fleetMonatHref,
+  fleetTagHref,
+  nationalFleetMonthAvailable,
+  type NationalFleetFactor,
+  type NationalFleetStrategyUi,
+} from "@/lib/nationalMonthFleetModel";
+
+function tagHref(
+  dayKey: string,
+  fleetFactor?: NationalFleetFactor,
+  fleetStrategy?: NationalFleetStrategyUi,
+): string {
+  if (fleetFactor && fleetStrategy && nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
+    return fleetTagHref(dayKey, fleetFactor, fleetStrategy);
+  }
+  return `/tag/${dayKey}`;
+}
 
 export function TagDayNav({
   dayKey,
   lastCompleteDayKey,
+  fleetFactor,
+  fleetStrategy,
 }: {
   dayKey: string;
   lastCompleteDayKey: string;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
 }) {
   const router = useRouter();
   const minTag = addBerlinCalendarDays(lastCompleteDayKey, -30);
@@ -20,11 +42,22 @@ export function TagDayNav({
   const next = addBerlinCalendarDays(dayKey, 1);
   const canPrev = dayKey > minTag;
   const canNext = dayKey < lastCompleteDayKey;
+  const monthKey = berlinMonthKeyFromDateKey(dayKey);
+  const monatHref =
+    fleetFactor && fleetStrategy && nationalFleetMonthAvailable(monthKey)
+      ? fleetMonatHref(monthKey, fleetFactor, fleetStrategy)
+      : `/monat/${monthKey}`;
+
+  const pushTag = (value: string) => {
+    if (value) {
+      router.push(tagHref(value, fleetFactor, fleetStrategy));
+    }
+  };
 
   return (
     <nav className="v4-tag-nav v4-content" aria-label="Tag wählen">
       {canPrev ? (
-        <Link href={`/tag/${prev}`} prefetch={false} className="v4-tag-nav-btn">
+        <Link href={tagHref(prev, fleetFactor, fleetStrategy)} prefetch={false} className="v4-tag-nav-btn">
           ← Vortag
         </Link>
       ) : (
@@ -40,19 +73,14 @@ export function TagDayNav({
           min={minTag}
           max={lastCompleteDayKey}
           value={dayKey}
-          onChange={(event) => {
-            const value = event.target.value;
-            if (value) {
-              router.push(`/tag/${value}`);
-            }
-          }}
+          onChange={(event) => pushTag(event.target.value)}
         />
         <span className="v4-tag-nav-date-label num" aria-hidden="true">
           {formatBerlinDayLabel(dayKey)}
         </span>
       </label>
       {canNext ? (
-        <Link href={`/tag/${next}`} prefetch={false} className="v4-tag-nav-btn">
+        <Link href={tagHref(next, fleetFactor, fleetStrategy)} prefetch={false} className="v4-tag-nav-btn">
           Folgetag →
         </Link>
       ) : (
@@ -60,7 +88,7 @@ export function TagDayNav({
           Folgetag →
         </span>
       )}
-      <Link href={`/monat/${berlinMonthKeyFromDateKey(dayKey)}`} prefetch={false} className="v4-tag-nav-btn v4-tag-nav-monat">
+      <Link href={monatHref} prefetch={false} className="v4-tag-nav-btn v4-tag-nav-monat">
         Monat
       </Link>
     </nav>

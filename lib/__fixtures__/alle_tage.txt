@@ -1,30 +1,30 @@
 2026-10-01 ws_share | Do, 01.10.: Wind und Sonne deckten nur 35,1 % der Last, nur an einem der letzten 30 Tage war es weniger.
 2026-10-02 evening_peak_gw | Fr, 02.10.: Am Abend mussten andere Quellen bis zu 61,1 GW decken (19:00 Uhr). So hoch wie an keinem Tag der letzten 30. Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden.
 2026-10-03 ws_share | Sa, 03.10.: Wind und Sonne deckten nur 30,3 % der Last, nur an einem der letzten 30 Tage war es weniger.
-2026-10-04 KEINE | So, 04.10.: ein unauffälliger Tag. 0,7 GWh Überschuss, Abendspitze 52,7 GW um 19:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
-2026-10-05 KEINE | Mo, 05.10.: ein unauffälliger Tag. 9,8 GWh Überschuss, Abendspitze 50,7 GW um 19:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
+2026-10-04 KEINE | So, 04.10.: ein unauffälliger Tag. 0,7 GWh Tages-Überschuss, Abendspitze 52,7 GW um 19:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
+2026-10-05 KEINE | Mo, 05.10.: ein unauffälliger Tag. 9,8 GWh Tages-Überschuss, Abendspitze 50,7 GW um 19:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
 2026-10-06 evening_peak_gw | Di, 06.10.: Am Abend mussten andere Quellen bis zu 63,9 GW decken (19:00 Uhr). So hoch wie an keinem Tag der letzten 30. Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden.
-2026-10-07 KEINE | Mi, 07.10.: ein unauffälliger Tag. Kein Überschuss, Abendspitze 59,5 GW um 18:45 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
-2026-10-08 SERIE | Do, 08.10.: der 3. Tag in Folge ohne Überschuss. Zuletzt war am Mo, 05.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
+2026-10-07 KEINE | Mi, 07.10.: ein unauffälliger Tag. unter der Überschuss-Schwelle (0,05 GWh), Abendspitze 59,5 GW um 18:45 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
+2026-10-08 SERIE | Do, 08.10.: der 3. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am Mo, 05.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
 2026-10-09 evening_peak_gw | Fr, 09.10.: Am Abend mussten andere Quellen bis zu 14,8 GW decken (18:30 Uhr). So niedrig wie an keinem Tag der letzten 30. Die heutige Flotte hätte die Spitze um 3,2 GW gesenkt (Modell).
 2026-10-10 ws_share | Sa, 10.10.: Wind und Sonne deckten 83,8 % der Last, nur an zwei der letzten 30 Tage war es mehr.
-2026-10-11 KEINE | So, 11.10.: ein unauffälliger Tag. 22,8 GWh Überschuss, Abendspitze 38,1 GW um 19:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
+2026-10-11 KEINE | So, 11.10.: ein unauffälliger Tag. 22,8 GWh Tages-Überschuss, Abendspitze 38,1 GW um 19:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
 2026-10-12 evening_peak_gw | Mo, 12.10.: Am Abend mussten andere Quellen bis zu 62,1 GW decken (19:00 Uhr). Nur an einem der letzten 30 Tage war es höher. Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden.
-2026-10-13 KEINE | Di, 13.10.: ein unauffälliger Tag. Kein Überschuss, Abendspitze 38,7 GW um 18:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
-2026-10-14 SERIE | Mi, 14.10.: der 3. Tag in Folge ohne Überschuss. Zuletzt war am So, 11.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
-2026-10-15 SERIE | Do, 15.10.: der 4. Tag in Folge ohne Überschuss. Zuletzt war am So, 11.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
-2026-10-16 SERIE | Fr, 16.10.: der 5. Tag in Folge ohne Überschuss. Zuletzt war am So, 11.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
-2026-10-17 SERIE | Sa, 17.10.: der 6. Tag in Folge ohne Überschuss. Zuletzt war am So, 11.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
-2026-10-18 SERIE | So, 18.10.: der 7. Tag in Folge ohne Überschuss. Zuletzt war am So, 11.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
-2026-10-19 SERIE | Mo, 19.10.: der 8. Tag in Folge ohne Überschuss. Zuletzt war am So, 11.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
-2026-10-20 SERIE | Di, 20.10.: der 9. Tag in Folge ohne Überschuss. Zuletzt war am So, 11.10. Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.
+2026-10-13 KEINE | Di, 13.10.: ein unauffälliger Tag. unter der Überschuss-Schwelle (0,05 GWh), Abendspitze 38,7 GW um 18:00 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
+2026-10-14 SERIE | Mi, 14.10.: der 3. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am So, 11.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
+2026-10-15 SERIE | Do, 15.10.: der 4. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am So, 11.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
+2026-10-16 SERIE | Fr, 16.10.: der 5. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am So, 11.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
+2026-10-17 SERIE | Sa, 17.10.: der 6. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am So, 11.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
+2026-10-18 SERIE | So, 18.10.: der 7. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am So, 11.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
+2026-10-19 SERIE | Mo, 19.10.: der 8. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am So, 11.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
+2026-10-20 SERIE | Di, 20.10.: der 9. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am So, 11.10. Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.
 2026-10-21 ws_share | Mi, 21.10.: Wind und Sonne deckten nur 30,2 % der Last, nur an einem der letzten 30 Tage war es weniger.
 2026-10-22 full_min | Do, 22.10.: Die Speicherflotte war im Modell schon um 12:45 Uhr voll, nur an zwei der letzten 30 Tage war es früher. Der restliche Überschuss ging an ihr vorbei.
 2026-10-23 evening_peak_gw | Fr, 23.10.: Am Abend mussten andere Quellen bis zu 14,7 GW decken (17:45 Uhr). So niedrig wie an keinem Tag der letzten 30. Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden.
 2026-10-24 ws_share | Sa, 24.10.: Wind und Sonne deckten 99,0 % der Last, so viel wie an keinem Tag der letzten 30.
 2026-10-25 evening_peak_gw | So, 25.10.: Am Abend mussten andere Quellen bis zu 8,3 GW decken (17:45 Uhr). So niedrig wie an keinem Tag der letzten 30. Die heutige Flotte hätte die Spitze um 2,5 GW gesenkt (Modell).
-2026-10-26 KEINE | Mo, 26.10.: ein unauffälliger Tag. Kein Überschuss, Abendspitze 41,4 GW um 17:15 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
-2026-10-27 KEINE | Di, 27.10.: ein unauffälliger Tag. Kein Überschuss, Abendspitze 41,2 GW um 17:30 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
+2026-10-26 KEINE | Mo, 26.10.: ein unauffälliger Tag. unter der Überschuss-Schwelle (0,05 GWh), Abendspitze 41,4 GW um 17:15 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
+2026-10-27 KEINE | Di, 27.10.: ein unauffälliger Tag. unter der Überschuss-Schwelle (0,05 GWh), Abendspitze 41,2 GW um 17:30 Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.
 2026-10-28 ws_share | Mi, 28.10.: Wind und Sonne deckten nur 30,1 % der Last, nur an einem der letzten 30 Tage war es weniger.
 2026-10-29 spread | Do, 29.10.: Der Börsenpreis lag zwischen 230 und 574 €/MWh. So groß wie an keinem Tag der letzten 30.
 2026-10-30 ws_share | Fr, 30.10.: Wind und Sonne deckten nur 20,2 % der Last, nur an einem der letzten 30 Tage war es weniger.
@@ -32,3 +32,4 @@
 2026-11-01 ws_share | So, 01.11.: Wind und Sonne deckten nur 17,7 % der Last, so wenig wie an keinem Tag der letzten 30.
 2026-11-02 evening_peak_gw | Mo, 02.11.: Am Abend mussten andere Quellen bis zu 64,4 GW decken (17:15 Uhr). Fast so hoch wie am 29.10. Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden.
 Counter({'ws_share': 9, 'evening_peak_gw': 8, 'SERIE': 8, 'KEINE': 7, 'full_min': 1})
+

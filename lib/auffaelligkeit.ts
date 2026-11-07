@@ -320,13 +320,15 @@ export function auffaelligkeitForDay(
 
   if (!top && r.dryStreak >= 3) {
     const lastSurplus = [...records.slice(0, index)].reverse().find((d) => d.surplusGwh >= 0.05);
-    const headline = `${weekdayLabelDe(dateKey)}: der ${r.dryStreak}. Tag in Folge ohne Überschuss. Zuletzt war am ${lastSurplus ? weekdayLabelDe(lastSurplus.dateKey) : "—"} Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.`;
+    const headline = `${weekdayLabelDe(dateKey)}: der ${r.dryStreak}. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am ${lastSurplus ? weekdayLabelDe(lastSurplus.dateKey) : "—"} Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.`;
     return { kind: "serie", headline, subline: "", kopfH1: headline, kopfSubline: "" };
   }
 
   if (!top) {
     const surplusPart =
-      r.surplusGwh < 0.05 ? "Kein Überschuss" : `${deNum(r.surplusGwh)} GWh Überschuss`;
+      r.surplusGwh < 0.05
+        ? "unter der Überschuss-Schwelle (0,05 GWh)"
+        : `${deNum(r.surplusGwh)} GWh Tages-Überschuss`;
     const headline = `${weekdayLabelDe(dateKey)}: ein unauffälliger Tag. ${surplusPart}, Abendspitze ${deNum(r.eveningPeakGw ?? 0)} GW um ${r.eveningPeakAt ?? "—"} Uhr. Kein Wert lag unter den drei extremsten der letzten 31 Tage.`;
     return { kind: "keine", headline, subline: "", kopfH1: headline, kopfSubline: "" };
   }

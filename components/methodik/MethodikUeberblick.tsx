@@ -519,6 +519,12 @@ export function MethodikGrenzenSection({
             )}
           </li>
           <li>
+            {tx(
+              "Die nationale Monats-Modellflotte ist kein reiner Überschuss-Tagesrechner: auch ohne positiven Wind-Solar-Überschuss können Speicher in den Strategien Spitzen senken und Energie verschieben (durchgehender Monatslauf). Kraftwerksrampen, Zusatzstarts und örtliche Netz-Abregelung rechnet sie nicht; Markt- oder Peak-Senkung belegt keine Abregelungsersparnis.",
+              "The national month fleet model is not a pure surplus-day calculator: even without positive wind-and-solar surplus, storage can reduce peaks and shift energy in the strategies (continuous month run). It does not calculate power-plant ramps, extra starts or local grid curtailment; market or peak reduction is not proof of less curtailment."
+            )}
+          </li>
+          <li>
             {tx("Nur Day-Ahead ", "Day-ahead only ")}
             <GlossaryTip id="day-ahead" language={language} />
             {tx(". Keine Regelleistung ", ". No balancing power ")}

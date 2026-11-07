@@ -7,6 +7,7 @@ import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
+import type { NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 export function TagSystemChapter({
   dayKey,
@@ -15,6 +16,9 @@ export function TagSystemChapter({
   fleetPowerGw,
   fleetEnergyGwh,
   lastSurplusKey,
+  showFleetMonthBelow,
+  fleetStrategyBelow,
+  fleetDayNoWindSolarSurplus,
 }: {
   dayKey: string;
   record: TagesKennzahlRecord;
@@ -22,12 +26,17 @@ export function TagSystemChapter({
   fleetPowerGw: number;
   fleetEnergyGwh: number;
   lastSurplusKey: string | null;
+  /** Monatslauf-Kapitel folgt auf dieser Seite (Oktober-Modell). */
+  showFleetMonthBelow?: boolean;
+  fleetStrategyBelow?: NationalFleetStrategyUi | null;
+  /** Monatslauf: max(0,W+S−Last) durchgehend 0 (29.10-Spitze). */
+  fleetDayNoWindSolarSurplus?: boolean;
 }) {
   const factor = dayOverview?.factors[1];
   const dayRow = factor?.dayRows.find((row) => row.dateBerlin === dayKey);
   const absorbed = dayRow?.absorbedGwh ?? record.absorbedGwh;
   const surplus = record.surplusGwh;
-  const hasSurplus = surplus >= 0.05;
+  const hasSurplus = surplus >= 0.05 && !fleetDayNoWindSolarSurplus;
   const sharePct =
     hasSurplus && surplus > 0 ? Math.round((absorbed / surplus) * 100) : Math.round((factor?.absorbedShare ?? 0) * 100);
   const socEnd = dayRow?.socEndFraction ?? factor?.socSeries.find((s) => s.dateBerlin === dayKey)?.socFraction;
@@ -60,13 +69,24 @@ export function TagSystemChapter({
           <>
             <p className="v4-tag-kern num">{formatQuantity(fleetEnergyGwh, "de", 2)} GWh</p>
             <p className="v4-tag-side">
-              standen bereit, im Modell nichts zu laden. {tagLastSurplusLine(lastSurplusKey)}{" "}
+              Nennenergie der heutigen Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW Leistung) — keine verfügbare
+              Energie zum Ladetag, sondern Größenordnung des Speichers in der ×1-Referenz.
+            </p>
+            <p className="v4-tag-side">
+              Aus Wind- und Sonnenüberschuss wäre im Überschuss-Lademodell an diesem Tag nichts zu laden.{" "}
+              {tagLastSurplusLine(lastSurplusKey)}{" "}
               {lastSurplusKey ? (
                 <Link href={`/tag/${lastSurplusKey}`} className="v4-chapter-next-link">
                   Letzter Überschusstag →
                 </Link>
               ) : null}
             </p>
+            {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
+              <p className="v4-tag-side">
+                Der Monatslauf-Ausschnitt unten ({fleetStrategyBelow === "spitze" ? "Spitze senken" : "Marktorientiert"})
+                kann trotzdem Netzladung und Lastverschiebung rechnen — getrennt vom Überschuss-Modell hier oben.
+              </p>
+            ) : null}
           </>
         )}
         {priceLine ? (

@@ -16,6 +16,7 @@ import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { barValue, kopfHero } from "@/lib/kopfHero";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
+import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -68,8 +69,8 @@ export function AuffaelligkeitKopf({
     return {
       h1: `${record.dryStreak}. Tag in Folge ohne Überschuss`,
       subline: lastSurplus
-        ? `Zuletzt war am ${weekdayLabelDe(lastSurplus.dateKey)} Strom übrig. Speicher hatten im Modell seitdem nichts zum Laden.`
-        : "Speicher hatten im Modell seitdem nichts zum Laden.",
+        ? `Zuletzt war am ${weekdayLabelDe(lastSurplus.dateKey)} Tages-Überschuss da — seitdem unter der Schwelle. Das betrifft nur die Überschuss-Kennzahl, nicht Peak- oder Preisnutzen im Monatsmodell.`
+        : "Unter der Überschuss-Schwelle — kein vollständiges Speicher-Nutzenbild.",
       hero: {
         value: String(record.dryStreak),
         unit: "Tage",
@@ -228,6 +229,10 @@ export function TagPageV4({
   dayOverview,
   fleetPowerGw,
   fleetEnergyGwh,
+  fleetFactor,
+  fleetStrategy,
+  fleetDayNoWindSolarSurplus,
+  children,
 }: {
   dayKey: string;
   todayKey: string;
@@ -240,6 +245,10 @@ export function TagPageV4({
   dayOverview: OverviewEvaluation | null;
   fleetPowerGw: number;
   fleetEnergyGwh: number;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
+  fleetDayNoWindSolarSurplus?: boolean;
+  children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
   if (!record) {
@@ -247,7 +256,12 @@ export function TagPageV4({
   }
   return (
     <div className="v4-start">
-      <TagDayNav dayKey={dayKey} lastCompleteDayKey={lastCompleteDayKey} />
+      <TagDayNav
+        dayKey={dayKey}
+        lastCompleteDayKey={lastCompleteDayKey}
+        fleetFactor={fleetFactor}
+        fleetStrategy={fleetStrategy}
+      />
       <AuffaelligkeitKopf
         dayKey={dayKey}
         todayKey={todayKey}
@@ -274,7 +288,11 @@ export function TagPageV4({
         fleetPowerGw={fleetPowerGw}
         fleetEnergyGwh={fleetEnergyGwh}
         lastSurplusKey={lastSurplusKey}
+        showFleetMonthBelow={nationalFleetMonthAvailable(dayKey.slice(0, 7)) && Boolean(children)}
+        fleetStrategyBelow={fleetStrategy ?? null}
+        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
       />
+      {children}
       <TagOrtTeaser dayLabel={formatBerlinDayLabel(dayKey)} />
     </div>
   );

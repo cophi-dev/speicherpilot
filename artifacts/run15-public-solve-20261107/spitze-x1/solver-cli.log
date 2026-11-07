@@ -1,0 +1,11 @@
+# solve-spitze-x1
+started: 2026-11-07T16:08:04.097Z
+finished: 2026-11-07T16:08:06.152Z
+exit: 0
+command: python3 /agent/repos/speicherpilot/artifacts/october-storage-counterfactual-20261107/run_fleet_factor_month.py --solve-one --factor 1 --strategy min_peak_perfect_foresight --out-dir /agent/repos/speicherpilot/artifacts/run15-public-solve-20261107/spitze-x1
+
+=== stdout ===
+{"ok": true, "manifest": "/agent/repos/speicherpilot/artifacts/run15-public-solve-20261107/spitze-x1/solve_manifest.json", "stats": {"baseline_max_residual_mw": 64405.9, "baseline_max_residual_ts": "2026-10-29T18:15:00+01:00", "after_max_residual_mw": 60860.51661893302, "after_max_residual_ts": "2026-10-02T18:45:00+02:00", "peak_reduction_mw": 3545.383381066982, "peak_reduction_pct_of_ref_64405_9": 5.504749380207376, "grid_charge_energy_mwh": 12487.19644345338, "grid_charge_energy_gwh": 12.48719644345338, "grid_discharge_energy_mwh": 10614.116976935376, "grid_discharge_energy_gwh": 10.614116976935376, "grid_side_roundtrip_loss_mwh": 1873.0794665180038, "grid_side_roundtrip_loss_gwh": 1.8730794665180037, "energy_balance_residue_mwh": -2.7284841053187847e-12, "simultaneous_intervals": 0, "max_power_violation_mw": 0.0, "soc_start_mwh": 4000.0, "soc_end_mwh": 4000.0, "soc_end_minus_start_mwh": 0.0, "soc_min_mwh": 799.9999999999999, "soc_max_mwh": 7200.0, "binding_power_fraction": 0.003355704697986577, "factor": 1, "strategy": "min_peak_perfect_foresight", "p_mw": 4580.0, "e_nominal_mwh": 8000.0, "solver": {"solve": {"status": "HighsModelStatus.kOptimal", "objective": 60860.53972024644, "mip_gap": 1.1955131596972904e-16, "runtime_s": 1.8943760395050049, "solver": "HiGHS", "notes": ""}}, "mip_report_ref": null}}
+
+
+=== stderr ===

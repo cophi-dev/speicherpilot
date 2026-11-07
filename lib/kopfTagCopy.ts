@@ -19,8 +19,12 @@ export function lastSurplusBefore(
 
 export function tagSurplusLine(surplusGwh: number): string {
   return surplusGwh >= 0.05
-    ? `${formatQuantity(surplusGwh, "de", 1)} GWh Überschuss.`
-    : "Kein Überschuss.";
+    ? `${formatQuantity(surplusGwh, "de", 1)} GWh Tages-Überschuss.`
+    : "Unter 0,05 GWh Tages-Überschuss.";
+}
+
+export function tagSurplusDefinitionLine(): string {
+  return "Wind+Sonne minus Last, über den Tag integriert (nur Überschuss-Kennzahl, kein vollständiges Speicher-Nutzenbild).";
 }
 
 export function tagLastSurplusLine(lastSurplusKey: string | null): string | null {
