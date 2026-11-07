@@ -128,6 +128,7 @@ describe("buildHomeDayPanelData", () => {
       day: day!,
       fleet: FLEET,
       fetchStand: "test",
+      fleetProvenance: "battery-charts-live",
       evaluationWindow: overviewBounds("30tage", "2026-11-07"),
     });
     expect(panel?.referenceComplete).toBe(true);

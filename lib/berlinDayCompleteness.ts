@@ -1,4 +1,8 @@
-import { findFirstUnixSecondForBerlinDateKey, nextBerlinDateKey } from "@/lib/berlinCalendar";
+import {
+  berlinCalendarKeysInclusive,
+  findFirstUnixSecondForBerlinDateKey,
+  nextBerlinDateKey,
+} from "@/lib/berlinCalendar";
 import {
   CARRIER_IDS,
   type PowerSlot,
@@ -147,16 +151,31 @@ export function pickNewestStrictCompletePowerDayKey(
   return null;
 }
 
+export function loadedPowerSeriesStartKey(slots: PowerSlot[], endKey: string): string | null {
+  let min: string | null = null;
+  for (const slot of slots) {
+    if (slot.dateBerlin > endKey) {
+      continue;
+    }
+    if (min === null || slot.dateBerlin < min) {
+      min = slot.dateBerlin;
+    }
+  }
+  return min;
+}
+
+/** Every Berlin calendar day from `startKey` through `endKey` must exist with a full residual grid. */
 export function strictResidualPreludeComplete(
   slots: PowerSlot[],
   offshorePresent: boolean,
-  endKey: string,
-  dayKeys: string[]
+  startKey: string,
+  endKey: string
 ): boolean {
+  if (startKey > endKey) {
+    return false;
+  }
+  const dayKeys = berlinCalendarKeysInclusive(startKey, endKey);
   for (const key of dayKeys) {
-    if (key > endKey) {
-      continue;
-    }
     const daySlots = slotsInRange(slots, key, key);
     const expected = expectedBerlinQuarters(key);
     if (daySlots.length !== expected) {

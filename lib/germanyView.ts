@@ -5,7 +5,7 @@ import { EE_CURTAILMENT_Q2_2026_GWH } from "@/lib/eeCurtailmentQuarterly";
 import { buildLiveReadings, type StripReading } from "@/lib/liveStrip";
 import { choosePublishedDay, chooseStorageDay, dayIsUsable, type LiveDispatchInput, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
 import { loadDayAheadDay, loadDayAheadRange, loadFreiburgFrequency, loadGermanyPower } from "@/lib/loadGermanyPower";
-import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
+import { lastFleetDataProvenance, loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { getGermanyEnergyFlowForBerlinRange } from "@/lib/energyChartsApi";
 import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
 import { mergeDayAheadPrices } from "@/lib/quarterPrices";
@@ -346,6 +346,7 @@ export async function loadGermanyView(
           day: kopfDay,
           fleet: publicFleet,
           fetchStand: readings.stand,
+          fleetProvenance: lastFleetDataProvenance(),
           evaluationWindow,
         })
       : null;

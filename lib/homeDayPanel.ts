@@ -2,8 +2,12 @@ import { chainFleetSoc } from "@/lib/chainedFleetSoc";
 import {
   auditBerlinPowerDay,
   expectedBerlinQuarters,
+  loadedPowerSeriesStartKey,
   strictResidualPreludeComplete,
 } from "@/lib/berlinDayCompleteness";
+import { berlinCalendarKeysInclusive } from "@/lib/berlinCalendar";
+import { fleetStandLabelDe } from "@/lib/fleetStandLabel";
+import type { FleetDataProvenance } from "@/lib/loadLargeBatteryFleet";
 import type { LiveFleetPublic } from "@/lib/liveFleetDispatch";
 import { MORE_STORAGE_DISCHARGE_HOUR, MORE_STORAGE_ROUND_TRIP } from "@/lib/moreStorage";
 import type { OverviewBounds } from "@/lib/overviewRange";
@@ -40,6 +44,7 @@ export type HomeDayPanelData = {
     dischargedGwh: number | null;
     simulationRunLabelDe: string;
     evaluationWindowLabelDe: string | null;
+    fleetStandLabelDe: string;
     disclosureDe: string;
   };
 };
@@ -119,16 +124,6 @@ function modelDayEnergyFromChain(
   return { chargedGwh: chargedMwh / 1000, dischargedGwh: dischargedMwh / 1000 };
 }
 
-function simulationCalendarKeys(slots: PowerSlot[], endKey: string): string[] {
-  const keys = new Set<string>();
-  for (const slot of slots) {
-    if (slot.dateBerlin <= endKey) {
-      keys.add(slot.dateBerlin);
-    }
-  }
-  return [...keys].sort();
-}
-
 export function buildHomeDayPanelData(args: {
   dateKey: string;
   slots: PowerSlot[];
@@ -137,6 +132,7 @@ export function buildHomeDayPanelData(args: {
   day: ResidualDay | null;
   fleet: LiveFleetPublic | null;
   fetchStand: string;
+  fleetProvenance: FleetDataProvenance;
   evaluationWindow: OverviewBounds | null;
 }): HomeDayPanelData | null {
   if (!args.day || args.day.dateBerlin !== args.dateKey || !args.fleet) {
@@ -175,9 +171,9 @@ export function buildHomeDayPanelData(args: {
     }
   }
 
-  const simKeys = simulationCalendarKeys(args.slots, args.dateKey);
-  const simulationStartKey = simKeys[0] ?? args.dateKey;
-  const simulationRunLabelDe = `${formatGermanDateRange(simulationStartKey, args.dateKey)} (${simKeys.length} Kalendertage geladen)`;
+  const simulationStartKey = loadedPowerSeriesStartKey(args.slots, args.dateKey) ?? args.dateKey;
+  const contiguousSpan = berlinCalendarKeysInclusive(simulationStartKey, args.dateKey);
+  const simulationRunLabelDe = `${formatGermanDateRange(simulationStartKey, args.dateKey)} (${contiguousSpan.length} Kalendertage im Simulationsvorlauf)`;
   const evaluationWindowLabelDe = args.evaluationWindow
     ? `${formatGermanDateRange(args.evaluationWindow.startKey, args.evaluationWindow.endKey)} (30-Tage-Kennzahl Startseite, getrennt vom Simulationsvorlauf)`
     : null;
@@ -185,8 +181,8 @@ export function buildHomeDayPanelData(args: {
   const preludeOk = strictResidualPreludeComplete(
     args.slots,
     args.offshorePresent,
-    args.dateKey,
-    simKeys
+    simulationStartKey,
+    args.dateKey
   );
 
   let modelAvailable = Boolean(referenceComplete && args.fleet && preludeOk);
@@ -195,7 +191,8 @@ export function buildHomeDayPanelData(args: {
   let unavailableReasonDe: string | null = null;
   if (!preludeOk) {
     modelAvailable = false;
-    unavailableReasonDe = "Modellwerte nicht verfügbar (unvollständiger Simulationsvorlauf in den geladenen Tagesreihen).";
+    unavailableReasonDe =
+      "Modellwerte nicht verfügbar (fehlender oder unvollständiger Kalendertag im Simulationsvorlauf).";
   } else if (modelAvailable) {
     const energies = modelDayEnergyFromChain(args.allDays, args.dateKey, args.fleet!.powerMw, args.fleet!.energyMwh);
     if (energies) {
@@ -209,12 +206,15 @@ export function buildHomeDayPanelData(args: {
     unavailableReasonDe = "Für diesen Tag nicht berechnet";
   }
 
-  const fleetLabel =
-    args.fleet.source === "battery-charts" ? "Battery Charts" : "Energy-Charts";
+  const fleetStandLabel = fleetStandLabelDe(
+    args.fleetProvenance,
+    args.fleet.source,
+    args.fleet.updatedLabel.de
+  );
   const disclosureDe = [
-    `Simulationsvorlauf (durchgehender SoC, Start 10 %, ${simulationRunLabelDe}): dieselbe chainFleetSoc-Regel wie 30-Tage-Modell und Tag-Kennzahlen — Laden vor ${MORE_STORAGE_DISCHARGE_HOUR}:00 bei Wind+Sonne über Last, Abgabe ab ${MORE_STORAGE_DISCHARGE_HOUR}:00, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % RTE.`,
+    `Hypothetisches ×1-Modell (Modellschätzung, nicht gemessen). Simulationsvorlauf durchgehender SoC, Start 10 %, ${simulationRunLabelDe}: chainFleetSoc wie 30-Tage-Kennzahl — Laden vor ${MORE_STORAGE_DISCHARGE_HOUR}:00 bei Wind+Sonne über Last, Abgabe ab ${MORE_STORAGE_DISCHARGE_HOUR}:00, ${Math.round(MORE_STORAGE_ROUND_TRIP * 100)} % RTE.`,
     evaluationWindowLabelDe,
-    `Referenzflotte ×1: ${args.fleet.powerGw} GW / ${args.fleet.energyGwh} GWh (${fleetLabel}${args.fleet.updatedLabel.de ? `, Stand ${args.fleet.updatedLabel.de}` : ""}).`,
+    `Referenzflotte: ${args.fleet.powerGw} GW / ${args.fleet.energyGwh} GWh (${fleetStandLabel}).`,
     "Lokale Netzwirkung am Anschluss wird nicht aus nationalen Tageswerten abgeleitet.",
   ]
     .filter(Boolean)
@@ -246,6 +246,7 @@ export function buildHomeDayPanelData(args: {
       dischargedGwh,
       simulationRunLabelDe,
       evaluationWindowLabelDe,
+      fleetStandLabelDe: fleetStandLabel,
       disclosureDe,
     },
   };

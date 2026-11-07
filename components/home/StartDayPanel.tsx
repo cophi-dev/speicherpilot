@@ -58,10 +58,18 @@ export function StartDayPanel({ panel, kopfDayKey }: { panel: HomeDayPanelData; 
             unit={panel.observed.generationStatus === "ok" ? "GWh" : ""}
             id="start-day-generation"
           />
-          <p className="v4-start-day-label num">Erzeugung gesamt</p>
+          <p className="v4-start-day-label num" title={panel.observed.generationDetailDe}>
+            Erzeugung gesamt
+          </p>
           <p className="v4-start-day-sub num" title={panel.observed.generationDetailDe}>
             Wind + Sonne: {formatPanelGwh(panel.observed.windSolarGwh)} GWh
           </p>
+        </div>
+        <div className="v4-start-day-stat v4-start-day-stat-ws" role="listitem">
+          <p className="v4-start-day-ws-value num" id="start-day-wind-solar">
+            {formatPanelGwh(panel.observed.windSolarGwh)}
+          </p>
+          <p className="v4-start-day-label num">Wind + Sonne</p>
         </div>
         <div className="v4-start-day-stat v4-start-day-stat-surplus" role="listitem">
           <StatValue value={surplusDisplay} unit={surplusUnit} accent id="start-day-surplus" />
@@ -79,27 +87,26 @@ export function StartDayPanel({ panel, kopfDayKey }: { panel: HomeDayPanelData; 
       </div>
 
       <div className="v4-start-day-model">
-        <p className="v4-start-day-section num">Modell</p>
-        <p className="v4-start-day-model-line num" data-testid="start-day-model-fleet">
-          Modell: Referenzflotte {formatQuantity(panel.model.powerGw, "de", 2)} GW /{" "}
-          {formatQuantity(panel.model.energyGwh, "de", 2)} GWh
-        </p>
         {panel.model.available ? (
-          <p className="v4-start-day-model-line num" data-testid="start-day-model-energy">
-            Geladen {formatPanelGwh(panel.model.chargedGwh)} GWh · Abgegeben{" "}
-            {formatPanelGwh(panel.model.dischargedGwh)} GWh
+          <p className="v4-start-day-model-line num" data-testid="start-day-model-fleet">
+            <span className="v4-start-day-model-tag">Modell</span> Referenzflotte{" "}
+            {formatQuantity(panel.model.powerGw, "de", 2)} GW / {formatQuantity(panel.model.energyGwh, "de", 2)} GWh
+            {" · "}
+            Geladen {formatPanelGwh(panel.model.chargedGwh)} GWh · Abgegeben {formatPanelGwh(panel.model.dischargedGwh)}{" "}
+            GWh · hypothetisch
           </p>
         ) : (
-          <p className="v4-start-day-model-line num">{panel.model.unavailableReasonDe}</p>
+          <p className="v4-start-day-model-line num" data-testid="start-day-model-fleet">
+            <span className="v4-start-day-model-tag">Modell</span> {panel.model.unavailableReasonDe}
+          </p>
         )}
-        <p className="v4-start-day-model-line num">
-          Lokale Netzwirkung: nicht bewertet ·{" "}
-          <Link href="/methodik#auffaelligkeit" className="v4-start-day-tooltip-link">
-            Methodik
-          </Link>
-        </p>
         <details className="v4-start-day-model-disclosure">
-          <summary className="num">Modellannahmen und Zeiträume</summary>
+          <summary className="v4-start-day-model-disclosure-summary num">
+            Annahmen und Zeiträume · Lokale Netzwirkung: nicht bewertet ·{" "}
+            <Link href="/methodik#auffaelligkeit" className="v4-start-day-tooltip-link">
+              Methodik
+            </Link>
+          </summary>
           <p className="v4-start-day-disclosure-body num">{panel.model.disclosureDe}</p>
         </details>
       </div>

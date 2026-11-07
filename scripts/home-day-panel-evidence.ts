@@ -12,10 +12,11 @@ import { pickNewestStrictCompletePowerDayKey } from "@/lib/berlinDayCompleteness
 import { buildHomeDayPanelData, totalGenerationGwhForDay } from "@/lib/homeDayPanel";
 import { overviewBounds } from "@/lib/overviewRange";
 import { readFleetSnapshot } from "@/lib/fleetSnapshot";
+import type { FleetDataProvenance } from "@/lib/loadLargeBatteryFleet";
 import { parseBatteryChartsFleet } from "@/lib/largeBatteryFleet";
 import { parsePowerPayload, periodFigures, residualDaysFromSlots, slotsInRange } from "@/lib/powerMix";
 
-const OUT = join(process.cwd(), "review-artifacts/home-day-panel-20261107-v2");
+const OUT = join(process.cwd(), "review-artifacts/home-day-panel-20261107-v3");
 
 async function fetchJson(url: string): Promise<unknown> {
   const response = await fetch(url);
@@ -31,16 +32,17 @@ async function main() {
   const todayKey = formatBerlinDateKeyFromUtcDate(capturedAt);
   const start = addBerlinCalendarDays(todayKey, -61);
   const powerUrl = `https://api.energy-charts.info/v2/total_power?country=de&start=${start}&end=${todayKey}`;
-  const fetchedAtIso = capturedAt.toISOString();
   const sourceSha = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
 
   const powerPayload = await fetchJson(powerUrl);
+  const powerFetchCompletedAtIso = new Date().toISOString();
   const parsed = parsePowerPayload(powerPayload);
   if (!parsed) {
     throw new Error("Missing power");
   }
 
   let fleetParsed = null;
+  let fleetProvenance: FleetDataProvenance = "battery-charts-live";
   try {
     const [fleetPower, fleetEnergy] = await Promise.all([
       fetchJson("https://battery-charts.de/wp-json/isea/v1/data?query_id=grossspeicher_leistung"),
@@ -52,6 +54,7 @@ async function main() {
   }
   if (!fleetParsed) {
     fleetParsed = readFleetSnapshot(capturedAt);
+    fleetProvenance = "committed-snapshot";
   }
   if (!fleetParsed) {
     throw new Error("Fleet unavailable (Battery Charts + snapshot)");
@@ -79,7 +82,8 @@ async function main() {
     allDays: days,
     day: kopfDay,
     fleet: publicFleet,
-    fetchStand: fetchedAtIso,
+    fetchStand: powerFetchCompletedAtIso,
+    fleetProvenance,
     evaluationWindow: overviewBounds("30tage", todayKey),
   });
   const daySlots = slotsInRange(parsed.slots, kopfDayKey, kopfDayKey);
@@ -95,10 +99,14 @@ async function main() {
   });
 
   const snapshot = {
-    generatedAt: fetchedAtIso,
+    generatedAt: capturedAt.toISOString(),
     sourceSha,
     powerUrl,
-    fetchedAtIso,
+    powerFetchStartedAtIso: capturedAt.toISOString(),
+    powerFetchCompletedAtIso,
+    powerFetchNote:
+      "powerFetchCompletedAtIso ist Skript-Abrufende, kein Energy-Charts-Datenstand oder Provider-generated_at.",
+    fleetProvenance,
     kopfDayKey,
     quarterCount: daySlots.length,
     expectedQuarters: panel?.expectedQuarters,

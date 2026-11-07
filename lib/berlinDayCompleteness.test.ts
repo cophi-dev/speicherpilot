@@ -3,6 +3,7 @@ import {
   auditBerlinPowerDay,
   expectedBerlinQuarters,
   pickNewestStrictCompletePowerDayKey,
+  strictResidualPreludeComplete,
 } from "@/lib/berlinDayCompleteness";
 import { parsePowerPayload, slotsInRange } from "@/lib/powerMix";
 
@@ -75,6 +76,22 @@ describe("auditBerlinPowerDay", () => {
     expect(auditBerlinPowerDay(daySlots, dateKey, true).ok).toBe(true);
   });
 });
+
+describe("strictResidualPreludeComplete contiguous calendar", () => {
+  it("rejects when an entire inner calendar day is missing from RAW", () => {
+    const day04 = fullDay("2026-11-04", 96);
+    const day06 = fullDay("2026-11-06", 96);
+    const parsed = parsePowerPayload({ data: [...day04, ...day06] });
+    const start = "2026-11-04";
+    const end = "2026-11-06";
+    expect(strictResidualPreludeComplete(parsed!.slots, true, start, end)).toBe(false);
+    expect(buildHomePreludeOk(parsed!.slots, start, end)).toBe(false);
+  });
+});
+
+function buildHomePreludeOk(slots: import("@/lib/powerMix").PowerSlot[], start: string, end: string) {
+  return strictResidualPreludeComplete(slots, true, start, end);
+}
 
 describe("pickNewestStrictCompletePowerDayKey", () => {
   it("skips a day with a hole and picks the previous complete day", () => {
