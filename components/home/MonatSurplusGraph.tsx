@@ -44,7 +44,8 @@ export function MonatSurplusGraph({
   const maxGwh = Math.max(...withData.map((b) => Math.max(0, b.surplusGwh ?? 0)), 0.05);
   const ticks = new Set(mobileTicks(bars.length));
   const emptyMonth = withData.length > 0 && surplusDays.length === 0;
-  const gridCols = { gridTemplateColumns: `repeat(${bars.length}, minmax(24px, 1fr))` } as const;
+  const colMinPx = 28;
+  const gridCols = { gridTemplateColumns: `repeat(${bars.length}, minmax(${colMinPx}px, 1fr))` } as const;
 
   return (
     <figure className="v4-monat-graph-wrap v4-content">
@@ -57,7 +58,7 @@ export function MonatSurplusGraph({
           </p>
         ) : null}
         <div className="v4-monat-chart-scroll">
-        <div className="v4-monat-chart-plot" style={{ ...gridCols, minWidth: `${bars.length * 24}px` }}>
+        <div className="v4-monat-chart-plot" style={{ ...gridCols, minWidth: `${bars.length * colMinPx}px` }}>
           {bars.map((bar) => {
             const hasValue = bar.surplusGwh !== null && !bar.future && !bar.missing;
             const surplus = hasValue ? Math.max(0, bar.surplusGwh ?? 0) : 0;
@@ -98,7 +99,7 @@ export function MonatSurplusGraph({
             );
           })}
         </div>
-        <div className="v4-monat-chart-x num" style={{ ...gridCols, minWidth: `${bars.length * 24}px` }} aria-hidden="true">
+        <div className="v4-monat-chart-x num" style={{ ...gridCols, minWidth: `${bars.length * colMinPx}px` }} aria-hidden="true">
           {bars.map((bar, index) => {
             const day = index + 1;
             if (!ticks.has(day)) {
