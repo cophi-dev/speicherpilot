@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ monat: st
   const { monat } = await params;
   return {
     title: `Monat · ${monat}`,
-    description: "Ein Kalendermonat in der geladenen Tagesreihe: Überschuss und Tage mit Kennzahlen.",
+    description: "Monatsverlauf in der geladenen Tagesreihe: Überschuss-Graph und Sprung zu einzelnen Tagen.",
   };
 }
 

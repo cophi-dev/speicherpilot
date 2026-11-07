@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "c68196fe4cbc25396ae31a72351fb0f96e0e7fd7",
+  "monthKey": "2026-10",
+  "monthLabel": "Oktober 2026",
+  "daysInCalendar": 31,
+  "daysWithRecords": 31,
+  "missingDayKeys": [],
+  "sumSurplusGwhFromRecords": 134.24197499999997,
+  "sumSurplusGwhFromGraphBars": 134.24197499999997,
+  "factorNote": "Euro nicht skaliert; Tageskennzahl surplusGwh aus Fixture",
+  "uiMonthLabelMustMatch": "2026-10"
+}

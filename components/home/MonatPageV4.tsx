@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 
-import { getBerlinIsoWeekdayForDateKey } from "@/lib/berlinCalendar";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
+import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
 import {
   adjacentMonthWithData,
   buildMonatGrid,
@@ -12,6 +12,7 @@ import {
   monatPointe,
   type MonatDayCell,
 } from "@/lib/monatCalendar";
+import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 
 function dayMark(cell: MonatDayCell, compact = false): string {
@@ -25,17 +26,6 @@ function dayMark(cell: MonatDayCell, compact = false): string {
     return `${formatQuantity(cell.record.surplusGwh, "de", 1)} GWh`;
   }
   return compact ? "kein Übersch." : "kein Überschuss";
-}
-
-function cellClassName(cell: MonatDayCell): string {
-  return [
-    "v4-monat-cell",
-    cell.record && cell.record.surplusGwh < 0.05 ? "is-dry" : "",
-    cell.record && cell.record.surplusGwh >= 0.05 ? "is-surplus" : "",
-    !cell.inSeries ? "is-empty" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
 }
 
 function listRowClassName(cell: MonatDayCell): string {
@@ -87,40 +77,6 @@ export function MonatNav({
   );
 }
 
-function MonatCalendarGrid({ grid, pad, monthKey }: { grid: MonatDayCell[]; pad: number; monthKey: string }) {
-  return (
-    <div className="v4-monat-grid v4-content" role="grid" aria-label={`Monat ${monthKey}`}>
-      {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((d) => (
-        <span key={d} className="v4-monat-dow num" role="columnheader">
-          {d}
-        </span>
-      ))}
-      {Array.from({ length: pad }).map((_, i) => (
-        <span key={`pad-${i}`} className="v4-monat-pad" aria-hidden />
-      ))}
-      {grid.map((cell) => {
-        const mark = dayMark(cell, true);
-        const className = cellClassName(cell);
-        const inner = (
-          <>
-            <span className="v4-monat-day num">{cell.dayNum}</span>
-            <span className="v4-monat-mark num">{mark}</span>
-          </>
-        );
-        return isClickable(cell) ? (
-          <Link key={cell.dateKey} href={`/tag/${cell.dateKey}`} className={className} role="gridcell">
-            {inner}
-          </Link>
-        ) : (
-          <div key={cell.dateKey} className={className} role="gridcell" aria-disabled={!cell.inSeries}>
-            {inner}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function MonatCalendarList({ grid, monthKey }: { grid: MonatDayCell[]; monthKey: string }) {
   return (
     <ul className="v4-monat-list v4-content" aria-label={`Tage im ${monthKey}`}>
@@ -167,7 +123,8 @@ export function MonatPageV4({
 }) {
   const { h1, subline } = monatPointe(monthKey, records);
   const grid = buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey });
-  const pad = grid[0] ? getBerlinIsoWeekdayForDateKey(grid[0].dateKey) - 1 : 0;
+  const bars = barsFromMonatGrid(grid);
+  const monthLabel = formatBerlinMonthLabel(monthKey);
 
   return (
     <div className="v4-start monat-page">
@@ -184,17 +141,18 @@ export function MonatPageV4({
         </div>
       </section>
 
-      <section className="v4-chapter" aria-labelledby="monat-grid-title">
+      <section className="v4-chapter" aria-labelledby="monat-graph-title">
         <div className="v4-chapter-head v4-content">
-          <p className="v4-chapter-num num">Kalender</p>
-          <h2 id="monat-grid-title" className="v4-chapter-h2">
-            Tage im {formatBerlinMonthLabel(monthKey)}
+          <p className="v4-chapter-num num">Monatsverlauf</p>
+          <h2 id="monat-graph-title" className="v4-chapter-h2">
+            Überschuss je Tag im {monthLabel}
           </h2>
         </div>
-        <div className="v4-monat-grid-wrap">
-          <MonatCalendarGrid grid={grid} pad={pad} monthKey={monthKey} />
-        </div>
-        <MonatCalendarList grid={grid} monthKey={monthKey} />
+        <MonatSurplusGraph monthKey={monthKey} bars={bars} />
+        <details className="v4-monat-list-fallback v4-content">
+          <summary>Tagesliste (Tabellenalternative)</summary>
+          <MonatCalendarList grid={grid} monthKey={monthKey} />
+        </details>
       </section>
 
       <p className="v4-chapter-foot v4-content num">

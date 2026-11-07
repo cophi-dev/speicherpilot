@@ -52,4 +52,10 @@ describe("Ort netz chart axes (Paket 05.11)", () => {
     expect(src).not.toMatch(/kommt als Nächstes/);
     expect(src).not.toMatch(/ort-netz-annual-note/);
   });
+
+  it("uses Monat surplus graph as primary view", () => {
+    const src = readFileSync(join(process.cwd(), "components/home/MonatPageV4.tsx"), "utf8");
+    expect(src).toMatch(/MonatSurplusGraph/);
+    expect(src).not.toMatch(/Kalender/);
+  });
 });

@@ -9,4 +9,10 @@ describe("monat routes", () => {
     const src = readFileSync(join(process.cwd(), "app/monat/page.tsx"), "utf8");
     expect(src).toMatch(/permanentRedirect\(`\/monat\/\$\{monthKey\}`\)/);
   });
+
+  it("uses surplus graph as primary month view", () => {
+    const src = readFileSync(join(process.cwd(), "components/home/MonatPageV4.tsx"), "utf8");
+    expect(src).toMatch(/MonatSurplusGraph/);
+    expect(src).not.toMatch(/MonatCalendarGrid/);
+  });
 });
