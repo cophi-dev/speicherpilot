@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Run19 regression: hydrated screenshots + Lücke geometry + DST + URL/Controls.
+ * Run20 regression: hydrated screenshots + semantische Lücke-Zeitachse + DST.
  */
 import { chromium } from "playwright";
 import { execSync } from "node:child_process";
@@ -10,7 +10,7 @@ import { join } from "node:path";
 
 const BASE = process.env.SITE_E2E_BASE_URL ?? "http://127.0.0.1:3001";
 const OUT =
-  process.env.RUN19_OUT ?? "/cursor/stores/self/launch-run19-design-fix-20261107";
+  process.env.RUN20_OUT ?? process.env.RUN19_OUT ?? "/cursor/stores/self/launch-run20-axis-20261107";
 
 function patchTurbopackCssChunk() {
   const chunks = join(process.cwd(), ".next/static/chunks");
@@ -30,7 +30,7 @@ function pageUrl(pathname, searchParams = {}) {
   for (const [k, v] of Object.entries(searchParams)) {
     u.searchParams.set(k, v);
   }
-  u.searchParams.set("_run19", String(Date.now()));
+  u.searchParams.set("_run20", String(Date.now()));
   return u.href;
 }
 
@@ -85,15 +85,41 @@ async function measureLueckeAxis(page) {
     const label24R = label24.getBoundingClientRect();
     const label24InsideContent =
       contentR == null ? true : label24R.right <= contentR.right + 1 && label24R.left >= contentR.left - 1;
-    const slotCount = fig.getAttribute("data-luecke-slot-count");
+    const slotCount = Number(fig.getAttribute("data-luecke-slot-count"));
     const dayKind = fig.getAttribute("data-luecke-day-kind");
+    const dayMin = Number.isFinite(slotCount) ? slotCount * 15 : null;
+    const g0 = gridLines[0].getBoundingClientRect();
+    const g24 = gridLines[gridLines.length - 1].getBoundingClientRect();
+    const plotLeft = g0.left + g0.width / 2;
+    const plotRight = g24.left + g24.width / 2;
+    const plotWidthPx = plotRight - plotLeft;
+    const frac24 = plotWidthPx > 0 ? (plotRight - plotLeft) / plotWidthPx : null;
+    const fracLastSlot = dayMin != null ? ((slotCount - 1) * 15) / dayMin : null;
+    const peakLine = svg.querySelector(".v4-luecke-peak-line");
+    let peakSemantics = null;
+    if (peakLine && plotWidthPx > 0 && dayMin != null) {
+      const pR = peakLine.getBoundingClientRect();
+      const peakCx = pR.left + pR.width / 2;
+      const peakFrac = (peakCx - plotLeft) / plotWidthPx;
+      peakSemantics = { peakFrac, dayMin, slotCount };
+    }
     return {
       pairs,
       plotInsetLeft: pairs[0]?.plotInsetLeft ?? null,
       maxLabelDelta: Math.max(...pairs.map((p) => p.deltaPx)),
       label24InsideContent,
-      slotCount: slotCount ? Number(slotCount) : null,
+      slotCount: Number.isFinite(slotCount) ? slotCount : null,
       dayKind,
+      semantics: {
+        fracLastSlot,
+        grid24AtDayEnd: frac24 != null && frac24 > 0.98,
+        lastSlotBeforeMidnight: fracLastSlot != null && fracLastSlot < 1 - 1e-6,
+        midnightPastLastQh:
+          fracLastSlot != null && plotWidthPx > 0
+            ? g24.left + g24.width / 2 > plotLeft + fracLastSlot * plotWidthPx + 0.5
+            : null,
+        peak: peakSemantics,
+      },
     };
   });
 }
@@ -122,6 +148,7 @@ const SCENARIOS = [
     expectSlots: 96,
     expectDayKind: "standard-96",
     fleet: true,
+    peakAtHm: "18:15",
   },
   {
     label: "mob390-tag-2910",
@@ -186,6 +213,8 @@ async function main() {
       await fig.waitFor({ state: "visible", timeout: 120_000 });
       await fig.scrollIntoViewIfNeeded();
     }
+    const fullShot = join(OUT, "screenshots", `${spec.label}-full.png`);
+    await page.screenshot({ path: fullShot, fullPage: true });
     const crop = spec.cropLuecke
       ? join(OUT, "screenshots", `${spec.label}-luecke-chart.png`)
       : null;
@@ -221,6 +250,23 @@ async function main() {
         throw new Error(`Fahrweise nicht Spitze: ${JSON.stringify(fleet)} @ ${finalUrl}`);
       }
     }
+    const sem = axis?.semantics;
+    if (sem && sem.lastSlotBeforeMidnight === false) {
+      throw new Error(`23:45 nicht vor Mitternacht: ${JSON.stringify(sem)} @ ${spec.label}`);
+    }
+    if (sem && sem.midnightPastLastQh === false) {
+      throw new Error(`Tick 24 nicht rechts vom letzten Slot: ${JSON.stringify(sem)} @ ${spec.label}`);
+    }
+    if (spec.peakAtHm && sem?.peak) {
+      const [ph, pm] = spec.peakAtHm.split(":").map(Number);
+      const expected = (ph * 60 + pm) / sem.peak.dayMin;
+      const err = Math.abs(sem.peak.peakFrac - expected);
+      if (err > 0.03) {
+        throw new Error(
+          `Peak ${spec.peakAtHm} Fraktion Δ ${err.toFixed(3)} (ist ${sem.peak.peakFrac.toFixed(3)}, soll ${expected.toFixed(3)}) @ ${spec.label}`,
+        );
+      }
+    }
     await page.close();
   }
 
@@ -241,6 +287,39 @@ async function main() {
 
   const springArtifact = verifySpringDstArtifact();
 
+  let ciVercelJsonProbe = { summary: "gh CI-Log nicht ausgewertet" };
+  try {
+    const runs = execSync(
+      "gh run list --repo cophi-dev/speicherpilot --branch cursor/launch-run18-kpi-raster-2686 --limit 3 --json databaseId,conclusion",
+      { encoding: "utf8" },
+    );
+    const runList = JSON.parse(runs);
+    const hit = [];
+    for (const run of runList) {
+      let log = "";
+      try {
+        log = execSync(`gh run view ${run.databaseId} --repo cophi-dev/speicherpilot --log 2>/dev/null`, {
+          encoding: "utf8",
+          maxBuffer: 8_000_000,
+        });
+      } catch {
+        continue;
+      }
+      const lines = log.split("\n").filter((l) => /vercel\.json/i.test(l)).slice(0, 8);
+      if (lines.length) {
+        hit.push({ runId: run.databaseId, conclusion: run.conclusion, lines });
+      }
+    }
+    ciVercelJsonProbe = {
+      summary: hit.length
+        ? `CI erwähnt vercel.json in ${hit.length} Lauf/Läufen (siehe lines, kein Dateiinhalt gelesen).`
+        : "In den letzten 3 PR-CI-Läufen kein vercel.json-String im Log.",
+      hits: hit,
+    };
+  } catch (e) {
+    ciVercelJsonProbe = { summary: `CI-Log nicht lesbar: ${e.message}` };
+  }
+
   const report = {
     head,
     buildId: prov.buildId,
@@ -250,12 +329,34 @@ async function main() {
     springDstArtifact: springArtifact,
     dirtyProvenanceNote: {
       vercelJsonInDirtyPaths:
-        "Lokal bei sauberem Commit + npm run build: kein vercel.json in dirtyPaths (siehe public/build-provenance.json). CI/LivePreview-Befund ohne Diff-Log hier offen.",
+        "Lokal: dirty false ohne vercel.json. LivePreview untracked vercel.json — Entstehung hier nur via CI-Log-Stichprobe, keine Config-Wirkung belegt.",
     },
+    ciVercelJsonProbe,
     uiSourceSha: uiSha,
   };
-  writeFileSync(join(OUT, "run19-hydrated-report.json"), JSON.stringify(report, null, 2));
-  console.log("Run19 hydrated abnahme OK", OUT);
+  writeFileSync(join(OUT, "run20-hydrated-report.json"), JSON.stringify(report, null, 2));
+  writeFileSync(
+    join(OUT, "README.md"),
+    `# Run 20 — Zeitachsen-Semantik (hydratisiert)
+
+**Gültig nur für HEAD** \`${head}\` · Build \`${prov.buildId}\`
+
+Volle Screenshots unter \`screenshots/\` (nur dieser SHA). Frühere Run-19-Screenshots ohne diesen HEAD sind **nicht** Teil der Abnahme.
+
+## Semantik
+- Slot-Position: Intervallbeginn \`index×15 / (N×15)\`
+- Tick **24** = lokale Mitternacht (Fraktion 1), **nicht** 23:45
+- Peak 29.10: 18:15 relativ zu Gitter 18:00
+
+## Queries
+Siehe \`run20-hydrated-report.json\` → \`scenarios[].requestedUrl\` und \`query\`.
+
+## vercel.json / dirtyPaths
+${report.dirtyProvenanceNote.vercelJsonInDirtyPaths}
+${report.ciVercelJsonProbe?.summary ?? "CI-Log-Prüfung: siehe Report ciVercelJsonProbe."}
+`,
+  );
+  console.log("Run20 hydrated abnahme OK", OUT);
 }
 
 main().catch((e) => {

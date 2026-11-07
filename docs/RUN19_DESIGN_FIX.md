@@ -12,7 +12,7 @@ Gebündelt auf PR #73 / Branch `cursor/launch-run18-kpi-raster-2686`. Kein Model
 2. Standardtag 96 qh: Kurven auf Slot-Index, Gitter auf `h/24` — Spitzenmarker wich optisch ab.
 3. **DST (100/92 qh):** reine Wanduhr-Skala ließ doppelte Herbststunde zeitlich **zurücklaufen** (überlappende X).
 
-**Fix:** Gemeinsame **Slot-Index-Basis** für Kurven, Gitter und Marker (`plotXFromSlotIndex`); Gitterticks über `slotIndexAtLocalHour`; kurze `v4-luecke-dst-note` an Sondertagen; Label „24“ mobil `textAnchor=end`.
+**Fix (Run 20):** Intervallbeginn `index×15/(N×15)`; Tick **24** = Mitternacht (1.0), nicht 23:45; Tests mit UTC-Artefakten `dst-timestamps.json` / `national-day-2026-10-25.json`.
 
 ## Weitere Layouts
 
