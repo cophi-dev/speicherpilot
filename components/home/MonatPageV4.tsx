@@ -1,10 +1,9 @@
 import Link from "next/link";
 
-import { formatQuantity } from "@/lib/formatQuantity";
-import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
+import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
-import { fleetTagHref, nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
+import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
   adjacentMonthWithData,
   buildMonatGrid,
@@ -14,34 +13,6 @@ import {
 } from "@/lib/monatCalendar";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
-
-function dayMark(cell: MonatDayCell, compact = false): string {
-  if (!cell.inSeries || !cell.record) {
-    if (cell.future) {
-      return "noch nicht";
-    }
-    return "—";
-  }
-  if (cell.record.surplusGwh >= 0.05) {
-    return `${formatQuantity(cell.record.surplusGwh, "de", 1)} GWh`;
-  }
-  return compact ? "kein Übersch." : "kein Überschuss";
-}
-
-function listRowClassName(cell: MonatDayCell): string {
-  return [
-    "v4-monat-list-row",
-    cell.record && cell.record.surplusGwh < 0.05 ? "is-dry" : "",
-    cell.record && cell.record.surplusGwh >= 0.05 ? "is-surplus" : "",
-    !cell.inSeries ? "is-empty" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
-function isClickable(cell: MonatDayCell): boolean {
-  return Boolean(cell.inSeries && cell.record && !cell.future);
-}
 
 export function MonatNav({
   monthKey,
@@ -74,51 +45,6 @@ export function MonatNav({
         </span>
       )}
     </nav>
-  );
-}
-
-function MonatCalendarList({
-  grid,
-  monthKey,
-  fleetFactor,
-  fleetStrategy,
-}: {
-  grid: MonatDayCell[];
-  monthKey: string;
-  fleetFactor?: NationalFleetFactor;
-  fleetStrategy?: NationalFleetStrategyUi;
-}) {
-  const tagHref = (dateKey: string) =>
-    fleetFactor && fleetStrategy && nationalFleetMonthAvailable(monthKey)
-      ? fleetTagHref(dateKey, fleetFactor, fleetStrategy)
-      : `/tag/${dateKey}`;
-  return (
-    <ul className="v4-monat-list v4-content" aria-label={`Tage im ${monthKey}`}>
-      {grid.map((cell) => {
-        const mark = dayMark(cell, false);
-        const dateLabel = `${weekdayShort(cell.dateKey, "de")}, ${formatBerlinDayLabel(cell.dateKey)}`;
-        const className = listRowClassName(cell);
-        const inner = (
-          <>
-            <span className="v4-monat-list-date num">{dateLabel}</span>
-            <span className="v4-monat-list-mark num">{mark}</span>
-          </>
-        );
-        return (
-          <li key={cell.dateKey}>
-            {isClickable(cell) ? (
-              <Link href={tagHref(cell.dateKey)} className={className}>
-                {inner}
-              </Link>
-            ) : (
-              <div className={className} aria-disabled={!cell.inSeries}>
-                {inner}
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 
@@ -192,14 +118,6 @@ export function MonatPageV4({
           fleetFactor={fleetFactor}
           fleetStrategy={fleetStrategy}
         />
-        <div className="v4-monat-list-fallback v4-content">
-          <MonatCalendarList
-            grid={grid}
-            monthKey={monthKey}
-            fleetFactor={fleetFactor}
-            fleetStrategy={fleetStrategy}
-          />
-        </div>
       </section>
 
       <p className="v4-chapter-foot v4-content num">

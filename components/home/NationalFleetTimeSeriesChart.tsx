@@ -232,6 +232,11 @@ export function NationalFleetTimeSeriesChart({
   };
 
   const showPowerNote = powerMaxGw < 0.0005;
+  const socSpanGwh =
+    points.length > 0
+      ? Math.max(...points.map((p) => p.socGwh)) - Math.min(...points.map((p) => p.socGwh))
+      : 0;
+  const hideAuxPanels = showPowerNote && socSpanGwh < 0.05;
 
   return (
     <figure className="v4-fleet-ts-wrap v4-content">
@@ -244,21 +249,25 @@ export function NationalFleetTimeSeriesChart({
         <span className="v4-fleet-ts-legend-r">Restlast beobachtet (GW)</span>
         <span className="v4-fleet-ts-legend-rp">Restlast mit Speicher (GW)</span>
         {comparePoints ? <span className="v4-fleet-ts-legend-compare">×1 mit Speicher (Vergleich, GW)</span> : null}
-        <span className="v4-fleet-ts-legend-c">Laden (MW)</span>
-        <span className="v4-fleet-ts-legend-d">Entladen (MW)</span>
+        <span className="v4-fleet-ts-legend-c">Laden (GW)</span>
+        <span className="v4-fleet-ts-legend-d">Entladen (GW)</span>
         <span className="v4-fleet-ts-legend-e">SoC Beginn Viertelstunde (GWh)</span>
       </div>
-      {showPowerNote ? (
+      {hideAuxPanels ? (
         <p className="v4-fleet-ts-power-note num">
-          Kaum Lade-/Abgabeleistung sichtbar: bei „Spitze senken“ zielt das Modell nicht auf Überschuss-Laden — Lastverschiebung
-          und Peakwirkung können trotzdem in Restlast und SoC stecken.
+          An diesem Tag keine sichtbare Lade-/Entlade- oder SoC-Spur — die Restlastkurven oben können trotzdem Modellwirkung
+          zeigen (kein leeres Diagramm als „keine Aktivität“).
+        </p>
+      ) : showPowerNote ? (
+        <p className="v4-fleet-ts-power-note num">
+          Kaum Lade-/Abgabeleistung: bei „Spitze senken“ kein Überschuss-Laden — Lastverschiebung wirkt in Restlast und SoC.
         </p>
       ) : null}
       {hover ? (
         <p className="v4-fleet-ts-tooltip num" role="status" data-testid="fleet-ts-tooltip">
           {hover.ts}: Restlast {formatQuantity(hover.rGw, "de", 2)} GW · mit Speicher{" "}
-          {formatQuantity(hover.rpGw, "de", 2)} GW · Laden {formatQuantity(hover.cMw, "de", 0)} MW · Entladen{" "}
-          {formatQuantity(hover.dMw, "de", 0)} MW · SoC {formatQuantity(hover.socGwh, "de", 2)} GWh (Beginn)
+          {formatQuantity(hover.rpGw, "de", 2)} GW · Laden {formatQuantity(hover.cMw / 1000, "de", 2)} GW · Entladen{" "}
+          {formatQuantity(hover.dMw / 1000, "de", 2)} GW · SoC {formatQuantity(hover.socGwh, "de", 2)} GWh (Beginn)
         </p>
       ) : (
         <p className="v4-fleet-ts-tooltip num muted">Zeiger über die Kurven bewegen für die Viertelstunde</p>
@@ -305,6 +314,7 @@ export function NationalFleetTimeSeriesChart({
             />
             <circle className="v4-fleet-peak-mark" cx={xs[peakI]} cy={rScale.y(peakRpGw)} r={3.5} />
           </SinglePanel>
+          {hideAuxPanels ? null : (
           <SinglePanel
             title="Speicherleistung"
             unit="GW"
@@ -334,6 +344,8 @@ export function NationalFleetTimeSeriesChart({
               />
             )}
           </SinglePanel>
+          )}
+          {hideAuxPanels ? null : (
           <SinglePanel
             title="Speicherinhalt (Beginn Viertelstunde)"
             unit="GWh"
@@ -351,6 +363,7 @@ export function NationalFleetTimeSeriesChart({
               )}
             />
           </SinglePanel>
+          )}
           <div className="v4-fleet-ts-x num" style={{ width }} aria-hidden="true">
             {xTicks.map(({ index, label }, ti) => (
               <span

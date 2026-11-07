@@ -9139,9 +9139,12 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   background: hsl(var(--primary) / 0.08);
 }
 .v4-fleet-kpis {
+  width: 100%;
   max-width: min(72rem, 100%);
   margin-left: auto;
   margin-right: auto;
+  padding-inline: clamp(16px, 4vw, 44px);
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px 20px;

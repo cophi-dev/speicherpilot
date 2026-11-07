@@ -114,6 +114,13 @@ export function NationalFleetDayChapter({
             {formatQuantity(slice.socEndMwh / 1000, "de", 2)} GWh. Kein Nachweis für Abregelung, Kraftwerksstarts oder
             Kostenersparnis.
           </p>
+          {dayKey === "2026-10-29" && factor === 1 ? (
+            <p className="num" style={{ marginTop: 8 }}>
+              Ladung 14:15–16:00 ist eine zulässige Minimax-Lösung dieses Modells — nicht der einzige Fahrplan (z. B. gleiche
+              Wirkung mit Laden 12:00–13:45 bei unverändertem Entladen). Der Solver minimiert die Monatsspitze mit kleinem
+              Durchsatz-Zusatz; die konkrete Uhrzeit ist kein Kosten-, Rampen- oder Preisoptimum.
+            </p>
+          ) : null}
         </div>
       ) : null}
 

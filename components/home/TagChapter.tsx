@@ -8,6 +8,7 @@ import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 import { tagMiddayStoryBody } from "@/lib/tagDayStory";
+import { tagSurplusDefinitionLine } from "@/lib/kopfTagCopy";
 
 const STEPS = [
   {
@@ -81,6 +82,7 @@ export function TagChapter({
           {chapterTitle}
         </h2>
         <p className="v4-tag-kern">{surplusLine}</p>
+        <p className="v4-tag-side">{tagSurplusDefinitionLine()}</p>
         {lastLine ? <p className="v4-tag-side">{lastLine}</p> : null}
       </div>
       <div className="v4-content v4-luecke-wrap">
