@@ -1,15 +1,16 @@
 {
   "bundleId": "launch-r4-20261107T1048Z",
-  "codeCommitAtBundleWrite": "89a837f5245fd3dd51673dc5d740282c9d0a6ddd",
-  "sourceCommit": "89a837f5245fd3dd51673dc5d740282c9d0a6ddd",
   "artifactRulesVersion": "ort-badge-v2 + signed-flow-mw-v1",
-  "generatedAt": "2026-11-07T09:51:47.945Z",
+  "generatedAt": "2026-11-07T09:57:27.915Z",
   "generator": "lib/launchAbnahme.test.ts",
   "provenance": {
-    "note": "sourceCommit/codeCommitAtBundleWrite = git HEAD beim Schreiben dieses Bundles; Lighthouse-summary.commit kann abweichen wenn separat gelaufen",
+    "note": "modelPhysicsCommit = numerische signed-MW-Zeitreihen (9c5524e); artifactBundleWriterCommit = Commit mit korrigierten Labels+Manifest; ort-archetypes nur Textfelder dispatchPhysics geändert.",
     "inputContentHashes": {
-      "data/ort/ort-archetypes.json": "sha256:61c26eac3917e476cfe0797bb4ccdc8ac00e619880e2eecb166805f7f9496c09"
-    }
+      "data/ort/ort-archetypes.json": "sha256:1f4b14b0567d851f8c469cbb36fef6cd5973981d48ca915cd5ebaa5692e32de4"
+    },
+    "modelPhysicsCommit": "9c5524e8569f409ed5340e10de2384869273a8cf",
+    "priorOrtArchetypesHashSameNumerics": "sha256:61c26eac3917e476cfe0797bb4ccdc8ac00e619880e2eecb166805f7f9496c09",
+    "artifactBundleWriterCommit": "209125b765dac68b7a58c06d6e9e4e47c278317b"
   },
   "mirrorPath": "/opt/cursor/artifacts/launch-r4-20261107T1048Z",
   "supersededBundles": [
@@ -55,5 +56,12 @@
   "lighthouse": {
     "summary": "lighthouse-a11y-summary.json",
     "unchangedFrom": "launch-r4-20261107T1025Z"
-  }
+  },
+  "modelInputHashVerified": {
+    "path": "data/ort/ort-archetypes.json",
+    "sha256": "1f4b14b0567d851f8c469cbb36fef6cd5973981d48ca915cd5ebaa5692e32de4",
+    "note": "Hash nach reiner Metadaten-Labelkorrektur; alle seriellen Zahlen in ort-archetypes unverändert."
+  },
+  "modelPhysicsCommit": "9c5524e8569f409ed5340e10de2384869273a8cf",
+  "artifactBundleWriterCommit": "209125b765dac68b7a58c06d6e9e4e47c278317b"
 }

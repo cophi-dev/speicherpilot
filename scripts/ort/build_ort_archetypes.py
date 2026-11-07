@@ -185,8 +185,30 @@ def bottleneck_rating_mw(net, kind: str, index: int) -> float:
     return max(1e-6, float(trafo.sn_mva))
 
 
+FLOW_SIGN_META = {
+    "stadt": {
+        "flowSignConventionId": "stadt_bottleneck_line_signed_mw",
+        "flowSignConventionDe": (
+            "Vorzeichen am pandapower-Betriebsmittel (Referenzbus → Referenzziel, Zeitreihen unverändert): "
+            "negatives signedMw = Netzbezug am Engpass; positives signedMw = Rückspeisung/Einspeisung. "
+            "Auslastung [%] = 100·|signed|/ratingMw (linearisierte c/d-Sensitivität, kein AC-Neulauf pro qh)."
+        ),
+        "szenarioBezugDe": "Städtischer Bezugsengpass (Typtag): Baseline typisch negativ = Bezug.",
+    },
+    "land": {
+        "flowSignConventionId": "land_bottleneck_line_signed_mw",
+        "flowSignConventionDe": (
+            "Vorzeichen am pandapower-Betriebsmittel (Referenzbus → Referenzziel): "
+            "negatives signedMw = Exportdominanz / Einspeiseüberhang am Engpass; positives signedMw = Netzbezug. "
+            "Laden (c) verschiebt signed typischerweise Richtung Null. Auslastung = 100·|signed|/ratingMw."
+        ),
+        "szenarioBezugDe": "Ländischer Einspeise-Engpass (Typtag): Baseline typisch negativ = Export.",
+    },
+}
+
+
 def resolve_reference_buses(net, kind: str, index: int, archetype_key: str) -> tuple[int, int]:
-    """Positive signed MW convention: stadt = import toward MV busbar; land = export away from MV busbar."""
+    """Pandapower line/trafo flow sign along reference buses (unchanged physics; see FLOW_SIGN_META)."""
     busbar = int(net.trafo.lv_bus.iloc[0])
     if kind == "line":
         from_bus = int(net.line.at[index, "from_bus"])
@@ -1384,7 +1406,7 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             "socMaxFraction": 0.9,
             "terminalSocEqualsStart": True,
             "mipExclusiveChargeDischarge": True,
-            "flowSignConvention": "stadt_positive_import_mw" if key == "stadt" else "land_positive_export_mw",
+            **FLOW_SIGN_META[key],
             "ratingMw": rating_mw,
             "bottleneckPositiveFromBus": pos_from,
             "bottleneckPositiveToBus": pos_to,

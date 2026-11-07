@@ -87,7 +87,9 @@ function loadingSlopesFromPhysics(physics: Record<string, unknown> | null | unde
   slopeDischargeMw: number;
   ratingMw: number;
   formula: string;
-  flowSignConvention: string;
+  flowSignConventionId: string;
+  flowSignConventionDe: string;
+  szenarioBezugDe: string;
 } {
   const p = physics ?? {};
   const slopeChargeMw =
@@ -107,9 +109,16 @@ function loadingSlopesFromPhysics(physics: Record<string, unknown> | null | unde
     typeof p.loadingLinearModel === "string"
       ? p.loadingLinearModel
       : "signed_battery_mw = s0 + slope_c*c + slope_d*d; loading_pct = 100*abs(signed)/rating_mw";
-  const flowSignConvention =
-    typeof p.flowSignConvention === "string" ? p.flowSignConvention : "unknown";
-  return { slopeChargeMw, slopeDischargeMw, ratingMw, formula, flowSignConvention };
+  const flowSignConventionId =
+    typeof p.flowSignConventionId === "string"
+      ? p.flowSignConventionId
+      : typeof p.flowSignConvention === "string"
+        ? p.flowSignConvention
+        : "unknown";
+  const flowSignConventionDe =
+    typeof p.flowSignConventionDe === "string" ? p.flowSignConventionDe : "";
+  const szenarioBezugDe = typeof p.szenarioBezugDe === "string" ? p.szenarioBezugDe : "";
+  return { slopeChargeMw, slopeDischargeMw, ratingMw, formula, flowSignConventionId, flowSignConventionDe, szenarioBezugDe };
 }
 
 function recomputeL1FromSigned(
@@ -449,7 +458,9 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
               "vmin/vmax pandapower Typtag-Baseline ohne Speicher — keine Spannungswirkung des Batterie-Dispatch",
             dispatchPhysics: data.dispatchPhysics ?? null,
             loadingLinearModel: slopes.formula,
-            flowSignConvention: slopes.flowSignConvention,
+            flowSignConventionId: slopes.flowSignConventionId,
+            flowSignConventionDe: slopes.flowSignConventionDe,
+            szenarioBezugDe: slopes.szenarioBezugDe,
             ratingMw,
             slopeChargeMwN1: slopes.slopeChargeMw,
             slopeDischargeMwN1: slopes.slopeDischargeMw,
@@ -572,17 +583,20 @@ describe("Launch-Abnahme (Zeitreihen + Gegenrechnung)", () => {
 
     const readme = {
       bundleId: BUNDLE_ID,
-      codeCommitAtBundleWrite: sourceCommit,
-      sourceCommit,
+      modelCodeCommit: sourceCommit,
+      artifactBundleWriterCommit: sourceCommit,
+      deprecatedAliases: { sourceCommit: sourceCommit, codeCommitAtBundleWrite: sourceCommit },
       artifactRulesVersion: "ort-badge-v2 + signed-flow-mw-v1",
       generatedAt: new Date().toISOString(),
       generator: "lib/launchAbnahme.test.ts",
       provenance: {
         note:
-          "sourceCommit/codeCommitAtBundleWrite = git HEAD beim Schreiben dieses Bundles; Lighthouse-summary.commit kann abweichen wenn separat gelaufen",
+          "modelCodeCommit = Git-Commit, der data/ort/ort-archetypes.json mit untenstehendem Hash enthält; artifactBundleWriterCommit = HEAD beim Schreiben der Bundle-JSONs (kann identisch sein). Lighthouse-commit separat.",
         inputContentHashes: {
           "data/ort/ort-archetypes.json": `sha256:${ortArchetypesSha}`,
         },
+        timeseriesUnchanged:
+          "Numerische Netz-/National-Zeitreihen nur bei Modelländerung neu; Metadaten-Korrekturen ändern keine s/d/L1-Werte.",
       },
       mirrorPath: join(MIRROR_ROOT, BUNDLE_ID),
       supersededBundles: ["artifacts/launch-abnahme (R2; nicht für R3/R4 verwenden)"],
