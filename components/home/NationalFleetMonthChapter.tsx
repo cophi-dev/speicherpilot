@@ -127,10 +127,8 @@ export function NationalFleetMonthChapter({
 
       <dl className="v4-fleet-kpis v4-content num">
         <div>
-          <dt>Referenzflotte (gewählt)</dt>
-          <dd>
-            {formatGw(stats.fleetPowerGw, 2)} GW · {formatGw(stats.fleetEnergyGwh, 0)} GWh Nennenergie
-          </dd>
+          <dt>Monats-Restlastspitze mit Speicher</dt>
+          <dd>{formatPeakKpi(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct)}</dd>
         </div>
         <div>
           <dt>Netzseitige Ladung</dt>
@@ -140,12 +138,18 @@ export function NationalFleetMonthChapter({
           <dt>Netzseitige Abgabe</dt>
           <dd>{formatGw(stats.dischargeGwh, 2)} GWh</dd>
         </div>
-        <div>
+        <div className="v4-fleet-kpi-tier2">
+          <dt>Referenzflotte (gewählt)</dt>
+          <dd>
+            {formatGw(stats.fleetPowerGw, 2)} GW · {formatGw(stats.fleetEnergyGwh, 0)} GWh Nennenergie
+          </dd>
+        </div>
+        <div className="v4-fleet-kpi-tier2">
           <dt>Verlust (Ladung − Abgabe)</dt>
           <dd>{formatGw(stats.lossGwh, 2)} GWh</dd>
         </div>
         {stats.surplusCaptureGwh != null ? (
-          <div>
+          <div className="v4-fleet-kpi-tier2">
             <dt>Aufnahme aus Wind-Solar-Differenz</dt>
             <dd>
               {formatGw(stats.surplusCaptureGwh, 2)} GWh
@@ -155,17 +159,45 @@ export function NationalFleetMonthChapter({
             </dd>
           </div>
         ) : null}
-        <div>
-          <dt>Monats-Restlastspitze mit Speicher</dt>
-          <dd>{formatPeakKpi(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct)}</dd>
-        </div>
-        <div>
+        <div className="v4-fleet-kpi-tier2">
           <dt>SoC Monatsanfang / -ende</dt>
           <dd>
             {formatGw(stats.socStartGwh, 1)} / {formatGw(stats.socEndGwh, 1)} GWh (50 % Nennenergie, durchgehend)
           </dd>
         </div>
       </dl>
+      <details className="v4-fleet-kpis-secondary v4-content num">
+        <summary>Weitere Monats-Kennzahlen (Flotte, Verlust, SoC)</summary>
+        <dl className="v4-fleet-kpis">
+          <div>
+            <dt>Referenzflotte (gewählt)</dt>
+            <dd>
+              {formatGw(stats.fleetPowerGw, 2)} GW · {formatGw(stats.fleetEnergyGwh, 0)} GWh Nennenergie
+            </dd>
+          </div>
+          <div>
+            <dt>Verlust (Ladung − Abgabe)</dt>
+            <dd>{formatGw(stats.lossGwh, 2)} GWh</dd>
+          </div>
+          {stats.surplusCaptureGwh != null ? (
+            <div>
+              <dt>Aufnahme aus Wind-Solar-Differenz</dt>
+              <dd>
+                {formatGw(stats.surplusCaptureGwh, 2)} GWh
+                {stats.surplusCaptureSharePct != null
+                  ? ` (${formatQuantity(stats.surplusCaptureSharePct, "de", 1)} % vom Okt.-Pool 134,2 GWh)`
+                  : null}
+              </dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>SoC Monatsanfang / -ende</dt>
+            <dd>
+              {formatGw(stats.socStartGwh, 1)} / {formatGw(stats.socEndGwh, 1)} GWh (50 % Nennenergie, durchgehend)
+            </dd>
+          </div>
+        </dl>
+      </details>
 
       <NationalFleetMarginalBenefit
         strategy={strategy}

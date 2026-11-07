@@ -1,7 +1,8 @@
 {
-  "commit": "36554d09ce2beca5e412f1e81258c6c050ca4acb",
-  "buildId": "20261107T1711Z",
-  "builtAt": "2026-11-07T17:11:33.792Z",
+  "commit": "50a78054033f2f974927e0ee1d73f40b4807f687",
+  "buildId": "20261107T1811Z",
+  "builtAt": "2026-11-07T18:11:03.495Z",
   "node": "v22.23.4",
-  "dirty": true
+  "dirty": false,
+  "ci": false
 }

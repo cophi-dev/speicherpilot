@@ -9,6 +9,7 @@ Roter Faden auf dem Handy: **Kernaussage → Grafik → kurze Erklärung → Det
 |-----|----------------|-----------------|
 | **Tag · 01** | Kernaussage, sofort Definition + letzter Überschusstag, dann Chart, darunter drei gleich große Schritte | Kernaussage → **Lücke-Chart** → optional „Klarstellung zur Kennzahl“ → Schritte unter **„Tag in drei Phasen“** (zu) |
 | **Tag · Modellflotte** | Lange Subline vor Steuerung; **7 KPI-Kacheln** vor Chart | Subline in **„Kontext Monatslauf“** (zu); **3 Kern-KPIs** sichtbar, Rest unter **„Weitere Kennzahlen“**; dann Chart (unverändert) |
+| **Monat · Modellflotte** | Lange Subline, dann **7–8 KPI-Kacheln** gleichgewichtig | Subline in **„Modellannahmen und Grenzen“** (zu); sichtbar: **Restlastspitze, Ladung, Abgabe**; Rest in **„Weitere Monats-Kennzahlen“** |
 | **KPI-Breite Desktop** | `margin: 0 0 24px` auf KPI-Grid hob `margin-inline: auto` auf; Beleg-Box hatte eigenes `max-width: 72rem` | KPI-Spalte = `v4-content` (1240px), gemeinsame Zentrierung |
 
 Alle Fachwerte und Tabellen bleiben erreichbar (Tastatur: `summary`/`details`, Viertelstunden-Tabelle wie bisher).
