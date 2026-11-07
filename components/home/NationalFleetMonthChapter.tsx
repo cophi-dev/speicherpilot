@@ -5,14 +5,13 @@ import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTim
 import { formatPeakKpi } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
+import type { NationalFleetFactorCompareRow, StrategyMarginalStep } from "@/lib/nationalFleetMarginal";
 import {
   fleetMonatHref,
   fleetTagHref,
   NATIONAL_FLEET_FACTORS,
   NATIONAL_FLEET_STRATEGY_UI,
-  type MarginalCaptureRow,
   type NationalFleetFactor,
-  type NationalFleetFactorCompareRow,
   type NationalFleetMonthStats,
   type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
@@ -28,8 +27,8 @@ export function NationalFleetMonthChapter({
   strategy,
   stats,
   run,
-  compareRun,
-  marginal,
+  marginalSteps,
+  surplusPoolMarginal,
   factorRows,
   bars,
 }: {
@@ -38,8 +37,8 @@ export function NationalFleetMonthChapter({
   strategy: NationalFleetStrategyUi;
   stats: NationalFleetMonthStats;
   run: NationalFleetRunSeries;
-  compareRun: NationalFleetRunSeries | null;
-  marginal: MarginalCaptureRow[];
+  marginalSteps: StrategyMarginalStep[];
+  surplusPoolMarginal: boolean;
   factorRows: NationalFleetFactorCompareRow[];
   bars: MonatSurplusBar[];
 }) {
@@ -160,17 +159,19 @@ export function NationalFleetMonthChapter({
       <NationalFleetMarginalBenefit
         strategy={strategy}
         factor={factor}
-        marginal={marginal}
+        steps={marginalSteps}
+        surplusPoolOnly={surplusPoolMarginal}
         factorRows={factorRows}
         stats={stats}
         baseStats={factorRows.find((r) => r.factor === 1)!}
       />
 
       <NationalFleetTimeSeriesChart
-        run={run}
+        monthKey={monthKey}
+        factor={factor}
+        strategy={strategy}
         peakReductionGw={stats.peakReductionGw}
         peakReductionPct={stats.peakReductionPct}
-        compareRun={compareRun}
         scrollHint="Alle 2980 Viertelstunden ohne Glättung — horizontal scrollen"
       />
 

@@ -1,9 +1,11 @@
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
-  NATIONAL_FLEET_STRATEGY_UI,
-  type MarginalCaptureRow,
-  type NationalFleetFactor,
+  type StrategyMarginalStep,
   type NationalFleetFactorCompareRow,
+} from "@/lib/nationalFleetMarginal";
+import {
+  NATIONAL_FLEET_STRATEGY_UI,
+  type NationalFleetFactor,
   type NationalFleetMonthStats,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
@@ -15,23 +17,22 @@ function formatGw(gw: number, digits = 2): string {
 export function NationalFleetMarginalBenefit({
   strategy,
   factor,
-  marginal,
+  steps,
+  surplusPoolOnly,
   factorRows,
   stats,
   baseStats,
 }: {
   strategy: NationalFleetStrategyUi;
   factor: NationalFleetFactor;
-  marginal: MarginalCaptureRow[];
+  steps: StrategyMarginalStep[];
+  surplusPoolOnly: boolean;
   factorRows: NationalFleetFactorCompareRow[];
   stats: NationalFleetMonthStats;
   baseStats: NationalFleetFactorCompareRow;
 }) {
   const vsX1PeakGw = stats.peakReductionGw - baseStats.peakReductionGw;
-  const vsX1CaptureGwh =
-    strategy === "ueberschuss" && stats.surplusCaptureGwh != null
-      ? stats.chargeGwh - baseStats.chargeGwh
-      : stats.chargeGwh - baseStats.chargeGwh;
+  const vsX1CaptureGwh = stats.chargeGwh - baseStats.chargeGwh;
 
   return (
     <section className="v4-fleet-marginal v4-content" aria-labelledby="fleet-marginal-title">
@@ -39,13 +40,26 @@ export function NationalFleetMarginalBenefit({
         Zusatznutzen gegenüber ×1 und zwischen Ausbaustufen
       </h3>
       <p className="v4-fleet-marginal-lead">
-        Gewähltes Szenario ×{factor} ({NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}): gegenüber ×1 zusätzlich{" "}
+        Gewähltes Szenario ×{factor} ({NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}): gegenüber ×1{" "}
         {vsX1PeakGw >= 0
           ? `${formatGw(vsX1PeakGw)} GW weniger Restlastspitze`
-          : `${formatGw(Math.abs(vsX1PeakGw))} GW höhere Restlastspitze`}{" "}
-        und {formatGw(vsX1CaptureGwh)} GWh mehr netzseitiger Energieumsatz — kein wirtschaftliches Optimum, nur
-        Modellrechnung.
+          : `${formatGw(Math.abs(vsX1PeakGw))} GW höhere Restlastspitze`}
+        {strategy === "ueberschuss"
+          ? ` und ${formatGw(vsX1CaptureGwh)} GWh mehr Aufnahme aus der Differenz`
+          : strategy === "spitze"
+            ? ` und ${formatGw(vsX1CaptureGwh)} GWh mehr netzseitiger Umsatz (technische Vollvoraussicht)`
+            : vsX1PeakGw < 0
+              ? " — marktorientierte Fahrt kann die Spitze anheben (kein Nutzenversprechen)."
+              : ` und ${formatGw(vsX1CaptureGwh)} GWh mehr netzseitiger Umsatz (Day-Ahead-Historie, ohne Marktrückwirkung)`}{" "}
+        · kein wirtschaftliches Optimum.
       </p>
+
+      {!surplusPoolOnly ? (
+        <p className="v4-fleet-marginal-note">
+          Stufenwerte unten gelten für die gewählte Fahrweise „{NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe}“, nicht für den
+          Überschuss-Pool-Stufenblock im Datensatz.
+        </p>
+      ) : null}
 
       <table className="v4-fleet-marginal-table num">
         <caption className="sr-only">Stufenweise Zusatzwirkung zwischen Faktoren</caption>
@@ -53,16 +67,18 @@ export function NationalFleetMarginalBenefit({
           <tr>
             <th scope="col">Stufe</th>
             <th scope="col">Zusätzliche Nennleistung</th>
-            <th scope="col">Mehr Aufnahme / Umsatz (GWh)</th>
-            <th scope="col">Mehr Spitzen-Senkung (GW)</th>
-            <th scope="col">Je zusätzlichem GW Nennleistung (GWh/GW)</th>
+            <th scope="col">
+              {strategy === "ueberschuss" ? "Mehr Differenz-Aufnahme (GWh)" : "Mehr netzseitiger Umsatz (GWh)"}
+            </th>
+            <th scope="col">Δ Spitzen-Senkung (GW)</th>
+            <th scope="col">Hinweis</th>
           </tr>
         </thead>
         <tbody>
-          {marginal.map((row) => (
+          {steps.map((row) => (
             <tr
               key={`${row.from_factor}-${row.to_factor}`}
-              className={factor === row.to_factor || (factor > row.from_factor && factor < row.to_factor) ? "is-active" : undefined}
+              className={factor === row.to_factor ? "is-active" : undefined}
             >
               <td>
                 ×{row.from_factor} → ×{row.to_factor}
@@ -75,7 +91,13 @@ export function NationalFleetMarginalBenefit({
                   ? formatGw(row.delta_peak_reduction_mw / 1000)
                   : `${formatGw(Math.abs(row.delta_peak_reduction_mw) / 1000)} höher`}
               </td>
-              <td>{formatGw(row.delta_capture_per_added_gw_power_gwh_per_gw, 2)}</td>
+              <td>
+                {row.delta_peak_reduction_mw < 0
+                  ? "Spitze steigt in diesem Modell"
+                  : surplusPoolOnly
+                    ? "Pool 134,2 GWh"
+                    : "—"}
+              </td>
             </tr>
           ))}
         </tbody>

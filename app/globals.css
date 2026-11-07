@@ -9107,7 +9107,7 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 .v4-fleet-strategy-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 .v4-fleet-pill {
   display: inline-flex;
@@ -9125,6 +9125,8 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 }
 .v4-fleet-pill-wide {
   min-width: auto;
+  min-height: 44px;
+  padding: 10px 16px;
 }
 .v4-fleet-pill.is-active {
   border-color: hsl(var(--primary));
@@ -9317,5 +9319,18 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 .v4-fleet-notice-h2 {
   font-size: 18px;
   margin: 0 0 8px;
+}
+.v4-fleet-observation-note {
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 8px;
+}
+.v4-fleet-marginal-note {
+  font-size: 14px;
+  margin: 0 0 12px;
+  color: hsl(var(--muted-foreground));
+}
+.v4-fleet-error {
+  color: hsl(var(--destructive));
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
@@ -12,9 +12,30 @@ import {
   scaleLinear,
   type FleetChartPoint,
 } from "@/lib/nationalFleetCharts";
-import type { NationalFleetRunSeries } from "@/lib/nationalMonthFleetModel";
+import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 const PX_PER_QH = 2.4;
+
+type SeriesPayload = {
+  timestamp_berlin: string[];
+  r_mw: number[];
+  r_prime_mw: number[];
+  c_mw: number[];
+  d_mw: number[];
+  e_start_mwh: number[];
+};
+
+function toRunLike(selected: SeriesPayload) {
+  return {
+    timestamp_berlin: selected.timestamp_berlin,
+    r_mw: selected.r_mw,
+    r_prime_mw: selected.r_prime_mw,
+    c_mw: selected.c_mw,
+    d_mw: selected.d_mw,
+    e_start_mwh: selected.e_start_mwh,
+    intervalCount: selected.timestamp_berlin.length,
+  };
+}
 
 function SinglePanel({
   title,
@@ -49,31 +70,76 @@ function SinglePanel({
 }
 
 export function NationalFleetTimeSeriesChart({
-  run,
+  monthKey,
+  factor,
+  strategy,
+  dateKey,
   peakReductionGw,
   peakReductionPct,
-  indices,
-  compareRun,
-  compareLabel = "×1 Restlast mit Speicher (Vergleich)",
   scrollHint,
 }: {
-  run: NationalFleetRunSeries;
+  monthKey: string;
+  factor: NationalFleetFactor;
+  strategy: NationalFleetStrategyUi;
+  dateKey?: string;
   peakReductionGw: number;
   peakReductionPct: number;
-  indices?: number[];
-  compareRun?: NationalFleetRunSeries | null;
-  compareLabel?: string;
   scrollHint?: string;
 }) {
-  const points = useMemo(() => fleetChartPointsForIndices(run, indices), [run, indices]);
+  const [selected, setSelected] = useState<SeriesPayload | null>(null);
+  const [compareRp, setCompareRp] = useState<number[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [hover, setHover] = useState<FleetChartPoint | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams({
+      monat: monthKey,
+      faktor: String(factor),
+      fahrweise: strategy,
+    });
+    if (dateKey) {
+      params.set("tag", dateKey);
+    }
+    setLoadError(null);
+    fetch(`/api/national-fleet/series?${params.toString()}`)
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error(String(r.status));
+        }
+        return r.json();
+      })
+      .then((body) => {
+        setSelected(body.selected as SeriesPayload);
+        setCompareRp(body.compare?.r_prime_mw ?? null);
+      })
+      .catch(() => {
+        setLoadError("Zeitreihe konnte nicht geladen werden.");
+      });
+  }, [monthKey, factor, strategy, dateKey]);
+
+  const runLike = useMemo(() => (selected ? toRunLike(selected) : null), [selected]);
+
+  const points = useMemo(() => {
+    if (!runLike) {
+      return [];
+    }
+    return fleetChartPointsForIndices(runLike);
+  }, [runLike]);
+
   const comparePoints = useMemo(() => {
-    if (!compareRun) {
+    if (!runLike || !compareRp || compareRp.length !== runLike.intervalCount) {
       return null;
     }
-    return fleetChartPointsForIndices(compareRun, indices);
-  }, [compareRun, indices]);
+    return fleetChartPointsForIndices(runLike).map((p, j) => ({
+      ...p,
+      rpGw: compareRp[j]! / 1000,
+    }));
+  }, [runLike, compareRp]);
 
   const peakLocal = useMemo(() => {
+    if (points.length === 0) {
+      return 0;
+    }
     let best = 0;
     let bestVal = points[0]?.rpGw ?? 0;
     for (let j = 1; j < points.length; j += 1) {
@@ -85,15 +151,34 @@ export function NationalFleetTimeSeriesChart({
     return best;
   }, [points]);
 
-  const peakI = indices ? peakLocal : peakIndexRp(run);
-  const [hover, setHover] = useState<FleetChartPoint | null>(null);
+  const tickEvery = points.length <= 120 ? 4 : 96;
+  const tickIndices = useMemo(() => {
+    if (points.length === 0) {
+      return [0];
+    }
+    const ticks: number[] = [0];
+    for (let j = tickEvery; j < points.length; j += tickEvery) {
+      ticks.push(j);
+    }
+    if (ticks[ticks.length - 1] !== points.length - 1) {
+      ticks.push(points.length - 1);
+    }
+    return ticks;
+  }, [points.length, tickEvery]);
 
+  if (loadError) {
+    return <p className="v4-fleet-ts-tooltip num v4-fleet-error">{loadError}</p>;
+  }
+
+  if (!runLike || points.length === 0) {
+    return <p className="v4-fleet-ts-tooltip num muted">Zeitreihe wird geladen …</p>;
+  }
+
+  const peakI = dateKey ? peakLocal : peakIndexRp(runLike);
   const width = points.length * PX_PER_QH;
   const panelH = 92;
   const pad = 6;
-
   const xs = points.map((_, j) => j * PX_PER_QH + PX_PER_QH / 2);
-
   const rScale = scaleLinear(
     points.flatMap((p) => [p.rGw, p.rpGw]),
     panelH,
@@ -113,19 +198,6 @@ export function NationalFleetTimeSeriesChart({
     panelH,
     pad,
   );
-
-  const tickEvery = points.length <= 120 ? 4 : 96;
-  const tickIndices = useMemo(() => {
-    const ticks: number[] = [0];
-    for (let j = tickEvery; j < points.length; j += tickEvery) {
-      ticks.push(j);
-    }
-    if (ticks[ticks.length - 1] !== points.length - 1) {
-      ticks.push(points.length - 1);
-    }
-    return ticks;
-  }, [points.length, tickEvery]);
-
   const peakRpGw = points[peakI].rpGw;
 
   const onMove = (ev: React.MouseEvent<HTMLDivElement>) => {
@@ -145,7 +217,7 @@ export function NationalFleetTimeSeriesChart({
       <div className="v4-fleet-ts-legend num" aria-hidden="true">
         <span className="v4-fleet-ts-legend-r">Restlast beobachtet</span>
         <span className="v4-fleet-ts-legend-rp">Restlast mit Speicher</span>
-        {comparePoints ? <span className="v4-fleet-ts-legend-compare">{compareLabel}</span> : null}
+        {comparePoints ? <span className="v4-fleet-ts-legend-compare">×1 Restlast mit Speicher (Vergleich)</span> : null}
         <span className="v4-fleet-ts-legend-c">Laden</span>
         <span className="v4-fleet-ts-legend-d">Entladen</span>
         <span className="v4-fleet-ts-legend-e">Speicherfüllstand</span>
@@ -201,12 +273,7 @@ export function NationalFleetTimeSeriesChart({
                 points.map((p) => rScale.y(p.rpGw)),
               )}
             />
-            <circle
-              className="v4-fleet-peak-mark"
-              cx={xs[peakI]}
-              cy={rScale.y(peakRpGw)}
-              r={3.5}
-            />
+            <circle className="v4-fleet-peak-mark" cx={xs[peakI]} cy={rScale.y(peakRpGw)} r={3.5} />
           </SinglePanel>
           <SinglePanel
             title="Speicherleistung"
@@ -252,11 +319,7 @@ export function NationalFleetTimeSeriesChart({
           </SinglePanel>
           <div className="v4-fleet-ts-x num" aria-hidden="true">
             {tickIndices.map((j) => (
-              <span
-                key={j}
-                className="v4-fleet-ts-tick"
-                style={{ left: xs[j] }}
-              >
+              <span key={j} className="v4-fleet-ts-tick" style={{ left: xs[j] }}>
                 {points[j].ts.includes("T") ? points[j].ts.slice(11, 16) : points[j].label}
               </span>
             ))}

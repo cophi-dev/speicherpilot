@@ -5,6 +5,12 @@ import Link from "next/link";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
+import {
+  fleetTagHref,
+  nationalFleetMonthAvailable,
+  type NationalFleetFactor,
+  type NationalFleetStrategyUi,
+} from "@/lib/nationalMonthFleetModel";
 
 function mobileTicks(dayCount: number): number[] {
   const picks = [1, 8, 15, 22].filter((d) => d < dayCount);
@@ -21,13 +27,18 @@ function mobileTicks(dayCount: number): number[] {
 export function MonatSurplusGraph({
   monthKey,
   bars,
-  tagHrefFor,
+  fleetFactor,
+  fleetStrategy,
 }: {
   monthKey: string;
   bars: MonatSurplusBar[];
-  tagHrefFor?: (dateKey: string) => string;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
 }) {
-  const tagLink = tagHrefFor ?? ((dateKey: string) => `/tag/${dateKey}`);
+  const tagLink = (dateKey: string) =>
+    fleetFactor && fleetStrategy && nationalFleetMonthAvailable(monthKey)
+      ? fleetTagHref(dateKey, fleetFactor, fleetStrategy)
+      : `/tag/${dateKey}`;
   const withData = bars.filter((b) => b.surplusGwh !== null && !b.future);
   const surplusDays = withData.filter((b) => (b.surplusGwh ?? 0) >= 0.05);
   const maxGwh = Math.max(...withData.map((b) => Math.max(0, b.surplusGwh ?? 0)), 0.05);

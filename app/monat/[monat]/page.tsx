@@ -6,7 +6,7 @@ import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMo
 import { MonatUnavailable } from "@/components/home/MonatUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buildMonatGrid, isBerlinMonthKey, monthHasAnyRecord } from "@/lib/monatCalendar";
-import { loadGermanyView } from "@/lib/germanyView";
+import { loadMonatPageData } from "@/lib/monatPageData.server";
 import {
   nationalFleetMonthAvailable,
   parseFleetFactor,
@@ -35,25 +35,25 @@ export default async function MonatDetailPage({
   const { monat } = await params;
   const query = await searchParams;
   if (!isBerlinMonthKey(monat)) {
-    const view = await loadGermanyView(new Date(), "/monat", {});
+    const pageData = await loadMonatPageData(monat);
     return (
       <MonatUnavailable
         requestedMonth={monat}
-        records={view.auffaelligkeitRecords ?? []}
-        lastCompleteDayKey={view.lastCompleteDayKey}
+        records={pageData.records}
+        lastCompleteDayKey={pageData.lastCompleteDayKey}
       />
     );
   }
 
-  const view = await loadGermanyView(new Date(), "/monat", {});
-  const records = view.auffaelligkeitRecords ?? [];
+  const pageData = await loadMonatPageData(monat);
+  const records = pageData.records;
 
-  if (!monthHasAnyRecord(monat, records)) {
+  if (!monthHasAnyRecord(monat, records) && !nationalFleetMonthAvailable(monat)) {
     return (
       <MonatUnavailable
         requestedMonth={monat}
         records={records}
-        lastCompleteDayKey={view.lastCompleteDayKey}
+        lastCompleteDayKey={pageData.lastCompleteDayKey}
       />
     );
   }
@@ -63,8 +63,8 @@ export default async function MonatDetailPage({
   const grid = buildMonatGrid({
     monthKey: monat,
     records,
-    todayKey: view.todayKey,
-    lastCompleteDayKey: view.lastCompleteDayKey,
+    todayKey: pageData.todayKey,
+    lastCompleteDayKey: pageData.lastCompleteDayKey,
   });
   const bars = barsFromMonatGrid(grid);
 
@@ -78,12 +78,14 @@ export default async function MonatDetailPage({
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[720px] max-w-[1200px]" />}>
       <MonatPageV4
         monthKey={monat}
-        todayKey={view.todayKey}
-        lastCompleteDayKey={view.lastCompleteDayKey}
+        todayKey={pageData.todayKey}
+        lastCompleteDayKey={pageData.lastCompleteDayKey}
         records={records}
-        dataStand={view.stand}
+        dataStand={pageData.dataStand}
         fleetFactor={fleetFactor}
         fleetStrategy={fleetStrategy}
+        observationLive={pageData.observationLive}
+        observationFallbackNote={pageData.observationFallback?.sourceNoteDe ?? null}
       >
         {fleetSlot}
       </MonatPageV4>

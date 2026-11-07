@@ -46,7 +46,12 @@ export function fleetChartPoints(run: NationalFleetRunSeries): FleetChartPoint[]
   return fleetChartPointsForIndices(run);
 }
 
-export function fleetChartPointsForIndices(run: NationalFleetRunSeries, indices?: number[]): FleetChartPoint[] {
+export type FleetChartSeries = Pick<
+  NationalFleetRunSeries,
+  "timestamp_berlin" | "r_mw" | "r_prime_mw" | "c_mw" | "d_mw" | "e_start_mwh"
+>;
+
+export function fleetChartPointsForIndices(run: FleetChartSeries, indices?: number[]): FleetChartPoint[] {
   const idx = indices ?? run.timestamp_berlin.map((_, i) => i);
   return idx.map((i) => {
     const ts = run.timestamp_berlin[i];
@@ -76,7 +81,7 @@ export function formatPeakKpi(afterGw: number, reductionGw: number, reductionPct
   return `${after} GW (keine Änderung der Monatsspitze)`;
 }
 
-export function peakIndexRp(run: NationalFleetRunSeries): number {
+export function peakIndexRp(run: FleetChartSeries): number {
   let best = 0;
   for (let i = 1; i < run.r_prime_mw.length; i += 1) {
     if (run.r_prime_mw[i] > run.r_prime_mw[best]) {

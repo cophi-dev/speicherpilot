@@ -27,7 +27,6 @@ export function NationalFleetTagSlot({
   if (!slice) {
     return null;
   }
-  const compareRun = factor !== 1 ? getFleetRun(bundle, 1, strategy) : null;
   const monthStats = monthStatsForRun(bundle, factor, strategy);
 
   return (
@@ -37,7 +36,6 @@ export function NationalFleetTagSlot({
       strategy={strategy}
       run={run}
       slice={slice}
-      compareRun={compareRun}
       monthStats={monthStats}
     />
   );

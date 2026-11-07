@@ -23,7 +23,6 @@ export function NationalFleetDayChapter({
   strategy,
   run,
   slice,
-  compareRun,
   monthStats,
 }: {
   dayKey: string;
@@ -31,7 +30,6 @@ export function NationalFleetDayChapter({
   strategy: NationalFleetStrategyUi;
   run: NationalFleetRunSeries;
   slice: NationalFleetDaySlice;
-  compareRun: NationalFleetRunSeries | null;
   monthStats: NationalFleetMonthStats;
 }) {
   const peakRpGw = slice.maxRPrimeMw / 1000;
@@ -129,11 +127,12 @@ export function NationalFleetDayChapter({
       </dl>
 
       <NationalFleetTimeSeriesChart
-        run={run}
-        indices={slice.indices}
+        monthKey={NATIONAL_FLEET_MONTH_KEY}
+        factor={factor}
+        strategy={strategy}
+        dateKey={dayKey}
         peakReductionGw={monthStats.peakReductionGw}
         peakReductionPct={monthStats.peakReductionPct}
-        compareRun={compareRun}
         scrollHint={`${slice.indices.length} Viertelstunden am ${formatBerlinDayLabel(dayKey)}`}
       />
 

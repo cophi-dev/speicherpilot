@@ -130,6 +130,8 @@ export function MonatPageV4({
   dataStand,
   fleetFactor,
   fleetStrategy,
+  observationLive,
+  observationFallbackNote,
   children,
 }: {
   monthKey: string;
@@ -139,17 +141,14 @@ export function MonatPageV4({
   dataStand: string;
   fleetFactor?: NationalFleetFactor;
   fleetStrategy?: NationalFleetStrategyUi;
+  observationLive?: boolean;
+  observationFallbackNote?: string | null;
   children?: React.ReactNode;
 }) {
   const { h1, subline } = monatPointe(monthKey, records);
   const grid = buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey });
   const bars = barsFromMonatGrid(grid);
   const monthLabel = formatBerlinMonthLabel(monthKey);
-  const fleetTagLink =
-    fleetFactor && fleetStrategy && nationalFleetMonthAvailable(monthKey)
-      ? (dateKey: string) => fleetTagHref(dateKey, fleetFactor, fleetStrategy)
-      : undefined;
-
   return (
     <div className="v4-start monat-page">
       <MonatNav monthKey={monthKey} records={records} />
@@ -174,10 +173,20 @@ export function MonatPageV4({
             Positive Wind-Solar-Differenz je Tag im Monat
           </h2>
           <p className="v4-subline">
-            Gemessene Viertelstunden (Energy-Charts) — nicht identisch mit der Modellflotte oben.
+            {observationLive
+              ? "Gemessene Viertelstunden (Energy-Charts) — nicht identisch mit der Modellflotte oben."
+              : "Eingefrorener Beobachtungsstand aus öffentlichen Energy-Charts-Daten (Live-API gerade nicht verfügbar). Modellflotte oben bleibt aus dem vorberechneten Oktober-Bundle."}
           </p>
+          {!observationLive && observationFallbackNote ? (
+            <p className="v4-fleet-observation-note num">{observationFallbackNote}</p>
+          ) : null}
         </div>
-        <MonatSurplusGraph monthKey={monthKey} bars={bars} tagHrefFor={fleetTagLink} />
+        <MonatSurplusGraph
+          monthKey={monthKey}
+          bars={bars}
+          fleetFactor={fleetFactor}
+          fleetStrategy={fleetStrategy}
+        />
         <details className="v4-monat-list-fallback v4-content">
           <summary>Tagesliste (Tabellenalternative)</summary>
           <MonatCalendarList

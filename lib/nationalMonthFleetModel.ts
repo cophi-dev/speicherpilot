@@ -261,24 +261,3 @@ export function fleetMonatHref(monthKey: string, factor: NationalFleetFactor, st
   return `/monat/${monthKey}?${fleetMonatQuery(factor, strategy)}`;
 }
 
-export type NationalFleetFactorCompareRow = {
-  factor: NationalFleetFactor;
-  chargeGwh: number;
-  peakAfterGw: number;
-  peakReductionGw: number;
-};
-
-export function factorCompareRowsForStrategy(
-  bundle: NationalFleetMonthBundle,
-  strategy: NationalFleetStrategyUi,
-): NationalFleetFactorCompareRow[] {
-  return NATIONAL_FLEET_FACTORS.map((factor) => {
-    const st = monthStatsForRun(bundle, factor, strategy);
-    return {
-      factor,
-      chargeGwh: st.chargeGwh,
-      peakAfterGw: st.peakAfterGw,
-      peakReductionGw: st.peakReductionGw,
-    };
-  });
-}
