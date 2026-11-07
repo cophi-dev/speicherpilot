@@ -106,6 +106,42 @@ export function scaleLinear(values: number[], height: number, pad: number, minOv
   };
 }
 
+/** Tages-Restlast: Skala nur aus beobachteten, mit-Speicher- und Vergleichswerten — ohne Zwang auf 0. */
+export function dayResidualLoadScale(
+  points: { rGw: number; rpGw: number }[],
+  compareRpGw: number[] | null,
+  height: number,
+  pad: number,
+): ReturnType<typeof scaleLinear> {
+  const vals: number[] = [];
+  for (const p of points) {
+    vals.push(p.rGw, p.rpGw);
+  }
+  if (compareRpGw) {
+    for (const v of compareRpGw) {
+      vals.push(v / 1000);
+    }
+  }
+  if (vals.length === 0) {
+    return scaleLinear([0, 1], height, pad, 0, 1);
+  }
+  let lo = Math.min(...vals);
+  let hi = Math.max(...vals);
+  const span = hi - lo || 1;
+  const margin = Math.max(span * 0.06, 0.15);
+  lo -= margin;
+  hi += margin;
+  return scaleLinear(vals, height, pad, lo, hi);
+}
+
+export function yAxisTicks(min: number, max: number, count = 4): number[] {
+  if (count < 2 || max <= min) {
+    return [min, max];
+  }
+  const step = (max - min) / (count - 1);
+  return Array.from({ length: count }, (_, i) => min + step * i);
+}
+
 export function polylinePoints(xs: number[], ys: number[]): string {
   return xs.map((x, i) => `${x},${ys[i]}`).join(" ");
 }

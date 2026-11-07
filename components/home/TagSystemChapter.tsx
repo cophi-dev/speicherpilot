@@ -7,6 +7,7 @@ import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
+import type { NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 export function TagSystemChapter({
   dayKey,
@@ -15,6 +16,8 @@ export function TagSystemChapter({
   fleetPowerGw,
   fleetEnergyGwh,
   lastSurplusKey,
+  showFleetMonthBelow,
+  fleetStrategyBelow,
 }: {
   dayKey: string;
   record: TagesKennzahlRecord;
@@ -22,6 +25,9 @@ export function TagSystemChapter({
   fleetPowerGw: number;
   fleetEnergyGwh: number;
   lastSurplusKey: string | null;
+  /** Monatslauf-Kapitel folgt auf dieser Seite (Oktober-Modell). */
+  showFleetMonthBelow?: boolean;
+  fleetStrategyBelow?: NationalFleetStrategyUi | null;
 }) {
   const factor = dayOverview?.factors[1];
   const dayRow = factor?.dayRows.find((row) => row.dateBerlin === dayKey);
@@ -60,13 +66,24 @@ export function TagSystemChapter({
           <>
             <p className="v4-tag-kern num">{formatQuantity(fleetEnergyGwh, "de", 2)} GWh</p>
             <p className="v4-tag-side">
-              standen bereit, im Modell nichts zu laden. {tagLastSurplusLine(lastSurplusKey)}{" "}
+              Nennenergie der heutigen Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW Leistung) — keine verfügbare
+              Energie zum Ladetag, sondern Größenordnung des Speichers in der ×1-Referenz.
+            </p>
+            <p className="v4-tag-side">
+              Aus Wind- und Sonnenüberschuss wäre im Überschuss-Lademodell an diesem Tag nichts zu laden.{" "}
+              {tagLastSurplusLine(lastSurplusKey)}{" "}
               {lastSurplusKey ? (
                 <Link href={`/tag/${lastSurplusKey}`} className="v4-chapter-next-link">
                   Letzter Überschusstag →
                 </Link>
               ) : null}
             </p>
+            {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
+              <p className="v4-tag-side">
+                Der Monatslauf-Ausschnitt unten ({fleetStrategyBelow === "spitze" ? "Spitze senken" : "Marktorientiert"})
+                kann trotzdem Netzladung und Lastverschiebung rechnen — getrennt vom Überschuss-Modell hier oben.
+              </p>
+            ) : null}
           </>
         )}
         {priceLine ? (

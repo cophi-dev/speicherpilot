@@ -1,6 +1,19 @@
-import { formatPeakKpi, formatPeakEffectLine } from "@/lib/nationalFleetCharts";
+import { dayResidualLoadScale, formatPeakKpi, formatPeakEffectLine } from "@/lib/nationalFleetCharts";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
 import { monthStatsForRun, parseFleetMarginal } from "@/lib/nationalMonthFleetModel";
+
+describe("dayResidualLoadScale", () => {
+  it("zooms Tages-Restlast without forcing y=0", () => {
+    const pts = [
+      { rGw: 64.41, rpGw: 60.86 },
+      { rGw: 63.95, rpGw: 60.86 },
+      { rGw: 62.0, rpGw: 62.0 },
+    ];
+    const scale = dayResidualLoadScale(pts, null, 92, 6);
+    expect(scale.min).toBeGreaterThan(55);
+    expect(scale.max).toBeLessThan(67);
+  });
+});
 
 describe("nationalFleetCharts copy", () => {
   it("positive peak reduction", () => {

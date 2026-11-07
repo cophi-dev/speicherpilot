@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   fleetChartPointsForIndices,
+  dayResidualLoadScale,
   fleetChartTickIndices,
   formatPeakCaptionDay,
   formatPeakCaptionMonthContext,
@@ -13,6 +14,7 @@ import {
   polylinePoints,
   REF_RESIDUAL_PEAK_GW,
   scaleLinear,
+  yAxisTicks,
   type FleetChartPoint,
 } from "@/lib/nationalFleetCharts";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
@@ -47,6 +49,7 @@ function SinglePanel({
   children,
   yMin,
   yMax,
+  yTickValues,
 }: {
   title: string;
   unit: string;
@@ -55,7 +58,11 @@ function SinglePanel({
   children: React.ReactNode;
   yMin: number;
   yMax: number;
+  yTickValues?: number[];
 }) {
+  const ySpan = yMax - yMin || 1;
+  const yAt = (v: number, h: number, pad: number) => pad + ((yMax - v) / ySpan) * (h - 2 * pad);
+  const ticks = yTickValues ?? [];
   return (
     <div className="v4-fleet-ts-panel">
       <div className="v4-fleet-ts-panel-head">
@@ -65,6 +72,19 @@ function SinglePanel({
         </span>
       </div>
       <svg width={width} height={height} className="v4-fleet-ts-svg" aria-hidden="true">
+        {ticks.length > 0
+          ? ticks.map((v) => {
+              const y = yAt(v, height, 6);
+              return (
+                <g key={v}>
+                  <line x1={0} y1={y} x2={width} y2={y} className="v4-fleet-ts-grid" />
+                  <text x={4} y={y - 2} className="v4-fleet-ts-ytick num">
+                    {formatQuantity(v, "de", 1)}
+                  </text>
+                </g>
+              );
+            })
+          : null}
         {children}
       </svg>
     </div>
@@ -197,9 +217,16 @@ export function NationalFleetTimeSeriesChart({
   const panelH = 92;
   const pad = 6;
   const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
-  const rMin = Math.min(...points.flatMap((p) => [p.rGw, p.rpGw]), 0);
-  const rMax = Math.max(...points.flatMap((p) => [p.rGw, p.rpGw])) * 1.02;
-  const rScale = scaleLinear(points.flatMap((p) => [p.rGw, p.rpGw]), panelH, pad, rMin, rMax);
+  const rScale = isDay
+    ? dayResidualLoadScale(points, compareRp, panelH, pad)
+    : scaleLinear(
+        points.flatMap((p) => [p.rGw, p.rpGw]),
+        panelH,
+        pad,
+        Math.min(...points.flatMap((p) => [p.rGw, p.rpGw]), 0),
+        Math.max(...points.flatMap((p) => [p.rGw, p.rpGw])) * 1.02,
+      );
+  const rYTicks = isDay ? yAxisTicks(rScale.min, rScale.max, 4) : undefined;
   const powerGw = points.flatMap((p) => [p.cMw / 1000, p.dMw / 1000]);
   const powerMaxGw = Math.max(...powerGw, 0.001);
   const powerScale = scaleLinear(powerGw, panelH, pad, 0, powerMaxGw * 1.05);
@@ -231,12 +258,12 @@ export function NationalFleetTimeSeriesChart({
     setHover(points[j]);
   };
 
-  const showPowerNote = powerMaxGw < 0.0005;
+  const showPowerNote = powerMaxGw < 0.01;
   const socSpanGwh =
     points.length > 0
       ? Math.max(...points.map((p) => p.socGwh)) - Math.min(...points.map((p) => p.socGwh))
       : 0;
-  const hideAuxPanels = showPowerNote && socSpanGwh < 0.05;
+  const hideAuxPanels = isDay && showPowerNote && socSpanGwh < 0.12;
 
   return (
     <figure className="v4-fleet-ts-wrap v4-content">
@@ -255,12 +282,8 @@ export function NationalFleetTimeSeriesChart({
       </div>
       {hideAuxPanels ? (
         <p className="v4-fleet-ts-power-note num">
-          An diesem Tag keine sichtbare Lade-/Entlade- oder SoC-Spur — die Restlastkurven oben können trotzdem Modellwirkung
-          zeigen (kein leeres Diagramm als „keine Aktivität“).
-        </p>
-      ) : showPowerNote ? (
-        <p className="v4-fleet-ts-power-note num">
-          Kaum Lade-/Abgabeleistung: bei „Spitze senken“ kein Überschuss-Laden — Lastverschiebung wirkt in Restlast und SoC.
+          Keine nennenswerte Lade- oder Entladeleistung und kaum SoC-Bewegung in diesem Szenario — die Restlast oben zeigt
+          trotzdem die Modellwirkung. Leistungs- und SoC-Diagramm ausgeblendet.
         </p>
       ) : null}
       {hover ? (
@@ -285,7 +308,15 @@ export function NationalFleetTimeSeriesChart({
         }
       >
         <div className="v4-fleet-ts-inner" style={{ width: "100%" }}>
-          <SinglePanel title="Restlast" unit="GW" width={width} height={panelH} yMin={rScale.min} yMax={rScale.max}>
+          <SinglePanel
+            title="Restlast"
+            unit="GW"
+            width={width}
+            height={panelH}
+            yMin={rScale.min}
+            yMax={rScale.max}
+            yTickValues={rYTicks}
+          >
             <polyline
               className="v4-fleet-line-r"
               fill="none"

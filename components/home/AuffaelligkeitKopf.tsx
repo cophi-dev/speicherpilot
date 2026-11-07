@@ -16,7 +16,7 @@ import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { barValue, kopfHero } from "@/lib/kopfHero";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
-import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -286,6 +286,8 @@ export function TagPageV4({
         fleetPowerGw={fleetPowerGw}
         fleetEnergyGwh={fleetEnergyGwh}
         lastSurplusKey={lastSurplusKey}
+        showFleetMonthBelow={nationalFleetMonthAvailable(dayKey.slice(0, 7)) && Boolean(children)}
+        fleetStrategyBelow={fleetStrategy ?? null}
       />
       {children}
       <TagOrtTeaser dayLabel={formatBerlinDayLabel(dayKey)} />

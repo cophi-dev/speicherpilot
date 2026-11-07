@@ -104,23 +104,28 @@ export function NationalFleetDayChapter({
       {showPeakWithoutSurplus ? (
         <div className="v4-fleet-day-beleg v4-content" role="note">
           <p>
-            <strong>Peaknutzen ohne Wind-Solar-Überschuss:</strong> an diesem Tag in allen {slice.indices.length}{" "}
-            Viertelstunden max(0, Wind+Sonne − Last) = 0 GWh — die Fahrweise „Spitze senken“ lädt trotzdem{" "}
-            {formatQuantity(slice.chargeMwh / 1000, "de", 2)} GWh aus dem Netz (Restlast steigt in der Ladephase) und
-            gibt {formatQuantity(slice.dischargeMwh / 1000, "de", 2)} GWh ab. Tages-Spitze Restlast{" "}
-            {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW (−
-            {formatQuantity(peakReductionDayGw, "de", 2)} GW, {formatQuantity(peakReductionPct, "de", 1)} %). SoC ohne
-            Tagesreset: {formatQuantity(slice.socStartMwh / 1000, "de", 2)} →{" "}
-            {formatQuantity(slice.socEndMwh / 1000, "de", 2)} GWh. Kein Nachweis für Abregelung, Kraftwerksstarts oder
-            Kostenersparnis.
+            <strong>Ohne Wind-Solar-Überschuss:</strong> Aus Überschuss ist an diesem Tag nichts zu laden — „Spitze senken“
+            nutzt trotzdem Netzladung ({formatQuantity(slice.chargeMwh / 1000, "de", 2)} GWh) und senkt die Tages-Spitze
+            von {formatQuantity(peakRGw, "de", 2)} auf {formatQuantity(peakRpGw, "de", 2)} GW.
           </p>
           {dayKey === "2026-10-29" && factor === 1 ? (
-            <p className="num" style={{ marginTop: 8 }}>
-              Ladung 14:15–16:00 ist eine zulässige Minimax-Lösung dieses Modells — nicht der einzige Fahrplan (z. B. gleiche
-              Wirkung mit Laden 12:00–13:45 bei unverändertem Entladen). Der Solver minimiert die Monatsspitze mit kleinem
-              Durchsatz-Zusatz; die konkrete Uhrzeit ist kein Kosten-, Rampen- oder Preisoptimum.
+            <p className="v4-fleet-beleg-detail num">
+              Mehrere Ladefenster sind in diesem Modell gleichwertig (z. B. 12:00–13:45 statt 14:15–16:00); Details zu
+              max(0,·) und Solver in{" "}
+              <Link href="/methodik" className="v4-text-link">
+                Methodik
+              </Link>
+              .
             </p>
-          ) : null}
+          ) : (
+            <p className="v4-fleet-beleg-detail num">
+              Formel und Grenzen des Monatslaufs:{" "}
+              <Link href="/methodik" className="v4-text-link">
+                Methodik
+              </Link>
+              .
+            </p>
+          )}
         </div>
       ) : null}
 

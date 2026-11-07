@@ -9140,10 +9140,9 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 }
 .v4-fleet-kpis {
   width: 100%;
-  max-width: min(72rem, 100%);
+  max-width: 1240px;
   margin-left: auto;
   margin-right: auto;
-  padding-inline: clamp(16px, 4vw, 44px);
   box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -9289,8 +9288,22 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   display: block;
 }
 .v4-fleet-line-r {
-  stroke: hsl(var(--foreground) / 0.4);
+  stroke: hsl(var(--foreground) / 0.55);
   stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+.v4-fleet-ts-grid {
+  stroke: hsl(var(--foreground) / 0.12);
+  stroke-width: 1;
+}
+.v4-fleet-ts-ytick {
+  font-size: 10px;
+  fill: hsl(var(--muted-foreground));
+}
+.v4-fleet-beleg-detail {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
 }
 .v4-fleet-line-rp {
   stroke: hsl(var(--primary));
