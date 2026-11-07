@@ -28,6 +28,14 @@ Economics are **indicative pre-sales** only (see footnotes in UI and PDF). Throu
 - **`economicsAssumptions`**: user inputs validated via zod (`parseEconomicsAssumptions`).
 - **`sitePlacements`**: map markers with optional `linkedLabel` from the live preview.
 
+## Startseite · Tagespanel (Bezugstag = neuester vollständiger Berlin-Tag)
+
+- **Verbrauch:** Tagesenergie aus `load_incl_self_consumption` (Energy-Charts `total_power`, MW×¼h/1000 → GWh).
+- **Erzeugung gesamt:** Summe der von Energy-Charts veröffentlichten Nettoerzeugung je Träger und Viertelstunde (`total_power`, inkl. industrieller Eigenversorgung; Pumpspeicher-Abgabe in Hydro, Pumpaufnahme nicht als negative Erzeugung abgezogen). Nur wenn jede Viertelstunde vollständige Träger hat; sonst „offen“, kein 0-Ersatz. Keine Importe; Differenz Erzeugung−Last ist keine Export-/Abregelungsbilanz.
+- **Wind+Sonne:** Untermenge Wind on/offshore plus Solar, gleicher Tag.
+- **Überschuss:** Σ max(0, Wind+Sonne−Last)×¼h — identisch zu `periodFigures.surplusGwh` und der Tag-Kennzahl.
+- **Modell:** Rollierender `chainFleetSoc` (×1-Referenzflotte Battery Charts, Laden vor 17 Uhr, Abgabe ab 17 Uhr, RTE 85 %, SoC 10–90 %, Start 10 %). Anzeige **geladen · abgegeben** je Kalendertag (nicht dieselbe Kohorte). **Lokale Netzwirkung:** nicht bewertet.
+
 ## Daily Energy Balance KPI Definitions
 
 - **Primary KPI — Daily total net balance:** `Σ(total generation − load)` across all available 15-minute points for the Berlin day. Displayed as `+X,X GWh surplus` or `−X,X GWh deficit`. This is the factual system balance and includes conventional generation plus import-backed coverage.

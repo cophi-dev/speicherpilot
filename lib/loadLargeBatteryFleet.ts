@@ -15,6 +15,14 @@ import {
 /** Last successful fleet. Returned only when a later load fails. The label keeps that stand's date. */
 let lastGood: LargeBatteryFleet | null = null;
 
+export type FleetDataProvenance = "battery-charts-live" | "committed-snapshot" | "energy-charts-fallback" | "last-good-cache";
+
+let lastFleetProvenance: FleetDataProvenance = "battery-charts-live";
+
+export function lastFleetDataProvenance(): FleetDataProvenance {
+  return lastFleetProvenance;
+}
+
 async function readJson(url: string): Promise<unknown> {
   const response = await fetch(url, dailySeriesFetchInit(12_000));
   if (!response.ok) {
@@ -40,6 +48,7 @@ async function loadFreshFleet(now: Date): Promise<LargeBatteryFleet | null> {
   try {
     const live = await loadBatteryChartsFleet();
     if (live) {
+      lastFleetProvenance = "battery-charts-live";
       return live;
     }
   } catch {
@@ -47,9 +56,14 @@ async function loadFreshFleet(now: Date): Promise<LargeBatteryFleet | null> {
   }
   const snapshot = readFleetSnapshot(now);
   if (snapshot) {
+    lastFleetProvenance = "committed-snapshot";
     return snapshot;
   }
-  return loadEnergyChartsFleet();
+  const ec = await loadEnergyChartsFleet();
+  if (ec) {
+    lastFleetProvenance = "energy-charts-fallback";
+  }
+  return ec;
 }
 
 export function clearLargeBatteryFleetCache(): void {
@@ -60,11 +74,13 @@ export async function loadLargeBatteryFleet(now: Date = new Date()): Promise<Lar
   try {
     const fleet = await loadFreshFleet(now);
     if (!fleet) {
+      lastFleetProvenance = "last-good-cache";
       return lastGood;
     }
     lastGood = fleet;
     return fleet;
   } catch {
+    lastFleetProvenance = "last-good-cache";
     return lastGood;
   }
 }

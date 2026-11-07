@@ -111,6 +111,23 @@ export function prevBerlinDateKey(dateKey: string): string {
   return result;
 }
 
+/** Inclusive list of Berlin calendar dates from `startKey` through `endKey`. */
+export function berlinCalendarKeysInclusive(startKey: string, endKey: string): string[] {
+  if (startKey > endKey) {
+    return [];
+  }
+  const keys: string[] = [];
+  let key = startKey;
+  while (key <= endKey) {
+    keys.push(key);
+    if (key === endKey) {
+      break;
+    }
+    key = nextBerlinDateKey(key);
+  }
+  return keys;
+}
+
 export function addBerlinCalendarDays(dateKey: string, deltaDays: number): string {
   if (deltaDays === 0) {
     return dateKey;

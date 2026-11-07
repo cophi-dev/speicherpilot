@@ -1,0 +1,8 @@
+{
+  "out": "/agent/repos/speicherpilot/review-artifacts/home-day-panel-20261107-v3/screens",
+  "baseUrl": "http://127.0.0.1:3001",
+  "panel375DarkHeightPx": 304.078125,
+  "panel375DarkWidthPx": 360,
+  "panel375DarkHeightTargetMaxPx": 360,
+  "panel375DarkHeightOk": true
+}
