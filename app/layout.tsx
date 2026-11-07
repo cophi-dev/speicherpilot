@@ -36,9 +36,11 @@ export default function RootLayout({
       className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground">
+        {/* speicherpilot-build:commit=${BUILD_PROVENANCE.commit}:build=${BUILD_PROVENANCE.buildId} */}
         <span
           id="speicherpilot-build-provenance"
-          hidden
+          className="sr-only"
+          aria-hidden="true"
           data-source-sha={BUILD_PROVENANCE.commit}
           data-build-id={BUILD_PROVENANCE.buildId}
         />
