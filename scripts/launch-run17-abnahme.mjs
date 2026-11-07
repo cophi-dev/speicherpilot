@@ -76,14 +76,20 @@ function sha256File(path) {
 }
 
 async function assertBuildProvenance(base) {
-  const dirty = execSync("git status --porcelain", { encoding: "utf8", cwd: process.cwd() }).trim();
+  const dirty = execSync("git status --porcelain -- . ':!artifacts' ':!test-results' ':!*.report.html'", {
+    encoding: "utf8",
+    cwd: process.cwd(),
+  }).trim();
   if (dirty) {
-    throw new Error("Working tree nicht sauber — Abnahme bricht ab (keine self-referential SHA-Bindung)");
+    throw new Error(`Working tree nicht sauber (App-Quellcode): ${dirty.split("\n")[0]}`);
   }
   const head = execSync("git rev-parse HEAD", { encoding: "utf8", cwd: process.cwd() }).trim();
-  const res = await fetch(`${base}/build-provenance.json`, { cache: "no-store" });
+  let res = await fetch(`${base}/api/build-provenance`, { cache: "no-store" });
   if (!res.ok) {
-    throw new Error(`build-provenance.json fehlt auf ${base} (${res.status}) — nach npm run build starten`);
+    res = await fetch(`${base}/build-provenance.json`, { cache: "no-store" });
+  }
+  if (!res.ok) {
+    throw new Error(`build-provenance fehlt auf ${base} (${res.status}) — nach npm run build starten`);
   }
   const prov = await res.json();
   if (prov.dirty) {
