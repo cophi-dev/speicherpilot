@@ -76,7 +76,9 @@ function sha256File(path) {
 }
 
 function assertBuildProvenanceOnDisk() {
-  const dirty = execSync("git status --porcelain -- . ':!artifacts' ':!test-results' ':!*.report.html'", {
+  const dirty = execSync(
+    "git status --porcelain -- . ':!artifacts' ':!test-results' ':!*.report.html' ':!public/build-provenance.json' ':!lib/buildProvenance.generated.ts'",
+    {
     encoding: "utf8",
     cwd: process.cwd(),
   }).trim();

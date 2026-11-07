@@ -8,7 +8,9 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const commit = execSync("git rev-parse HEAD", { encoding: "utf8", cwd: root }).trim();
-const dirtyLines = execSync("git status --porcelain -- . ':!artifacts' ':!test-results' ':!public/build-provenance.json'", {
+const dirtyLines = execSync(
+  "git status --porcelain -- . ':!artifacts' ':!test-results' ':!public/build-provenance.json' ':!lib/buildProvenance.generated.ts'",
+  {
   encoding: "utf8",
   cwd: root,
 }).trim();
