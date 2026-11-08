@@ -252,6 +252,18 @@ def loading_percent_from_signed_mw(signed_mw: float, rating_mw: float) -> float:
     return round(100.0 * abs(signed_mw) / rating_mw, 2)
 
 
+def marginal_loading_pct_delta(
+    s0_signed_mw: float,
+    slope_mw_per_mw: float,
+    rating_mw: float,
+    step_mw: float = 1.0,
+) -> float:
+    """Linearisierte Änderung der Auslastung [%] pro 1 MW Aktion am Engpass."""
+    before = 100.0 * abs(s0_signed_mw) / rating_mw
+    after = 100.0 * abs(s0_signed_mw + slope_mw_per_mw * step_mw) / rating_mw
+    return after - before
+
+
 def signed_flow_with_battery(
     s0_signed_mw: float,
     charge_mw: float,
@@ -921,6 +933,8 @@ class OrtDayModel:
         l0: list[float],
         beta_charge: float,
         beta_discharge: float,
+        s0_signed: list[float] | None = None,
+        rating_mw: float = 0.0,
     ) -> dict:
         n = self.n
         scaled = np.asarray(prices, dtype=float) * DT
@@ -928,14 +942,19 @@ class OrtDayModel:
         self.cost[n : 2 * n] = scaled
         self.cost[2 * n :] = 0.0
         if objective == "netz":
+            if s0_signed is None or len(s0_signed) < n or rating_mw <= 1e-9:
+                raise ValueError("netz objective needs s0_signed and rating_mw")
             weights = np.asarray([max(0.0, value - 90.0) for value in l0], dtype=float)
             if weights.sum() <= 1e-9:
                 weights = np.ones(n)
             price_pull = np.asarray(scaled, dtype=float)
             pull = NETZ_PRICE_PULL * price_pull
-            self.cost[:n] = weights * beta_charge + NETZ_EPS - pull
-            self.cost[n : 2 * n] = weights * beta_discharge + NETZ_EPS + pull
-            self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
+            for t in range(n):
+                delta_c = marginal_loading_pct_delta(s0_signed[t], beta_charge, rating_mw)
+                delta_d = marginal_loading_pct_delta(s0_signed[t], beta_discharge, rating_mw)
+                self.cost[t] = weights[t] * delta_c + NETZ_EPS - pull[t]
+                self.cost[n + t] = weights[t] * delta_d + NETZ_EPS + pull[t]
+            self.h.changeObjectiveSense(highspy.ObjSense.kMinimize)
         else:
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
 
@@ -1035,6 +1054,8 @@ def dispatch_modes(
         l0_n1,
         slope_n1_charge,
         slope_n1_discharge,
+        s0_signed=s0_n1_signed,
+        rating_mw=rating_mw,
     )
 
     def series(mode_result: dict) -> dict:
@@ -1071,18 +1092,19 @@ def dispatch_modes(
     }
 
 
-def assess_badge_v2(l0_n1: list[float], l1_n1: list[float], *, has_engpass: bool = True) -> str:
-    if not has_engpass:
+def assess_badge_v2(l0_n1: list[float], l1_n1: list[float]) -> str:
+    if not l0_n1 or not l1_n1 or len(l0_n1) != len(l1_n1):
         return "neutral"
-    critical = {t for t in range(min(len(l0_n1), len(l1_n1))) if l0_n1[t] >= 90}
-    if not critical:
-        return "neutral"
-    for t in critical:
+    n = len(l0_n1)
+    for t in range(n):
         if l1_n1[t] > 100 and l1_n1[t] > l0_n1[t] + 0.5:
             return "belastend"
-    relief = sum((l0_n1[t] - l1_n1[t]) * DT for t in critical)
-    max_l0 = max(l0_n1[t] for t in critical)
-    max_l1 = max(l1_n1[t] for t in critical)
+    baseline = {t for t in range(n) if l0_n1[t] >= 90}
+    if not baseline:
+        return "neutral"
+    relief = sum((l0_n1[t] - l1_n1[t]) * DT for t in baseline)
+    max_l0 = max(l0_n1)
+    max_l1 = max(l1_n1)
     if relief > 0 and max_l1 <= max_l0:
         return "netzdienlich"
     return "neutral"
@@ -1170,6 +1192,7 @@ def revenue_pct_12m(
                 cap_c[qh] = power
                 cap_d[qh] = power
         vertrag = model.solve(day["prices"], power, energy, cap_c, cap_d, "markt", l0_day, 0.0, 0.0)
+        s0_day = [l0_cache.signed_at(day_index, qh) for qh in range(n)]
         netz = model.solve(
             day["prices"],
             power,
@@ -1180,6 +1203,8 @@ def revenue_pct_12m(
             l0_day,
             slope_n1_charge,
             slope_n1_discharge,
+            s0_signed=s0_day,
+            rating_mw=l0_cache.rating_mw,
         )
         totals["markt"] += markt["revenue"]
         totals["vertrag"] += vertrag["revenue"]
@@ -1358,10 +1383,7 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
         warnings_local.append(
             "An diesem Mustertag kein Engpass ≥ 90 % — feste und flexible Anschlussleistung (X/Y) entfallen im Modell."
         )
-    badge = {
-        mode: assess_badge_v2(eng["L0_n1"], modes[mode]["L1n1"], has_engpass=has_engpass)
-        for mode in ("markt", "vertrag", "netz")
-    }
+    badge = {mode: assess_badge_v2(eng["L0_n1"], modes[mode]["L1n1"]) for mode in ("markt", "vertrag", "netz")}
     revenue_pct = revenue_pct_typtag(modes)
     over100 = {
         "n0": sum(1 for value in eng["L0_n0"] if value > 100),

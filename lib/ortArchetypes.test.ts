@@ -24,29 +24,48 @@ describe("ortArchetypes", () => {
     }
   });
 
-  it("badge v2 neutral when C empty", () => {
+  it("badge v2 neutral when baseline has no stress and no global damage", () => {
     expect(assessBadgeV2({ L0n1: [10, 20], L1n1: [10, 20] }).id).toBe("neutral");
   });
 
-  it("badge v2 ignores L1-only ≥90 qh for critical set and belastend", () => {
-    const result = assessBadgeV2({
-      L0n1: [8, 8, 12],
-      L1n1: [115, 50, 20],
-    });
-    expect(result.id).toBe("neutral");
-    expect(result.hint).toBe("kein Engpass an diesem Tag");
+  it("badge v2 belastend on new overload without baseline stress", () => {
+    expect(
+      assessBadgeV2({
+        L0n1: [8, 8, 12],
+        L1n1: [115, 50, 20],
+      }).id,
+    ).toBe("belastend");
   });
 
-  it("marks stadt archetype neutral without engpass even when L1 spikes from charging", () => {
-    const stadt = archetypeByKey("stadt");
-    for (const mode of ["markt", "vertrag", "netz"] as const) {
-      expect(badgeForArchetype(stadt, mode).id).toBe("neutral");
-      expect(badgeForArchetype(stadt, mode).hint).toBe("kein Engpass an diesem Tag");
+  it("badge v2 belastend on relief-in-stress plus new overload outside", () => {
+    expect(assessBadgeV2({ L0n1: [95, 20], L1n1: [90, 110] }).id).toBe("belastend");
+  });
+
+  it("badge v2 netzdienlich on synthetic relief without extra damage", () => {
+    expect(assessBadgeV2({ L0n1: [95, 92, 50], L1n1: [90, 88, 50] }).id).toBe("netzdienlich");
+  });
+
+  it("badge v2 not assessed on unequal lengths", () => {
+    const result = assessBadgeV2({ L0n1: [95], L1n1: [90, 130] });
+    expect(result.id).toBe("neutral");
+    expect(result.hint).toMatch(/ungleich lang/);
+  });
+
+  it("all six UI archetypes stay belastend on current typtag data", () => {
+    for (const key of ["land", "stadt"] as const) {
+      const arch = archetypeByKey(key);
+      for (const mode of ["markt", "vertrag", "netz"] as const) {
+        expect(badgeForArchetype(arch, mode).id).toBe("belastend");
+      }
     }
   });
 
-  it("keeps land markt belastend when baseline n-1 already stressed", () => {
-    expect(badgeForArchetype(archetypeByKey("land"), "markt").id).toBe("belastend");
+  it("land netz dispatch loads at qh24 instead of worsening export (builder regression)", () => {
+    const land = archetypeByKey("land");
+    const netz = land.series.modes.netz;
+    expect(netz.d[24]).toBe(0);
+    expect(netz.c[24]).toBeGreaterThan(0);
+    expect(netz.L1n1[24]).toBeLessThan(land.series.L0n1[24]);
   });
 
   it("revenue ordering on sample day", () => {
