@@ -50,7 +50,7 @@ export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
     if (l1[i] > 100) {
       over100After += 1;
     }
-    if (l0[i] >= 90 || l1[i] >= 90) {
+    if (l0[i] >= 90) {
       critical.add(i);
     }
   }
@@ -63,7 +63,7 @@ export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
       hint: "kein Engpass an diesem Tag",
     };
   }
-  for (let i = 0; i < n; i += 1) {
+  for (const i of critical) {
     if (l1[i] > 100 && l1[i] > l0[i] + 0.5) {
       return { id: "belastend", criticalHours: critical.size * dt, over100Before, over100After, hint: null };
     }
@@ -84,6 +84,28 @@ export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
 
 export function badgeForArchetype(arch: OrtArchetype, mode: OrtMode): BadgeV2Result {
   const series = arch.series.modes[mode];
+  if (!arch.hasEngpass) {
+    const l0 = arch.series.L0n1;
+    const l1 = series.L1n1;
+    const n = Math.min(l0.length, l1.length);
+    let over100Before = 0;
+    let over100After = 0;
+    for (let i = 0; i < n; i += 1) {
+      if (l0[i] > 100) {
+        over100Before += 1;
+      }
+      if (l1[i] > 100) {
+        over100After += 1;
+      }
+    }
+    return {
+      id: "neutral",
+      criticalHours: 0,
+      over100Before,
+      over100After,
+      hint: "kein Engpass an diesem Tag",
+    };
+  }
   return assessBadgeV2({ L0n1: arch.series.L0n1, L1n1: series.L1n1 });
 }
 

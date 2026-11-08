@@ -27,9 +27,11 @@ export function auditBadgeV2(input: BadgeV2Input): BadgeV2Audit {
   const worsening: BadgeV2Audit["worseningEvidence"] = [];
 
   for (let i = 0; i < n; i += 1) {
-    if (l0[i] >= 90 || l1[i] >= 90) {
+    if (l0[i] >= 90) {
       critical.add(i);
     }
+  }
+  for (const i of critical) {
     if (l1[i] > 100 && l1[i] > l0[i] + WORSEN_EPS) {
       worsening.push({ qh: i, l0: l0[i], l1: l1[i], delta: l1[i] - l0[i] });
     }
@@ -48,7 +50,7 @@ export function auditBadgeV2(input: BadgeV2Input): BadgeV2Audit {
     ...base,
     ruleId: "ort-badge-v2",
     ruleSummary:
-      "Kritisch: L0 oder L1 ≥ 90 % Auslastung. Belastend: L1 > 100 % und L1 > L0+0,5 pp. Netzdienlich: Σ(L0−L1)·dt > 0 über kritische qh und max(L1) ≤ max(L0). Sonst neutral.",
+      "Kritisch: L0 (n-1 ohne Speicher) ≥ 90 % Auslastung. Ohne Engpass am Mustertag: neutral. Belastend: in kritischen qh L1 > 100 % und L1 > L0+0,5 pp. Netzdienlich: Σ(L0−L1)·dt > 0 über kritische qh und max(L1) ≤ max(L0). Sonst neutral.",
     criticalQuarterHours: [...critical].sort((a, b) => a - b),
     worseningEvidence: worsening.slice(0, 8),
     reliefPpHours: relief,

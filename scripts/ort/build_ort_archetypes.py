@@ -1071,8 +1071,10 @@ def dispatch_modes(
     }
 
 
-def assess_badge_v2(l0_n1: list[float], l1_n1: list[float]) -> str:
-    critical = {t for t in range(min(len(l0_n1), len(l1_n1))) if l0_n1[t] >= 90 or l1_n1[t] >= 90}
+def assess_badge_v2(l0_n1: list[float], l1_n1: list[float], *, has_engpass: bool = True) -> str:
+    if not has_engpass:
+        return "neutral"
+    critical = {t for t in range(min(len(l0_n1), len(l1_n1))) if l0_n1[t] >= 90}
     if not critical:
         return "neutral"
     for t in critical:
@@ -1357,7 +1359,8 @@ def build_archetype(key: str, meta: dict, price_days: list[dict]) -> dict:
             "An diesem Mustertag kein Engpass ≥ 90 % — feste und flexible Anschlussleistung (X/Y) entfallen im Modell."
         )
     badge = {
-        mode: assess_badge_v2(eng["L0_n1"], modes[mode]["L1n1"]) for mode in ("markt", "vertrag", "netz")
+        mode: assess_badge_v2(eng["L0_n1"], modes[mode]["L1n1"], has_engpass=has_engpass)
+        for mode in ("markt", "vertrag", "netz")
     }
     revenue_pct = revenue_pct_typtag(modes)
     over100 = {

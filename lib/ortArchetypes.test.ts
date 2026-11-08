@@ -1,4 +1,4 @@
-import { assessBadgeV2, loadOrtArchetypes } from "@/lib/ortArchetypes";
+import { assessBadgeV2, badgeForArchetype, loadOrtArchetypes, archetypeByKey } from "@/lib/ortArchetypes";
 
 describe("ortArchetypes", () => {
   it("validates file schema", () => {
@@ -26,6 +26,27 @@ describe("ortArchetypes", () => {
 
   it("badge v2 neutral when C empty", () => {
     expect(assessBadgeV2({ L0n1: [10, 20], L1n1: [10, 20] }).id).toBe("neutral");
+  });
+
+  it("badge v2 ignores L1-only ≥90 qh for critical set and belastend", () => {
+    const result = assessBadgeV2({
+      L0n1: [8, 8, 12],
+      L1n1: [115, 50, 20],
+    });
+    expect(result.id).toBe("neutral");
+    expect(result.hint).toBe("kein Engpass an diesem Tag");
+  });
+
+  it("marks stadt archetype neutral without engpass even when L1 spikes from charging", () => {
+    const stadt = archetypeByKey("stadt");
+    for (const mode of ["markt", "vertrag", "netz"] as const) {
+      expect(badgeForArchetype(stadt, mode).id).toBe("neutral");
+      expect(badgeForArchetype(stadt, mode).hint).toBe("kein Engpass an diesem Tag");
+    }
+  });
+
+  it("keeps land markt belastend when baseline n-1 already stressed", () => {
+    expect(badgeForArchetype(archetypeByKey("land"), "markt").id).toBe("belastend");
   });
 
   it("revenue ordering on sample day", () => {
