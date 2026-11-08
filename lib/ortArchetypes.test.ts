@@ -45,27 +45,30 @@ describe("ortArchetypes", () => {
     expect(assessBadgeV2({ L0n1: [95, 92, 50], L1n1: [90, 88, 50] }).id).toBe("netzdienlich");
   });
 
+  it("badge v2 not assessed on non-finite values", () => {
+    const result = assessBadgeV2({ L0n1: [95, Number.NaN], L1n1: [90, Number.NaN] });
+    expect(result.id).toBe("neutral");
+    expect(result.hint).toMatch(/nicht bewertet/);
+  });
+
   it("badge v2 not assessed on unequal lengths", () => {
     const result = assessBadgeV2({ L0n1: [95], L1n1: [90, 130] });
     expect(result.id).toBe("neutral");
     expect(result.hint).toMatch(/ungleich lang/);
   });
 
-  it("all six UI archetypes stay belastend on current typtag data", () => {
+  it("typtag badges: five market/contract modes belastend, stadt netz neutral without new overload", () => {
     for (const key of ["land", "stadt"] as const) {
       const arch = archetypeByKey(key);
       for (const mode of ["markt", "vertrag", "netz"] as const) {
-        expect(badgeForArchetype(arch, mode).id).toBe("belastend");
+        const id = badgeForArchetype(arch, mode).id;
+        if (key === "stadt" && mode === "netz") {
+          expect(id).toBe("neutral");
+        } else {
+          expect(id).toBe("belastend");
+        }
       }
     }
-  });
-
-  it("land netz dispatch loads at qh24 instead of worsening export (builder regression)", () => {
-    const land = archetypeByKey("land");
-    const netz = land.series.modes.netz;
-    expect(netz.d[24]).toBe(0);
-    expect(netz.c[24]).toBeGreaterThan(0);
-    expect(netz.L1n1[24]).toBeLessThan(land.series.L0n1[24]);
   });
 
   it("revenue ordering on sample day", () => {

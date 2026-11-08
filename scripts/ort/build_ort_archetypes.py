@@ -252,16 +252,34 @@ def loading_percent_from_signed_mw(signed_mw: float, rating_mw: float) -> float:
     return round(100.0 * abs(signed_mw) / rating_mw, 2)
 
 
-def marginal_loading_pct_delta(
+def loading_delta_coeff_per_mw(
     s0_signed_mw: float,
     slope_mw_per_mw: float,
     rating_mw: float,
-    step_mw: float = 1.0,
+    power_mw: float,
 ) -> float:
-    """Linearisierte Änderung der Auslastung [%] pro 1 MW Aktion am Engpass."""
+    """Koeffizient [%/MW] aus Lastsprung 0→power am linearisierten Engpass (inkl. Vorzeichenwechsel |·|)."""
+    if rating_mw <= 1e-9 or power_mw <= 1e-9:
+        return 0.0
+    if not math.isfinite(s0_signed_mw) or not math.isfinite(slope_mw_per_mw):
+        return float("nan")
     before = 100.0 * abs(s0_signed_mw) / rating_mw
-    after = 100.0 * abs(s0_signed_mw + slope_mw_per_mw * step_mw) / rating_mw
-    return after - before
+    after = 100.0 * abs(s0_signed_mw + slope_mw_per_mw * power_mw) / rating_mw
+    return (after - before) / power_mw
+
+
+def grid_objective_coeff(
+    coeff_per_mw: float,
+    baseline_loading_pct: float,
+) -> float:
+    """Netz-Ziel: Verschärfung immer bestrafen; Entlastung nur im Basis-Engpass (L0≥90) belohnen."""
+    if not math.isfinite(coeff_per_mw):
+        return float("nan")
+    if coeff_per_mw > 0:
+        return coeff_per_mw
+    if baseline_loading_pct >= 90.0:
+        return coeff_per_mw
+    return 0.0
 
 
 def signed_flow_with_battery(
@@ -944,16 +962,19 @@ class OrtDayModel:
         if objective == "netz":
             if s0_signed is None or len(s0_signed) < n or rating_mw <= 1e-9:
                 raise ValueError("netz objective needs s0_signed and rating_mw")
-            weights = np.asarray([max(0.0, value - 90.0) for value in l0], dtype=float)
-            if weights.sum() <= 1e-9:
-                weights = np.ones(n)
-            price_pull = np.asarray(scaled, dtype=float)
-            pull = NETZ_PRICE_PULL * price_pull
+            price_scaled = np.asarray(scaled, dtype=float)
             for t in range(n):
-                delta_c = marginal_loading_pct_delta(s0_signed[t], beta_charge, rating_mw)
-                delta_d = marginal_loading_pct_delta(s0_signed[t], beta_discharge, rating_mw)
-                self.cost[t] = weights[t] * delta_c + NETZ_EPS - pull[t]
-                self.cost[n + t] = weights[t] * delta_d + NETZ_EPS + pull[t]
+                coeff_c = loading_delta_coeff_per_mw(s0_signed[t], beta_charge, rating_mw, power)
+                coeff_d = loading_delta_coeff_per_mw(s0_signed[t], beta_discharge, rating_mw, power)
+                grid_c = grid_objective_coeff(coeff_c, l0[t])
+                grid_d = grid_objective_coeff(coeff_d, l0[t])
+                if not math.isfinite(grid_c) or not math.isfinite(grid_d):
+                    grid_c = grid_d = 1.0
+                rev_c = NETZ_PRICE_PULL * price_scaled[t]
+                rev_d = -NETZ_PRICE_PULL * price_scaled[t]
+                # Minimize: Netz-Schaden zuerst; kleiner Ertragsnudge analog Markt-Minimierung (−Umsatz).
+                self.cost[t] = grid_c + NETZ_EPS + rev_c
+                self.cost[n + t] = grid_d + NETZ_EPS + rev_d
             self.h.changeObjectiveSense(highspy.ObjSense.kMinimize)
         else:
             self.h.changeObjectiveSense(highspy.ObjSense.kMaximize)
@@ -1094,6 +1115,8 @@ def dispatch_modes(
 
 def assess_badge_v2(l0_n1: list[float], l1_n1: list[float]) -> str:
     if not l0_n1 or not l1_n1 or len(l0_n1) != len(l1_n1):
+        return "neutral"
+    if not all(math.isfinite(v) for v in l0_n1) or not all(math.isfinite(v) for v in l1_n1):
         return "neutral"
     n = len(l0_n1)
     for t in range(n):
