@@ -1,4 +1,4 @@
-import { dayResidualLoadScale, formatPeakKpi, formatPeakEffectLine } from "@/lib/nationalFleetCharts";
+import { dayResidualLoadScale, formatPeakKpi, formatPeakKpiParts, formatPeakEffectLine } from "@/lib/nationalFleetCharts";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
 import { monthStatsForRun, parseFleetMarginal } from "@/lib/nationalMonthFleetModel";
 
@@ -19,6 +19,10 @@ describe("nationalFleetCharts copy", () => {
   it("positive peak reduction", () => {
     expect(formatPeakKpi(59.5, 4.9, 7.6)).toMatch(/Senkung.*4,9/);
     expect(formatPeakKpi(59.5, 4.9, 7.6)).not.toMatch(/\(-/);
+    const parts = formatPeakKpiParts(62.16, 2.24, 3.478);
+    expect(parts.value).toBe("62,16 GW");
+    expect(parts.note).toBe("(Senkung 2,24 GW, 3,5 % zur Referenzspitze 64,41 GW)");
+    expect(formatPeakKpi(62.16, 2.24, 3.478)).toBe(`${parts.value} ${parts.note}`);
   });
 
   it("negative peak reduction uses höher wording", () => {

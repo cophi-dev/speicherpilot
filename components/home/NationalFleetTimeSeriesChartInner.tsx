@@ -32,6 +32,23 @@ type ChartFrame = {
   peakObservedDayGw?: number;
 };
 
+function useMaxWidth(maxPx: number): boolean {
+  const query = `(max-width: ${maxPx}px)`;
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+    return window.matchMedia(query).matches;
+  });
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mq = window.matchMedia(query);
+    const apply = () => setMatches(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [query]);
+  return matches;
+}
+
 function toRunLike(selected: SeriesPayload) {
   return {
     timestamp_berlin: selected.timestamp_berlin,
@@ -130,6 +147,7 @@ export function NationalFleetTimeSeriesChart({
   const [scrollWidth, setScrollWidth] = useState(0);
 
   const isDay = Boolean(dateKey);
+  const monthNarrow = useMaxWidth(767);
 
   useEffect(() => {
     const requestKey = `${monthKey}|${factor}|${strategy}|${dateKey ?? ""}`;
@@ -246,10 +264,11 @@ export function NationalFleetTimeSeriesChart({
 
   const peakI = isDay ? peakLocal : peakIndexRp(runLike);
   const n = points.length;
-  const width = scrollWidth > 0 ? scrollWidth : Math.max(320, n * 4);
+  const width = scrollWidth > 0 ? scrollWidth : isDay ? Math.max(320, n * 4) : 320;
   const pxPerQh = width / n;
-  const panelH = prominentMonth && !isDay ? 124 : isDay ? 104 : 92;
-  const auxPanelH = prominentMonth && !isDay ? 88 : panelH;
+  const panelH = prominentMonth && !isDay ? (monthNarrow ? 194 : 124) : isDay ? 104 : 92;
+  const auxPanelH = prominentMonth && !isDay ? (monthNarrow ? 116 : 88) : panelH;
+  const auxScaleH = prominentMonth && !isDay ? 124 : panelH;
   const pad = 6;
   const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
   const rScale = isDay
@@ -264,10 +283,10 @@ export function NationalFleetTimeSeriesChart({
   const rYTicks = isDay ? yAxisTicks(rScale.min, rScale.max, 4) : undefined;
   const powerGw = points.flatMap((p) => [p.cMw / 1000, p.dMw / 1000]);
   const powerMaxGw = Math.max(...powerGw, 0.001);
-  const powerScale = scaleLinear(powerGw, panelH, pad, 0, powerMaxGw * 1.05);
+  const powerScale = scaleLinear(powerGw, auxScaleH, pad, 0, powerMaxGw * 1.05);
   const socScale = scaleLinear(
     points.map((p) => p.socGwh),
-    panelH,
+    auxScaleH,
     pad,
   );
   const peakRpGw = points[peakI].rpGw;

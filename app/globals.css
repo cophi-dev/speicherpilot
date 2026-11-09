@@ -8196,6 +8196,8 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .ort-archetype-chart-shell .ort-archetype-chart-svg {
   overflow: visible;
   display: block;
+  width: 100%;
+  height: auto;
 }
 .dark .ort-archetype-chart-svg .ort-chart-axis {
   fill: hsl(var(--foreground));
@@ -9693,6 +9695,9 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 .v4-fleet-ts-wrap.is-month-prominent .v4-fleet-ts-skel-plot {
   height: 124px;
 }
+.v4-fleet-ts-wrap.is-month-prominent .v4-fleet-ts-skel-plot.is-aux {
+  height: 88px;
+}
 
 .v4-fleet-ts-skel-line {
   display: block;
@@ -10247,5 +10252,212 @@ html:not(.dark) .ort-v4-page .site-quiet {
   width: 18px;
   height: 18px;
   font-size: 12px;
+}
+
+/* Designabnahme PR 79 — Monatskopf, Fußnoten, reservierte Kurvenhöhe, Ort-Achse. */
+.monat-page .v4-kicker-short {
+  display: none;
+}
+@media (min-width: 768px) {
+  .monat-page .v4-h1 {
+    font-size: 36px;
+    line-height: 1.1;
+    max-width: none;
+  }
+  .monat-page .v4-fleet-controls {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 28px;
+  }
+  .monat-page .v4-fleet-fieldset:first-child {
+    flex: 0 0 auto;
+  }
+  .monat-page .v4-fleet-fieldset:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .monat-page .v4-fleet-factor-row,
+  .monat-page .v4-fleet-strategy-row {
+    flex-wrap: nowrap;
+  }
+  .monat-page .v4-fleet-kpi-label-short,
+  .monat-page .v4-month-mobile-note {
+    display: none;
+  }
+  .monat-page .v4-fleet-ts-slot.is-month-prominent,
+  .monat-page .v4-fleet-ts-slot.is-month-prominent .v4-fleet-ts-wrap.is-month-prominent {
+    min-height: 520px;
+  }
+  .monat-page .v4-fleet-ts-slot.is-month-prominent .v4-fleet-ts-skeleton {
+    min-height: 520px;
+    max-height: 520px;
+    overflow: hidden;
+  }
+}
+@media (max-width: 767px) {
+  .monat-page .v4-kicker-long {
+    display: none;
+  }
+  .monat-page .v4-kicker-short {
+    display: block;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 13px;
+    line-height: 1.3;
+    margin-bottom: 0.35rem;
+  }
+  .monat-page .v4-h1 {
+    font-size: 22px;
+    line-height: 1.15;
+    max-width: none;
+    margin-bottom: 0.35rem;
+  }
+  .monat-page {
+    display: flex;
+    flex-direction: column;
+  }
+  .monat-page > .v4-kopf {
+    order: 1;
+  }
+  .monat-page > .v4-tag-nav {
+    order: 4;
+  }
+  .monat-page > .v4-chapter {
+    order: 5;
+  }
+  .monat-page > .v4-fleet-month {
+    order: 2;
+  }
+  .monat-page > .v4-chapter-foot {
+    order: 6;
+  }
+  .monat-page .v4-fleet-month {
+    display: flex;
+    flex-direction: column;
+  }
+  .monat-page .v4-fleet-month > .v4-chapter-head {
+    order: 5;
+    margin-top: 0.75rem;
+  }
+  .monat-page .v4-fleet-month .v4-chapter-num {
+    display: none;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-controls {
+    order: 1;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-ts-slot {
+    order: 2;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-kpis-hero {
+    order: 3;
+  }
+  .monat-page .v4-fleet-month > .v4-day-footnotes {
+    order: 4;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-kpis-secondary {
+    order: 6;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-marginal {
+    order: 7;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-soc-figure {
+    order: 8;
+  }
+  .monat-page .v4-fleet-month > .v4-chapter-foot {
+    order: 9;
+  }
+  .monat-page .v4-fleet-legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .monat-page .v4-fleet-factor-row,
+  .monat-page .v4-fleet-strategy-row {
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+  .monat-page .v4-fleet-strategy-row {
+    overflow-x: auto;
+  }
+  .monat-page .v4-fleet-pill {
+    border-radius: 0;
+    min-height: 44px;
+  }
+  .monat-page .v4-fleet-factor-row .v4-fleet-pill {
+    flex: 1 1 0;
+  }
+  .monat-page .v4-fleet-strategy-row .v4-fleet-pill {
+    flex: 0 0 auto;
+  }
+  .monat-page .v4-fleet-pill + .v4-fleet-pill {
+    margin-left: -1px;
+  }
+  .monat-page .v4-fleet-kpis-hero {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px 8px;
+    margin-top: 8px;
+  }
+  .monat-page .v4-fleet-kpis-hero dt {
+    font-family: var(--font-jetbrains), ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  .monat-page .v4-fleet-kpi-label-long,
+  .monat-page .v4-fleet-kpi-note {
+    display: none;
+  }
+  .monat-page .v4-fleet-kpis-hero dd,
+  .monat-page .v4-fleet-kpi-primary dd {
+    font-size: 16px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .monat-page .is-month-prominent .v4-fleet-caption,
+  .monat-page .is-month-prominent .v4-fleet-ts-skel-caption {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .monat-page .v4-fleet-ts-wrap.is-month-prominent {
+    position: relative;
+  }
+  .monat-page .v4-fleet-ts-wrap.is-month-prominent .v4-fleet-ts-skel-plot {
+    height: 194px;
+  }
+  .monat-page .v4-fleet-ts-wrap.is-month-prominent .v4-fleet-ts-skel-plot.is-aux {
+    height: 116px;
+  }
+  .monat-page .v4-fleet-ts-slot.is-month-prominent {
+    min-height: 855px;
+  }
+  .monat-page .v4-fleet-ts-slot.is-month-prominent .v4-fleet-ts-wrap.is-month-prominent {
+    min-height: 843px;
+  }
+  .monat-page .v4-fleet-ts-slot.is-month-prominent .v4-fleet-ts-skeleton {
+    min-height: 843px;
+    max-height: 843px;
+    overflow: hidden;
+  }
+}
+@media (min-width: 1024px) {
+  .ort-v4-page .ort-netz-tabs--mode button {
+    font-size: 13px;
+  }
+  .ort-v4-page .ort-chart-legend {
+    font-size: 13px;
+  }
 }
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { NationalFleetMarginalBenefit } from "@/components/home/NationalFleetMarginalBenefit";
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
-import { formatPeakKpi } from "@/lib/nationalFleetCharts";
+import { formatPeakKpiParts } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { MONAT_SURPLUS_EXPLAIN_DE } from "@/lib/monatCalendar";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
@@ -22,12 +22,31 @@ function formatGw(gw: number, digits = 2): string {
   return formatQuantity(gw, "de", digits);
 }
 
-function FleetMonthFootnotes({ factor }: { factor: NationalFleetFactor }) {
+const FLEET_SIZE_LEGEND = "Größe (×1 = 4,58 GW / 8 GWh Nennenergie)";
+const FLEET_GOAL_LEGEND = "Ziel / Fahrweise";
+
+function FleetMonthFootnotes({
+  factor,
+  monthKey,
+  peakNote,
+  surplusLine,
+  seriesLine,
+}: {
+  factor: NationalFleetFactor;
+  monthKey: string;
+  peakNote: string;
+  surplusLine?: string;
+  seriesLine?: string;
+}) {
   return (
     <footer className="v4-content v4-day-footnotes">
       <dl className="v4-day-notes">
         <div>
           <dt>Modell</dt>
+          <dd className="v4-month-mobile-note">{`Modellflotte · ${monthKey}`}</dd>
+          <dd className="v4-month-mobile-note">{FLEET_SIZE_LEGEND}</dd>
+          <dd className="v4-month-mobile-note">{FLEET_GOAL_LEGEND}</dd>
+          <dd className="v4-month-mobile-note">{peakNote}</dd>
           <dd>{`Vorberechneter Monatslauf (×${factor}, hypothetisch).`}</dd>
           <dd>Modell auf beobachteter Last und Erzeugung (Okt. 2026).</dd>
           <dd>{`Referenz 4,58 GW / 8 GWh Nennenergie, skaliert mit ×${factor}.`}</dd>
@@ -41,6 +60,8 @@ function FleetMonthFootnotes({ factor }: { factor: NationalFleetFactor }) {
         </div>
         <div>
           <dt>Daten</dt>
+          {surplusLine ? <dd>{surplusLine}</dd> : null}
+          {seriesLine ? <dd>{seriesLine}</dd> : null}
           <dd>Viertelstunden aus dem Monatslauf-Bundle.</dd>
           <dd>Energy-Charts Last/Erzeugung, Vollvoraussicht je Fahrweise.</dd>
           <dd>{`Werte nur MWh/GW — keine Euro-Schätzung, auch nicht bei ×${factor}.`}</dd>
@@ -71,6 +92,8 @@ export function NationalFleetMonthChapter({
   surplusPoolMarginal,
   factorRows,
   bars,
+  surplusLine,
+  seriesLine,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
@@ -81,6 +104,8 @@ export function NationalFleetMonthChapter({
   surplusPoolMarginal: boolean;
   factorRows: NationalFleetFactorCompareRow[];
   bars: MonatSurplusBar[];
+  surplusLine?: string;
+  seriesLine?: string;
 }) {
   const dailySocMax = 0.9 * stats.fleetEnergyGwh * 1000;
 
@@ -107,9 +132,10 @@ export function NationalFleetMonthChapter({
   });
 
   const maxSocBand = Math.max(...socBands.map((b) => b.max ?? 0), dailySocMax * 0.5);
+  const peak = formatPeakKpiParts(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct);
 
   return (
-    <section className="v4-chapter" aria-labelledby="fleet-month-title">
+    <section className="v4-chapter v4-fleet-month" aria-labelledby="fleet-month-title">
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">Modellflotte · {monthKey}</p>
         <h2 id="fleet-month-title" className="v4-chapter-h2 v4-fleet-month-h2">
@@ -119,7 +145,7 @@ export function NationalFleetMonthChapter({
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
-          <legend className="v4-fleet-legend">Größe (×1 = 4,58 GW / 8 GWh Nennenergie)</legend>
+          <legend className="v4-fleet-legend">{FLEET_SIZE_LEGEND}</legend>
           <div className="v4-fleet-factor-row">
             {NATIONAL_FLEET_FACTORS.map((f) => (
               <Link
@@ -134,7 +160,7 @@ export function NationalFleetMonthChapter({
           </div>
         </fieldset>
         <fieldset className="v4-fleet-fieldset">
-          <legend className="v4-fleet-legend">Ziel / Fahrweise</legend>
+          <legend className="v4-fleet-legend">{FLEET_GOAL_LEGEND}</legend>
           <div className="v4-fleet-strategy-row">
             {(Object.keys(NATIONAL_FLEET_STRATEGY_UI) as NationalFleetStrategyUi[]).map((id) => (
               <Link
@@ -152,15 +178,27 @@ export function NationalFleetMonthChapter({
 
       <dl className="v4-fleet-kpis v4-fleet-kpis-hero v4-content num">
         <div className="v4-fleet-kpi-primary">
-          <dt>Monats-Restlastspitze mit Speicher</dt>
-          <dd>{formatPeakKpi(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct)}</dd>
+          <dt>
+            <span className="v4-fleet-kpi-label-long">Monats-Restlastspitze mit Speicher</span>
+            <span className="v4-fleet-kpi-label-short">Spitze</span>
+          </dt>
+          <dd>
+            <span className="v4-fleet-kpi-value">{peak.value}</span>
+            <span className="v4-fleet-kpi-note"> {peak.note}</span>
+          </dd>
         </div>
         <div>
-          <dt>Netzseitige Ladung</dt>
+          <dt>
+            <span className="v4-fleet-kpi-label-long">Netzseitige Ladung</span>
+            <span className="v4-fleet-kpi-label-short">Ladung</span>
+          </dt>
           <dd>{formatGw(stats.chargeGwh, 2)} GWh</dd>
         </div>
         <div>
-          <dt>Netzseitige Abgabe</dt>
+          <dt>
+            <span className="v4-fleet-kpi-label-long">Netzseitige Abgabe</span>
+            <span className="v4-fleet-kpi-label-short">Abgabe</span>
+          </dt>
           <dd>{formatGw(stats.dischargeGwh, 2)} GWh</dd>
         </div>
       </dl>
@@ -173,7 +211,13 @@ export function NationalFleetMonthChapter({
         peakReductionPct={stats.peakReductionPct}
         prominentMonth
       />
-      <FleetMonthFootnotes factor={factor} />
+      <FleetMonthFootnotes
+        factor={factor}
+        monthKey={monthKey}
+        peakNote={peak.note}
+        surplusLine={surplusLine}
+        seriesLine={seriesLine}
+      />
       <details className="v4-fleet-kpis-secondary v4-content num">
         <summary>Weitere Monats-Kennzahlen (Flotte, Verlust, SoC)</summary>
         <dl className="v4-fleet-kpis">

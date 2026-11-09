@@ -48,6 +48,32 @@ export function formatBerlinMonthLabel(monthKey: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+/** Short month for the one-line stand, e.g. "Okt 2026". */
+export function formatBerlinMonthShort(monthKey: string): string {
+  const [y, mo] = monthKey.split("-").map(Number);
+  const raw = new Intl.DateTimeFormat("de-DE", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(y, mo - 1, 1)));
+  const cleaned = raw.replace(/\./g, "").replace(/\s+/g, " ").trim();
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+/** German calendar day from a Datenstand label, preferring the frozen build date. */
+export function formatDataStandDayDe(dataStand: string): string {
+  const frozen = dataStand.match(/eingefroren\s+(\d{4})-(\d{2})-(\d{2})/);
+  if (frozen) {
+    return `${frozen[3]}.${frozen[2]}.${frozen[1]}`;
+  }
+  const iso = dataStand.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    return `${iso[3]}.${iso[2]}.${iso[1]}`;
+  }
+  const de = dataStand.match(/(\d{2}\.\d{2}\.\d{4})/);
+  return de ? de[1] : dataStand;
+}
+
 export function recordSeriesBounds(records: TagesKennzahlRecord[]): {
   firstKey: string;
   lastKey: string;

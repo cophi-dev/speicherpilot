@@ -403,16 +403,8 @@ function ArchetypeDayChart({
   const strokeThick = emphasizeStrokes ? 3 : 2;
   const W = 960;
   const H = 300;
-  const pad = { l: 72, r: 16, t: 16, b: 58 };
   const n = Math.min(l0n0.length, 96);
   const maxY = Math.max(110, ...l0n0.slice(0, n), ...l1n1.slice(0, n));
-  const x = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r);
-  const y = (v: number) => pad.t + (1 - v / maxY) * (H - pad.t - pad.b);
-  const line = (vals: number[]) =>
-    vals
-      .slice(0, n)
-      .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
-      .join(" ");
 
   const shellRef = useRef<HTMLDivElement>(null);
   const [fontScale, setFontScale] = useState(W / 335);
@@ -436,8 +428,18 @@ function ArchetypeDayChart({
 
   /** Screen px × (viewBox / render width) → SVG user units (constant apparent size). */
   const svgFont = (screenPx: number) => screenPx * fontScale;
-  const titleFont = svgFont(14);
-  const tickFont = svgFont(12);
+  const titleFont = svgFont(16);
+  const tickFont = svgFont(15);
+  const labelGapUser = 8 * fontScale;
+  const padL = Math.max(72, Math.ceil(52 * fontScale + labelGapUser));
+  const pad = { l: padL, r: 16, t: 16, b: 58 };
+  const x = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r);
+  const y = (v: number) => pad.t + (1 - v / maxY) * (H - pad.t - pad.b);
+  const line = (vals: number[]) =>
+    vals
+      .slice(0, n)
+      .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+      .join(" ");
 
   return (
     <figure
@@ -497,7 +499,13 @@ function ArchetypeDayChart({
         <text x={pad.l} y={H - 14} className="num ort-chart-axis" fontSize={tickFont}>
           0
         </text>
-        <text x={pad.l - 4} y={y(100) + 4} className="num ort-chart-axis" fontSize={tickFont} textAnchor="end">
+        <text
+          x={pad.l - labelGapUser}
+          y={y(100) + 4}
+          className="num ort-chart-axis"
+          fontSize={tickFont}
+          textAnchor="end"
+        >
           100 %
         </text>
         <text x={W - pad.r} y={H - 14} className="num ort-chart-axis" fontSize={tickFont} textAnchor="end">

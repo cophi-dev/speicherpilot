@@ -24,13 +24,13 @@ export function NationalFleetTimeSeriesChartSkeleton({
         Zeitreihen-Chart wird geladen …
       </p>
       <div className="v4-fleet-ts-interactive v4-fleet-ts-skel-interactive" aria-hidden="true">
-        {panels.map((title) => (
+        {panels.map((title, index) => (
           <div key={title} className="v4-fleet-ts-panel v4-fleet-ts-skel-panel">
             <div className="v4-fleet-ts-panel-head">
               <span className="v4-fleet-ts-panel-title">{title}</span>
               <span className="v4-fleet-ts-panel-unit num">—</span>
             </div>
-            <div className="v4-fleet-ts-skel-plot">
+            <div className={`v4-fleet-ts-skel-plot${index === 0 ? "" : " is-aux"}`}>
               <span className="v4-fleet-ts-skel-line" />
             </div>
           </div>

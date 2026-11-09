@@ -61,6 +61,8 @@ const BAND = 32;
 const GAP = 16;
 const XT = 24;
 const PT = 20;
+/** Y-labels end this many CSS px left of the plot. Grid lines start at the plot. */
+const Y_LABEL_GAP = 10;
 
 export function niceChartScale(values: number[]) {
   let min = 0;
@@ -215,7 +217,8 @@ export function DispatchDayChart({
 
   const mobile = width > 0 && width < 600;
   const plotH = mobile ? 260 : 320;
-  const padLeft = mobile ? 34 : 44;
+  const labelCol = mobile ? 44 : 56;
+  const padLeft = labelCol + Y_LABEL_GAP;
   const padRight = mobile ? 8 : 10;
   const plotW = Math.max(width - padLeft - padRight, 1);
   const height = PT + plotH + GAP + BAND + XT;
@@ -333,14 +336,21 @@ export function DispatchDayChart({
             {yTicks.map((tick) => (
               <g key={tick}>
                 {limit != null && Math.abs(tick - limit) < span * 0.01 ? null : (
-                  <line x1={padLeft} x2={width - padRight} y1={yAt(tick)} y2={yAt(tick)} className={tick === 0 ? "zl" : "gl"} />
+                  <line
+                    x1={padLeft}
+                    x2={width - padRight}
+                    y1={yAt(tick)}
+                    y2={yAt(tick)}
+                    className={tick === 0 ? "zl" : "gl"}
+                    clipPath={`url(#c-${rawId})`}
+                  />
                 )}
-                <text x={padLeft - 6} y={yAt(tick) + 4} textAnchor="end" className="tk">
+                <text x={padLeft - Y_LABEL_GAP} y={yAt(tick) + 4} textAnchor="end" className="tk">
                   {formatQuantity(tick, language, tickDigits(tick))}
                 </text>
               </g>
             ))}
-            <text x={padLeft - 6} y={PT - 8} textAnchor="end" className="tk">
+            <text x={padLeft - Y_LABEL_GAP} y={PT - 8} textAnchor="end" className="tk">
               {unit}
             </text>
             <text x={width - padRight} y={PT - 8} textAnchor="end" className="tk">
@@ -482,10 +492,10 @@ export function DispatchDayChart({
             <text x={padLeft + 6} y={bandTop + 12} className="lb soc-name">
               {language === "de" ? "Ladezustand" : "State of charge"}
             </text>
-            <text x={padLeft - 6} y={bandTop + 10} textAnchor="end" className="tk soc-tick">
+            <text x={padLeft - Y_LABEL_GAP} y={bandTop + 10} textAnchor="end" className="tk soc-tick">
               100
             </text>
-            <text x={padLeft - 6} y={bandTop + BAND} textAnchor="end" className="tk soc-tick">
+            <text x={padLeft - Y_LABEL_GAP} y={bandTop + BAND} textAnchor="end" className="tk soc-tick">
               0 %
             </text>
             {usesSlotIndex(samples)

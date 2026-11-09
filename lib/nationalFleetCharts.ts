@@ -68,17 +68,30 @@ export function fleetChartPointsForIndices(run: FleetChartSeries, indices?: numb
   });
 }
 
-export function formatPeakKpi(afterGw: number, reductionGw: number, reductionPct: number): string {
+export function formatPeakKpiParts(
+  afterGw: number,
+  reductionGw: number,
+  reductionPct: number,
+): { value: string; note: string } {
   const after = formatQuantity(afterGw, "de", 2);
   const pct = formatQuantity(Math.abs(reductionPct), "de", 1);
   const delta = formatQuantity(Math.abs(reductionGw), "de", 2);
+  const value = `${after} GW`;
   if (reductionGw >= 0.0005) {
-    return `${after} GW (Senkung ${delta} GW, ${pct} % zur Referenzspitze 64,41 GW)`;
+    return { value, note: `(Senkung ${delta} GW, ${pct} % zur Referenzspitze 64,41 GW)` };
   }
   if (reductionGw <= -0.0005) {
-    return `${after} GW (${delta} GW höher als ohne dieses Szenario, ${pct} % zur Referenzspitze 64,41 GW)`;
+    return {
+      value,
+      note: `(${delta} GW höher als ohne dieses Szenario, ${pct} % zur Referenzspitze 64,41 GW)`,
+    };
   }
-  return `${after} GW (keine Änderung der Monatsspitze)`;
+  return { value, note: "(keine Änderung der Monatsspitze)" };
+}
+
+export function formatPeakKpi(afterGw: number, reductionGw: number, reductionPct: number): string {
+  const { value, note } = formatPeakKpiParts(afterGw, reductionGw, reductionPct);
+  return `${value} ${note}`;
 }
 
 export function peakIndexRp(run: FleetChartSeries): number {
