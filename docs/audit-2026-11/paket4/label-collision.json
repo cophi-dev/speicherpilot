@@ -1,5 +1,15 @@
 {
   "ok": true,
   "overlaps": [],
-  "labelCount": 6
+  "violations": [],
+  "desktop": {
+    "overlaps": [],
+    "violations": [],
+    "labelCount": 6
+  },
+  "mobile": {
+    "overlaps": [],
+    "violations": [],
+    "labelCount": 6
+  }
 }

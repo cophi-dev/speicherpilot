@@ -22,6 +22,14 @@ Stand: 9. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81]
 - **Mobil:** `has-fleet-konzept` DOM-Reihenfolge (Nav → Kopf → Konzept); Miniplot-Padding.
 - **Methodik:** Bullet Unsicherheit + Plateau-Hinweis.
 
+## Designrunde (Post eb95331)
+
+1. **Inhaltbreite:** Konzept-Slot wieder `v4-content` + `konzeptRoot` (max `min(94rem, 1240px)`); gleiche Flucht wie Kopf/Nav.
+2. **Markt-×10-Callout (1440):** links unterhalb des Punktes, vollständig in der Plot-Overlay-Fläche (`nowrap` auf GW-Zeile); kein Fußnoten-Overlap.
+3. **Spitze-×10-Label:** einzeilig (`white-space: nowrap`), mehr Kopf (`PAD_T` + Overlay-Inset).
+4. **Mobil-Miniplots:** 12 px rechter Innenabstand; Wertlabels bei negativen GW unter dem Punkt.
+5. **Abnahme:** `label-collision.json` prüft Fluchtlinie (≥ Kopf), Callout vs. Fußnote/Plot, Mobil-Clip + Label-auf-Punkt.
+
 ## Visuelle Korrektur (Sichtprüfung v2)
 
 - **A 1440:** Hero ~520px, volle Breite + Flottentabelle, Pfadlabels, durchgehende Nulllinie, großes Markt-×10-Label, getrennte Chart-Fußnote.

@@ -153,8 +153,9 @@ const SHOTS = [
   { file: "ort-390-light.png", path: "/ort", w: 390, h: 844, theme: "light" },
 ];
 
-async function assertNoLabelOverlap(page) {
-  return page.evaluate(() => {
+async function assertLayoutAndCollisions(page, { mobile = false } = {}) {
+  return page.evaluate((isMobile) => {
+    const violations = [];
     const ids = [
       "arbeit-pool-label",
       "arbeit-ref-label",
@@ -176,19 +177,86 @@ async function assertNoLabelOverlap(page) {
       for (let j = i + 1; j < rects.length; j++) {
         const a = rects[i];
         const b = rects[j];
-        const pad = 2;
         if (
-          a.left < b.right - pad &&
-          a.right > b.left + pad &&
-          a.top < b.bottom - pad &&
-          a.bottom > b.top + pad
+          a.left < b.right - 2 &&
+          a.right > b.left + 2 &&
+          a.top < b.bottom - 2 &&
+          a.bottom > b.top + 2
         ) {
           overlaps.push(`${a.id}×${b.id}`);
         }
       }
     }
-    return { overlaps, labelCount: rects.length };
-  });
+
+    const nav = document.querySelector(".v4-kopf-inner.v4-content");
+    const kopfLeft = nav ? nav.getBoundingClientRect().left : 16;
+    const minContentLeft = Math.max(16, kopfLeft) - 1;
+
+    const contentIds = ["monat-arbeit-wirkung-title", "monat-dauerlinie-title"];
+    for (const id of contentIds) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().left < minContentLeft) {
+        violations.push(`content-left:${id}`);
+      }
+    }
+    const footnote = document.querySelector('[data-testid="arbeit-chart-footnote"]');
+    if (footnote && footnote.getBoundingClientRect().left < minContentLeft) {
+      violations.push("content-left:footnote");
+    }
+
+    const callout = document.querySelector('[data-testid="arbeit-markt-callout"]');
+    const overlay = document.querySelector('[data-testid="arbeit-label-overlay"]');
+    if (callout && footnote) {
+      const c = callout.getBoundingClientRect();
+      const f = footnote.getBoundingClientRect();
+      if (
+        c.left < f.right - 2 &&
+        c.right > f.left + 2 &&
+        c.top < f.bottom - 2 &&
+        c.bottom > f.top + 2
+      ) {
+        violations.push("callout×footnote");
+      }
+    }
+    if (callout && overlay) {
+      const c = callout.getBoundingClientRect();
+      const o = overlay.getBoundingClientRect();
+      const slack = 2;
+      if (
+        c.top < o.top - slack ||
+        c.left < o.left - slack ||
+        c.right > o.right + slack ||
+        c.bottom > o.bottom + slack
+      ) {
+        violations.push("callout-outside-plot");
+      }
+    }
+
+    if (isMobile) {
+      const inner = window.innerWidth - 12;
+      document.querySelectorAll('[data-testid="arbeit-mobile-paths"] text').forEach((el, idx) => {
+        const r = el.getBoundingClientRect();
+        if (r.right > inner + 0.5) violations.push(`mobile-clip:text-${idx}`);
+      });
+      document.querySelectorAll('[data-testid="arbeit-mobile-paths"] circle').forEach((el, idx) => {
+        const r = el.getBoundingClientRect();
+        const label = el.parentElement?.querySelector("text");
+        if (label) {
+          const lr = label.getBoundingClientRect();
+          if (
+            lr.left < r.right - 2 &&
+            lr.right > r.left + 2 &&
+            lr.top < r.bottom - 2 &&
+            lr.bottom > r.top + 2
+          ) {
+            violations.push(`mobile-label-on-point:${idx}`);
+          }
+        }
+      });
+    }
+
+    return { overlaps, violations, labelCount: rects.length };
+  }, mobile);
 }
 
 async function main() {
@@ -218,15 +286,38 @@ async function main() {
   await applyTheme(collisionPage, "dark");
   await waitStyled(collisionPage);
   await collisionPage.waitForSelector('[data-testid="arbeit-markt-callout"]', { timeout: 60_000 });
-  const collision = await assertNoLabelOverlap(collisionPage);
+  const desktopLayout = await assertLayoutAndCollisions(collisionPage, { mobile: false });
   await collisionPage.close();
+
+  const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await preparePage(mobilePage, "dark");
+  await mobilePage.goto(`${BASE}/monat/2026-10?faktor=10&fahrweise=markt`, {
+    waitUntil: "domcontentloaded",
+    timeout: 120_000,
+  });
+  await applyTheme(mobilePage, "dark");
+  await waitStyled(mobilePage);
+  await mobilePage.waitForSelector('[data-testid="arbeit-mobile-paths"]', { timeout: 60_000 });
+  const mobileLayout = await assertLayoutAndCollisions(mobilePage, { mobile: true });
+  await mobilePage.close();
   await browser.close();
+
+  const collision = {
+    overlaps: [...desktopLayout.overlaps, ...mobileLayout.overlaps.filter((o) => !desktopLayout.overlaps.includes(o))],
+    violations: [...desktopLayout.violations, ...mobileLayout.violations],
+    desktop: desktopLayout,
+    mobile: mobileLayout,
+  };
+  const ok =
+    collision.overlaps.length === 0 && collision.violations.length === 0;
   writeFileSync(
     join(process.cwd(), "docs/audit-2026-11/paket4/label-collision.json"),
-    JSON.stringify({ ok: collision.overlaps.length === 0, ...collision }, null, 2),
+    JSON.stringify({ ok, ...collision }, null, 2),
   );
-  if (collision.overlaps.length > 0) {
-    throw new Error(`Label overlap: ${collision.overlaps.join(", ")}`);
+  if (!ok) {
+    throw new Error(
+      `Layout/collision: overlaps=${collision.overlaps.join(",")} violations=${collision.violations.join(",")}`,
+    );
   }
 
   const lhSummary = [];

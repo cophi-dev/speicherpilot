@@ -7,6 +7,7 @@ import {
   MonatDauerlinieChart,
   MonatKonzeptWerkbank,
 } from "@/components/home/MonatKonzeptCharts";
+import styles from "@/components/home/monat-konzept.module.css";
 import type { ArbeitWirkungModel } from "@/lib/monatKonzeptA";
 import type { FleetSizeRow } from "@/lib/monatKonzeptA";
 import type { DauerlinieModel } from "@/lib/monatKonzeptC";
@@ -46,7 +47,7 @@ export function NationalFleetMonatKonzeptClient({
   }, []);
 
   return (
-    <div className="v4-monat-konzept monatKonzeptRoot">
+    <div className={`v4-monat-konzept v4-content ${styles.konzeptRoot}`} data-testid="konzept-root">
       <MonatArbeitWirkungChart
         model={arbeit}
         monthKey={monthKey}
@@ -67,7 +68,7 @@ export function NationalFleetMonatKonzeptClient({
           plateauNote={plateauNote}
         />
       ) : (
-        <p className="v4-content v4-footnote num" style={{ margin: "12px 0 24px", fontSize: 12 }}>
+        <p className="v4-footnote num" style={{ margin: "12px 0 24px", fontSize: 12 }}>
           Punkt wählen (tippen oder ←→↑↓) — darunter öffnet sich die Viertelstundenkurve des Laufs.
         </p>
       )}
@@ -80,7 +81,7 @@ export function NationalFleetMonatKonzeptClient({
           fleetAvailable
         />
       </Suspense>
-      <footer className="v4-content v4-day-footnotes v4-monat-slot-foot">
+      <footer className={`v4-day-footnotes v4-monat-slot-foot ${styles.konzeptFoot}`}>
         <p className="v4-footnote num">
           Modellflotte {fleetFootnote} · Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Day-Ahead Price Taker, perfekte
           Voraussicht, ohne Preisrückwirkung. Quelle Energy-Charts / SMARD CC BY 4.0.{" "}

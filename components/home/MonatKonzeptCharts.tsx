@@ -31,7 +31,7 @@ const VIEW_W = 1100;
 const VIEW_H = 520;
 const PAD_L = 96;
 const PAD_R = 36;
-const PAD_T = 52;
+const PAD_T = 66;
 const PAD_B = 64;
 
 function pctX(px: number): string {
@@ -160,7 +160,10 @@ export function MonatArbeitWirkungChart({
       </h2>
       <figure className={styles.figure}>
         <div className={styles.aLayout}>
-          <div className={`${styles.chartShell} ${styles.chartShellHero} ${styles.desktopChart}`}>
+          <div
+            className={`${styles.chartShell} ${styles.chartShellHero} ${styles.desktopChart}`}
+            data-testid="arbeit-chart-shell"
+          >
             <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className={styles.svg} role="img" aria-labelledby="arbeit-wirkung-aria-title">
               <title id="arbeit-wirkung-aria-title">Arbeit gegen Wirkung — drei Ziele × Faktoren</title>
               <rect x={PAD_L} y={PAD_T} width={plotW} height={yZero - PAD_T} className={styles.negativeFill} />
@@ -217,7 +220,7 @@ export function MonatArbeitWirkungChart({
                 pointsForStrategy(model, strategy).map((p) => renderPoint(p, p.factor === 1)),
               )}
             </svg>
-            <div className={styles.labelOverlay} aria-hidden="true">
+            <div className={styles.labelOverlay} aria-hidden="true" data-testid="arbeit-label-overlay">
               <span
                 data-testid="arbeit-pool-label"
                 className={`${styles.poolBanner} num`}
@@ -237,8 +240,8 @@ export function MonatArbeitWirkungChart({
                 data-testid="arbeit-label-spitze"
                 className={`${styles.pathLabelHtml} ${styles.spitze}`}
                 style={{
-                  left: pctX(logX(spitze10.chargeGwh, plotW) - 4),
-                  top: pctY(yWirkung(spitze10.wirkungGw, plotH) - 34),
+                  left: pctX(logX(spitze10.chargeGwh, plotW) - 72),
+                  top: pctY(Math.max(PAD_T + 8, yWirkung(spitze10.wirkungGw, plotH) - 6)),
                 }}
               >
                 {pathLabels.spitze}
@@ -270,7 +273,7 @@ export function MonatArbeitWirkungChart({
                   style={{
                     left: pctX(m10cx),
                     top: pctY(m10cy),
-                    transform: "translate(-108%, 18%)",
+                    transform: "translate(calc(-100% - 12px), calc(-100% - 6px))",
                   }}
                 >
                   <span className={`${styles.marktCalloutGw} num`}>{formatQuantity(marktX10.peakAfterGw, "de", 2)} GW</span>
@@ -315,7 +318,7 @@ export function MonatArbeitWirkungChart({
           activeStrategy={activeStrategy}
           onSelect={navigate}
         />
-        <p className={`${styles.chartFootnote} num`}>
+        <p className={`${styles.chartFootnote} num`} data-testid="arbeit-chart-footnote">
           Jeder Punkt = ein vorberechneter Lauf (Ziel × Flottenfaktor). Oben: Spitze sinkt um so viele GW wie die
           Referenzspitze ohne Speicher minus der höchsten Restlast mit Speicher. Modell: Round-Trip 85&nbsp;%, SoC
           10–90&nbsp;%, Day-Ahead Price Taker, perfekte Voraussicht — ohne Preisrückwirkung bei ×5/×10. Quelle
@@ -360,20 +363,21 @@ function MobileArbeitPaths({
   activeStrategy: NationalFleetStrategyUi;
   onSelect: (f: NationalFleetFactor, s: NationalFleetStrategyUi) => void;
 }) {
-  const plotW = 360;
-  const plotH = 76;
-  const padL = 40;
-  const padR = 24;
-  const padT = 12;
-  const padB = 14;
+  const plotW = 372;
+  const plotH = 72;
+  const padL = 36;
+  const padR = 16;
+  const padT = 10;
+  const padB = 12;
+  const innerRight = plotW - padR - 12;
 
   const yMin = Y_MIN;
   const yMax = Y_MAX;
   const y = (gw: number) => padT + plotH - ((gw - yMin) / (yMax - yMin)) * plotH;
-  const x = (i: number) => padL + (i / 3) * (plotW - padL - padR);
+  const x = (i: number) => padL + (i / 3) * (innerRight - padL);
 
   return (
-    <div className={styles.mobilePaths}>
+    <div className={styles.mobilePaths} data-testid="arbeit-mobile-paths">
       {STRATEGIES.map((strategy) => {
         const pts = pointsForStrategy(model, strategy);
         const d = pts.map((p, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(p.wirkungGw)}`).join(" ");
@@ -383,22 +387,24 @@ function MobileArbeitPaths({
             <p className={styles.mobilePathTitle}>
               {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe} <span className={styles.mobileGwUnit}>GW Δ</span>
             </p>
-            <svg viewBox={`0 0 ${plotW} ${plotH + padB + 14}`} className={styles.mobilePathChart}>
-              <line x1={padL} x2={plotW - padR} y1={y0} y2={y0} stroke="var(--v4-muted)" strokeWidth={1} />
+            <div className={styles.mobilePlotFrame}>
+            <svg viewBox={`0 0 ${plotW} ${plotH + padB + 12}`} className={styles.mobilePathChart}>
+              <line x1={padL} x2={innerRight} y1={y0} y2={y0} stroke="var(--v4-muted)" strokeWidth={1} />
               <path d={d} fill="none" strokeWidth={2} className={`${styles.pathLine} ${styles[strategy]}`} />
               {pts.map((p, i) => {
                 const active = p.factor === activeFactor && p.strategy === activeStrategy;
                 const cx = x(i);
                 const cy = y(p.wirkungGw);
+                const valueLabelY = p.wirkungGw < 0.5 ? cy + 14 : cy - 11;
                 return (
                   <g key={p.factor}>
-                    <text x={cx} y={plotH + 8} className={styles.xTick} textAnchor="middle">
+                    <text x={cx} y={plotH + 6} className={styles.xTick} textAnchor="middle">
                       ×{p.factor}
                     </text>
-                    <text x={cx} y={plotH + padB + 6} className={styles.xTick} textAnchor="middle" fontSize={10}>
+                    <text x={cx} y={plotH + padB + 4} className={styles.xTick} textAnchor="middle" fontSize={10}>
                       {formatQuantity(p.chargeGwh, "de", p.chargeGwh >= 100 ? 0 : 1)} GWh
                     </text>
-                    <text x={cx} y={cy - 9} className={styles.yTick} textAnchor="middle" fontWeight={600}>
+                    <text x={cx} y={valueLabelY} className={styles.yTick} textAnchor="middle" fontWeight={600}>
                       {formatQuantity(p.wirkungGw, "de", 2)}
                     </text>
                     <a
@@ -421,6 +427,7 @@ function MobileArbeitPaths({
                 );
               })}
             </svg>
+            </div>
           </div>
         );
       })}

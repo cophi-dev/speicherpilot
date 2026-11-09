@@ -1,17 +1,19 @@
-.monatKonzeptRoot {
-  width: 100%;
+/* Layout (max-width, padding, Zentrierung) kommt von globaler .v4-content */
+.konzeptRoot {
+  max-width: min(94rem, 1240px);
 }
 
-.monat-page.has-fleet-konzept .monatKonzeptRoot {
-  width: 100%;
-  max-width: min(94rem, 100%);
-  margin-inline: auto;
-  padding-inline: clamp(12px, 2.5vw, 28px);
-  box-sizing: border-box;
+.konzeptRoot :global(.v4-content) {
+  max-width: none;
+  padding-inline: 0;
 }
 
-.monat-page.has-fleet-konzept .monatKonzeptRoot .sectionA,
-.monat-page.has-fleet-konzept .monatKonzeptRoot .sectionC {
+.konzeptFoot {
+  margin-top: 12px;
+}
+
+.konzeptRoot .sectionA,
+.konzeptRoot .sectionC {
   max-width: 100%;
   width: 100%;
 }
@@ -52,8 +54,14 @@
 
 .labelOverlay {
   position: absolute;
-  inset: 0;
+  left: 8.2%;
+  right: 4.8%;
+  top: 4%;
+  bottom: 17%;
+  padding-top: 8px;
+  box-sizing: border-box;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .poolBanner,
@@ -80,7 +88,8 @@
 .pathLabelHtml.spitze {
   color: #e86a3a;
   font-weight: 600;
-  max-width: 10rem;
+  white-space: nowrap;
+  max-width: none;
 }
 
 .pathLabelHtml.ueberschuss {
@@ -205,44 +214,28 @@
   stroke: #f5b731;
 }
 
-.pathLabel {
-  font-size: 12px;
-  font-weight: 600;
-  fill: hsl(var(--foreground));
-}
-
-.pathLabel.spitze {
-  fill: #e86a3a;
-}
-
-.pathLabel.ueberschuss {
-  fill: #0b9f84;
-}
-
-.pathLabel.markt {
-  fill: #f5b731;
-}
-
 .marktCallout {
   position: absolute;
-  max-width: min(240px, 38vw);
+  max-width: min(215px, 36vw);
   text-align: left;
+  line-height: 1.35;
 }
 
 .marktCalloutGw {
   display: block;
-  font-size: clamp(28px, 4vw, 42px);
+  font-size: clamp(26px, 3.2vw, 38px);
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.02em;
   color: hsl(var(--foreground));
+  white-space: nowrap;
 }
 
 .marktCalloutSub {
   display: block;
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.45;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
   color: var(--v4-muted);
 }
 
@@ -297,13 +290,14 @@
 .mobilePaths {
   display: none;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  padding-inline: 0;
 }
 
 .mobilePathTitle {
   font-size: 12px;
   font-weight: 600;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
 }
 
 .mobileGwUnit {
@@ -311,8 +305,8 @@
   color: var(--v4-muted);
 }
 
-.mobilePaths {
-  padding-inline: 4px;
+.mobilePlotFrame {
+  padding-inline: 0 12px;
 }
 
 .mobilePathChart {
