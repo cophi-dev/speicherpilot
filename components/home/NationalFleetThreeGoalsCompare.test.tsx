@@ -13,11 +13,12 @@ describe("NationalFleetThreeGoalsCompare", () => {
         monthKey="2026-10"
         activeFactor={1}
         activeStrategy="ueberschuss"
-        marktPeakFootnote="Test-Fußnote."
+        marktPeakWarn="Test-Warnzeile."
+        marktPeakDetail="Test-Detail."
       />,
     );
     expect(screen.getByTestId("three-goals-compare")).toBeInTheDocument();
-    expect(screen.getByText(/Test-Fußnote/)).toBeInTheDocument();
+    expect(screen.getByText(/Test-Warnzeile/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Dieselbe Flotte, drei Fahrweisen/ })).toBeInTheDocument();
   });
 });

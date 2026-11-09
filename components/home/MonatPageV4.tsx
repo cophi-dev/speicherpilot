@@ -89,12 +89,20 @@ export function MonatPageV4({
       <MonatNav monthKey={monthKey} records={records} />
       <section className="v4-kopf" aria-labelledby="monat-h1">
         <div className="v4-kopf-inner v4-content">
-          <p className="v4-kicker num v4-kicker-long">
-            Monat · {formatBerlinMonthLabel(monthKey)} · Datenstand {dataStand}
-          </p>
-          <p className="v4-kicker num v4-kicker-short">
-            {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
-          </p>
+          {fleetOnPage ? (
+            <p className="v4-kicker num v4-kicker-short v4-monat-kicker-single">
+              {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
+            </p>
+          ) : (
+            <>
+              <p className="v4-kicker num v4-kicker-long">
+                Monat · {formatBerlinMonthLabel(monthKey)} · Datenstand {dataStand}
+              </p>
+              <p className="v4-kicker num v4-kicker-short">
+                {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
+              </p>
+            </>
+          )}
           <h1 id="monat-h1" className="v4-h1">
             {h1}
           </h1>

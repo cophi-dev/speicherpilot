@@ -1,4 +1,9 @@
-import { buildThreeGoalsCompare, formatMarktPeakFootnote, marktPeakFootnoteFromRun } from "@/lib/nationalFleetThreeGoals";
+import {
+  buildThreeGoalsCompare,
+  formatMarktPeakFootnote,
+  formatMarktPeakWarnShort,
+  marktPeakFootnoteFromRun,
+} from "@/lib/nationalFleetThreeGoals";
 import { loadNationalFleetBundleMeta } from "@/lib/nationalMonthFleetModel.server";
 
 describe("buildThreeGoalsCompare", () => {
@@ -27,8 +32,10 @@ describe("marktPeakFootnoteFromRun", () => {
   it("formats 21.10. peak", () => {
     const d = marktPeakFootnoteFromRun("2026-10-21T14:00:00+02:00", 50960.5, 96760.5, 45800, 201.29);
     expect(d.peakAfterGw).toBeCloseTo(96.76, 2);
-    expect(formatMarktPeakFootnote(d)).toContain("96,76 GW");
+    expect(formatMarktPeakWarnShort(d)).toContain("96,76 GW");
     expect(formatMarktPeakFootnote(d)).toContain("201,29");
     expect(formatMarktPeakFootnote(d)).toMatch(/21\.10\.2026/);
+    expect(formatMarktPeakWarnShort(d)).toMatch(/21\.10\.2026, 14:00/);
+    expect(formatMarktPeakWarnShort(d)).not.toMatch(/2026-10-21T/);
   });
 });

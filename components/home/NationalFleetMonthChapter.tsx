@@ -145,6 +145,16 @@ export function NationalFleetMonthChapter({
         </h2>
       </div>
 
+      <NationalFleetTimeSeriesChart
+        monthKey={monthKey}
+        factor={factor}
+        strategy={strategy}
+        peakReductionGw={stats.peakReductionGw}
+        peakReductionPct={stats.peakReductionPct}
+        prominentMonth
+      />
+      {insightsFooter}
+
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
           <legend className="v4-fleet-legend">{FLEET_SIZE_LEGEND}</legend>
@@ -204,16 +214,6 @@ export function NationalFleetMonthChapter({
           <dd>{formatGw(stats.dischargeGwh, 2)} GWh</dd>
         </div>
       </dl>
-
-      <NationalFleetTimeSeriesChart
-        monthKey={monthKey}
-        factor={factor}
-        strategy={strategy}
-        peakReductionGw={stats.peakReductionGw}
-        peakReductionPct={stats.peakReductionPct}
-        prominentMonth
-      />
-      {insightsFooter}
       <FleetMonthFootnotes
         factor={factor}
         monthKey={monthKey}

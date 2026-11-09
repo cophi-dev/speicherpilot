@@ -1,30 +1,24 @@
 {
-  "commit": "d9a4854330f37a865a3b4e7d8ecda46e9638c256",
-  "buildId": "20261109T2238Z",
-  "builtAt": "2026-11-09T22:38:21.059Z",
+  "commit": "ca40cf0886a033664a0395648ad11a045528f17f",
+  "buildId": "20261109T2245Z",
+  "builtAt": "2026-11-09T22:45:41.911Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
     "M app/globals.css",
-    " M app/methodik/page.tsx",
-    " M app/monat/[monat]/page.tsx",
-    " M components/home/LueckeChart.tsx",
     " M components/home/MonatPageV4.tsx",
     " M components/home/NationalFleetMonatSlot.tsx",
     " M components/home/NationalFleetMonthChapter.tsx",
     " M components/home/NationalFleetThreeGoalsCompare.module.css",
+    " M components/home/NationalFleetThreeGoalsCompare.test.tsx",
     " M components/home/NationalFleetThreeGoalsCompare.tsx",
-    " M components/home/PreisFenster.tsx",
-    " M components/methodik/MethodikInsights.tsx",
     " M components/site/OrtUnbHinweis.tsx",
-    " M lib/marktInsights.test.ts",
-    " M lib/marktInsights.ts",
+    " M docs/audit-2026-11/paket3/screens/kontrolle/monat-2026-10-1440-dark-drei-ziele.png",
+    " M docs/audit-2026-11/paket3/screens/kontrolle/monat-2026-10-390-light-erstes-fenster.png",
+    " M docs/audit-2026-11/paket3/screens/kontrolle/ort-390-light-unb-hinweis.png",
     " M lib/nationalFleetThreeGoals.test.ts",
     " M lib/nationalFleetThreeGoals.ts",
-    " M lib/netzbetreiberNamen.test.ts",
-    " M scripts/paket3-abnahme.mjs",
-    "?? components/home/MonatMarktInsightsDl.tsx",
-    "?? components/methodik/MethodikNetzKapazitaet.tsx"
+    " M scripts/paket3-abnahme.mjs"
   ],
   "ci": false
 }

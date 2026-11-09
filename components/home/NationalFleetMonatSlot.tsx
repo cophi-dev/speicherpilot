@@ -6,6 +6,7 @@ import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
 import {
   buildThreeGoalsCompare,
   formatMarktPeakFootnote,
+  formatMarktPeakWarnShort,
   marktPeakFootnoteFromRun,
 } from "@/lib/nationalFleetThreeGoals";
 import {
@@ -53,20 +54,21 @@ export function NationalFleetMonatSlot({
   const factorRows = factorCompareRowsForStrategy(bundle, strategy);
 
   const compareModel = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
-  let marktPeakFootnote: string | null = null;
+  let marktPeakWarn: string | null = null;
+  let marktPeakDetail: string | null = null;
   if (compareModel.marktX10PeakTs) {
     const marktRun = loadNationalFleetRunSeries(10, "markt");
     const idx = marktRun.timestamp_berlin.indexOf(compareModel.marktX10PeakTs);
     if (idx >= 0) {
-      marktPeakFootnote = formatMarktPeakFootnote(
-        marktPeakFootnoteFromRun(
-          compareModel.marktX10PeakTs,
-          marktRun.r_mw[idx],
-          marktRun.r_prime_mw[idx],
-          marktRun.c_mw[idx],
-          marktRun.day_ahead_eur_mwh[idx],
-        ),
+      const detail = marktPeakFootnoteFromRun(
+        compareModel.marktX10PeakTs,
+        marktRun.r_mw[idx],
+        marktRun.r_prime_mw[idx],
+        marktRun.c_mw[idx],
+        marktRun.day_ahead_eur_mwh[idx],
       );
+      marktPeakWarn = formatMarktPeakWarnShort(detail);
+      marktPeakDetail = formatMarktPeakFootnote(detail);
     }
   }
 
@@ -92,7 +94,8 @@ export function NationalFleetMonatSlot({
           monthKey={monthKey}
           activeFactor={factor}
           activeStrategy={strategy}
-          marktPeakFootnote={marktPeakFootnote}
+          marktPeakWarn={marktPeakWarn}
+          marktPeakDetail={marktPeakDetail}
         />
       </div>
     </>

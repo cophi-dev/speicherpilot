@@ -94,14 +94,20 @@ export function marktPeakFootnoteFromRun(
 }
 
 function formatPeakInstantBerlin(ts: string): string {
-  const match = ts.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  const match = ts.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
   if (!match) {
     return ts;
   }
-  return `${Number(match[3])}.${Number(match[2])}.${match[1]}, ${match[4]}:${match[5]} Uhr`;
+  return `${Number(match[3])}.${Number(match[2])}.${match[1]}, ${match[4]}:${match[5]}`;
+}
+
+/** Eine Zeile unter dem Chart — Detail in Tabelle/Fußnote. */
+export function formatMarktPeakWarnShort(d: MarktPeakFootnoteDetail): string {
+  const when = formatPeakInstantBerlin(d.timestampBerlin);
+  return `Markt ×10: Spitze ${formatQuantity(d.peakAfterGw, "de", 2)} GW am ${when} Uhr — Preise historisch, kein Rückwirkungsmodell.`;
 }
 
 export function formatMarktPeakFootnote(d: MarktPeakFootnoteDetail): string {
   const when = formatPeakInstantBerlin(d.timestampBerlin);
-  return `Marktorientiert ×10 hebt die Monats-Restlastspitze auf ${formatQuantity(d.peakAfterGw, "de", 2)} GW (${when}: ${formatQuantity(d.residualGw, "de", 2)} GW Restlast + ${formatQuantity(d.chargeGw, "de", 1)} GW Laden bei ${formatQuantity(d.priceEurMwh, "de", 2)} €/MWh). Kein Preisrückwirkungsmodell — die Preise bleiben historisch.`;
+  return `${when} Uhr: ${formatQuantity(d.residualGw, "de", 2)} GW Restlast + ${formatQuantity(d.chargeGw, "de", 1)} GW Laden bei ${formatQuantity(d.priceEurMwh, "de", 2)} €/MWh.`;
 }

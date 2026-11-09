@@ -4,12 +4,11 @@ export function OrtUnbHinweis() {
   return (
     <aside className="v4-content v4-ort-unb-hinweis" aria-labelledby="ort-unb-title" data-testid="ort-unb-hinweis">
       <h2 id="ort-unb-title" className="v4-chapter-h2 v4-ort-unb-title">
-        Freie Anschlusskapazität — was öffentlich ist
+        Freie Anschlusskapazität (Art.&nbsp;50 Abs.&nbsp;4a VO&nbsp;2019/943)
       </h2>
       <p className="v4-subline">
-        ÜNB veröffentlichen nach Art. 50 Abs. 4a der VO (EU) 2019/943 (i. d. F. VO (EU) 2024/1747) mindestens monatlich
-        verfügbare Kapazität in MW-Klassen — nicht bis zur Mittelspannung. SpeicherPilot baut keine Deutschlandkarte und
-        erfindet keine Punktwerte.
+        ÜNB veröffentlichen danach mindestens monatlich verfügbare Kapazität in MW-Klassen — nicht bis zur
+        Mittelspannung. SpeicherPilot baut keine Deutschlandkarte und erfindet keine Punktwerte.
       </p>
       <ul className="v4-ort-unb-links num">
         <li>

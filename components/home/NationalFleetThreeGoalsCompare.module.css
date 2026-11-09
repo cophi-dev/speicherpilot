@@ -45,6 +45,9 @@
 
 .refLabel {
   fill: var(--v4-muted);
+  paint-order: stroke fill;
+  stroke: hsl(var(--background));
+  stroke-width: 4px;
 }
 
 .barLink {

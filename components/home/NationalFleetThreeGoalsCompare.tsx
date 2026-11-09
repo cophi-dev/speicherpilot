@@ -13,15 +13,15 @@ import type { ThreeGoalsCompareModel } from "@/lib/nationalFleetThreeGoals";
 
 const STRATEGY_ORDER: NationalFleetStrategyUi[] = ["ueberschuss", "spitze", "markt"];
 
-const VIEW_W = 400;
+const VIEW_W = 440;
 const VIEW_H = 196;
 const PAD_L = 44;
-const PAD_R = 8;
+const PAD_R = 28;
 const PAD_T = 30;
 const PAD_B = 30;
-const BAR_W = 10;
-const BAR_GAP = 4;
-const GROUP_GAP = 14;
+const BAR_W = 9;
+const BAR_GAP = 5;
+const GROUP_GAP = 22;
 
 function fmtGw(gw: number): string {
   return formatQuantity(gw, "de", 2);
@@ -38,13 +38,15 @@ export function NationalFleetThreeGoalsCompare({
   monthKey,
   activeFactor,
   activeStrategy,
-  marktPeakFootnote,
+  marktPeakWarn,
+  marktPeakDetail,
 }: {
   model: ThreeGoalsCompareModel;
   monthKey: string;
   activeFactor: NationalFleetFactor;
   activeStrategy: NationalFleetStrategyUi;
-  marktPeakFootnote?: string | null;
+  marktPeakWarn?: string | null;
+  marktPeakDetail?: string | null;
 }) {
   const peakValues = model.rows.flatMap((r) => r.cells.map((c) => c.peakAfterGw));
   const chartMax = Math.max(model.refPeakGw, ...peakValues, 1) * 1.04;
@@ -77,7 +79,6 @@ export function NationalFleetThreeGoalsCompare({
         <h2 id="three-goals-title" className="v4-chapter-h2">
           Dieselbe Flotte, drei Fahrweisen — Spitze nach Speicher
         </h2>
-        <p className={`v4-subline ${styles.lead}`}>Oktober · Flotte 4,58 GW / 8 GWh · ×1</p>
       </div>
 
       <figure className={`v4-content ${styles.figure}`}>
@@ -106,10 +107,16 @@ export function NationalFleetThreeGoalsCompare({
             <text x={PAD_L - 6} y={PAD_T - 10} className={styles.yUnit} textAnchor="end">
               GW
             </text>
+            <defs>
+              <clipPath id="three-goals-plot-clip">
+                <rect x={PAD_L} y={PAD_T} width={plotW} height={plotH} />
+              </clipPath>
+            </defs>
             <line x1={PAD_L} y1={refY} x2={VIEW_W - PAD_R} y2={refY} className={styles.refLine} />
-            <text x={PAD_L + 4} y={refY - 6} className={styles.refLabel}>
-              Referenz {fmtGw(model.refPeakGw)}
+            <text x={PAD_L + 2} y={PAD_T + 12} className={styles.refLabel} textAnchor="start">
+              Ref. {fmtGw(model.refPeakGw)} GW
             </text>
+            <g clipPath="url(#three-goals-plot-clip)">
             {NATIONAL_FLEET_FACTORS.map((factor, gi) => {
               const gx = groupStartX + gi * (groupInnerW + GROUP_GAP);
               return (
@@ -127,28 +134,30 @@ export function NationalFleetThreeGoalsCompare({
                     const isActiveStrategy = strategy === activeStrategy;
                     const isActiveCell = factor === activeFactor && strategy === activeStrategy;
                     return (
-                      <a
-                        key={strategy}
-                        href={href}
-                        className={styles.barLink}
-                        aria-label={`${NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}, ×${factor}, ${fmtGw(cell.peakAfterGw)} GW`}
-                      >
-                        <rect
-                          x={bx}
-                          y={top}
-                          width={BAR_W}
-                          height={Math.max(2, h)}
-                          className={`${styles.bar} ${isActiveStrategy ? styles.barAccent : styles.barMuted}${
-                            isActiveCell ? ` ${styles.barActive}` : ""
-                          }`}
-                          rx={2}
-                        />
-                      </a>
+                      <g key={strategy} transform={`translate(${bx}, 0)`}>
+                        <a
+                          href={href}
+                          className={styles.barLink}
+                          aria-label={`${NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}, ×${factor}, ${fmtGw(cell.peakAfterGw)} GW`}
+                        >
+                          <rect
+                            x={0}
+                            y={top}
+                            width={BAR_W}
+                            height={Math.max(2, h)}
+                            className={`${styles.bar} ${isActiveStrategy ? styles.barAccent : styles.barMuted}${
+                              isActiveCell ? ` ${styles.barActive}` : ""
+                            }`}
+                            rx={2}
+                          />
+                        </a>
+                      </g>
                     );
                   })}
                 </g>
               );
             })}
+            </g>
           </svg>
         </div>
         <figcaption className={styles.caption}>
@@ -188,9 +197,10 @@ export function NationalFleetThreeGoalsCompare({
               Methodik
             </Link>
           </p>
-          {marktPeakFootnote ? (
-            <p className={`v4-footnote muted ${styles.warnNote}`}>{marktPeakFootnote}</p>
+          {marktPeakWarn ? (
+            <p className={`v4-footnote muted ${styles.warnNote}`}>{marktPeakWarn}</p>
           ) : null}
+          {marktPeakDetail ? <p className="sr-only">{marktPeakDetail}</p> : null}
         </figcaption>
         <table className={`${styles.table} num sr-only`}>
           <caption>Spitze nach Speicher (GW) und Ladung (GWh)</caption>

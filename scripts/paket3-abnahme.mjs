@@ -5,7 +5,7 @@
 import { chromium } from "playwright";
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const BASE = process.env.SITE_E2E_BASE_URL ?? "http://127.0.0.1:3001";
@@ -53,6 +53,24 @@ function sha256File(path) {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
+/** Turbopack kann CSS-Chunk-Namen mit `..` emittieren, die auf der Platte 404 liefern. */
+function patchTurbopackCssChunk() {
+  const chunks = join(process.cwd(), ".next/static/chunks");
+  if (!existsSync(chunks)) {
+    return;
+  }
+  const builtList = readdirSync(chunks).filter((f) => f.endsWith(".css") && !f.includes(".."));
+  if (builtList.length === 0) {
+    return;
+  }
+  const built = builtList.sort((a, b) => b.length - a.length)[0];
+  for (const name of readdirSync(chunks)) {
+    if (name.endsWith(".css") && name.includes("..") && !existsSync(join(chunks, name))) {
+      execSync(`ln -sf ${JSON.stringify(built)} ${JSON.stringify(name)}`, { cwd: chunks });
+    }
+  }
+}
+
 async function preparePage(page, theme) {
   await page.addInitScript((t) => {
     document.documentElement.classList.toggle("dark", t === "dark");
@@ -63,6 +81,56 @@ async function preparePage(page, theme) {
       /* cross-origin guard */
     }
   }, theme);
+}
+
+async function applyTheme(page, theme) {
+  await page.emulateMedia({ colorScheme: theme === "dark" ? "dark" : "light" });
+  await page.evaluate((t) => {
+    document.documentElement.classList.toggle("dark", t === "dark");
+    document.documentElement.style.colorScheme = t === "dark" ? "dark" : "light";
+    localStorage.setItem("speicherpilot-theme", t);
+  }, theme);
+  await page.waitForTimeout(200);
+}
+
+async function waitForStyledHydrated(page, opts = {}) {
+  const { waitFleetChart = false, waitThreeGoals = false } = opts;
+  await page.waitForLoadState("networkidle", { timeout: 120_000 }).catch(() => {});
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForFunction(
+    () => {
+      const bodyFont = getComputedStyle(document.body).fontFamily.toLowerCase();
+      const hasAppFont =
+        bodyFont.includes("space") || bodyFont.includes("grotesk") || bodyFont.includes("ui-sans");
+      let sheetsOk = false;
+      for (const sheet of document.styleSheets) {
+        try {
+          if (sheet.cssRules && sheet.cssRules.length > 0) {
+            sheetsOk = true;
+            break;
+          }
+        } catch {
+          sheetsOk = true;
+          break;
+        }
+      }
+      return sheetsOk && hasAppFont;
+    },
+    { timeout: 45_000 },
+  );
+  if (waitFleetChart) {
+    await page.waitForSelector(".v4-fleet-ts-wrap svg", { state: "attached", timeout: 90_000 });
+    await page.waitForFunction(
+      () => {
+        const loading = document.body.textContent?.includes("Zeitreihe wird geladen");
+        return !loading;
+      },
+      { timeout: 90_000 },
+    );
+  }
+  if (waitThreeGoals) {
+    await page.waitForSelector('[data-testid="three-goals-compare"] svg', { state: "attached", timeout: 60_000 });
+  }
 }
 
 function copyVorherBaseline() {
@@ -87,33 +155,57 @@ async function captureControlCrops(browser) {
       viewport: { width: crop.viewport.width, height: crop.viewport.height },
     });
     await preparePage(page, crop.viewport.theme);
-    await page.goto(`${BASE}${crop.path}`, { waitUntil: "networkidle", timeout: 120_000 });
-    await page.waitForTimeout(800);
+    await page.goto(`${BASE}${crop.path}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+    await applyTheme(page, crop.viewport.theme);
+    await waitForStyledHydrated(page, {
+      waitFleetChart: crop.file.includes("monat-2026-10-390"),
+      waitThreeGoals: crop.file.includes("drei-ziele"),
+    });
     const dest = join(CROPS, crop.file);
     if (crop.locator) {
       const el = page.locator(crop.locator).first();
       await el.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(300);
       await el.screenshot({ path: dest });
     } else {
       await page.screenshot({ path: dest, clip: crop.clip });
+    }
+    const styled = await page.evaluate(() => {
+      const pill = document.querySelector(".v4-fleet-pill");
+      const font = getComputedStyle(document.body).fontFamily;
+      return {
+        font,
+        pillRadius: pill ? getComputedStyle(pill).borderRadius : null,
+      };
+    });
+    if (/times/i.test(styled.font) && !/space|grotesk/i.test(styled.font)) {
+      throw new Error(`Crop ${crop.file}: Seite ungestylt (font=${styled.font})`);
     }
     await page.close();
   }
 }
 
 async function main() {
+  patchTurbopackCssChunk();
   mkdirSync(NACHHER, { recursive: true });
   copyVorherBaseline();
   const browser = await chromium.launch({ headless: true });
   await captureControlCrops(browser);
+  if (process.env.PAKET3_CROPS_ONLY === "1") {
+    await browser.close();
+    console.log("OK", CROPS);
+    return;
+  }
   const lhSummary = [];
 
   for (const r of ROUTES) {
     for (const vp of VIEWPORTS) {
       const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
       await preparePage(page, vp.theme);
-      await page.goto(`${BASE}${r.path}`, { waitUntil: "networkidle", timeout: 120_000 });
-      await page.waitForTimeout(500);
+      await page.goto(`${BASE}${r.path}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+      await applyTheme(page, vp.theme);
+      await waitForStyledHydrated(page, { waitFleetChart: r.name === "monat" });
+      await page.waitForTimeout(300);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 2);
       if (vp.width === 390 && overflow) {
         throw new Error(`horizontal overflow on ${r.name} ${vp.label}`);
