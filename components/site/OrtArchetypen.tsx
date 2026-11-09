@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useLanguage } from "@/components/language-context";
-import { archetypeByKey, badgeForArchetype } from "@/lib/ortArchetypes";
-import type { OrtArchetype, OrtMode } from "@/lib/ortArchetypesSchema";
+import { archetypeByKey, badgeForArchetype, type BadgeV2Result } from "@/lib/ortArchetypes";
+import type { OrtArchetype, OrtBadgeId, OrtMode } from "@/lib/ortArchetypesSchema";
 import { NETZ_PALETTE } from "@/lib/netzPalette";
 import { sitePath } from "@/lib/perspective";
 
@@ -24,6 +25,22 @@ function usePrefersDarkChart(): boolean {
     return () => observer.disconnect();
   }, []);
   return dark;
+}
+
+const BADGE_PREVIEW_IDS = new Set<OrtBadgeId>(["nicht_bewertet"]);
+
+function ortArchetypeBadgeClass(id: OrtBadgeId): string {
+  return `site-badge ort-archetype-badge ort-archetype-badge--${id.replaceAll("_", "-")}`;
+}
+
+function previewBadge(id: OrtBadgeId): BadgeV2Result {
+  return {
+    id,
+    criticalHours: 0,
+    over100Before: 0,
+    over100After: 0,
+    hint: "Vorschau für Designabnahme — nicht bewertet",
+  };
 }
 
 function showConnectionMw(data: OrtArchetype): boolean {
@@ -133,10 +150,17 @@ function explainModeChoice(
 export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?: "land" | "stadt" }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const searchParams = useSearchParams();
   const [archetype, setArchetype] = useState<"land" | "stadt">(initialArchetype);
   const [mode, setMode] = useState<OrtMode>("markt");
   const data = useMemo(() => archetypeByKey(archetype), [archetype]);
-  const badge = useMemo(() => badgeForArchetype(data, mode), [data, mode]);
+  const badge = useMemo(() => {
+    const preview = searchParams.get("badgePreview");
+    if (preview && BADGE_PREVIEW_IDS.has(preview as OrtBadgeId)) {
+      return previewBadge(preview as OrtBadgeId);
+    }
+    return badgeForArchetype(data, mode);
+  }, [data, mode, searchParams]);
   const series = data.series.modes[mode];
   const prefersDark = usePrefersDarkChart();
   const palette = NETZ_PALETTE[prefersDark ? "night" : "paper"];
@@ -250,7 +274,12 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
           <div>
             <dt>{tx("Einschätzung am Mustertag (n-1)", "Assessment on sample day (n-1)")}</dt>
             <dd>
-              <span className="site-badge ort-archetype-badge">{badgeLabel}</span>
+              <span className={ortArchetypeBadgeClass(badge.id)}>
+                {badge.id === "belastend" ? (
+                  <span className="ort-archetype-badge__dot" aria-hidden="true" />
+                ) : null}
+                {badgeLabel}
+              </span>
               <p className="ort-kpi-explain">{badgeExplain}</p>
             </dd>
           </div>
