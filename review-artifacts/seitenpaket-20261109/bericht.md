@@ -51,5 +51,5 @@ Energy-Charts-Abrufe und ~2,7 MB Bundle-Parse bleiben dominierend; Cache-Hinweis
 
 ## 5) Screenshots
 
-Unter `review-artifacts/seitenpaket-20261109/screens/` — Start, Tag, Monat (×1 und ×5), 375/1280, dark/light. `manifest.json` enthält Head-SHA nach Merge-Commit.
+Unter `review-artifacts/seitenpaket-20261109/screens/` — Start, Tag, Monat (×1 und ×5), 375/1280, dark/light. Head-SHA: `1d93782` (Branch `cursor/nutzerfeedback-paket-0935`).
 
