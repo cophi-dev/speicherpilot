@@ -273,7 +273,7 @@ export async function loadGermanyView(
   });
 
   let surplusDay: SurplusDayReport | null = null;
-  if (parseMixRange(requestedRange) === "tag" && publicFleet) {
+  if (path !== "/tag" && parseMixRange(requestedRange) === "tag" && publicFleet) {
     surplusDay = await loadSurplusDayReportForView(days, todayKey, endDate, publicFleet, now);
   }
 
@@ -282,17 +282,19 @@ export async function loadGermanyView(
   if (parsed && publicFleet) {
     const lastSurplus = pickSurplusDay(days, todayKey)?.day.dateBerlin ?? null;
     const mergedPrices = mergeDayAheadPrices(priceRange.prices, price.prices);
-    overviews = buildOverviewsBundle({
-      slots: parsed.slots,
-      offshorePresent: parsed.offshorePresent,
-      days,
-      fleet: publicFleet,
-      prices: mergedPrices,
-      lastSurplus,
-      todayKey,
-      stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
-      dataStand: readings.stand,
-    });
+    if (path !== "/tag") {
+      overviews = buildOverviewsBundle({
+        slots: parsed.slots,
+        offshorePresent: parsed.offshorePresent,
+        days,
+        fleet: publicFleet,
+        prices: mergedPrices,
+        lastSurplus,
+        todayKey,
+        stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
+        dataStand: readings.stand,
+      });
+    }
     if (chosen?.day) {
       const dayBounds = overviewBounds("gestern", todayKey);
       dayBounds.blick = "tag";

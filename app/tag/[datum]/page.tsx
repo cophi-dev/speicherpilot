@@ -15,7 +15,7 @@ import {
   sliceFleetDay,
 } from "@/lib/nationalMonthFleetModel";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
-import { NationalFleetTagSlot } from "@/components/home/NationalFleetTagSlot";
+import { NationalFleetTagSlot, fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -103,15 +103,21 @@ export default async function TagDetailPage({
   const fleetStrategy = parseFleetStrategy(
     typeof query.fahrweise === "string" ? query.fahrweise : undefined,
   );
-  let fleetDayNoWindSolarSurplus = false;
-  if (nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
-    const bundle = loadNationalFleetMonthBundle();
-    const slice = sliceFleetDay(getFleetRun(bundle, fleetFactor, fleetStrategy), dayKey);
-    fleetDayNoWindSolarSurplus = (slice?.positiveSurplusQuarterHours ?? 1) === 0;
-  }
+  const fleetMonth = nationalFleetMonthAvailable(dayKey.slice(0, 7));
+  const fleetBundle = fleetMonth ? loadNationalFleetMonthBundle() : null;
+  const fleetSlice =
+    fleetBundle && fleetMonth
+      ? sliceFleetDay(getFleetRun(fleetBundle, fleetFactor, fleetStrategy), dayKey)
+      : null;
+  const fleetDayNoWindSolarSurplusFlag = fleetDayNoWindSolarSurplus(fleetSlice);
   const fleetSlot =
-    nationalFleetMonthAvailable(dayKey.slice(0, 7)) ? (
-      <NationalFleetTagSlot dayKey={dayKey} factor={fleetFactor} strategy={fleetStrategy} />
+    fleetBundle && fleetSlice ? (
+      <NationalFleetTagSlot
+        dayKey={dayKey}
+        factor={fleetFactor}
+        strategy={fleetStrategy}
+        preloadedBundle={fleetBundle}
+      />
     ) : null;
 
   return (
@@ -130,7 +136,7 @@ export default async function TagDetailPage({
         fleetEnergyGwh={fleet.energyGwh}
         fleetFactor={fleetFactor}
         fleetStrategy={fleetStrategy}
-        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
+        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplusFlag}
       >
         {fleetSlot}
       </TagPageV4>

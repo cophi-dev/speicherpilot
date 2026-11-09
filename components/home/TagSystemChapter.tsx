@@ -6,7 +6,6 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
-import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
 import type { NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 export function TagSystemChapter({
@@ -73,28 +72,32 @@ export function TagSystemChapter({
               Energie zum Ladetag, sondern Größenordnung des Speichers in der ×1-Referenz.
             </p>
             <p className="v4-tag-side">
-              Aus Wind- und Sonnenüberschuss wäre im Überschuss-Lademodell an diesem Tag nichts zu laden.{" "}
-              {tagLastSurplusLine(lastSurplusKey)}{" "}
+              Im Überschuss-Lademodell an diesem Tag nichts zu laden.{" "}
               {lastSurplusKey ? (
                 <Link href={`/tag/${lastSurplusKey}`} className="v4-chapter-next-link">
                   Letzter Überschusstag →
                 </Link>
               ) : null}
             </p>
-            {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
-              <p className="v4-tag-side">
-                Der Monatslauf-Ausschnitt unten ({fleetStrategyBelow === "spitze" ? "Spitze senken" : "Marktorientiert"})
-                kann trotzdem Netzladung und Lastverschiebung rechnen — getrennt vom Überschuss-Modell hier oben.
-              </p>
-            ) : null}
           </>
         )}
         {priceLine ? (
-          <p className="v4-tag-side num">
-            Börsenpreis Day-Ahead: {priceLine}
-          </p>
+          <p className="v4-tag-side num v4-tag-price-desktop">Day-Ahead: {priceLine}</p>
         ) : null}
       </div>
+      {(showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss") || priceLine ? (
+        <details className="v4-content v4-tag-system-footnote">
+          <summary>Ergänzungen (Preis, Monatsmodell)</summary>
+          {priceLine ? <p className="v4-tag-side num">Börsenpreis Day-Ahead: {priceLine}</p> : null}
+          {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
+            <p className="v4-tag-side">
+              Monatslauf unten (
+              {fleetStrategyBelow === "spitze" ? "Spitze senken" : "Marktorientiert"}, Price Taker nur Marktfahrweise)
+              rechnet Netzladung getrennt vom Überschuss-Modell.
+            </p>
+          ) : null}
+        </details>
+      ) : null}
       <p className="v4-chapter-foot v4-content">
         <Link href="/ort?sicht=projekt" className="v4-chapter-next-link">
           03 · Ort — Speicher am Anschluss →

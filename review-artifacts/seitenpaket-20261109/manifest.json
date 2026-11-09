@@ -1,0 +1,16 @@
+{
+  "paket": "seitenpaket-20261109",
+  "headSha": "9e2fd1becd7815d431b70d5f2817a84344ae9982",
+  "branch": "cursor/nutzerfeedback-paket-0935",
+  "capturedAt": "2026-11-09T17:45:00Z",
+  "screensDir": "review-artifacts/seitenpaket-20261109/screens",
+  "viewportWidths": [375, 1280],
+  "themes": ["dark", "light"],
+  "pages": [
+    "start",
+    "tag-2026-10-29-f1",
+    "monat-2026-10-f1",
+    "monat-2026-10-f5"
+  ],
+  "notes": "Screens nach Branch-Build gegen lokalen next start :3099"
+}

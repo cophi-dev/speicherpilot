@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
 import {
+  fleetChartSeriesForDay,
+  fleetChartSeriesForMonth,
+  fleetSeriesJsonResponse,
+} from "@/lib/nationalFleetSeriesPayload";
+import {
   getFleetRun,
   nationalFleetMonthAvailable,
   parseFleetFactor,
@@ -32,42 +37,27 @@ export async function GET(request: Request) {
     if (!slice) {
       return NextResponse.json({ error: "Kein Tag im Lauf" }, { status: 404 });
     }
-    const pick = (r: typeof run, indices: number[]) => ({
-      timestamp_berlin: indices.map((i) => r.timestamp_berlin[i]),
-      r_mw: indices.map((i) => r.r_mw[i]),
-      r_prime_mw: indices.map((i) => r.r_prime_mw[i]),
-      c_mw: indices.map((i) => r.c_mw[i]),
-      d_mw: indices.map((i) => r.d_mw[i]),
-      e_start_mwh: indices.map((i) => r.e_start_mwh[i]),
-    });
-    const idx = slice.indices;
-    return NextResponse.json({
-      monthKey,
-      dateKey,
-      factor,
-      strategy,
-      selected: pick(run, idx),
-      compare: compareRun ? pick(compareRun, idx) : null,
-    });
+    const seriesBundle = fleetChartSeriesForDay(run, compareRun, slice.indices, factor);
+    return NextResponse.json(
+      fleetSeriesJsonResponse({
+        monthKey,
+        factor,
+        strategy,
+        dateKey,
+        intervalCount: slice.indices.length,
+        bundle: seriesBundle,
+      }),
+    );
   }
 
-  return NextResponse.json({
-    monthKey,
-    factor,
-    strategy,
-    intervalCount: run.intervalCount,
-    selected: {
-      timestamp_berlin: run.timestamp_berlin,
-      r_mw: run.r_mw,
-      r_prime_mw: run.r_prime_mw,
-      c_mw: run.c_mw,
-      d_mw: run.d_mw,
-      e_start_mwh: run.e_start_mwh,
-    },
-    compare: compareRun
-      ? {
-          r_prime_mw: compareRun.r_prime_mw,
-        }
-      : null,
-  });
+  const seriesBundle = fleetChartSeriesForMonth(run, compareRun, factor);
+  return NextResponse.json(
+    fleetSeriesJsonResponse({
+      monthKey,
+      factor,
+      strategy,
+      intervalCount: run.intervalCount,
+      bundle: seriesBundle,
+    }),
+  );
 }

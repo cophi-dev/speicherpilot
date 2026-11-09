@@ -9423,6 +9423,48 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 .v4-fleet-ts-wrap {
   margin-bottom: 24px;
 }
+.v4-fleet-ts-wrap.is-month-prominent {
+  margin-top: 8px;
+  margin-bottom: 28px;
+}
+.v4-fleet-ts-wrap.is-month-prominent .v4-fleet-ts-panel-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.v4-fleet-ts-interactive {
+  outline: none;
+  border-radius: 4px;
+}
+.v4-fleet-ts-interactive:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--primary));
+}
+.v4-fleet-kpis-hero {
+  margin-bottom: 12px;
+}
+.v4-fleet-kpi-primary dd {
+  font-size: clamp(18px, 3.5vw, 22px);
+  font-weight: 600;
+}
+.v4-fleet-chart-footnote {
+  font-size: 13px;
+  margin: -12px 0 20px;
+  color: hsl(var(--muted-foreground));
+}
+.v4-monat-obs-subline-desktop {
+  display: block;
+}
+@media (max-width: 640px) {
+  .v4-fleet-subline-desktop,
+  .v4-system-subline-desktop,
+  .v4-monat-obs-subline-desktop,
+  .v4-tag-side-supplement-desktop,
+  .v4-tag-price-desktop {
+    display: none;
+  }
+}
+.v4-fleet-soc-disclosure summary {
+  cursor: pointer;
+}
 .v4-fleet-ts-legend {
   display: flex;
   flex-wrap: wrap;

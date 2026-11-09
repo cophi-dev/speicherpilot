@@ -32,9 +32,8 @@ export function OrtServerShell({ view, scenario }: { view: Perspective; scenario
         <div className="ort-v4-copy">
           <p className="v4-kicker num">03 · Der Ort</p>
           {view === "projekt" || scenario === "grossspeicher" ? (
-            <p className="page-lead v4-subline">
-              Ein Speicher an einem Anschlusspunkt: Projektierer sehen Größe und Wirtschaftlichkeit, Netzbetreiber Grenze
-              und Netzwirkung.
+            <p className="page-lead v4-subline v4-ort-lead-desktop">
+              Speicher am Anschlusspunkt — Größe, Grenze, Netzwirkung.
             </p>
           ) : null}
           <div className="v4-tab-bar site-toggle" role="group" aria-label="Perspektive">
@@ -50,10 +49,13 @@ export function OrtServerShell({ view, scenario }: { view: Perspective; scenario
             {heroH1(view, scenario)}
           </h1>
           {scenario === "grossspeicher" && view === "netz" ? (
-            <p className="v4-subline">
-              Laden ist Bezug aus dem Netz. Abgeben ist Einspeisung ins Netz. Der Ring unten ist eine Modellschätzung, nicht
-              die gemessene Fahrweise.
-            </p>
+            <details className="v4-ort-model-disclosure">
+              <summary className="v4-subline">Ring unten: Modellschätzung</summary>
+              <p className="v4-subline">
+                Laden = Bezug aus dem Netz, Abgeben = Einspeisung. Der Ring ist Modellschätzung, nicht gemessene Fahrweise.
+                Lokale Netzwirkung nur durch den Netzbetreiber bewertbar.
+              </p>
+            </details>
           ) : null}
         </div>
       </section>

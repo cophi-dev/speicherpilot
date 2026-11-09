@@ -12,22 +12,14 @@ import {
   formatPeakEffectLine,
   peakIndexRp,
   polylinePoints,
-  REF_RESIDUAL_PEAK_GW,
   scaleLinear,
   yAxisTicks,
   type FleetChartPoint,
 } from "@/lib/nationalFleetCharts";
+import type { FleetChartSeriesPayload } from "@/lib/nationalFleetSeriesPayload";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
-
-type SeriesPayload = {
-  timestamp_berlin: string[];
-  r_mw: number[];
-  r_prime_mw: number[];
-  c_mw: number[];
-  d_mw: number[];
-  e_start_mwh: number[];
-};
+type SeriesPayload = FleetChartSeriesPayload;
 
 function toRunLike(selected: SeriesPayload) {
   return {
@@ -102,6 +94,9 @@ export function NationalFleetTimeSeriesChart({
   peakObservedDayGw,
   monthContextNote,
   scrollHint,
+  initialSeries,
+  initialCompareRp,
+  prominentMonth = false,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
@@ -115,17 +110,29 @@ export function NationalFleetTimeSeriesChart({
   /** Optionaler kleiner Monatsvergleich unter Tagescaption. */
   monthContextNote?: string;
   scrollHint?: string;
+  /** Server-seitig vorab geladen — vermeidet API-Roundtrip beim ersten Paint. */
+  initialSeries?: SeriesPayload;
+  initialCompareRp?: number[] | null;
+  /** Größere Restlast-Panels in der Monatsansicht. */
+  prominentMonth?: boolean;
 }) {
-  const [selected, setSelected] = useState<SeriesPayload | null>(null);
-  const [compareRp, setCompareRp] = useState<number[] | null>(null);
+  const [selected, setSelected] = useState<SeriesPayload | null>(initialSeries ?? null);
+  const [compareRp, setCompareRp] = useState<number[] | null>(initialCompareRp ?? null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hover, setHover] = useState<FleetChartPoint | null>(null);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   const [scrollWidth, setScrollWidth] = useState(0);
+  const skipHydrationFetch = useRef(Boolean(initialSeries));
 
   const isDay = Boolean(dateKey);
 
   useEffect(() => {
+    if (skipHydrationFetch.current) {
+      skipHydrationFetch.current = false;
+      return;
+    }
     const params = new URLSearchParams({
       monat: monthKey,
       faktor: String(factor),
@@ -214,7 +221,8 @@ export function NationalFleetTimeSeriesChart({
   const n = points.length;
   const width = scrollWidth > 0 ? scrollWidth : Math.max(320, n * 4);
   const pxPerQh = width / n;
-  const panelH = 92;
+  const panelH = prominentMonth && !isDay ? 124 : isDay ? 104 : 92;
+  const auxPanelH = prominentMonth && !isDay ? 88 : panelH;
   const pad = 6;
   const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
   const rScale = isDay
@@ -250,12 +258,52 @@ export function NationalFleetTimeSeriesChart({
         ? formatPeakCaptionMonthContext(peakReductionGw, peakReductionPct)
         : null;
 
+  const indexFromClientX = (clientX: number, target: HTMLDivElement) => {
+    const rect = target.getBoundingClientRect();
+    const x = clientX - rect.left + target.scrollLeft;
+    return Math.min(points.length - 1, Math.max(0, Math.round(x / pxPerQh)));
+  };
+
   const onMove = (ev: React.MouseEvent<HTMLDivElement>) => {
-    const scroll = ev.currentTarget;
-    const rect = scroll.getBoundingClientRect();
-    const x = ev.clientX - rect.left + scroll.scrollLeft;
-    const j = Math.min(points.length - 1, Math.max(0, Math.round(x / pxPerQh)));
-    setHover(points[j]);
+    setHover(points[indexFromClientX(ev.clientX, ev.currentTarget)]);
+    setFocusIndex(null);
+  };
+
+  const onTouch = (ev: React.TouchEvent<HTMLDivElement>) => {
+    const touch = ev.touches[0];
+    if (!touch) {
+      return;
+    }
+    setHover(points[indexFromClientX(touch.clientX, ev.currentTarget)]);
+    setFocusIndex(null);
+  };
+
+  const activePoint =
+    focusIndex != null && points[focusIndex] ? points[focusIndex] : hover;
+
+  const onChartKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
+    if (points.length === 0) {
+      return;
+    }
+    const cur = focusIndex ?? (hover ? points.indexOf(hover) : Math.floor(points.length / 2));
+  const move = (next: number) => {
+      const j = Math.min(points.length - 1, Math.max(0, next));
+      setFocusIndex(j);
+      setHover(null);
+    };
+    if (ev.key === "ArrowRight") {
+      ev.preventDefault();
+      move(cur + 1);
+    } else if (ev.key === "ArrowLeft") {
+      ev.preventDefault();
+      move(cur - 1);
+    } else if (ev.key === "Home") {
+      ev.preventDefault();
+      move(0);
+    } else if (ev.key === "End") {
+      ev.preventDefault();
+      move(points.length - 1);
+    }
   };
 
   const showPowerNote = powerMaxGw < 0.01;
@@ -266,7 +314,9 @@ export function NationalFleetTimeSeriesChart({
   const hideAuxPanels = isDay && showPowerNote && socSpanGwh < 0.12;
 
   return (
-    <figure className="v4-fleet-ts-wrap v4-content">
+    <figure
+      className={`v4-fleet-ts-wrap v4-content${prominentMonth && !isDay ? " is-month-prominent" : ""}`}
+    >
       <figcaption className="v4-fleet-caption">
         <span className="v4-fleet-caption-main">{captionMain}</span>
         {captionMonth ? <span className="v4-fleet-caption-month num"> {captionMonth}</span> : null}
@@ -286,26 +336,37 @@ export function NationalFleetTimeSeriesChart({
           trotzdem die Modellwirkung. Leistungs- und SoC-Diagramm ausgeblendet.
         </p>
       ) : null}
-      {hover ? (
+      {activePoint ? (
         <p className="v4-fleet-ts-tooltip num" role="status" data-testid="fleet-ts-tooltip">
-          {hover.ts}: Restlast {formatQuantity(hover.rGw, "de", 2)} GW · mit Speicher{" "}
-          {formatQuantity(hover.rpGw, "de", 2)} GW · Laden {formatQuantity(hover.cMw / 1000, "de", 2)} GW · Entladen{" "}
-          {formatQuantity(hover.dMw / 1000, "de", 2)} GW · SoC {formatQuantity(hover.socGwh, "de", 2)} GWh (Beginn)
+          {activePoint.ts}: Restlast {formatQuantity(activePoint.rGw, "de", 2)} GW · mit Speicher{" "}
+          {formatQuantity(activePoint.rpGw, "de", 2)} GW · Laden {formatQuantity(activePoint.cMw / 1000, "de", 2)} GW ·
+          Entladen {formatQuantity(activePoint.dMw / 1000, "de", 2)} GW · SoC{" "}
+          {formatQuantity(activePoint.socGwh, "de", 2)} GWh (Beginn)
         </p>
       ) : (
-        <p className="v4-fleet-ts-tooltip num muted">Zeiger über die Kurven bewegen für die Viertelstunde</p>
+        <p className="v4-fleet-ts-tooltip num muted">
+          Tippen oder Zeiger über die Kurven · Pfeiltasten auf dem Chart für die Viertelstunde
+        </p>
       )}
+      <div
+        ref={chartRef}
+        className="v4-fleet-ts-interactive"
+        tabIndex={0}
+        role="application"
+        aria-label={
+          isDay
+            ? `Tagesverlauf Restlast und Speicher am ${dateKey}, Viertelstunden mit Pfeiltasten wählbar`
+            : `Monatsverlauf Restlast und Speicher, Viertelstunden mit Pfeiltasten wählbar`
+        }
+        onKeyDown={onChartKeyDown}
+      >
       <div
         ref={scrollRef}
         className="v4-fleet-ts-scroll is-fit"
         onMouseMove={onMove}
         onMouseLeave={() => setHover(null)}
-        role="img"
-        aria-label={
-          isDay
-            ? `Tagesverlauf Restlast und Speicher am ${dateKey}`
-            : `Monatsverlauf Referenzspitze ${formatQuantity(REF_RESIDUAL_PEAK_GW, "de", 2)} Gigawatt`
-        }
+        onTouchStart={onTouch}
+        onTouchMove={onTouch}
       >
         <div className="v4-fleet-ts-inner" style={{ width: "100%" }}>
           <SinglePanel
@@ -350,7 +411,7 @@ export function NationalFleetTimeSeriesChart({
             title="Speicherleistung"
             unit="GW"
             width={width}
-            height={panelH}
+            height={auxPanelH}
             yMin={powerScale.min}
             yMax={powerScale.max}
           >
@@ -381,7 +442,7 @@ export function NationalFleetTimeSeriesChart({
             title="Speicherinhalt (Beginn Viertelstunde)"
             unit="GWh"
             width={width}
-            height={panelH}
+            height={auxPanelH}
             yMin={socScale.min}
             yMax={socScale.max}
           >
@@ -411,6 +472,7 @@ export function NationalFleetTimeSeriesChart({
             ))}
           </div>
         </div>
+      </div>
       </div>
     </figure>
   );

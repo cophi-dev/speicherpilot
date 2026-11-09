@@ -86,6 +86,7 @@ export default async function MonatDetailPage({
         fleetStrategy={fleetStrategy}
         observationLive={pageData.observationLive}
         observationFallbackNote={pageData.observationFallback?.sourceNoteDe ?? null}
+        surplusBars={bars}
       >
         {fleetSlot}
       </MonatPageV4>
