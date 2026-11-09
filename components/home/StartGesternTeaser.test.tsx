@@ -66,5 +66,12 @@ describe("StartGesternTeaser", () => {
     expect(footnotes.textContent).toMatch(/Annahmen und Zeiträume/);
     expect(document.body.textContent).not.toMatch(/€/);
     expect(document.querySelector(".v4-tag-kern")).toBeNull();
+    expect(
+      [...footnotes.querySelectorAll("dt")].map((node) => node.textContent)
+    ).toEqual(["Formel", "Daten", "Modell", "Netz"]);
+    for (const value of footnotes.querySelectorAll("dd")) {
+      expect(value.classList.contains("num")).toBe(false);
+      expect((value.textContent ?? "").length).toBeLessThanOrEqual(70);
+    }
   });
 });

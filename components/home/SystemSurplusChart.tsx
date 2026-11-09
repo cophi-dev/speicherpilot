@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import { layoutSurplusChart, type SurplusBarInput } from "@/lib/systemSurplusChart";
@@ -24,80 +24,120 @@ function gwhLabel(value: number): string {
   return formatQuantity(value, "de", digits);
 }
 
-export function SystemSurplusChart({ rows, factor }: { rows: SurplusBarInput[]; factor: number }) {
+export function SystemSurplusChart({
+  rows,
+  factor,
+  caption,
+}: {
+  rows: SurplusBarInput[];
+  factor: number;
+  caption?: string;
+}) {
   const compact = useSyncExternalStore(subscribeCompact, compactSnapshot, compactServerSnapshot);
-  const layout = useMemo(() => layoutSurplusChart(rows, compact ? 360 : 720), [compact, rows]);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const el = frameRef.current;
+    if (!el || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const apply = () => {
+      const next = Math.round(el.clientWidth);
+      if (next > 0) {
+        setMeasured(next);
+      }
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const plotWidth = measured ?? (compact ? 350 : 1100);
+  const layout = useMemo(() => layoutSurplusChart(rows, plotWidth), [plotWidth, rows]);
   const summary = `Überschuss je Tag in GWh, ${rows.length} Tage. Der farbige Teil ist die Modell-Ladung bei ×${factor}.`;
 
   return (
     <figure className="v4-system-chart-figure">
-      <svg
-        className="v4-system-chart"
-        viewBox={`0 0 ${layout.width} ${layout.height}`}
-        role="img"
-        aria-label={summary}
-      >
-        {layout.ticks.map((tick) => (
-          <g key={tick.value}>
-            <line
-              className="v4-system-chart-grid"
-              x1={layout.plotLeft}
-              x2={layout.width - 8}
-              y1={tick.y}
-              y2={tick.y}
-            />
-            <text className="v4-system-chart-axis" x={layout.plotLeft - 6} y={tick.y + 3} textAnchor="end">
-              {gwhLabel(tick.value)}
-            </text>
-          </g>
-        ))}
-        {layout.bars.map((bar) => (
-          <g key={bar.dateBerlin}>
-            {bar.surplusH > 0 ? (
-              <rect
-                className="v4-system-chart-surplus"
-                x={bar.x}
-                y={bar.surplusY}
-                width={bar.width}
-                height={bar.surplusH}
-              >
-                <title>
-                  {`${bar.dateBerlin}: Überschuss ${formatQuantity(Math.max(0, bar.surplusGwh), "de", 1)} GWh, geladen ${formatQuantity(Math.max(0, bar.absorbedGwh), "de", 1)} GWh`}
-                </title>
-              </rect>
-            ) : null}
-            {bar.absorbedH > 0 ? (
-              <rect
-                className="v4-system-chart-absorbed"
-                x={bar.x}
-                y={bar.absorbedY}
-                width={bar.width}
-                height={bar.absorbedH}
+      <div className="v4-system-chart-frame" ref={frameRef}>
+        <svg
+          className="v4-system-chart"
+          viewBox={`0 0 ${layout.width} ${layout.height}`}
+          role="img"
+          aria-label={summary}
+        >
+          {layout.ticks.map((tick) => (
+            <g key={tick.value}>
+              <line
+                className="v4-system-chart-grid"
+                x1={layout.gridX1}
+                x2={layout.gridX2}
+                y1={tick.y}
+                y2={tick.y}
               />
-            ) : null}
-            {bar.label ? (
               <text
                 className="v4-system-chart-axis"
-                x={bar.x + bar.width / 2}
-                y={layout.height - 8}
-                textAnchor="middle"
+                x={layout.yLabelX}
+                y={tick.y}
+                textAnchor="end"
+                dominantBaseline="middle"
               >
-                {bar.label}
+                {gwhLabel(tick.value)}
               </text>
-            ) : null}
-          </g>
-        ))}
-      </svg>
-      <ul className="v4-system-legend">
-        <li>
-          <span className="v4-system-legend-swatch is-surplus" aria-hidden="true" />
-          Überschuss, beobachtet
-        </li>
-        <li>
-          <span className="v4-system-legend-swatch is-absorbed" aria-hidden="true" />
-          geladen, Modell ×{factor}
-        </li>
-      </ul>
+            </g>
+          ))}
+          {layout.bars.map((bar) => (
+            <g key={bar.dateBerlin}>
+              {bar.surplusH > 0 ? (
+                <rect
+                  className="v4-system-chart-surplus"
+                  x={bar.x}
+                  y={bar.surplusY}
+                  width={bar.width}
+                  height={bar.surplusH}
+                >
+                  <title>
+                    {`${bar.dateBerlin}: Überschuss ${formatQuantity(Math.max(0, bar.surplusGwh), "de", 1)} GWh, geladen ${formatQuantity(Math.max(0, bar.absorbedGwh), "de", 1)} GWh`}
+                  </title>
+                </rect>
+              ) : null}
+              {bar.absorbedH > 0 ? (
+                <rect
+                  className="v4-system-chart-absorbed"
+                  x={bar.x}
+                  y={bar.absorbedY}
+                  width={bar.width}
+                  height={bar.absorbedH}
+                />
+              ) : null}
+              {bar.label && bar.labelX != null && bar.labelAnchor ? (
+                <text
+                  className="v4-system-chart-axis"
+                  x={bar.labelX}
+                  y={layout.height - 4}
+                  textAnchor={bar.labelAnchor}
+                >
+                  {bar.label}
+                </text>
+              ) : null}
+            </g>
+          ))}
+        </svg>
+      </div>
+      <figcaption className="v4-system-chart-caption">
+        <ul className="v4-system-legend">
+          <li>
+            <span className="v4-system-legend-swatch is-surplus" aria-hidden="true" />
+            Überschuss, beobachtet
+          </li>
+          <li>
+            <span className="v4-system-legend-swatch is-absorbed" aria-hidden="true" />
+            geladen, Modell ×{factor}
+          </li>
+        </ul>
+        {caption ? <p className="v4-strip-caption num">{caption}</p> : null}
+      </figcaption>
       <table className="sr-only">
         <caption>{summary}</caption>
         <thead>

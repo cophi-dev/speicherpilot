@@ -2191,8 +2191,13 @@ html:not(.dark) .day-hero .empty-sweep {
   padding: 0;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+table.sr-only {
+  display: block;
+  max-width: 1px;
 }
 
 .day-zero {
@@ -6884,7 +6889,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   margin-top: 1.25rem;
 }
 .v4-chapter-num {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
@@ -7361,11 +7366,72 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .v4-footnote-link {
   color: inherit;
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.v4-day-footnotes {
+  margin-top: 12px;
+}
+.v4-day-notes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px 32px;
+  margin: 0;
+}
+.v4-day-notes dt {
+  margin: 0 0 2px;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.3;
+  color: hsl(var(--muted-foreground));
+}
+.v4-day-notes dd {
+  margin: 0;
+  max-width: 70ch;
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+  color: hsl(var(--foreground));
+}
+.v4-day-notes dd + dd {
+  margin-top: 2px;
+}
+@media (min-width: 768px) {
+  .v4-day-notes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 .v4-kopf-footnote {
   margin-top: 0.75rem;
+}
+.v4-system-chart-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+.v4-system-chart-wrap .v4-strip-caption {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.v4-system-chart-figure {
+  margin: 0;
+  width: 100%;
+}
+.v4-system-chart-frame {
+  width: 100%;
+}
+.v4-system-chart-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.v4-system-chart-wrap + .v4-fold > summary {
+  padding-top: 1.25rem;
 }
 .v4-system-chart {
   display: block;
@@ -7379,7 +7445,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .v4-system-chart-axis {
   fill: hsl(var(--muted-foreground));
   font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 13px;
+  font-size: 12px;
 }
 .v4-system-chart-surplus {
   fill: color-mix(in srgb, hsl(var(--foreground)) 32%, transparent);
@@ -7391,11 +7457,11 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
-  margin: 8px 0 4px;
+  margin: 0;
   padding: 0;
   list-style: none;
   color: hsl(var(--muted-foreground));
-  font-size: 13px;
+  font-size: 12px;
 }
 .v4-system-legend-swatch {
   display: inline-block;

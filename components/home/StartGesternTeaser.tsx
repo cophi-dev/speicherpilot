@@ -4,12 +4,7 @@ import Link from "next/link";
 
 import { LueckeChart } from "@/components/home/LueckeChart";
 import { StartDayFootnotes, StartDayPanel } from "@/components/home/StartDayPanel";
-import {
-  tagSurplusLine,
-  tagLastSurplusLine,
-  tagSurplusDefinitionLine,
-  lastSurplusBefore,
-} from "@/lib/kopfTagCopy";
+import { tagSurplusLine, tagLastSurplusLine, lastSurplusBefore } from "@/lib/kopfTagCopy";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { HomeDayPanelData } from "@/lib/homeDayPanel";
@@ -60,7 +55,6 @@ export function StartGesternTeaser({
           panel={panel}
           kopfDayKey={kopfDayKey}
           surplusLine={surplus}
-          definitionLine={tagSurplusDefinitionLine()}
           lastLine={lastLine}
         />
       ) : null}

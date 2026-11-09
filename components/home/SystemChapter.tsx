@@ -71,11 +71,11 @@ export function SystemChapter({
       </div>
       <div className="v4-content v4-system-chart-wrap">
         <p className="v4-strip-caption num">Überschuss je Tag, GWh</p>
-        <SystemSurplusChart rows={dayRows} factor={factor} />
-        <p className="v4-strip-caption num">
-          Zusammengeschoben: {formatQuantity(loaded, "de", 1)} von {formatQuantity(totalSurplus, "de", 1)} GWh geladen
-          (Modell)
-        </p>
+        <SystemSurplusChart
+          rows={dayRows}
+          factor={factor}
+          caption={`Zusammengeschoben: ${formatQuantity(loaded, "de", 1)} von ${formatQuantity(totalSurplus, "de", 1)} GWh geladen (Modell)`}
+        />
       </div>
       <details className="v4-content v4-fold">
         <summary className="num">Immer öfter?</summary>
