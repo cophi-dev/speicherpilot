@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ortModeSchema = z.enum(["markt", "vertrag", "netz"]);
 
-export const ortBadgeSchema = z.enum(["netzdienlich", "belastend", "neutral"]);
+export const ortBadgeSchema = z.enum(["netzdienlich", "belastend", "neutral", "nicht_bewertet"]);
 
 export const ortSeriesModeSchema = z.object({
   c: z.array(z.number()),

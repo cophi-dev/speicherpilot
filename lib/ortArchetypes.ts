@@ -33,16 +33,16 @@ export type BadgeV2Result = {
 };
 
 const DT = 0.25;
+const WORSEN_EPS_PP = 0.5;
+const BASELINE_STRESS_PP = 90;
 
-/** Badge v2 „netzdienlich (Modell)“ — spec §4.5 */
-export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
-  const dt = input.dtHours ?? DT;
-  const l0 = input.L0n1;
-  const l1 = input.L1n1;
-  const n = Math.min(l0.length, l1.length);
+function isUsableSeries(values: number[]): boolean {
+  return values.length > 0 && values.every((value) => Number.isFinite(value));
+}
+
+function countOver100(l0: number[], l1: number[], n: number) {
   let over100Before = 0;
   let over100After = 0;
-  const critical = new Set<number>();
   for (let i = 0; i < n; i += 1) {
     if (l0[i] > 100) {
       over100Before += 1;
@@ -50,11 +50,63 @@ export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
     if (l1[i] > 100) {
       over100After += 1;
     }
-    if (l0[i] >= 90 || l1[i] >= 90) {
-      critical.add(i);
+  }
+  return { over100Before, over100After };
+}
+
+function baselineStressIndices(l0: number[], n: number): Set<number> {
+  const indices = new Set<number>();
+  for (let i = 0; i < n; i += 1) {
+    if (l0[i] >= BASELINE_STRESS_PP) {
+      indices.add(i);
     }
   }
-  if (critical.size === 0) {
+  return indices;
+}
+
+/** Badge v2 „netzdienlich (Modell)“ — spec §4.5 */
+export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
+  const dt = input.dtHours ?? DT;
+  const l0 = input.L0n1;
+  const l1 = input.L1n1;
+
+  if (!isUsableSeries(l0) || !isUsableSeries(l1)) {
+    return {
+      id: "nicht_bewertet",
+      criticalHours: 0,
+      over100Before: 0,
+      over100After: 0,
+      hint: "Zeitreihe unvollständig — nicht bewertet",
+    };
+  }
+  if (l0.length !== l1.length) {
+    return {
+      id: "nicht_bewertet",
+      criticalHours: 0,
+      over100Before: 0,
+      over100After: 0,
+      hint: "Zeitreihe ungleich lang — nicht bewertet",
+    };
+  }
+
+  const n = l0.length;
+  const { over100Before, over100After } = countOver100(l0, l1, n);
+  const baselineStress = baselineStressIndices(l0, n);
+
+  // Schaden zuerst (alle qh): neue Überlast >100 % und Verschärfung >0,5 pp gegenüber L0.
+  for (let i = 0; i < n; i += 1) {
+    if (l1[i] > 100 && l1[i] > l0[i] + WORSEN_EPS_PP) {
+      return {
+        id: "belastend",
+        criticalHours: baselineStress.size * dt,
+        over100Before,
+        over100After,
+        hint: null,
+      };
+    }
+  }
+
+  if (baselineStress.size === 0) {
     return {
       id: "neutral",
       criticalHours: 0,
@@ -63,23 +115,29 @@ export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
       hint: "kein Engpass an diesem Tag",
     };
   }
-  for (let i = 0; i < n; i += 1) {
-    if (l1[i] > 100 && l1[i] > l0[i] + 0.5) {
-      return { id: "belastend", criticalHours: critical.size * dt, over100Before, over100After, hint: null };
-    }
-  }
+
   let relief = 0;
-  let maxL0 = 0;
-  let maxL1 = 0;
-  for (const t of critical) {
+  for (const t of baselineStress) {
     relief += (l0[t] - l1[t]) * dt;
-    maxL0 = Math.max(maxL0, l0[t]);
-    maxL1 = Math.max(maxL1, l1[t]);
   }
+  const maxL0 = Math.max(...l0);
+  const maxL1 = Math.max(...l1);
   if (relief > 0 && maxL1 <= maxL0) {
-    return { id: "netzdienlich", criticalHours: critical.size * dt, over100Before, over100After, hint: null };
+    return {
+      id: "netzdienlich",
+      criticalHours: baselineStress.size * dt,
+      over100Before,
+      over100After,
+      hint: null,
+    };
   }
-  return { id: "neutral", criticalHours: critical.size * dt, over100Before, over100After, hint: null };
+  return {
+    id: "neutral",
+    criticalHours: baselineStress.size * dt,
+    over100Before,
+    over100After,
+    hint: null,
+  };
 }
 
 export function badgeForArchetype(arch: OrtArchetype, mode: OrtMode): BadgeV2Result {

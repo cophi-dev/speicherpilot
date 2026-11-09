@@ -109,6 +109,39 @@ def test_badge_v2_relief():
     assert assess_badge_v2(l0, l1) == "netzdienlich"
 
 
+def test_badge_v2_non_finite_not_positive():
+    assert assess_badge_v2([95.0, float("nan")], [90.0, float("nan")]) == "nicht_bewertet"
+    assert assess_badge_v2([95.0], [90.0, 110.0]) == "nicht_bewertet"
+    assert assess_badge_v2([], []) == "nicht_bewertet"
+    assert assess_badge_v2([95.0, 20.0], [90.0, 110.0]) == "belastend"
+
+
+def test_loading_series_keeps_nan_not_zero():
+    """Regression: failed qh must not become 0 % in L0 builders."""
+    bad = [95.0, float("nan"), 88.0]
+    assert assess_badge_v2(bad, [90.0, 88.0, 87.0]) == "nicht_bewertet"
+    assert bad[1] != 0.0
+
+
+def test_loading_delta_coeff_land_export_stress():
+    from build_ort_archetypes import loading_delta_coeff_per_mw
+
+    s0 = -9.3657
+    rating = 9.8034
+    power = 6.0
+    assert loading_delta_coeff_per_mw(s0, 0.974866, rating, power) < 0
+    assert loading_delta_coeff_per_mw(s0, -0.972574, rating, power) > 0
+
+
+def test_loading_delta_stadt_discharge_sign_at_low_baseline():
+    from build_ort_archetypes import loading_delta_coeff_per_mw
+
+    s0 = -0.9116
+    rating = 9.2665
+    power = 10.0
+    assert loading_delta_coeff_per_mw(s0, 1.000529, rating, power) > 0
+
+
 def test_pick_price_day_suffix():
     days = [{"date": "2025-05-29", "prices": [0.0] * 96}, {"date": "2026-01-01", "prices": [1.0] * 96}]
     assert pick_price_day("2016-05-29", days) == "2025-05-29"
