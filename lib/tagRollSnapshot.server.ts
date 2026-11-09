@@ -17,6 +17,7 @@ import { overviewBounds } from "@/lib/overviewRange";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import type { GermanyView, RequestedTagStatus } from "@/lib/germanyView";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
+import { berlinDayPrices } from "@/lib/preisFenster";
 import {
   tagRollSnapshotDataStandLabel,
   tagRollSnapshotEligible,
@@ -182,5 +183,6 @@ export function buildGermanyViewFromTagSnapshot(dayKey: string, now: Date): Germ
     lastCompleteDayKey,
     homeDayPanel: null,
     kopfDay: snap.days.find((d) => d.dateBerlin === lastCompleteDayKey) ?? null,
+    preisTag: berlinDayPrices(snap.prices, dayKey),
   };
 }

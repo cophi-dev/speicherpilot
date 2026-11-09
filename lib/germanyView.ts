@@ -24,6 +24,7 @@ import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { pickNewestStrictCompletePowerDayKey } from "@/lib/berlinDayCompleteness";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { buildHomeDayPanelData, type HomeDayPanelData } from "@/lib/homeDayPanel";
+import { berlinDayPrices, type PreisTick } from "@/lib/preisFenster";
 import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
 import {
   buildGermanyViewFromTagSnapshot,
@@ -75,6 +76,8 @@ export type GermanyView = {
   lastCompleteDayKey: string;
   homeDayPanel: HomeDayPanelData | null;
   kopfDay: ResidualDay | null;
+  /** Day-ahead quarter-hours of the day this view narrates. Empty when the feed has none. */
+  preisTag: PreisTick[];
 };
 
 function fleetPublic(fleet: Awaited<ReturnType<typeof loadLargeBatteryFleet>>): LiveFleetPublic | null {
@@ -394,5 +397,9 @@ export async function loadGermanyView(
     lastCompleteDayKey,
     homeDayPanel,
     kopfDay,
+    preisTag: berlinDayPrices(
+      mergeDayAheadPrices(priceRange.prices, price.prices),
+      path === "/" ? homeTagesDayKey : (chosen?.day.dateBerlin ?? homeTagesDayKey),
+    ),
   };
 }

@@ -21,6 +21,7 @@ export default async function Home() {
       dataStand={view.stand}
       homeDayPanel={view.homeDayPanel}
       kopfDay={view.kopfDay}
+      preisTag={view.preisTag}
     />
   );
 }

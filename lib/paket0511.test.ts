@@ -19,7 +19,9 @@ describe("startPointe", () => {
     expect(start.h1).not.toBe(tagSerieH1);
     expect(start.tagH1ForCompare).toBe(tagSerieH1);
     expect(start.subline).not.toMatch(/Peak-/);
-    expect(start.footnote).toMatch(/Monatslauf/);
+    expect(start.footnote).toMatch(/ohne Überschuss zum Laden/);
+    expect(start.footnote).toMatch(/203–341 €\/MWh/);
+    expect(start.footnote).not.toMatch(/Erlös/);
   });
 
   it("differs from metric tag kopfH1", () => {

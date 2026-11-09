@@ -1,4 +1,5 @@
 import { MethodikDocs } from "@/components/methodik/MethodikDocs";
+import { MethodikPreisFenster } from "@/components/methodik/MethodikPreisFenster";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 
 export const metadata = {
@@ -16,5 +17,10 @@ export default async function MethodikPage() {
         standLabel: fleet.updatedLabel,
       }
     : null;
-  return <MethodikDocs fleet={fleetStand} />;
+  return (
+    <>
+      <MethodikDocs fleet={fleetStand} />
+      <MethodikPreisFenster />
+    </>
+  );
 }

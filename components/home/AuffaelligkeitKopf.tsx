@@ -17,6 +17,7 @@ import { barValue, kopfHero } from "@/lib/kopfHero";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import type { PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -232,6 +233,7 @@ export function TagPageV4({
   fleetFactor,
   fleetStrategy,
   fleetDayNoWindSolarSurplus,
+  preisTag = [],
   children,
 }: {
   dayKey: string;
@@ -248,6 +250,7 @@ export function TagPageV4({
   fleetFactor?: NationalFleetFactor;
   fleetStrategy?: NationalFleetStrategyUi;
   fleetDayNoWindSolarSurplus?: boolean;
+  preisTag?: PreisTick[];
   children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
@@ -280,6 +283,10 @@ export function TagPageV4({
         todayKey={todayKey}
         useTagDateHeading
         showFooterLink={false}
+        prices={preisTag}
+        powerGw={fleetPowerGw}
+        energyGwh={fleetEnergyGwh}
+        surplusGwh={record.surplusGwh}
       />
       <TagSystemChapter
         dayKey={dayKey}

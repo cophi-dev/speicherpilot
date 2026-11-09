@@ -3,12 +3,13 @@
 import Link from "next/link";
 
 import { LueckeChart } from "@/components/home/LueckeChart";
-import { tagLastSurplusLine } from "@/lib/kopfTagCopy";
+import { PreisFenster } from "@/components/home/PreisFenster";
+import type { PreisTick } from "@/lib/preisFenster";
+import { tagLastSurplusLine, tagSurplusDefinitionLine } from "@/lib/kopfTagCopy";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 import { tagMiddayStoryBody } from "@/lib/tagDayStory";
-import { tagSurplusDefinitionLine } from "@/lib/kopfTagCopy";
 
 const STEPS = [
   {
@@ -53,6 +54,10 @@ export function TagChapter({
   peakAt,
   useTagDateHeading = false,
   showFooterLink = true,
+  prices = [],
+  powerGw = 0,
+  energyGwh = 0,
+  surplusGwh = 0,
 }: {
   day: ResidualDay;
   lastSurplusKey: string | null;
@@ -63,6 +68,10 @@ export function TagChapter({
   /** On /tag for days before „gestern“, use „Was am … passiert ist“. */
   useTagDateHeading?: boolean;
   showFooterLink?: boolean;
+  prices?: PreisTick[];
+  powerGw?: number;
+  energyGwh?: number;
+  surplusGwh?: number;
 }) {
   const peakSlot = eveningSlot(day);
   const loadGw = peakSlot.loadMw / 1000;
@@ -84,6 +93,17 @@ export function TagChapter({
       <div className="v4-content v4-luecke-wrap">
         <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
       </div>
+      {prices.length >= 2 ? (
+        <div className="v4-content">
+          <PreisFenster
+            dateLabel={dayLabel}
+            points={prices}
+            powerGw={powerGw}
+            energyGwh={energyGwh}
+            surplusGwh={surplusGwh}
+          />
+        </div>
+      ) : null}
       <footer className="v4-content v4-footnote" data-testid="tag-day-footnotes">
         <p>{surplusLine}</p>
         <p>{tagSurplusDefinitionLine()}</p>

@@ -133,6 +133,7 @@ export default async function TagDetailPage({
         fleetFactor={fleetFactor}
         fleetStrategy={fleetStrategy}
         fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplusFlag}
+        preisTag={view.preisTag}
       >
         {fleetSlot}
       </TagPageV4>

@@ -1,0 +1,42 @@
+.figure {
+  margin: 1.5rem 0 0;
+}
+
+.frame {
+  width: 100%;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.grid {
+  stroke: var(--v4-line, #2a323b);
+  stroke-width: 1;
+}
+
+.axis {
+  fill: var(--v4-muted, #5c5548);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.line {
+  fill: none;
+  stroke: var(--v4-warm, #b3361a);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.mark {
+  fill: var(--v4-warm, #b3361a);
+}
+
+.zero {
+  stroke: var(--v4-muted, #5c5548);
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+}
