@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 
+import polish from "@/components/home/dayBlockPolish.module.css";
 import { LueckeChart } from "@/components/home/LueckeChart";
+import { PreisFenster } from "@/components/home/PreisFenster";
 import { StartDayFootnotes, StartDayPanel } from "@/components/home/StartDayPanel";
+import type { PreisTick } from "@/lib/preisFenster";
 import { tagSurplusLine, tagLastSurplusLine, lastSurplusBefore } from "@/lib/kopfTagCopy";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
@@ -16,12 +19,18 @@ export function StartGesternTeaser({
   day,
   panel,
   records,
+  prices = [],
+  powerGw = 0,
+  energyGwh = 0,
 }: {
   kopfDayKey: string;
   record: TagesKennzahlRecord | undefined;
   day: ResidualDay | null;
   panel: HomeDayPanelData | null;
   records: TagesKennzahlRecord[];
+  prices?: PreisTick[];
+  powerGw?: number;
+  energyGwh?: number;
 }) {
   const label = formatBerlinDayLabel(kopfDayKey);
   const surplus =
@@ -50,13 +59,27 @@ export function StartGesternTeaser({
         </div>
       ) : null}
 
+      {prices.length >= 2 ? (
+        <div className="v4-content">
+          <PreisFenster
+            dateLabel={label}
+            points={prices}
+            powerGw={powerGw}
+            energyGwh={energyGwh}
+            surplusGwh={record?.surplusGwh ?? 0}
+          />
+        </div>
+      ) : null}
+
       {panel ? (
-        <StartDayFootnotes
-          panel={panel}
-          kopfDayKey={kopfDayKey}
-          surplusLine={surplus}
-          lastLine={lastLine}
-        />
+        <div className={polish.root}>
+          <StartDayFootnotes
+            panel={panel}
+            kopfDayKey={kopfDayKey}
+            surplusLine={surplus}
+            lastLine={lastLine}
+          />
+        </div>
       ) : null}
 
       <p className="v4-chapter-foot v4-content num">

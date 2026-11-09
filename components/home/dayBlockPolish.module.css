@@ -1,0 +1,31 @@
+.root {
+  /* Marker so the global overrides below stay in the bundle. */
+}
+
+:global(.v4-luecke-chart) :global(.v4-luecke-gap-label) {
+  fill: hsl(var(--foreground));
+  paint-order: stroke fill;
+  stroke: var(--v4-paper, #f6f6f3);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+:global(.dark) :global(.v4-luecke-chart) :global(.v4-luecke-gap-label) {
+  stroke: hsl(var(--background));
+}
+
+:global(.v4-luecke-overlay-gap) {
+  color: hsl(var(--foreground));
+  text-shadow:
+    0 0 3px hsl(var(--background)),
+    0 0 6px hsl(var(--background));
+}
+
+:global(.v4-day-footnotes) :global(.v4-start-day-model-disclosure) {
+  margin-top: 24px;
+}
+
+:global(.v4-start) :global(.v4-chip),
+:global(.v4-start-day-section) {
+  font-size: 12px;
+}

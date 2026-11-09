@@ -2,6 +2,11 @@ import type { ResidualSlot } from "@/lib/windSolarResidual";
 
 export const LUECKE_QUARTER_MINUTES = 15;
 
+/** Shared with the price strip so both x-axes land on the same pixels. */
+export const LUECKE_DESKTOP = { w: 1152, h: 360, pad: { top: 40, right: 24, bottom: 36, left: 56 } };
+export const LUECKE_MOBILE_H = 240;
+export const LUECKE_MOBILE_PAD = { top: 8, right: 14, bottom: 22, left: 36 };
+
 export type LueckeDayKind = "standard-96" | "dst-fall-100" | "dst-spring-92" | "other";
 
 export function lueckeDayKind(slotCount: number): LueckeDayKind {

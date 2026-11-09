@@ -1,6 +1,7 @@
 import { auffaelligkeitForDay, weekdayLabelDe, type TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { dryDayFootnote } from "@/lib/preisFenster";
 
 export type StartPointe = {
   h1: string;
@@ -49,7 +50,7 @@ export function startPointe(
     const subline = strongest
       ? `Stärkster Tages-Überschuss im Fenster: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${weekdayLabelDe(strongest.dateKey).replace(/\.\s*$/, "")}.`
       : `Gestern (${gesternLabel}): ${end.dryStreak}. Tag in Folge ohne Überschuss-Kennzahl.`;
-    const footnote = `Gestern (${gesternLabel}) ohne Überschuss zum Laden aus Wind und Sonne. Peak- und Preisfahrweisen rechnet der Monatslauf anders.`;
+    const footnote = dryDayFootnote(gesternLabel, end);
     return {
       h1,
       subline,

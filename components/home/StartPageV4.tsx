@@ -8,6 +8,7 @@ import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewsBundle } from "@/lib/germanyView";
 import type { HomeDayPanelData } from "@/lib/homeDayPanel";
 import type { LiveDispatchInput } from "@/lib/liveFleetDispatch";
+import type { PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 export function StartPageV4({
@@ -19,6 +20,7 @@ export function StartPageV4({
   dataStand,
   homeDayPanel,
   kopfDay,
+  preisTag,
 }: {
   overviews: OverviewsBundle | null;
   dispatch: LiveDispatchInput;
@@ -28,6 +30,7 @@ export function StartPageV4({
   dataStand: string;
   homeDayPanel: HomeDayPanelData | null;
   kopfDay: ResidualDay | null;
+  preisTag: PreisTick[];
 }) {
   const tagRecord = auffaelligkeitRecords.find((r) => r.dateKey === kopfDayKey);
   const systemModel = overviews?.byBlick["30tage"];
@@ -52,6 +55,9 @@ export function StartPageV4({
         day={kopfDay}
         panel={homeDayPanel}
         records={auffaelligkeitRecords}
+        prices={preisTag}
+        powerGw={fleet.powerGw}
+        energyGwh={fleet.energyGwh}
       />
 
       {systemModel ? (
