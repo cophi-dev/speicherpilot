@@ -66,6 +66,12 @@ export function NationalFleetMonthChapter({
     return { dateKey: bar.dateKey, min, max };
   });
 
+  const peakKpiText = formatPeakKpi(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct);
+  const peakKpiMatch = /^(.+? GW) \((.+)\)$/.exec(peakKpiText);
+  const peakKpi = peakKpiMatch
+    ? { value: peakKpiMatch[1], detail: peakKpiMatch[2] }
+    : { value: peakKpiText, detail: null };
+
   const maxSocBand = Math.max(...socBands.map((b) => b.max ?? 0), dailySocMax * 0.5);
 
   return (
@@ -75,23 +81,7 @@ export function NationalFleetMonthChapter({
         <h2 id="fleet-month-title" className="v4-chapter-h2 v4-fleet-month-h2">
           Last, Spitzen und Speicherwirkung im Monat
         </h2>
-        <p className="v4-subline v4-fleet-subline-desktop">
-          Vorberechneter Monatslauf (×{factor}, hypothetisch).{" "}
-          <Link href="/methodik#grossspeicher" className="v4-text-link">
-            Methodik →
-          </Link>
-        </p>
       </div>
-      <details className="v4-fleet-subline-disclosure">
-        <summary>Modellannahmen und Grenzen</summary>
-        <p className="v4-subline">
-          Modell auf beobachteter Last und Erzeugung (Okt. 2026): Referenz 4,58 GW / 8 GWh Nennenergie, skaliert mit ×
-          {factor}. Hypothetisch, kein amtlicher Bestand. Kein Anschlussnetz, lokale Netzwirkung nicht bewertet. Alle drei
-          Fahrweisen rechnen jeden Viertelstundentag; Rampen, Starts und Abregelung am Ort fehlen. Round-Trip 85 %, SoC
-          10–90 %, Price Taker nur in der Marktfahrweise (Day-Ahead, ohne Preisrückwirkung). Keine Euro-Werte — nur
-          Energie und Leistung.
-        </p>
-      </details>
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
@@ -129,7 +119,10 @@ export function NationalFleetMonthChapter({
       <dl className="v4-fleet-kpis v4-fleet-kpis-hero v4-content num">
         <div className="v4-fleet-kpi-primary">
           <dt>Monats-Restlastspitze mit Speicher</dt>
-          <dd>{formatPeakKpi(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct)}</dd>
+          <dd>
+            <span className="v4-fleet-kpi-value">{peakKpi.value}</span>
+            {peakKpi.detail ? <span className="v4-fleet-kpi-detail">{peakKpi.detail}</span> : null}
+          </dd>
         </div>
         <div>
           <dt>Netzseitige Ladung</dt>
@@ -150,9 +143,22 @@ export function NationalFleetMonthChapter({
         prominentMonth
       />
       <p className="v4-fleet-chart-footnote v4-content num muted">
-        Viertelstunden aus dem Monatslauf-Bundle (Energy-Charts Last/Erzeugung, Vollvoraussicht je Fahrweise). Werte nur
-        MWh/GW — keine Euro-Schätzung, auch nicht bei ×{factor}.
+        Vorberechneter Monatslauf (×{factor}, hypothetisch). Viertelstunden aus dem Monatslauf-Bundle (Energy-Charts
+        Last/Erzeugung, Vollvoraussicht je Fahrweise). Werte nur MWh/GW — keine Euro-Schätzung, auch nicht bei ×{factor}.{" "}
+        <Link href="/methodik#grossspeicher" className="v4-footnote-link">
+          Methodik
+        </Link>
       </p>
+      <details className="v4-content v4-fleet-assumptions">
+        <summary>Modellannahmen und Grenzen</summary>
+        <p>
+          Modell auf beobachteter Last und Erzeugung (Okt. 2026): Referenz 4,58 GW / 8 GWh Nennenergie, skaliert mit ×
+          {factor}. Hypothetisch, kein amtlicher Bestand. Kein Anschlussnetz, lokale Netzwirkung nicht bewertet. Alle drei
+          Fahrweisen rechnen jeden Viertelstundentag; Rampen, Starts und Abregelung am Ort fehlen. Round-Trip 85 %, SoC
+          10–90 %, Price Taker nur in der Marktfahrweise (Day-Ahead, ohne Preisrückwirkung). Keine Euro-Werte — nur
+          Energie und Leistung.
+        </p>
+      </details>
       <details className="v4-fleet-kpis-secondary v4-content num">
         <summary>Weitere Monats-Kennzahlen (Flotte, Verlust, SoC)</summary>
         <dl className="v4-fleet-kpis">

@@ -6,17 +6,24 @@ export function RangLeiste({
   bars,
   metricLabel,
   rankLabel,
+  scale,
 }: {
   bars: Array<{ dateKey: string; value: number | null; highlight: boolean; record?: boolean; zero?: boolean }>;
   metricLabel: string;
   rankLabel?: string;
+  scale?: { maxLabel: string; startLabel: string; endLabel: string };
 }) {
   const values = bars.map((b) => b.value ?? 0);
   const max = Math.max(...values, 1e-9);
 
   return (
     <div className="v4-rang-leiste" aria-label={`${metricLabel}, ${rankLabel ?? ""}`}>
-      <div className="v4-rang-bars">
+      {scale ? (
+        <p className="v4-rang-max num" data-testid="rang-max">
+          {scale.maxLabel}
+        </p>
+      ) : null}
+      <div className={`v4-rang-bars${scale ? " has-scale" : ""}`}>
         {bars.map((bar) => {
           const h = bar.zero ? 2 : bar.value === null ? 4 : Math.max(4, (bar.value / max) * 100);
           const cls = bar.highlight ? "is-gestern" : bar.record ? "is-rekord" : bar.zero ? "is-zero" : "";
@@ -30,6 +37,12 @@ export function RangLeiste({
           );
         })}
       </div>
+      {scale ? (
+        <p className="v4-rang-dates num" aria-hidden="true">
+          <span>{scale.startLabel}</span>
+          <span>{scale.endLabel}</span>
+        </p>
+      ) : null}
       {rankLabel ? <p className="v4-rang-caption num">{rankLabel}</p> : null}
     </div>
   );
