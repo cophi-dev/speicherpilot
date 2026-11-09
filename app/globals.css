@@ -1277,12 +1277,12 @@ body {
 }
 
 .sim-chart .soc-name {
-  font: 11px var(--font-jetbrains), ui-monospace, monospace;
+  font: 12px var(--font-jetbrains), ui-monospace, monospace;
   fill: hsl(var(--muted-foreground));
 }
 
 .sim-chart .soc-tick {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .sim-chart .mk circle {
@@ -1290,7 +1290,7 @@ body {
 }
 
 .sim-chart .mk text {
-  font: 11px var(--font-jetbrains), ui-monospace, monospace;
+  font: 12px var(--font-jetbrains), ui-monospace, monospace;
   font-weight: 500;
   fill: hsl(var(--card));
 }
@@ -1360,13 +1360,13 @@ body {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   margin-top: 1px;
   border-radius: var(--v4-radius, 0);
   background: hsl(var(--foreground));
   color: hsl(var(--card));
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -10082,5 +10082,170 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 }
 .v4-fleet-error {
   color: hsl(var(--destructive));
+}
+
+/* Paket 2 — Monatskurve im ersten Fenster. Nur .monat-page, Startseite unberührt. */
+.monat-page .v4-kopf {
+  padding: 0.35rem 0 0.2rem;
+}
+.monat-page .v4-kicker {
+  margin-top: 0.2rem;
+  margin-bottom: 0.35rem;
+}
+.monat-page .v4-h1 {
+  margin-bottom: 0.25rem;
+}
+.monat-page .v4-subline {
+  font-size: 15px;
+  line-height: 1.35;
+}
+.monat-page .v4-footnote {
+  margin-top: 0.15rem;
+}
+.monat-page .v4-tag-nav {
+  padding-top: 0.2rem;
+  padding-bottom: 0;
+}
+.monat-page .v4-chapter {
+  margin-top: 0.4rem;
+  padding-top: 0.4rem;
+}
+.monat-page .v4-chapter-head {
+  margin-top: 0;
+}
+.monat-page .v4-chapter-num {
+  margin-bottom: 0.2rem;
+}
+.monat-page .v4-fleet-month-h2 {
+  margin-bottom: 0.3rem;
+}
+.monat-page .v4-fleet-controls {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.monat-page .v4-fleet-legend {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.monat-page .v4-fleet-factor-row,
+.monat-page .v4-fleet-strategy-row {
+  gap: 8px;
+}
+.monat-page .v4-fleet-kpis-hero {
+  gap: 4px 16px;
+  margin-bottom: 6px;
+}
+.monat-page .v4-fleet-kpis-hero dd,
+.monat-page .v4-fleet-kpi-primary dd {
+  margin-top: 1px;
+  font-size: 16px;
+  line-height: 1.25;
+}
+@media (min-width: 768px) {
+  .monat-page .v4-fleet-kpis-hero {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: start;
+    column-gap: 28px;
+  }
+  .monat-page .v4-fleet-kpi-primary dd {
+    white-space: nowrap;
+  }
+}
+@media (max-width: 767px) {
+  .monat-page .v4-kicker {
+    margin-top: 0.15rem;
+  }
+  .monat-page .v4-fleet-kpis-hero {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .monat-page .v4-fleet-kpis-hero dt {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+  .monat-page .v4-fleet-kpis-hero dd,
+  .monat-page .v4-fleet-kpi-primary dd {
+    font-size: 14px;
+  }
+}
+
+/* Kurve zuerst, Legende und zahlfreie Zeile darunter. Höhe bleibt, nur die Reihenfolge. */
+.v4-fleet-ts-wrap.is-month-prominent {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+.v4-fleet-ts-wrap.is-month-prominent .v4-fleet-ts-interactive {
+  order: -1;
+}
+.v4-fleet-ts-wrap.is-month-prominent .v4-fleet-caption {
+  margin-top: 8px;
+}
+
+/* Paket 2 — Anschlusskurve auf /ort früher. Badge und Perspektiven bleiben. */
+.v4-subpage .ort-hero {
+  padding: 0.55rem 0 0.35rem;
+}
+.ort-v4-page .v4-tab-bar.site-toggle {
+  margin: 0.35rem 0 0.4rem;
+}
+.ort-v4-page .v4-kicker {
+  margin-top: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+.ort-v4-page .v4-h1 {
+  margin-bottom: 0.2rem;
+}
+.v4-subpage.ort-v4 .day-paper {
+  padding-block: 0.45rem 1rem;
+}
+.ort-v4-page .ort-ladepark-intro h2 {
+  font-size: 22px;
+  line-height: 1.2;
+  margin: 0 0 0.2rem;
+}
+.ort-v4-page .ort-sim-section .site-play {
+  margin: 6px 0 8px;
+}
+.ort-v4-page .v4-day-footnotes {
+  margin-top: 8px;
+}
+.v4-day-notes .ort-netz-nutzen {
+  margin: 0;
+  max-width: 70ch;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.ort-netz-step {
+  margin-bottom: 0.55rem;
+}
+.ort-netz-step-note {
+  margin-top: 0.3rem;
+}
+.ort-netz-meta {
+  margin-bottom: 0.35rem;
+}
+.monat-page .v4-monat-chart-x,
+.monat-page .v4-monat-chart-x span {
+  font-size: 12px;
+}
+.ort-v4-page .day-chip {
+  font-size: 12px;
+}
+html:not(.dark) .ort-v4-page .site-quiet {
+  color: #3c444c;
+}
+.monat-page .v4-day-notes .v4-footnote-link,
+.ort-v4-page .v4-day-notes .v4-footnote-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  min-width: 24px;
+}
+.ort-v4-page .sim-notes b {
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
 }
 

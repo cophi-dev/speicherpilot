@@ -4,6 +4,7 @@ import { NationalFleetMarginalBenefit } from "@/components/home/NationalFleetMar
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
 import { formatPeakKpi } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { MONAT_SURPLUS_EXPLAIN_DE } from "@/lib/monatCalendar";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
 import type { NationalFleetFactorCompareRow, StrategyMarginalStep } from "@/lib/nationalFleetMarginal";
 import {
@@ -19,6 +20,45 @@ import {
 
 function formatGw(gw: number, digits = 2): string {
   return formatQuantity(gw, "de", digits);
+}
+
+function FleetMonthFootnotes({ factor }: { factor: NationalFleetFactor }) {
+  return (
+    <footer className="v4-content v4-day-footnotes">
+      <dl className="v4-day-notes">
+        <div>
+          <dt>Modell</dt>
+          <dd>{`Vorberechneter Monatslauf (×${factor}, hypothetisch).`}</dd>
+          <dd>Modell auf beobachteter Last und Erzeugung (Okt. 2026).</dd>
+          <dd>{`Referenz 4,58 GW / 8 GWh Nennenergie, skaliert mit ×${factor}.`}</dd>
+          <dd>Hypothetisch, kein amtlicher Bestand.</dd>
+          <dd>Alle drei Fahrweisen rechnen jeden Viertelstundentag.</dd>
+          <dd>Rampen, Starts und Abregelung am Ort fehlen.</dd>
+          <dd>Round-Trip 85 %, SoC 10–90 %.</dd>
+          <dd>Price Taker nur in der Marktfahrweise (Day-Ahead).</dd>
+          <dd>Ohne Preisrückwirkung.</dd>
+          <dd>Keine Euro-Werte — nur Energie und Leistung.</dd>
+        </div>
+        <div>
+          <dt>Daten</dt>
+          <dd>Viertelstunden aus dem Monatslauf-Bundle.</dd>
+          <dd>Energy-Charts Last/Erzeugung, Vollvoraussicht je Fahrweise.</dd>
+          <dd>{`Werte nur MWh/GW — keine Euro-Schätzung, auch nicht bei ×${factor}.`}</dd>
+          <dd>{MONAT_SURPLUS_EXPLAIN_DE}</dd>
+        </div>
+        <div>
+          <dt>Netz</dt>
+          <dd>Kein Anschlussnetz.</dd>
+          <dd>Lokale Netzwirkung nicht bewertet.</dd>
+          <dd>
+            <Link href="/methodik#grossspeicher" className="v4-footnote-link">
+              Methodik
+            </Link>
+          </dd>
+        </div>
+      </dl>
+    </footer>
+  );
 }
 
 export function NationalFleetMonthChapter({
@@ -75,23 +115,7 @@ export function NationalFleetMonthChapter({
         <h2 id="fleet-month-title" className="v4-chapter-h2 v4-fleet-month-h2">
           Last, Spitzen und Speicherwirkung im Monat
         </h2>
-        <p className="v4-subline v4-fleet-subline-desktop">
-          Vorberechneter Monatslauf (×{factor}, hypothetisch).{" "}
-          <Link href="/methodik#grossspeicher" className="v4-text-link">
-            Methodik →
-          </Link>
-        </p>
       </div>
-      <details className="v4-fleet-subline-disclosure">
-        <summary>Modellannahmen und Grenzen</summary>
-        <p className="v4-subline">
-          Modell auf beobachteter Last und Erzeugung (Okt. 2026): Referenz 4,58 GW / 8 GWh Nennenergie, skaliert mit ×
-          {factor}. Hypothetisch, kein amtlicher Bestand. Kein Anschlussnetz, lokale Netzwirkung nicht bewertet. Alle drei
-          Fahrweisen rechnen jeden Viertelstundentag; Rampen, Starts und Abregelung am Ort fehlen. Round-Trip 85 %, SoC
-          10–90 %, Price Taker nur in der Marktfahrweise (Day-Ahead, ohne Preisrückwirkung). Keine Euro-Werte — nur
-          Energie und Leistung.
-        </p>
-      </details>
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
@@ -149,10 +173,7 @@ export function NationalFleetMonthChapter({
         peakReductionPct={stats.peakReductionPct}
         prominentMonth
       />
-      <p className="v4-fleet-chart-footnote v4-content num muted">
-        Viertelstunden aus dem Monatslauf-Bundle (Energy-Charts Last/Erzeugung, Vollvoraussicht je Fahrweise). Werte nur
-        MWh/GW — keine Euro-Schätzung, auch nicht bei ×{factor}.
-      </p>
+      <FleetMonthFootnotes factor={factor} />
       <details className="v4-fleet-kpis-secondary v4-content num">
         <summary>Weitere Monats-Kennzahlen (Flotte, Verlust, SoC)</summary>
         <dl className="v4-fleet-kpis">

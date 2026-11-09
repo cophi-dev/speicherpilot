@@ -184,12 +184,6 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
   return (
     <div className="ort-archetypen day-paper">
       <div className="day-hero-inner">
-        <p className="v4-subline ort-netz-nutzen">
-          {tx(
-            "Hier vergleichen Sie zwei Musterorte (ländlicher Netzknoten und Stadtnetz) und drei Fahrweisen (Markt, Markt + flexibel, Netzorientiert) an einem typischen Tag. Kein eigener Standort, keine freie Leistung, kein Baukasten-Netz.",
-            "Here you compare two sample places (rural grid node and urban grid) and three operating modes (market, market + flexible, grid-oriented) on a typical day. No custom site, no free capacity, no build-your-own grid.",
-          )}
-        </p>
         <div className="ort-netz-step">
           <p className="ort-netz-step-label">{tx("1. Ort wählen", "1. Choose place")}</p>
           <div className="ort-netz-tabs ort-netz-tabs--place v4-tab-bar site-toggle" role="tablist" aria-label={tx("Ort", "Place")}>
@@ -246,11 +240,7 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
         <p className="v4-subline ort-netz-meta">
           {data.labelDe}
           {data.scenarioDe ? ` · ${data.scenarioDe}` : null} · {tx("Mustertag Netzlast", "Sample-day grid load")}{" "}
-          {data.typtag} · {tx("Preis", "Price")} {data.priceDay}.{" "}
-          {tx(
-            "Alle Kennzahlen unten beziehen sich auf diesen Mustertag — nicht auf ein Kalenderjahr.",
-            "All figures below refer to this sample day — not a calendar year.",
-          )}
+          {data.typtag} · {tx("Preis", "Price")} {data.priceDay}.
         </p>
 
         <ArchetypeDayChart
@@ -269,6 +259,40 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
             "Daily loading at the bottleneck. Sample-day time horizontal, line loading in percent vertical.",
           )}
         />
+
+        <footer className="v4-day-footnotes">
+          <dl className="v4-day-notes">
+            <div>
+              <dt>{tx("Modell", "Model")}</dt>
+              <dd className="ort-netz-nutzen">
+                {tx(
+                  "Hier vergleichen Sie zwei Musterorte (ländlicher Netzknoten und Stadtnetz) und drei Fahrweisen (Markt, Markt + flexibel, Netzorientiert) an einem typischen Tag. Kein eigener Standort, keine freie Leistung, kein Baukasten-Netz.",
+                  "Here you compare two sample places (rural grid node and urban grid) and three operating modes (market, market + flexible, grid-oriented) on a typical day. No custom site, no free capacity, no build-your-own grid.",
+                )}
+              </dd>
+              <dd>
+                {tx(
+                  "Alle Kennzahlen unten beziehen sich auf diesen Mustertag — nicht auf ein Kalenderjahr.",
+                  "All figures below refer to this sample day — not a calendar year.",
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>{tx("Netz", "Grid")}</dt>
+              <dd>
+                {tx(
+                  "Nur der Netzbetreiber beurteilt den realen Fall (BGH EnVR 1/24).",
+                  "Only the grid operator assesses the real case (BGH EnVR 1/24).",
+                )}
+              </dd>
+              <dd>
+                <Link href="/methodik" className="v4-footnote-link">
+                  {tx("Methodik", "Method")}
+                </Link>
+              </dd>
+            </div>
+          </dl>
+        </footer>
 
         <dl className="ort-archetype-kpi-grid">
           <div>
@@ -339,13 +363,6 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
             {data.warnings.join(" ")}
           </p>
         ) : null}
-
-        <p className="v4-subline">
-          {tx(
-            "Nur der Netzbetreiber beurteilt den realen Fall (BGH EnVR 1/24).",
-            "Only the grid operator assesses the real case (BGH EnVR 1/24).",
-          )}
-        </p>
 
         <p className="day-cta-row">
           <Link href={sitePath("projekt", "ladepark")} className="day-cta">
@@ -420,7 +437,7 @@ function ArchetypeDayChart({
   /** Screen px × (viewBox / render width) → SVG user units (constant apparent size). */
   const svgFont = (screenPx: number) => screenPx * fontScale;
   const titleFont = svgFont(14);
-  const tickFont = svgFont(11);
+  const tickFont = svgFont(12);
 
   return (
     <figure

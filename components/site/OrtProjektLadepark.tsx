@@ -78,7 +78,19 @@ export function OrtProjektLadepark() {
           </div>
         </div>
       </div>
-      <SiteSimulator view="projekt" story={story} language={language} limitKw={limitKw} onLimitKwChange={setLimitKw} />
+      <SiteSimulator
+        view="projekt"
+        story={story}
+        language={language}
+        limitKw={limitKw}
+        onLimitKwChange={setLimitKw}
+        notes={[
+          tx(
+            "Speicher am Anschlusspunkt — Größe, Grenze, Netzwirkung.",
+            "Storage at the connection point — size, limit, grid effect.",
+          ),
+        ]}
+      />
       <section className="day-paper" aria-labelledby="ort-ladepark-econ">
         <div className="day-hero-inner">
           <h3 id="ort-ladepark-econ">{tx("Wirtschaftlichkeit · Modellschätzung", "Economics · model estimate")}</h3>

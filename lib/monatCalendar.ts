@@ -177,6 +177,10 @@ export function buildMonatGrid(args: {
   });
 }
 
+/** Zahlfreier Satz unter der Monatskurve. Der Zähler davor bleibt in der Heldenzeile. */
+export const MONAT_SURPLUS_EXPLAIN_DE =
+  "Die Überschuss-Kennzahl ist nicht dasselbe wie vollständiger Speicher-Nutzen.";
+
 export function monatPointe(
   monthKey: string,
   records: TagesKennzahlRecord[]
@@ -189,6 +193,7 @@ export function monatPointe(
     null
   );
   const label = formatBerlinMonthLabel(monthKey);
+  const explain = MONAT_SURPLUS_EXPLAIN_DE;
   const missing = daysInBerlinMonth(monthKey).filter((d) => !monthRecords.some((r) => r.dateKey === d));
   const h1 = `${noSurplus} Tage unter der Überschuss-Schwelle im ${label}`;
   const subParts = [
@@ -198,6 +203,6 @@ export function monatPointe(
     missing.length > 0 ? `${missing.length} Kalendertage fehlen in den Daten.` : null,
   ].filter(Boolean);
   const subline = subParts.join(" ") || `${monthRecords.length} Tage in der geladenen Reihe.`;
-  const footnote = `${monthRecords.length} Tage mit Kennzahlen in der geladenen Reihe. Die Überschuss-Kennzahl ist nicht dasselbe wie vollständiger Speicher-Nutzen.`;
+  const footnote = `${monthRecords.length} Tage mit Kennzahlen in der geladenen Reihe. ${explain}`;
   return { h1, subline, footnote };
 }
