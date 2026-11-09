@@ -12,6 +12,91 @@ Messlatte ist Phillipps Auftrag vom selben Tag: eine Seite, die Projektierer, ei
 
 3. **Eine freie Netzanschlusskapazität für Deutschland, analog zur österreichischen Pflichtkarte, ist öffentlich nicht belegt.** Die Bundesnetzagentur veröffentlicht Anfragen und Zusagen als Jahressumme. Eine Karte „hier ist noch Anschluss frei“, für Hamburg oder bundesweit, gibt es in den geprüften Primärquellen nicht. `/ort` rechnet Beispiele, keine freie Kapazität.
 
+## Auftrag, Punkt für Punkt
+
+Status gilt für die Live-Seite am 9. November 2026, nicht für diesen Text. `erfüllt` hieße: die Seite tut es heute, mit Zahl und Figur. `teilweise` heißt: ein Stück steht, der Auftrag ist offen. `fehlt` heißt: die Fläche ist nicht da.
+
+### 1. Alle Sachen zusammenbringen — teilweise
+
+Der eine Ort wäre eine Lesart, in der Markt, System, Flotte und Anschluss denselben Tag meinen. Heute sind es vier Flächen.
+
+| Schicht | Wo sie vorkommt | Wo sie fehlt |
+| --- | --- | --- |
+| Markt: Preis, Spanne, Stunden unter null | `/tag` zeigt am 8. November die gerundete Spanne 206–322 €/MWh als Nebenzeile. Die Kennzahl dafür liegt in den Tagesreihen (Minimum, Maximum, Spanne, Stunden unter null). | Startseite: kein Preis. Keine Preiskurve. Keine Marktseite. November verweist auf den Oktober, ohne die Börse zu zeichnen. |
+| System: Last, Wind und Sonne, Restlast, Überschuss | Start und Tag: Verbrauch, Wind+Sonne, Überschuss, Abendspitze 58,5 GW. Monat Oktober: Restlastkurve. | Die 58,5 GW sind Deutschland. Hamburg ist darin nicht getrennt. |
+| Speicherflotte | Start: 4,64 GW / 8,14 GWh, Modell-Ladung 0,0 an dem Tag, 32,6 von 115,6 GWh in 30 Tagen. Tag: dieselbe Größe, „nichts zu laden“. Oktober: andere Referenz, 4,58 GW / 8 GWh, drei Fahrweisen. | Die zwei Flottenstände stehen nicht nebeneinander. Die November-Flotte wird nicht gerechnet. |
+| Netz und Anschluss | `/ort`: zwei Perspektiven, Beispiel, Badge als Schätzung. Start sagt „Lokale Netzwirkung: nicht bewertet“. | Kein Sprung von der Abendspitze zum Anschluss. Keine freie Kapazität. |
+
+Man kann die vier Schichten an einem Abend zusammensuchen. Die Seite führt sie nicht als einen Satz.
+
+### 2. Insights vom Tag, vom Monat, vom Markt — teilweise
+
+Phillipp sagt AI-Insights. Die Grenze bleibt: keine Laufzeit-KI. Ein Insight ist ein Satz, den eine feste Regel aus öffentlichen Zahlen schreibt, mit Schwelle und Beispiel. Die Seite hat eine solche Regel schon, die Auffälligkeit: ein Wert unter den drei extremsten von 31 Tagen gewinnt die Überschrift. Am 8. November gewinnt der Windanteil (14,5 %). Die folgenden Sätze kann dieselbe Datenlage tragen. Auf der Seite stehen sie so nicht.
+
+Schwellen, die unten vorkommen: Überschuss unter 0,05 GWh, Spanne ab 80 €/MWh, Minimum ab 100 €/MWh, Preis ab 400 €/MWh, Stunden unter null ab einer Viertelstunde (0,25 h), Flottenleistung unter 15 % der Abendspitze, sieben Tage in Folge mit Minimum ab 150 €/MWh.
+
+1. **Trockenstrecke, Tag.** Regel: Überschuss unter 0,05 GWh, und das mindestens drei Tage hintereinander. Beispiel: „Sonntag, der 8. November, ist der 14. Tag in Folge ohne Überschuss.“ Die Seite sagt das. Sie sagt nicht, was der Tag sonst noch war.
+2. **Hohes Minimum, Tag.** Regel: Überschuss unter 0,05 GWh, Spanne mindestens 80 €/MWh, Minimum mindestens 100 €/MWh, keine Viertelstunde unter null. Beispiel: „Am 8. November lag die Börse zwischen 206,09 und 321,50 €/MWh. Die Spanne ist 115,41 €/MWh, das Minimum bleibt über 200. Das ist kein billiges Ladefenster.“
+3. **Preis-Spike auf leerem Tag.** Regel: Überschuss unter 0,05 GWh und Maximum mindestens 400 €/MWh. Beispiel: „Am 29. Oktober war der Überschuss 0,0 GWh. Um 17:15 Uhr stand der Day-Ahead-Preis bei 574,28 €/MWh, fünf Viertelstunden lagen über 500.“
+4. **Negativpreis, Markt im Fenster.** Regel: Stunden unter null, gezählt als Viertelstunden mal 0,25, Schwelle 0,25 h. Beispiel: „Vom 10. Oktober bis zum 8. November lag der Preis 1,75 Stunden unter null, nur am 10. Oktober (0,25 h, Überschuss 15,0 GWh) und am 25. Oktober (1,5 h, Überschuss 9,6 GWh).“
+5. **Gleiche Spanne, anderes Niveau.** Regel: zwei Tage, Spannen unterscheiden sich um höchstens 20 €/MWh, die Minima um mindestens 100 €/MWh. Beispiel: „Der 24. Oktober und der 8. November haben fast dieselbe Spanne, 111,31 und 115,41 €/MWh. Am 24. lag das Minimum bei 0,00, am 8. bei 206,09.“
+6. **Flotte gegen Abendspitze, Tag.** Regel: Überschuss unter 0,05 GWh, Modell-Ladung 0, Flottenleistung unter 15 % der Abendspitze. Beispiel: „Am 8. November mussten andere Quellen um 17:15 Uhr 58,5 GW decken. Die Flotte hat 4,64 GW Leistung, das sind 7,9 % dieser Spitze. Im Überschuss-Modell war nichts geladen.“
+7. **Preisniveau-Regime, Monat.** Regel: mindestens sieben Tage in Folge mit Tagesminimum ab 150 €/MWh. Beispiel: „Vom 28. Oktober bis zum 8. November, zwölf Tage, lag jedes Tagesminimum über 169 €/MWh.“
+8. **Drei Ziele, ein Monat.** Regel: dieselbe Flotte ×1, drei Fahrweisen; der Satz erscheint, wenn die Marktfahrweise mehr als fünfmal so viel lädt wie die Spitzenfahrweise und die Spitze um weniger als 1 GW senkt. Beispiel: „Im Oktober bewegt die Marktfahrweise ×1 485,45 GWh und senkt die Spitze um 0,37 GW. Die Spitzenfahrweise senkt um 3,55 GW und bewegt 12,49 GWh. Die Überschuss-Fahrweise liegt dazwischen: 55,90 GWh und 2,24 GW.“
+9. **Sättigung, Ausbau.** Regel: ×10 nimmt mindestens 99 % des Überschuss-Pools auf, ×1 nimmt unter 40 % auf. Beispiel: „In den 30 Tagen bis zum 8. November nimmt ×1 28 % des Überschusses auf, ×10 nimmt 100 %. Der zusätzliche Speicher sättigt diesen Pool. Er erzeugt keinen neuen Überschuss.“
+
+### 3. Was mehr Speicher bringen würde — teilweise
+
+Gerechnet wird das, auf `/monat/2026-10`, in GWh und GW, für ×1, ×2, ×5 und ×10 und für drei Fahrweisen. Die Startseite zeigt davon nur die Überschuss-Aufnahme (28 % / 75 % / 100 %). Der November hat die Rechnung nicht. Euro für die nationale Flotte stehen auch bei ×1 nicht auf diesen Seiten. Das ist die richtige Enthaltsamkeit beim Skalieren und eine Lücke bei der einen erlaubten Modellschätzung.
+
+Dieselben Live-Zahlen, Oktober, Referenzspitze 64,41 GW, Flotte im Lauf 4,58 GW / 8 GWh:
+
+| Fahrweise | ×1 | ×10 | Was der Faktor tut |
+| --- | --- | --- | --- |
+| Differenz aufnehmen | Ladung 55,90 GWh, Spitze −2,24 GW | Ladung 134,24 GWh, Spitze −7,91 GW (12,3 %) | Der Überschuss-Pool ist bei ×10 aufgebraucht. Die Spitze sinkt, und sie sinkt nicht auf das Zehnfache von 2,24 GW. |
+| Spitze senken | Ladung 12,49 GWh, Spitze −3,55 GW | Ladung 492,80 GWh, Spitze −14,63 GW (22,7 %) | Mehr Leistung senkt die Spitze weiter. Der Zuwachs ist unterlinear: das Zehnfache von 3,55 GW wäre 35,5 GW. |
+| Marktorientiert, Day-Ahead, Preisnehmer | Ladung 485,45 GWh, Spitze −0,37 GW | Ladung 4.854,54 GWh, Spitze 96,76 GW, das sind 32,35 GW über der Referenz | Die Energie wächst mit dem Faktor. Die Spitzenwirkung kippt. Bei ×5 steht die Spitze schon bei 73,86 GW, 9,45 GW über der Referenz. |
+
+Das ist die Kannibalisierung, die der Preisnehmer nicht verhindert: die Preise bleiben dieselben, die große Flotte lädt in die billigen Stunden hinein und wird damit selbst zur Lastspitze. Ein Euro-Betrag, der mit ×5 oder ×10 mitwächst, würde das Gegenteil behaupten. Die Seite zeigt die GW-Zahl, wenn man Faktor und Fahrweise umschaltet. Sie setzt die drei Zeilen nicht in ein Bild, und sie rechnet den November nicht.
+
+### 4. LinkedIn-Wirkung — teilweise
+
+Der eine Screen, den man weiterreichen würde, ist der erste Blick der Startseite: die 25 und die Balken, in denen 25 Tage als Lücke stehen. Das Bild ist schon ein Poster. Es sagt „nichts zu laden“. Ein Speicherplaner, ein Hamburger Netzplaner und jemand vom Fraunhofer-Institut leiten es weiter, wenn in demselben Rahmen der zweite Satz steht: der 29. Oktober, Überschuss 0,0 GWh, Abendpreis 574 €/MWh, und die Flotte von 4,64 GW gegen eine Abendspitze von 58,5 GW.
+
+Diesen Rahmen bauen wir nicht als Share-Button und nicht als OG-Bild. Der erste Viewport ist die Weitergabe. Heute fehlt ihm der Preis.
+
+### 5. Analytische Graphen, wenig Text — teilweise
+
+Auf der Startseite ist der Schnitt aus Audit 1 da: die 25, der Tagesgraph mit der Annotation 58,5 GW, die 30-Tage-Balken mit Achse, Formel und Modell unter dem Graphen. Das bleibt.
+
+Offen, auf den anderen Flächen und in der Saison:
+
+- Die Balken auf `/tag` zeigen die Kennzahl, die den Tag gewonnen hat. Am 8. November ist das der Windanteil, nicht der Preis. Die 96 Börsenviertelstunden sind keine Linie.
+- `/monat/2026-10` hat die echte Viertelstundenkurve. Sie beginnt nach den Sätzen zur Modellgrenze. `/monat/2026-11` hat keine Balken, weil jeder geladene Tag unter 0,05 GWh liegt. Der Satz daneben sagt, das sei kein Urteil „null Speichernutzen“, und lässt die Fläche leer.
+- `/ort` erklärt den Beispielanschluss in Sätzen, bevor die Kurve der Auslastung den Befund trägt.
+
+Wenig Text heißt: die Fußnote behält Quelle, Formel und Unsicherheit. Die Figur behält den Satz.
+
+### 6. Ort und Netz, Voltplot als Vorbild — fehlt
+
+[Voltplot Grid](https://www.voltplot.com/grid), gelesen am 9. November 2026, zeigt österreichische Umspannwerke und freie Einspeisekapazität. Die Seite selbst nennt die Pflicht: Betreiber veröffentlichen zulässige, verfügbare und gebuchte Kapazität, Speicher eingeschlossen, Aktualisierung vierteljährlich (§ 99 ElWG). Auf die veröffentlichte Zahl besteht kein Anschlussanspruch. Das ist das Vorbild für die Frage. Es ist keine deutsche Datenquelle.
+
+Für Deutschland, Primärquellen vom selben Tag:
+
+- [§ 17 EnWG](https://www.gesetze-im-internet.de/enwg_2005/__17.html), Abruf 9.11.2026: Anschlussanspruch, Ablehnung bei Kapazitätsmangel mit Begründung, auf Verlangen die Ausbaumaßnahmen und Kosten. Flexible Anschlussvereinbarung in Absatz 2b. Keine Karte freier Kapazität.
+- [§ 17c EnWG](https://www.gesetze-im-internet.de/enwg_2005/__17c.html), Abruf 9.11.2026: der Paragraf steht als „weggefallen“.
+- [§ 23c EnWG](https://www.gesetze-im-internet.de/enwg_2005/__23c.html), Abruf 9.11.2026: jährliche Strukturdaten, Leitungslängen, installierte Umspannleistung, entnommene Arbeit, Zahl der Anschlüsse, die länger als drei oder sechs Monate offen waren. Keine freie Restkapazität je Standort.
+- Stiftung Umweltenergierecht, Folien vom 17. Juni 2026 zum Referentenentwurf des Netzpakets (Stand der Übersicht: Referentenentwurf 17. April 2026, noch ohne Bundestagsbeschluss und ohne Bundesgesetzblatt): ein geplanter § 17c würde monatliche Karten der freien Kapazität auf den Umspannebenen Höchstspannung/Hochspannung und Hochspannung/Mittelspannung verlangen, plus ab 1. Januar 2028 eine unverbindliche Auskunft ab 135 kW. Das ist ein Entwurf. Es ist keine Reihe, die man heute zeichnen kann.
+- Bund, veröffentlicht und belegt: die Jahressumme 2024, [BNetzA 12.11.2025](https://www.bundesnetzagentur.de/1079644) und [SMARD](https://www.smard.de/page/home/topic-article/216804/218412/status-quo-der-batteriespeicheranfragen-2024). 9.710 Anfragen, rund 400 GW, rund 3.800 Zusagen, rund 25 GW. Kein Ort.
+
+`/ort` bleibt beim Beispiel und bei der Schätzung. Eine Deutschlandkarte nach dem Vorbild Voltplot hätte heute keine belegte Punktmenge. Status der Fläche: fehlt.
+
+### 7. Ganzheitlich, und vorsichtig mit dem, was trägt — teilweise
+
+Story, Konzept und Form sollen ein Stück sein. Heute ist die Form weiter als die Story. Der Hero mit der 25, der Tagesgraph, die Monatskurve im Oktober und das dunkle Blatt tragen. Daran wird nicht gezogen.
+
+Was fehlt, ist der Bogen, der diese Figuren zu einem Satz macht: derselbe Tag als Überschuss, als Börse und als Abendspitze, derselbe Monat als drei Ziele, derselbe Anschluss als offene Kapazitätsfrage. Ein einzelner Layoutschnitt auf Start, Tag oder Ort erfüllt den Auftrag nicht.
+
 ## Was die Seite heute nicht kann
 
 - Sie kann an einem Tag ohne Überschuss nicht sagen, ob der Speicher an der Börse trotzdem ein Fenster gehabt hätte. Sie druckt auf `/tag` die gerundete Spanne (am 8. November: 206–322 €/MWh) und zeichnet die 96 Viertelstunden nicht.
