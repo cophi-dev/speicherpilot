@@ -16,10 +16,21 @@ import {
   yAxisTicks,
   type FleetChartPoint,
 } from "@/lib/nationalFleetCharts";
+import { NationalFleetTimeSeriesChartSkeleton } from "@/components/home/NationalFleetTimeSeriesChartSkeleton";
 import type { FleetChartSeriesPayload } from "@/lib/nationalFleetSeriesPayload";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 type SeriesPayload = FleetChartSeriesPayload;
+
+type ChartFrame = {
+  key: string;
+  selected: SeriesPayload;
+  compareRp: number[] | null;
+  peakReductionGw: number;
+  peakReductionPct: number;
+  peakReductionDayGw?: number;
+  peakObservedDayGw?: number;
+};
 
 function toRunLike(selected: SeriesPayload) {
   return {
@@ -110,8 +121,7 @@ export function NationalFleetTimeSeriesChart({
   scrollHint,
   prominentMonth = false,
 }: NationalFleetTimeSeriesChartProps) {
-  const [selected, setSelected] = useState<SeriesPayload | null>(null);
-  const [compareRp, setCompareRp] = useState<number[] | null>(null);
+  const [frame, setFrame] = useState<ChartFrame | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hover, setHover] = useState<FleetChartPoint | null>(null);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
@@ -122,6 +132,13 @@ export function NationalFleetTimeSeriesChart({
   const isDay = Boolean(dateKey);
 
   useEffect(() => {
+    const requestKey = `${monthKey}|${factor}|${strategy}|${dateKey ?? ""}`;
+    const caption = {
+      peakReductionGw,
+      peakReductionPct,
+      peakReductionDayGw,
+      peakObservedDayGw,
+    };
     const params = new URLSearchParams({
       monat: monthKey,
       faktor: String(factor),
@@ -130,6 +147,7 @@ export function NationalFleetTimeSeriesChart({
     if (dateKey) {
       params.set("tag", dateKey);
     }
+    let cancelled = false;
     setLoadError(null);
     fetch(`/api/national-fleet/series?${params.toString()}`)
       .then((r) => {
@@ -139,13 +157,25 @@ export function NationalFleetTimeSeriesChart({
         return r.json();
       })
       .then((body) => {
-        setSelected(body.selected as SeriesPayload);
-        setCompareRp(body.compare?.r_prime_mw ?? null);
+        if (cancelled) {
+          return;
+        }
+        setFrame({
+          key: requestKey,
+          selected: body.selected as SeriesPayload,
+          compareRp: body.compare?.r_prime_mw ?? null,
+          ...caption,
+        });
       })
       .catch(() => {
-        setLoadError("Zeitreihe konnte nicht geladen werden.");
+        if (!cancelled) {
+          setLoadError("Zeitreihe konnte nicht geladen werden.");
+        }
       });
-  }, [monthKey, factor, strategy, dateKey]);
+    return () => {
+      cancelled = true;
+    };
+  }, [monthKey, factor, strategy, dateKey, peakReductionGw, peakReductionPct, peakReductionDayGw, peakObservedDayGw]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -157,9 +187,10 @@ export function NationalFleetTimeSeriesChart({
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [selected]);
+  }, [frame]);
 
-  const runLike = useMemo(() => (selected ? toRunLike(selected) : null), [selected]);
+  const runLike = useMemo(() => (frame ? toRunLike(frame.selected) : null), [frame]);
+  const compareRp = frame?.compareRp ?? null;
 
   const points = useMemo(() => {
     if (!runLike) {
@@ -202,8 +233,13 @@ export function NationalFleetTimeSeriesChart({
     return <p className="v4-fleet-ts-tooltip num v4-fleet-error">{loadError}</p>;
   }
 
-  if (!runLike || points.length === 0) {
-    return <p className="v4-fleet-ts-tooltip num muted">Zeitreihe wird geladen …</p>;
+  if (!frame || !runLike || points.length === 0) {
+    return (
+      <NationalFleetTimeSeriesChartSkeleton
+        prominentMonth={prominentMonth && !isDay}
+        withCompareLegend={!isDay && factor !== 1}
+      />
+    );
   }
 
   const peakI = isDay ? peakLocal : peakIndexRp(runLike);
@@ -233,18 +269,18 @@ export function NationalFleetTimeSeriesChart({
     pad,
   );
   const peakRpGw = points[peakI].rpGw;
-  const dayReduction = peakReductionDayGw ?? 0;
-  const dayObserved = peakObservedDayGw ?? points[peakI]?.rGw ?? peakRpGw;
+  const dayReduction = frame.peakReductionDayGw ?? 0;
+  const dayObserved = frame.peakObservedDayGw ?? points[peakI]?.rGw ?? peakRpGw;
 
   const captionMain = isDay
     ? formatPeakCaptionDay(peakRpGw, dayReduction, dayObserved)
-    : formatPeakEffectLine(peakRpGw, peakReductionGw, peakReductionPct);
+    : formatPeakEffectLine(peakRpGw, frame.peakReductionGw, frame.peakReductionPct);
 
   const captionMonth =
     isDay && monthContextNote
       ? monthContextNote
       : isDay
-        ? formatPeakCaptionMonthContext(peakReductionGw, peakReductionPct)
+        ? formatPeakCaptionMonthContext(frame.peakReductionGw, frame.peakReductionPct)
         : null;
 
   const indexFromClientX = (clientX: number, target: HTMLDivElement) => {
@@ -314,7 +350,9 @@ export function NationalFleetTimeSeriesChart({
       <div className="v4-fleet-ts-legend num" aria-hidden="true">
         <span className="v4-fleet-ts-legend-r">Restlast beobachtet (GW)</span>
         <span className="v4-fleet-ts-legend-rp">Restlast mit Speicher (GW)</span>
-        {comparePoints ? <span className="v4-fleet-ts-legend-compare">×1 mit Speicher (Vergleich, GW)</span> : null}
+        {comparePoints ? (
+          <span className="v4-fleet-ts-legend-compare">×1 mit Speicher (Vergleich, GW)</span>
+        ) : null}
         <span className="v4-fleet-ts-legend-c">Laden (GW)</span>
         <span className="v4-fleet-ts-legend-d">Entladen (GW)</span>
         <span className="v4-fleet-ts-legend-e">SoC Beginn Viertelstunde (GWh)</span>
@@ -446,14 +484,16 @@ export function NationalFleetTimeSeriesChart({
           </SinglePanel>
           )}
           <div className="v4-fleet-ts-x num" style={{ width }} aria-hidden="true">
-            {xTicks.map(({ index, label }, ti) => (
+            {xTicks.map(({ index, label, align }, ti) => (
               <span
                 key={`${index}-${label}`}
-                className="v4-fleet-ts-tick"
+                className={`v4-fleet-ts-tick${align === "end" ? " is-end" : ""}`}
                 style={
-                  ti === xTicks.length - 1
-                    ? { right: 0, left: "auto", transform: "none" }
-                    : { left: Math.min(Math.max(xs[index], 8), width - 8) }
+                  align === "end"
+                    ? undefined
+                    : {
+                        left: Math.min(Math.max(xs[index], 12), width - (ti === xTicks.length - 2 ? 44 : 24)),
+                      }
                 }
               >
                 {label}

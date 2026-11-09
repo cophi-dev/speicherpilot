@@ -2268,6 +2268,22 @@ html:not(.dark) .day-hero .empty-sweep {
   line-height: 1.45;
 }
 
+.nav-main-root {
+  position: relative;
+}
+
+.nav-main-incoming {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .nav-progress {
   position: fixed;
   top: 0;
@@ -9423,6 +9439,79 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 .v4-fleet-ts-wrap {
   margin-bottom: 24px;
 }
+
+.v4-fleet-ts-skeleton {
+  box-sizing: border-box;
+  min-height: 709px;
+}
+
+.v4-fleet-ts-skeleton.has-compare-legend {
+  min-height: 739px;
+}
+
+.v4-fleet-ts-skeleton:not(.is-month-prominent) {
+  min-height: 560px;
+}
+
+@media (min-width: 768px) {
+  .v4-fleet-ts-skeleton.is-month-prominent {
+    min-height: 508px;
+  }
+  .v4-fleet-ts-skeleton.is-month-prominent.has-compare-legend {
+    min-height: 538px;
+  }
+  .v4-fleet-ts-skeleton:not(.is-month-prominent) {
+    min-height: 420px;
+  }
+}
+
+.v4-fleet-ts-skel-caption {
+  min-height: 2.75rem;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background: hsl(var(--foreground) / 0.06);
+}
+
+.v4-fleet-ts-skel-plot {
+  position: relative;
+  height: 92px;
+  border: 1px solid var(--linie);
+  border-radius: 4px;
+  background: hsl(var(--foreground) / 0.03);
+}
+
+.v4-fleet-ts-wrap.is-month-prominent .v4-fleet-ts-skel-plot {
+  height: 124px;
+}
+
+.v4-fleet-ts-skel-line {
+  display: block;
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 1px;
+  background: hsl(var(--foreground) / 0.12);
+}
+
+.v4-fleet-ts-skel-panel + .v4-fleet-ts-skel-panel {
+  margin-top: 10px;
+}
+
+.v4-fleet-ts-skel-x {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.v4-fleet-ts-skel-interactive {
+  border: 1px solid var(--linie);
+  border-radius: 4px;
+  padding: 8px 4px;
+}
 .v4-fleet-ts-wrap.is-month-prominent {
   margin-top: 8px;
   margin-bottom: 28px;
@@ -9580,7 +9669,7 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   stroke-width: 1;
 }
 .v4-fleet-ts-ytick {
-  font-size: 10px;
+  font-size: 12px;
   fill: hsl(var(--muted-foreground));
 }
 .v4-fleet-beleg-detail {
@@ -9688,13 +9777,19 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 .v4-fleet-ts-x {
   position: relative;
   height: 22px;
-  font-size: 11px;
+  font-size: 12px;
   color: hsl(var(--muted-foreground));
 }
 .v4-fleet-ts-tick {
   position: absolute;
   transform: translateX(-50%);
   white-space: nowrap;
+}
+.v4-fleet-ts-tick.is-end {
+  right: 4px;
+  left: auto;
+  transform: none;
+  text-align: right;
 }
 .v4-fleet-marginal {
   margin-bottom: 24px;

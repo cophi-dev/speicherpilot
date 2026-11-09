@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import { BrandLockup } from "@/components/BrandLockup";
+import { NavigationMain } from "@/components/NavigationMain";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
 
@@ -48,6 +49,7 @@ function readThemePreferenceFromStorage(): ThemePreference {
 
 export function SiteShell({ children }: SiteShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [themePref, setThemePref] = useState<ThemePreference>("system");
   const [mounted, setMounted] = useState(false);
   const language: AppLanguage = "de";
@@ -70,6 +72,15 @@ export function SiteShell({ children }: SiteShellProps) {
     });
     return () => cancelAnimationFrame(id);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+    for (const item of NAV) {
+      router.prefetch(item.href);
+    }
+  }, [mounted, router, pathname]);
 
   useLayoutEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -202,7 +213,7 @@ export function SiteShell({ children }: SiteShellProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    prefetch={false}
+                    prefetch
                     className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 ${active ? "font-semibold text-[var(--v4-warm)]" : "text-muted-foreground hover:text-foreground"}`}
                     aria-current={active ? "page" : undefined}
                   >
@@ -245,7 +256,7 @@ export function SiteShell({ children }: SiteShellProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    prefetch={false}
+                    prefetch
                     className="inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => setMenuOpen(false)}
                   >
@@ -256,7 +267,9 @@ export function SiteShell({ children }: SiteShellProps) {
             </div>
           ) : null}
         </header>
-        <main id="inhalt">{children}</main>
+        <main id="inhalt">
+          <NavigationMain>{children}</NavigationMain>
+        </main>
         <footer className="border-t border-border">
           <div className="mx-auto max-w-[1200px] px-5 py-8 text-sm text-muted-foreground md:px-8">
             <nav className="legal-footer" aria-label="Rechtliches und Methodik">

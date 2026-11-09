@@ -1,18 +1,20 @@
 {
-  "commit": "50634c303b8eb9c28b53429f4cfd57f0f003b81c",
-  "buildId": "20261109T1809Z",
-  "builtAt": "2026-11-09T18:09:18.657Z",
+  "commit": "60fcedad76582ca076795b05dbb3069966b1281a",
+  "buildId": "20261109T1818Z",
+  "builtAt": "2026-11-09T18:18:10.225Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M lib/germanyView.ts",
-    " M lib/monatPageData.server.ts",
-    " M lib/monatPageData.test.ts",
-    " M lib/tagRollSnapshot.server.ts",
-    " M scripts/build-tag-roll-snapshot.mjs",
-    "?? lib/tagRollSnapshotPolicy.test.ts",
-    "?? lib/tagRollSnapshotPolicy.ts",
-    "?? lib/tagRollSnapshotRouting.test.ts"
+    "M app/globals.css",
+    " M components/home/NationalFleetTimeSeriesChart.tsx",
+    " M components/home/NationalFleetTimeSeriesChartInner.tsx",
+    " M components/site-shell.tsx",
+    " M lib/nationalFleetCharts.ts",
+    "?? components/NavigationMain.tsx",
+    "?? components/home/NationalFleetTimeSeriesChartSkeleton.tsx",
+    "?? lib/designRunChartLayout.test.ts",
+    "?? lib/nationalFleetChartTicks.test.ts",
+    "?? scripts/design-run-seitenpaket.mjs"
   ],
   "ci": false
 }

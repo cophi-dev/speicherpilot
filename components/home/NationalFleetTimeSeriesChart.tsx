@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 
+import { NationalFleetTimeSeriesChartSkeleton } from "@/components/home/NationalFleetTimeSeriesChartSkeleton";
 import type { NationalFleetTimeSeriesChartProps } from "@/components/home/NationalFleetTimeSeriesChartInner";
 
 const NationalFleetTimeSeriesChartInner = dynamic(
@@ -11,11 +12,7 @@ const NationalFleetTimeSeriesChartInner = dynamic(
     })),
   {
     ssr: false,
-    loading: () => (
-      <p className="v4-fleet-ts-tooltip num muted" role="status">
-        Zeitreihen-Chart wird geladen …
-      </p>
-    ),
+    loading: () => <NationalFleetTimeSeriesChartSkeleton prominentMonth withCompareLegend />,
   },
 );
 

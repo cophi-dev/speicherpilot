@@ -182,10 +182,12 @@ export function formatPeakCaptionMonthContext(
   return `Zum Vergleich — Monatslauf gesamt: Spitzensenkung ${delta} GW (${pct} % ggü. Referenz ${formatQuantity(REF_RESIDUAL_PEAK_GW, "de", 2)} GW)`;
 }
 
+export type FleetChartTick = { index: number; label: string; align?: "start" | "end" };
+
 export function fleetChartTickIndices(
   points: FleetChartPoint[],
   mode: "day" | "month",
-): Array<{ index: number; label: string }> {
+): FleetChartTick[] {
   if (points.length === 0) {
     return [{ index: 0, label: "" }];
   }
@@ -207,7 +209,7 @@ export function fleetChartTickIndices(
   }
   const wantDays = new Set(["01", "08", "15", "22", "29"]);
   const seen = new Set<string>();
-  const ticks: Array<{ index: number; label: string }> = [];
+  const ticks: FleetChartTick[] = [];
   for (let j = 0; j < points.length; j += 1) {
     const ts = points[j].ts;
     const day = ts.slice(8, 10);
@@ -219,15 +221,18 @@ export function fleetChartTickIndices(
       continue;
     }
     seen.add(day);
-    ticks.push({ index: j, label: `${Number(day)}.` });
+    ticks.push({ index: j, label: `${Number(day)}.`, align: "start" });
   }
   if (ticks.length === 0) {
-    ticks.push({ index: 0, label: berlinShortTick(points[0].ts) });
+    ticks.push({ index: 0, label: berlinShortTick(points[0].ts), align: "start" });
   }
   const last = points.length - 1;
+  const lastDay = points[last].ts.slice(8, 10);
+  const lastNum = Number(lastDay);
   if (ticks[ticks.length - 1]?.index !== last) {
-    const lastDay = points[last].ts.slice(8, 10);
-    ticks.push({ index: last, label: `${Number(lastDay)}.` });
+    ticks.push({ index: last, label: `${lastNum}.`, align: "end" });
+  } else if (ticks[ticks.length - 1]) {
+    ticks[ticks.length - 1] = { ...ticks[ticks.length - 1]!, align: "end" };
   }
   return ticks;
 }
