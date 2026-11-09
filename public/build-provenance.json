@@ -1,26 +1,19 @@
 {
-  "commit": "17c6dd217050ba558921f99a9a811a8789ee2a1c",
-  "buildId": "20261109T2325Z",
-  "builtAt": "2026-11-09T23:25:58.535Z",
+  "commit": "1b754a6a0ea1114a1939d5b51c98187b0f706384",
+  "buildId": "20261109T2330Z",
+  "builtAt": "2026-11-09T23:30:51.496Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M app/methodik/page.tsx",
-    " M app/monat/[monat]/page.tsx",
-    " M app/ort/page.tsx",
-    " M components/home/MarktInsightsBlock.module.css",
-    " M components/home/MonatPageV4.tsx",
+    "M components/home/MonatKonzeptCharts.tsx",
     " M components/home/NationalFleetMonatSlot.tsx",
-    "?? components/home/MonatKonzeptCharts.tsx",
-    "?? components/home/MonatObservedOnlySlot.tsx",
-    "?? components/home/monat-konzept.module.css",
-    "?? components/methodik/MethodikMonatKonzept.tsx",
-    "?? docs/audit-2026-11/paket4/",
-    "?? lib/monatKonzept.test.ts",
-    "?? lib/monatKonzeptA.ts",
-    "?? lib/monatKonzeptC.ts",
-    "?? lib/ortFleetParity.test.ts",
-    "?? scripts/paket4-abnahme.mjs"
+    " M components/home/NationalFleetTimeSeriesChart.tsx",
+    " M components/home/NationalFleetTimeSeriesChartInner.tsx",
+    " M components/home/monat-konzept.module.css",
+    " M lib/monatKonzept.test.ts",
+    " M lib/monatKonzeptA.ts",
+    " M scripts/paket4-abnahme.mjs",
+    "?? components/home/NationalFleetMonatKonzeptClient.tsx"
   ],
   "ci": false
 }

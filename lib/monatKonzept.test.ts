@@ -1,4 +1,4 @@
-import { buildArbeitWirkungModel } from "@/lib/monatKonzeptA";
+import { arbeitPathCallouts, buildArbeitWirkungModel } from "@/lib/monatKonzeptA";
 import { buildDauerlinieFromRun, buildDauerlinieFromRun as buildC } from "@/lib/monatKonzeptC";
 import { getFleetRun, monthStatsForRun } from "@/lib/nationalMonthFleetModel";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
@@ -57,6 +57,13 @@ describe("Paket 4 Konzept A — Sketchwerte Oktober", () => {
     const p = cell("spitze", 10);
     expect(p.peakAfterGw).toBeCloseTo(49.77, 2);
     expect(p.wirkungGw).toBeCloseTo(14.63, 2);
+  });
+
+  it("Pfadbeschriftungen wie Skizze", () => {
+    const labels = arbeitPathCallouts(model);
+    expect(labels.spitze).toContain("14,63");
+    expect(labels.ueberschuss).toContain("Pool");
+    expect(labels.markt).toMatch(/39/);
   });
 
   it("Summary und statsForRun stimmen überein", () => {

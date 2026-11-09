@@ -1,4 +1,5 @@
-import { MonatArbeitWirkungChart, MonatDauerlinieChart, MonatKonzeptWerkbank } from "@/components/home/MonatKonzeptCharts";
+import { NationalFleetMonatKonzeptClient } from "@/components/home/NationalFleetMonatKonzeptClient";
+import { fleetSizeRows } from "@/lib/monatKonzeptA";
 import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
 import { buildArbeitWirkungModel } from "@/lib/monatKonzeptA";
 import { buildDauerlinieFromRun } from "@/lib/monatKonzeptC";
@@ -60,29 +61,23 @@ export function NationalFleetMonatSlot({
     }
   }
 
+  const meta = loadNationalFleetBundleMeta();
+  const mw = (meta.provenance?.model_fleet as { power_mw?: number; energy_mwh?: number }) ?? {};
+  const fleetSizes = fleetSizeRows(mw.power_mw ?? 4580, mw.energy_mwh ?? 8000);
+
   return (
     <>
-      <MonatArbeitWirkungChart
-        model={arbeit}
+      <NationalFleetMonatKonzeptClient
         monthKey={monthKey}
-        activeFactor={factor}
-        activeStrategy={strategy}
-        marktX10Detail={marktX10Detail}
-      />
-      <MonatKonzeptWerkbank
-        monthKey={monthKey}
+        arbeit={arbeit}
+        dauer={dauer}
         factor={factor}
         strategy={strategy}
-        open
         peakReductionGw={stats.peakReductionGw}
         peakReductionPct={stats.peakReductionPct}
-      />
-      <MonatDauerlinieChart
-        model={dauer}
-        monthKey={monthKey}
-        activeFactor={factor}
-        activeStrategy={strategy}
-        fleetAvailable
+        peakAfterGw={stats.peakAfterGw}
+        fleetSizes={fleetSizes}
+        marktX10Detail={marktX10Detail}
       />
       <footer className="v4-content v4-day-footnotes">
         <p className="v4-footnote num">

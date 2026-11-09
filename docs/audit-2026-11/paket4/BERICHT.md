@@ -15,12 +15,16 @@ Stand: 9. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81]
 - `lib/monatKonzept.test.ts` — Skizzenwerte (12 Punkte, 96,76 GW, 134,2 GWh, Dauerlinie 2980 qh).
 - 673 Tests grün.
 
-## Abweichungen von den Skizzen
+## Visuelle Korrektur (Sichtprüfung v2)
 
-- **A:** Keine separate Flotten-Größentabelle rechts; Fleet in Fußnote. Log-Ticks vereinfacht.
-- **C:** Morph über Fenster-Scroll statt vollem Scrollytelling-Artikel; Pfad-Decimation (~400 Stützpunkte) für Performance.
-- **B** nicht umgesetzt (laut Audit an A gekoppelt).
-- November ohne Lauf: Hinweis plus Konzept C mit beobachteter Restlast aus Tag-Roll-Snapshot (soweit Tage geladen); keine farbige Modellkurve.
+- **A 1440:** Hero ~520px, volle Breite + Flottentabelle, Pfadlabels, durchgehende Nulllinie, großes Markt-×10-Label, getrennte Chart-Fußnote.
+- **C:** Morph-Pfad nach X sortiert (`morph=0|0.5|1` für Abnahme); Labels Tal/Spitze, 60-GW-Linie, Spitze-Fläche; kürzerer Scroll-Track.
+- **Mobil:** Miniplots mit Linien, GW-Beschriftung, Nulllinie; Werkbank erst nach Punktwahl.
+
+## Abweichungen (rest)
+
+- Kein separates Scrollytelling-Panel rechts bei C wie in der Skizze.
+- Konzept **B** nicht umgesetzt.
 
 ## Artefakte
 

@@ -1,16 +1,39 @@
 .sectionA,
 .sectionC {
-  margin: 0 0 32px;
+  margin: 0 0 28px;
 }
 
 .figure {
   margin: 0;
 }
 
+.aLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .aLayout {
+    grid-template-columns: minmax(0, 1fr) 148px;
+    gap: 20px 24px;
+    align-items: start;
+  }
+}
+
 .chartShell {
   width: 100%;
-  min-height: 220px;
   position: relative;
+}
+
+.chartShellHero {
+  min-height: 420px;
+}
+
+@media (min-width: 900px) {
+  .chartShellHero {
+    min-height: 520px;
+  }
 }
 
 .svg {
@@ -21,31 +44,53 @@
 
 .yTick,
 .xTick,
-.refLabel,
-.yUnit {
+.axisTitle,
+.yAxisTitle {
   font-family: var(--font-jetbrains-mono, var(--font-mono));
   font-size: 12px;
   fill: var(--v4-muted);
 }
 
+.axisTitle {
+  font-size: 12px;
+}
+
+.yAxisTitle {
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .gridLine {
   stroke: var(--v4-border);
   stroke-width: 1;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .zeroLine {
   stroke: var(--v4-muted);
-  stroke-width: 1;
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+}
+
+.refLineLabel {
+  font-size: 11px;
+  fill: var(--v4-muted);
 }
 
 .negativeFill {
-  fill: hsl(var(--muted-foreground) / 0.08);
+  fill: hsl(var(--muted-foreground) / 0.07);
 }
 
 .poolLine {
-  stroke: hsl(var(--muted-foreground) / 0.45);
-  stroke-dasharray: 6 4;
+  stroke: #0b9f84;
+  stroke-width: 1.25;
+  stroke-dasharray: 5 4;
+  opacity: 0.75;
+}
+
+.poolLineLabel {
+  font-size: 11px;
+  fill: #0b9f84;
 }
 
 .pointDot {
@@ -55,14 +100,17 @@
 
 .pointDot.spitze {
   fill: #e86a3a;
+  stroke: #e86a3a;
 }
 
 .pointDot.ueberschuss {
   fill: #0b9f84;
+  stroke: #0b9f84;
 }
 
 .pointDot.markt {
   fill: #f5b731;
+  stroke: #f5b731;
 }
 
 .pointDot.hollow {
@@ -76,8 +124,8 @@
 
 .pathLine {
   fill: none;
-  stroke-width: 2;
-  opacity: 0.85;
+  stroke-width: 2.5;
+  opacity: 0.9;
 }
 
 .pathLine.spitze {
@@ -92,43 +140,162 @@
   stroke: #f5b731;
 }
 
-.annotation {
+.pathLabel {
   font-size: 12px;
+  font-weight: 600;
   fill: hsl(var(--foreground));
 }
 
-.annotationMuted {
+.pathLabel.spitze {
+  fill: #e86a3a;
+}
+
+.pathLabel.ueberschuss {
+  fill: #0b9f84;
+}
+
+.pathLabel.markt {
+  fill: #f5b731;
+}
+
+.marktCallout {
+  position: absolute;
+  right: 4px;
+  bottom: 52px;
+  max-width: min(280px, 42%);
+  text-align: right;
+  pointer-events: none;
+}
+
+.marktCalloutGw {
+  display: block;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: hsl(var(--foreground));
+}
+
+.marktCalloutSub {
+  display: block;
+  margin-top: 6px;
   font-size: 12px;
+  line-height: 1.45;
+  color: var(--v4-muted);
+}
+
+.chartFootnote {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--v4-muted);
+}
+
+.annotationMuted {
+  font-size: 11px;
   fill: var(--v4-muted);
 }
 
-.legendRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
+.fleetAside {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.fleetAsideTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--v4-muted);
+}
+
+.fleetTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.fleetTable td {
+  padding: 3px 0;
+  vertical-align: top;
+}
+
+.fleetTable td:last-child {
+  text-align: right;
+}
+
+.fleetHint {
   margin: 12px 0 0;
   font-size: 12px;
+  color: var(--v4-muted);
+  line-height: 1.4;
 }
 
 .mobilePaths {
   display: none;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .mobilePathTitle {
   font-size: 12px;
   font-weight: 600;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 }
 
 .mobilePathChart {
   width: 100%;
-  min-height: 88px;
+  height: auto;
+  display: block;
 }
 
-.sectionC .morphHost {
-  min-height: 240px;
+.desktopChart {
+  display: block;
+}
+
+.morphScrollTrack {
+  position: relative;
+  min-height: 55vh;
+  margin: 0 0 8px;
+}
+
+.morphSticky {
+  position: sticky;
+  top: 64px;
+  z-index: 1;
+}
+
+.chartShellC {
+  min-height: 320px;
+}
+
+@media (min-width: 900px) {
+  .chartShellC {
+    min-height: 400px;
+  }
+}
+
+.shaveFill {
+  fill: #e86a3a;
+  opacity: 0.22;
+}
+
+.dauerLabel {
+  font-size: 12px;
+  fill: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.dauerLabelMuted {
+  font-size: 12px;
+  fill: var(--v4-muted);
+}
+
+.ref60Line {
+  stroke: var(--v4-muted);
+  stroke-dasharray: 6 5;
+  opacity: 0.7;
 }
 
 .morphNote {
@@ -138,22 +305,37 @@
 }
 
 .workbench {
-  margin: 20px 0 28px;
+  margin: 8px 0 24px;
 }
 
-.workbenchHead {
-  font-size: 12px;
-  color: var(--v4-muted);
-  margin: 0 0 8px;
+.workbench :global(.v4-fleet-ts-legend) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  max-width: 100%;
+}
+
+.workbench :global(.v4-fleet-ts-legend-compare),
+.workbench :global(.v4-fleet-ts-legend-e) {
+  display: none;
+}
+
+.workbench :global(.v4-fleet-caption-main) {
+  font-size: 13px;
 }
 
 @media (max-width: 639px) {
-  .desktopChart {
+  .desktopChart,
+  .fleetAside {
     display: none;
   }
 
   .mobilePaths {
     display: flex;
+  }
+
+  .aLayout {
+    display: block;
   }
 }
 

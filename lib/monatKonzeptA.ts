@@ -123,3 +123,38 @@ export function formatGwhTick(v: number): string {
   }
   return formatQuantity(v, "de", 0);
 }
+
+export type FleetSizeRow = { factor: NationalFleetFactor; powerGw: number; energyGwh: number };
+
+export function fleetSizeRows(basePowerMw: number, baseEnergyMwh: number): FleetSizeRow[] {
+  return NATIONAL_FLEET_FACTORS.map((factor) => ({
+    factor,
+    powerGw: (basePowerMw * factor) / 1000,
+    energyGwh: (baseEnergyMwh * factor) / 1000,
+  }));
+}
+
+/** Pfadbeschriftungen wie Opus-Skizze (Run9-Werte). */
+export function arbeitPathCallouts(model: ArbeitWirkungModel): Record<NationalFleetStrategyUi, string> {
+  const pt = (strategy: NationalFleetStrategyUi, factor: NationalFleetFactor) =>
+    model.points.find((p) => p.strategy === strategy && p.factor === factor)!;
+  const spitze10 = pt("spitze", 10);
+  const markt1 = pt("markt", 1);
+  const spitze1 = pt("spitze", 1);
+  const ladungRatio = markt1.chargeGwh / Math.max(spitze1.chargeGwh, 0.001);
+  return {
+    spitze: `Spitze senken ×10: −${formatQuantity(spitze10.wirkungGw, "de", 2)} GW`,
+    ueberschuss: `Differenz aufnehmen · stößt bei ×10 an den Pool`,
+    markt: `Marktorientiert ×1: lädt ${formatQuantity(ladungRatio, "de", 0)}× so viel, senkt Spitze um ${formatQuantity(markt1.wirkungGw, "de", 2)} GW`,
+  };
+}
+
+export function formatKonzeptWorkbenchCaption(peakAfterGw: number, wirkungGw: number): string {
+  if (wirkungGw >= 0.0005) {
+    return `Monatsspitze ${formatQuantity(peakAfterGw, "de", 2)} GW — Senkung ${formatQuantity(wirkungGw, "de", 2)} GW`;
+  }
+  if (wirkungGw <= -0.0005) {
+    return `Monatsspitze ${formatQuantity(peakAfterGw, "de", 2)} GW — ${formatQuantity(Math.abs(wirkungGw), "de", 2)} GW über Referenz`;
+  }
+  return `Monatsspitze ${formatQuantity(peakAfterGw, "de", 2)} GW`;
+}
