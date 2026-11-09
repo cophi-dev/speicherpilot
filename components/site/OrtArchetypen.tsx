@@ -56,6 +56,12 @@ function explainBadge(
       "Burdensome (model): The storage worsens loading and pushes the line above 100 % in some quarter-hours.",
     );
   }
+  if (badge.id === "nicht_bewertet") {
+    return tx(
+      "Nicht bewertet (Modell): Zeitreihe fehlt, ist ungleich lang oder enthält ungültige Werte.",
+      "Not assessed (model): time series missing, unequal length or contains invalid values.",
+    );
+  }
   return tx(
     "Neutral (Modell): Weder klare Entlastung noch klare Verschärfung am Engpass — oder kein kritischer Bereich an diesem Tag.",
     "Neutral (model): Neither clear relief nor clear worsening at the bottleneck — or no critical band on this day.",
@@ -140,7 +146,9 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
       ? tx("netzdienlich (Modell)", "grid-supportive (model)")
       : badge.id === "belastend"
         ? tx("belastend (Modell)", "burdensome (model)")
-        : tx("neutral (Modell)", "neutral (model)");
+        : badge.id === "nicht_bewertet"
+          ? tx("nicht bewertet (Modell)", "not assessed (model)")
+          : tx("neutral (Modell)", "neutral (model)");
 
   const over100 =
     mode === "markt" ? data.over100Qh.n1Markt : mode === "vertrag" ? data.over100Qh.n1Vertrag : data.over100Qh.n1Netz;

@@ -72,7 +72,7 @@ export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
 
   if (!isUsableSeries(l0) || !isUsableSeries(l1)) {
     return {
-      id: "neutral",
+      id: "nicht_bewertet",
       criticalHours: 0,
       over100Before: 0,
       over100After: 0,
@@ -81,7 +81,7 @@ export function assessBadgeV2(input: BadgeV2Input): BadgeV2Result {
   }
   if (l0.length !== l1.length) {
     return {
-      id: "neutral",
+      id: "nicht_bewertet",
       criticalHours: 0,
       over100Before: 0,
       over100After: 0,

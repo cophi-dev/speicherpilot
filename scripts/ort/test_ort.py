@@ -110,8 +110,17 @@ def test_badge_v2_relief():
 
 
 def test_badge_v2_non_finite_not_positive():
-    assert assess_badge_v2([95.0, float("nan")], [90.0, float("nan")]) == "neutral"
+    assert assess_badge_v2([95.0, float("nan")], [90.0, float("nan")]) == "nicht_bewertet"
+    assert assess_badge_v2([95.0], [90.0, 110.0]) == "nicht_bewertet"
+    assert assess_badge_v2([], []) == "nicht_bewertet"
     assert assess_badge_v2([95.0, 20.0], [90.0, 110.0]) == "belastend"
+
+
+def test_loading_series_keeps_nan_not_zero():
+    """Regression: failed qh must not become 0 % in L0 builders."""
+    bad = [95.0, float("nan"), 88.0]
+    assert assess_badge_v2(bad, [90.0, 88.0, 87.0]) == "nicht_bewertet"
+    assert bad[1] != 0.0
 
 
 def test_loading_delta_coeff_land_export_stress():

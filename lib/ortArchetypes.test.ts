@@ -47,13 +47,13 @@ describe("ortArchetypes", () => {
 
   it("badge v2 not assessed on non-finite values", () => {
     const result = assessBadgeV2({ L0n1: [95, Number.NaN], L1n1: [90, Number.NaN] });
-    expect(result.id).toBe("neutral");
+    expect(result.id).toBe("nicht_bewertet");
     expect(result.hint).toMatch(/nicht bewertet/);
   });
 
   it("badge v2 not assessed on unequal lengths", () => {
     const result = assessBadgeV2({ L0n1: [95], L1n1: [90, 130] });
-    expect(result.id).toBe("neutral");
+    expect(result.id).toBe("nicht_bewertet");
     expect(result.hint).toMatch(/ungleich lang/);
   });
 

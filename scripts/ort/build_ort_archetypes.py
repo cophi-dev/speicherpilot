@@ -372,12 +372,12 @@ def scan_engpass(net, mv, abs_values, day_index: int, archetype_key: str):
             value = loading_percent_from_signed_mw(signed, rating_mw)
         except Exception:
             value = float("nan")
-            signed = 0.0
+            signed = float("nan")
             vm_min.append(0.0)
             vm_max.append(0.0)
-            s0_n1_signed.append(0.0)
+            s0_n1_signed.append(float("nan"))
         net[k_kind].at[k_idx, "in_service"] = True
-        l0_n1.append(value if math.isfinite(value) else 0.0)
+        l0_n1.append(value)
 
     return dict(
         b_kind=b_kind,
@@ -653,10 +653,10 @@ def build_l0_n1_day(
             value = loading_percent_from_signed_mw(s_mw, rating_mw)
         except Exception:
             value = float("nan")
-            s_mw = 0.0
+            s_mw = float("nan")
         net[k_kind].at[k_idx, "in_service"] = True
-        loading.append(value if math.isfinite(value) else 0.0)
-        signed.append(round(s_mw, 4))
+        loading.append(value)
+        signed.append(round(s_mw, 4) if math.isfinite(s_mw) else float("nan"))
     return loading, signed
 
 
@@ -1115,9 +1115,9 @@ def dispatch_modes(
 
 def assess_badge_v2(l0_n1: list[float], l1_n1: list[float]) -> str:
     if not l0_n1 or not l1_n1 or len(l0_n1) != len(l1_n1):
-        return "neutral"
+        return "nicht_bewertet"
     if not all(math.isfinite(v) for v in l0_n1) or not all(math.isfinite(v) for v in l1_n1):
-        return "neutral"
+        return "nicht_bewertet"
     n = len(l0_n1)
     for t in range(n):
         if l1_n1[t] > 100 and l1_n1[t] > l0_n1[t] + 0.5:
