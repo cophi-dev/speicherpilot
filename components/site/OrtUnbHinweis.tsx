@@ -11,7 +11,7 @@ export function OrtUnbHinweis() {
         Mittelspannung. SpeicherPilot baut keine Deutschlandkarte und erfindet keine Punktwerte.
       </p>
       <ul className="v4-ort-unb-links num">
-        <li>
+        <li className="v4-ort-unb-link-row">
           <a
             href="https://www.transnetbw.de/de/transparenz/netzzugang-und-entgelt/netzanschlusskarte"
             className="v4-text-link"
@@ -19,9 +19,9 @@ export function OrtUnbHinweis() {
           >
             TransnetBW Netzanschlusskarte
           </a>
-          <span className="v4-footnote"> (Stand 05/2026, 380-kV-Umspannwerke)</span>
+          <span className="v4-footnote v4-ort-unb-link-note">(Stand 05/2026, 380-kV-Umspannwerke)</span>
         </li>
-        <li>
+        <li className="v4-ort-unb-link-row">
           <a
             href="https://www.50hertz.com/de/Vertragspartner/Netzkunden/Netzanschluss"
             className="v4-text-link"
@@ -29,7 +29,7 @@ export function OrtUnbHinweis() {
           >
             50Hertz Netzanschluss
           </a>
-          <span className="v4-footnote"> (Regelzone mit Hamburg, Stand 31.03.2026)</span>
+          <span className="v4-footnote v4-ort-unb-link-note">(Regelzone mit Hamburg, Stand 31.03.2026)</span>
         </li>
       </ul>
       <p className="v4-footnote v4-ort-unb-foot">

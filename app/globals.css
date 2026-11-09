@@ -10539,6 +10539,22 @@ html:not(.dark) .ort-v4-page .site-quiet {
   font-size: 13px;
   margin: 8px 0 0;
   padding-left: 1.1rem;
+  max-width: 100%;
+}
+
+.v4-ort-unb-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.35rem;
+  max-width: 100%;
+  margin-bottom: 0.35rem;
+}
+
+.v4-ort-unb-link-note {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .v4-ort-unb-foot {

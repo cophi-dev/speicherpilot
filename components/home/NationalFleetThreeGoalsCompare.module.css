@@ -8,7 +8,7 @@
 
 .chartShell {
   width: 100%;
-  max-width: 720px;
+  max-width: none;
   min-height: 196px;
 }
 
@@ -19,12 +19,18 @@
 }
 
 .yTick,
-.xLabel,
 .refLabel,
 .yUnit {
   font-family: var(--font-jetbrains-mono, var(--font-mono));
   font-size: 12px;
   fill: var(--v4-muted);
+}
+
+.xLabel {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  fill: var(--v4-muted);
+  opacity: 0.92;
 }
 
 .yUnit {

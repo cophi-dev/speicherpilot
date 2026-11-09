@@ -21,7 +21,7 @@ const PAD_T = 30;
 const PAD_B = 30;
 const BAR_W = 9;
 const BAR_GAP = 5;
-const GROUP_GAP = 22;
+const GROUP_GAP_MIN = 8;
 
 function fmtGw(gw: number): string {
   return formatQuantity(gw, "de", 2);
@@ -61,8 +61,11 @@ export function NationalFleetThreeGoalsCompare({
   const groupCount = NATIONAL_FLEET_FACTORS.length;
   const barsPerGroup = STRATEGY_ORDER.length;
   const groupInnerW = barsPerGroup * BAR_W + (barsPerGroup - 1) * BAR_GAP;
-  const totalGroupsW = groupCount * groupInnerW + (groupCount - 1) * GROUP_GAP;
-  const groupStartX = PAD_L + Math.max(0, (plotW - totalGroupsW) / 2);
+  const groupGap =
+    groupCount > 1
+      ? Math.max(GROUP_GAP_MIN, (plotW - groupCount * groupInnerW) / (groupCount - 1))
+      : 0;
+  const groupStartX = PAD_L;
 
   const ueX1 = model.rows.find((r) => r.strategy === "ueberschuss")!.cells.find((c) => c.factor === 1)!;
   const spX1 = model.rows.find((r) => r.strategy === "spitze")!.cells.find((c) => c.factor === 1)!;
@@ -113,17 +116,34 @@ export function NationalFleetThreeGoalsCompare({
               </clipPath>
             </defs>
             <line x1={PAD_L} y1={refY} x2={VIEW_W - PAD_R} y2={refY} className={styles.refLine} />
-            <text x={PAD_L + 2} y={PAD_T + 12} className={styles.refLabel} textAnchor="start">
+            <text
+              x={VIEW_W - PAD_R}
+              y={refY - 6}
+              className={styles.refLabel}
+              textAnchor="end"
+              dominantBaseline="auto"
+            >
               Ref. {fmtGw(model.refPeakGw)} GW
             </text>
+            {NATIONAL_FLEET_FACTORS.map((factor, gi) => {
+              const gx = groupStartX + gi * (groupInnerW + groupGap);
+              return (
+                <text
+                  key={`x-${factor}`}
+                  x={gx + groupInnerW / 2}
+                  y={PAD_T + plotH + 16}
+                  className={styles.xLabel}
+                  textAnchor="middle"
+                >
+                  ×{factor}
+                </text>
+              );
+            })}
             <g clipPath="url(#three-goals-plot-clip)">
             {NATIONAL_FLEET_FACTORS.map((factor, gi) => {
-              const gx = groupStartX + gi * (groupInnerW + GROUP_GAP);
+              const gx = groupStartX + gi * (groupInnerW + groupGap);
               return (
                 <g key={factor}>
-                  <text x={gx + groupInnerW / 2} y={VIEW_H - 6} className={styles.xLabel} textAnchor="middle">
-                    ×{factor}
-                  </text>
                   {STRATEGY_ORDER.map((strategy, si) => {
                     const row = model.rows.find((r) => r.strategy === strategy)!;
                     const cell = row.cells.find((c) => c.factor === factor)!;
