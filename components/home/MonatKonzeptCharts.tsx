@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import styles from "@/components/home/monat-konzept.module.css";
@@ -9,12 +9,30 @@ import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTim
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { ArbeitWirkungModel, ArbeitWirkungPoint, FleetSizeRow } from "@/lib/monatKonzeptA";
 import {
-  arbeitPathCallouts,
   arbeitWirkungHref,
   formatGwhTick,
   formatKonzeptPeakInstant,
   formatKonzeptWorkbenchCaption,
 } from "@/lib/monatKonzeptA";
+import {
+  CHART_PAD_L,
+  CHART_PAD_R,
+  CHART_PAD_T,
+  CHART_VIEW_H,
+  logX,
+  plotHeight,
+  plotWidth,
+  pointsForStrategy,
+  yWirkung,
+} from "@/lib/arbeitWirkungChartGeometry";
+import {
+  arbeitWirkungLabelSpecs,
+  buildArbeitWirkungLabels,
+  buildChartObstacles,
+  labelTextBox,
+  placeLabels,
+  type PlacedLabel,
+} from "@/lib/arbeitWirkungLabelPlacement";
 import type { DauerlinieModel } from "@/lib/monatKonzeptC";
 import { dauerlinieSeriesSamples, morphX } from "@/lib/monatKonzeptC";
 import {
@@ -27,36 +45,65 @@ import {
 const STRATEGIES: NationalFleetStrategyUi[] = ["spitze", "ueberschuss", "markt"];
 const Y_MIN = -35;
 const Y_MAX = 16;
-const VIEW_W = 1100;
-const VIEW_H = 520;
-const PAD_L = 96;
-const PAD_R = 36;
-const PAD_T = 66;
-const PAD_B = 64;
 
-function pctX(px: number): string {
-  return `${(px / VIEW_W) * 100}%`;
+function useChartViewWidth(shellRef: React.RefObject<HTMLDivElement | null>): number {
+  const [viewW, setViewW] = useState(0);
+  useEffect(() => {
+    const el = shellRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = Math.round(el.getBoundingClientRect().width);
+      if (w > 200) setViewW(w);
+    };
+    measure();
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return viewW > 0 ? viewW : 920;
 }
 
-function pctY(px: number): string {
-  return `${(px / VIEW_H) * 100}%`;
+function labelStyleClass(id: string, styles: Record<string, string>): string {
+  if (id.includes("pool")) return styles.labelPool;
+  if (id.includes("spitze")) return styles.labelSpitze;
+  if (id.includes("ueberschuss")) return styles.labelUeberschuss;
+  if (id.includes("markt") && !id.includes("callout")) return styles.labelMarkt;
+  if (id.includes("ref")) return styles.labelRef;
+  if (id.includes("callout")) return styles.labelCallout;
+  return styles.labelDefault;
 }
 
-function logX(chargeGwh: number, plotW: number): number {
-  const minL = Math.log10(10);
-  const maxL = Math.log10(10000);
-  const v = Math.max(10, chargeGwh);
-  const log = Math.log10(v);
-  return PAD_L + ((log - minL) / (maxL - minL)) * plotW;
-}
-
-function yWirkung(gw: number, plotH: number): number {
-  return PAD_T + plotH - ((gw - Y_MIN) / (Y_MAX - Y_MIN)) * plotH;
-}
-
-function pointsForStrategy(model: ArbeitWirkungModel, strategy: NationalFleetStrategyUi): ArbeitWirkungPoint[] {
-  return NATIONAL_FLEET_FACTORS.map(
-    (f) => model.points.find((p) => p.strategy === strategy && p.factor === f)!,
+function PlacedSvgLabel({ placed, styles }: { placed: PlacedLabel; styles: Record<string, string> }) {
+  const { lineHeights } = labelTextBox(placed.lines);
+  const x0 =
+    placed.textAnchor === "middle"
+      ? placed.x + placed.box.w / 2
+      : placed.textAnchor === "end"
+        ? placed.x + placed.box.w
+        : placed.x;
+  const y0 = placed.y + placed.lines[0]!.fontSize;
+  return (
+    <text
+      data-testid={placed.id}
+      data-placement-label={placed.id}
+      x={x0}
+      y={y0}
+      textAnchor={placed.textAnchor}
+      className={`num ${labelStyleClass(placed.id, styles)}`}
+    >
+      {placed.lines.map((line, i) => (
+        <tspan
+          key={i}
+          x={x0}
+          dy={i === 0 ? 0 : lineHeights[i - 1]!}
+          fontSize={line.fontSize}
+          fontWeight={line.bold ? 700 : 500}
+          className={placed.id === "arbeit-markt-callout" && i === 0 ? styles.calloutGwLine : undefined}
+        >
+          {line.text}
+        </tspan>
+      ))}
+    </text>
   );
 }
 
@@ -87,11 +134,61 @@ export function MonatArbeitWirkungChart({
   onPointSelect?: () => void;
 }) {
   const router = useRouter();
-  const plotW = VIEW_W - PAD_L - PAD_R;
-  const plotH = VIEW_H - PAD_T - PAD_B;
-  const yZero = yWirkung(0, plotH);
-  const poolX = logX(model.surplusPoolGwh, plotW);
-  const pathLabels = arbeitPathCallouts(model);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const viewW = useChartViewWidth(shellRef);
+  const plotW = plotWidth(viewW);
+  const plotH = plotHeight();
+  const yZero = yWirkung(0);
+  const poolX = logX(model.surplusPoolGwh, viewW);
+  const marktX10 = model.marktX10;
+
+  const decorateCallout = useCallback(
+    (placed: PlacedLabel[]) => {
+      if (!marktX10 || !marktX10Detail) return placed;
+      return placed.map((p) =>
+        p.id === "arbeit-markt-callout"
+          ? {
+              ...p,
+              lines: p.lines.map((line, i) =>
+                i === 1
+                  ? {
+                      ...line,
+                      text: `neue Monatsspitze · ${weekdayDeFromTs(marktX10.peakTs) ?? ""} ${formatKonzeptPeakInstant(marktX10.peakTs) ?? ""}`,
+                    }
+                  : line,
+              ),
+            }
+          : p,
+      );
+    },
+    [marktX10, marktX10Detail],
+  );
+
+  const [placedLabels, setPlacedLabels] = useState<PlacedLabel[]>(() =>
+    decorateCallout(buildArbeitWirkungLabels(model, viewW, marktX10Detail ?? null)),
+  );
+
+  useLayoutEffect(() => {
+    const specs = arbeitWirkungLabelSpecs(model, viewW, marktX10Detail ?? null);
+    const baseObstacles = buildChartObstacles(model, viewW, ["spitze", "ueberschuss", "markt"]);
+    const initial = decorateCallout(placeLabels(specs, baseObstacles, viewW));
+    setPlacedLabels(initial);
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const svg = svgRef.current;
+        if (!svg) return;
+        const measured: { kind: "box"; box: { x: number; y: number; w: number; h: number } }[] = [];
+        svg.querySelectorAll("[data-placement-label]").forEach((el) => {
+          const b = (el as SVGGraphicsElement).getBBox();
+          measured.push({ kind: "box", box: { x: b.x - 6, y: b.y - 4, w: b.width + 12, h: b.height + 8 } });
+        });
+        const refined = decorateCallout(placeLabels(specs, [...baseObstacles, ...measured], viewW));
+        setPlacedLabels(refined);
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [model, viewW, marktX10Detail, decorateCallout]);
 
   const navigate = useCallback(
     (factor: NationalFleetFactor, strategy: NationalFleetStrategyUi) => {
@@ -125,11 +222,11 @@ export function MonatArbeitWirkungChart({
   }, [activeFactor, activeStrategy, navigate]);
 
   const renderPoint = (p: ArbeitWirkungPoint, hollow: boolean) => {
-    const cx = logX(p.chargeGwh, plotW);
-    const cy = yWirkung(p.wirkungGw, plotH);
+    const cx = logX(p.chargeGwh, viewW);
+    const cy = yWirkung(p.wirkungGw);
     const active = p.factor === activeFactor && p.strategy === activeStrategy;
     return (
-      <g key={`${p.strategy}-${p.factor}`}>
+      <g key={`${p.strategy}-${p.factor}`} data-chart-point={`${p.strategy}-${p.factor}`}>
         <a
           href={arbeitWirkungHref(monthKey, p.factor, p.strategy)}
           className={`${styles.pointDot} ${styles[p.strategy]}${hollow ? ` ${styles.hollow}` : ""}${active ? ` ${styles.isActive}` : ""}`}
@@ -146,13 +243,6 @@ export function MonatArbeitWirkungChart({
     );
   };
 
-  const spitze10 = pointsForStrategy(model, "spitze")[3]!;
-  const ue10 = pointsForStrategy(model, "ueberschuss")[3]!;
-  const markt1 = pointsForStrategy(model, "markt")[0]!;
-  const marktX10 = model.marktX10;
-  const m10cx = marktX10 ? logX(marktX10.chargeGwh, plotW) : 0;
-  const m10cy = marktX10 ? yWirkung(marktX10.wirkungGw, plotH) : 0;
-
   return (
     <section className={`v4-chapter ${styles.sectionA}`} aria-labelledby="monat-arbeit-wirkung-title">
       <h2 id="monat-arbeit-wirkung-title" className="v4-chapter-h2">
@@ -161,134 +251,123 @@ export function MonatArbeitWirkungChart({
       <figure className={styles.figure}>
         <div className={styles.aLayout}>
           <div
+            ref={shellRef}
             className={`${styles.chartShell} ${styles.chartShellHero} ${styles.desktopChart}`}
             data-testid="arbeit-chart-shell"
           >
-            <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className={styles.svg} role="img" aria-labelledby="arbeit-wirkung-aria-title">
+            <svg
+              ref={svgRef}
+              viewBox={`0 0 ${viewW} ${CHART_VIEW_H}`}
+              width="100%"
+              height={CHART_VIEW_H}
+              className={styles.svg}
+              role="img"
+              aria-labelledby="arbeit-wirkung-aria-title"
+              data-testid="arbeit-wirkung-svg"
+            >
               <title id="arbeit-wirkung-aria-title">Arbeit gegen Wirkung — drei Ziele × Faktoren</title>
-              <rect x={PAD_L} y={PAD_T} width={plotW} height={yZero - PAD_T} className={styles.negativeFill} />
+              <rect
+                data-testid="arbeit-plot-frame"
+                x={CHART_PAD_L}
+                y={CHART_PAD_T}
+                width={plotW}
+                height={plotH}
+                fill="none"
+                stroke="transparent"
+              />
+              <rect x={CHART_PAD_L} y={CHART_PAD_T} width={plotW} height={yZero - CHART_PAD_T} className={styles.negativeFill} />
               {[10, 100, 1000, 10000].map((tick) => (
                 <g key={tick}>
                   <line
-                    x1={logX(tick, plotW)}
-                    x2={logX(tick, plotW)}
-                    y1={PAD_T}
-                    y2={PAD_T + plotH}
+                    x1={logX(tick, viewW)}
+                    x2={logX(tick, viewW)}
+                    y1={CHART_PAD_T}
+                    y2={CHART_PAD_T + plotH}
                     className={styles.gridLine}
                   />
-                  <text x={logX(tick, plotW)} y={VIEW_H - 28} className={styles.xTick} textAnchor="middle">
+                  <text
+                    x={logX(tick, viewW)}
+                    y={CHART_VIEW_H - 30}
+                    className={styles.xTick}
+                    textAnchor="middle"
+                    data-chart-tick={`x-${tick}`}
+                  >
                     {formatGwhTick(tick)}
                   </text>
                 </g>
               ))}
-              <text x={PAD_L + plotW / 2} y={VIEW_H - 8} className={styles.axisTitle} textAnchor="middle">
+              <text
+                x={CHART_PAD_L + plotW / 2}
+                y={CHART_VIEW_H - 10}
+                className={styles.axisTitle}
+                textAnchor="middle"
+                data-chart-tick="x-title"
+              >
                 Netzseitige Ladung im Monat, GWh (logarithmisch)
               </text>
               {[-30, -20, -10, 0, 5, 10, 15].map((tick) => (
                 <g key={tick}>
                   <line
-                    x1={PAD_L}
-                    x2={VIEW_W - PAD_R}
-                    y1={yWirkung(tick, plotH)}
-                    y2={yWirkung(tick, plotH)}
+                    x1={CHART_PAD_L}
+                    x2={viewW - CHART_PAD_R}
+                    y1={yWirkung(tick)}
+                    y2={yWirkung(tick)}
                     className={styles.gridLine}
                   />
-                  <text x={PAD_L - 12} y={yWirkung(tick, plotH) + 4} className={styles.yTick} textAnchor="end">
+                  <text
+                    x={CHART_PAD_L - 12}
+                    y={yWirkung(tick) + 4}
+                    className={styles.yTick}
+                    textAnchor="end"
+                    data-chart-tick={`y-${tick}`}
+                  >
                     {tick > 0 ? `+${tick}` : tick}
                   </text>
                 </g>
               ))}
-              <text x={22} y={PAD_T + 4} className={styles.yAxisTitle} textAnchor="start">
+              <text
+                x={20}
+                y={CHART_PAD_T - 16}
+                className={styles.yAxisTitle}
+                textAnchor="start"
+                data-chart-y-title="top"
+              >
                 Spitze sinkt um … GW
               </text>
-              <text x={22} y={PAD_T + plotH - 6} className={styles.yAxisTitle} textAnchor="start">
+              <text
+                x={20}
+                y={CHART_PAD_T + plotH + 28}
+                className={styles.yAxisTitle}
+                textAnchor="start"
+                data-chart-y-title="bottom"
+              >
                 Spitze steigt
               </text>
               {STRATEGIES.map((strategy) => {
                 const pts = pointsForStrategy(model, strategy);
                 const d = pts
-                  .map(
-                    (p, i) =>
-                      `${i === 0 ? "M" : "L"}${logX(p.chargeGwh, plotW)},${yWirkung(p.wirkungGw, plotH)}`,
-                  )
+                  .map((p, i) => `${i === 0 ? "M" : "L"}${logX(p.chargeGwh, viewW)},${yWirkung(p.wirkungGw)}`)
                   .join(" ");
-                return <path key={strategy} d={d} className={`${styles.pathLine} ${styles[strategy]}`} />;
+                return (
+                  <path
+                    key={strategy}
+                    d={d}
+                    className={`${styles.pathLine} ${styles[strategy]}`}
+                    data-chart-path={strategy}
+                  />
+                );
               })}
-              <line x1={PAD_L} y1={yZero} x2={VIEW_W - PAD_R} y2={yZero} className={styles.zeroLine} />
-              <line x1={poolX} y1={PAD_T} x2={poolX} y2={PAD_T + plotH} className={styles.poolLine} />
+              <line x1={CHART_PAD_L} y1={yZero} x2={viewW - CHART_PAD_R} y2={yZero} className={styles.zeroLine} />
+              <line x1={poolX} y1={CHART_PAD_T} x2={poolX} y2={CHART_PAD_T + plotH} className={styles.poolLine} />
+              <g className={styles.labelLayer}>
+                {placedLabels.map((placed) => (
+                  <PlacedSvgLabel key={placed.id} placed={placed} styles={styles} />
+                ))}
+              </g>
               {STRATEGIES.flatMap((strategy) =>
                 pointsForStrategy(model, strategy).map((p) => renderPoint(p, p.factor === 1)),
               )}
             </svg>
-            <div className={styles.labelOverlay} aria-hidden="true" data-testid="arbeit-label-overlay">
-              <span
-                data-testid="arbeit-pool-label"
-                className={`${styles.poolBanner} num`}
-                style={{ left: pctX(poolX), top: pctY(PAD_T + 2), transform: "translateX(-50%)" }}
-              >
-                Überschuss-Pool {formatQuantity(model.surplusPoolGwh, "de", 1)} GWh — mehr Überschuss gab es nicht
-              </span>
-              <span
-                data-testid="arbeit-ref-label"
-                className={`${styles.refLabelHtml} num`}
-                style={{ right: "1.5%", top: pctY(yZero - 28) }}
-              >
-                Referenz ohne Speicher {formatQuantity(model.refPeakGw, "de", 2)} GW ·{" "}
-                {formatKonzeptPeakInstant(model.refPeakTs) ?? "—"}
-              </span>
-              <span
-                data-testid="arbeit-label-spitze"
-                className={`${styles.pathLabelHtml} ${styles.spitze}`}
-                style={{
-                  left: pctX(logX(spitze10.chargeGwh, plotW) - 72),
-                  top: pctY(Math.max(PAD_T + 8, yWirkung(spitze10.wirkungGw, plotH) - 6)),
-                }}
-              >
-                {pathLabels.spitze}
-              </span>
-              <span
-                data-testid="arbeit-label-ueberschuss"
-                className={`${styles.pathLabelHtml} ${styles.ueberschuss}`}
-                style={{
-                  left: pctX(logX(ue10.chargeGwh, plotW) - 18),
-                  top: pctY(yWirkung(ue10.wirkungGw, plotH) + 26),
-                }}
-              >
-                {pathLabels.ueberschuss}
-              </span>
-              <span
-                data-testid="arbeit-label-markt"
-                className={`${styles.pathLabelHtml} ${styles.markt}`}
-                style={{
-                  left: pctX(logX(markt1.chargeGwh, plotW) - 8),
-                  top: pctY(yZero + 22),
-                }}
-              >
-                {pathLabels.markt}
-              </span>
-              {marktX10 && marktX10Detail ? (
-                <div
-                  className={styles.marktCallout}
-                  data-testid="arbeit-markt-callout"
-                  style={{
-                    left: pctX(m10cx),
-                    top: pctY(m10cy),
-                    transform: "translate(calc(-100% - 12px), calc(-100% - 6px))",
-                  }}
-                >
-                  <span className={`${styles.marktCalloutGw} num`}>{formatQuantity(marktX10.peakAfterGw, "de", 2)} GW</span>
-                  <span className={`${styles.marktCalloutSub} num`}>
-                    neue Monatsspitze · {weekdayDeFromTs(marktX10.peakTs) ?? ""}{" "}
-                    {formatKonzeptPeakInstant(marktX10.peakTs) ?? ""}
-                  </span>
-                  <span className={`${styles.marktCalloutSub} num`}>
-                    {formatQuantity(marktX10Detail.residualGw, "de", 2)} GW Restlast +{" "}
-                    {formatQuantity(marktX10Detail.chargeGw, "de", 2)} GW Laden ·{" "}
-                    {formatQuantity(marktX10Detail.priceEurMwh, "de", 2)} €/MWh
-                  </span>
-                </div>
-              ) : null}
-            </div>
           </div>
           <aside className={styles.fleetAside} aria-label="Flottengröße">
             <p className={styles.fleetAsideTitle}>Flottengröße</p>
@@ -364,11 +443,14 @@ function MobileArbeitPaths({
   onSelect: (f: NationalFleetFactor, s: NationalFleetStrategyUi) => void;
 }) {
   const plotW = 372;
-  const plotH = 72;
+  const valueRow = 22;
+  const plotH = 64;
   const padL = 36;
   const padR = 16;
-  const padT = 10;
-  const padB = 12;
+  const padT = valueRow + 6;
+  const factorRowY = padT + plotH + 12;
+  const gwhRowY = padT + plotH + 26;
+  const totalH = gwhRowY + 8;
   const innerRight = plotW - padR - 12;
 
   const yMin = Y_MIN;
@@ -388,23 +470,33 @@ function MobileArbeitPaths({
               {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe} <span className={styles.mobileGwUnit}>GW Δ</span>
             </p>
             <div className={styles.mobilePlotFrame}>
-            <svg viewBox={`0 0 ${plotW} ${plotH + padB + 12}`} className={styles.mobilePathChart}>
+            <svg viewBox={`0 0 ${plotW} ${totalH}`} className={styles.mobilePathChart}>
               <line x1={padL} x2={innerRight} y1={y0} y2={y0} stroke="var(--v4-muted)" strokeWidth={1} />
-              <path d={d} fill="none" strokeWidth={2} className={`${styles.pathLine} ${styles[strategy]}`} />
+              <path d={d} fill="none" strokeWidth={2} className={`${styles.pathLine} ${styles[strategy]}`} data-mobile-path={strategy} />
               {pts.map((p, i) => {
                 const active = p.factor === activeFactor && p.strategy === activeStrategy;
                 const cx = x(i);
                 const cy = y(p.wirkungGw);
-                const valueLabelY = p.wirkungGw < 0.5 ? cy + 14 : cy - 11;
+                const valueLabelY =
+                  p.wirkungGw < 0.5
+                    ? Math.min(cy + 15, factorRowY - 8)
+                    : Math.max(padT + 12, cy - 12);
                 return (
                   <g key={p.factor}>
-                    <text x={cx} y={plotH + 6} className={styles.xTick} textAnchor="middle">
+                    <text x={cx} y={factorRowY} className={styles.xTick} textAnchor="middle" data-mobile-factor>
                       ×{p.factor}
                     </text>
-                    <text x={cx} y={plotH + padB + 4} className={styles.xTick} textAnchor="middle" fontSize={10}>
+                    <text x={cx} y={gwhRowY} className={styles.xTick} textAnchor="middle" fontSize={10} data-mobile-gwh>
                       {formatQuantity(p.chargeGwh, "de", p.chargeGwh >= 100 ? 0 : 1)} GWh
                     </text>
-                    <text x={cx} y={valueLabelY} className={styles.yTick} textAnchor="middle" fontWeight={600}>
+                    <text
+                      x={cx}
+                      y={valueLabelY}
+                      className={styles.yTick}
+                      textAnchor="middle"
+                      fontWeight={600}
+                      data-mobile-value
+                    >
                       {formatQuantity(p.wirkungGw, "de", 2)}
                     </text>
                     <a

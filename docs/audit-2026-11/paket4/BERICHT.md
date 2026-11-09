@@ -22,6 +22,13 @@ Stand: 9. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81]
 - **Mobil:** `has-fleet-konzept` DOM-Reihenfolge (Nav → Kopf → Konzept); Miniplot-Padding.
 - **Methodik:** Bullet Unsicherheit + Plateau-Hinweis.
 
+## Konzept A — SVG-Labels + Kollisionstest (Post 2ca167c)
+
+- **Struktur:** HTML-Overlay raus; alle Labels als SVG-`<text>` im Plot-viewBox; `placeLabels()` (N/S/E/W/…) mit Hindernissen Punkte/Pfade/Ticks/Achsentitel; zweiter Pass mit `getBBox` nach Paint.
+- **Plot:** viewBox-Breite = Shell-Pixelbreite (`ResizeObserver`), Höhe 520 px, Schrift ≥ 12 px; Y-Titel außerhalb des Plotrahmens.
+- **Mobil:** reservierte Wertzeile oben, ×/GWh getrennt, negativ zwischen Punkt und Faktor.
+- **Abnahme:** `label-collision-before-2ca167c.json` (alter Test fälschlich ok) vs. `label-collision.json` (SVG `getBBox` / Pfadsegmente, 1440/1024/390).
+
 ## Designrunde (Post eb95331)
 
 1. **Inhaltbreite:** Konzept-Slot wieder `v4-content` + `konzeptRoot` (max `min(94rem, 1240px)`); gleiche Flucht wie Kopf/Nav.

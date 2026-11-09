@@ -70,6 +70,14 @@ const SHOTS = [
     fullPage: true,
   },
   {
+    file: "monat-2026-10-1024-dark.png",
+    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
+    w: 1024,
+    h: 900,
+    theme: "dark",
+    fullPage: true,
+  },
+  {
     file: "monat-2026-10-390-dark-top.png",
     path: "/monat/2026-10?faktor=10&fahrweise=markt",
     w: 390,
@@ -153,110 +161,178 @@ const SHOTS = [
   { file: "ort-390-light.png", path: "/ort", w: 390, h: 844, theme: "light" },
 ];
 
-async function assertLayoutAndCollisions(page, { mobile = false } = {}) {
-  return page.evaluate((isMobile) => {
+async function assertSvgCollisions(page) {
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-testid="arbeit-wirkung-svg"]') ||
+      document.querySelector('[data-testid="arbeit-mobile-paths"]'),
+    { timeout: 60_000 },
+  );
+  await page.waitForTimeout(1100);
+  return page.evaluate(() => {
     const violations = [];
-    const ids = [
-      "arbeit-pool-label",
-      "arbeit-ref-label",
-      "arbeit-label-spitze",
-      "arbeit-label-ueberschuss",
-      "arbeit-label-markt",
-      "arbeit-markt-callout",
-    ];
-    const rects = ids
-      .map((id) => {
-        const el = document.querySelector(`[data-testid="${id}"]`);
-        if (!el) return null;
-        const r = el.getBoundingClientRect();
-        return { id, left: r.left, right: r.right, top: r.top, bottom: r.bottom };
-      })
-      .filter(Boolean);
-    const overlaps = [];
-    for (let i = 0; i < rects.length; i++) {
-      for (let j = i + 1; j < rects.length; j++) {
-        const a = rects[i];
-        const b = rects[j];
-        if (
-          a.left < b.right - 2 &&
-          a.right > b.left + 2 &&
-          a.top < b.bottom - 2 &&
-          a.bottom > b.top + 2
-        ) {
-          overlaps.push(`${a.id}×${b.id}`);
+
+    function boxOf(el) {
+      const b = el.getBBox();
+      return { x: b.x, y: b.y, w: b.width, h: b.height };
+    }
+
+    function overlap(a, b, pad = 2) {
+      return (
+        a.x < b.x + b.w - pad &&
+        a.x + a.w > b.x + pad &&
+        a.y < b.y + b.h - pad &&
+        a.y + a.h > b.y + pad
+      );
+    }
+
+    function distPointSeg(px, py, x1, y1, x2, y2) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len2 = dx * dx + dy * dy;
+      if (len2 < 1e-9) return Math.hypot(px - x1, py - y1);
+      let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+    }
+
+    function boxNearSeg(box, seg, th) {
+      const pts = [
+        [box.x, box.y],
+        [box.x + box.w, box.y],
+        [box.x, box.y + box.h],
+        [box.x + box.w, box.y + box.h],
+        [box.x + box.w / 2, box.y + box.h / 2],
+      ];
+      return pts.some(([px, py]) => distPointSeg(px, py, seg.x1, seg.y1, seg.x2, seg.y2) <= th);
+    }
+
+    function pathSegs(path) {
+      const d = path.getAttribute("d") || "";
+      const nums = d.match(/-?\d*\.?\d+(?:e[-+]?\d+)?,-?\d*\.?\d+(?:e[-+]?\d+)?/gi) || [];
+      const coords = nums.map((n) => {
+        const [xs, ys] = n.split(",");
+        return { x: Number(xs), y: Number(ys) };
+      });
+      const segs = [];
+      for (let i = 0; i < coords.length - 1; i++) {
+        segs.push({
+          x1: coords[i].x,
+          y1: coords[i].y,
+          x2: coords[i + 1].x,
+          y2: coords[i + 1].y,
+        });
+      }
+      return segs;
+    }
+
+    const svg = document.querySelector('[data-testid="arbeit-wirkung-svg"]');
+    if (svg) {
+      const plot = svg.querySelector('[data-testid="arbeit-plot-frame"]');
+      const plotBox = plot ? boxOf(plot) : null;
+      const labels = [...svg.querySelectorAll("[data-placement-label]")];
+      const paths = [...svg.querySelectorAll("[data-chart-path]")];
+      const points = [...svg.querySelectorAll("[data-chart-point]")];
+      const ticks = [...svg.querySelectorAll("[data-chart-tick]")];
+      const yTitles = [...svg.querySelectorAll("[data-chart-y-title]")];
+
+      const add = (v) => {
+        if (!violations.includes(v)) violations.push(v);
+      };
+
+      for (const label of labels) {
+        const lb = boxOf(label);
+        const id = label.getAttribute("data-placement-label") || "label";
+        for (const other of labels) {
+          if (other === label) continue;
+          if (overlap(lb, boxOf(other))) {
+            add(`label×label:${id}×${other.getAttribute("data-placement-label")}`);
+          }
+        }
+        for (const path of paths) {
+          const strat = path.getAttribute("data-chart-path");
+          let hit = false;
+          for (const seg of pathSegs(path)) {
+            if (boxNearSeg(lb, seg, 3)) {
+              hit = true;
+              break;
+            }
+          }
+          if (hit) add(`label×path:${id}×${strat}`);
+        }
+        for (const pt of points) {
+          const c = pt.querySelector("circle");
+          if (!c) continue;
+          const cx = Number(c.getAttribute("cx"));
+          const cy = Number(c.getAttribute("cy"));
+          const r = Number(c.getAttribute("r")) + 4;
+          if (overlap(lb, { x: cx - r, y: cy - r, w: 2 * r, h: 2 * r }, 1)) {
+            add(`label×point:${id}×${pt.getAttribute("data-chart-point")}`);
+          }
+        }
+        for (const tick of ticks) {
+          if (overlap(lb, boxOf(tick), 1)) add(`label×tick:${id}×${tick.getAttribute("data-chart-tick")}`);
+        }
+        void plotBox;
+      }
+
+      for (const yt of yTitles) {
+        const yb = boxOf(yt);
+        const key = yt.getAttribute("data-chart-y-title");
+        for (const tick of ticks) {
+          const tid = tick.getAttribute("data-chart-tick") || "";
+          if (!tid.startsWith("y-")) continue;
+          if (overlap(yb, boxOf(tick), 1)) violations.push(`y-title×tick:${key}×${tid}`);
         }
       }
+    }
+
+    const mobileRoot = document.querySelector('[data-testid="arbeit-mobile-paths"]');
+    if (mobileRoot) {
+      const inner = window.innerWidth - 12;
+      mobileRoot.querySelectorAll("text").forEach((el, idx) => {
+        const r = el.getBoundingClientRect();
+        if (r.top < 0) violations.push(`mobile-clip:top:${idx}`);
+        if (r.right > inner) violations.push(`mobile-clip:right:${idx}`);
+      });
+      mobileRoot.querySelectorAll("circle").forEach((c) => {
+        const r = c.getBoundingClientRect();
+        const g = c.parentElement;
+        if (!g) return;
+        const value = g.querySelector("[data-mobile-value]");
+        const factor = g.querySelector("[data-mobile-factor]");
+        const gwh = g.querySelector("[data-mobile-gwh]");
+        if (value) {
+          const vr = value.getBoundingClientRect();
+          if (vr.top < 4) violations.push(`mobile-clip:value-top:${c.getAttribute("cx")}`);
+          if (vr.left < r.left + r.width - 2 && vr.right > r.left && vr.top < r.bottom - 2 && vr.bottom > r.top) {
+            violations.push(`mobile-value×point:${value.textContent}`);
+          }
+        }
+        if (value && factor) {
+          const fr = factor.getBoundingClientRect();
+          const vr = value.getBoundingClientRect();
+          if (vr.bottom > fr.top - 2 && vr.top < fr.bottom) violations.push(`mobile-value×factor:${value.textContent}`);
+        }
+        if (value && gwh) {
+          const gr = gwh.getBoundingClientRect();
+          const vr = value.getBoundingClientRect();
+          if (vr.bottom > gr.top - 1 && vr.top < gr.bottom) violations.push(`mobile-value×gwh:${value.textContent}`);
+        }
+      });
     }
 
     const nav = document.querySelector(".v4-kopf-inner.v4-content");
     const kopfLeft = nav ? nav.getBoundingClientRect().left : 16;
     const minContentLeft = Math.max(16, kopfLeft) - 1;
-
-    const contentIds = ["monat-arbeit-wirkung-title", "monat-dauerlinie-title"];
-    for (const id of contentIds) {
+    for (const id of ["monat-arbeit-wirkung-title", "monat-dauerlinie-title"]) {
       const el = document.getElementById(id);
-      if (el && el.getBoundingClientRect().left < minContentLeft) {
-        violations.push(`content-left:${id}`);
-      }
-    }
-    const footnote = document.querySelector('[data-testid="arbeit-chart-footnote"]');
-    if (footnote && footnote.getBoundingClientRect().left < minContentLeft) {
-      violations.push("content-left:footnote");
+      if (el && el.getBoundingClientRect().left < minContentLeft) violations.push(`content-left:${id}`);
     }
 
-    const callout = document.querySelector('[data-testid="arbeit-markt-callout"]');
-    const overlay = document.querySelector('[data-testid="arbeit-label-overlay"]');
-    if (callout && footnote) {
-      const c = callout.getBoundingClientRect();
-      const f = footnote.getBoundingClientRect();
-      if (
-        c.left < f.right - 2 &&
-        c.right > f.left + 2 &&
-        c.top < f.bottom - 2 &&
-        c.bottom > f.top + 2
-      ) {
-        violations.push("callout×footnote");
-      }
-    }
-    if (callout && overlay) {
-      const c = callout.getBoundingClientRect();
-      const o = overlay.getBoundingClientRect();
-      const slack = 2;
-      if (
-        c.top < o.top - slack ||
-        c.left < o.left - slack ||
-        c.right > o.right + slack ||
-        c.bottom > o.bottom + slack
-      ) {
-        violations.push("callout-outside-plot");
-      }
-    }
-
-    if (isMobile) {
-      const inner = window.innerWidth - 12;
-      document.querySelectorAll('[data-testid="arbeit-mobile-paths"] text').forEach((el, idx) => {
-        const r = el.getBoundingClientRect();
-        if (r.right > inner + 0.5) violations.push(`mobile-clip:text-${idx}`);
-      });
-      document.querySelectorAll('[data-testid="arbeit-mobile-paths"] circle').forEach((el, idx) => {
-        const r = el.getBoundingClientRect();
-        const label = el.parentElement?.querySelector("text");
-        if (label) {
-          const lr = label.getBoundingClientRect();
-          if (
-            lr.left < r.right - 2 &&
-            lr.right > r.left + 2 &&
-            lr.top < r.bottom - 2 &&
-            lr.bottom > r.top + 2
-          ) {
-            violations.push(`mobile-label-on-point:${idx}`);
-          }
-        }
-      });
-    }
-
-    return { overlaps, violations, labelCount: rects.length };
-  }, mobile);
+    const unique = [...new Set(violations)];
+    return { ok: unique.length === 0, violations: unique, labelCount: svg?.querySelectorAll("[data-placement-label]").length ?? 0 };
+  });
 }
 
 async function main() {
@@ -280,44 +356,37 @@ async function main() {
     await page.screenshot({ path: join(OUT, s.file), fullPage: Boolean(s.fullPage) });
     await page.close();
   }
-  const collisionPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await preparePage(collisionPage, "dark");
-  await collisionPage.goto(`${BASE}/monat/2026-10?faktor=10&fahrweise=markt`, { waitUntil: "domcontentloaded", timeout: 120_000 });
-  await applyTheme(collisionPage, "dark");
-  await waitStyled(collisionPage);
-  await collisionPage.waitForSelector('[data-testid="arbeit-markt-callout"]', { timeout: 60_000 });
-  const desktopLayout = await assertLayoutAndCollisions(collisionPage, { mobile: false });
-  await collisionPage.close();
-
-  const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await preparePage(mobilePage, "dark");
-  await mobilePage.goto(`${BASE}/monat/2026-10?faktor=10&fahrweise=markt`, {
-    waitUntil: "domcontentloaded",
-    timeout: 120_000,
-  });
-  await applyTheme(mobilePage, "dark");
-  await waitStyled(mobilePage);
-  await mobilePage.waitForSelector('[data-testid="arbeit-mobile-paths"]', { timeout: 60_000 });
-  const mobileLayout = await assertLayoutAndCollisions(mobilePage, { mobile: true });
-  await mobilePage.close();
+  const collisionByViewport = {};
+  for (const vp of [
+    { name: "1440", w: 1440, h: 900 },
+    { name: "1024", w: 1024, h: 900 },
+    { name: "390", w: 390, h: 844 },
+  ]) {
+    const collisionPage = await browser.newPage({ viewport: { width: vp.w, height: vp.h } });
+    await preparePage(collisionPage, "dark");
+    await collisionPage.goto(`${BASE}/monat/2026-10?faktor=10&fahrweise=markt`, {
+      waitUntil: "domcontentloaded",
+      timeout: 120_000,
+    });
+    await applyTheme(collisionPage, "dark");
+    await waitStyled(collisionPage);
+    collisionByViewport[vp.name] = await assertSvgCollisions(collisionPage);
+    await collisionPage.close();
+  }
   await browser.close();
 
-  const collision = {
-    overlaps: [...desktopLayout.overlaps, ...mobileLayout.overlaps.filter((o) => !desktopLayout.overlaps.includes(o))],
-    violations: [...desktopLayout.violations, ...mobileLayout.violations],
-    desktop: desktopLayout,
-    mobile: mobileLayout,
-  };
-  const ok =
-    collision.overlaps.length === 0 && collision.violations.length === 0;
+  const allViolations = [
+    ...new Set(
+      Object.entries(collisionByViewport).flatMap(([vp, r]) => r.violations.map((v) => `${vp}:${v}`)),
+    ),
+  ];
+  const ok = allViolations.length === 0;
   writeFileSync(
     join(process.cwd(), "docs/audit-2026-11/paket4/label-collision.json"),
-    JSON.stringify({ ok, ...collision }, null, 2),
+    JSON.stringify({ ok, violations: allViolations, viewports: collisionByViewport }, null, 2),
   );
   if (!ok) {
-    throw new Error(
-      `Layout/collision: overlaps=${collision.overlaps.join(",")} violations=${collision.violations.join(",")}`,
-    );
+    throw new Error(`SVG collision: ${allViolations.join(", ")}`);
   }
 
   const lhSummary = [];

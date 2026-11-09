@@ -1,15 +1,21 @@
 {
   "ok": true,
-  "overlaps": [],
   "violations": [],
-  "desktop": {
-    "overlaps": [],
-    "violations": [],
-    "labelCount": 6
-  },
-  "mobile": {
-    "overlaps": [],
-    "violations": [],
-    "labelCount": 6
+  "viewports": {
+    "390": {
+      "ok": true,
+      "violations": [],
+      "labelCount": 6
+    },
+    "1024": {
+      "ok": true,
+      "violations": [],
+      "labelCount": 6
+    },
+    "1440": {
+      "ok": true,
+      "violations": [],
+      "labelCount": 6
+    }
   }
 }
