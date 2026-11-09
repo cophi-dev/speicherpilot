@@ -8,6 +8,8 @@ export type StartPointe = {
   heroValue: string;
   heroUnit: string;
   heroKern: string;
+  /** Caveat that stays a footnote, not the hero sentence. */
+  footnote: string | null;
   /** Tag-page H1 for the same kopf day — must differ from `h1`. */
   tagH1ForCompare: string;
 };
@@ -45,11 +47,13 @@ export function startPointe(
   if (end && end.dryStreak >= 3) {
     const h1 = `30 Tage: ${noSurplus} ohne Überschuss — gestern der ${end.dryStreak}. in Folge`;
     const subline = strongest
-      ? `Stärkster Tages-Überschuss im Fenster: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${weekdayLabelDe(strongest.dateKey).replace(/\.\s*$/, "")}. Gestern (${gesternLabel}) ohne Überschuss zum Laden aus Wind+Sonne — Peak- und Preisfahrweisen rechnen im Modellflotte-Monatslauf anders.`
-      : `Gestern (${gesternLabel}): ${end.dryStreak}. Tag in Folge ohne Überschuss-Kennzahl — kein vollständiges Nutzen-Urteil.`;
+      ? `Stärkster Tages-Überschuss im Fenster: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${weekdayLabelDe(strongest.dateKey).replace(/\.\s*$/, "")}.`
+      : `Gestern (${gesternLabel}): ${end.dryStreak}. Tag in Folge ohne Überschuss-Kennzahl.`;
+    const footnote = `Gestern (${gesternLabel}) ohne Überschuss zum Laden aus Wind und Sonne. Peak- und Preisfahrweisen rechnet der Monatslauf anders.`;
     return {
       h1,
       subline,
+      footnote,
       heroValue: String(noSurplus),
       heroUnit: "Tage",
       heroKern: "ohne Tages-Überschuss (30 Tage)",
@@ -69,6 +73,7 @@ export function startPointe(
   return {
     h1,
     subline,
+    footnote: null,
     heroValue: String(surplusDays.length),
     heroUnit: "Tage",
     heroKern: "mit Überschuss",

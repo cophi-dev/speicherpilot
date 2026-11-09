@@ -3,13 +3,8 @@
 import Link from "next/link";
 
 import { LueckeChart } from "@/components/home/LueckeChart";
-import { StartDayPanel } from "@/components/home/StartDayPanel";
-import {
-  tagSurplusLine,
-  tagLastSurplusLine,
-  tagSurplusDefinitionLine,
-  lastSurplusBefore,
-} from "@/lib/kopfTagCopy";
+import { StartDayFootnotes, StartDayPanel } from "@/components/home/StartDayPanel";
+import { tagSurplusLine, tagLastSurplusLine, lastSurplusBefore } from "@/lib/kopfTagCopy";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { HomeDayPanelData } from "@/lib/homeDayPanel";
@@ -45,11 +40,6 @@ export function StartGesternTeaser({
         <h2 id="kapitel-gestern" className="v4-chapter-h2">
           Was am {label} im Stromnetz passiert ist
         </h2>
-        <p className="v4-tag-kern" data-testid="start-day-surplus-headline">
-          {surplus}
-        </p>
-        <p className="v4-tag-side v4-tag-side-supplement-desktop">{tagSurplusDefinitionLine()}</p>
-        {lastLine ? <p className="v4-tag-side v4-tag-side-supplement-desktop">{lastLine}</p> : null}
       </div>
 
       {panel ? <StartDayPanel panel={panel} kopfDayKey={kopfDayKey} /> : null}
@@ -60,11 +50,14 @@ export function StartGesternTeaser({
         </div>
       ) : null}
 
-      <details className="v4-content v4-tag-side-supplement">
-        <summary>Klarstellung zur Überschuss-Kennzahl</summary>
-        <p className="v4-tag-side">{tagSurplusDefinitionLine()}</p>
-        {lastLine ? <p className="v4-tag-side">{lastLine}</p> : null}
-      </details>
+      {panel ? (
+        <StartDayFootnotes
+          panel={panel}
+          kopfDayKey={kopfDayKey}
+          surplusLine={surplus}
+          lastLine={lastLine}
+        />
+      ) : null}
 
       <p className="v4-chapter-foot v4-content num">
         <Link href={`/tag/${kopfDayKey}`} className="v4-text-link">

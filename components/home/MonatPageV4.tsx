@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
@@ -9,7 +8,6 @@ import {
   buildMonatGrid,
   formatBerlinMonthLabel,
   monatPointe,
-  type MonatDayCell,
 } from "@/lib/monatCalendar";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
@@ -74,13 +72,12 @@ export function MonatPageV4({
   surplusBars?: import("@/lib/monatSurplusBars").MonatSurplusBar[];
   children?: React.ReactNode;
 }) {
-  const { h1, subline } = monatPointe(monthKey, records);
+  const { h1, subline, footnote } = monatPointe(monthKey, records);
   const bars =
     surplusBars ??
     barsFromMonatGrid(
       buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey }),
     );
-  const monthLabel = formatBerlinMonthLabel(monthKey);
   return (
     <div className="v4-start monat-page">
       <MonatNav monthKey={monthKey} records={records} />
@@ -93,6 +90,7 @@ export function MonatPageV4({
             {h1}
           </h1>
           <p className="v4-subline">{subline}</p>
+          <p className="v4-footnote">{footnote}</p>
         </div>
       </section>
 

@@ -148,9 +148,11 @@ export function NationalFleetTimeSeriesChart({
       params.set("tag", dateKey);
     }
     let cancelled = false;
-    setLoadError(null);
     fetch(`/api/national-fleet/series?${params.toString()}`)
       .then((r) => {
+        if (!cancelled) {
+          setLoadError(null);
+        }
         if (!r.ok) {
           throw new Error(String(r.status));
         }

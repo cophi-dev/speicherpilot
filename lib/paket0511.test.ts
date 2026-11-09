@@ -18,6 +18,8 @@ describe("startPointe", () => {
     expect(start.h1).toContain("30 Tage");
     expect(start.h1).not.toBe(tagSerieH1);
     expect(start.tagH1ForCompare).toBe(tagSerieH1);
+    expect(start.subline).not.toMatch(/Peak-/);
+    expect(start.footnote).toMatch(/Monatslauf/);
   });
 
   it("differs from metric tag kopfH1", () => {

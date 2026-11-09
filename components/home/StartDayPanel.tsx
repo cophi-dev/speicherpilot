@@ -27,19 +27,8 @@ function StatValue({
 }
 
 export function StartDayPanel({ panel, kopfDayKey }: { panel: HomeDayPanelData; kopfDayKey: string }) {
-  const dayLabel = formatBerlinDayLabel(kopfDayKey);
-  const wd = weekdayShort(kopfDayKey, "de");
-
-  const surplusDisplay = formatPanelGwh(panel.observed.surplusGwh, { surplusBand: true });
-  const surplusUnit = panel.observed.surplusGwh === null ? "" : "GWh";
-
   return (
     <div className="v4-start-day-panel v4-content" data-testid="start-day-panel" data-day-key={kopfDayKey}>
-      <div className="v4-start-day-hairline" aria-hidden="true" />
-      <p className="v4-start-day-meta num" data-testid="start-day-meta">
-        Daten: {wd}, {dayLabel} · Quelle: Energy-Charts · Abrufstand: {panel.fetchStand}
-      </p>
-
       <p className="v4-start-day-section num">Beobachtet</p>
       <div className="v4-start-day-stats" role="list">
         <div className="v4-start-day-stat" role="listitem">
@@ -72,45 +61,82 @@ export function StartDayPanel({ panel, kopfDayKey }: { panel: HomeDayPanelData; 
           <p className="v4-start-day-label num">Wind + Sonne</p>
         </div>
         <div className="v4-start-day-stat v4-start-day-stat-surplus" role="listitem">
-          <StatValue value={surplusDisplay} unit={surplusUnit} accent id="start-day-surplus" />
-          <p className="v4-start-day-label num">
-            Überschuss
-            <span className="v4-start-day-label-hint">
-              {" "}
-              ·{" "}
-              <Link href="/methodik#auffaelligkeit" className="v4-start-day-tooltip-link">
-                Σ positive Viertelstunden
-              </Link>
-            </span>
-          </p>
+          <StatValue
+            value={formatPanelGwh(panel.observed.surplusGwh, { surplusBand: true })}
+            unit={panel.observed.surplusGwh === null ? "" : "GWh"}
+            accent
+            id="start-day-surplus"
+          />
+          <p className="v4-start-day-label num">Überschuss</p>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="v4-start-day-model">
-        {panel.model.available ? (
-          <p className="v4-start-day-model-line num" data-testid="start-day-model-fleet">
-            <span className="v4-start-day-model-tag">Modell</span> Referenzflotte{" "}
-            {formatQuantity(panel.model.powerGw, "de", 2)} GW / {formatQuantity(panel.model.energyGwh, "de", 2)} GWh
-            {" · "}
-            Geladen {formatPanelGwh(panel.model.chargedGwh)} GWh · Abgegeben {formatPanelGwh(panel.model.dischargedGwh)}{" "}
-            GWh · hypothetisch
-          </p>
-        ) : (
-          <p className="v4-start-day-model-line num" data-testid="start-day-model-fleet">
-            <span className="v4-start-day-model-tag">Modell</span> {panel.model.unavailableReasonDe}
-          </p>
-        )}
-        <details className="v4-start-day-model-disclosure">
-          <summary className="v4-start-day-model-disclosure-summary num">
-            Annahmen und Zeiträume · Lokale Netzwirkung: nicht bewertet ·{" "}
-            <Link href="/methodik#auffaelligkeit" className="v4-start-day-tooltip-link">
+export function StartDayFootnotes({
+  panel,
+  kopfDayKey,
+  surplusLine,
+  lastLine,
+}: {
+  panel: HomeDayPanelData;
+  kopfDayKey: string;
+  surplusLine: string;
+  lastLine: string | null;
+}) {
+  const dayLabel = formatBerlinDayLabel(kopfDayKey);
+  const wd = weekdayShort(kopfDayKey, "de");
+
+  const fleetLine = `Referenzflotte ${formatQuantity(panel.model.powerGw, "de", 2)} GW / ${formatQuantity(panel.model.energyGwh, "de", 2)} GWh.`;
+  const chargeLine = `Geladen ${formatPanelGwh(panel.model.chargedGwh)} GWh, abgegeben ${formatPanelGwh(panel.model.dischargedGwh)} GWh.`;
+  const modelNote =
+    panel.model.unavailableReasonDe && panel.model.unavailableReasonDe.length <= 70
+      ? panel.model.unavailableReasonDe
+      : "Für diesen Tag nicht verfügbar.";
+
+  return (
+    <footer className="v4-content v4-day-footnotes" data-testid="start-day-footnotes">
+      <dl className="v4-day-notes">
+        <div>
+          <dt>Formel</dt>
+          <dd data-testid="start-day-surplus-headline">{surplusLine}</dd>
+          <dd>Wind und Sonne über der Last, je Viertelstunde.</dd>
+          <dd>Σ max(0, Wind+Sonne−Last)×¼h.</dd>
+        </div>
+        <div>
+          <dt>Daten</dt>
+          <dd data-testid="start-day-meta">
+            {wd}, {dayLabel} · Energy-Charts · {panel.fetchStand}
+          </dd>
+          {lastLine ? <dd>{lastLine}</dd> : null}
+        </div>
+        <div>
+          <dt>Modell</dt>
+          {panel.model.available ? (
+            <>
+              <dd data-testid="start-day-model-fleet">{fleetLine}</dd>
+              <dd>{chargeLine}</dd>
+              <dd>Hypothetisch.</dd>
+            </>
+          ) : (
+            <dd data-testid="start-day-model-fleet">{modelNote}</dd>
+          )}
+        </div>
+        <div>
+          <dt>Netz</dt>
+          <dd>Lokale Netzwirkung: nicht bewertet.</dd>
+          <dd>
+            <Link href="/methodik#auffaelligkeit" className="v4-footnote-link">
               Methodik
             </Link>
-          </summary>
-          <p className="v4-start-day-disclosure-body num">{panel.model.disclosureDe}</p>
-        </details>
-      </div>
-      <div className="v4-start-day-hairline" aria-hidden="true" />
-    </div>
+          </dd>
+        </div>
+      </dl>
+      <details className="v4-start-day-model-disclosure">
+        <summary>Annahmen und Zeiträume</summary>
+        <p>{panel.model.disclosureDe}</p>
+      </details>
+    </footer>
   );
 }

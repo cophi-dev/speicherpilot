@@ -73,27 +73,28 @@ export function StartKopf({
             <div className="v4-kern-row num">
               <span>{pointe.heroKern}</span>
             </div>
-            <div className="v4-kopf-links">
-              <Link href={`/tag/${kopfDayKey}`} className="v4-text-link">
-                Tag ansehen →
-              </Link>
-              <Link
-                href={
-                  monthKey === NATIONAL_FLEET_MONTH_KEY
-                    ? fleetMonatHref(monthKey, 1, "ueberschuss")
-                    : `/monat/${monthKey}`
-                }
-                className="v4-text-link"
-              >
-                Monat ansehen →
-              </Link>
-              <Link href="/methodik#auffaelligkeit" className="v4-text-link">
-                Wie die Auffälligkeit gewählt wird
-              </Link>
-            </div>
           </div>
           <RangLeiste bars={bars} metricLabel="Überschuss je Tag" rankLabel="Überschuss je Tag" />
         </div>
+        <div className="v4-kopf-links">
+          <Link href={`/tag/${kopfDayKey}`} className="v4-text-link">
+            Tag ansehen →
+          </Link>
+          <Link
+            href={
+              monthKey === NATIONAL_FLEET_MONTH_KEY
+                ? fleetMonatHref(monthKey, 1, "ueberschuss")
+                : `/monat/${monthKey}`
+            }
+            className="v4-text-link"
+          >
+            Monat ansehen →
+          </Link>
+          <Link href="/methodik#auffaelligkeit" className="v4-text-link">
+            Wie die Auffälligkeit gewählt wird
+          </Link>
+        </div>
+        {pointe.footnote ? <p className="v4-footnote v4-kopf-footnote">{pointe.footnote}</p> : null}
       </div>
     </section>
   );

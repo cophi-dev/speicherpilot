@@ -51,7 +51,6 @@ export function TagChapter({
   surplusLine,
   peakGw,
   peakAt,
-  todayKey,
   useTagDateHeading = false,
   showFooterLink = true,
 }: {
@@ -81,18 +80,15 @@ export function TagChapter({
         <h2 id="kapitel-tag" className="v4-chapter-h2">
           {chapterTitle}
         </h2>
-        <p className="v4-tag-kern">{surplusLine}</p>
-        <p className="v4-tag-side v4-tag-side-supplement-desktop">{tagSurplusDefinitionLine()}</p>
-        {lastLine ? <p className="v4-tag-side v4-tag-side-supplement-desktop">{lastLine}</p> : null}
       </div>
       <div className="v4-content v4-luecke-wrap">
         <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
       </div>
-      <details className="v4-content v4-tag-side-supplement">
-        <summary>Klarstellung zur Kennzahl</summary>
-        <p className="v4-tag-side">{tagSurplusDefinitionLine()}</p>
-        {lastLine ? <p className="v4-tag-side">{lastLine}</p> : null}
-      </details>
+      <footer className="v4-content v4-footnote" data-testid="tag-day-footnotes">
+        <p>{surplusLine}</p>
+        <p>{tagSurplusDefinitionLine()}</p>
+        {lastLine ? <p>{lastLine}</p> : null}
+      </footer>
       <ol className="v4-st-steps v4-content v4-tag-steps-desktop">
         {STEPS.map((step, index) => (
           <li key={step.title}>

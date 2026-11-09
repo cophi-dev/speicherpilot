@@ -21,13 +21,14 @@ export function NavigationMain({ children }: { children: ReactNode }) {
   const [frozen, setFrozen] = useState<ReactNode>(children);
   const incomingRef = useRef<HTMLDivElement>(null);
   const latestChildren = useRef(children);
-  latestChildren.current = children;
+
+  if (pathname === visiblePath && frozen !== children) {
+    setFrozen(children);
+  }
 
   useEffect(() => {
-    if (pathname === visiblePath) {
-      setFrozen(children);
-    }
-  }, [children, pathname, visiblePath]);
+    latestChildren.current = children;
+  });
 
   useEffect(() => {
     if (pathname === visiblePath) {
