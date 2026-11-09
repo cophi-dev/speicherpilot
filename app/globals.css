@@ -8308,7 +8308,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .ort-archetype-badge__dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: 50%;
   flex-shrink: 0;
   background: var(--ort-badge-belastend-accent);
 }
@@ -8324,7 +8324,11 @@ html:not(.dark) .ort-v4 .ort-archetype-badge {
 }
 
 html:not(.dark) .ort-v4 .ort-archetype-badge--neutral {
-  border-color: rgb(20 24 28 / 34%);
+  border-color: #8a8f94;
+}
+
+.dark .ort-v4 .ort-archetype-badge--nicht-bewertet {
+  border-color: #6b7076;
 }
 
 html:not(.dark) .ort-v4 .ort-archetype-badge--nicht-bewertet {
