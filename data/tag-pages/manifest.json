@@ -1,0 +1,9 @@
+{
+  "file": "roll-snapshot.json",
+  "sha256": "d4e54bd25a02680086dadbf67dbee2d7359c4ed06b51397098f416e11428e75c",
+  "bytes": 3557524,
+  "coverageStart": "2026-09-01",
+  "coverageEnd": "2026-11-09",
+  "dayCount": 70,
+  "recordCount": 70
+}

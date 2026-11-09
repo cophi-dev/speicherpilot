@@ -6,13 +6,15 @@ import {
   strategyMarginalForUi,
 } from "@/lib/nationalFleetMarginal";
 import {
-  getFleetRun,
   monthStatsForRun,
   nationalFleetMonthAvailable,
   type NationalFleetFactor,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+import {
+  loadNationalFleetRunSeries,
+  nationalFleetContext,
+} from "@/lib/nationalMonthFleetModel.server";
 
 export function NationalFleetMonatSlot({
   monthKey,
@@ -29,9 +31,9 @@ export function NationalFleetMonatSlot({
     return <NationalFleetMonthUnavailable monthKey={monthKey} />;
   }
 
-  const bundle = loadNationalFleetMonthBundle();
+  const bundle = nationalFleetContext(factor, strategy);
   const stats = monthStatsForRun(bundle, factor, strategy);
-  const run = getFleetRun(bundle, factor, strategy);
+  const run = loadNationalFleetRunSeries(factor, strategy);
   const marginalUi = strategyMarginalForUi(bundle, strategy);
   const factorRows = factorCompareRowsForStrategy(bundle, strategy);
 

@@ -37,9 +37,8 @@ export function SystemChapter({
         <h2 id="kapitel-system" className="v4-chapter-h2">
           Was Speicher in den letzten 30 Tagen geschafft hätten
         </h2>
-        <p className="v4-subline">
-          Nur Anteil des beobachteten Wind-Solar-Überschusses in einem Überschuss-Lade-Modell — keine
-          Spitzen-, Preis- oder Netzwirkung, keine Abregelung oder vermiedene Kraftwerksstarts.
+        <p className="v4-subline v4-system-subline-desktop">
+          Überschuss-Lademodell (×1–×10 skaliert nur Energie/Leistung).
         </p>
         <div className="v4-system-kern">
           <p className="v4-system-pct num" aria-live="polite">
@@ -119,13 +118,14 @@ export function SystemChapter({
           markiert als Speicher voll im Tagesstreifen.
         </p>
       </details>
-      <details className="v4-content v4-fold">
-        <summary className="num">Details</summary>
+      <details className="v4-content v4-fold v4-system-model-disclosure">
+        <summary className="num">Modellgrenzen und 30-Tage-Details</summary>
         <p className="v4-fold-body">
+          Nur Anteil des beobachteten Wind-Solar-Überschusses — keine Spitzen-, Preis- oder Netzwirkung, keine Abregelung.
           Überschuss {formatQuantity(totalSurplus, "de", 1)} GWh in 30 Tagen. Bei ×1 hätte das Modell{" "}
           {formatQuantity(model.factors[1].absorbedGwh, "de", 1)} GWh geladen (
           {formatQuantity(Math.round((model.factors[1].absorbedShare ?? 0) * 100), "de", 0)}
-          &nbsp;%).
+          &nbsp;%). Euro nur bei ×1 auf anderen Seiten — hier nur Prozent und GWh.
         </p>
       </details>
     </section>

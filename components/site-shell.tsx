@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import { BrandLockup } from "@/components/BrandLockup";
+import { NavigationMain } from "@/components/NavigationMain";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
 
+import type { NavShortcuts } from "@/lib/navShortcuts.server";
+
 type SiteShellProps = {
   children: React.ReactNode;
+  navShortcuts: NavShortcuts;
 };
 
 type ThemePreference = "light" | "dark" | "system";
@@ -46,8 +50,19 @@ function readThemePreferenceFromStorage(): ThemePreference {
   return "system";
 }
 
-export function SiteShell({ children }: SiteShellProps) {
+function navItemHref(item: (typeof NAV)[number], navShortcuts: NavShortcuts): string {
+  if (item.href === "/tag") {
+    return navShortcuts.tagHref;
+  }
+  if (item.href === "/monat") {
+    return navShortcuts.monatHref;
+  }
+  return item.href;
+}
+
+export function SiteShell({ children, navShortcuts }: SiteShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [themePref, setThemePref] = useState<ThemePreference>("system");
   const [mounted, setMounted] = useState(false);
   const language: AppLanguage = "de";
@@ -70,6 +85,15 @@ export function SiteShell({ children }: SiteShellProps) {
     });
     return () => cancelAnimationFrame(id);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+    for (const item of NAV) {
+      router.prefetch(navItemHref(item, navShortcuts));
+    }
+  }, [mounted, router, pathname, navShortcuts]);
 
   useLayoutEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -190,6 +214,7 @@ export function SiteShell({ children }: SiteShellProps) {
               aria-label="Hauptnavigation"
             >
               {NAV.map((item) => {
+                const href = navItemHref(item, navShortcuts);
                 const active =
                   item.href === "/"
                     ? pathname === "/"
@@ -201,8 +226,8 @@ export function SiteShell({ children }: SiteShellProps) {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
-                    prefetch={false}
+                    href={href}
+                    prefetch
                     className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 ${active ? "font-semibold text-[var(--v4-warm)]" : "text-muted-foreground hover:text-foreground"}`}
                     aria-current={active ? "page" : undefined}
                   >
@@ -244,8 +269,8 @@ export function SiteShell({ children }: SiteShellProps) {
                 {NAV.map((item) => (
                   <Link
                     key={item.href}
-                    href={item.href}
-                    prefetch={false}
+                    href={navItemHref(item, navShortcuts)}
+                    prefetch
                     className="inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => setMenuOpen(false)}
                   >
@@ -256,7 +281,9 @@ export function SiteShell({ children }: SiteShellProps) {
             </div>
           ) : null}
         </header>
-        <main id="inhalt">{children}</main>
+        <main id="inhalt">
+          <NavigationMain>{children}</NavigationMain>
+        </main>
         <footer className="border-t border-border">
           <div className="mx-auto max-w-[1200px] px-5 py-8 text-sm text-muted-foreground md:px-8">
             <nav className="legal-footer" aria-label="Rechtliches und Methodik">

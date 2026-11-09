@@ -58,6 +58,7 @@ export function MonatPageV4({
   fleetStrategy,
   observationLive,
   observationFallbackNote,
+  surplusBars,
   children,
 }: {
   monthKey: string;
@@ -69,11 +70,16 @@ export function MonatPageV4({
   fleetStrategy?: NationalFleetStrategyUi;
   observationLive?: boolean;
   observationFallbackNote?: string | null;
+  /** Vorgebaute Balken — vermeidet doppeltes buildMonatGrid. */
+  surplusBars?: import("@/lib/monatSurplusBars").MonatSurplusBar[];
   children?: React.ReactNode;
 }) {
   const { h1, subline } = monatPointe(monthKey, records);
-  const grid = buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey });
-  const bars = barsFromMonatGrid(grid);
+  const bars =
+    surplusBars ??
+    barsFromMonatGrid(
+      buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey }),
+    );
   const monthLabel = formatBerlinMonthLabel(monthKey);
   return (
     <div className="v4-start monat-page">
@@ -98,20 +104,24 @@ export function MonatPageV4({
           <h2 id="monat-graph-title" className="v4-chapter-h2">
             Positive Wind-Solar-Differenz je Tag im Monat
           </h2>
+          <p className="v4-subline v4-monat-obs-subline-desktop">
+            Beobachtete Überschuss-Kennzahl je Tag — nicht Spitzen- oder Preisnutzen.
+          </p>
+        </div>
+        <details className="v4-content v4-monat-obs-disclosure">
+          <summary>Klarstellung Beobachtungsgraph</summary>
           <p className="v4-subline">
             Nur die beobachtete Überschuss-Kennzahl je Tag — kein Maß für Peak-Senkung, Preisarbitrage oder Abregelung.{" "}
             {nationalFleetMonthAvailable(monthKey)
               ? observationLive
-                ? "Gemessene Viertelstunden (Energy-Charts); die Modellflotte oben rechnet zusätzlich Spitzen- und Preisfahrweisen über den ganzen Monat."
-                : "Eingefrorener Beobachtungsstand (Live-API gerade nicht verfügbar). Modellflotte oben aus dem Oktober-Bundle."
+                ? "Energy-Charts-Viertelstunden; die Modellflotte oben rechnet Spitzen- und Preisfahrweisen."
+                : "Eingefrorener Beobachtungsstand. Modellflotte aus Oktober-Bundle."
               : observationLive
-                ? "Gemessene Tageswerte — für diesen Monat keine vorberechnete Modellflotte (das ist kein Null-Nutzen-Urteil)."
-                : "Beobachtung aus eingefrorenen bzw. Live-Daten — kein Monatsmodell für diesen Monat."}
+                ? "Für diesen Monat keine vorberechnete Modellflotte."
+                : "Beobachtung ohne Monatsmodell."}
+            {!observationLive && observationFallbackNote ? ` ${observationFallbackNote}` : null}
           </p>
-          {!observationLive && observationFallbackNote ? (
-            <p className="v4-fleet-observation-note num">{observationFallbackNote}</p>
-          ) : null}
-        </div>
+        </details>
         <MonatSurplusGraph
           monthKey={monthKey}
           bars={bars}

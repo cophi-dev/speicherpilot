@@ -25,6 +25,10 @@ import { pickNewestStrictCompletePowerDayKey } from "@/lib/berlinDayCompleteness
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { buildHomeDayPanelData, type HomeDayPanelData } from "@/lib/homeDayPanel";
 import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
+import {
+  buildGermanyViewFromTagSnapshot,
+  tagRollSnapshotEligibleForView,
+} from "@/lib/tagRollSnapshot.server";
 
 export type OverviewUiModel = OverviewEvaluation & {
   stale: boolean;
@@ -193,6 +197,16 @@ export async function loadGermanyView(
   query: { tag?: string | string[]; zeitraum?: string | string[] }
 ): Promise<GermanyView> {
   const todayKey = formatBerlinDateKeyFromUtcDate(now);
+  const requestedTagEarly = path === "/tag" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
+  if (
+    path === "/tag" &&
+    requestedTagEarly &&
+    /^\d{4}-\d{2}-\d{2}$/.test(requestedTagEarly) &&
+    tagRollSnapshotEligibleForView(requestedTagEarly, todayKey)
+  ) {
+    return buildGermanyViewFromTagSnapshot(requestedTagEarly, now);
+  }
+
   const homeLike = path === "/" || path === "/monat";
   const requestedTagRaw =
     path === "/tag" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
@@ -273,7 +287,7 @@ export async function loadGermanyView(
   });
 
   let surplusDay: SurplusDayReport | null = null;
-  if (parseMixRange(requestedRange) === "tag" && publicFleet) {
+  if (path !== "/tag" && parseMixRange(requestedRange) === "tag" && publicFleet) {
     surplusDay = await loadSurplusDayReportForView(days, todayKey, endDate, publicFleet, now);
   }
 
@@ -282,17 +296,19 @@ export async function loadGermanyView(
   if (parsed && publicFleet) {
     const lastSurplus = pickSurplusDay(days, todayKey)?.day.dateBerlin ?? null;
     const mergedPrices = mergeDayAheadPrices(priceRange.prices, price.prices);
-    overviews = buildOverviewsBundle({
-      slots: parsed.slots,
-      offshorePresent: parsed.offshorePresent,
-      days,
-      fleet: publicFleet,
-      prices: mergedPrices,
-      lastSurplus,
-      todayKey,
-      stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
-      dataStand: readings.stand,
-    });
+    if (path !== "/tag") {
+      overviews = buildOverviewsBundle({
+        slots: parsed.slots,
+        offshorePresent: parsed.offshorePresent,
+        days,
+        fleet: publicFleet,
+        prices: mergedPrices,
+        lastSurplus,
+        todayKey,
+        stale: power.stale && !powerSeriesFresh(parsed?.slots ?? []),
+        dataStand: readings.stand,
+      });
+    }
     if (chosen?.day) {
       const dayBounds = overviewBounds("gestern", todayKey);
       dayBounds.blick = "tag";

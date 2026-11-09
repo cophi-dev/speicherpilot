@@ -10,10 +10,10 @@ jest.mock("@/lib/germanyView", () => ({
 }));
 
 describe("loadMonatPageData", () => {
-  it("liefert Oktober-Beobachtungs-Fallback wenn Live-API scheitert", async () => {
-    const data = await loadMonatPageData("2026-10", new Date("2026-11-01T12:00:00Z"));
-    expect(data.observationLive).toBe(false);
-    expect(data.observationFallback?.monthKey).toBe("2026-10");
+  it("nutzt eingefrorenen Tag-Roll-Snapshot ohne Live-API", async () => {
+    const data = await loadMonatPageData("2026-10", new Date("2026-11-09T12:00:00Z"));
+    expect(data.observationLive).toBe(true);
+    expect(data.dataStand).toContain("eingefroren");
     expect(data.records.length).toBeGreaterThan(20);
     const snap = JSON.parse(
       readFileSync(join(process.cwd(), "data/month-observation/2026-10-auffaelligkeit.json"), "utf8"),

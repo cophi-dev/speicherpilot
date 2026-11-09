@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { jetbrainsMono, spaceGrotesk } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
+import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
 import { ThemeInitScript } from "@/components/ThemeInitScript";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 import { BUILD_PROVENANCE } from "@/lib/buildProvenance.generated";
@@ -24,11 +25,12 @@ export const metadata: Metadata = {
     "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien — auf Deutsch.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const navShortcuts = await resolveNavShortcuts();
   return (
     <html
       lang="de"
@@ -45,7 +47,7 @@ export default function RootLayout({
           data-build-id={BUILD_PROVENANCE.buildId}
         />
         <ThemeInitScript />
-        <SiteShell>{children}</SiteShell>
+        <SiteShell navShortcuts={navShortcuts}>{children}</SiteShell>
       </body>
     </html>
   );

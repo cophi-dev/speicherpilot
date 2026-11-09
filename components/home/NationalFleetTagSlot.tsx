@@ -1,28 +1,31 @@
 import { NationalFleetDayChapter } from "@/components/home/NationalFleetDayChapter";
 import {
-  getFleetRun,
   monthStatsForRun,
   nationalFleetMonthAvailable,
   sliceFleetDay,
+  type NationalFleetDaySlice,
   type NationalFleetFactor,
+  type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 
 export function NationalFleetTagSlot({
   dayKey,
   factor,
   strategy,
+  preloadedRun,
 }: {
   dayKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
+  preloadedRun?: NationalFleetRunSeries;
 }) {
   if (!nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
     return null;
   }
-  const bundle = loadNationalFleetMonthBundle();
-  const run = getFleetRun(bundle, factor, strategy);
+  const bundle = nationalFleetContext(factor, strategy);
+  const run = preloadedRun ?? loadNationalFleetRunSeries(factor, strategy);
   const slice = sliceFleetDay(run, dayKey);
   if (!slice) {
     return null;
@@ -39,4 +42,8 @@ export function NationalFleetTagSlot({
       monthStats={monthStats}
     />
   );
+}
+
+export function fleetDayNoWindSolarSurplus(slice: NationalFleetDaySlice | null | undefined): boolean {
+  return (slice?.positiveSurplusQuarterHours ?? 1) === 0;
 }

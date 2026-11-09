@@ -6,5 +6,69 @@
   "hours": 745,
   "dstOct25Quarters": 100,
   "inputCsvSha256": "f9d795a924cb80054a5ede5ecfa7d41f366869ec87d4d0559c7cf5769fbe60f4",
-  "run9SummarySha256": "8d34bcc55806d428c39225441741e7ef51e317fac1b31ae5bf855ebcb07e2be7"
+  "run9SummarySha256": "8d34bcc55806d428c39225441741e7ef51e317fac1b31ae5bf855ebcb07e2be7",
+  "metaFile": "fleet-month-meta.json",
+  "metaSha256": "836c683c3d4f1ea5fdf5a580061996a57cd1429a333723f0c2f16201a2d2f166",
+  "runShards": {
+    "x1_surplus_wind_solar_over_load": {
+      "file": "runs/x1_surplus_wind_solar_over_load.json",
+      "sha256": "f9aa9b0a4674a5ee114b36033744f53f36ec998ff1b916f3fd665586d755f284",
+      "bytes": 204738
+    },
+    "x1_min_peak_perfect_foresight": {
+      "file": "runs/x1_min_peak_perfect_foresight.json",
+      "sha256": "72a78a5f85293ce5a21bb4a17f1942f03141d71a621a10c4a83b6ab2a7bb64df",
+      "bytes": 197933
+    },
+    "x1_price_oriented_da_arbitrage": {
+      "file": "runs/x1_price_oriented_da_arbitrage.json",
+      "sha256": "7db15acb45153dafe7d47a6b132afd32a4be2be616e8f8cf238a712164ae670d",
+      "bytes": 213338
+    },
+    "x2_surplus_wind_solar_over_load": {
+      "file": "runs/x2_surplus_wind_solar_over_load.json",
+      "sha256": "ae1b1e31666428a9e39e653eb7cda3745e3dad4d0563419b56782a467186f81e",
+      "bytes": 232739
+    },
+    "x2_min_peak_perfect_foresight": {
+      "file": "runs/x2_min_peak_perfect_foresight.json",
+      "sha256": "873796da7ade4999936044dee058521ffc480e692bfe61e123f7111d6492ff0a",
+      "bytes": 216250
+    },
+    "x2_price_oriented_da_arbitrage": {
+      "file": "runs/x2_price_oriented_da_arbitrage.json",
+      "sha256": "6b21ffc2634dad65d8624e5861cbd92718c23210a400f9ce937f04d6d39d6f84",
+      "bytes": 218154
+    },
+    "x5_surplus_wind_solar_over_load": {
+      "file": "runs/x5_surplus_wind_solar_over_load.json",
+      "sha256": "db3d0a27503fa4a6876a8f65c1c36298a8f655927e4d7a2781bd90a08ffad91b",
+      "bytes": 238888
+    },
+    "x5_min_peak_perfect_foresight": {
+      "file": "runs/x5_min_peak_perfect_foresight.json",
+      "sha256": "0b88c2a0d8c42efedec778e433e7c60d7c2740cf13949ef37451446ba8e0b6a1",
+      "bytes": 243628
+    },
+    "x5_price_oriented_da_arbitrage": {
+      "file": "runs/x5_price_oriented_da_arbitrage.json",
+      "sha256": "3eb674bc52fecb3f8013f09058603e314c52efbf93ac3231f76ea091cc5a34ce",
+      "bytes": 220071
+    },
+    "x10_surplus_wind_solar_over_load": {
+      "file": "runs/x10_surplus_wind_solar_over_load.json",
+      "sha256": "88ee373c2fd2817bd95b802a3edce1d9bc0bfc1211237370b88116175925e8e3",
+      "bytes": 253960
+    },
+    "x10_min_peak_perfect_foresight": {
+      "file": "runs/x10_min_peak_perfect_foresight.json",
+      "sha256": "0c110cb44ea707c4c88993e2775b70563e7af2d33799f8104f86951ebad09cb7",
+      "bytes": 248616
+    },
+    "x10_price_oriented_da_arbitrage": {
+      "file": "runs/x10_price_oriented_da_arbitrage.json",
+      "sha256": "e239875b2fc1eb98e373985bb86ef2fabdb3f862cf11db11b07e8c0e6b4198c4",
+      "bytes": 220868
+    }
+  }
 }

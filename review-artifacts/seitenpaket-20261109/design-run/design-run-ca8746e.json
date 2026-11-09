@@ -1,0 +1,18 @@
+{
+  "headSha": "ca8746ec605c535ecfe1ddc900807d0ebed099b3",
+  "measuredAt": "2026-11-09T18:27:20.892Z",
+  "cls": {
+    "monat1280_firstPaint": 0,
+    "monat1280_afterChart": 0,
+    "note": "layout-shift PerformanceObserver ~4.5s Fenster nach Navigation"
+  },
+  "tabSwitchMs": {
+    "start_to_tag": 2710,
+    "tag_to_monat": 175,
+    "monat_to_start": 111
+  },
+  "viewport": {
+    "monatCls": "1280x900 light",
+    "xCrop": "375x812 dark"
+  }
+}

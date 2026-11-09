@@ -5,17 +5,16 @@ import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
 import { TagUnavailable } from "@/components/home/TagUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
-import { loadGermanyView } from "@/lib/germanyView";
+import { loadGermanyViewForTag } from "@/lib/germanyViewTag.server";
 import { lastSurplusBefore } from "@/lib/kopfTagCopy";
 import {
-  getFleetRun,
   nationalFleetMonthAvailable,
   parseFleetFactor,
   parseFleetStrategy,
   sliceFleetDay,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
-import { NationalFleetTagSlot } from "@/components/home/NationalFleetTagSlot";
+import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
+import { NationalFleetTagSlot, fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -37,7 +36,7 @@ export default async function TagDetailPage({
 }) {
   const { datum } = await params;
   const query = await searchParams;
-  const view = await loadGermanyView(new Date(), "/tag", { tag: datum, ...query });
+  const view = await loadGermanyViewForTag(datum);
 
   const records = view.auffaelligkeitRecords;
   const record = records?.find((r) => r.dateKey === datum) ?? null;
@@ -103,15 +102,18 @@ export default async function TagDetailPage({
   const fleetStrategy = parseFleetStrategy(
     typeof query.fahrweise === "string" ? query.fahrweise : undefined,
   );
-  let fleetDayNoWindSolarSurplus = false;
-  if (nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
-    const bundle = loadNationalFleetMonthBundle();
-    const slice = sliceFleetDay(getFleetRun(bundle, fleetFactor, fleetStrategy), dayKey);
-    fleetDayNoWindSolarSurplus = (slice?.positiveSurplusQuarterHours ?? 1) === 0;
-  }
+  const fleetMonth = nationalFleetMonthAvailable(dayKey.slice(0, 7));
+  const fleetRun = fleetMonth ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy) : null;
+  const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, dayKey) : null;
+  const fleetDayNoWindSolarSurplusFlag = fleetDayNoWindSolarSurplus(fleetSlice);
   const fleetSlot =
-    nationalFleetMonthAvailable(dayKey.slice(0, 7)) ? (
-      <NationalFleetTagSlot dayKey={dayKey} factor={fleetFactor} strategy={fleetStrategy} />
+    fleetRun && fleetSlice ? (
+      <NationalFleetTagSlot
+        dayKey={dayKey}
+        factor={fleetFactor}
+        strategy={fleetStrategy}
+        preloadedRun={fleetRun}
+      />
     ) : null;
 
   return (
@@ -130,7 +132,7 @@ export default async function TagDetailPage({
         fleetEnergyGwh={fleet.energyGwh}
         fleetFactor={fleetFactor}
         fleetStrategy={fleetStrategy}
-        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
+        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplusFlag}
       >
         {fleetSlot}
       </TagPageV4>

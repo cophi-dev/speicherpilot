@@ -10,10 +10,7 @@ export function StartOrtTeaser() {
         <h2 id="kapitel-ort-start" className="v4-chapter-h2">
           Vom Tagesbogen zum Anschlusspunkt
         </h2>
-        <p className="v4-subline">
-          Ob Speicher am konkreten Ort dem Netz helfen, hängt von Leistung, Vertrag und Uhrzeit ab — nicht nur vom
-          Deutschland-Tag.
-        </p>
+        <p className="v4-subline v4-ort-teaser-subline">Speicher am Anschluss: Leistung, Vertrag, Uhrzeit.</p>
       </div>
       <div className="v4-ort-doors v4-content">
         <Link href="/ort?sicht=projekt" className="v4-door">
@@ -37,9 +34,8 @@ export function TagOrtTeaser({ dayLabel }: { dayLabel: string }) {
         <h2 id="kapitel-ort-tag" className="v4-chapter-h2">
           Hätte dieser Tag am Anschluss geholfen?
         </h2>
-        <p className="v4-subline">
-          Am Ort entscheidet sich, ob Speicher an diesem Tag ({dayLabel}) das Netz entlastet hätten — nicht nur im
-          Deutschland-Modell.
+        <p className="v4-subline v4-ort-teaser-subline">
+          Netzwirkung am Ort — getrennt vom Deutschland-Modell ({dayLabel}).
         </p>
       </div>
       <p className="v4-chapter-foot v4-content num">

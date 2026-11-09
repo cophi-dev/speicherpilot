@@ -59,21 +59,23 @@ export function NationalFleetDayChapter({
           Monatslauf-Ausschnitt (×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe})
         </h2>
         <p className="v4-subline v4-fleet-subline-desktop">
-          Hypothetischer Monatslauf-Ausschnitt (kein Tages-Reset). Hero/„01 · Der Tag“ = Beobachtung; hier die gewählte
-          Fahrweise über alle Viertelstunden — auch ohne Tages-Überschuss kann Spitzen senken oder Energie verschieben.{" "}
+          Monatslauf-Ausschnitt — hypothetisch, ohne Tages-Reset.{" "}
           <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, factor, strategy)} className="v4-text-link">
-            Zum Monatsmodell
+            Zum Monatsmodell →
           </Link>
-          .
         </p>
       </div>
       <details className="v4-fleet-subline-disclosure">
         <summary>Kontext zum Monatslauf-Ausschnitt</summary>
         <p className="v4-subline">
-          Hypothetischer Monatslauf-Ausschnitt (kein Tages-Reset). Hero/„01 · Der Tag“ = Beobachtung; hier die gewählte
-          Fahrweise über alle Viertelstunden — auch ohne Tages-Überschuss kann Spitzen senken oder Energie verschieben.{" "}
+          Ausschnitt aus dem durchgängigen Monatslauf (Kein Tages-Reset): Beobachtung oben („01 · Der Tag“), hier die
+          gewählte Fahrweise über alle Viertelstunden. Ohne Tages-Überschuss kann die Flotte trotzdem Spitzen senken oder
+          Energie verschieben — getrennt vom Überschuss-Modell.{" "}
           <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, factor, strategy)} className="v4-text-link">
-            Zum Monatsmodell
+            Monatsmodell →
+          </Link>{" "}
+          <Link href="/methodik#grossspeicher" className="v4-text-link">
+            Methodik
           </Link>
           .
         </p>

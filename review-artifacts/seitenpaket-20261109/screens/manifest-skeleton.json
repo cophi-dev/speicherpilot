@@ -1,0 +1,24 @@
+{
+  "base": "http://127.0.0.1:3099",
+  "shots": [
+    {
+      "file": "start",
+      "path": "/"
+    },
+    {
+      "file": "tag-2026-10-29-f1",
+      "path": "/tag/2026-10-29?faktor=1",
+      "waitFleet": true
+    },
+    {
+      "file": "monat-2026-10-f1",
+      "path": "/monat/2026-10?faktor=1&fahrweise=spitze",
+      "waitFleet": true
+    },
+    {
+      "file": "monat-2026-10-f5",
+      "path": "/monat/2026-10?faktor=5&fahrweise=spitze",
+      "waitFleet": true
+    }
+  ]
+}

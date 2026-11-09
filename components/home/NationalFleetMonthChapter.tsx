@@ -73,22 +73,23 @@ export function NationalFleetMonthChapter({
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">Modellflotte · {monthKey}</p>
         <h2 id="fleet-month-title" className="v4-chapter-h2 v4-fleet-month-h2">
-          Monatslauf der Referenzflotte — Überschuss-, Spitzen- und Preisfahrweisen
+          Last, Spitzen und Speicherwirkung im Monat
         </h2>
         <p className="v4-subline v4-fleet-subline-desktop">
-          Modellrechnung auf beobachteter Last und Erzeugung (Oktober 2026): Referenz 4,58 GW / 8 GWh Nennenergie,
-          skaliert mit ×{factor}. Hypothetisch, nicht amtlicher Bestand — kein Anschlussnetz, keine Netzdienlichkeit.
-          Nicht nur Überschusstage: die drei Monats-Fahrweisen rechnen alle Viertelstunden (Spitzen senken,
-          Energie verschieben). Rampen, Zusatzstarts und Abregelung am Ort sind hier nicht modelliert.
+          Vorberechneter Monatslauf (×{factor}, hypothetisch).{" "}
+          <Link href="/methodik#grossspeicher" className="v4-text-link">
+            Methodik →
+          </Link>
         </p>
       </div>
       <details className="v4-fleet-subline-disclosure">
         <summary>Modellannahmen und Grenzen</summary>
         <p className="v4-subline">
-          Modellrechnung auf beobachteter Last und Erzeugung (Oktober 2026): Referenz 4,58 GW / 8 GWh Nennenergie,
-          skaliert mit ×{factor}. Hypothetisch, nicht amtlicher Bestand — kein Anschlussnetz, keine Netzdienlichkeit.
-          Nicht nur Überschusstage: die drei Monats-Fahrweisen rechnen alle Viertelstunden (Spitzen senken,
-          Energie verschieben). Rampen, Zusatzstarts und Abregelung am Ort sind hier nicht modelliert.
+          Modell auf beobachteter Last und Erzeugung (Okt. 2026): Referenz 4,58 GW / 8 GWh Nennenergie, skaliert mit ×
+          {factor}. Hypothetisch, kein amtlicher Bestand. Kein Anschlussnetz, lokale Netzwirkung nicht bewertet. Alle drei
+          Fahrweisen rechnen jeden Viertelstundentag; Rampen, Starts und Abregelung am Ort fehlen. Round-Trip 85 %, SoC
+          10–90 %, Price Taker nur in der Marktfahrweise (Day-Ahead, ohne Preisrückwirkung). Keine Euro-Werte — nur
+          Energie und Leistung.
         </p>
       </details>
 
@@ -125,8 +126,8 @@ export function NationalFleetMonthChapter({
         </fieldset>
       </div>
 
-      <dl className="v4-fleet-kpis v4-content num">
-        <div>
+      <dl className="v4-fleet-kpis v4-fleet-kpis-hero v4-content num">
+        <div className="v4-fleet-kpi-primary">
           <dt>Monats-Restlastspitze mit Speicher</dt>
           <dd>{formatPeakKpi(stats.peakAfterGw, stats.peakReductionGw, stats.peakReductionPct)}</dd>
         </div>
@@ -138,34 +139,20 @@ export function NationalFleetMonthChapter({
           <dt>Netzseitige Abgabe</dt>
           <dd>{formatGw(stats.dischargeGwh, 2)} GWh</dd>
         </div>
-        <div className="v4-fleet-kpi-tier2">
-          <dt>Referenzflotte (gewählt)</dt>
-          <dd>
-            {formatGw(stats.fleetPowerGw, 2)} GW · {formatGw(stats.fleetEnergyGwh, 0)} GWh Nennenergie
-          </dd>
-        </div>
-        <div className="v4-fleet-kpi-tier2">
-          <dt>Verlust (Ladung − Abgabe)</dt>
-          <dd>{formatGw(stats.lossGwh, 2)} GWh</dd>
-        </div>
-        {stats.surplusCaptureGwh != null ? (
-          <div className="v4-fleet-kpi-tier2">
-            <dt>Aufnahme aus Wind-Solar-Differenz</dt>
-            <dd>
-              {formatGw(stats.surplusCaptureGwh, 2)} GWh
-              {stats.surplusCaptureSharePct != null
-                ? ` (${formatQuantity(stats.surplusCaptureSharePct, "de", 1)} % vom Okt.-Pool 134,2 GWh)`
-                : null}
-            </dd>
-          </div>
-        ) : null}
-        <div className="v4-fleet-kpi-tier2">
-          <dt>SoC Monatsanfang / -ende</dt>
-          <dd>
-            {formatGw(stats.socStartGwh, 1)} / {formatGw(stats.socEndGwh, 1)} GWh (50 % Nennenergie, durchgehend)
-          </dd>
-        </div>
       </dl>
+
+      <NationalFleetTimeSeriesChart
+        monthKey={monthKey}
+        factor={factor}
+        strategy={strategy}
+        peakReductionGw={stats.peakReductionGw}
+        peakReductionPct={stats.peakReductionPct}
+        prominentMonth
+      />
+      <p className="v4-fleet-chart-footnote v4-content num muted">
+        Viertelstunden aus dem Monatslauf-Bundle (Energy-Charts Last/Erzeugung, Vollvoraussicht je Fahrweise). Werte nur
+        MWh/GW — keine Euro-Schätzung, auch nicht bei ×{factor}.
+      </p>
       <details className="v4-fleet-kpis-secondary v4-content num">
         <summary>Weitere Monats-Kennzahlen (Flotte, Verlust, SoC)</summary>
         <dl className="v4-fleet-kpis">
@@ -209,17 +196,12 @@ export function NationalFleetMonthChapter({
         baseStats={factorRows.find((r) => r.factor === 1)!}
       />
 
-      <NationalFleetTimeSeriesChart
-        monthKey={monthKey}
-        factor={factor}
-        strategy={strategy}
-        peakReductionGw={stats.peakReductionGw}
-        peakReductionPct={stats.peakReductionPct}
-      />
-
-      <figure className="v4-monat-graph-wrap v4-content">
-        <figcaption className="v4-fleet-caption">
-          Zusatz: täglicher SoC-Spielraum (Min–Max je Kalendertag) — kein Ersatz für den Zeitreihenverlauf oben.
+      <figure className="v4-monat-graph-wrap v4-content v4-fleet-soc-figure">
+        <figcaption className="v4-fleet-caption muted">
+          <details className="v4-fleet-soc-disclosure">
+            <summary>Täglicher SoC-Spielraum (Min–Max)</summary>
+            Nicht der Zeitreihenverlauf oben — nur grobe Tagesbandbreite.
+          </details>
         </figcaption>
         <div className="v4-monat-chart v4-fleet-soc-chart" role="img" aria-label="Täglicher SoC-Spielraum">
           <div className="v4-monat-chart-scroll">

@@ -1,7 +1,11 @@
 import "server-only";
 
+import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { loadGermanyView } from "@/lib/germanyView";
+import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
+import { tagRollSnapshotDataStandLabel, tagRollSnapshotMonthEligible } from "@/lib/tagRollSnapshotPolicy";
 import { monthHasAnyRecord } from "@/lib/monatCalendar";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
@@ -26,6 +30,30 @@ function inferLastCompleteFromRecords(records: TagesKennzahlRecord[], todayKey: 
 }
 
 export async function loadMonatPageData(monthKey: string, now = new Date()): Promise<MonatPageData> {
+  const todayKeyDirect = formatBerlinDateKeyFromUtcDate(now);
+  const monthStart = `${monthKey}-01`;
+  try {
+    const snap = loadTagRollSnapshot();
+    if (tagRollSnapshotMonthEligible(monthKey, todayKeyDirect, snap)) {
+      const records = snap.records;
+      const lastCompleteDayKey = pickLastCompleteDayKey(snap.days, todayKeyDirect);
+      let observationFallback: MonatObservationFallback | null = null;
+      if (nationalFleetMonthAvailable(monthKey) && fleetMonthPreferredObservation(monthKey)) {
+        observationFallback = loadMonatObservationFallback(monthKey);
+      }
+      return {
+        todayKey: todayKeyDirect,
+        lastCompleteDayKey,
+        records,
+        dataStand: tagRollSnapshotDataStandLabel(snap),
+        observationLive: monthHasAnyRecord(monthKey, records),
+        observationFallback,
+      };
+    }
+  } catch {
+    /* snapshot missing — live path */
+  }
+
   let view: Awaited<ReturnType<typeof loadGermanyView>> | null = null;
   try {
     view = await loadGermanyView(now, "/monat", {});
