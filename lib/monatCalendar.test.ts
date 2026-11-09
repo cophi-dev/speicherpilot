@@ -2,6 +2,8 @@ import {
   adjacentMonthWithData,
   berlinMonthKeyFromDateKey,
   daysInBerlinMonth,
+  formatBerlinMonthShort,
+  formatDataStandDayDe,
   isBerlinMonthKey,
   isBerlinMonthCalendarClosed,
   isMonthArchivedComplete,
@@ -14,6 +16,11 @@ import fixture from "@/lib/__fixtures__/auffaelligkeit-records.json";
 
 describe("monatCalendar", () => {
   const records = fixture as import("@/lib/auffaelligkeit").TagesKennzahlRecord[];
+
+  it("formats the one-line month stand in German", () => {
+    expect(formatBerlinMonthShort("2026-10")).toBe("Okt 2026");
+    expect(formatDataStandDayDe("Energy-Charts-Snapshot · eingefroren 2026-11-09")).toBe("09.11.2026");
+  });
 
   it("parses month keys and lists days", () => {
     expect(isBerlinMonthKey("2026-11")).toBe(true);

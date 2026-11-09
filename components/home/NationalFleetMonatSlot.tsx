@@ -21,11 +21,15 @@ export function NationalFleetMonatSlot({
   factor,
   strategy,
   bars,
+  surplusLine,
+  seriesLine,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
   bars: MonatSurplusBar[];
+  surplusLine?: string;
+  seriesLine?: string;
 }) {
   if (!nationalFleetMonthAvailable(monthKey)) {
     return <NationalFleetMonthUnavailable monthKey={monthKey} />;
@@ -48,6 +52,8 @@ export function NationalFleetMonatSlot({
       surplusPoolMarginal={marginalUi.surplusPoolOnly}
       factorRows={factorRows}
       bars={bars}
+      surplusLine={surplusLine}
+      seriesLine={seriesLine}
     />
   );
 }

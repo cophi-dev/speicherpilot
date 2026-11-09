@@ -7,6 +7,9 @@ import {
   adjacentMonthWithData,
   buildMonatGrid,
   formatBerlinMonthLabel,
+  formatBerlinMonthShort,
+  formatDataStandDayDe,
+  MONAT_SURPLUS_EXPLAIN_DE,
   monatPointe,
 } from "@/lib/monatCalendar";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
@@ -73,6 +76,9 @@ export function MonatPageV4({
   children?: React.ReactNode;
 }) {
   const { h1, subline, footnote } = monatPointe(monthKey, records);
+  const heroFootnote = footnote.replace(MONAT_SURPLUS_EXPLAIN_DE, "").trim();
+  const fleetOnPage = nationalFleetMonthAvailable(monthKey);
+  const standDay = formatDataStandDayDe(dataStand);
   const bars =
     surplusBars ??
     barsFromMonatGrid(
@@ -83,14 +89,21 @@ export function MonatPageV4({
       <MonatNav monthKey={monthKey} records={records} />
       <section className="v4-kopf" aria-labelledby="monat-h1">
         <div className="v4-kopf-inner v4-content">
-          <p className="v4-kicker num">
+          <p className="v4-kicker num v4-kicker-long">
             Monat · {formatBerlinMonthLabel(monthKey)} · Datenstand {dataStand}
+          </p>
+          <p className="v4-kicker num v4-kicker-short">
+            {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
           </p>
           <h1 id="monat-h1" className="v4-h1">
             {h1}
           </h1>
-          <p className="v4-subline">{subline}</p>
-          <p className="v4-footnote">{footnote}</p>
+          {fleetOnPage ? null : (
+            <>
+              <p className="v4-subline">{subline}</p>
+              <p className="v4-footnote">{heroFootnote}</p>
+            </>
+          )}
         </div>
       </section>
 

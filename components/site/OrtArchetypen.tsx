@@ -184,12 +184,6 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
   return (
     <div className="ort-archetypen day-paper">
       <div className="day-hero-inner">
-        <p className="v4-subline ort-netz-nutzen">
-          {tx(
-            "Hier vergleichen Sie zwei Musterorte (ländlicher Netzknoten und Stadtnetz) und drei Fahrweisen (Markt, Markt + flexibel, Netzorientiert) an einem typischen Tag. Kein eigener Standort, keine freie Leistung, kein Baukasten-Netz.",
-            "Here you compare two sample places (rural grid node and urban grid) and three operating modes (market, market + flexible, grid-oriented) on a typical day. No custom site, no free capacity, no build-your-own grid.",
-          )}
-        </p>
         <div className="ort-netz-step">
           <p className="ort-netz-step-label">{tx("1. Ort wählen", "1. Choose place")}</p>
           <div className="ort-netz-tabs ort-netz-tabs--place v4-tab-bar site-toggle" role="tablist" aria-label={tx("Ort", "Place")}>
@@ -246,11 +240,7 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
         <p className="v4-subline ort-netz-meta">
           {data.labelDe}
           {data.scenarioDe ? ` · ${data.scenarioDe}` : null} · {tx("Mustertag Netzlast", "Sample-day grid load")}{" "}
-          {data.typtag} · {tx("Preis", "Price")} {data.priceDay}.{" "}
-          {tx(
-            "Alle Kennzahlen unten beziehen sich auf diesen Mustertag — nicht auf ein Kalenderjahr.",
-            "All figures below refer to this sample day — not a calendar year.",
-          )}
+          {data.typtag} · {tx("Preis", "Price")} {data.priceDay}.
         </p>
 
         <ArchetypeDayChart
@@ -269,6 +259,40 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
             "Daily loading at the bottleneck. Sample-day time horizontal, line loading in percent vertical.",
           )}
         />
+
+        <footer className="v4-day-footnotes">
+          <dl className="v4-day-notes">
+            <div>
+              <dt>{tx("Modell", "Model")}</dt>
+              <dd className="ort-netz-nutzen">
+                {tx(
+                  "Hier vergleichen Sie zwei Musterorte (ländlicher Netzknoten und Stadtnetz) und drei Fahrweisen (Markt, Markt + flexibel, Netzorientiert) an einem typischen Tag. Kein eigener Standort, keine freie Leistung, kein Baukasten-Netz.",
+                  "Here you compare two sample places (rural grid node and urban grid) and three operating modes (market, market + flexible, grid-oriented) on a typical day. No custom site, no free capacity, no build-your-own grid.",
+                )}
+              </dd>
+              <dd>
+                {tx(
+                  "Alle Kennzahlen unten beziehen sich auf diesen Mustertag — nicht auf ein Kalenderjahr.",
+                  "All figures below refer to this sample day — not a calendar year.",
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>{tx("Netz", "Grid")}</dt>
+              <dd>
+                {tx(
+                  "Nur der Netzbetreiber beurteilt den realen Fall (BGH EnVR 1/24).",
+                  "Only the grid operator assesses the real case (BGH EnVR 1/24).",
+                )}
+              </dd>
+              <dd>
+                <Link href="/methodik" className="v4-footnote-link">
+                  {tx("Methodik", "Method")}
+                </Link>
+              </dd>
+            </div>
+          </dl>
+        </footer>
 
         <dl className="ort-archetype-kpi-grid">
           <div>
@@ -340,13 +364,6 @@ export function OrtArchetypen({ initialArchetype = "land" }: { initialArchetype?
           </p>
         ) : null}
 
-        <p className="v4-subline">
-          {tx(
-            "Nur der Netzbetreiber beurteilt den realen Fall (BGH EnVR 1/24).",
-            "Only the grid operator assesses the real case (BGH EnVR 1/24).",
-          )}
-        </p>
-
         <p className="day-cta-row">
           <Link href={sitePath("projekt", "ladepark")} className="day-cta">
             {tx("Zur Projektierer-Sicht (Ladepark) →", "To developer view (charging hub) →")}
@@ -386,16 +403,8 @@ function ArchetypeDayChart({
   const strokeThick = emphasizeStrokes ? 3 : 2;
   const W = 960;
   const H = 300;
-  const pad = { l: 72, r: 16, t: 16, b: 58 };
   const n = Math.min(l0n0.length, 96);
   const maxY = Math.max(110, ...l0n0.slice(0, n), ...l1n1.slice(0, n));
-  const x = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r);
-  const y = (v: number) => pad.t + (1 - v / maxY) * (H - pad.t - pad.b);
-  const line = (vals: number[]) =>
-    vals
-      .slice(0, n)
-      .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
-      .join(" ");
 
   const shellRef = useRef<HTMLDivElement>(null);
   const [fontScale, setFontScale] = useState(W / 335);
@@ -419,8 +428,18 @@ function ArchetypeDayChart({
 
   /** Screen px × (viewBox / render width) → SVG user units (constant apparent size). */
   const svgFont = (screenPx: number) => screenPx * fontScale;
-  const titleFont = svgFont(14);
-  const tickFont = svgFont(11);
+  const titleFont = svgFont(16);
+  const tickFont = svgFont(15);
+  const labelGapUser = 8 * fontScale;
+  const padL = Math.max(72, Math.ceil(52 * fontScale + labelGapUser));
+  const pad = { l: padL, r: 16, t: 16, b: 58 };
+  const x = (i: number) => pad.l + (i / (n - 1)) * (W - pad.l - pad.r);
+  const y = (v: number) => pad.t + (1 - v / maxY) * (H - pad.t - pad.b);
+  const line = (vals: number[]) =>
+    vals
+      .slice(0, n)
+      .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+      .join(" ");
 
   return (
     <figure
@@ -480,7 +499,13 @@ function ArchetypeDayChart({
         <text x={pad.l} y={H - 14} className="num ort-chart-axis" fontSize={tickFont}>
           0
         </text>
-        <text x={pad.l - 4} y={y(100) + 4} className="num ort-chart-axis" fontSize={tickFont} textAnchor="end">
+        <text
+          x={pad.l - labelGapUser}
+          y={y(100) + 4}
+          className="num ort-chart-axis"
+          fontSize={tickFont}
+          textAnchor="end"
+        >
           100 %
         </text>
         <text x={W - pad.r} y={H - 14} className="num ort-chart-axis" fontSize={tickFont} textAnchor="end">

@@ -5,7 +5,13 @@ import { NationalFleetMonatSlot } from "@/components/home/NationalFleetMonatSlot
 import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
 import { MonatUnavailable } from "@/components/home/MonatUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { buildMonatGrid, isBerlinMonthKey, monthHasAnyRecord } from "@/lib/monatCalendar";
+import {
+  buildMonatGrid,
+  isBerlinMonthKey,
+  MONAT_SURPLUS_EXPLAIN_DE,
+  monatPointe,
+  monthHasAnyRecord,
+} from "@/lib/monatCalendar";
 import { loadMonatPageData } from "@/lib/monatPageData.server";
 import {
   nationalFleetMonthAvailable,
@@ -68,8 +74,17 @@ export default async function MonatDetailPage({
   });
   const bars = barsFromMonatGrid(grid);
 
+  const pointe = monatPointe(monat, records);
+  const seriesLine = pointe.footnote.replace(MONAT_SURPLUS_EXPLAIN_DE, "").trim();
   const fleetSlot = nationalFleetMonthAvailable(monat) ? (
-    <NationalFleetMonatSlot monthKey={monat} factor={fleetFactor} strategy={fleetStrategy} bars={bars} />
+    <NationalFleetMonatSlot
+      monthKey={monat}
+      factor={fleetFactor}
+      strategy={fleetStrategy}
+      bars={bars}
+      surplusLine={pointe.subline}
+      seriesLine={seriesLine}
+    />
   ) : (
     <NationalFleetMonthUnavailable monthKey={monat} />
   );

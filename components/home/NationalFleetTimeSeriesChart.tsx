@@ -17,5 +17,13 @@ const NationalFleetTimeSeriesChartInner = dynamic(
 );
 
 export function NationalFleetTimeSeriesChart(props: NationalFleetTimeSeriesChartProps) {
-  return <NationalFleetTimeSeriesChartInner {...props} />;
+  const reserve = Boolean(props.prominentMonth && !props.dateKey);
+  if (!reserve) {
+    return <NationalFleetTimeSeriesChartInner {...props} />;
+  }
+  return (
+    <div className="v4-fleet-ts-slot is-month-prominent">
+      <NationalFleetTimeSeriesChartInner {...props} />
+    </div>
+  );
 }

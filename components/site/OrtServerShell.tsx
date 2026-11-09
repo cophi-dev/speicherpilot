@@ -31,7 +31,7 @@ export function OrtServerShell({ view, scenario }: { view: Perspective; scenario
       <section className="v4-subpage-hero ort-hero" aria-labelledby="site-hero-title">
         <div className="ort-v4-copy">
           <p className="v4-kicker num">03 · Der Ort</p>
-          {view === "projekt" || scenario === "grossspeicher" ? (
+          {scenario === "grossspeicher" ? (
             <p className="page-lead v4-subline v4-ort-lead-desktop">
               Speicher am Anschlusspunkt — Größe, Grenze, Netzwirkung.
             </p>

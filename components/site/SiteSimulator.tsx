@@ -1,6 +1,7 @@
 "use client";
 
 import { Pause, Play } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import type { AppLanguage } from "@/components/language-context";
@@ -16,12 +17,15 @@ export function SiteSimulator({
   language,
   limitKw,
   onLimitKwChange,
+  notes = [],
 }: {
   view: Perspective;
   story: SiteConnectionStory;
   language: AppLanguage;
   limitKw: number;
   onLimitKwChange: (value: number) => void;
+  /** Zahlfreie Erklärsätze, unter der Anschlusskurve. */
+  notes?: string[];
 }) {
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const badge = useMemo(
@@ -84,15 +88,21 @@ export function SiteSimulator({
     return niceChartScale(values);
   }, [story, limitKw]);
 
+  const finding =
+    view === "netz"
+      ? tx(
+          "Fünf Viertelstunden lang gibt der Speicher ab, genau so viel, wie über der Linie liegt.",
+          "For five quarter-hours the battery gives back exactly what sits above the line.",
+        )
+      : tx(
+          "Der Speicher wartet den Tag über und arbeitet an der Spitze.",
+          "The battery waits through the day and works at the peak.",
+        );
+
   return (
-    <section className="day-paper" aria-labelledby="site-sim-title">
+    <section className="day-paper ort-sim-section" aria-label={finding}>
       <div className="day-hero-inner">
         <p className="day-kicker">{view === "netz" ? tx("Simulator · derselbe Tag als Linie", "Simulator · the same day as a line") : tx("Simulator · Speichersicht", "Simulator · storage view")}</p>
-        <h2 id="site-sim-title">
-          {view === "netz"
-            ? tx("Fünf Viertelstunden lang gibt der Speicher ab, genau so viel, wie über der Linie liegt.", "For five quarter-hours the battery gives back exactly what sits above the line.")
-            : tx("Der Speicher wartet den Tag über und arbeitet an der Spitze.", "The battery waits through the day and works at the peak.")}
-        </h2>
         {view === "netz" ? (
           <div className="sim-field-row">
             <label htmlFor="site-sim-limit-kw" className="sim-kicker">
@@ -161,6 +171,25 @@ export function SiteSimulator({
           segmentColor={(value) => utilisationColor(value / limitKw)}
           markerHour={hour}
         />
+        <footer className="v4-day-footnotes">
+          <dl className="v4-day-notes">
+            <div>
+              <dt>{tx("Modell", "Model")}</dt>
+              <dd>{finding}</dd>
+              {notes.map((note) => (
+                <dd key={note}>{note}</dd>
+              ))}
+            </div>
+            <div>
+              <dt>{tx("Netz", "Grid")}</dt>
+              <dd>
+                <Link href="/methodik" className="v4-footnote-link">
+                  {tx("Methodik", "Method")}
+                </Link>
+              </dd>
+            </div>
+          </dl>
+        </footer>
       </div>
     </section>
   );
