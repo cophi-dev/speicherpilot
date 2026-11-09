@@ -10,8 +10,12 @@ const port = Number(process.argv.find((a) => a.startsWith("--port="))?.split("="
 const runs = Number(process.argv.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 7);
 const base = `http://127.0.0.1:${port}`;
 
+const tagYesterday =
+  process.argv.find((a) => a.startsWith("--tag-yesterday="))?.split("=")[1] ?? "2026-11-08";
+
 const routes = [
   { name: "tag", path: "/tag/2026-10-29?faktor=1" },
+  { name: "tag_gestern", path: `/tag/${tagYesterday}?faktor=1` },
   { name: "monat", path: "/monat/2026-10?faktor=1&fahrweise=spitze" },
 ];
 

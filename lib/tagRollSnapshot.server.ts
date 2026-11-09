@@ -17,6 +17,11 @@ import { overviewBounds } from "@/lib/overviewRange";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import type { GermanyView, RequestedTagStatus } from "@/lib/germanyView";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
+import {
+  tagRollSnapshotDataStandLabel,
+  tagRollSnapshotEligible,
+  type TagRollSnapshotSlice,
+} from "@/lib/tagRollSnapshotPolicy";
 
 export type TagRollSnapshot = {
   version: number;
@@ -53,6 +58,15 @@ export function loadTagRollSnapshot(): TagRollSnapshot {
 export function tagRollSnapshotCovers(dayKey: string): boolean {
   const snap = loadTagRollSnapshot();
   return dayKey >= snap.coverageStart && dayKey <= snap.coverageEnd;
+}
+
+export function tagRollSnapshotEligibleForView(dayKey: string, todayKey: string): boolean {
+  try {
+    const snap = loadTagRollSnapshot();
+    return tagRollSnapshotEligible(dayKey, todayKey, snap as TagRollSnapshotSlice);
+  } catch {
+    return false;
+  }
 }
 
 function untilOf(day: ResidualDay | null, todayKey: string): string | null {
@@ -155,7 +169,7 @@ export function buildGermanyViewFromTagSnapshot(dayKey: string, now: Date): Germ
     },
     until: untilOf(chosen?.day ?? null, todayKey),
     board,
-    stand: snap.dataStand,
+    stand: tagRollSnapshotDataStandLabel(snap),
     readings: readings.readings,
     surplusDay: null,
     overviews: null,

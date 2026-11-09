@@ -27,7 +27,7 @@ import { buildHomeDayPanelData, type HomeDayPanelData } from "@/lib/homeDayPanel
 import { pickSurplusDay, type ResidualDay } from "@/lib/windSolarResidual";
 import {
   buildGermanyViewFromTagSnapshot,
-  tagRollSnapshotCovers,
+  tagRollSnapshotEligibleForView,
 } from "@/lib/tagRollSnapshot.server";
 
 export type OverviewUiModel = OverviewEvaluation & {
@@ -196,17 +196,17 @@ export async function loadGermanyView(
   path: GermanyViewPath,
   query: { tag?: string | string[]; zeitraum?: string | string[] }
 ): Promise<GermanyView> {
+  const todayKey = formatBerlinDateKeyFromUtcDate(now);
   const requestedTagEarly = path === "/tag" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;
   if (
     path === "/tag" &&
     requestedTagEarly &&
     /^\d{4}-\d{2}-\d{2}$/.test(requestedTagEarly) &&
-    tagRollSnapshotCovers(requestedTagEarly)
+    tagRollSnapshotEligibleForView(requestedTagEarly, todayKey)
   ) {
     return buildGermanyViewFromTagSnapshot(requestedTagEarly, now);
   }
 
-  const todayKey = formatBerlinDateKeyFromUtcDate(now);
   const homeLike = path === "/" || path === "/monat";
   const requestedTagRaw =
     path === "/tag" ? (Array.isArray(query.tag) ? query.tag[0] : query.tag) : undefined;

@@ -5,6 +5,7 @@ import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { loadGermanyView } from "@/lib/germanyView";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
+import { tagRollSnapshotDataStandLabel, tagRollSnapshotMonthEligible } from "@/lib/tagRollSnapshotPolicy";
 import { monthHasAnyRecord } from "@/lib/monatCalendar";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
@@ -33,7 +34,7 @@ export async function loadMonatPageData(monthKey: string, now = new Date()): Pro
   const monthStart = `${monthKey}-01`;
   try {
     const snap = loadTagRollSnapshot();
-    if (monthStart >= snap.coverageStart && monthStart <= snap.coverageEnd) {
+    if (tagRollSnapshotMonthEligible(monthKey, todayKeyDirect, snap)) {
       const records = snap.records;
       const lastCompleteDayKey = pickLastCompleteDayKey(snap.days, todayKeyDirect);
       let observationFallback: MonatObservationFallback | null = null;
@@ -44,7 +45,7 @@ export async function loadMonatPageData(monthKey: string, now = new Date()): Pro
         todayKey: todayKeyDirect,
         lastCompleteDayKey,
         records,
-        dataStand: snap.dataStand,
+        dataStand: tagRollSnapshotDataStandLabel(snap),
         observationLive: monthHasAnyRecord(monthKey, records),
         observationFallback,
       };

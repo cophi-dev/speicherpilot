@@ -7,8 +7,9 @@ import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const OUT = join(process.cwd(), "data/tag-pages");
+/** Nur historische Abrufe — im Betrieb gilt tagRollSnapshotPolicy (≥3 Tage live). */
 const START = "2026-09-01";
-const END = "2026-11-09";
+const END = process.env.TAG_ROLL_SNAPSHOT_END ?? "2026-11-06";
 
 async function main() {
   const { parsePowerPayload, residualDaysFromSlots } = await import("../lib/powerMix.ts");
