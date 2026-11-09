@@ -6,13 +6,14 @@ import {
   fleetSeriesJsonResponse,
 } from "@/lib/nationalFleetSeriesPayload";
 import {
-  getFleetRun,
   nationalFleetMonthAvailable,
   parseFleetFactor,
   parseFleetStrategy,
   sliceFleetDay,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+import {
+  loadNationalFleetRunSeries,
+} from "@/lib/nationalMonthFleetModel.server";
 
 export const runtime = "nodejs";
 export const revalidate = 86400;
@@ -28,9 +29,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Kein Modellmonat" }, { status: 404 });
   }
 
-  const bundle = loadNationalFleetMonthBundle();
-  const run = getFleetRun(bundle, factor, strategy);
-  const compareRun = factor !== 1 ? getFleetRun(bundle, 1, strategy) : null;
+  const run = loadNationalFleetRunSeries(factor, strategy);
+  const compareRun = factor !== 1 ? loadNationalFleetRunSeries(1, strategy) : null;
 
   if (dateKey) {
     const slice = sliceFleetDay(run, dateKey);
@@ -47,6 +47,11 @@ export async function GET(request: Request) {
         intervalCount: slice.indices.length,
         bundle: seriesBundle,
       }),
+      {
+        headers: {
+          "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+        },
+      },
     );
   }
 
@@ -59,5 +64,10 @@ export async function GET(request: Request) {
       intervalCount: run.intervalCount,
       bundle: seriesBundle,
     }),
+    {
+      headers: {
+        "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    },
   );
 }

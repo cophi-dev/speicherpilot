@@ -1,40 +1,36 @@
 import { NationalFleetDayChapter } from "@/components/home/NationalFleetDayChapter";
-import { fleetChartSeriesForDay } from "@/lib/nationalFleetSeriesPayload";
 import {
-  getFleetRun,
   monthStatsForRun,
   nationalFleetMonthAvailable,
   sliceFleetDay,
   type NationalFleetDaySlice,
   type NationalFleetFactor,
-  type NationalFleetMonthBundle,
+  type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 
 export function NationalFleetTagSlot({
   dayKey,
   factor,
   strategy,
-  preloadedBundle,
+  preloadedRun,
 }: {
   dayKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
-  preloadedBundle?: NationalFleetMonthBundle;
+  preloadedRun?: NationalFleetRunSeries;
 }) {
   if (!nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
     return null;
   }
-  const bundle = preloadedBundle ?? loadNationalFleetMonthBundle();
-  const run = getFleetRun(bundle, factor, strategy);
+  const bundle = nationalFleetContext(factor, strategy);
+  const run = preloadedRun ?? loadNationalFleetRunSeries(factor, strategy);
   const slice = sliceFleetDay(run, dayKey);
   if (!slice) {
     return null;
   }
   const monthStats = monthStatsForRun(bundle, factor, strategy);
-  const compareRun = factor !== 1 ? getFleetRun(bundle, 1, strategy) : null;
-  const chartSeries = fleetChartSeriesForDay(run, compareRun, slice.indices, factor);
 
   return (
     <NationalFleetDayChapter
@@ -44,7 +40,6 @@ export function NationalFleetTagSlot({
       run={run}
       slice={slice}
       monthStats={monthStats}
-      chartSeries={chartSeries}
     />
   );
 }

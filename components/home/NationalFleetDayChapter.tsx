@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
-import type { FleetChartSeriesBundle } from "@/lib/nationalFleetSeriesPayload";
 import { formatPeakKpi } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
@@ -25,7 +24,6 @@ export function NationalFleetDayChapter({
   run,
   slice,
   monthStats,
-  chartSeries,
 }: {
   dayKey: string;
   factor: NationalFleetFactor;
@@ -33,7 +31,6 @@ export function NationalFleetDayChapter({
   run: NationalFleetRunSeries;
   slice: NationalFleetDaySlice;
   monthStats: NationalFleetMonthStats;
-  chartSeries: FleetChartSeriesBundle;
 }) {
   const peakRpGw = slice.maxRPrimeMw / 1000;
   const peakRGw = slice.maxRMw / 1000;
@@ -219,8 +216,6 @@ export function NationalFleetDayChapter({
         peakReductionDayGw={peakReductionDayGw}
         peakObservedDayGw={peakRGw}
         scrollHint={`${slice.indices.length} Viertelstunden am ${formatBerlinDayLabel(dayKey)}`}
-        initialSeries={chartSeries.selected}
-        initialCompareRp={chartSeries.compareRp}
       />
 
       <details className="v4-content v4-fleet-day-table-wrap">

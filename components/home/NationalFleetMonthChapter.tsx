@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { NationalFleetMarginalBenefit } from "@/components/home/NationalFleetMarginalBenefit";
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
-import type { FleetChartSeriesBundle } from "@/lib/nationalFleetSeriesPayload";
 import { formatPeakKpi } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
@@ -32,14 +31,12 @@ export function NationalFleetMonthChapter({
   surplusPoolMarginal,
   factorRows,
   bars,
-  chartSeries,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
   stats: NationalFleetMonthStats;
   run: NationalFleetRunSeries;
-  chartSeries: FleetChartSeriesBundle;
   marginalSteps: StrategyMarginalStep[];
   surplusPoolMarginal: boolean;
   factorRows: NationalFleetFactorCompareRow[];
@@ -151,8 +148,6 @@ export function NationalFleetMonthChapter({
         peakReductionGw={stats.peakReductionGw}
         peakReductionPct={stats.peakReductionPct}
         prominentMonth
-        initialSeries={chartSeries.selected}
-        initialCompareRp={chartSeries.compareRp}
       />
       <p className="v4-fleet-chart-footnote v4-content num muted">
         Viertelstunden aus dem Monatslauf-Bundle (Energy-Charts Last/Erzeugung, Vollvoraussicht je Fahrweise). Werte nur

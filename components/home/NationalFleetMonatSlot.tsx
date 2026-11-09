@@ -5,15 +5,16 @@ import {
   factorCompareRowsForStrategy,
   strategyMarginalForUi,
 } from "@/lib/nationalFleetMarginal";
-import { fleetChartSeriesForMonth } from "@/lib/nationalFleetSeriesPayload";
 import {
-  getFleetRun,
   monthStatsForRun,
   nationalFleetMonthAvailable,
   type NationalFleetFactor,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+import {
+  loadNationalFleetRunSeries,
+  nationalFleetContext,
+} from "@/lib/nationalMonthFleetModel.server";
 
 export function NationalFleetMonatSlot({
   monthKey,
@@ -30,11 +31,9 @@ export function NationalFleetMonatSlot({
     return <NationalFleetMonthUnavailable monthKey={monthKey} />;
   }
 
-  const bundle = loadNationalFleetMonthBundle();
+  const bundle = nationalFleetContext(factor, strategy);
   const stats = monthStatsForRun(bundle, factor, strategy);
-  const run = getFleetRun(bundle, factor, strategy);
-  const compareRun = factor !== 1 ? getFleetRun(bundle, 1, strategy) : null;
-  const chartSeries = fleetChartSeriesForMonth(run, compareRun, factor);
+  const run = loadNationalFleetRunSeries(factor, strategy);
   const marginalUi = strategyMarginalForUi(bundle, strategy);
   const factorRows = factorCompareRowsForStrategy(bundle, strategy);
 
@@ -45,7 +44,6 @@ export function NationalFleetMonatSlot({
       strategy={strategy}
       stats={stats}
       run={run}
-      chartSeries={chartSeries}
       marginalSteps={marginalUi.steps}
       surplusPoolMarginal={marginalUi.surplusPoolOnly}
       factorRows={factorRows}
