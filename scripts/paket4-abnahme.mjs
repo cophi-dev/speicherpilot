@@ -153,6 +153,44 @@ const SHOTS = [
   { file: "ort-390-light.png", path: "/ort", w: 390, h: 844, theme: "light" },
 ];
 
+async function assertNoLabelOverlap(page) {
+  return page.evaluate(() => {
+    const ids = [
+      "arbeit-pool-label",
+      "arbeit-ref-label",
+      "arbeit-label-spitze",
+      "arbeit-label-ueberschuss",
+      "arbeit-label-markt",
+      "arbeit-markt-callout",
+    ];
+    const rects = ids
+      .map((id) => {
+        const el = document.querySelector(`[data-testid="${id}"]`);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { id, left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+      })
+      .filter(Boolean);
+    const overlaps = [];
+    for (let i = 0; i < rects.length; i++) {
+      for (let j = i + 1; j < rects.length; j++) {
+        const a = rects[i];
+        const b = rects[j];
+        const pad = 2;
+        if (
+          a.left < b.right - pad &&
+          a.right > b.left + pad &&
+          a.top < b.bottom - pad &&
+          a.bottom > b.top + pad
+        ) {
+          overlaps.push(`${a.id}×${b.id}`);
+        }
+      }
+    }
+    return { overlaps, labelCount: rects.length };
+  });
+}
+
 async function main() {
   patchTurbopackCssChunk();
   mkdirSync(OUT, { recursive: true });
@@ -174,7 +212,22 @@ async function main() {
     await page.screenshot({ path: join(OUT, s.file), fullPage: Boolean(s.fullPage) });
     await page.close();
   }
+  const collisionPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await preparePage(collisionPage, "dark");
+  await collisionPage.goto(`${BASE}/monat/2026-10?faktor=10&fahrweise=markt`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await applyTheme(collisionPage, "dark");
+  await waitStyled(collisionPage);
+  await collisionPage.waitForSelector('[data-testid="arbeit-markt-callout"]', { timeout: 60_000 });
+  const collision = await assertNoLabelOverlap(collisionPage);
+  await collisionPage.close();
   await browser.close();
+  writeFileSync(
+    join(process.cwd(), "docs/audit-2026-11/paket4/label-collision.json"),
+    JSON.stringify({ ok: collision.overlaps.length === 0, ...collision }, null, 2),
+  );
+  if (collision.overlaps.length > 0) {
+    throw new Error(`Label overlap: ${collision.overlaps.join(", ")}`);
+  }
 
   const lhSummary = [];
   for (const route of ["/monat/2026-10?faktor=10&fahrweise=markt", "/ort"]) {

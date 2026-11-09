@@ -15,6 +15,13 @@ Stand: 9. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81]
 - `lib/monatKonzept.test.ts` — Skizzenwerte (12 Punkte, 96,76 GW, 134,2 GWh, Dauerlinie 2980 qh).
 - 673 Tests grün.
 
+## Visuelle Korrektur (Sichtprüfung v3)
+
+- **C:** Eigene Sortierung pro Reihe (`sortRankObserved` / `sortRankStorage`); morph=1 monoton; weiße Beobachtungslinie dünn, Szenario darüber; Fläche >60 GW.
+- **A:** HTML-Labels mit Playwright-Kollisionstest (`label-collision.json`, ok).
+- **Mobil:** `has-fleet-konzept` DOM-Reihenfolge (Nav → Kopf → Konzept); Miniplot-Padding.
+- **Methodik:** Bullet Unsicherheit + Plateau-Hinweis.
+
 ## Visuelle Korrektur (Sichtprüfung v2)
 
 - **A 1440:** Hero ~520px, volle Breite + Flottentabelle, Pfadlabels, durchgehende Nulllinie, großes Markt-×10-Label, getrennte Chart-Fußnote.

@@ -149,6 +149,15 @@ export function arbeitPathCallouts(model: ArbeitWirkungModel): Record<NationalFl
   };
 }
 
+/** Plateau am Monatsmaximum (Spitze senken ×5/×10). */
+export function plateauPeakNoteFromGws(gws: number[], epsilonGw = 0.005): string | null {
+  if (gws.length === 0) return null;
+  const max = Math.max(...gws);
+  const count = gws.filter((g) => Math.abs(g - max) <= epsilonGw).length;
+  if (count <= 1) return null;
+  return `erste von ${count} gleichen Viertelstunden`;
+}
+
 export function formatKonzeptWorkbenchCaption(peakAfterGw: number, wirkungGw: number): string {
   if (wirkungGw >= 0.0005) {
     return `Monatsspitze ${formatQuantity(peakAfterGw, "de", 2)} GW — Senkung ${formatQuantity(wirkungGw, "de", 2)} GW`;

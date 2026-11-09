@@ -23,6 +23,8 @@ export function NationalFleetMonatKonzeptClient({
   peakAfterGw,
   fleetSizes,
   marktX10Detail,
+  plateauNote,
+  fleetFootnote,
 }: {
   monthKey: string;
   arbeit: ArbeitWirkungModel;
@@ -34,6 +36,8 @@ export function NationalFleetMonatKonzeptClient({
   peakAfterGw: number;
   fleetSizes: FleetSizeRow[];
   marktX10Detail: { residualGw: number; chargeGw: number; priceEurMwh: number } | null;
+  plateauNote: string | null;
+  fleetFootnote: string;
 }) {
   const [werkbenchOpen, setWerkbenchOpen] = useState(false);
 
@@ -42,7 +46,7 @@ export function NationalFleetMonatKonzeptClient({
   }, []);
 
   return (
-    <>
+    <div className="v4-monat-konzept monatKonzeptRoot">
       <MonatArbeitWirkungChart
         model={arbeit}
         monthKey={monthKey}
@@ -60,6 +64,7 @@ export function NationalFleetMonatKonzeptClient({
           peakReductionGw={peakReductionGw}
           peakReductionPct={peakReductionPct}
           peakAfterGw={peakAfterGw}
+          plateauNote={plateauNote}
         />
       ) : (
         <p className="v4-content v4-footnote num" style={{ margin: "12px 0 24px", fontSize: 12 }}>
@@ -75,6 +80,15 @@ export function NationalFleetMonatKonzeptClient({
           fleetAvailable
         />
       </Suspense>
-    </>
+      <footer className="v4-content v4-day-footnotes v4-monat-slot-foot">
+        <p className="v4-footnote num">
+          Modellflotte {fleetFootnote} · Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Day-Ahead Price Taker, perfekte
+          Voraussicht, ohne Preisrückwirkung. Quelle Energy-Charts / SMARD CC BY 4.0.{" "}
+          <a href="/methodik#monat-konzept-ac" className="v4-footnote-link">
+            Methodik
+          </a>
+        </p>
+      </footer>
+    </div>
   );
 }

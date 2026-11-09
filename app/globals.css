@@ -10319,6 +10319,22 @@ html:not(.dark) .ort-v4-page .site-quiet {
   }
 }
 @media (max-width: 767px) {
+  .monat-page.has-fleet-konzept > .v4-tag-nav {
+    order: 1;
+  }
+  .monat-page.has-fleet-konzept > .v4-kopf {
+    order: 2;
+  }
+  .monat-page.has-fleet-konzept > .v4-monat-konzept {
+    order: 3;
+  }
+  .monat-page.has-fleet-konzept > .v4-chapter-foot {
+    order: 6;
+  }
+  .monat-page.has-fleet-konzept .v4-monat-konzept > .v4-monat-slot-foot {
+    order: 9;
+    margin-top: 8px;
+  }
   .monat-page .v4-kicker-long {
     display: none;
   }

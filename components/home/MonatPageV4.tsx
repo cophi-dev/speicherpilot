@@ -85,7 +85,7 @@ export function MonatPageV4({
       buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey }),
     );
   return (
-    <div className="v4-start monat-page">
+    <div className={`v4-start monat-page${fleetOnPage ? " has-fleet-konzept" : ""}`}>
       <MonatNav monthKey={monthKey} records={records} />
       <section className="v4-kopf" aria-labelledby="monat-h1">
         <div className="v4-kopf-inner v4-content">

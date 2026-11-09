@@ -1,5 +1,10 @@
 import { arbeitPathCallouts, buildArbeitWirkungModel } from "@/lib/monatKonzeptA";
-import { buildDauerlinieFromRun, buildDauerlinieFromRun as buildC } from "@/lib/monatKonzeptC";
+import {
+  buildDauerlinieFromRun,
+  buildDauerlinieFromRun as buildC,
+  dauerlinieSeriesSamples,
+  isMonotonicNonIncreasing,
+} from "@/lib/monatKonzeptC";
 import { getFleetRun, monthStatsForRun } from "@/lib/nationalMonthFleetModel";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
 
@@ -93,6 +98,18 @@ describe("Paket 4 Konzept C — Dauerlinie", () => {
 
   it("Markt ×10 Spitze und Tal", () => {
     const m = buildC(observed, markt10);
+    expect(m.withStorageMaxGw).toBeCloseTo(96.76, 2);
+    expect(m.withStorageMinGw).toBeCloseTo(-55.6, 1);
+  });
+
+  it("morph=1: beide Reihen monoton fallend, eigene Sortierung", () => {
+    const m = buildC(observed, markt10);
+    const obs = dauerlinieSeriesSamples(m, 1, "observed");
+    const stor = dauerlinieSeriesSamples(m, 1, "storage");
+    expect(isMonotonicNonIncreasing(obs.map((p) => p.y))).toBe(true);
+    expect(isMonotonicNonIncreasing(stor.map((p) => p.y))).toBe(true);
+    expect(m.observedMaxGw).toBeCloseTo(64.4059, 2);
+    expect(m.observedMinGw).toBeCloseTo(-10.9, 1);
     expect(m.withStorageMaxGw).toBeCloseTo(96.76, 2);
     expect(m.withStorageMinGw).toBeCloseTo(-55.6, 1);
   });

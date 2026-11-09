@@ -1,5 +1,5 @@
 import { NationalFleetMonatKonzeptClient } from "@/components/home/NationalFleetMonatKonzeptClient";
-import { fleetSizeRows } from "@/lib/monatKonzeptA";
+import { fleetSizeRows, plateauPeakNoteFromGws } from "@/lib/monatKonzeptA";
 import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
 import { buildArbeitWirkungModel } from "@/lib/monatKonzeptA";
 import { buildDauerlinieFromRun } from "@/lib/monatKonzeptC";
@@ -65,30 +65,26 @@ export function NationalFleetMonatSlot({
   const mw = (meta.provenance?.model_fleet as { power_mw?: number; energy_mwh?: number }) ?? {};
   const fleetSizes = fleetSizeRows(mw.power_mw ?? 4580, mw.energy_mwh ?? 8000);
 
+  const plateauNote =
+    factor >= 5 && strategy === "spitze"
+      ? plateauPeakNoteFromGws(activeRun.r_prime_mw.map((mw) => mw / 1000))
+      : null;
+
   return (
-    <>
-      <NationalFleetMonatKonzeptClient
-        monthKey={monthKey}
-        arbeit={arbeit}
-        dauer={dauer}
-        factor={factor}
-        strategy={strategy}
-        peakReductionGw={stats.peakReductionGw}
-        peakReductionPct={stats.peakReductionPct}
-        peakAfterGw={stats.peakAfterGw}
-        fleetSizes={fleetSizes}
-        marktX10Detail={marktX10Detail}
-      />
-      <footer className="v4-content v4-day-footnotes">
-        <p className="v4-footnote num">
-          Modellflotte {formatFleetFromMeta()} · Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Day-Ahead Price Taker, perfekte
-          Voraussicht, ohne Preisrückwirkung. Quelle Energy-Charts / SMARD CC BY 4.0.{" "}
-          <a href="/methodik#monat-konzept-ac" className="v4-footnote-link">
-            Methodik
-          </a>
-        </p>
-      </footer>
-    </>
+    <NationalFleetMonatKonzeptClient
+      monthKey={monthKey}
+      arbeit={arbeit}
+      dauer={dauer}
+      factor={factor}
+      strategy={strategy}
+      peakReductionGw={stats.peakReductionGw}
+      peakReductionPct={stats.peakReductionPct}
+      peakAfterGw={stats.peakAfterGw}
+      fleetSizes={fleetSizes}
+      marktX10Detail={marktX10Detail}
+      plateauNote={plateauNote}
+      fleetFootnote={formatFleetFromMeta()}
+    />
   );
 }
 

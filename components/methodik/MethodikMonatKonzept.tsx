@@ -19,6 +19,15 @@ export function MethodikMonatKonzept() {
           Preisrückwirkung bei ×5/×10.
         </li>
         <li>
+          <strong>Unsicherheit:</strong> Perfekte Voraussicht = Obergrenze. Ohne Preisrückwirkung überschätzt die
+          Marktfahrt bei ×5/×10 die Monatsspitze. Round-Trip typisch 80–90&nbsp;% — die Modellannahme 85&nbsp;% liegt in
+          der Bandbreite. Price Taker: keine Marktmacht des Aggregators.
+        </li>
+        <li>
+          Spitze senken ×5/×10: steht die Restlast an mehreren Viertelstunden auf dem gleichen Plateau, ist der
+          Zeitstempel der <em>ersten von n</em> gleichen Viertelstunden am Maximum.
+        </li>
+        <li>
           Quelle: Energy-Charts / Bundesnetzagentur | SMARD.de, CC BY 4.0. Oktober-Läufe: Run9-Bundle im Repo.
         </li>
         <li>

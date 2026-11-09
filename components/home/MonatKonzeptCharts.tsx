@@ -16,7 +16,7 @@ import {
   formatKonzeptWorkbenchCaption,
 } from "@/lib/monatKonzeptA";
 import type { DauerlinieModel } from "@/lib/monatKonzeptC";
-import { morphX } from "@/lib/monatKonzeptC";
+import { dauerlinieSeriesSamples, morphX } from "@/lib/monatKonzeptC";
 import {
   NATIONAL_FLEET_FACTORS,
   NATIONAL_FLEET_STRATEGY_UI,
@@ -27,12 +27,20 @@ import {
 const STRATEGIES: NationalFleetStrategyUi[] = ["spitze", "ueberschuss", "markt"];
 const Y_MIN = -35;
 const Y_MAX = 16;
-const VIEW_W = 980;
+const VIEW_W = 1100;
 const VIEW_H = 520;
-const PAD_L = 58;
-const PAD_R = 28;
+const PAD_L = 96;
+const PAD_R = 36;
 const PAD_T = 52;
 const PAD_B = 64;
+
+function pctX(px: number): string {
+  return `${(px / VIEW_W) * 100}%`;
+}
+
+function pctY(px: number): string {
+  return `${(px / VIEW_H) * 100}%`;
+}
 
 function logX(chargeGwh: number, plotW: number): number {
   const minL = Math.log10(10);
@@ -138,49 +146,21 @@ export function MonatArbeitWirkungChart({
     );
   };
 
-  const labelAnchor = (strategy: NationalFleetStrategyUi) => {
-    const pts = pointsForStrategy(model, strategy);
-    const anchor = pts[pts.length - 1];
-    const cx = logX(anchor.chargeGwh, plotW);
-    const cy = yWirkung(anchor.wirkungGw, plotH);
-    let lx = cx + (strategy === "markt" ? -12 : 8);
-    let ly = cy + (strategy === "spitze" ? -14 : strategy === "ueberschuss" ? -18 : 16);
-    if (strategy === "ueberschuss") {
-      ly = PAD_T + 22;
-      lx = Math.min(poolX - 8, plotW + PAD_L - 120);
-    }
-    if (strategy === "markt") {
-      const markt1 = pts[0];
-      lx = logX(markt1.chargeGwh, plotW) + 10;
-      ly = yWirkung(markt1.wirkungGw, plotH) - 10;
-    }
-    return { lx, ly, text: pathLabels[strategy] };
-  };
-
+  const spitze10 = pointsForStrategy(model, "spitze")[3]!;
+  const ue10 = pointsForStrategy(model, "ueberschuss")[3]!;
+  const markt1 = pointsForStrategy(model, "markt")[0]!;
   const marktX10 = model.marktX10;
+  const m10cx = marktX10 ? logX(marktX10.chargeGwh, plotW) : 0;
+  const m10cy = marktX10 ? yWirkung(marktX10.wirkungGw, plotH) : 0;
 
   return (
-    <section className={`v4-chapter v4-content ${styles.sectionA}`} aria-labelledby="monat-arbeit-wirkung-title">
+    <section className={`v4-chapter ${styles.sectionA}`} aria-labelledby="monat-arbeit-wirkung-title">
       <h2 id="monat-arbeit-wirkung-title" className="v4-chapter-h2">
         Arbeit gegen Wirkung
       </h2>
       <figure className={styles.figure}>
         <div className={styles.aLayout}>
           <div className={`${styles.chartShell} ${styles.chartShellHero} ${styles.desktopChart}`}>
-            {marktX10 && marktX10Detail ? (
-              <div className={styles.marktCallout} aria-hidden="true">
-                <span className={`${styles.marktCalloutGw} num`}>{formatQuantity(marktX10.peakAfterGw, "de", 2)} GW</span>
-                <span className={`${styles.marktCalloutSub} num`}>
-                  neue Monatsspitze · {weekdayDeFromTs(marktX10.peakTs) ?? ""}{" "}
-                  {formatKonzeptPeakInstant(marktX10.peakTs) ?? ""}
-                </span>
-                <span className={`${styles.marktCalloutSub} num`}>
-                  {formatQuantity(marktX10Detail.residualGw, "de", 2)} GW Restlast +{" "}
-                  {formatQuantity(marktX10Detail.chargeGw, "de", 2)} GW Laden ·{" "}
-                  {formatQuantity(marktX10Detail.priceEurMwh, "de", 2)} €/MWh
-                </span>
-              </div>
-            ) : null}
             <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className={styles.svg} role="img" aria-labelledby="arbeit-wirkung-aria-title">
               <title id="arbeit-wirkung-aria-title">Arbeit gegen Wirkung — drei Ziele × Faktoren</title>
               <rect x={PAD_L} y={PAD_T} width={plotW} height={yZero - PAD_T} className={styles.negativeFill} />
@@ -210,15 +190,15 @@ export function MonatArbeitWirkungChart({
                     y2={yWirkung(tick, plotH)}
                     className={styles.gridLine}
                   />
-                  <text x={PAD_L - 8} y={yWirkung(tick, plotH) + 4} className={styles.yTick} textAnchor="end">
+                  <text x={PAD_L - 12} y={yWirkung(tick, plotH) + 4} className={styles.yTick} textAnchor="end">
                     {tick > 0 ? `+${tick}` : tick}
                   </text>
                 </g>
               ))}
-              <text x={PAD_L - 8} y={PAD_T - 18} className={styles.yAxisTitle} textAnchor="end">
+              <text x={22} y={PAD_T + 4} className={styles.yAxisTitle} textAnchor="start">
                 Spitze sinkt um … GW
               </text>
-              <text x={PAD_L - 8} y={VIEW_H - 46} className={styles.yAxisTitle} textAnchor="end">
+              <text x={22} y={PAD_T + plotH - 6} className={styles.yAxisTitle} textAnchor="start">
                 Spitze steigt
               </text>
               {STRATEGIES.map((strategy) => {
@@ -232,35 +212,80 @@ export function MonatArbeitWirkungChart({
                 return <path key={strategy} d={d} className={`${styles.pathLine} ${styles[strategy]}`} />;
               })}
               <line x1={PAD_L} y1={yZero} x2={VIEW_W - PAD_R} y2={yZero} className={styles.zeroLine} />
-              <text x={VIEW_W - PAD_R} y={yZero - 6} className={styles.refLineLabel} textAnchor="end">
-                Referenz ohne Speicher {formatQuantity(model.refPeakGw, "de", 2)} GW ·{" "}
-                {formatKonzeptPeakInstant(model.refPeakTs) ?? "—"}
-              </text>
               <line x1={poolX} y1={PAD_T} x2={poolX} y2={PAD_T + plotH} className={styles.poolLine} />
-              <text x={poolX} y={PAD_T + 20} className={styles.poolLineLabel} textAnchor="middle">
-                Überschuss-Pool {formatQuantity(model.surplusPoolGwh, "de", 1)} GWh
-              </text>
-              <text x={poolX} y={PAD_T + 34} className={styles.annotationMuted} textAnchor="middle" fontSize={11}>
-                mehr Überschuss gab es nicht
-              </text>
-              {STRATEGIES.map((strategy) => {
-                const { lx, ly, text } = labelAnchor(strategy);
-                return (
-                  <text
-                    key={strategy}
-                    x={lx}
-                    y={ly}
-                    className={`${styles.pathLabel} ${styles[strategy]}`}
-                    textAnchor={strategy === "markt" ? "start" : "start"}
-                  >
-                    {text}
-                  </text>
-                );
-              })}
               {STRATEGIES.flatMap((strategy) =>
                 pointsForStrategy(model, strategy).map((p) => renderPoint(p, p.factor === 1)),
               )}
             </svg>
+            <div className={styles.labelOverlay} aria-hidden="true">
+              <span
+                data-testid="arbeit-pool-label"
+                className={`${styles.poolBanner} num`}
+                style={{ left: pctX(poolX), top: pctY(PAD_T + 2), transform: "translateX(-50%)" }}
+              >
+                Überschuss-Pool {formatQuantity(model.surplusPoolGwh, "de", 1)} GWh — mehr Überschuss gab es nicht
+              </span>
+              <span
+                data-testid="arbeit-ref-label"
+                className={`${styles.refLabelHtml} num`}
+                style={{ right: "1.5%", top: pctY(yZero - 28) }}
+              >
+                Referenz ohne Speicher {formatQuantity(model.refPeakGw, "de", 2)} GW ·{" "}
+                {formatKonzeptPeakInstant(model.refPeakTs) ?? "—"}
+              </span>
+              <span
+                data-testid="arbeit-label-spitze"
+                className={`${styles.pathLabelHtml} ${styles.spitze}`}
+                style={{
+                  left: pctX(logX(spitze10.chargeGwh, plotW) - 4),
+                  top: pctY(yWirkung(spitze10.wirkungGw, plotH) - 34),
+                }}
+              >
+                {pathLabels.spitze}
+              </span>
+              <span
+                data-testid="arbeit-label-ueberschuss"
+                className={`${styles.pathLabelHtml} ${styles.ueberschuss}`}
+                style={{
+                  left: pctX(logX(ue10.chargeGwh, plotW) - 18),
+                  top: pctY(yWirkung(ue10.wirkungGw, plotH) + 26),
+                }}
+              >
+                {pathLabels.ueberschuss}
+              </span>
+              <span
+                data-testid="arbeit-label-markt"
+                className={`${styles.pathLabelHtml} ${styles.markt}`}
+                style={{
+                  left: pctX(logX(markt1.chargeGwh, plotW) - 8),
+                  top: pctY(yZero + 22),
+                }}
+              >
+                {pathLabels.markt}
+              </span>
+              {marktX10 && marktX10Detail ? (
+                <div
+                  className={styles.marktCallout}
+                  data-testid="arbeit-markt-callout"
+                  style={{
+                    left: pctX(m10cx),
+                    top: pctY(m10cy),
+                    transform: "translate(-108%, 18%)",
+                  }}
+                >
+                  <span className={`${styles.marktCalloutGw} num`}>{formatQuantity(marktX10.peakAfterGw, "de", 2)} GW</span>
+                  <span className={`${styles.marktCalloutSub} num`}>
+                    neue Monatsspitze · {weekdayDeFromTs(marktX10.peakTs) ?? ""}{" "}
+                    {formatKonzeptPeakInstant(marktX10.peakTs) ?? ""}
+                  </span>
+                  <span className={`${styles.marktCalloutSub} num`}>
+                    {formatQuantity(marktX10Detail.residualGw, "de", 2)} GW Restlast +{" "}
+                    {formatQuantity(marktX10Detail.chargeGw, "de", 2)} GW Laden ·{" "}
+                    {formatQuantity(marktX10Detail.priceEurMwh, "de", 2)} €/MWh
+                  </span>
+                </div>
+              ) : null}
+            </div>
           </div>
           <aside className={styles.fleetAside} aria-label="Flottengröße">
             <p className={styles.fleetAsideTitle}>Flottengröße</p>
@@ -291,9 +316,10 @@ export function MonatArbeitWirkungChart({
           onSelect={navigate}
         />
         <p className={`${styles.chartFootnote} num`}>
-          Jeder Punkt = ein vorberechneter Lauf (Ziel × Flottenfaktor). Δ GW oben = Referenzspitze ohne Speicher minus
-          höchste Restlast mit Speicher im Monat. Modell: Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Day-Ahead Price Taker,
-          perfekte Voraussicht — ohne Preisrückwirkung bei ×5/×10. Quelle Energy-Charts / SMARD CC BY 4.0.
+          Jeder Punkt = ein vorberechneter Lauf (Ziel × Flottenfaktor). Oben: Spitze sinkt um so viele GW wie die
+          Referenzspitze ohne Speicher minus der höchsten Restlast mit Speicher. Modell: Round-Trip 85&nbsp;%, SoC
+          10–90&nbsp;%, Day-Ahead Price Taker, perfekte Voraussicht — ohne Preisrückwirkung bei ×5/×10. Quelle
+          Energy-Charts / SMARD CC BY 4.0.
         </p>
         <table className="sr-only">
           <caption>Arbeit gegen Wirkung</caption>
@@ -334,12 +360,12 @@ function MobileArbeitPaths({
   activeStrategy: NationalFleetStrategyUi;
   onSelect: (f: NationalFleetFactor, s: NationalFleetStrategyUi) => void;
 }) {
-  const plotW = 328;
-  const plotH = 88;
-  const padL = 36;
-  const padR = 8;
-  const padT = 14;
-  const padB = 22;
+  const plotW = 360;
+  const plotH = 76;
+  const padL = 40;
+  const padR = 24;
+  const padT = 12;
+  const padB = 14;
 
   const yMin = Y_MIN;
   const yMax = Y_MAX;
@@ -354,8 +380,10 @@ function MobileArbeitPaths({
         const y0 = y(0);
         return (
           <div key={strategy}>
-            <p className={styles.mobilePathTitle}>{NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}</p>
-            <svg viewBox={`0 0 ${plotW} ${plotH + padB + 8}`} className={styles.mobilePathChart}>
+            <p className={styles.mobilePathTitle}>
+              {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe} <span className={styles.mobileGwUnit}>GW Δ</span>
+            </p>
+            <svg viewBox={`0 0 ${plotW} ${plotH + padB + 14}`} className={styles.mobilePathChart}>
               <line x1={padL} x2={plotW - padR} y1={y0} y2={y0} stroke="var(--v4-muted)" strokeWidth={1} />
               <path d={d} fill="none" strokeWidth={2} className={`${styles.pathLine} ${styles[strategy]}`} />
               {pts.map((p, i) => {
@@ -364,13 +392,13 @@ function MobileArbeitPaths({
                 const cy = y(p.wirkungGw);
                 return (
                   <g key={p.factor}>
-                    <text x={cx} y={plotH + padB + 4} className={styles.xTick} textAnchor="middle">
+                    <text x={cx} y={plotH + 8} className={styles.xTick} textAnchor="middle">
                       ×{p.factor}
                     </text>
-                    <text x={cx} y={plotH + padB + 16} className={styles.xTick} textAnchor="middle" fontSize={10}>
+                    <text x={cx} y={plotH + padB + 6} className={styles.xTick} textAnchor="middle" fontSize={10}>
                       {formatQuantity(p.chargeGwh, "de", p.chargeGwh >= 100 ? 0 : 1)} GWh
                     </text>
-                    <text x={cx} y={cy - 10} className={styles.yTick} textAnchor="middle" fontWeight={600}>
+                    <text x={cx} y={cy - 9} className={styles.yTick} textAnchor="middle" fontWeight={600}>
                       {formatQuantity(p.wirkungGw, "de", 2)}
                     </text>
                     <a
@@ -454,53 +482,51 @@ export function MonatDauerlinieChart({
 
   const scene = useMemo(() => {
     const n = model.intervalCount;
-    const PAD_L_C = 52;
-    const PAD_R_C = 24;
-    const PAD_T_C = 44;
+    const PAD_L_C = 92;
+    const PAD_R_C = 28;
+    const PAD_T_C = 48;
     const PAD_B_C = 52;
-    const plotW = 920;
+    const plotW = 980;
     const plotH = 300;
     const yMin = Math.min(model.observedMinGw, model.withStorageMinGw ?? model.observedMinGw) - 5;
     const yMax = Math.max(model.observedMaxGw, model.withStorageMaxGw ?? model.observedMaxGw) + 8;
     const yPix = (gw: number) => PAD_T_C + plotH - ((gw - yMin) / (yMax - yMin)) * plotH;
-    const step = Math.max(1, Math.ceil(n / 520));
-    const samples: { pt: (typeof model.points)[0]; xNorm: number }[] = [];
-    for (let i = 0; i < n; i += step) {
-      const pt = model.points[i]!;
-      samples.push({ pt, xNorm: morphX(pt.chronIndex, pt.sortRank, morphT, n) });
-    }
-    const ordered = [...samples].sort((a, b) => a.xNorm - b.xNorm);
     const xPix = (xNorm: number) => PAD_L_C + (xNorm / Math.max(1, n - 1)) * plotW;
 
-    let dObs = "";
-    let dStor = "";
-    let dShave = "";
-    const shavePts: string[] = [];
-    for (let i = 0; i < ordered.length; i++) {
-      const { pt, xNorm } = ordered[i]!;
-      const xp = xPix(xNorm);
-      const yO = yPix(pt.observedGw);
-      dObs += `${dObs ? "L" : "M"}${xp.toFixed(1)},${yO.toFixed(1)}`;
-      if (fleetAvailable && pt.withStorageGw != null) {
-        const yS = yPix(pt.withStorageGw);
-        dStor += `${dStor ? "L" : "M"}${xp.toFixed(1)},${yS.toFixed(1)}`;
-        if (activeStrategy === "spitze" && morphT > 0.55 && pt.observedGw > pt.withStorageGw) {
-          shavePts.push(`${xp.toFixed(1)},${yO.toFixed(1)}`);
-        }
+    const obsSamples = dauerlinieSeriesSamples(model, morphT, "observed");
+    const storSamples = fleetAvailable ? dauerlinieSeriesSamples(model, morphT, "storage") : [];
+
+    const toPath = (samples: { x: number; y: number }[]) =>
+      samples
+        .map((p, i) => `${i === 0 ? "M" : "L"}${xPix(p.x).toFixed(1)},${yPix(p.y).toFixed(1)}`)
+        .join("");
+
+    let dTint = "";
+    if (fleetAvailable && morphT > 0.55) {
+      const step = Math.max(1, Math.ceil(n / 400));
+      const byObs = new Map(model.points.map((p) => [p.sortRankObserved, p]));
+      const bySt = new Map(
+        model.points.filter((p) => p.sortRankStorage != null).map((p) => [p.sortRankStorage!, p]),
+      );
+      const top: string[] = [];
+      const bot: string[] = [];
+      for (let rank = 0; rank < n; rank += step) {
+        const po = byObs.get(rank);
+        const ps = bySt.get(rank);
+        if (!po || !ps || ps.withStorageGw == null) continue;
+        const x = xPix(morphX(rank, rank, morphT, n));
+        const yO = po.observedGw;
+        const yS = ps.withStorageGw;
+        if (Math.max(yO, yS) <= 60) continue;
+        top.push(`${x.toFixed(1)},${yPix(Math.max(yO, yS)).toFixed(1)}`);
+        bot.push(`${x.toFixed(1)},${yPix(Math.min(yO, yS)).toFixed(1)}`);
       }
-    }
-    if (shavePts.length > 2 && activeStrategy === "spitze") {
-      const rev: string[] = [];
-      for (let i = ordered.length - 1; i >= 0; i--) {
-        const { pt, xNorm } = ordered[i]!;
-        if (pt.withStorageGw == null || pt.observedGw <= pt.withStorageGw) continue;
-        rev.push(`${xPix(xNorm).toFixed(1)},${yPix(pt.withStorageGw).toFixed(1)}`);
+      if (top.length > 2) {
+        dTint = `M${top.join(" L")} L${[...bot].reverse().join(" L")} Z`;
       }
-      dShave = `M${shavePts.join(" L")} L${rev.join(" L")} Z`;
     }
 
     const y60 = yPix(60);
-    const hours = n * 0.25;
     const storColor =
       activeStrategy === "spitze" ? "#e86a3a" : activeStrategy === "markt" ? "#f5b731" : "#0b9f84";
 
@@ -511,14 +537,11 @@ export function MonatDauerlinieChart({
       plotW,
       plotH,
       PAD_T_C,
-      dObs,
-      dStor,
-      dShave,
+      dObs: toPath(obsSamples),
+      dStor: storSamples.length ? toPath(storSamples) : "",
+      dTint,
       y60,
       yPix,
-      yMin,
-      yMax,
-      hours,
       storColor,
       peakLabel: model.withStorageMaxGw ?? model.observedMaxGw,
       valleyObs: model.observedMinGw,
@@ -527,7 +550,7 @@ export function MonatDauerlinieChart({
   }, [activeStrategy, fleetAvailable, model, morphT]);
 
   return (
-    <section className={`v4-chapter v4-content ${styles.sectionC}`} aria-labelledby="monat-dauerlinie-title">
+    <section className={`v4-chapter ${styles.sectionC}`} aria-labelledby="monat-dauerlinie-title">
       <h2 id="monat-dauerlinie-title" className="v4-chapter-h2">
         Der Monat sortiert sich
       </h2>
@@ -541,7 +564,7 @@ export function MonatDauerlinieChart({
           <div className={styles.morphSticky}>
             <div className={`${styles.chartShell} ${styles.chartShellC}`}>
               <svg viewBox={`0 0 ${scene.viewW} ${scene.viewH}`} className={styles.svg} role="img">
-                <text x={scene.PAD_L_C - 6} y={scene.PAD_T_C - 18} className={styles.yAxisTitle} textAnchor="end">
+                <text x={24} y={scene.PAD_T_C - 12} className={styles.yAxisTitle} textAnchor="start">
                   Restlast, GW
                 </text>
                 <text
@@ -562,10 +585,16 @@ export function MonatDauerlinieChart({
                 <text x={scene.PAD_L_C + 4} y={scene.y60 - 5} className={styles.dauerLabelMuted} fontSize={11}>
                   60 GW
                 </text>
-                {scene.dShave ? <path d={scene.dShave} className={styles.shaveFill} /> : null}
-                <path d={scene.dObs} fill="none" stroke="hsl(var(--foreground))" strokeWidth={2} opacity={0.9} />
+                {scene.dTint ? <path d={scene.dTint} className={styles.shaveFill} /> : null}
+                <path
+                  d={scene.dObs}
+                  fill="none"
+                  stroke="hsl(var(--foreground))"
+                  strokeWidth={1.35}
+                  opacity={0.95}
+                />
                 {scene.dStor ? (
-                  <path d={scene.dStor} fill="none" stroke={scene.storColor} strokeWidth={2.5} />
+                  <path d={scene.dStor} fill="none" stroke={scene.storColor} strokeWidth={2.6} />
                 ) : null}
                 {fleetAvailable && morphT > 0.65 ? (
                   <>
@@ -625,6 +654,7 @@ export function MonatKonzeptWerkbank({
   peakReductionGw,
   peakReductionPct,
   peakAfterGw,
+  plateauNote,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
@@ -632,6 +662,7 @@ export function MonatKonzeptWerkbank({
   peakReductionGw: number;
   peakReductionPct: number;
   peakAfterGw: number;
+  plateauNote?: string | null;
 }) {
   return (
     <div className={`v4-content ${styles.workbench}`}>
@@ -641,6 +672,7 @@ export function MonatKonzeptWerkbank({
           Laufparameter
         </Link>{" "}
         — {formatKonzeptWorkbenchCaption(peakAfterGw, peakReductionGw)}
+        {plateauNote ? ` (${plateauNote})` : ""}
       </p>
       <NationalFleetTimeSeriesChart
         monthKey={monthKey}

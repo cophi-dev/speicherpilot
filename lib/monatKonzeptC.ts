@@ -3,7 +3,8 @@ import type { ResidualDay } from "@/lib/windSolarResidual";
 
 export type DauerliniePoint = {
   chronIndex: number;
-  sortRank: number;
+  sortRankObserved: number;
+  sortRankStorage: number | null;
   observedGw: number;
   withStorageGw: number | null;
   timestampBerlin: string;
@@ -66,6 +67,13 @@ export function buildDauerlinieFromResidualDays(days: ResidualDay[]): Dauerlinie
   return buildDauerlinieFromRun(observedSeriesFromResidualDays(days), null);
 }
 
+function rankByDescending(pairs: { idx: number; value: number }[]): Map<number, number> {
+  const sorted = [...pairs].sort((a, b) => b.value - a.value);
+  const rankOfIdx = new Map<number, number>();
+  sorted.forEach((p, rank) => rankOfIdx.set(p.idx, rank));
+  return rankOfIdx;
+}
+
 export function buildDauerlinieFromRun(observed: NationalFleetRunSeries, withStorage?: NationalFleetRunSeries | null): DauerlinieModel {
   const n = observed.intervalCount;
   const pairs: { idx: number; gw: number; ts: string; withGw: number | null }[] = [];
@@ -77,13 +85,20 @@ export function buildDauerlinieFromRun(observed: NationalFleetRunSeries, withSto
       withGw: withStorage ? withStorage.r_prime_mw[i] / 1000 : null,
     });
   }
-  const sorted = [...pairs].sort((a, b) => b.gw - a.gw);
-  const rankOfIdx = new Map<number, number>();
-  sorted.forEach((p, rank) => rankOfIdx.set(p.idx, rank));
+
+  const rankObserved = rankByDescending(pairs.map((p) => ({ idx: p.idx, value: p.gw })));
+  const rankStorage = withStorage
+    ? rankByDescending(
+        pairs
+          .map((p) => ({ idx: p.idx, value: p.withGw ?? Number.NEGATIVE_INFINITY }))
+          .filter((p) => Number.isFinite(p.value)),
+      )
+    : null;
 
   const points: DauerliniePoint[] = pairs.map((p) => ({
     chronIndex: p.idx,
-    sortRank: rankOfIdx.get(p.idx) ?? p.idx,
+    sortRankObserved: rankObserved.get(p.idx) ?? p.idx,
+    sortRankStorage: rankStorage ? (rankStorage.get(p.idx) ?? null) : null,
     observedGw: p.gw,
     withStorageGw: p.withGw,
     timestampBerlin: p.ts,
@@ -119,9 +134,45 @@ export function buildDauerlinieFromRun(observed: NationalFleetRunSeries, withSto
 
 export function morphX(chronIndex: number, sortRank: number, morphT: number, intervalCount: number): number {
   const t = Math.min(1, Math.max(0, morphT));
-  const xChron = (chronIndex / Math.max(1, intervalCount - 1)) * intervalCount;
+  const xChron = chronIndex;
   const xSort = sortRank;
   return xChron * (1 - t) + xSort * t;
+}
+
+export type DauerliniePathSample = { x: number; y: number };
+
+export function dauerlinieSeriesSamples(
+  model: DauerlinieModel,
+  morphT: number,
+  series: "observed" | "storage",
+  maxPoints = 600,
+): DauerliniePathSample[] {
+  const n = model.intervalCount;
+  const step = Math.max(1, Math.ceil(n / maxPoints));
+  const samples: DauerliniePathSample[] = [];
+  for (let i = 0; i < n; i += step) {
+    const pt = model.points[i]!;
+    const rank =
+      series === "observed"
+        ? pt.sortRankObserved
+        : pt.sortRankStorage ?? pt.sortRankObserved;
+    const y = series === "observed" ? pt.observedGw : pt.withStorageGw;
+    if (y == null) continue;
+    samples.push({
+      x: morphX(pt.chronIndex, rank, morphT, n),
+      y,
+    });
+  }
+  return samples.sort((a, b) => a.x - b.x);
+}
+
+export function isMonotonicNonIncreasing(values: number[], epsilon = 1e-4): boolean {
+  for (let i = 1; i < values.length; i++) {
+    if (values[i]! > values[i - 1]! + epsilon) {
+      return false;
+    }
+  }
+  return values.length > 0;
 }
 
 export type DauerlinieSelection = {
