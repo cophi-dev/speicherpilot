@@ -177,7 +177,10 @@ export function buildMonatGrid(args: {
   });
 }
 
-export function monatPointe(monthKey: string, records: TagesKennzahlRecord[]): { h1: string; subline: string } {
+export function monatPointe(
+  monthKey: string,
+  records: TagesKennzahlRecord[]
+): { h1: string; subline: string; footnote: string } {
   const monthRecords = records.filter((r) => berlinMonthKeyFromDateKey(r.dateKey) === monthKey);
   const noSurplus = monthRecords.filter((r) => r.surplusGwh < 0.05).length;
   const surplusDays = monthRecords.filter((r) => r.surplusGwh >= 0.05);
@@ -189,11 +192,12 @@ export function monatPointe(monthKey: string, records: TagesKennzahlRecord[]): {
   const missing = daysInBerlinMonth(monthKey).filter((d) => !monthRecords.some((r) => r.dateKey === d));
   const h1 = `${noSurplus} Tage unter der Überschuss-Schwelle im ${label}`;
   const subParts = [
-    `${monthRecords.length} Tage mit Kennzahlen in der geladenen Reihe. Überschuss-Kennzahl ist nicht dasselbe wie vollständiger Speicher-Nutzen.`,
     strongest
       ? `Stärkster Tages-Überschuss: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${formatBerlinDayLabel(strongest.dateKey)}.`
       : null,
     missing.length > 0 ? `${missing.length} Kalendertage fehlen in den Daten.` : null,
   ].filter(Boolean);
-  return { h1, subline: subParts.join(" ") };
+  const subline = subParts.join(" ") || `${monthRecords.length} Tage in der geladenen Reihe.`;
+  const footnote = `${monthRecords.length} Tage mit Kennzahlen in der geladenen Reihe. Die Überschuss-Kennzahl ist nicht dasselbe wie vollständiger Speicher-Nutzen.`;
+  return { h1, subline, footnote };
 }

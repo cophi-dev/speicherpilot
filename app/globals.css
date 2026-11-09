@@ -7094,7 +7094,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 @media (max-width: 767px) {
   .v4-rang-bars {
-    height: 64px;
+    height: 120px;
   }
 }
 @media (min-width: 640px) and (max-width: 1199px) {
@@ -7275,6 +7275,9 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   gap: 0.25rem;
 }
 .v4-start-day-value.is-accent {
+  color: #c2410c;
+}
+.dark .v4-start-day-value.is-accent {
   color: #e86a3a;
 }
 .v4-start-day-unit {
@@ -7283,7 +7286,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   letter-spacing: 0;
 }
 .v4-start-day-value.is-accent .v4-start-day-unit {
-  color: color-mix(in srgb, #e86a3a 65%, hsl(var(--muted-foreground)));
+  color: inherit;
 }
 .v4-start-day-label {
   font-family: var(--font-mono), ui-monospace, monospace;
@@ -7337,6 +7340,75 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .v4-start-day-disclosure-body {
   margin-top: 0.35rem;
+}
+.v4-footnote {
+  margin: 0.5rem 0 0;
+  max-width: 68ch;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  line-height: 1.45;
+}
+.v4-footnote p {
+  margin: 0 0 0.3rem;
+}
+.v4-footnote summary {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-top: 6px;
+  padding: 4px 0;
+}
+.v4-footnote-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.v4-kopf-footnote {
+  margin-top: 0.75rem;
+}
+.v4-system-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.v4-system-chart-grid {
+  stroke: hsl(var(--foreground) / 0.12);
+  stroke-width: 1;
+}
+.v4-system-chart-axis {
+  fill: hsl(var(--muted-foreground));
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 13px;
+}
+.v4-system-chart-surplus {
+  fill: color-mix(in srgb, hsl(var(--foreground)) 32%, transparent);
+}
+.v4-system-chart-absorbed {
+  fill: var(--v4-aqua);
+}
+.v4-system-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 8px 0 4px;
+  padding: 0;
+  list-style: none;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+.v4-system-legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.v4-system-legend-swatch.is-surplus {
+  background: color-mix(in srgb, hsl(var(--foreground)) 32%, transparent);
+}
+.v4-system-legend-swatch.is-absorbed {
+  background: var(--v4-aqua);
 }
 @media (max-width: 767px) {
   .v4-start-day-stat-gen .v4-start-day-sub {

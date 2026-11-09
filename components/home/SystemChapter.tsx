@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 
+import { SystemSurplusChart } from "@/components/home/SystemSurplusChart";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
-import { weekdayLabelDe } from "@/lib/auffaelligkeit";
 
 const FACTORS = [1, 2, 5, 10] as const;
 
@@ -23,8 +23,8 @@ export function SystemChapter({
   const x5Pct = Math.round((model.factors[5].absorbedShare ?? 0) * 100);
   const x10Pct = Math.round((model.factors[10].absorbedShare ?? 0) * 100);
 
-  const surplusDays = useMemo(
-    () => f.dayRows.filter((row) => row.surplusGwh >= 0.05).sort((a, b) => a.dateBerlin.localeCompare(b.dateBerlin)),
+  const dayRows = useMemo(
+    () => [...f.dayRows].sort((a, b) => a.dateBerlin.localeCompare(b.dateBerlin)),
     [f.dayRows]
   );
   const totalSurplus = model.observed.surplusGwh ?? 0;
@@ -69,53 +69,19 @@ export function SystemChapter({
           ))}
         </div>
       </div>
-      <div className="v4-content v4-system-strip-wrap">
-        <p className="v4-strip-caption num">Überschusstage (30 Tage)</p>
-        <div className="v4-system-strip" role="img" aria-label="Tage mit Überschuss, Anteil geladen">
-          {surplusDays.map((row) => {
-            const w = totalSurplus > 0 ? (row.surplusGwh / totalSurplus) * 100 : 0;
-            const fill = Math.min(100, (row.absorbedGwh / Math.max(row.surplusGwh, 1e-9)) * 100);
-            return (
-              <div
-                key={row.dateBerlin}
-                className="v4-system-seg"
-                style={{ flexGrow: w, flexBasis: 0 }}
-                title={`${row.dateBerlin}: ${formatQuantity(row.surplusGwh, "de", 1)} GWh`}
-              >
-                <span className="v4-system-seg-fill" style={{ width: `${fill}%` }} />
-              </div>
-            );
-          })}
-        </div>
-        <div className="v4-system-labels num">
-          {surplusDays
-            .filter((row) => row.surplusGwh > 9)
-            .map((row) => (
-              <span key={row.dateBerlin}>{weekdayLabelDe(row.dateBerlin)}</span>
-            ))}
-        </div>
-      </div>
-      <div className="v4-content v4-system-acc-wrap">
+      <div className="v4-content v4-system-chart-wrap">
+        <p className="v4-strip-caption num">Überschuss je Tag, GWh</p>
+        <SystemSurplusChart rows={dayRows} factor={factor} />
         <p className="v4-strip-caption num">
           Zusammengeschoben: {formatQuantity(loaded, "de", 1)} von {formatQuantity(totalSurplus, "de", 1)} GWh geladen
           (Modell)
-        </p>
-        <div className="v4-system-acc" role="img" aria-label={`Aufnahme ${sharePct} Prozent bei Faktor ${factor}`}>
-          <span className="v4-system-acc-fill" style={{ width: `${sharePct}%` }} />
-          <span className="v4-system-acc-mark" style={{ left: `${x5Pct}%` }} aria-hidden />
-          <span className="v4-system-acc-mark" style={{ left: `${x10Pct}%` }} aria-hidden />
-        </div>
-        <p className="v4-system-acc-labels num">
-          <span>×{factor} {formatQuantity(sharePct, "de", 0)}&nbsp;%</span>
-          <span>×5 {formatQuantity(x5Pct, "de", 0)}&nbsp;%</span>
-          <span>×10 {formatQuantity(x10Pct, "de", 0)}&nbsp;%</span>
         </p>
       </div>
       <details className="v4-content v4-fold">
         <summary className="num">Immer öfter?</summary>
         <p className="v4-fold-body">
-          An manchen Tagen war mehr Überschuss da als die Flotte aufnehmen konnte. Dann wäre sie früher voll gewesen —
-          markiert als Speicher voll im Tagesstreifen.
+          An manchen Tagen war mehr Überschuss da, als das Modell aufnehmen konnte. Dann bleibt der Balken höher als
+          der farbige Teil.
         </p>
       </details>
       <details className="v4-content v4-fold v4-system-model-disclosure">

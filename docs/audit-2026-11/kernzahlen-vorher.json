@@ -1,0 +1,45 @@
+{
+  "quelle": "Live-HTML https://www.speicherpilot.app am 2026-11-09, Commit 8b00bc0",
+  "hinweis": "Vergleichswert vor der Darstellungsänderung. Keine neue Rechnung.",
+  "start_2026-11-08": {
+    "verbrauch_gwh": "1.275,1",
+    "erzeugung_gwh": "1.417,5",
+    "wind_sonne_gwh": "184,9",
+    "ueberschuss_gwh": "0,0",
+    "flotte": "4,64 GW / 8,14 GWh",
+    "geladen_gwh": "0,0",
+    "abgegeben_gwh": "0,0",
+    "anteil_30_tage_x1": "28 %",
+    "x5": "75 %",
+    "x10": "100 %",
+    "geladen_von_gwh": "32,6 von 115,6"
+  },
+  "tag_2026-11-08": {
+    "anteil_wind_sonne": "14,5 %",
+    "tages_ueberschuss": "Unter 0,05 GWh",
+    "abendspitze_gw": "58,5"
+  },
+  "tag_2026-10-25": {
+    "tages_ueberschuss": "9,6 GWh",
+    "integriert": "9,64 GWh in 31 Viertelstunden",
+    "netz_ladung_abgabe_gwh": "9,01 / 2,51",
+    "restlast_gw": "8,27 / 8,27",
+    "senkung_gw": "0,00"
+  },
+  "tag_2026-10-24": {
+    "tages_ueberschuss": "61,1 GWh",
+    "integriert": "61,10 GWh in 51 Viertelstunden",
+    "netz_ladung_abgabe_gwh": "11,37 / 10,22",
+    "restlast_gw": "17,84 / 17,84",
+    "senkung_gw": "0,00",
+    "abendspitze_gw": "17,8"
+  },
+  "monat_2026-10_x1_differenz": {
+    "restlastspitze_mit_speicher_gw": "62,16",
+    "senkung_gw": "2,24",
+    "anteil": "3,5 %",
+    "referenzspitze_gw": "64,41",
+    "ladung_gwh": "55,90",
+    "abgabe_gwh": "47,52"
+  }
+}
