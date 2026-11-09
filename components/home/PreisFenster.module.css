@@ -1,15 +1,20 @@
 .figure {
-  margin: 1.5rem 0 0;
+  margin: 0.75rem 0 0;
 }
 
 .frame {
   width: 100%;
 }
 
-.svg {
+.svg,
+.svgCompact {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.svgCompact {
+  height: 120px;
 }
 
 .grid {
@@ -17,10 +22,15 @@
   stroke-width: 1;
 }
 
-.axis {
+.axis,
+.unit {
   fill: var(--v4-muted, #5c5548);
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  font-size: 12px;
 }
 
 .line {
@@ -39,4 +49,25 @@
   stroke: var(--v4-muted, #5c5548);
   stroke-dasharray: 3 3;
   stroke-width: 1;
+}
+
+.notes {
+  margin-top: 12px;
+}
+
+.more {
+  margin-top: 8px;
+  max-width: 68ch;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.more summary {
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.more p {
+  margin: 0.35rem 0 0;
 }

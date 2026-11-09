@@ -18,7 +18,7 @@ const points = [
 ];
 
 describe("PreisFenster", () => {
-  it("shows the duration gap and keeps it out of the revenue language", () => {
+  it("shows the duration gap as a definition list and keeps revenue out", () => {
     render(
       <PreisFenster
         dateLabel="08.11.2026"
@@ -29,17 +29,17 @@ describe("PreisFenster", () => {
       />,
     );
     const figure = screen.getByTestId("preis-fenster");
-    expect(figure.textContent).toMatch(/Dauer-Spanne 112,24 €\/MWh/);
-    expect(figure.textContent).toMatch(/Kein Erlös/);
-    expect(figure.textContent).toMatch(/lädt an diesem Tag nicht/);
-    expect(figure.textContent).toMatch(/207,62/);
-    expect(figure.textContent).toMatch(/319,85/);
-    expect(screen.getByRole("img", { name: /Dauer-Spanne 112,24/ })).toBeInTheDocument();
-    expect(screen.getByText("10:30")).toHaveAttribute("text-anchor", "start");
-    expect(screen.getByText("00:00")).toHaveAttribute("text-anchor", "end");
-    expect(screen.getByRole("link", { name: /Formel, Einheit, Unsicherheit/ })).toHaveAttribute(
-      "href",
-      "/methodik#preis-fenster",
-    );
+    expect(figure.textContent).toMatch(/Day-Ahead DE-LU, €\/MWh/);
+    expect(figure.textContent).toMatch(/112,24 €\/MWh \(Ø 5 teuerste − Ø 5 günstigste ¼ h\)/);
+    expect(figure.textContent).toMatch(/lädt an diesem Tag nicht · kein Erlös/);
+    expect(figure.textContent).toMatch(/Energy-Charts \/ SMARD, CC BY 4.0/);
+    expect(figure.textContent).toMatch(/Mittel günstig \/ teuer: 207,62 und 319,85/);
+    expect(figure.textContent).not.toMatch(/Handrechnung/);
+    expect(screen.getByRole("img", { name: /Kein Erlös/ })).toHaveAttribute("viewBox", "0 0 1152 180");
+    expect(screen.getByText("€/MWh")).toBeInTheDocument();
+    for (const hour of ["00", "06", "12", "18", "24"]) {
+      expect(screen.getByText(hour)).toBeInTheDocument();
+    }
+    expect(screen.getByRole("link", { name: "Methodik" })).toHaveAttribute("href", "/methodik#preis-fenster");
   });
 });

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import polish from "@/components/home/dayBlockPolish.module.css";
 import { LueckeChart } from "@/components/home/LueckeChart";
 import { PreisFenster } from "@/components/home/PreisFenster";
 import { StartDayFootnotes, StartDayPanel } from "@/components/home/StartDayPanel";
@@ -58,15 +59,6 @@ export function StartGesternTeaser({
         </div>
       ) : null}
 
-      {panel ? (
-        <StartDayFootnotes
-          panel={panel}
-          kopfDayKey={kopfDayKey}
-          surplusLine={surplus}
-          lastLine={lastLine}
-        />
-      ) : null}
-
       {prices.length >= 2 ? (
         <div className="v4-content">
           <PreisFenster
@@ -75,6 +67,17 @@ export function StartGesternTeaser({
             powerGw={powerGw}
             energyGwh={energyGwh}
             surplusGwh={record?.surplusGwh ?? 0}
+          />
+        </div>
+      ) : null}
+
+      {panel ? (
+        <div className={polish.root}>
+          <StartDayFootnotes
+            panel={panel}
+            kopfDayKey={kopfDayKey}
+            surplusLine={surplus}
+            lastLine={lastLine}
           />
         </div>
       ) : null}

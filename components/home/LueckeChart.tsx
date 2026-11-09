@@ -11,7 +11,11 @@ import {
 } from "react";
 
 import { formatQuantity } from "@/lib/formatQuantity";
+import polish from "@/components/home/dayBlockPolish.module.css";
 import {
+  LUECKE_DESKTOP,
+  LUECKE_MOBILE_H,
+  LUECKE_MOBILE_PAD,
   lueckeDayKind,
   plotXForAxisHour,
   plotXFromSlotIndex,
@@ -19,9 +23,9 @@ import {
 } from "@/lib/lueckeChartGeometry";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
-const DESKTOP = { w: 1152, h: 360, pad: { top: 40, right: 24, bottom: 36, left: 56 } };
-const MOBILE_H = 240;
-const MOBILE_PAD = { top: 8, right: 14, bottom: 22, left: 36 };
+const DESKTOP = LUECKE_DESKTOP;
+const MOBILE_H = LUECKE_MOBILE_H;
+const MOBILE_PAD = LUECKE_MOBILE_PAD;
 const Y_MAX_GW = 80;
 
 function slotGw(slot: ResidualSlot) {
@@ -179,7 +183,7 @@ export function LueckeChart({
 
   return (
     <figure
-      className={`v4-luecke-figure ${compact ? "is-compact" : ""}`}
+      className={`v4-luecke-figure ${compact ? "is-compact" : ""} ${polish.root}`}
       style={padVars}
       data-luecke-slot-count={slots.length}
       data-luecke-day-kind={dayKind}
@@ -244,7 +248,7 @@ export function LueckeChart({
                   y={compact ? frame.h - 6 : frame.h - 10}
                   textAnchor="middle"
                   className="v4-luecke-axis num"
-                  fontSize={compact ? 11 : undefined}
+                  fontSize={compact ? 12 : undefined}
                 >
                   {String(h).padStart(2, "0")}
                 </text>

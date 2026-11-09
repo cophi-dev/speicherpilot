@@ -2,6 +2,7 @@ import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { getBerlinDateKeyFromUnixSeconds } from "@/lib/berlinCalendar";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { niceAxis, type NiceAxis } from "@/lib/niceTicks";
 
 /** Usable window of the fleet model: 10–90 % of nameplate. */
 export const PREIS_FENSTER_USABLE_SHARE = 0.8;
@@ -10,6 +11,8 @@ export const PREIS_FENSTER_QUARTER_H = 0.25;
 export type PreisTick = {
   hm: string;
   eurPerMwh: number;
+  /** Position in the Berlin day. DST repeats a clock time; the index does not. */
+  i?: number;
 };
 
 export type DauerSpanne = {
@@ -45,7 +48,30 @@ export function berlinDayPrices(points: DayAheadPricePoint[], dateKey: string): 
     .filter((point) => getBerlinDateKeyFromUnixSeconds(Math.floor(point.unixMs / 1000)) === dateKey)
     .filter((point) => Number.isFinite(point.eurPerMwh))
     .sort((left, right) => left.unixMs - right.unixMs)
-    .map((point) => ({ hm: berlinHmFromUnixMs(point.unixMs), eurPerMwh: point.eurPerMwh }));
+    .map((point, index) => ({
+      hm: berlinHmFromUnixMs(point.unixMs),
+      eurPerMwh: point.eurPerMwh,
+      i: index,
+    }));
+}
+
+/** Three readable ticks. Prefers a 1/2/5 step that lands on exactly three labels. */
+export function preisAxisTicks(min: number, max: number): NiceAxis {
+  const coarse = niceAxis(min, max, 1);
+  if (coarse.ticks.length === 3) {
+    return coarse;
+  }
+  const finer = niceAxis(min, max, 2);
+  if (finer.ticks.length === 3) {
+    return finer;
+  }
+  const mid = finer.ticks[Math.floor((finer.ticks.length - 1) / 2)] ?? finer.min;
+  const ticks = [finer.min, mid, finer.max].filter((tick, index, all) => all.indexOf(tick) === index);
+  return { ...finer, min: ticks[0], max: ticks[ticks.length - 1], ticks };
+}
+
+function orderKey(row: PreisTick): number {
+  return row.i ?? hmToMinutes(row.hm);
 }
 
 /** How many quarter-hours the usable energy needs at nameplate power. */
@@ -80,15 +106,15 @@ export function computeDauerSpanne(
     return null;
   }
   const sorted = [...points].sort(
-    (left, right) => left.eurPerMwh - right.eurPerMwh || left.hm.localeCompare(right.hm),
+    (left, right) => left.eurPerMwh - right.eurPerMwh || orderKey(left) - orderKey(right),
   );
   const low = sorted.slice(0, n);
   const high = sorted.slice(-n);
   const mean = (rows: PreisTick[]) => rows.reduce((sum, row) => sum + row.eurPerMwh, 0) / rows.length;
   const meanLow = mean(low);
   const meanHigh = mean(high);
-  const lastLow = Math.max(...low.map((row) => hmToMinutes(row.hm)));
-  const firstHigh = Math.min(...high.map((row) => hmToMinutes(row.hm)));
+  const lastLow = Math.max(...low.map(orderKey));
+  const firstHigh = Math.min(...high.map(orderKey));
   return {
     n,
     usableGwh: PREIS_FENSTER_USABLE_SHARE * energyGwh,
@@ -96,8 +122,8 @@ export function computeDauerSpanne(
     meanLow,
     meanHigh,
     dauerSpanne: meanHigh - meanLow,
-    low: [...low].sort((left, right) => left.hm.localeCompare(right.hm)),
-    high: [...high].sort((left, right) => left.hm.localeCompare(right.hm)),
+    low: [...low].sort((left, right) => orderKey(left) - orderKey(right)),
+    high: [...high].sort((left, right) => orderKey(left) - orderKey(right)),
     reihenfolge: lastLow < firstHigh,
   };
 }

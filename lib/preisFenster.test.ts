@@ -1,4 +1,11 @@
-import { berlinDayPrices, computeDauerSpanne, dryDayFootnote, fleetQuarterCount, preisFigurSatz } from "@/lib/preisFenster";
+import {
+  berlinDayPrices,
+  computeDauerSpanne,
+  dryDayFootnote,
+  fleetQuarterCount,
+  preisAxisTicks,
+  preisFigurSatz,
+} from "@/lib/preisFenster";
 
 /** Published DE-LU quarter-hours, 8 November 2026, Energy-Charts / SMARD. */
 const NOV8_LOW = [
@@ -63,6 +70,26 @@ describe("Dauer-Spanne", () => {
     expect(result?.low[0]?.hm).toBe("10:00");
     expect(result?.high[0]?.hm).toBe("19:00");
   });
+
+  it("uses the quarter index when the clock repeats", () => {
+    const points = [
+      { hm: "02:00", eurPerMwh: 40, i: 8 },
+      { hm: "02:00", eurPerMwh: 10, i: 12 },
+      { hm: "10:00", eurPerMwh: 10, i: 40 },
+      { hm: "18:00", eurPerMwh: 40, i: 72 },
+    ];
+    const result = computeDauerSpanne(points, 2, 1);
+    expect(result?.n).toBe(1);
+    expect(result?.low[0]?.i).toBe(12);
+    expect(result?.high[0]?.i).toBe(72);
+    expect(result?.reihenfolge).toBe(true);
+  });
+});
+
+describe("preisAxisTicks", () => {
+  it("uses three labels for the 8 November range", () => {
+    expect(preisAxisTicks(206.09, 321.5).ticks).toEqual([200, 300, 400]);
+  });
 });
 
 describe("Preis-Sätze", () => {
@@ -98,6 +125,6 @@ describe("berlinDayPrices", () => {
       ],
       "2026-11-08",
     );
-    expect(points).toEqual([{ hm: "14:00", eurPerMwh: 207.18 }]);
+    expect(points).toEqual([{ hm: "14:00", eurPerMwh: 207.18, i: 0 }]);
   });
 });

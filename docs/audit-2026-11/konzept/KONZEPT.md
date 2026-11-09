@@ -15,7 +15,7 @@ Die 25, der Tagesgraph, die Monatskurve und das dunkle Blatt bleiben. Die neue F
 | Start | 30 Tage, davon viele ohne Überschuss. Darunter der letzte Tag als Last, Wind und Sonne, und dieselbe Stunde als Börse. | Die 25 bleibt. Der Tagesgraph bleibt. Neu: die Viertelstundenlinie des Day-Ahead und ein Satz zur Dauer-Spanne. |
 | Tag | Dieselbe Lesart für einen gewählten Tag. Die Auffälligkeit (am 8. November der Windanteil) bleibt die Überschrift. | Residuallast bleibt. Die Börsenlinie kommt direkt darunter, vor die Fußnoten. |
 | Monat | Oktober vergleicht drei Ziele derselben Flotte. November sagt, null geladene Tage seien kein Urteil über den Speichernutzen, und verweist auf den Oktober, bis ein November-Lauf da ist. | Die Oktoberkurve bleibt. Kein neues Layout in diesem Schnitt. |
-| Ort | Anschluss ist eine andere Frage als die deutsche Abendspitze. Freie Kapazität ist für Deutschland nicht belegt. | Layout unberührt. Der offene Satz kommt später, wenn die Fläche frei ist. |
+| Ort | Anschluss ist eine andere Frage als die deutsche Abendspitze. ÜNB-Karten zeigen Kapazität in MW-Klassen. Eine Reihe bis zur Mittelspannung fehlt. | Layout unberührt. Die Einordnung kommt später, nach der Lizenzprüfung. |
 | Methodik | Jede neue Kennzahl mit Formel, Einheit, Unsicherheit und einer Gegenrechnung an einem echten Tag. | Abschnitt `#preis-fenster`. |
 
 ## Zehn Maßnahmen
@@ -25,10 +25,10 @@ Nutzen ist der Gewinn für die drei Leser (Projektierer, städtischer Netzplaner
 | # | Maßnahme | Nutzen | Aufwand | Jetzt |
 | --- | --- | --- | --- | --- |
 | 1 | Börsenlinie und Dauer-Spanne auf Start und Tag, Fußnote der Trockenstrecke nennt die Börse | Schließt die Saisonlücke, ohne den Hero anzufassen | Klein, Preise liegen schon in der Tagesreihe | Ja |
-| 2 | Unter den 30 Balken das Tagesminimum in €/MWh, damit der 29. Oktober (0 GWh, 574 €/MWh) im ersten Blick steht | Das ist der Screen, den man weitergibt | Mittel, zweite Reihe in der bestehenden 30-Tage-Figur | Skizze |
+| 2 | Tagesminimum in €/MWh unter den 30 Überschuss-Balken | Würde Einheiten im GWh-Chart mischen. Der Preis bleibt in der Börsenlinie. | — | Nicht umsetzen |
 | 3 | Ein Satz zu den drei Oktober-Zielen ×1 und zum Kippen der Marktfahrweise ab ×5, mit Link auf die bestehenden Läufe | Beantwortet „was mehr Speicher bringen würde“ in einem Blick | Klein als Satz, groß sobald das Monatslayout sich ändert | Skizze, Layout von `/monat` nicht anfassen |
 | 4 | November-Lauf derselben drei Fahrweisen | Der aktuelle Monat hört auf, leer zu sein | Groß, und `/monat` ist parallel belegt | Später |
-| 5 | Auf `/ort` ein Satz: freie Kapazität Deutschland nicht belegt, Quelle und Datum, Verweis auf die österreichische Pflichtkarte als Vorbild der Frage | Der Netzplaner sieht, dass die Lücke ehrlich ist | Klein, sobald das Ort-Layout frei ist | Später |
+| 5 | Auf `/ort` die ÜNB-Kapazitätsklassen verlinkt einordnen: TransnetBW (Stand 05/2026, MW-Klassen je 380-kV-Umspannwerk) und 50Hertz (Stand 31.03.2026, Regelzone mit Hamburg). Erst nach Lizenzprüfung. Keine eigene Karte, kein Anspruch einer Mittelspannungsreihe | Der Netzplaner sieht, was öffentlich ist und wo die Reihe aufhört | Klein, sobald das Ort-Layout frei ist und die 50Hertz-Lizenz geklärt ist | Später |
 | 6 | Die zwei Flottenstände sichtbar trennen: 4,64 GW / 8,14 GWh live, 4,58 GW / 8 GWh im Oktober-Lauf | Verhindert, dass zwei Stände als eine Zahl gelesen werden | Klein | Später, nicht im Monatslayout |
 | 7 | Die neun Regelsätze aus Audit 2, Abschnitt 2, als feste Bausteine, sobald die Figur sie trägt | Insights ohne Laufzeit-KI | Mittel, Schwellen stehen | Nur Satz 1 und 2 berührt Maßnahme 1 |
 | 8 | Preislinie in die Oktober-Restlastkurve | Last und Preis in einem Bild, wie die Referenz Energy-Charts | Mittel, und es ist `/monat` | Nicht in diesem Schnitt |
@@ -61,11 +61,11 @@ Gegenrechnung, 8. November 2026, Flotte 4,64 GW / 8,14 GWh. E = 6,512 GWh, t = 1
 
 Die Fußnote unter der 25 nennt an einem trockenen Tag die gerundete Börse (am 8. November 206–322 €/MWh) und sagt, dass keine Viertelstunde unter null lag. Sie verweist nicht mehr auf einen Monatslauf, den der November nicht hat. Das Euro-Zeichen ist der Börsenpreis, keine Modellschätzung.
 
-## Top 2 — Preis neben der 25
+## Top 2 — nicht umsetzen
 
-Dieselbe 30-Tage-Figur. Die Balken bleiben der Überschuss. Unter jedem Balken, oder als zweite dünne Reihe, das Tagesminimum. Der 29. Oktober ist dann sichtbar als leerer Balken und als 574. Kein zweiter Hero. Skizze:
+Die Skizze setzt €/MWh unter die Überschuss-Balken. Das mischt Einheiten in einem GWh-Chart. Die Designabnahme lehnt das ab. Die 30-Tage-Balken bleiben bei GWh. Der Preis steht in der Börsenlinie, die Viertelstunde 17:15 des 29. Oktober mit 574,28 €/MWh eingeschlossen.
 
-![Skizze 30 Tage mit Minimum](screens/skizze-30.png)
+![Skizze, verworfen](screens/skizze-30.png)
 
 ## Top 3 — drei Ziele, ein Satz
 
@@ -73,9 +73,11 @@ Nicht die Monatskurve. Ein Satz aus Zahlen, die der Oktober-Lauf schon zeigt, mi
 
 > Oktober, Flotte 4,58 GW / 8 GWh, ×1. Überschuss senkt die Spitze um 2,24 GW und lädt 55,90 GWh. Spitze senken: −3,55 GW bei 12,49 GWh. Markt: −0,37 GW bei 485,45 GWh.
 >
-> Dieselbe Marktfahrweise hebt die Spitze ab ×5 (73,86 GW, 9,45 GW über der Referenz 64,41 GW) und bei ×10 auf 96,76 GW. Die Ladung wächst mit, 4.854,54 GWh. Das ist die Grenze des Preisnehmers. Kein Euro mal zehn.
+> Dieselbe Marktfahrweise hebt die Spitze ab ×5 (73,86 GW, 9,45 GW über der Referenz 64,41 GW) und bei ×10 auf 96,76 GW. Diese Spitze liegt am 21. Oktober um 14:00 Uhr: 50,96 GW Restlast plus 45,8 GW Laden in einer relativ günstigen Viertelstunde (201,29 €/MWh). Die Ladung wächst mit, 4.854,54 GWh. Die 485,45 GWh bei ×1 sind eine optimale Lösung, nicht die einzige. Das ist die Grenze des Preisnehmers. Kein Euro mal zehn.
 
 ![Skizze drei Ziele](screens/skizze-ziele.png)
+
+Die Skizze ist die analytische Idee. Umgesetzt wird sie in einem eigenen Paket, nach diesem Schnitt. Die Schrift der Skizze ist nicht die Marke. Der Satz zu Markt ×10 gehört dann als Fußnote in gedämpfter Farbe, nicht als laute Warnzeile.
 
 ## Was dieser Schnitt nicht tut
 
