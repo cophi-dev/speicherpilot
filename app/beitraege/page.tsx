@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { BeitraegePage } from "@/components/beitraege/BeitraegePage";
 import { getBlogPosts } from "@/content/blog/posts";
+import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
+import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
 
 const description = "Artikel zu Großspeichern und kuratierte externe Meldungen.";
 
@@ -24,6 +26,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BeitraegeIndexPage() {
-  return <BeitraegePage posts={getBlogPosts()} />;
+export default async function BeitraegeIndexPage() {
+  const snap = loadTagRollSnapshot();
+  const marktInsights = marktInsightsForRoute({
+    route: "beitraege",
+    records: snap.records,
+    fleetPowerGw: snap.fleet.powerGw,
+    fleetEnergyGwh: snap.fleet.energyGwh,
+  });
+
+  return <BeitraegePage posts={getBlogPosts()} marktInsights={marktInsights} />;
 }

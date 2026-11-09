@@ -1,4 +1,8 @@
 import { OrtServerShell } from "@/components/site/OrtServerShell";
+import { OrtUnbHinweis } from "@/components/site/OrtUnbHinweis";
+import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
+import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
+import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
 import { OrtSiteDayClient } from "@/components/site/OrtSiteDayClient";
 import { capRingPoints } from "@/lib/capRingPoints";
 import { loadReferenceParkModelDay } from "@/lib/loadReferenceParkModelDay";
@@ -44,10 +48,20 @@ export default async function OrtPage({
       ? { ...modelDay, points: capRingPoints(modelDay.points) }
       : modelDay;
 
+  const snap = loadTagRollSnapshot();
+  const marktInsights = marktInsightsForRoute({
+    route: "ort",
+    records: snap.records,
+    fleetPowerGw: snap.fleet.powerGw,
+    fleetEnergyGwh: snap.fleet.energyGwh,
+  });
+
   return (
     <div className="ort-v4-page v4-subpage ort-v4">
       <OrtServerShell view={view} scenario={scenario} />
       <OrtSiteDayClient modelDay={cappedDay} view={view} scenario={scenario} />
+      <OrtUnbHinweis />
+      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
     </div>
   );
 }

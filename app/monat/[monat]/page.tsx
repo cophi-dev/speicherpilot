@@ -19,6 +19,8 @@ import {
   parseFleetStrategy,
 } from "@/lib/nationalMonthFleetModel";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
+import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
+import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -76,6 +78,15 @@ export default async function MonatDetailPage({
 
   const pointe = monatPointe(monat, records);
   const seriesLine = pointe.footnote.replace(MONAT_SURPLUS_EXPLAIN_DE, "").trim();
+  const liveFleet = await loadLargeBatteryFleet();
+  const marktInsights = marktInsightsForRoute({
+    route: "monat",
+    records,
+    fleetPowerGw: liveFleet?.powerGw ?? 4.64,
+    fleetEnergyGwh: liveFleet?.energyGwh ?? 8.14,
+    monthKey: monat,
+  });
+
   const fleetSlot = nationalFleetMonthAvailable(monat) ? (
     <NationalFleetMonatSlot
       monthKey={monat}
@@ -102,6 +113,7 @@ export default async function MonatDetailPage({
         observationLive={pageData.observationLive}
         observationFallbackNote={pageData.observationFallback?.sourceNoteDe ?? null}
         surplusBars={bars}
+        marktInsights={marktInsights}
       >
         {fleetSlot}
       </MonatPageV4>

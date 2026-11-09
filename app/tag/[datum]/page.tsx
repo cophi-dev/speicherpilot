@@ -15,6 +15,7 @@ import {
 } from "@/lib/nationalMonthFleetModel";
 import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
 import { NationalFleetTagSlot, fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
+import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -116,6 +117,15 @@ export default async function TagDetailPage({
       />
     ) : null;
 
+  const marktInsights = marktInsightsForRoute({
+    route: "tag",
+    records,
+    fleetPowerGw: fleet.powerGw,
+    fleetEnergyGwh: fleet.energyGwh,
+    focusDayKey: dayKey,
+    overview30: view.dayOverview,
+  });
+
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
       <TagPageV4
@@ -134,6 +144,7 @@ export default async function TagDetailPage({
         fleetStrategy={fleetStrategy}
         fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplusFlag}
         preisTag={view.preisTag}
+        marktInsights={marktInsights}
       >
         {fleetSlot}
       </TagPageV4>

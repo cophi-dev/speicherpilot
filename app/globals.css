@@ -10461,3 +10461,72 @@ html:not(.dark) .ort-v4-page .site-quiet {
   }
 }
 
+.methodik-insights-dl {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0;
+}
+
+.methodik-insights-row {
+  padding: 12px 0;
+  border-top: 1px solid var(--v4-border);
+}
+
+.methodik-insights-dt {
+  font-size: 1rem;
+  margin: 0 0 6px;
+}
+
+.methodik-insights-dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.v4-ort-unb-hinweis {
+  margin: 0 auto 8px;
+  padding: 16px 0;
+  max-width: var(--v4-content-max, 1200px);
+  border-bottom: 1px solid var(--v4-border);
+}
+
+table.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+table.sr-only-focusable:focus,
+table.sr-only-focusable:focus-within {
+  position: static;
+  width: 100%;
+  height: auto;
+  clip: auto;
+  margin: 12px 0;
+}
+
+.v4-start-day-model-disclosure summary,
+.v4-monat-obs-disclosure summary,
+.v4-fleet-subline-disclosure summary {
+  min-height: 44px;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.v4-markt-insights .v4-footnote-link,
+.markt-insights-regel-link {
+  min-height: 24px;
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 2px;
+}
+

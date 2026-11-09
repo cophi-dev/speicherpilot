@@ -1,6 +1,12 @@
 import { NationalFleetMonthChapter } from "@/components/home/NationalFleetMonthChapter";
 import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
+import { NationalFleetThreeGoalsCompare } from "@/components/home/NationalFleetThreeGoalsCompare";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
+import {
+  buildThreeGoalsCompare,
+  formatMarktPeakFootnote,
+  marktPeakFootnoteFromRun,
+} from "@/lib/nationalFleetThreeGoals";
 import {
   factorCompareRowsForStrategy,
   strategyMarginalForUi,
@@ -12,6 +18,7 @@ import {
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
 import {
+  loadNationalFleetBundleMeta,
   loadNationalFleetRunSeries,
   nationalFleetContext,
 } from "@/lib/nationalMonthFleetModel.server";
@@ -41,7 +48,33 @@ export function NationalFleetMonatSlot({
   const marginalUi = strategyMarginalForUi(bundle, strategy);
   const factorRows = factorCompareRowsForStrategy(bundle, strategy);
 
+  const compareModel = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
+  let marktPeakFootnote: string | null = null;
+  if (compareModel.marktX10PeakTs) {
+    const marktRun = loadNationalFleetRunSeries(10, "markt");
+    const idx = marktRun.timestamp_berlin.indexOf(compareModel.marktX10PeakTs);
+    if (idx >= 0) {
+      marktPeakFootnote = formatMarktPeakFootnote(
+        marktPeakFootnoteFromRun(
+          compareModel.marktX10PeakTs,
+          marktRun.r_mw[idx],
+          marktRun.r_prime_mw[idx],
+          marktRun.c_mw[idx],
+          marktRun.day_ahead_eur_mwh[idx],
+        ),
+      );
+    }
+  }
+
   return (
+  <>
+    <NationalFleetThreeGoalsCompare
+      model={compareModel}
+      monthKey={monthKey}
+      activeFactor={factor}
+      activeStrategy={strategy}
+      marktPeakFootnote={marktPeakFootnote}
+    />
     <NationalFleetMonthChapter
       monthKey={monthKey}
       factor={factor}
@@ -55,5 +88,6 @@ export function NationalFleetMonatSlot({
       surplusLine={surplusLine}
       seriesLine={seriesLine}
     />
+  </>
   );
 }

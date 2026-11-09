@@ -8,6 +8,8 @@ import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewsBundle } from "@/lib/germanyView";
 import type { HomeDayPanelData } from "@/lib/homeDayPanel";
 import type { LiveDispatchInput } from "@/lib/liveFleetDispatch";
+import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
+import type { MarktInsight } from "@/lib/marktInsights";
 import type { PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
@@ -21,6 +23,7 @@ export function StartPageV4({
   homeDayPanel,
   kopfDay,
   preisTag,
+  marktInsights = [],
 }: {
   overviews: OverviewsBundle | null;
   dispatch: LiveDispatchInput;
@@ -31,6 +34,7 @@ export function StartPageV4({
   homeDayPanel: HomeDayPanelData | null;
   kopfDay: ResidualDay | null;
   preisTag: PreisTick[];
+  marktInsights?: MarktInsight[];
 }) {
   const tagRecord = auffaelligkeitRecords.find((r) => r.dateKey === kopfDayKey);
   const systemModel = overviews?.byBlick["30tage"];
@@ -63,6 +67,8 @@ export function StartPageV4({
       {systemModel ? (
         <SystemChapter model={systemModel} fleetPowerGw={fleet.powerGw} fleetEnergyGwh={fleet.energyGwh} />
       ) : null}
+
+      {marktInsights && marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
 
       <StartOrtTeaser />
     </div>

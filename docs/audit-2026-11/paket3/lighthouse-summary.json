@@ -1,0 +1,72 @@
+[
+  {
+    "route": "start",
+    "form": "mobile",
+    "perf": 92,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "start",
+    "form": "desktop",
+    "perf": 100,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "tag",
+    "form": "mobile",
+    "perf": 92,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "tag",
+    "form": "desktop",
+    "perf": 100,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "monat",
+    "form": "mobile",
+    "perf": 92,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "monat",
+    "form": "desktop",
+    "perf": 100,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "ort",
+    "form": "mobile",
+    "perf": 83,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "ort",
+    "form": "desktop",
+    "perf": 100,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "methodik",
+    "form": "mobile",
+    "perf": 90,
+    "a11y": 100,
+    "cls": 0
+  },
+  {
+    "route": "methodik",
+    "form": "desktop",
+    "perf": 100,
+    "a11y": 100,
+    "cls": 0.004268386744187504
+  }
+]

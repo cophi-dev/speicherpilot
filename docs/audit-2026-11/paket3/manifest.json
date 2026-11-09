@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2026-11-09T22:25:18.633Z",
+  "nachher": [
+    {
+      "file": "screens/nachher/start-1440-dark.png",
+      "sha256": "ee154ab52d82343b0847b59a68e1dcec0b4f67862687ef038a246dac7e3d94fe"
+    },
+    {
+      "file": "screens/nachher/start-390-light.png",
+      "sha256": "124c76fd013601a9843851d14b5b691aa6cdbce11d9e9dcf500a32877bae0fb0"
+    },
+    {
+      "file": "screens/nachher/tag-1440-dark.png",
+      "sha256": "f9dc1761b94c31f76895925fc45f625a03eef42b775c7662861cc68114ebba73"
+    },
+    {
+      "file": "screens/nachher/tag-390-light.png",
+      "sha256": "6e5d43866b09ab701f2201a686aaef60adb949f25fa26b8ace253d9764a3f49a"
+    },
+    {
+      "file": "screens/nachher/monat-1440-dark.png",
+      "sha256": "42b5f611a94c8bd2838e27bc7a5239de1f495663ba11818109c1eeb8e0d88475"
+    },
+    {
+      "file": "screens/nachher/monat-390-light.png",
+      "sha256": "03764cc4cc64cc722ad11ea35eb89b3880995b721b2c335661153f8e21dddce8"
+    },
+    {
+      "file": "screens/nachher/ort-1440-dark.png",
+      "sha256": "6173f4688109e4066fb35e59882386feb86e61bd763fde31ce7758e34cc7c276"
+    },
+    {
+      "file": "screens/nachher/ort-390-light.png",
+      "sha256": "3876c8d49176db736d53438270ecda57d1121aa1571861c47d38cdfc2904e2db"
+    },
+    {
+      "file": "screens/nachher/methodik-1440-dark.png",
+      "sha256": "ec6763259117c65733bd87cdcf2cba89d1b1dccfce1c7f2d34d3d2e7c4660c24"
+    },
+    {
+      "file": "screens/nachher/methodik-390-light.png",
+      "sha256": "782b01ff0b2c0403254104a09965fbf03510a8f78a52f81aaac7d1ddbf4c8894"
+    }
+  ],
+  "lighthouse": [
+    {
+      "route": "start",
+      "form": "mobile",
+      "perf": 92,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "start",
+      "form": "desktop",
+      "perf": 100,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "tag",
+      "form": "mobile",
+      "perf": 92,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "tag",
+      "form": "desktop",
+      "perf": 100,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "monat",
+      "form": "mobile",
+      "perf": 92,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "monat",
+      "form": "desktop",
+      "perf": 100,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "ort",
+      "form": "mobile",
+      "perf": 83,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "ort",
+      "form": "desktop",
+      "perf": 100,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "methodik",
+      "form": "mobile",
+      "perf": 90,
+      "a11y": 100,
+      "cls": 0
+    },
+    {
+      "route": "methodik",
+      "form": "desktop",
+      "perf": 100,
+      "a11y": 100,
+      "cls": 0.004268386744187504
+    }
+  ]
+}

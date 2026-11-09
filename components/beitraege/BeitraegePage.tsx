@@ -3,9 +3,17 @@ import Link from "next/link";
 import { BlogFigure } from "@/components/blog/BlogFigure";
 import NewsPreviewSection from "@/components/NewsPreviewSection";
 import { PageLead } from "@/components/PageLead";
+import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
 import { heroFigure, readingLabel, type BlogPost } from "@/content/blog/posts";
+import type { MarktInsight } from "@/lib/marktInsights";
 
-export function BeitraegePage({ posts }: { posts: readonly BlogPost[] }) {
+export function BeitraegePage({
+  posts,
+  marktInsights = [],
+}: {
+  posts: readonly BlogPost[];
+  marktInsights?: MarktInsight[];
+}) {
   return (
     <div className="beitraege v4-subpage" lang="de">
       <header className="v4-subpage-hero" aria-labelledby="beitraege-title">
@@ -20,6 +28,7 @@ export function BeitraegePage({ posts }: { posts: readonly BlogPost[] }) {
           />
         </div>
       </header>
+      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} title="Kontext aus den Daten" /> : null}
       <div className="v4-subpage-body">
         <div className="v4-content">
           <section id="artikel" aria-labelledby="beitraege-artikel-title">

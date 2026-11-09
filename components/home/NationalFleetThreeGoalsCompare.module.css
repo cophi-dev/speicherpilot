@@ -1,0 +1,122 @@
+.section {
+  margin-top: 0;
+}
+
+.figure {
+  margin: 0;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  min-height: 160px;
+}
+
+.yLabel,
+.xLabel,
+.refLabel {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 12px;
+  fill: var(--v4-muted);
+}
+
+.refLine {
+  stroke: var(--v4-border);
+  stroke-dasharray: 4 3;
+  stroke-width: 1;
+}
+
+.barLink {
+  outline: none;
+}
+
+.barLink:focus-visible rect {
+  outline: 2px solid var(--v4-focus);
+  outline-offset: 2px;
+}
+
+.bar {
+  fill: var(--v4-chart-1);
+  transition: opacity 0.15s ease;
+}
+
+.barUeberschuss {
+  fill: #3d8bfd;
+}
+
+.barSpitze {
+  fill: #6bcf7f;
+}
+
+.barMarkt {
+  fill: #e8a84a;
+}
+
+.bar:hover,
+.barActive {
+  opacity: 1;
+  filter: brightness(1.08);
+}
+
+.bar:not(.barActive) {
+  opacity: 0.88;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 12px 0 8px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.caption {
+  margin-top: 4px;
+}
+
+.warnNote {
+  margin-top: 8px;
+  max-width: 62ch;
+}
+
+.table {
+  margin-top: 12px;
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--v4-border);
+}
+
+@media (max-width: 639px) {
+  .svg {
+    max-width: 100%;
+    min-width: 320px;
+  }
+
+  .legend {
+    font-size: 12px;
+  }
+}

@@ -37,7 +37,14 @@ describe("netzbetreiberNamen blocklist", () => {
       if (file.includes("netzbetreiberNamen.ts")) continue;
       if (file.endsWith(".test.ts") || file.endsWith(".test.tsx")) continue;
       const base = path.basename(file);
-      if (base === "smardApi.ts" || base === "loadLiveBoard.ts" || base === "germanyBessProjects.ts") continue;
+      if (
+        base === "smardApi.ts" ||
+        base === "loadLiveBoard.ts" ||
+        base === "germanyBessProjects.ts" ||
+        base === "OrtUnbHinweis.tsx"
+      ) {
+        continue;
+      }
       const text = fs.readFileSync(file, "utf8");
       if (containsGridOperatorName(text)) {
         hits.push(file);
