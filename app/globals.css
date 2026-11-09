@@ -10226,3 +10226,8 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   margin: 4px 0 0;
   max-width: 70ch;
 }
+@media (min-width: 640px) {
+  .v4-start-day-panel.v4-content {
+    max-width: 1240px;
+  }
+}

@@ -86,8 +86,10 @@ export function StartKopf({
               <span className="v4-riesenzahl-unit">{pointe.heroUnit}</span>
             </p>
             <div className="v4-kern-row num">
-              <span>{pointe.heroKern}</span>
-              <FnRef n={START_NOTE.auffaelligkeit} />
+              <span>
+                {pointe.heroKern}
+                <FnRef n={START_NOTE.auffaelligkeit} />
+              </span>
             </div>
           </div>
           <RangLeiste bars={bars} metricLabel="Überschuss je Tag" rankLabel="Überschuss je Tag" scale={scale} />
