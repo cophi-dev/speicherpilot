@@ -5,7 +5,7 @@ import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
 import { TagUnavailable } from "@/components/home/TagUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
-import { loadGermanyView } from "@/lib/germanyView";
+import { loadGermanyViewForTag } from "@/lib/germanyViewTag.server";
 import { lastSurplusBefore } from "@/lib/kopfTagCopy";
 import {
   nationalFleetMonthAvailable,
@@ -36,7 +36,7 @@ export default async function TagDetailPage({
 }) {
   const { datum } = await params;
   const query = await searchParams;
-  const view = await loadGermanyView(new Date(), "/tag", { tag: datum, ...query });
+  const view = await loadGermanyViewForTag(datum);
 
   const records = view.auffaelligkeitRecords;
   const record = records?.find((r) => r.dateKey === datum) ?? null;

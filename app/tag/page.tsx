@@ -1,6 +1,9 @@
 import { permanentRedirect } from "next/navigation";
 
-import { loadGermanyView } from "@/lib/germanyView";
+import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
+
+/** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
+export const revalidate = 1800;
 
 export default async function TagIndexPage({
   searchParams,
@@ -16,11 +19,11 @@ export default async function TagIndexPage({
   }
   const suffix = params.toString() ? `?${params.toString()}` : "";
 
-  const view = await loadGermanyView(new Date(), "/tag", {});
+  const { lastCompleteDayKey } = await resolveNavShortcuts();
 
   if (tagRaw && /^\d{4}-\d{2}-\d{2}$/.test(tagRaw)) {
     permanentRedirect(`/tag/${tagRaw}${suffix}`);
   }
 
-  permanentRedirect(`/tag/${view.lastCompleteDayKey}${suffix}`);
+  permanentRedirect(`/tag/${lastCompleteDayKey}${suffix}`);
 }

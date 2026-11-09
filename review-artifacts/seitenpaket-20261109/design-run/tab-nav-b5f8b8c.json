@@ -1,0 +1,19 @@
+{
+  "headSha": "b5f8b8c",
+  "note": "Post navShortcuts fix; Playwright warm with 1.5s dwell on Start before Tag click (inline measurement)",
+  "warm": {
+    "start_to_tag": {
+      "href": "/tag/2026-11-08",
+      "medianMs": 130,
+      "samples": [1332, 290, 84, 130, 85, 80, 195, 64, 392]
+    },
+    "tag_to_monat": { "medianMs": 139 },
+    "monat_to_start": { "medianMs": 117 }
+  },
+  "cold": {
+    "start_to_tag": { "medianMs": 1546, "samples": [3361, 900, 1546] },
+    "tag_to_monat": { "medianMs": 155 },
+    "monat_to_start": { "medianMs": 108 }
+  },
+  "clsMonat1280AfterDesignRun": 0
+}

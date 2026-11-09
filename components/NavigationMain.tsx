@@ -7,7 +7,7 @@ function incomingMainReady(root: HTMLElement | null): boolean {
   if (!root) {
     return false;
   }
-  const heading = root.querySelector("h1, .v4-start-h1, .v4-chapter-h2");
+  const heading = root.querySelector("h1, #auffaelligkeit-h1, .v4-start-h1, .v4-chapter-h2");
   return Boolean(heading) && (root.textContent?.length ?? 0) > 160;
 }
 

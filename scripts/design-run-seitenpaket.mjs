@@ -83,31 +83,91 @@ const page = await context.newPage();
 await page.goto(`${base}/monat/2026-10?faktor=1&fahrweise=spitze`, { waitUntil: "domcontentloaded" });
 const clsBeforeWarm = await measureCls(page);
 
-await page.goto(`${base}/monat/2026-10?faktor=1&fahrweise=spitze`, { waitUntil: "networkidle" });
+await page.goto(`${base}/monat/2026-10?faktor=1&fahrweise=spitze`, { waitUntil: "domcontentloaded" });
 await page.waitForSelector(".v4-fleet-ts-wrap:not(.v4-fleet-ts-skeleton)", { timeout: 20000 }).catch(() => {});
 const clsAfter = await measureCls(page);
 
-const tabMs = {};
-for (const [name, href] of [
-  ["start_to_tag", "/tag"],
-  ["tag_to_monat", "/monat"],
-  ["monat_to_start", "/"],
-]) {
-  const from = name === "start_to_tag" ? "/" : name === "tag_to_monat" ? "/tag" : "/monat/2026-10?faktor=1";
-  await page.goto(`${base}${from}`, { waitUntil: "networkidle" });
+function median(nums) {
+  const s = [...nums].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+async function navLinkHref(page, label) {
+  const link = page.locator(
+    label === "Tag"
+      ? 'nav#site-desktop-nav a[href^="/tag/"]'
+      : label === "Monat"
+        ? 'nav#site-desktop-nav a[href^="/monat/"]'
+        : 'nav#site-desktop-nav a[href="/"]',
+  );
+  return link.first().getAttribute("href");
+}
+
+async function measureTabOnce(page, fromPath, targetLabel) {
+  await page.goto(`${base}${fromPath}`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("nav#site-desktop-nav", { timeout: 20000 });
+  const href = await navLinkHref(page, targetLabel);
+  if (!href) {
+    throw new Error(`missing nav link ${targetLabel}`);
+  }
   const t0 = Date.now();
   await Promise.all([
-    page.waitForSelector("h1, .v4-start-h1, .v4-chapter-h2", { timeout: 15000 }),
+    page.waitForURL((url) => {
+      if (targetLabel === "Start") return url.pathname === "/";
+      if (targetLabel === "Tag") return url.pathname.startsWith("/tag/");
+      return url.pathname.startsWith("/monat/");
+    }, { timeout: 20000 }),
     page.click(`nav#site-desktop-nav a[href="${href}"]`),
   ]);
-  await page.waitForURL((url) => {
-    const p = url.pathname;
-    if (href === "/") return p === "/";
-    if (href === "/tag") return p.startsWith("/tag/");
-    return p.startsWith("/monat/");
-  }, { timeout: 15000 });
-  await page.waitForSelector("h1, .v4-start-h1", { timeout: 15000 });
-  tabMs[name] = Date.now() - t0;
+  await page.waitForSelector("#auffaelligkeit-h1, h1, .v4-start-h1", { timeout: 20000 });
+  return { ms: Date.now() - t0, href };
+}
+
+async function medianTab(page, fromPath, targetLabel, runs, cold) {
+  const effectiveRuns = cold ? Math.min(3, runs) : runs;
+  const samples = [];
+  let href = null;
+  for (let i = 0; i < effectiveRuns; i += 1) {
+    if (cold && i === 0) {
+      await page.goto(`${base}${fromPath}`, { waitUntil: "domcontentloaded" });
+      await page.evaluate(() => {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch {
+          /* ignore */
+        }
+      });
+    }
+    const r = await measureTabOnce(page, fromPath, targetLabel);
+    href = r.href;
+    samples.push(r.ms);
+    await sleep(120);
+  }
+  return { href, samples, medianMs: Math.round(median(samples)) };
+}
+
+const TAB_RUNS = 7;
+const tabWarm = {};
+const tabCold = {};
+const warmRoutes = [
+  ["start_to_tag", "/", "Tag"],
+  ["tag_to_monat", null, "Monat"],
+  ["monat_to_start", "/monat/2026-10?faktor=1", "Start"],
+];
+for (const [name, from, label] of warmRoutes) {
+  const fromPath = from ?? (await (async () => {
+    await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+    const h = await navLinkHref(page, "Tag");
+    const u = new URL(h, base);
+    return `${u.pathname}${u.search}`;
+  })());
+  tabWarm[name] = await medianTab(page, fromPath, label, TAB_RUNS, false);
+}
+for (const [name, from, label] of warmRoutes) {
+  const fromPath = from ?? tabWarm.start_to_tag?.href ?? "/";
+  tabCold[name] = await medianTab(page, fromPath, label, TAB_RUNS, true);
 }
 
 const dark375 = await browser.newContext({
@@ -115,7 +175,7 @@ const dark375 = await browser.newContext({
   colorScheme: "dark",
 });
 const p375 = await dark375.newPage();
-await p375.goto(`${base}/monat/2026-10?faktor=1&fahrweise=spitze`, { waitUntil: "networkidle" });
+await p375.goto(`${base}/monat/2026-10?faktor=1&fahrweise=spitze`, { waitUntil: "domcontentloaded" });
 await p375.waitForSelector(".v4-fleet-ts-x", { timeout: 20000 });
 const xAxis = await p375.locator(".v4-fleet-ts-x").first();
 await xAxis.screenshot({ path: join(outDir, `x-axis-375-dark-${head.slice(0, 7)}.png`) });
@@ -128,7 +188,7 @@ const report = {
     monat1280_afterChart: clsAfter,
     note: "layout-shift PerformanceObserver ~4.5s Fenster nach Navigation",
   },
-  tabSwitchMs: tabMs,
+  tabSwitchMs: { warm: tabWarm, cold: tabCold, runs: TAB_RUNS },
   viewport: { monatCls: "1280x900 light", xCrop: "375x812 dark" },
 };
 
