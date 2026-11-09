@@ -1,3 +1,4 @@
+import { MonatMarktInsightsDl } from "@/components/home/MonatMarktInsightsDl";
 import { NationalFleetMonthChapter } from "@/components/home/NationalFleetMonthChapter";
 import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
 import { NationalFleetThreeGoalsCompare } from "@/components/home/NationalFleetThreeGoalsCompare";
@@ -22,6 +23,7 @@ import {
   loadNationalFleetRunSeries,
   nationalFleetContext,
 } from "@/lib/nationalMonthFleetModel.server";
+import type { MarktInsight } from "@/lib/marktInsights";
 
 export function NationalFleetMonatSlot({
   monthKey,
@@ -30,6 +32,7 @@ export function NationalFleetMonatSlot({
   bars,
   surplusLine,
   seriesLine,
+  marktInsights = [],
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
@@ -37,6 +40,7 @@ export function NationalFleetMonatSlot({
   bars: MonatSurplusBar[];
   surplusLine?: string;
   seriesLine?: string;
+  marktInsights?: MarktInsight[];
 }) {
   if (!nationalFleetMonthAvailable(monthKey)) {
     return <NationalFleetMonthUnavailable monthKey={monthKey} />;
@@ -67,27 +71,30 @@ export function NationalFleetMonatSlot({
   }
 
   return (
-  <>
-    <NationalFleetThreeGoalsCompare
-      model={compareModel}
-      monthKey={monthKey}
-      activeFactor={factor}
-      activeStrategy={strategy}
-      marktPeakFootnote={marktPeakFootnote}
-    />
-    <NationalFleetMonthChapter
-      monthKey={monthKey}
-      factor={factor}
-      strategy={strategy}
-      stats={stats}
-      run={run}
-      marginalSteps={marginalUi.steps}
-      surplusPoolMarginal={marginalUi.surplusPoolOnly}
-      factorRows={factorRows}
-      bars={bars}
-      surplusLine={surplusLine}
-      seriesLine={seriesLine}
-    />
-  </>
+    <>
+      <NationalFleetMonthChapter
+        monthKey={monthKey}
+        factor={factor}
+        strategy={strategy}
+        stats={stats}
+        run={run}
+        marginalSteps={marginalUi.steps}
+        surplusPoolMarginal={marginalUi.surplusPoolOnly}
+        factorRows={factorRows}
+        bars={bars}
+        surplusLine={surplusLine}
+        seriesLine={seriesLine}
+        insightsFooter={<MonatMarktInsightsDl insights={marktInsights} />}
+      />
+      <div className="v4-three-goals-slot">
+        <NationalFleetThreeGoalsCompare
+          model={compareModel}
+          monthKey={monthKey}
+          activeFactor={factor}
+          activeStrategy={strategy}
+          marktPeakFootnote={marktPeakFootnote}
+        />
+      </div>
+    </>
   );
 }

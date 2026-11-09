@@ -68,7 +68,7 @@ function ruleHohesMinimum(record: TagesKennzahlRecord | null): MarktInsight | nu
   return {
     id: "hohes_minimum",
     category: "markt",
-    text: `Am ${fmtDate(record.dateKey)} lag die Börse zwischen ${fmtEur(record.pmin)} und ${fmtEur(record.pmax ?? record.pmin)} €/MWh. Spanne ${fmtEur(record.spread)} €/MWh, kein negatives Viertel — kein Ladefenster unter 200 €/MWh.`,
+    text: `Am ${fmtDate(record.dateKey)} lag die Börse zwischen ${fmtEur(record.pmin)} und ${fmtEur(record.pmax ?? record.pmin)} €/MWh. Spanne ${fmtEur(record.spread)} €/MWh, kein Viertelstunde unter 100 €/MWh und keine Stunde unter null.`,
     period: fmtDate(record.dateKey),
     source: "Bundesnetzagentur | SMARD.de, Day-Ahead DE-LU",
     methodikHref: "/methodik#insight-hohes-minimum",

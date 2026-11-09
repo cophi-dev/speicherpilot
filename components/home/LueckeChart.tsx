@@ -285,24 +285,14 @@ export function LueckeChart({
               <circle cx={geometry.peakX} cy={geometry.peakYWs} r={4.5} className="v4-luecke-peak-dot" />
               <circle cx={geometry.peakX} cy={geometry.peakYLoad} r={4.5} className="v4-luecke-peak-dot" />
               {labelInsideSvg ? (
-                <>
-                  <text
-                    x={geometry.peakX + 12}
-                    y={peakLabelY}
-                    textAnchor="start"
-                    className="v4-luecke-peak-value num"
-                  >
-                    {peakLabel}
-                  </text>
-                  <text
-                    x={geometry.peakX + 12}
-                    y={peakLabelY + 18}
-                    textAnchor="start"
-                    className="v4-luecke-peak-caption"
-                  >
-                    {peakCaption}
-                  </text>
-                </>
+                <text
+                  x={geometry.peakX + 12}
+                  y={peakLabelY}
+                  textAnchor="start"
+                  className="v4-luecke-peak-value num"
+                >
+                  {peakLabel}
+                </text>
               ) : null}
             </>
           ) : null}
@@ -329,7 +319,7 @@ export function LueckeChart({
             </figcaption>
           ) : null}
         </div>
-      ) : peakGw !== null && !labelInsideSvg ? (
+      ) : peakGw !== null ? (
         <figcaption className="v4-luecke-peak-banner num">
           <span className="v4-luecke-peak-banner-value">{peakTimeLabel}</span>
           <span className="v4-luecke-peak-banner-caption">{peakCaption}</span>

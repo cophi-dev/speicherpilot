@@ -29,5 +29,6 @@ describe("marktPeakFootnoteFromRun", () => {
     expect(d.peakAfterGw).toBeCloseTo(96.76, 2);
     expect(formatMarktPeakFootnote(d)).toContain("96,76 GW");
     expect(formatMarktPeakFootnote(d)).toContain("201,29");
+    expect(formatMarktPeakFootnote(d)).toMatch(/21\.10\.2026/);
   });
 });

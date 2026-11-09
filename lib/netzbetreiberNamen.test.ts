@@ -41,7 +41,8 @@ describe("netzbetreiberNamen blocklist", () => {
         base === "smardApi.ts" ||
         base === "loadLiveBoard.ts" ||
         base === "germanyBessProjects.ts" ||
-        base === "OrtUnbHinweis.tsx"
+        base === "OrtUnbHinweis.tsx" ||
+        base === "MethodikNetzKapazitaet.tsx"
       ) {
         continue;
       }

@@ -94,6 +94,7 @@ export function NationalFleetMonthChapter({
   bars,
   surplusLine,
   seriesLine,
+  insightsFooter,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
@@ -106,6 +107,7 @@ export function NationalFleetMonthChapter({
   bars: MonatSurplusBar[];
   surplusLine?: string;
   seriesLine?: string;
+  insightsFooter?: React.ReactNode;
 }) {
   const dailySocMax = 0.9 * stats.fleetEnergyGwh * 1000;
 
@@ -211,6 +213,7 @@ export function NationalFleetMonthChapter({
         peakReductionPct={stats.peakReductionPct}
         prominentMonth
       />
+      {insightsFooter}
       <FleetMonthFootnotes
         factor={factor}
         monthKey={monthKey}

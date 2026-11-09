@@ -95,6 +95,7 @@ export default async function MonatDetailPage({
       bars={bars}
       surplusLine={pointe.subline}
       seriesLine={seriesLine}
+      marktInsights={marktInsights}
     />
   ) : (
     <NationalFleetMonthUnavailable monthKey={monat} />
@@ -113,7 +114,6 @@ export default async function MonatDetailPage({
         observationLive={pageData.observationLive}
         observationFallbackNote={pageData.observationFallback?.sourceNoteDe ?? null}
         surplusBars={bars}
-        marktInsights={marktInsights}
       >
         {fleetSlot}
       </MonatPageV4>

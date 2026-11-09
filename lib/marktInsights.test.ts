@@ -13,6 +13,37 @@ const snapshot = JSON.parse(
 describe("buildMarktInsights", () => {
   const records = (snapshot.records ?? []).slice(-31) as TagesKennzahlRecord[];
 
+  it("hohes_minimum uses 100 €/MWh gate in text", () => {
+    const record: TagesKennzahlRecord = {
+      dateKey: "2026-11-05",
+      surplusGwh: 0,
+      spread: 120,
+      pmin: 105,
+      pmax: 225,
+      negH: 0,
+      surplusH: 0,
+      pminAt: null,
+      pmaxAt: null,
+      eveningPeakGw: null,
+      eveningPeakAt: null,
+      peakCutGw: null,
+      absorbedGwh: 0,
+      fullAt: null,
+      fullMin: null,
+      wsShare: 0.5,
+      dryStreak: 0,
+    };
+    const all = buildMarktInsights({
+      records: [record],
+      fleetPowerGw: 4.64,
+      fleetEnergyGwh: 8.14,
+      focusDayKey: "2026-11-05",
+    });
+    const rule = all.find((i) => i.id === "hohes_minimum");
+    expect(rule?.text).toMatch(/100 €\/MWh/);
+    expect(rule?.text).not.toMatch(/200 €\/MWh/);
+  });
+
   it("fires trockenstrecke on 2026-11-08", () => {
     const all = buildMarktInsights({
       records,

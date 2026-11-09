@@ -12,6 +12,29 @@ const BASE = process.env.SITE_E2E_BASE_URL ?? "http://127.0.0.1:3001";
 const OUT = join(process.cwd(), "docs/audit-2026-11/paket3");
 const NACHHER = join(OUT, "screens/nachher");
 const VORHER = join(OUT, "screens/vorher");
+const CROPS = join(OUT, "screens/kontrolle");
+
+/** PR81 Korrektur — drei Kontroll-Crops (Screenshot-Bereiche). */
+const CONTROL_CROPS = [
+  {
+    file: "monat-2026-10-1440-dark-drei-ziele.png",
+    path: "/monat/2026-10?faktor=1&fahrweise=ueberschuss",
+    viewport: { width: 1440, height: 900, theme: "dark" },
+    locator: '[data-testid="three-goals-compare"]',
+  },
+  {
+    file: "monat-2026-10-390-light-erstes-fenster.png",
+    path: "/monat/2026-10?faktor=1&fahrweise=ueberschuss",
+    viewport: { width: 390, height: 844, theme: "light" },
+    clip: { x: 0, y: 0, width: 390, height: 420 },
+  },
+  {
+    file: "ort-390-light-unb-hinweis.png",
+    path: "/ort",
+    viewport: { width: 390, height: 844, theme: "light" },
+    locator: '[data-testid="ort-unb-hinweis"]',
+  },
+];
 
 const ROUTES = [
   { name: "start", path: "/" },
@@ -57,10 +80,32 @@ function copyVorherBaseline() {
   }
 }
 
+async function captureControlCrops(browser) {
+  mkdirSync(CROPS, { recursive: true });
+  for (const crop of CONTROL_CROPS) {
+    const page = await browser.newPage({
+      viewport: { width: crop.viewport.width, height: crop.viewport.height },
+    });
+    await preparePage(page, crop.viewport.theme);
+    await page.goto(`${BASE}${crop.path}`, { waitUntil: "networkidle", timeout: 120_000 });
+    await page.waitForTimeout(800);
+    const dest = join(CROPS, crop.file);
+    if (crop.locator) {
+      const el = page.locator(crop.locator).first();
+      await el.scrollIntoViewIfNeeded();
+      await el.screenshot({ path: dest });
+    } else {
+      await page.screenshot({ path: dest, clip: crop.clip });
+    }
+    await page.close();
+  }
+}
+
 async function main() {
   mkdirSync(NACHHER, { recursive: true });
   copyVorherBaseline();
   const browser = await chromium.launch({ headless: true });
+  await captureControlCrops(browser);
   const lhSummary = [];
 
   for (const r of ROUTES) {

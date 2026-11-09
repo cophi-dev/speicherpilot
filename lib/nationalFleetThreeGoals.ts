@@ -93,7 +93,15 @@ export function marktPeakFootnoteFromRun(
   };
 }
 
+function formatPeakInstantBerlin(ts: string): string {
+  const match = ts.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!match) {
+    return ts;
+  }
+  return `${Number(match[3])}.${Number(match[2])}.${match[1]}, ${match[4]}:${match[5]} Uhr`;
+}
+
 export function formatMarktPeakFootnote(d: MarktPeakFootnoteDetail): string {
-  const ts = d.timestampBerlin.replace(/\+0[12]:00$/, "").replace("T", " ");
-  return `Marktorientiert ×10 hebt die Monats-Restlastspitze auf ${formatQuantity(d.peakAfterGw, "de", 2)} GW (${ts}: ${formatQuantity(d.residualGw, "de", 2)} GW Restlast + ${formatQuantity(d.chargeGw, "de", 1)} GW Laden bei ${formatQuantity(d.priceEurMwh, "de", 2)} €/MWh). Kein Preisrückwirkungsmodell — die Preise bleiben historisch.`;
+  const when = formatPeakInstantBerlin(d.timestampBerlin);
+  return `Marktorientiert ×10 hebt die Monats-Restlastspitze auf ${formatQuantity(d.peakAfterGw, "de", 2)} GW (${when}: ${formatQuantity(d.residualGw, "de", 2)} GW Restlast + ${formatQuantity(d.chargeGw, "de", 1)} GW Laden bei ${formatQuantity(d.priceEurMwh, "de", 2)} €/MWh). Kein Preisrückwirkungsmodell — die Preise bleiben historisch.`;
 }

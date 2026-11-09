@@ -2,47 +2,101 @@ const RULES = [
   {
     id: "insight-trockenstrecke",
     title: "Trockenstrecke",
-    body: "Regel: Überschuss unter 0,05 GWh an mindestens drei aufeinanderfolgenden Tagen. Quelle: Energy-Charts Last und Erzeugung, Viertelstunden. Unsicherheit: Überschuss ist Σ max(0, Wind+Sonne − Last) × 0,25 h, nicht die SMARD-Überschussdefinition.",
+    bullets: [
+      "Formel: Überschuss < 0,05 GWh und dryStreak ≥ 3 aufeinanderfolgende Kalendertage.",
+      "Daten: Energy-Charts Last/Erzeugung, Viertelstunden; Fenster 10.10.–08.11.2026.",
+      "Quelle: gleiche Tagesreihe wie Start/Tag.",
+      "Gegenrechnung: 8.11.2026, Überschuss 0 GWh, dryStreak 14.",
+      "Grenzfall: Ein Tag mit 0,04 GWh bricht die Serie nicht; ab 0,05 GWh zählt er als Überschusstag.",
+    ],
   },
   {
     id: "insight-hohes-minimum",
     title: "Hohes Minimum ohne Ladefenster",
-    body: "Regel: Überschuss unter 0,05 GWh, Tages-Spanne mindestens 80 €/MWh, Tagesminimum mindestens 100 €/MWh, keine Viertelstunde unter null. Quelle: Day-Ahead DE-LU (Bundesnetzagentur | SMARD.de, CC BY 4.0).",
+    bullets: [
+      "Formel: Überschuss < 0,05 GWh, Spanne ≥ 80 €/MWh, Tagesminimum ≥ 100 €/MWh, keine Viertelstunde < 0 €/MWh.",
+      "Daten: Day-Ahead DE-LU, Tages-Min/Max aus Viertelstundenreihe.",
+      "Quelle: Bundesnetzagentur | SMARD.de, CC BY 4.0.",
+      "Gegenrechnung: 8.11.2026, min 206,09 €/MWh, max 321,50 €/MWh, Spanne 115,41 €/MWh.",
+      "Grenzfall: pmin genau 100 €/MWh feuert; 99,99 €/MWh nicht.",
+    ],
   },
   {
     id: "insight-preis-spike",
     title: "Preis-Spike auf leerem Tag",
-    body: "Regel: Überschuss unter 0,05 GWh und Tagesmaximum mindestens 400 €/MWh. Quelle: Day-Ahead DE-LU. Unsicherheit: eine Viertelstunde kann das Maximum tragen.",
+    bullets: [
+      "Formel: Überschuss < 0,05 GWh und Tagesmaximum ≥ 400 €/MWh.",
+      "Daten: Day-Ahead DE-LU, Viertelstunden.",
+      "Quelle: Bundesnetzagentur | SMARD.de.",
+      "Gegenrechnung: 29.10.2026, Überschuss 0 GWh, max 574,28 €/MWh (17:15).",
+      "Grenzfall: 8.11.2026 max 321,5 €/MWh — Regel schweigt.",
+    ],
   },
   {
     id: "insight-negativpreis",
     title: "Negative Preise",
-    body: "Regel: Stunden unter null als Summe der Viertelstunden × 0,25 h, Schwelle 0,25 h im Fenster. Quelle: Day-Ahead DE-LU.",
+    bullets: [
+      "Formel: Σ(Viertelstunden mit Preis < 0) × 0,25 h ≥ 0,25 h im Fenster.",
+      "Daten: 10.10.–08.11.2026.",
+      "Quelle: Day-Ahead DE-LU.",
+      "Gegenrechnung: 1,75 h gesamt — 10.10. 0,25 h, 25.10. 1,5 h.",
+      "Grenzfall: Ein Viertelstunde mit −0,01 €/MWh zählt als 0,25 h.",
+    ],
   },
   {
     id: "insight-gleiche-spanne",
     title: "Gleiche Spanne, anderes Niveau",
-    body: "Regel: zwei Tage im Fenster, Spannen differieren um höchstens 20 €/MWh, Minima um mindestens 100 €/MWh. Quelle: Day-Ahead DE-LU.",
+    bullets: [
+      "Formel: Zwei Tage, |Spanne₁ − Spanne₂| ≤ 20 €/MWh und |pmin₁ − pmin₂| ≥ 100 €/MWh.",
+      "Daten: Tages-Spanne max − min je Kalendertag.",
+      "Quelle: Day-Ahead DE-LU.",
+      "Gegenrechnung: 10.10. und 12.10.2026, Spannen ~gleich, Minima um >100 €/MWh auseinander.",
+      "Grenzfall: ΔSpanne 21 €/MWh — kein Paar.",
+    ],
   },
   {
     id: "insight-flotte-spitze",
     title: "Flotte gegen Abendspitze",
-    body: "Regel: Überschuss unter 0,05 GWh, Modell-Ladung 0 GWh, Nennleistung der Referenzflotte unter 15 % der beobachteten Abend-Restlastspitze. Quelle: Energy-Charts + Battery-Charts-Referenzflotte am Datenstand der Startseite.",
+    bullets: [
+      "Formel: Überschuss < 0,05 GWh, Modell-Ladung 0 GWh, Flottenleistung / Abend-Restlast < 15 %.",
+      "Daten: Battery-Charts-Referenzflotte, beobachtete Abendspitze Residuallast.",
+      "Quelle: Energy-Charts + Tageskennzahl eveningPeakGw.",
+      "Gegenrechnung: 8.11.2026, 4,64 GW / 58,5 GW ≈ 7,9 %.",
+      "Grenzfall: 15,0 % Schwelle — knapp darunter feuert.",
+    ],
   },
   {
     id: "insight-preis-regime",
     title: "Preisniveau-Regime",
-    body: "Regel: mindestens sieben Tage in Folge mit Tagesminimum ab 150 €/MWh. Quelle: Day-Ahead DE-LU im gewählten Kalenderfenster.",
+    bullets: [
+      "Formel: mindestens 7 aufeinanderfolgende Tage mit Tagesminimum ≥ 150 €/MWh.",
+      "Daten: pmin je Tag im Fenster.",
+      "Quelle: Day-Ahead DE-LU.",
+      "Gegenrechnung: 28.10.–08.11.2026, 12 Tage in Folge.",
+      "Grenzfall: Sechs Tage — Regel schweigt.",
+    ],
   },
   {
     id: "insight-drei-ziele",
     title: "Drei Ziele, ein Monat",
-    body: "Regel: Oktober-Lauf, dieselbe Modellflotte 4,58 GW / 8 GWh bei ×1; Satz erscheint, wenn Marktfahrweise mehr als fünfmal so viel netzseitige Ladung bewegt wie Spitzenfahrweise und die Markt-Spitzenwirkung unter 1 GW bleibt. Quelle: vorberechnetes Monats-Bundle (Energy-Charts Last/Erzeugung). Vergleichschart: Spitze nach Speicher in GW je Faktor ×1–×10.",
+    bullets: [
+      "Formel: Oktober-Lauf ×1; Markt-Ladung > 5 × Spitze-Ladung und Markt-Spitzenreduktion < 1 GW.",
+      "Daten: fleet-month-meta.json, Strategien Differenz / Spitze / Markt.",
+      "Quelle: Vorberechneter Monatslauf 4,58 GW / 8 GWh.",
+      "Gegenrechnung: Markt 485,45 GWh, Spitze 12,49 GWh, Senkung Markt 0,37 GW.",
+      "Grenzfall: Chart zeigt alle Faktoren; Regel-Satz nur bei ×1-Gate.",
+    ],
   },
   {
     id: "insight-saettigung",
     title: "Sättigung des Überschuss-Pools",
-    body: "Regel: ×10 nimmt mindestens 99 % des beobachteten Überschuss-Pools im 30-Tage-Fenster auf, ×1 unter 40 %. Quelle: Überschuss-Kette mit 17:00-Grenze und diskreten Faktoren. Keine Euro-Skalierung.",
+    bullets: [
+      "Formel: ×10 absorbedShare ≥ 99 % und ×1 absorbedShare < 40 % im 30-Tage-Überschuss-Modell.",
+      "Daten: Überschuss-Kette, diskrete Faktoren, 17:00-Grenze.",
+      "Quelle: Energy-Charts, gleiche Kette wie Start-Balken.",
+      "Gegenrechnung: Fenster Herbst, ×1 28 %, ×10 100 % (Start-Hero).",
+      "Grenzfall: Keine Euro-Skalierung; nur GWh-Anteile.",
+    ],
   },
 ] as const;
 
@@ -59,14 +113,18 @@ export function MethodikInsights() {
           Reihen wie die Graphen.
         </p>
       </div>
-      <dl className="v4-content methodik-insights-dl">
+      <div className="v4-content methodik-insights-rules">
         {RULES.map((rule) => (
-          <div key={rule.id} id={rule.id} className="methodik-insights-row">
-            <dt className="v4-chapter-h2 methodik-insights-dt">{rule.title}</dt>
-            <dd className="v4-subline methodik-insights-dd">{rule.body}</dd>
-          </div>
+          <article key={rule.id} id={rule.id} className="methodik-insights-row">
+            <h3 className="methodik-insights-dt">{rule.title}</h3>
+            <ul className="methodik-insights-footnotes">
+              {rule.bullets.map((line) => (
+                <li key={line.slice(0, 24)}>{line}</li>
+              ))}
+            </ul>
+          </article>
         ))}
-      </dl>
+      </div>
     </section>
   );
 }

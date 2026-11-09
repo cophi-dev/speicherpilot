@@ -20,6 +20,7 @@ body {
   --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-jetbrains-mono: var(--font-jetbrains), ui-monospace, monospace;
   --font-heading: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: hsl(var(--ring));
   --color-sidebar-border: hsl(var(--border));
@@ -7998,7 +7999,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .v4-monat-chart-x span {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.2;
 }
 .v4-monat-chart-x-empty {
@@ -10329,6 +10330,9 @@ html:not(.dark) .ort-v4-page .site-quiet {
   .monat-page > .v4-fleet-month {
     order: 2;
   }
+  .monat-page > .v4-three-goals-slot {
+    order: 3;
+  }
   .monat-page > .v4-chapter-foot {
     order: 6;
   }
@@ -10337,23 +10341,26 @@ html:not(.dark) .ort-v4-page .site-quiet {
     flex-direction: column;
   }
   .monat-page .v4-fleet-month > .v4-chapter-head {
-    order: 5;
+    order: 9;
     margin-top: 0.75rem;
   }
   .monat-page .v4-fleet-month .v4-chapter-num {
     display: none;
   }
-  .monat-page .v4-fleet-month > .v4-fleet-controls {
+  .monat-page .v4-fleet-month > .v4-fleet-ts-slot {
     order: 1;
   }
-  .monat-page .v4-fleet-month > .v4-fleet-ts-slot {
+  .monat-page .v4-fleet-month > .v4-monat-insights-dl {
     order: 2;
   }
-  .monat-page .v4-fleet-month > .v4-fleet-kpis-hero {
+  .monat-page .v4-fleet-month > .v4-fleet-controls {
     order: 3;
   }
-  .monat-page .v4-fleet-month > .v4-day-footnotes {
+  .monat-page .v4-fleet-month > .v4-fleet-kpis-hero {
     order: 4;
+  }
+  .monat-page .v4-fleet-month > .v4-day-footnotes {
+    order: 5;
   }
   .monat-page .v4-fleet-month > .v4-fleet-kpis-secondary {
     order: 6;
@@ -10461,7 +10468,7 @@ html:not(.dark) .ort-v4-page .site-quiet {
   }
 }
 
-.methodik-insights-dl {
+.methodik-insights-rules {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -10475,13 +10482,23 @@ html:not(.dark) .ort-v4-page .site-quiet {
 
 .methodik-insights-dt {
   font-size: 1rem;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
 }
 
-.methodik-insights-dd {
+.methodik-insights-footnotes {
   margin: 0;
-  font-size: 14px;
+  padding-left: 1.1rem;
+  font-size: 13px;
   line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.methodik-insights-footnotes li {
+  margin: 0 0 4px;
+}
+
+.methodik-unb-list {
+  max-width: 62ch;
 }
 
 .v4-ort-unb-hinweis {
@@ -10489,6 +10506,51 @@ html:not(.dark) .ort-v4-page .site-quiet {
   padding: 16px 0;
   max-width: var(--v4-content-max, 1200px);
   border-bottom: 1px solid var(--v4-border);
+}
+
+.v4-ort-unb-title {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.v4-ort-unb-links {
+  font-size: 13px;
+  margin: 8px 0 0;
+  padding-left: 1.1rem;
+}
+
+.v4-ort-unb-foot {
+  margin-top: 8px;
+}
+
+.v4-three-goals-slot {
+  min-height: 248px;
+  contain: layout;
+}
+
+.v4-monat-insights-dl {
+  margin: 12px auto 0;
+  padding: 0;
+  max-width: var(--v4-content-max, 1200px);
+}
+
+.v4-monat-insights-row {
+  margin: 0 0 8px;
+}
+
+.v4-monat-insights-dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 62ch;
+  color: hsl(var(--foreground));
+}
+
+@media (max-width: 639px) {
+  .ort-chart-axis-html-y {
+    padding-left: 6px;
+    font-size: 12px;
+  }
 }
 
 table.sr-only-focusable:not(:focus):not(:focus-within) {

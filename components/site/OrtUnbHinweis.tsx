@@ -3,14 +3,15 @@ import Link from "next/link";
 export function OrtUnbHinweis() {
   return (
     <aside className="v4-content v4-ort-unb-hinweis" aria-labelledby="ort-unb-title" data-testid="ort-unb-hinweis">
-      <h2 id="ort-unb-title" className="v4-chapter-h2" style={{ fontSize: "1rem", marginBottom: 8 }}>
+      <h2 id="ort-unb-title" className="v4-chapter-h2 v4-ort-unb-title">
         Freie Anschlusskapazität — was öffentlich ist
       </h2>
       <p className="v4-subline">
-        ÜNB veröffentlichen verfügbare Kapazität in MW-Klassen, nicht bis zur Mittelspannung. SpeicherPilot baut keine
-        Deutschlandkarte und erfindet keine Punktwerte.
+        ÜNB veröffentlichen nach Art. 50 Abs. 4a der VO (EU) 2019/943 (i. d. F. VO (EU) 2024/1747) mindestens monatlich
+        verfügbare Kapazität in MW-Klassen — nicht bis zur Mittelspannung. SpeicherPilot baut keine Deutschlandkarte und
+        erfindet keine Punktwerte.
       </p>
-      <ul className="v4-ort-unb-links num" style={{ fontSize: 13, margin: "8px 0 0", paddingLeft: "1.1rem" }}>
+      <ul className="v4-ort-unb-links num">
         <li>
           <a
             href="https://www.transnetbw.de/de/transparenz/netzzugang-und-entgelt/netzanschlusskarte"
@@ -32,9 +33,9 @@ export function OrtUnbHinweis() {
           <span className="v4-footnote"> (Regelzone mit Hamburg, Stand 31.03.2026)</span>
         </li>
       </ul>
-      <p className="v4-footnote" style={{ marginTop: 8 }}>
+      <p className="v4-footnote v4-ort-unb-foot">
         Einheitliche maschinenlesbare Reihe bis Mittelspannung: nicht belegt.{" "}
-        <Link href="/methodik#insights" className="v4-footnote-link">
+        <Link href="/methodik#netzkapazitaet-unb" className="v4-footnote-link">
           Einordnung in der Methodik
         </Link>
       </p>

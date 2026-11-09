@@ -126,12 +126,17 @@ export function PreisFenster({
               </text>
             </g>
           ))}
-          {HOURS.map((hour) => {
+          {(compact ? [0, 12, 24] : HOURS).map((hour) => {
             const x = xHour(hour);
             return (
               <g key={hour}>
                 <line className={styles.grid} x1={x} x2={x} y1={padT} y2={padT + plotH} />
-                <text className={`num ${styles.axis}`} x={x} y={height - 8} textAnchor="middle">
+                <text
+                  className={`num ${styles.axis}`}
+                  x={x}
+                  y={height - (compact ? 4 : 8)}
+                  textAnchor="middle"
+                >
                   {hourKey(hour).slice(0, 2)}
                 </text>
               </g>

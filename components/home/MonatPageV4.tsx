@@ -1,8 +1,6 @@
 import Link from "next/link";
 
-import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
-import type { MarktInsight } from "@/lib/marktInsights";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
@@ -62,7 +60,6 @@ export function MonatPageV4({
   observationLive,
   observationFallbackNote,
   surplusBars,
-  marktInsights = [],
   children,
 }: {
   monthKey: string;
@@ -76,7 +73,6 @@ export function MonatPageV4({
   observationFallbackNote?: string | null;
   /** Vorgebaute Balken — vermeidet doppeltes buildMonatGrid. */
   surplusBars?: import("@/lib/monatSurplusBars").MonatSurplusBar[];
-  marktInsights?: MarktInsight[];
   children?: React.ReactNode;
 }) {
   const { h1, subline, footnote } = monatPointe(monthKey, records);
@@ -110,8 +106,6 @@ export function MonatPageV4({
           )}
         </div>
       </section>
-
-      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
 
       {children}
 
