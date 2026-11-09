@@ -1,7 +1,7 @@
 # Design-Run — PR #76
 
 **Baseline (Design, Head `50634c3`):** siehe `BEFUND-design-baseline.md`  
-**Messung nach Fix:** `design-run-60fceda.json` (lokal `next start`, Playwright Chromium)
+**Messung nach Fix:** `design-run-ca8746e.json` (lokal `next start`, Playwright Chromium)
 
 ## 1) CLS `/monat/2026-10` (1280×900, light)
 
@@ -24,7 +24,7 @@ Maßnahmen: `NavigationMain` (alter Inhalt bis `h1` im Zielbaum), `router.prefet
 
 ## 3) X-Achse (375 dark)
 
-Crop: `x-axis-375-dark-60fceda.png` — Ticks 1/8/15/22/29, letztes Label `31.` mit Klasse `is-end` (innen rechts), Schrift 12 px.
+Crop: `x-axis-375-dark-ca8746e.png` — Ticks 1/8/15/22/29, letztes Label `31.` mit Klasse `is-end` (innen rechts), Schrift 12 px.
 
 ## 4) Faktor-Caption
 

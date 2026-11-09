@@ -1,20 +1,8 @@
 {
-  "commit": "60fcedad76582ca076795b05dbb3069966b1281a",
-  "buildId": "20261109T1818Z",
-  "builtAt": "2026-11-09T18:18:10.225Z",
+  "commit": "ca8746ec605c535ecfe1ddc900807d0ebed099b3",
+  "buildId": "20261109T1826Z",
+  "builtAt": "2026-11-09T18:26:12.667Z",
   "node": "v22.23.4",
-  "dirty": true,
-  "dirtyPaths": [
-    "M app/globals.css",
-    " M components/home/NationalFleetTimeSeriesChart.tsx",
-    " M components/home/NationalFleetTimeSeriesChartInner.tsx",
-    " M components/site-shell.tsx",
-    " M lib/nationalFleetCharts.ts",
-    "?? components/NavigationMain.tsx",
-    "?? components/home/NationalFleetTimeSeriesChartSkeleton.tsx",
-    "?? lib/designRunChartLayout.test.ts",
-    "?? lib/nationalFleetChartTicks.test.ts",
-    "?? scripts/design-run-seitenpaket.mjs"
-  ],
+  "dirty": false,
   "ci": false
 }
