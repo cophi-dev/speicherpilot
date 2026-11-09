@@ -1,19 +1,10 @@
-import { MonatMarktInsightsDl } from "@/components/home/MonatMarktInsightsDl";
-import { NationalFleetMonthChapter } from "@/components/home/NationalFleetMonthChapter";
+import { MonatArbeitWirkungChart, MonatDauerlinieChart, MonatKonzeptWerkbank } from "@/components/home/MonatKonzeptCharts";
 import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
-import { NationalFleetThreeGoalsCompare } from "@/components/home/NationalFleetThreeGoalsCompare";
-import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
+import { buildArbeitWirkungModel } from "@/lib/monatKonzeptA";
+import { buildDauerlinieFromRun } from "@/lib/monatKonzeptC";
+import { marktPeakFootnoteFromRun } from "@/lib/nationalFleetThreeGoals";
 import {
-  buildThreeGoalsCompare,
-  formatMarktPeakFootnote,
-  formatMarktPeakWarnShort,
-  marktPeakFootnoteFromRun,
-} from "@/lib/nationalFleetThreeGoals";
-import {
-  factorCompareRowsForStrategy,
-  strategyMarginalForUi,
-} from "@/lib/nationalFleetMarginal";
-import {
+  getFleetRun,
   monthStatsForRun,
   nationalFleetMonthAvailable,
   type NationalFleetFactor,
@@ -21,83 +12,95 @@ import {
 } from "@/lib/nationalMonthFleetModel";
 import {
   loadNationalFleetBundleMeta,
+  loadNationalFleetMonthBundle,
   loadNationalFleetRunSeries,
-  nationalFleetContext,
 } from "@/lib/nationalMonthFleetModel.server";
-import type { MarktInsight } from "@/lib/marktInsights";
 
 export function NationalFleetMonatSlot({
   monthKey,
   factor,
   strategy,
-  bars,
-  surplusLine,
-  seriesLine,
-  marktInsights = [],
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
-  bars: MonatSurplusBar[];
+  bars?: unknown;
   surplusLine?: string;
   seriesLine?: string;
-  marktInsights?: MarktInsight[];
+  marktInsights?: unknown;
 }) {
   if (!nationalFleetMonthAvailable(monthKey)) {
     return <NationalFleetMonthUnavailable monthKey={monthKey} />;
   }
 
-  const bundle = nationalFleetContext(factor, strategy);
+  const bundle = loadNationalFleetMonthBundle();
+  const arbeit = buildArbeitWirkungModel(bundle);
+  const observed = getFleetRun(bundle, 1, "ueberschuss");
+  const activeRun = getFleetRun(bundle, factor, strategy);
+  const dauer = buildDauerlinieFromRun(observed, activeRun);
   const stats = monthStatsForRun(bundle, factor, strategy);
-  const run = loadNationalFleetRunSeries(factor, strategy);
-  const marginalUi = strategyMarginalForUi(bundle, strategy);
-  const factorRows = factorCompareRowsForStrategy(bundle, strategy);
 
-  const compareModel = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
-  let marktPeakWarn: string | null = null;
-  let marktPeakDetail: string | null = null;
-  if (compareModel.marktX10PeakTs) {
+  let marktX10Detail: { residualGw: number; chargeGw: number; priceEurMwh: number } | null = null;
+  if (arbeit.compare.marktX10PeakTs) {
     const marktRun = loadNationalFleetRunSeries(10, "markt");
-    const idx = marktRun.timestamp_berlin.indexOf(compareModel.marktX10PeakTs);
+    const idx = marktRun.timestamp_berlin.indexOf(arbeit.compare.marktX10PeakTs);
     if (idx >= 0) {
-      const detail = marktPeakFootnoteFromRun(
-        compareModel.marktX10PeakTs,
+      const d = marktPeakFootnoteFromRun(
+        arbeit.compare.marktX10PeakTs,
         marktRun.r_mw[idx],
         marktRun.r_prime_mw[idx],
         marktRun.c_mw[idx],
         marktRun.day_ahead_eur_mwh[idx],
       );
-      marktPeakWarn = formatMarktPeakWarnShort(detail);
-      marktPeakDetail = formatMarktPeakFootnote(detail);
+      marktX10Detail = {
+        residualGw: d.residualGw,
+        chargeGw: d.chargeGw,
+        priceEurMwh: d.priceEurMwh,
+      };
     }
   }
 
   return (
     <>
-      <NationalFleetMonthChapter
+      <MonatArbeitWirkungChart
+        model={arbeit}
+        monthKey={monthKey}
+        activeFactor={factor}
+        activeStrategy={strategy}
+        marktX10Detail={marktX10Detail}
+      />
+      <MonatKonzeptWerkbank
         monthKey={monthKey}
         factor={factor}
         strategy={strategy}
-        stats={stats}
-        run={run}
-        marginalSteps={marginalUi.steps}
-        surplusPoolMarginal={marginalUi.surplusPoolOnly}
-        factorRows={factorRows}
-        bars={bars}
-        surplusLine={surplusLine}
-        seriesLine={seriesLine}
-        insightsFooter={<MonatMarktInsightsDl insights={marktInsights} />}
+        open
+        peakReductionGw={stats.peakReductionGw}
+        peakReductionPct={stats.peakReductionPct}
       />
-      <div className="v4-three-goals-slot">
-        <NationalFleetThreeGoalsCompare
-          model={compareModel}
-          monthKey={monthKey}
-          activeFactor={factor}
-          activeStrategy={strategy}
-          marktPeakWarn={marktPeakWarn}
-          marktPeakDetail={marktPeakDetail}
-        />
-      </div>
+      <MonatDauerlinieChart
+        model={dauer}
+        monthKey={monthKey}
+        activeFactor={factor}
+        activeStrategy={strategy}
+        fleetAvailable
+      />
+      <footer className="v4-content v4-day-footnotes">
+        <p className="v4-footnote num">
+          Modellflotte {formatFleetFromMeta()} · Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Day-Ahead Price Taker, perfekte
+          Voraussicht, ohne Preisrückwirkung. Quelle Energy-Charts / SMARD CC BY 4.0.{" "}
+          <a href="/methodik#monat-konzept-ac" className="v4-footnote-link">
+            Methodik
+          </a>
+        </p>
+      </footer>
     </>
   );
+}
+
+function formatFleetFromMeta(): string {
+  const meta = loadNationalFleetBundleMeta();
+  const mw = (meta.provenance?.model_fleet as { power_mw?: number; energy_mwh?: number }) ?? {};
+  const gw = (mw.power_mw ?? 4580) / 1000;
+  const gwh = (mw.energy_mwh ?? 8000) / 1000;
+  return `${gw.toFixed(2).replace(".", ",")} GW / ${gwh.toFixed(0)} GWh (×1)`;
 }

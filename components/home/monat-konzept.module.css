@@ -1,0 +1,164 @@
+.sectionA,
+.sectionC {
+  margin: 0 0 32px;
+}
+
+.figure {
+  margin: 0;
+}
+
+.chartShell {
+  width: 100%;
+  min-height: 220px;
+  position: relative;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.yTick,
+.xTick,
+.refLabel,
+.yUnit {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  fill: var(--v4-muted);
+}
+
+.gridLine {
+  stroke: var(--v4-border);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.zeroLine {
+  stroke: var(--v4-muted);
+  stroke-width: 1;
+}
+
+.negativeFill {
+  fill: hsl(var(--muted-foreground) / 0.08);
+}
+
+.poolLine {
+  stroke: hsl(var(--muted-foreground) / 0.45);
+  stroke-dasharray: 6 4;
+}
+
+.pointDot {
+  cursor: pointer;
+  stroke-width: 2;
+}
+
+.pointDot.spitze {
+  fill: #e86a3a;
+}
+
+.pointDot.ueberschuss {
+  fill: #0b9f84;
+}
+
+.pointDot.markt {
+  fill: #f5b731;
+}
+
+.pointDot.hollow {
+  fill: hsl(var(--background));
+}
+
+.pointDot.isActive {
+  stroke: hsl(var(--foreground));
+  stroke-width: 2.5;
+}
+
+.pathLine {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0.85;
+}
+
+.pathLine.spitze {
+  stroke: #e86a3a;
+}
+
+.pathLine.ueberschuss {
+  stroke: #0b9f84;
+}
+
+.pathLine.markt {
+  stroke: #f5b731;
+}
+
+.annotation {
+  font-size: 12px;
+  fill: hsl(var(--foreground));
+}
+
+.annotationMuted {
+  font-size: 12px;
+  fill: var(--v4-muted);
+}
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
+.mobilePaths {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mobilePathTitle {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.mobilePathChart {
+  width: 100%;
+  min-height: 88px;
+}
+
+.sectionC .morphHost {
+  min-height: 240px;
+}
+
+.morphNote {
+  font-size: 12px;
+  color: var(--v4-muted);
+  margin: 8px 0 0;
+}
+
+.workbench {
+  margin: 20px 0 28px;
+}
+
+.workbenchHead {
+  font-size: 12px;
+  color: var(--v4-muted);
+  margin: 0 0 8px;
+}
+
+@media (max-width: 639px) {
+  .desktopChart {
+    display: none;
+  }
+
+  .mobilePaths {
+    display: flex;
+  }
+}
+
+@media (min-width: 640px) {
+  .mobilePaths {
+    display: none;
+  }
+}

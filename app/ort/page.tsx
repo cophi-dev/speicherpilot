@@ -2,6 +2,7 @@ import { OrtServerShell } from "@/components/site/OrtServerShell";
 import { OrtUnbHinweis } from "@/components/site/OrtUnbHinweis";
 import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
 import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
+import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
 import { OrtSiteDayClient } from "@/components/site/OrtSiteDayClient";
 import { capRingPoints } from "@/lib/capRingPoints";
@@ -49,11 +50,14 @@ export default async function OrtPage({
       : modelDay;
 
   const snap = loadTagRollSnapshot();
+  const liveFleet = await loadLargeBatteryFleet();
+  const fleetPowerGw = liveFleet?.powerGw ?? snap.fleet.powerGw;
+  const fleetEnergyGwh = liveFleet?.energyGwh ?? snap.fleet.energyGwh;
   const marktInsights = marktInsightsForRoute({
     route: "ort",
     records: snap.records,
-    fleetPowerGw: snap.fleet.powerGw,
-    fleetEnergyGwh: snap.fleet.energyGwh,
+    fleetPowerGw,
+    fleetEnergyGwh,
   });
 
   return (

@@ -1,8 +1,9 @@
 .block {
   margin: 24px auto 8px;
-  padding: 16px 0;
+  padding: 16px clamp(16px, 4vw, 44px);
   border-top: 1px solid var(--v4-border);
   max-width: var(--v4-content-max, 1200px);
+  box-sizing: border-box;
 }
 
 .title {

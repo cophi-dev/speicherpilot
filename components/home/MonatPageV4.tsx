@@ -104,7 +104,7 @@ export function MonatPageV4({
             </>
           )}
           <h1 id="monat-h1" className="v4-h1">
-            {h1}
+            {fleetOnPage ? "Wer am meisten lädt, senkt die Spitze am wenigsten." : h1}
           </h1>
           {fleetOnPage ? null : (
             <>
@@ -117,6 +117,7 @@ export function MonatPageV4({
 
       {children}
 
+      {fleetOnPage ? null : (
       <section className="v4-chapter" aria-labelledby="monat-graph-title">
         <div className="v4-chapter-head v4-content">
           <p className="v4-chapter-num num">Beobachteter Überschuss</p>
@@ -148,6 +149,7 @@ export function MonatPageV4({
           fleetStrategy={fleetStrategy}
         />
       </section>
+      )}
 
       <p className="v4-chapter-foot v4-content num">
         <Link href="/" className="v4-text-link">
