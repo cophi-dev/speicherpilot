@@ -10084,3 +10084,150 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   color: hsl(var(--destructive));
 }
 
+
+/* Skala an der Kopf-Leiste */
+.v4-rang-max {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 1.2;
+  color: hsl(var(--muted-foreground));
+}
+.v4-rang-bars.has-scale {
+  border-top: 1px dashed hsl(var(--foreground) / 0.25);
+  border-bottom: 1px solid hsl(var(--foreground) / 0.35);
+}
+.v4-rang-dates {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.2;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Fußnotenapparat */
+.v4-fn-ref {
+  font-size: 0.7em;
+  line-height: 0;
+  margin-left: 2px;
+  vertical-align: super;
+}
+.v4-fn-ref a {
+  display: inline-block;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 2px 4px;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.v4-anm {
+  margin-top: 48px;
+  padding-top: 24px;
+  padding-bottom: 32px;
+  border-top: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  line-height: 1.45;
+}
+.v4-anm-h2 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.v4-anm-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px 40px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 768px) {
+  .v4-anm-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.v4-anm-item {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 8px;
+  scroll-margin-top: 80px;
+}
+.v4-anm-item:target {
+  outline: 1px solid hsl(var(--foreground) / 0.3);
+  outline-offset: 6px;
+}
+.v4-anm-num {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.v4-anm-title {
+  margin: 0 0 2px;
+  color: hsl(var(--foreground));
+}
+.v4-anm-item p {
+  margin: 0 0 4px;
+  max-width: 70ch;
+}
+.v4-anm-back {
+  display: inline-block;
+  min-width: 24px;
+  min-height: 24px;
+  color: inherit;
+  text-decoration: none;
+}
+.v4-anm-more {
+  margin: 16px 0 0;
+}
+
+/* Fußnoten in der Inhaltsspalte halten */
+.v4-content.v4-footnote {
+  max-width: 1240px;
+  margin-inline: auto;
+}
+.v4-content.v4-footnote > * {
+  max-width: 68ch;
+}
+.monat-page .v4-content.v4-footnote {
+  max-width: min(72rem, 100%);
+}
+
+/* Monat: Hauptkennzahl als Zahl plus Einordnung */
+.v4-fleet-kpi-primary .v4-fleet-kpi-value {
+  display: block;
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 500;
+  line-height: 1.1;
+}
+.v4-fleet-kpi-primary .v4-fleet-kpi-detail {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+}
+.v4-fleet-assumptions {
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+.v4-fleet-assumptions summary {
+  cursor: pointer;
+  min-height: 24px;
+  padding: 4px 0;
+}
+.v4-fleet-assumptions p {
+  margin: 4px 0 0;
+  max-width: 70ch;
+}
+@media (min-width: 640px) {
+  .v4-start-day-panel.v4-content {
+    max-width: 1240px;
+  }
+}

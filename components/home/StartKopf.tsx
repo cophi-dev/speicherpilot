@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
+import { FnRef, START_NOTE } from "@/components/home/StartAnmerkungen";
 import { prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { berlinMonthKeyFromDateKey } from "@/lib/monatCalendar";
-import { startPointe } from "@/lib/startPointe";
+import { formatQuantity } from "@/lib/formatQuantity";
+import type { StartPointe } from "@/lib/startPointe";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { NATIONAL_FLEET_MONTH_KEY, fleetMonatHref } from "@/lib/nationalMonthFleetModel";
@@ -23,13 +25,14 @@ export function StartKopf({
   todayKey,
   dataStand,
   records,
+  pointe,
 }: {
   kopfDayKey: string;
   todayKey: string;
   dataStand: string;
   records: TagesKennzahlRecord[];
+  pointe: StartPointe;
 }) {
-  const pointe = useMemo(() => startPointe(records, kopfDayKey), [records, kopfDayKey]);
   const stand = kopfDataStand(kopfDayKey, todayKey, dataStand);
   const kicker = `Start · ${weekdayShort(kopfDayKey, "de")}, ${formatBerlinDayLabel(kopfDayKey)} · Datenstand ${stand}`;
   const monthKey = berlinMonthKeyFromDateKey(kopfDayKey);
@@ -45,6 +48,18 @@ export function StartKopf({
       zero: r.surplusGwh < 0.05,
     }));
   }, [kopfDayKey, records]);
+
+  const scale = useMemo(() => {
+    if (bars.length === 0) {
+      return undefined;
+    }
+    const max = Math.max(...bars.map((b) => b.value ?? 0));
+    return {
+      maxLabel: max > 0 ? `${formatQuantity(max, "de", 1)} GWh` : "0 GWh",
+      startLabel: formatBerlinDayLabel(bars[0].dateKey).slice(0, 6),
+      endLabel: formatBerlinDayLabel(bars[bars.length - 1].dateKey).slice(0, 6),
+    };
+  }, [bars]);
 
   return (
     <section className="v4-kopf" aria-labelledby="start-h1">
@@ -71,10 +86,13 @@ export function StartKopf({
               <span className="v4-riesenzahl-unit">{pointe.heroUnit}</span>
             </p>
             <div className="v4-kern-row num">
-              <span>{pointe.heroKern}</span>
+              <span>
+                {pointe.heroKern}
+                <FnRef n={START_NOTE.auffaelligkeit} />
+              </span>
             </div>
           </div>
-          <RangLeiste bars={bars} metricLabel="Überschuss je Tag" rankLabel="Überschuss je Tag" />
+          <RangLeiste bars={bars} metricLabel="Überschuss je Tag" rankLabel="Überschuss je Tag" scale={scale} />
         </div>
         <div className="v4-kopf-links">
           <Link href={`/tag/${kopfDayKey}`} className="v4-text-link">
@@ -90,11 +108,7 @@ export function StartKopf({
           >
             Monat ansehen →
           </Link>
-          <Link href="/methodik#auffaelligkeit" className="v4-text-link">
-            Wie die Auffälligkeit gewählt wird
-          </Link>
         </div>
-        {pointe.footnote ? <p className="v4-footnote v4-kopf-footnote">{pointe.footnote}</p> : null}
       </div>
     </section>
   );

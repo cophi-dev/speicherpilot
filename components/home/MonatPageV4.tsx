@@ -90,7 +90,6 @@ export function MonatPageV4({
             {h1}
           </h1>
           <p className="v4-subline">{subline}</p>
-          <p className="v4-footnote">{footnote}</p>
         </div>
       </section>
 
@@ -127,6 +126,8 @@ export function MonatPageV4({
           fleetStrategy={fleetStrategy}
         />
       </section>
+
+      <p className="v4-content v4-footnote">{footnote}</p>
 
       <p className="v4-chapter-foot v4-content num">
         <Link href="/" className="v4-text-link">

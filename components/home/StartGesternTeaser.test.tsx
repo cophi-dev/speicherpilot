@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 
+import { StartAnmerkungen } from "@/components/home/StartAnmerkungen";
 import { StartGesternTeaser } from "@/components/home/StartGesternTeaser";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { HomeDayPanelData } from "@/lib/homeDayPanel";
@@ -41,37 +42,44 @@ const record = {
 } as TagesKennzahlRecord;
 
 describe("StartGesternTeaser", () => {
-  it("puts core figures above the footnotes and keeps the formula out of the figure row", () => {
+  it("shows core figures and the chart chapter without the formula block", () => {
+    render(<StartGesternTeaser kopfDayKey="2026-11-08" record={record} day={null} panel={panel} />);
+
+    const figures = screen.getByTestId("start-day-panel");
+    expect(figures.textContent).toMatch(/1\.275,1/);
+    expect(figures.textContent).toMatch(/1\.417,5/);
+    expect(document.body.textContent).not.toMatch(/Σ max/);
+    expect(document.body.textContent).not.toMatch(/Referenzflotte/);
+    expect(document.body.textContent).not.toMatch(/Annahmen und Zeiträume/);
+    expect(screen.queryByTestId("start-day-footnotes")).toBeNull();
+    expect(figures.querySelector('a[href="#anm-3"]')).not.toBeNull();
+    expect(document.body.textContent).not.toMatch(/€/);
+  });
+});
+
+describe("StartAnmerkungen", () => {
+  it("keeps formula, source, model and assumptions as numbered notes", () => {
     render(
-      <StartGesternTeaser
+      <StartAnmerkungen
         kopfDayKey="2026-11-08"
-        record={record}
-        day={null}
+        kopfFootnote="Gestern (08.11.2026) ohne Überschuss zum Laden aus Wind und Sonne."
         panel={panel}
-        records={[record]}
+        surplusLine="Unter 0,05 GWh Tages-Überschuss."
+        lastLine="Zuletzt: So, 25.10. war Strom übrig."
+        system={{ totalSurplusGwh: 115.6, x1AbsorbedGwh: 32.6, x1SharePct: 28 }}
       />
     );
 
-    const figures = screen.getByTestId("start-day-panel");
-    const footnotes = screen.getByTestId("start-day-footnotes");
-    expect(figures.compareDocumentPosition(footnotes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(figures.textContent).toMatch(/1\.275,1/);
-    expect(figures.textContent).toMatch(/1\.417,5/);
-    expect(figures.textContent).not.toMatch(/Σ max/);
-    expect(figures.textContent).not.toMatch(/Referenzflotte/);
-    expect(footnotes.textContent).toMatch(/Σ max\(0, Wind\+Sonne−Last\)/);
-    expect(footnotes.textContent).toMatch(/Energy-Charts/);
-    expect(footnotes.textContent).toMatch(/Referenzflotte/);
-    expect(footnotes.textContent).toMatch(/Geladen/);
-    expect(footnotes.textContent).toMatch(/Annahmen und Zeiträume/);
-    expect(document.body.textContent).not.toMatch(/€/);
-    expect(document.querySelector(".v4-tag-kern")).toBeNull();
-    expect(
-      [...footnotes.querySelectorAll("dt")].map((node) => node.textContent)
-    ).toEqual(["Formel", "Daten", "Modell", "Netz"]);
-    for (const value of footnotes.querySelectorAll("dd")) {
-      expect(value.classList.contains("num")).toBe(false);
-      expect((value.textContent ?? "").length).toBeLessThanOrEqual(70);
-    }
+    const notes = screen.getByTestId("start-day-footnotes");
+    expect([...notes.querySelectorAll("li")].map((li) => li.id)).toEqual(["anm-1", "anm-2", "anm-3", "anm-4"]);
+    expect(notes.textContent).toMatch(/Σ max\(0, Wind\+Sonne−Last\)×¼h/);
+    expect(screen.getByTestId("start-day-meta").textContent).toMatch(/Energy-Charts · 19:56/);
+    expect(screen.getByTestId("start-day-model-fleet").textContent).toMatch(/Referenzflotte 4,64 GW \/ 8,14 GWh/);
+    expect(notes.textContent).toMatch(/Geladen 0,0 GWh, abgegeben 0,0 GWh/);
+    expect(notes.textContent).toMatch(/Annahmen und Zeiträume: Hypothetisches ×1-Modell/);
+    expect(notes.textContent).toMatch(/Lokale Netzwirkung: nicht bewertet/);
+    expect(notes.textContent).toMatch(/32,6 GWh geladen \(28/);
+    expect(notes.querySelector('a[href="/methodik"]')).not.toBeNull();
+    expect(notes.textContent).not.toMatch(/€/);
   });
 });

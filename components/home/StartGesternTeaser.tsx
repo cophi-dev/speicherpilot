@@ -3,8 +3,7 @@
 import Link from "next/link";
 
 import { LueckeChart } from "@/components/home/LueckeChart";
-import { StartDayFootnotes, StartDayPanel } from "@/components/home/StartDayPanel";
-import { tagSurplusLine, tagLastSurplusLine, lastSurplusBefore } from "@/lib/kopfTagCopy";
+import { StartDayPanel } from "@/components/home/StartDayPanel";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { HomeDayPanelData } from "@/lib/homeDayPanel";
@@ -15,21 +14,13 @@ export function StartGesternTeaser({
   record,
   day,
   panel,
-  records,
 }: {
   kopfDayKey: string;
   record: TagesKennzahlRecord | undefined;
   day: ResidualDay | null;
   panel: HomeDayPanelData | null;
-  records: TagesKennzahlRecord[];
 }) {
   const label = formatBerlinDayLabel(kopfDayKey);
-  const surplus =
-    record != null
-      ? tagSurplusLine(record.surplusGwh)
-      : "Überschuss-Kennzahl für diesen Tag nicht verfügbar.";
-  const lastSurplus = lastSurplusBefore(records, kopfDayKey);
-  const lastLine = tagLastSurplusLine(lastSurplus);
   const peakGw = record?.eveningPeakGw ?? null;
   const peakAt = record?.eveningPeakAt ?? null;
 
@@ -48,15 +39,6 @@ export function StartGesternTeaser({
         <div className="v4-content v4-luecke-wrap" data-testid="start-day-chart">
           <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
         </div>
-      ) : null}
-
-      {panel ? (
-        <StartDayFootnotes
-          panel={panel}
-          kopfDayKey={kopfDayKey}
-          surplusLine={surplus}
-          lastLine={lastLine}
-        />
       ) : null}
 
       <p className="v4-chapter-foot v4-content num">
