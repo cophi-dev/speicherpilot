@@ -4,7 +4,12 @@ import { useMemo } from "react";
 
 import { yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import type { ResearchCloudModel, ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
-import { formatReductionTickGw, RESEARCH_FLEET_POWER_MW } from "@/lib/research/fleetBasis";
+import {
+  formatGwSenkung,
+  formatReductionTickGw,
+  GW_MINUS,
+  RESEARCH_FLEET_POWER_MW,
+} from "@/lib/research/fleetBasis";
 
 import styles from "@/components/research/research.module.css";
 
@@ -29,6 +34,11 @@ function dayOnly(shortLabel: string): string {
   return `${d}.`;
 }
 
+function weekBarValueLabel(gw: number): string {
+  const rounded = Math.round(gw * 10) / 10;
+  return `${GW_MINUS}${rounded.toFixed(1).replace(".", ",")}`;
+}
+
 export function WeekDotsChart({
   week,
   factor = 2,
@@ -46,14 +56,25 @@ export function WeekDotsChart({
     const pt = d.points.find((p) => p.factor === factor)!;
     return useFourHour ? pt.reduction4hGw : pt.reduction175Gw;
   });
-  const yMax = Math.max(14, Math.ceil(Math.max(...reductions, 0) / 2) * 2);
+  const peak = Math.max(...reductions, 0.5);
+  const yMax = Math.max(6, Math.ceil((peak + 1.5) / 2) * 2);
   const padTop = 26;
   const padBottom = 56;
   const colW = (width - 78) / Math.max(week.length, 1);
   const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, padTop, padBottom);
   const yZero = y(0);
-  const barW = Math.min(24, Math.max(10, colW * 0.52));
+  const barW = Math.min(28, Math.max(14, colW * 0.62));
   const durationLabel = useFourHour ? "4 h" : "1,76 h";
+
+  const barMeta = week.map((day, col) => {
+    const pt = day.points.find((p) => p.factor === factor)!;
+    const value = useFourHour ? pt.reduction4hGw : pt.reduction175Gw;
+    const cx = 52 + col * colW;
+    const barTop = y(value);
+    const barH = Math.max(8, yZero - barTop);
+    const labelY = yZero + 11;
+    return { day, col, cx, value, barTop, barH, labelY };
+  });
 
   return (
     <svg
@@ -67,33 +88,51 @@ export function WeekDotsChart({
       <text x={32} y={yAxisUnitLabelY(padTop)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
       </text>
-      {Array.from({ length: yMax / 2 + 1 }, (_, i) => i * 2).map((tick) => (
+      {Array.from({ length: yMax / 2 + 1 }, (_, i) => i * 2).map((tick) => {
+        const ty = y(tick) + yAxisTickLabelDy(tick);
+        const hideTickLabel = barMeta.some((b) => b.cx < 58 && Math.abs(b.labelY - ty) < 15);
+        return (
         <g key={tick}>
           <line x1={40} x2={width - 16} y1={y(tick)} y2={y(tick)} stroke="var(--research-line)" />
-          <text x={32} y={y(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          {hideTickLabel ? null : (
+          <text x={32} y={ty} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {formatReductionTickGw(tick)}
           </text>
+          )}
         </g>
-      ))}
-      {week.map((day, col) => {
-        const cx = 52 + col * colW;
-        const pt = day.points.find((p) => p.factor === factor)!;
-        const value = useFourHour ? pt.reduction4hGw : pt.reduction175Gw;
-        const barTop = y(value);
-        const barH = Math.max(2, yZero - barTop);
-        const fill = day.isFocus ? "var(--research-accent)" : "var(--research-fg)";
+        );
+      })}
+      {barMeta.map(({ day, col, cx, value, barTop, barH, labelY }) => {
+        const accentSeries = factor === 2;
+        const fill = accentSeries
+          ? day.isFocus
+            ? "var(--research-accent)"
+            : "var(--research-accent-light)"
+          : day.isFocus
+            ? "var(--research-accent)"
+            : "var(--research-fg)";
         return (
           <g key={day.dateKey}>
-            {day.isFocus ? <rect x={cx - 22} y={16} width={44} height={height - 58} rx={6} fill="var(--research-card)" /> : null}
+            {day.isFocus ? <rect x={cx - Math.max(26, barW)} y={padTop - 6} width={Math.max(52, barW * 2)} height={height - padBottom - padTop + 18} rx={6} fill="var(--research-card)" /> : null}
             <rect
               x={cx - barW / 2}
               y={barTop}
               width={barW}
               height={barH}
-              rx={3}
+              rx={4}
               fill={fill}
-              opacity={useFourHour ? 0.92 : 1}
+              opacity={accentSeries ? (day.isFocus ? 1 : 0.78) : useFourHour ? 0.88 : 1}
             />
+            <text
+              x={cx}
+              y={labelY}
+              textAnchor="middle"
+              fontSize={9}
+              fill={day.isFocus ? "var(--research-fg)" : "var(--research-muted)"}
+              fontFamily="var(--font-jetbrains-mono)"
+            >
+              {weekBarValueLabel(value)}
+            </text>
             <text
               x={cx}
               y={height - padBottom + 14}

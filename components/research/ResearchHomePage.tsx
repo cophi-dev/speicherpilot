@@ -76,9 +76,9 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
       </p>
 
       <div className={styles.lowerSplit}>
-        <section id="woche" className={styles.sectionInSplit}>
+        <section id="woche" className={styles.sectionInSplit} style={{ scrollMarginTop: 12 }}>
           <p className={styles.eyebrow}>DIESE WOCHE · {weekRangeLabel(model.week)} · TAGESHORIZONT</p>
-          <h2 className={styles.h2}>{model.weekHeadline}</h2>
+          <h2 className={`${styles.h2} ${styles.weekHeadline}`}>{model.weekHeadline}</h2>
           <div className={styles.seg} role="group" aria-label="Woche Flottenstufe" style={{ marginTop: 4, marginBottom: 6 }}>
             {FACTORS.map((f) => (
               <button key={f} type="button" aria-pressed={weekFactor === f} onClick={() => setWeekFactor(f)}>
