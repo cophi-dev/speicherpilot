@@ -71,7 +71,7 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
         <section id="woche" className={styles.sectionInSplit}>
           <p className={styles.eyebrow}>DIESE WOCHE · {weekRangeLabel(model.week)} · TAGESHORIZONT</p>
           <h2 className={styles.h2}>{model.weekHeadline}</h2>
-          <p className={styles.legendInline} aria-hidden>
+          <p className={styles.legendWeekOneLine} aria-hidden>
             ○ 1,76 h · — 4 h · ■ 4 h: GW fehlen · ‖ Tagesgrenze
           </p>
           <WeekDotsChart week={model.week} width={layout.week.width} height={layout.week.height} />

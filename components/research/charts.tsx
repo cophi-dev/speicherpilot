@@ -87,18 +87,25 @@ export function WeekDotsChart({
             {day.isFocus ? <rect x={cx - 20} y={16} width={40} height={height - 58} rx={6} fill="var(--research-card)" /> : null}
             {([2, 5, 10] as const).map((factor) => {
               const pt = day.points.find((p) => p.factor === factor)!;
-              const cy = y(pt.reduction175Gw);
-              const cy4 = y(pt.reduction4hGw);
+              let cy = y(pt.reduction175Gw);
+              let cy4 = y(pt.reduction4hGw);
+              const tight = pt.marker175 === "dashed" && Math.abs(cy - cy4) < 16;
+              if (tight) {
+                cy -= 5;
+                cy4 += 6;
+              }
+              const circleR = tight && factor === 10 ? 4.5 : 6;
+              const x175 = colX2 + (tight && factor === 10 ? -5 : 0);
               const active = day.isFocus && factor === 5;
               const stroke = active ? "var(--research-accent)" : "var(--research-fg)";
               return (
                 <g key={factor}>
-                  <path d={`M${colX2 + 6},${cy} H${colX4 - 6} V${cy4}`} fill="none" stroke="var(--research-dim)" strokeWidth={1} />
+                  <path d={`M${x175 + 6},${cy} H${colX4 - 6} V${cy4}`} fill="none" stroke="var(--research-dim)" strokeWidth={1} />
                   <WeekMarker4h kind={pt.marker4h} cx={colX4} cy={cy4} />
                   <circle
-                    cx={colX2}
+                    cx={x175}
                     cy={cy}
-                    r={6}
+                    r={circleR}
                     fill="var(--research-bg)"
                     stroke={stroke}
                     strokeWidth={2.5}

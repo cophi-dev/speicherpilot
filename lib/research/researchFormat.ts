@@ -21,9 +21,12 @@ export function researchEyebrowGestern(day: ResearchDayModel): string {
 
 export function fourHourSensitivityLine(fourhGw: number, tenGw: number, factor?: ResearchFactor): string {
   const base = `mit 4 h: ${formatGwSenkung(fourhGw)}`;
-  if (factor === 5 && fourhGw > tenGw + 1e-9) {
-    const tenLabel = formatGwSenkung(tenGw).replace("−", "");
-    return `${base}, mehr als ×10 (${tenLabel})`;
+  if (factor === 5) {
+    const fourDisp = Math.round(fourhGw * 10) / 10;
+    const tenDisp = Math.round(tenGw * 10) / 10;
+    if (fourhGw >= tenGw - 1e-9 && fourDisp >= tenDisp) {
+      return `${base} – so viel wie ×10 mit heutiger Speicherdauer`;
+    }
   }
   return base;
 }
