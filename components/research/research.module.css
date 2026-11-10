@@ -230,13 +230,16 @@
   margin: 8px 0;
 }
 
-.legendWeekOneLine {
+.legendWeek {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 2px;
   font-family: var(--font-jetbrains-mono), monospace;
   font-size: 12px;
+  line-height: 1.35;
   color: var(--research-muted);
   margin: 8px 0 6px;
-  white-space: nowrap;
-  overflow-x: auto;
   max-width: 100%;
 }
 

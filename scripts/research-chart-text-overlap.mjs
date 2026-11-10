@@ -52,6 +52,11 @@ for (const vp of VIEWPORTS) {
   const page = await context.newPage();
   await page.emulateMedia({ colorScheme: vp.theme });
   for (const path of PATHS) {
+    if (path === "/vision") {
+      await page.addInitScript(() => {
+        window.localStorage.setItem("speicherpilot-vision-guess-skip", "1");
+      });
+    }
     await page.goto(`${base}${path}`, { waitUntil: "networkidle" });
     await page.waitForTimeout(600);
     const { n, pairs } = await countOverlaps(page);

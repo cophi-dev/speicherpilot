@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { reductionFromY, yFromReduction } from "@/components/research/chartY";
+import { reductionFromY, yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import { formatGwSenkung } from "@/lib/research/fleetBasis";
 import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
@@ -65,6 +65,8 @@ export function VisionPlot({
 
   const stageIdx = points.findIndex((p) => p.id === stageId);
   const active = points[stageIdx]!;
+  const stageChoices = useMemo(() => points.filter((p) => p.id !== "x1"), [points]);
+  const stageChoiceIdx = Math.max(0, stageChoices.findIndex((p) => p.id === stageId));
   const nepB = points.find((p) => p.id === "nep-b")!;
   const x1 = points.find((p) => p.id === "x1")!;
 
@@ -115,7 +117,7 @@ export function VisionPlot({
           role="img"
           aria-label="Vision Sättigung Oktober"
         >
-          <text x={32} y={20} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={32} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             GW
           </text>
           {[0, 5, 10, 15, 20].map((tick) => (
@@ -128,7 +130,7 @@ export function VisionPlot({
                 stroke="var(--research-line)"
                 opacity={guessMode && !showCurves ? 0.45 : 1}
               />
-              <text x={32} y={yPos(tick) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+              <text x={32} y={yPos(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
                 {tick === 0 ? "0" : `−${tick}`}
               </text>
             </g>
@@ -145,8 +147,8 @@ export function VisionPlot({
             strokeDasharray="4 3"
             strokeWidth={1}
           />
-          <text x={width - 20} y={24} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            ≥ {model.commitmentsGw} GW Zusagen*
+          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            {width < 420 ? `≥${model.commitmentsGw} GW*` : `≥ ${model.commitmentsGw} GW Zusagen*`}
           </text>
           {showCurves ? (
             <>
@@ -244,7 +246,23 @@ export function VisionPlot({
             width={width - 52}
             height={HIT}
             fill="transparent"
+            role="slider"
+            aria-label="NEP-Stufe"
+            aria-valuemin={0}
+            aria-valuemax={stageChoices.length - 1}
+            aria-valuenow={stageChoiceIdx}
+            tabIndex={0}
             style={{ touchAction: "none" }}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                e.preventDefault();
+                if (stageChoiceIdx > 0) onStage(stageChoices[stageChoiceIdx - 1]!.id as VisionStageId);
+              }
+              if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                e.preventDefault();
+                if (stageChoiceIdx < stageChoices.length - 1) onStage(stageChoices[stageChoiceIdx + 1]!.id as VisionStageId);
+              }
+            }}
             onPointerDown={(e) => {
               (e.currentTarget as Element).setPointerCapture(e.pointerId);
               snapStage(e.clientX);

@@ -1,3 +1,13 @@
+/** Y-Achsen-„GW“ oberhalb der Nulllinie, damit „0“ nicht kollidiert. */
+export function yAxisUnitLabelY(padTop: number): number {
+  return padTop - 10;
+}
+
+/** Tick „0“ sitzt tiefer als negative Ticks (Baseline-Kollision mit „GW“). */
+export function yAxisTickLabelDy(tick: number): number {
+  return tick === 0 ? 12 : 4;
+}
+
 /** 0 (keine Senkung) oben, größere Senkung nach unten — wie in den Skizzen. */
 export function yFromReduction(
   reductionGw: number,

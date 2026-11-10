@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { yFromReduction } from "@/components/research/chartY";
+import { yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import type { ResearchCloudModel, ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
 import { RESEARCH_FLEET_POWER_MW } from "@/lib/research/fleetBasis";
 
@@ -54,9 +54,10 @@ export function WeekDotsChart({
   height?: number;
 }) {
   const yMax = 14;
+  const padTop = 26;
   const padBottom = 56;
   const colW = (width - 78) / Math.max(week.length, 1);
-  const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, 26, padBottom);
+  const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, padTop, padBottom);
 
   return (
     <svg
@@ -67,13 +68,13 @@ export function WeekDotsChart({
       role="img"
       aria-label="Spitzensenkung je Tag national"
     >
-      <text x={32} y={18} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+      <text x={32} y={yAxisUnitLabelY(padTop)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
       </text>
       {[0, 2, 4, 6, 8, 10, 12, 14].map((tick) => (
         <g key={tick}>
           <line x1={40} x2={width - 16} y1={y(tick)} y2={y(tick)} stroke="var(--research-line)" />
-          <text x={32} y={y(tick) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={32} y={y(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {tick === 0 ? "0" : `−${tick}`}
           </text>
         </g>
@@ -165,7 +166,8 @@ export function SaturationChart({
   height?: number;
 }) {
   const yMax = 18;
-  const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, 26, 52);
+  const padTop = 26;
+  const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, padTop, 52);
 
   const cloudDots = useMemo(() => {
     const dots: Array<{ x: number; y: number }> = [];
@@ -231,13 +233,13 @@ export function SaturationChart({
       role="img"
       aria-label="Gestern auf der Sättigungskurve"
     >
-      <text x={32} y={18} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+      <text x={32} y={yAxisUnitLabelY(padTop)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
       </text>
       {[0, 6, 12, 18].map((tick) => (
         <g key={tick}>
           <line x1={40} x2={width - 16} y1={y(tick)} y2={y(tick)} stroke="var(--research-line)" />
-          <text x={32} y={y(tick) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={32} y={y(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {tick === 0 ? "0" : `−${tick}`}
           </text>
         </g>
@@ -259,7 +261,14 @@ export function SaturationChart({
       <text x={midA.x} y={midA.y - 10} textAnchor="middle" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         {margA} je GW
       </text>
-      <text x={Math.min(midB.x + 8, width - 8)} y={midB.y - 12} textAnchor="start" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+      <text
+        x={width < 400 ? Math.min(midB.x, width - 52) : Math.min(midB.x + 8, width - 8)}
+        y={midB.y - 12}
+        textAnchor={width < 400 ? "end" : "start"}
+        fontSize={12}
+        fill="var(--research-muted)"
+        fontFamily="var(--font-jetbrains-mono)"
+      >
         {margB} je GW
       </text>
       {([1, 2, 5, 10] as const).map((f) => (

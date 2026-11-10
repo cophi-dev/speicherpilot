@@ -49,7 +49,7 @@ for (const { theme } of [{ theme: "dark" }, { theme: "light" }]) {
   await setTheme(page, "dark");
   await page.evaluate(() => localStorage.removeItem("speicherpilot-vision-guess-skip"));
   await page.reload({ waitUntil: "networkidle" });
-  const handle = page.locator('svg[aria-label="Vision Sättigung Oktober"] rect[style*="touch-action: none"]').first();
+  const handle = page.locator('svg[aria-label="Vision Sättigung Oktober"] rect[cursor="ns-resize"], svg[aria-label="Vision Sättigung Oktober"] rect').first();
   const box = await handle.boundingBox();
   if (box) {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
