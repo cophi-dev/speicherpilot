@@ -210,7 +210,11 @@ export function buildChartObstacles(model: ArbeitWirkungModel, viewW: number, st
     for (const p of model.points.filter((pt) => pt.strategy === strategy)) {
       const cx = logX(p.chargeGwh, viewW);
       const cy = yWirkung(p.wirkungGw);
-      obs.push({ kind: "box", box: { x: cx - 18, y: cy - 28, w: 36, h: 14 } });
+      if (p.strategy === "markt" && p.factor === 10) {
+        obs.push({ kind: "box", box: { x: cx - 42, y: cy - 4, w: 36, h: 14 } });
+      } else {
+        obs.push({ kind: "box", box: { x: cx - 18, y: cy - 28, w: 36, h: 14 } });
+      }
     }
   }
   for (const seg of pathSegments(model, strategies as never, viewW)) obs.push({ kind: "segment", segment: seg, threshold: 4 });

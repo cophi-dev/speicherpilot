@@ -244,13 +244,17 @@ export function MonatArbeitWirkungChart({
     const cy = yWirkung(p.wirkungGw);
     const active = p.factor === activeFactor && p.strategy === activeStrategy;
     const isFirst = p.strategy === "spitze" && p.factor === 1;
+    const factorBesidePoint = p.strategy === "markt" && p.factor === 10;
+    const factorX = factorBesidePoint ? cx - 10 : cx;
+    const factorY = factorBesidePoint ? cy + 4 : cy - 12;
+    const factorAnchor = factorBesidePoint ? "end" : "middle";
     return (
       <g key={`${p.strategy}-${p.factor}`} data-chart-point={`${p.strategy}-${p.factor}`}>
         <text
-          x={cx}
-          y={cy - 12}
+          x={factorX}
+          y={factorY}
           className={styles.factorPointLabel}
-          textAnchor="middle"
+          textAnchor={factorAnchor}
           data-chart-factor={`${p.strategy}-${p.factor}`}
         >
           ×{p.factor}
@@ -619,11 +623,18 @@ function DauerlinieSvg({
   scene,
   fleetAvailable,
   sorted,
+  layoutMode,
 }: {
   scene: ReturnType<typeof buildDauerlinieScene>;
   fleetAvailable: boolean;
   sorted: boolean;
+  layoutMode: "desktop" | "mobile";
 }) {
+  const plotBottom = scene.padT + scene.plotH;
+  const xTickY = layoutMode === "mobile" ? plotBottom + 16 : scene.viewH - 28;
+  const xTitleY = layoutMode === "mobile" ? plotBottom + 32 : scene.viewH - 8;
+  const valleyEndX = scene.xPixFromHours(DAUER_SORTED_HOURS);
+
   return (
     <svg
       viewBox={`0 0 ${scene.viewW} ${scene.viewH}`}
@@ -632,6 +643,7 @@ function DauerlinieSvg({
       className={styles.svg}
       role="img"
       data-testid="dauerlinie-svg"
+      data-dauer-layout={layoutMode}
     >
       <text x={scene.padL} y={scene.padT - 14} className={styles.yAxisTitle} textAnchor="start" fontSize={12}>
         Restlast, GW
@@ -647,7 +659,7 @@ function DauerlinieSvg({
           />
           <text
             x={scene.padL - 8}
-            y={scene.yPix(tick) + 4}
+            y={tick === -60 ? scene.yPix(tick) - 6 : scene.yPix(tick) + 4}
             className={styles.yTick}
             textAnchor="end"
             fontSize={12}
@@ -657,7 +669,10 @@ function DauerlinieSvg({
           </text>
         </g>
       ))}
-      {DAUER_X_TICKS_H.map((h) => (
+      {DAUER_X_TICKS_H.map((h) => {
+        const isZero = h === 0;
+        const xPos = isZero ? scene.padL + 6 : scene.xPixFromHours(h);
+        return (
         <g key={h}>
           <line
             x1={scene.xPixFromHours(h)}
@@ -667,20 +682,21 @@ function DauerlinieSvg({
             className={styles.gridLine}
           />
           <text
-            x={scene.xPixFromHours(h)}
-            y={scene.viewH - 22}
+            x={xPos}
+            y={xTickY}
             className={styles.xTick}
-            textAnchor="middle"
+            textAnchor={isZero ? "start" : "middle"}
             fontSize={12}
             data-chart-tick={`x-${h}`}
           >
             {formatQuantity(h, "de", 0)} h
           </text>
         </g>
-      ))}
+        );
+      })}
       <text
         x={scene.padL + scene.plotW / 2}
-        y={scene.viewH - 6}
+        y={xTitleY}
         className={styles.axisTitle}
         textAnchor="middle"
         fontSize={12}
@@ -711,11 +727,12 @@ function DauerlinieSvg({
           </text>
           {scene.valleyStor != null ? (
             <text
-              x={scene.padL + scene.plotW - 4}
-              y={scene.yPix(scene.valleyStor) + 16}
+              x={Math.max(scene.padL + 4, valleyEndX - 168)}
+              y={scene.yPix(scene.valleyStor) - 8}
               className={styles.dauerLabelMuted}
-              textAnchor="end"
+              textAnchor="start"
               fontSize={12}
+              data-testid="dauer-tal-label"
             >
               Tal {formatQuantity(scene.valleyStor, "de", 1)} statt {formatQuantity(scene.valleyObs, "de", 1)}
             </text>
@@ -784,7 +801,12 @@ export function MonatDauerlinieChart({
               ref={shellRef}
               className={`${styles.chartShell} ${styles.chartShellC}${isMobile ? ` ${styles.chartShellCMobile}` : ""}`}
             >
-              <DauerlinieSvg scene={scene} fleetAvailable={fleetAvailable} sorted={sorted} />
+              <DauerlinieSvg
+                scene={scene}
+                fleetAvailable={fleetAvailable}
+                sorted={sorted}
+                layoutMode={isMobile ? "mobile" : "desktop"}
+              />
             </div>
           </div>
         </div>

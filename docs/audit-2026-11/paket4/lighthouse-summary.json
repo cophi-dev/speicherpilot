@@ -1,13 +1,13 @@
 [
   {
     "route": "/monat/2026-10?faktor=10&fahrweise=markt",
-    "perf": 86,
+    "perf": 87,
     "a11y": 98,
     "cls": 0
   },
   {
     "route": "/ort",
-    "perf": 96,
+    "perf": 92,
     "a11y": 100,
     "cls": 0
   }

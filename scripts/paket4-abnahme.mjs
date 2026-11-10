@@ -4,7 +4,7 @@
  */
 import { chromium } from "playwright";
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const BASE = process.env.SITE_E2E_BASE_URL ?? "http://127.0.0.1:3001";
@@ -97,44 +97,36 @@ const SHOTS = [
     fullPage: true,
   },
   {
-    file: "monat-2026-10-1024-dark.png",
+    file: "monat-2026-10-390-dark.png",
     path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
-    w: 1024,
-    h: 900,
+    w: 390,
+    h: 844,
     theme: "dark",
     fullPage: true,
   },
   {
-    file: "monat-2026-10-390-dark-top.png",
-    path: "/monat/2026-10?faktor=10&fahrweise=markt",
-    w: 390,
-    h: 844,
-    theme: "dark",
-    scrollY: 0,
-  },
-  {
-    file: "monat-2026-10-390-dark-miniplots.png",
-    path: "/monat/2026-10?faktor=5&fahrweise=spitze",
-    w: 390,
-    h: 844,
-    theme: "dark",
-    scrollTo: '[data-testid="arbeit-mobile-paths"]',
-  },
-  {
-    file: "monat-2026-10-390-light-top.png",
-    path: "/monat/2026-10?faktor=1&fahrweise=markt",
+    file: "monat-2026-10-390-light.png",
+    path: "/monat/2026-10?faktor=1&fahrweise=markt&morph=1",
     w: 390,
     h: 844,
     theme: "light",
-    scrollY: 0,
+    fullPage: true,
   },
   {
-    file: "monat-2026-10-390-light-miniplots.png",
-    path: "/monat/2026-10?faktor=5&fahrweise=spitze",
+    file: "monat-2026-10-390-c-dark-morph1.png",
+    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
+    w: 390,
+    h: 844,
+    theme: "dark",
+    scrollTo: "#monat-dauerlinie-title",
+  },
+  {
+    file: "monat-2026-10-390-c-light-morph1.png",
+    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
     w: 390,
     h: 844,
     theme: "light",
-    scrollTo: '[data-testid="arbeit-mobile-paths"]',
+    scrollTo: "#monat-dauerlinie-title",
   },
   {
     file: "monat-2026-10-1440-c-morph0.png",
@@ -152,24 +144,6 @@ const SHOTS = [
     theme: "dark",
     scrollTo: "#monat-dauerlinie-title",
   },
-  {
-    file: "monat-2026-10-390-c-morph0.png",
-    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=0",
-    w: 390,
-    h: 844,
-    theme: "dark",
-    scrollTo: "#monat-dauerlinie-title",
-  },
-  {
-    file: "monat-2026-10-390-c-morph1.png",
-    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
-    w: 390,
-    h: 844,
-    theme: "dark",
-    scrollTo: "#monat-dauerlinie-title",
-  },
-  { file: "ort-390-dark.png", path: "/ort", w: 390, h: 844, theme: "dark" },
-  { file: "ort-390-light.png", path: "/ort", w: 390, h: 844, theme: "light" },
 ];
 
 const CROP_SHOTS = [
@@ -179,6 +153,7 @@ const CROP_SHOTS = [
     w: 390,
     h: 844,
     theme: "light",
+    scrollTo: "#monat-dauerlinie-title",
     selector: '[data-testid="dauerlinie-svg"]',
   },
   {
@@ -329,6 +304,43 @@ async function assertSvgCollisions(page) {
           if (overlap(yb, boxOf(tick), 1)) violations.push(`y-title×tick:${key}×${tid}`);
         }
       }
+
+      for (const factor of svg.querySelectorAll("[data-chart-factor]")) {
+        const pt = factor.closest("[data-chart-point]");
+        const c = pt?.querySelector("circle");
+        if (!c) continue;
+        const cx = Number(c.getAttribute("cx"));
+        const cy = Number(c.getAttribute("cy"));
+        const r = Number(c.getAttribute("r")) + 2;
+        if (overlap(boxOf(factor), { x: cx - r, y: cy - r, w: 2 * r, h: 2 * r }, 1)) {
+          add(`factor×own-point:${factor.getAttribute("data-chart-factor")}`);
+        }
+      }
+    }
+
+    const dauer = document.querySelector('[data-testid="dauerlinie-svg"]');
+    if (dauer) {
+      const add = (v) => {
+        if (!violations.includes(v)) violations.push(v);
+      };
+      const dTicks = [...dauer.querySelectorAll("[data-chart-tick]")];
+      for (let i = 0; i < dTicks.length; i++) {
+        for (let j = i + 1; j < dTicks.length; j++) {
+          if (overlap(boxOf(dTicks[i]), boxOf(dTicks[j]), 1)) {
+            add(
+              `dauer-tick×tick:${dTicks[i].getAttribute("data-chart-tick")}×${dTicks[j].getAttribute("data-chart-tick")}`,
+            );
+          }
+        }
+      }
+      const tal = dauer.querySelector('[data-testid="dauer-tal-label"]');
+      const xTitle = dauer.querySelector('[data-chart-tick="x-title"]');
+      if (tal && xTitle && overlap(boxOf(tal), boxOf(xTitle), 2)) add("dauer-tal×x-title");
+      const layout = dauer.getAttribute("data-dauer-layout");
+      if (layout === "mobile") {
+        const h = dauer.getBoundingClientRect().height;
+        if (h < 318) add(`dauer-mobile-height:${h.toFixed(1)}`);
+      }
     }
 
     const mobileRoot = document.querySelector('[data-testid="arbeit-mobile-paths"]');
@@ -385,6 +397,11 @@ async function assertSvgCollisions(page) {
 async function main() {
   patchTurbopackCssChunk();
   mkdirSync(OUT, { recursive: true });
+  if (existsSync(OUT)) {
+    for (const name of readdirSync(OUT)) {
+      if (name.endsWith(".png")) rmSync(join(OUT, name), { force: true });
+    }
+  }
   const browser = await chromium.launch({ headless: true });
   for (const s of SHOTS) {
     const page = await browser.newPage({ viewport: { width: s.w, height: s.h } });
@@ -452,16 +469,28 @@ async function main() {
   ]) {
     const collisionPage = await browser.newPage({ viewport: { width: vp.w, height: vp.h } });
     await preparePage(collisionPage, "dark");
-    await collisionPage.goto(`${BASE}/monat/2026-10?faktor=10&fahrweise=markt`, {
+    const collisionPath =
+      vp.mobile && vp.name === "390"
+        ? "/monat/2026-10?faktor=10&fahrweise=markt&morph=1"
+        : "/monat/2026-10?faktor=10&fahrweise=markt";
+    await collisionPage.goto(`${BASE}${collisionPath}`, {
       waitUntil: "domcontentloaded",
       timeout: 120_000,
     });
     await applyTheme(collisionPage, "dark");
     await waitStyled(collisionPage);
+    if (vp.mobile && vp.name === "390") {
+      await collisionPage.waitForSelector("#monat-dauerlinie-title", { timeout: 60_000 }).catch(() => {});
+      await collisionPage.locator("#monat-dauerlinie-title").scrollIntoViewIfNeeded({ timeout: 60_000 });
+      await collisionPage.waitForTimeout(400);
+    }
     const result = await assertSvgCollisions(collisionPage);
     if (vp.mobile) {
       const mobileOnly = result.violations.filter(
-        (v) => v.startsWith("mobile-") || v.startsWith("content-left"),
+        (v) =>
+          v.startsWith("mobile-") ||
+          v.startsWith("content-left") ||
+          v.startsWith("dauer-"),
       );
       collisionByViewport[vp.name] = { ...result, violations: mobileOnly, ok: mobileOnly.length === 0 };
     } else {

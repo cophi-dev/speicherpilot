@@ -44,6 +44,12 @@ Stand: 10. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81
 4. **Mobil-Miniplots:** 12 px rechter Innenabstand; Wertlabels bei negativen GW unter dem Punkt.
 5. **Abnahme:** `label-collision.json` prüft Fluchtlinie (≥ Kopf), Callout vs. Fußnote/Plot, Mobil-Clip + Label-auf-Punkt.
 
+## Korrektur 7 (vor Abnahme)
+
+- **C mobil:** X-Ticks unter dem Plot; Y-Tick −60 nach innen; Tal-Label oberhalb, links; SVG/CSS fix 320 px.
+- **A 1440:** ×10 links neben Punkt; `factor×own-point` im Kollisionstest.
+- **Screens:** Ordner geleert, Set neu (1440/390 dark+light fullPage, C morph, 3 Crops; kein morph05).
+
 ## Designrunde v6 (Urteil NEIN → Korrektur)
 
 - **C mobil:** eigene Layout-Breite (`buildDauerlinieScene`, Modus `mobile`), Plot gesamt ~320 px CSS, Y-Ticks −60/0/60/100 GW, X in Stunden 0/350/700 h (745 h); Hero „96,76 GW“ ≥ 40 px.
