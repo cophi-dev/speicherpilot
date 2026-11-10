@@ -29,35 +29,31 @@ function dayOnly(shortLabel: string): string {
   return `${d}.`;
 }
 
-function WeekMarker4h({ kind, cx, cy }: { kind: "tick" | "square" | "double"; cx: number; cy: number }) {
-  if (kind === "square") {
-    return <rect x={cx - 5} y={cy - 5} width={10} height={10} fill="var(--research-fg)" />;
-  }
-  if (kind === "double") {
-    return (
-      <g>
-        <line x1={cx - 6} x2={cx + 6} y1={cy - 2} y2={cy - 2} stroke="var(--research-muted)" strokeWidth={1.5} />
-        <line x1={cx - 6} x2={cx + 6} y1={cy + 2} y2={cy + 2} stroke="var(--research-muted)" strokeWidth={1.5} />
-      </g>
-    );
-  }
-  return <line x1={cx - 6} x2={cx + 6} y1={cy} y2={cy} stroke="var(--research-fg)" strokeWidth={2} />;
-}
-
 export function WeekDotsChart({
   week,
+  factor = 2,
+  useFourHour = false,
   width = 350,
   height = 332,
 }: {
   week: ResearchWeekDay[];
+  factor?: ResearchFactor;
+  useFourHour?: boolean;
   width?: number;
   height?: number;
 }) {
-  const yMax = 14;
+  const reductions = week.map((d) => {
+    const pt = d.points.find((p) => p.factor === factor)!;
+    return useFourHour ? pt.reduction4hGw : pt.reduction175Gw;
+  });
+  const yMax = Math.max(14, Math.ceil(Math.max(...reductions, 0) / 2) * 2);
   const padTop = 26;
   const padBottom = 56;
   const colW = (width - 78) / Math.max(week.length, 1);
   const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, padTop, padBottom);
+  const yZero = y(0);
+  const barW = Math.min(24, Math.max(10, colW * 0.52));
+  const durationLabel = useFourHour ? "4 h" : "1,76 h";
 
   return (
     <svg
@@ -66,12 +62,12 @@ export function WeekDotsChart({
       viewBox={`0 0 ${width} ${height}`}
       className={styles.chartFixed}
       role="img"
-      aria-label="Spitzensenkung je Tag national"
+      aria-label={`Spitzensenkung je Tag · ×${factor} · ${durationLabel} · national`}
     >
       <text x={32} y={yAxisUnitLabelY(padTop)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
       </text>
-      {[0, 2, 4, 6, 8, 10, 12, 14].map((tick) => (
+      {Array.from({ length: yMax / 2 + 1 }, (_, i) => i * 2).map((tick) => (
         <g key={tick}>
           <line x1={40} x2={width - 16} y1={y(tick)} y2={y(tick)} stroke="var(--research-line)" />
           <text x={32} y={y(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
@@ -81,52 +77,23 @@ export function WeekDotsChart({
       ))}
       {week.map((day, col) => {
         const cx = 52 + col * colW;
-        const colX2 = cx - 10;
-        const colX4 = cx + 4;
+        const pt = day.points.find((p) => p.factor === factor)!;
+        const value = useFourHour ? pt.reduction4hGw : pt.reduction175Gw;
+        const barTop = y(value);
+        const barH = Math.max(2, yZero - barTop);
+        const fill = day.isFocus ? "var(--research-accent)" : "var(--research-fg)";
         return (
           <g key={day.dateKey}>
-            {day.isFocus ? <rect x={cx - 20} y={16} width={40} height={height - 58} rx={6} fill="var(--research-card)" /> : null}
-            {([2, 5, 10] as const).map((factor) => {
-              const pt = day.points.find((p) => p.factor === factor)!;
-              let cy = y(pt.reduction175Gw);
-              let cy4 = y(pt.reduction4hGw);
-              const tight = pt.marker175 === "dashed" && Math.abs(cy - cy4) < 16;
-              if (tight) {
-                cy -= 5;
-                cy4 += 6;
-              }
-              const circleR = tight && factor === 10 ? 4.5 : 6;
-              const x175 = colX2 + (tight && factor === 10 ? -5 : 0);
-              const active = day.isFocus && factor === 5;
-              const stroke = active ? "var(--research-accent)" : "var(--research-fg)";
-              return (
-                <g key={factor}>
-                  <path d={`M${x175 + 6},${cy} H${colX4 - 6} V${cy4}`} fill="none" stroke="var(--research-dim)" strokeWidth={1} />
-                  <WeekMarker4h kind={pt.marker4h} cx={colX4} cy={cy4} />
-                  <circle
-                    cx={x175}
-                    cy={cy}
-                    r={circleR}
-                    fill="var(--research-bg)"
-                    stroke={stroke}
-                    strokeWidth={2.5}
-                    strokeDasharray={pt.marker175 === "dashed" ? "2 2" : undefined}
-                  />
-                  {day.isFocus ? (
-                    <text
-                      x={width - 12}
-                      y={cy + 4}
-                      textAnchor="end"
-                      fontSize={12}
-                      fill="var(--research-muted)"
-                      fontFamily="var(--font-jetbrains-mono)"
-                    >
-                      ×{factor}
-                    </text>
-                  ) : null}
-                </g>
-              );
-            })}
+            {day.isFocus ? <rect x={cx - 22} y={16} width={44} height={height - 58} rx={6} fill="var(--research-card)" /> : null}
+            <rect
+              x={cx - barW / 2}
+              y={barTop}
+              width={barW}
+              height={barH}
+              rx={3}
+              fill={fill}
+              opacity={useFourHour ? 0.92 : 1}
+            />
             <text
               x={cx}
               y={height - padBottom + 14}
