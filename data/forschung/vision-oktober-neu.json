@@ -1,0 +1,110 @@
+[
+  {
+    "stufe": "x2",
+    "dauer_h": 1.7554479809395263,
+    "P_ges_GW": 9.28818044,
+    "senkung_GW": 3.590362603339905
+  },
+  {
+    "stufe": "x2",
+    "dauer_h": 2.0,
+    "P_ges_GW": 9.28818044,
+    "senkung_GW": 3.9163994183407196
+  },
+  {
+    "stufe": "x2",
+    "dauer_h": 4.0,
+    "P_ges_GW": 9.28818044,
+    "senkung_GW": 4.644090220000959
+  },
+  {
+    "stufe": "x5",
+    "dauer_h": 1.7554479809395263,
+    "P_ges_GW": 23.2204511,
+    "senkung_GW": 9.411100317117969
+  },
+  {
+    "stufe": "x5",
+    "dauer_h": 2.0,
+    "P_ges_GW": 23.2204511,
+    "senkung_GW": 9.998402229341279
+  },
+  {
+    "stufe": "x5",
+    "dauer_h": 4.0,
+    "P_ges_GW": 23.2204511,
+    "senkung_GW": 14.071732120206653
+  },
+  {
+    "stufe": "x10",
+    "dauer_h": 1.7554479809395263,
+    "P_ges_GW": 46.4409022,
+    "senkung_GW": 13.979487077758503
+  },
+  {
+    "stufe": "x10",
+    "dauer_h": 2.0,
+    "P_ges_GW": 46.4409022,
+    "senkung_GW": 14.972618442267791
+  },
+  {
+    "stufe": "x10",
+    "dauer_h": 4.0,
+    "P_ges_GW": 46.4409022,
+    "senkung_GW": 17.862462852889912
+  },
+  {
+    "stufe": "NEP A",
+    "dauer_h": 1.7554479809395263,
+    "P_ges_GW": 41.1,
+    "senkung_GW": 13.035863978156668
+  },
+  {
+    "stufe": "NEP A",
+    "dauer_h": 2.0,
+    "P_ges_GW": 41.1,
+    "senkung_GW": 13.933991919941692
+  },
+  {
+    "stufe": "NEP A",
+    "dauer_h": 4.0,
+    "P_ges_GW": 41.1,
+    "senkung_GW": 17.34337003802988
+  },
+  {
+    "stufe": "NEP B",
+    "dauer_h": 1.7554479809395263,
+    "P_ges_GW": 67.6,
+    "senkung_GW": 16.309993110355492
+  },
+  {
+    "stufe": "NEP B",
+    "dauer_h": 2.0,
+    "P_ges_GW": 67.6,
+    "senkung_GW": 16.852209832033594
+  },
+  {
+    "stufe": "NEP B",
+    "dauer_h": 4.0,
+    "P_ges_GW": 67.6,
+    "senkung_GW": 18.719575482778687
+  },
+  {
+    "stufe": "NEP C",
+    "dauer_h": 1.7554479809395263,
+    "P_ges_GW": 94.1,
+    "senkung_GW": 17.615832506546887
+  },
+  {
+    "stufe": "NEP C",
+    "dauer_h": 2.0,
+    "P_ges_GW": 94.1,
+    "senkung_GW": 18.14661651047705
+  },
+  {
+    "stufe": "NEP C",
+    "dauer_h": 4.0,
+    "P_ges_GW": 94.1,
+    "senkung_GW": 19.246777907169932
+  }
+]

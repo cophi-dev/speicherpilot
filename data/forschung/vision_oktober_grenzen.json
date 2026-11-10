@@ -1,0 +1,55 @@
+{
+ "grenzen": [
+  {
+   "stufe": "x2",
+   "dauer": "flotte",
+   "E_unbegrenzt": 4.644090220000959,
+   "P_unbegrenzt": 3.590362603339905
+  },
+  {
+   "stufe": "x3",
+   "dauer": "flotte",
+   "E_unbegrenzt": 9.288180440001,
+   "P_unbegrenzt": 5.677687671925865
+  },
+  {
+   "stufe": "x5",
+   "dauer": "flotte",
+   "E_unbegrenzt": 18.576360880000955,
+   "P_unbegrenzt": 9.411100317117969
+  },
+  {
+   "stufe": "x10",
+   "dauer": "flotte",
+   "E_unbegrenzt": 34.048242008855475,
+   "P_unbegrenzt": 13.979487077758503
+  },
+  {
+   "stufe": "x2",
+   "dauer": 4,
+   "E_unbegrenzt": 4.644090220000959,
+   "P_unbegrenzt": 6.226306707677548
+  },
+  {
+   "stufe": "x3",
+   "dauer": 4,
+   "E_unbegrenzt": 9.288180440001,
+   "P_unbegrenzt": 9.998402229341279
+  },
+  {
+   "stufe": "x5",
+   "dauer": 4,
+   "E_unbegrenzt": 18.576360880000955,
+   "P_unbegrenzt": 14.071732120206653
+  },
+  {
+   "stufe": "x10",
+   "dauer": 4,
+   "E_unbegrenzt": 34.048242008855475,
+   "P_unbegrenzt": 17.862462852889912
+  }
+ ],
+ "tagesform_obergrenze": 34.048242008855475,
+ "spitze": 64.40589999999999,
+ "ts": 2980
+}
