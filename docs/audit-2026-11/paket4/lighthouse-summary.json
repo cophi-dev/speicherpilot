@@ -1,0 +1,14 @@
+[
+  {
+    "route": "/monat/2026-10?faktor=10&fahrweise=markt",
+    "perf": 81,
+    "a11y": 98,
+    "cls": 0
+  },
+  {
+    "route": "/ort",
+    "perf": 84,
+    "a11y": 100,
+    "cls": 0
+  }
+]

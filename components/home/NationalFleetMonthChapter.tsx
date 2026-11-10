@@ -94,6 +94,7 @@ export function NationalFleetMonthChapter({
   bars,
   surplusLine,
   seriesLine,
+  insightsFooter,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
@@ -106,6 +107,7 @@ export function NationalFleetMonthChapter({
   bars: MonatSurplusBar[];
   surplusLine?: string;
   seriesLine?: string;
+  insightsFooter?: React.ReactNode;
 }) {
   const dailySocMax = 0.9 * stats.fleetEnergyGwh * 1000;
 
@@ -142,6 +144,16 @@ export function NationalFleetMonthChapter({
           Last, Spitzen und Speicherwirkung im Monat
         </h2>
       </div>
+
+      <NationalFleetTimeSeriesChart
+        monthKey={monthKey}
+        factor={factor}
+        strategy={strategy}
+        peakReductionGw={stats.peakReductionGw}
+        peakReductionPct={stats.peakReductionPct}
+        prominentMonth
+      />
+      {insightsFooter}
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
@@ -202,15 +214,6 @@ export function NationalFleetMonthChapter({
           <dd>{formatGw(stats.dischargeGwh, 2)} GWh</dd>
         </div>
       </dl>
-
-      <NationalFleetTimeSeriesChart
-        monthKey={monthKey}
-        factor={factor}
-        strategy={strategy}
-        peakReductionGw={stats.peakReductionGw}
-        peakReductionPct={stats.peakReductionPct}
-        prominentMonth
-      />
       <FleetMonthFootnotes
         factor={factor}
         monthKey={monthKey}

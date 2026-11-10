@@ -16,7 +16,9 @@ const NationalFleetTimeSeriesChartInner = dynamic(
   },
 );
 
-export function NationalFleetTimeSeriesChart(props: NationalFleetTimeSeriesChartProps) {
+export function NationalFleetTimeSeriesChart(
+  props: NationalFleetTimeSeriesChartProps & { konzeptWorkbench?: boolean },
+) {
   const reserve = Boolean(props.prominentMonth && !props.dateKey);
   if (!reserve) {
     return <NationalFleetTimeSeriesChartInner {...props} />;

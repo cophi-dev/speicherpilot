@@ -1,0 +1,167 @@
+.section {
+  margin-top: 0;
+}
+
+.figure {
+  margin: 0;
+}
+
+.chartShell {
+  width: 100%;
+  max-width: none;
+  min-height: 196px;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.yTick,
+.refLabel,
+.yUnit {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  fill: var(--v4-muted);
+}
+
+.xLabel {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  fill: var(--v4-muted);
+  opacity: 0.92;
+}
+
+.yUnit {
+  font-size: 12px;
+}
+
+.gridLine {
+  stroke: var(--v4-border);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.refLine {
+  stroke: var(--v4-muted);
+  stroke-dasharray: 4 3;
+  stroke-width: 1;
+}
+
+.refLabel {
+  fill: var(--v4-muted);
+  paint-order: stroke fill;
+  stroke: hsl(var(--background));
+  stroke-width: 4px;
+}
+
+.barLink {
+  outline: none;
+}
+
+.barLink:focus-visible rect {
+  outline: 2px solid var(--v4-focus);
+  outline-offset: 2px;
+}
+
+.bar {
+  transition: opacity 0.15s ease;
+}
+
+.barAccent {
+  fill: var(--v4-warm, #e86a3a);
+}
+
+.barMuted {
+  fill: hsl(var(--muted-foreground) / 0.28);
+}
+
+.barActive {
+  opacity: 1;
+}
+
+.barMuted:hover,
+.barAccent:hover {
+  opacity: 0.92;
+}
+
+.lead {
+  max-width: 42ch;
+}
+
+.kpiDl {
+  display: grid;
+  gap: 6px 16px;
+  margin: 12px 0 8px;
+  font-size: 13px;
+}
+
+.kpiDl dt {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.kpiDl dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  align-items: center;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.swatchAccent {
+  background: var(--v4-warm, #e86a3a);
+}
+
+.swatchMuted {
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+
+.caption {
+  margin-top: 4px;
+}
+
+.warnNote {
+  margin-top: 8px;
+  max-width: 62ch;
+}
+
+.table {
+  margin-top: 12px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+}
+
+@media (max-width: 639px) {
+  .chartShell {
+    max-width: 100%;
+  }
+
+  .kpiDl {
+    font-size: 12px;
+  }
+}

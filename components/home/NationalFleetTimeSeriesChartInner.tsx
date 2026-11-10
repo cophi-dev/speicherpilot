@@ -19,6 +19,7 @@ import {
 import { NationalFleetTimeSeriesChartSkeleton } from "@/components/home/NationalFleetTimeSeriesChartSkeleton";
 import type { FleetChartSeriesPayload } from "@/lib/nationalFleetSeriesPayload";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import { formatKonzeptWorkbenchCaption } from "@/lib/monatKonzeptA";
 
 type SeriesPayload = FleetChartSeriesPayload;
 
@@ -123,6 +124,7 @@ export type NationalFleetTimeSeriesChartProps = {
   monthContextNote?: string;
   scrollHint?: string;
   prominentMonth?: boolean;
+  konzeptWorkbench?: boolean;
 };
 
 export function NationalFleetTimeSeriesChart({
@@ -137,6 +139,7 @@ export function NationalFleetTimeSeriesChart({
   monthContextNote,
   scrollHint,
   prominentMonth = false,
+  konzeptWorkbench = false,
 }: NationalFleetTimeSeriesChartProps) {
   const [frame, setFrame] = useState<ChartFrame | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -295,7 +298,9 @@ export function NationalFleetTimeSeriesChart({
 
   const captionMain = isDay
     ? formatPeakCaptionDay(peakRpGw, dayReduction, dayObserved)
-    : formatPeakEffectLine(peakRpGw, frame.peakReductionGw, frame.peakReductionPct);
+    : konzeptWorkbench
+      ? formatKonzeptWorkbenchCaption(peakRpGw, frame.peakReductionGw)
+      : formatPeakEffectLine(peakRpGw, frame.peakReductionGw, frame.peakReductionPct);
 
   const captionMonth =
     isDay && monthContextNote
@@ -363,7 +368,7 @@ export function NationalFleetTimeSeriesChart({
     <figure
       className={`v4-fleet-ts-wrap v4-content${prominentMonth && !isDay ? " is-month-prominent" : ""}`}
     >
-      <figcaption className="v4-fleet-caption">
+      <figcaption className={`v4-fleet-caption${konzeptWorkbench && !isDay ? " sr-only" : ""}`}>
         <span className="v4-fleet-caption-main">{captionMain}</span>
         {captionMonth ? <span className="v4-fleet-caption-month num"> {captionMonth}</span> : null}
         {scrollHint ? <span className="v4-fleet-caption-hint"> · {scrollHint}</span> : null}

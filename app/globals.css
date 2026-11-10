@@ -20,6 +20,7 @@ body {
   --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-jetbrains-mono: var(--font-jetbrains), ui-monospace, monospace;
   --font-heading: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: hsl(var(--ring));
   --color-sidebar-border: hsl(var(--border));
@@ -7998,7 +7999,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .v4-monat-chart-x span {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.2;
 }
 .v4-monat-chart-x-empty {
@@ -10258,11 +10259,18 @@ html:not(.dark) .ort-v4-page .site-quiet {
 .monat-page .v4-kicker-short {
   display: none;
 }
+.monat-page .v4-monat-kicker-single {
+  display: block;
+}
 @media (min-width: 768px) {
   .monat-page .v4-h1 {
     font-size: 36px;
     line-height: 1.1;
     max-width: none;
+  }
+  .monat-page.has-fleet-konzept .v4-h1 {
+    font-size: 40px;
+    line-height: 1.08;
   }
   .monat-page .v4-fleet-controls {
     flex-direction: row;
@@ -10285,6 +10293,25 @@ html:not(.dark) .ort-v4-page .site-quiet {
   .monat-page .v4-month-mobile-note {
     display: none;
   }
+  .monat-page .v4-fleet-month {
+    display: flex;
+    flex-direction: column;
+  }
+  .monat-page .v4-fleet-month > .v4-chapter-head {
+    order: 0;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-controls {
+    order: 1;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-kpis-hero {
+    order: 2;
+  }
+  .monat-page .v4-fleet-month > .v4-fleet-ts-slot {
+    order: 3;
+  }
+  .monat-page .v4-fleet-month > .v4-monat-insights-dl {
+    order: 4;
+  }
   .monat-page .v4-fleet-ts-slot.is-month-prominent,
   .monat-page .v4-fleet-ts-slot.is-month-prominent .v4-fleet-ts-wrap.is-month-prominent {
     min-height: 520px;
@@ -10295,7 +10322,30 @@ html:not(.dark) .ort-v4-page .site-quiet {
     overflow: hidden;
   }
 }
+@media (min-width: 1280px) {
+  .monat-page.has-fleet-konzept .v4-h1 {
+    font-size: 56px;
+    line-height: 1.05;
+    max-width: 22ch;
+  }
+}
 @media (max-width: 767px) {
+  .monat-page.has-fleet-konzept > .v4-tag-nav {
+    order: 1;
+  }
+  .monat-page.has-fleet-konzept > .v4-kopf {
+    order: 2;
+  }
+  .monat-page.has-fleet-konzept > .v4-monat-konzept {
+    order: 3;
+  }
+  .monat-page.has-fleet-konzept > .v4-chapter-foot {
+    order: 6;
+  }
+  .monat-page.has-fleet-konzept .v4-monat-konzept > .v4-monat-slot-foot {
+    order: 9;
+    margin-top: 8px;
+  }
   .monat-page .v4-kicker-long {
     display: none;
   }
@@ -10313,6 +10363,10 @@ html:not(.dark) .ort-v4-page .site-quiet {
     max-width: none;
     margin-bottom: 0.35rem;
   }
+  .monat-page.has-fleet-konzept .v4-h1 {
+    font-size: 32px;
+    line-height: 1.12;
+  }
   .monat-page {
     display: flex;
     flex-direction: column;
@@ -10329,6 +10383,9 @@ html:not(.dark) .ort-v4-page .site-quiet {
   .monat-page > .v4-fleet-month {
     order: 2;
   }
+  .monat-page > .v4-three-goals-slot {
+    order: 3;
+  }
   .monat-page > .v4-chapter-foot {
     order: 6;
   }
@@ -10337,23 +10394,26 @@ html:not(.dark) .ort-v4-page .site-quiet {
     flex-direction: column;
   }
   .monat-page .v4-fleet-month > .v4-chapter-head {
-    order: 5;
+    order: 9;
     margin-top: 0.75rem;
   }
   .monat-page .v4-fleet-month .v4-chapter-num {
     display: none;
   }
-  .monat-page .v4-fleet-month > .v4-fleet-controls {
+  .monat-page .v4-fleet-month > .v4-fleet-ts-slot {
     order: 1;
   }
-  .monat-page .v4-fleet-month > .v4-fleet-ts-slot {
+  .monat-page .v4-fleet-month > .v4-monat-insights-dl {
     order: 2;
   }
-  .monat-page .v4-fleet-month > .v4-fleet-kpis-hero {
+  .monat-page .v4-fleet-month > .v4-fleet-controls {
     order: 3;
   }
-  .monat-page .v4-fleet-month > .v4-day-footnotes {
+  .monat-page .v4-fleet-month > .v4-fleet-kpis-hero {
     order: 4;
+  }
+  .monat-page .v4-fleet-month > .v4-day-footnotes {
+    order: 5;
   }
   .monat-page .v4-fleet-month > .v4-fleet-kpis-secondary {
     order: 6;
@@ -10459,5 +10519,145 @@ html:not(.dark) .ort-v4-page .site-quiet {
   .ort-v4-page .ort-chart-legend {
     font-size: 13px;
   }
+}
+
+.methodik-insights-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0;
+}
+
+.methodik-insights-row {
+  padding: 12px 0;
+  border-top: 1px solid var(--v4-border);
+}
+
+.methodik-insights-dt {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+.methodik-insights-footnotes {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 13px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.methodik-insights-footnotes li {
+  margin: 0 0 4px;
+}
+
+.methodik-unb-list {
+  max-width: 62ch;
+}
+
+.v4-ort-unb-hinweis {
+  margin: 0 auto 8px;
+  padding: 16px 0;
+  max-width: var(--v4-content-max, 1200px);
+  border-bottom: 1px solid var(--v4-border);
+}
+
+.v4-ort-unb-title {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.v4-ort-unb-links {
+  font-size: 13px;
+  margin: 8px 0 0;
+  padding-left: 1.1rem;
+  max-width: 100%;
+}
+
+.v4-ort-unb-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.35rem;
+  max-width: 100%;
+  margin-bottom: 0.35rem;
+}
+
+.v4-ort-unb-link-note {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.v4-ort-unb-foot {
+  margin-top: 8px;
+}
+
+.v4-three-goals-slot {
+  min-height: 248px;
+  contain: layout;
+}
+
+.v4-monat-insights-dl {
+  margin: 12px auto 0;
+  padding: 0;
+  max-width: var(--v4-content-max, 1200px);
+}
+
+.v4-monat-insights-row {
+  margin: 0 0 8px;
+}
+
+.v4-monat-insights-dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 62ch;
+  color: hsl(var(--foreground));
+}
+
+@media (max-width: 639px) {
+  .ort-chart-axis-html-y {
+    padding-left: 6px;
+    font-size: 12px;
+  }
+}
+
+table.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+table.sr-only-focusable:focus,
+table.sr-only-focusable:focus-within {
+  position: static;
+  width: 100%;
+  height: auto;
+  clip: auto;
+  margin: 12px 0;
+}
+
+.v4-start-day-model-disclosure summary,
+.v4-monat-obs-disclosure summary,
+.v4-fleet-subline-disclosure summary {
+  min-height: 44px;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.v4-markt-insights .v4-footnote-link,
+.markt-insights-regel-link {
+  min-height: 24px;
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 2px;
 }
 

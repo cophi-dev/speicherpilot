@@ -1,0 +1,15 @@
+{
+  "ok": false,
+  "note": "Stand 2ca167c: alter Overlay-Kollisionstest meldete fälschlich ok:true; strukturelle SVG-Prüfung (simuliert / Screenshot) findet diese Verstöße.",
+  "violations": [
+    "label×path:arbeit-pool-label×spitze",
+    "label×path:arbeit-label-ueberschuss×ueberschuss",
+    "label×point:arbeit-ref-label×markt-1",
+    "label×point:arbeit-ref-label×markt-2",
+    "y-title×tick:top×y-15",
+    "mobile-clip:value-top",
+    "mobile-label×gwh:markt-x10"
+  ],
+  "legacyOverlayTestOk": true,
+  "viewport": "1440×900"
+}

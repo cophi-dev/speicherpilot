@@ -1,0 +1,72 @@
+[
+  {
+    "route": "start",
+    "form": "mobile",
+    "perf": 94,
+    "a11y": 97,
+    "cls": 0
+  },
+  {
+    "route": "start",
+    "form": "desktop",
+    "perf": 100,
+    "a11y": 97,
+    "cls": 0
+  },
+  {
+    "route": "tag",
+    "form": "mobile",
+    "perf": 90,
+    "a11y": 95,
+    "cls": 0.1237952553409855
+  },
+  {
+    "route": "tag",
+    "form": "desktop",
+    "perf": 97,
+    "a11y": 95,
+    "cls": 0.1080630417651694
+  },
+  {
+    "route": "monat",
+    "form": "mobile",
+    "perf": 94,
+    "a11y": 96,
+    "cls": 0
+  },
+  {
+    "route": "monat",
+    "form": "desktop",
+    "perf": 100,
+    "a11y": 96,
+    "cls": 0.01255626975962094
+  },
+  {
+    "route": "ort",
+    "form": "mobile",
+    "perf": 81,
+    "a11y": 96,
+    "cls": 0.1142989595898005
+  },
+  {
+    "route": "ort",
+    "form": "desktop",
+    "perf": 85,
+    "a11y": 96,
+    "cls": 0.3027456153153048
+  },
+  {
+    "route": "methodik",
+    "form": "mobile",
+    "perf": 91,
+    "a11y": 96,
+    "cls": 0
+  },
+  {
+    "route": "methodik",
+    "form": "desktop",
+    "perf": 82,
+    "a11y": 96,
+    "cls": 0.3629964815078451
+  }
+]

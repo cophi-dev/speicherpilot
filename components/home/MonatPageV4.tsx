@@ -85,18 +85,26 @@ export function MonatPageV4({
       buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey }),
     );
   return (
-    <div className="v4-start monat-page">
+    <div className={`v4-start monat-page${fleetOnPage ? " has-fleet-konzept" : ""}`}>
       <MonatNav monthKey={monthKey} records={records} />
       <section className="v4-kopf" aria-labelledby="monat-h1">
         <div className="v4-kopf-inner v4-content">
-          <p className="v4-kicker num v4-kicker-long">
-            Monat · {formatBerlinMonthLabel(monthKey)} · Datenstand {dataStand}
-          </p>
-          <p className="v4-kicker num v4-kicker-short">
-            {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
-          </p>
+          {fleetOnPage ? (
+            <p className="v4-kicker num v4-kicker-short v4-monat-kicker-single">
+              {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
+            </p>
+          ) : (
+            <>
+              <p className="v4-kicker num v4-kicker-long">
+                Monat · {formatBerlinMonthLabel(monthKey)} · Datenstand {dataStand}
+              </p>
+              <p className="v4-kicker num v4-kicker-short">
+                {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
+              </p>
+            </>
+          )}
           <h1 id="monat-h1" className="v4-h1">
-            {h1}
+            {fleetOnPage ? "Wer am meisten lädt, senkt die Spitze am wenigsten." : h1}
           </h1>
           {fleetOnPage ? null : (
             <>
@@ -109,6 +117,7 @@ export function MonatPageV4({
 
       {children}
 
+      {fleetOnPage ? null : (
       <section className="v4-chapter" aria-labelledby="monat-graph-title">
         <div className="v4-chapter-head v4-content">
           <p className="v4-chapter-num num">Beobachteter Überschuss</p>
@@ -140,6 +149,7 @@ export function MonatPageV4({
           fleetStrategy={fleetStrategy}
         />
       </section>
+      )}
 
       <p className="v4-chapter-foot v4-content num">
         <Link href="/" className="v4-text-link">

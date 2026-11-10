@@ -17,6 +17,8 @@ import { barValue, kopfHero } from "@/lib/kopfHero";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
+import type { MarktInsight } from "@/lib/marktInsights";
 import type { PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
@@ -234,6 +236,7 @@ export function TagPageV4({
   fleetStrategy,
   fleetDayNoWindSolarSurplus,
   preisTag = [],
+  marktInsights = [],
   children,
 }: {
   dayKey: string;
@@ -251,6 +254,7 @@ export function TagPageV4({
   fleetStrategy?: NationalFleetStrategyUi;
   fleetDayNoWindSolarSurplus?: boolean;
   preisTag?: PreisTick[];
+  marktInsights?: MarktInsight[];
   children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
@@ -299,6 +303,7 @@ export function TagPageV4({
         fleetStrategyBelow={fleetStrategy ?? null}
         fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
       />
+      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
       {children}
       <TagOrtTeaser dayLabel={formatBerlinDayLabel(dayKey)} />
     </div>

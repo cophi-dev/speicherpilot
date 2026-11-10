@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { MonatPageV4 } from "@/components/home/MonatPageV4";
 import { NationalFleetMonatSlot } from "@/components/home/NationalFleetMonatSlot";
-import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
+import { MonatObservedOnlySlot } from "@/components/home/MonatObservedOnlySlot";
 import { MonatUnavailable } from "@/components/home/MonatUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -19,7 +19,6 @@ import {
   parseFleetStrategy,
 } from "@/lib/nationalMonthFleetModel";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
-
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
 
@@ -77,16 +76,9 @@ export default async function MonatDetailPage({
   const pointe = monatPointe(monat, records);
   const seriesLine = pointe.footnote.replace(MONAT_SURPLUS_EXPLAIN_DE, "").trim();
   const fleetSlot = nationalFleetMonthAvailable(monat) ? (
-    <NationalFleetMonatSlot
-      monthKey={monat}
-      factor={fleetFactor}
-      strategy={fleetStrategy}
-      bars={bars}
-      surplusLine={pointe.subline}
-      seriesLine={seriesLine}
-    />
+    <NationalFleetMonatSlot monthKey={monat} factor={fleetFactor} strategy={fleetStrategy} />
   ) : (
-    <NationalFleetMonthUnavailable monthKey={monat} />
+    <MonatObservedOnlySlot monthKey={monat} />
   );
 
   return (

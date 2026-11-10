@@ -1,4 +1,7 @@
 import { MethodikDocs } from "@/components/methodik/MethodikDocs";
+import { MethodikInsights } from "@/components/methodik/MethodikInsights";
+import { MethodikMonatKonzept } from "@/components/methodik/MethodikMonatKonzept";
+import { MethodikNetzKapazitaet } from "@/components/methodik/MethodikNetzKapazitaet";
 import { MethodikPreisFenster } from "@/components/methodik/MethodikPreisFenster";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 
@@ -21,6 +24,9 @@ export default async function MethodikPage() {
     <>
       <MethodikDocs fleet={fleetStand} />
       <MethodikPreisFenster />
+      <MethodikInsights />
+      <MethodikMonatKonzept />
+      <MethodikNetzKapazitaet />
     </>
   );
 }

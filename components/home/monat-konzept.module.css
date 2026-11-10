@@ -1,0 +1,505 @@
+/* Layout (max-width, padding, Zentrierung) kommt von globaler .v4-content */
+.konzeptRoot {
+  max-width: min(94rem, 1240px);
+}
+
+.konzeptRoot :global(.v4-content) {
+  max-width: none;
+  padding-inline: 0;
+}
+
+.konzeptFoot {
+  margin-top: 12px;
+}
+
+.konzeptRoot .sectionA,
+.konzeptRoot .sectionC {
+  max-width: 100%;
+  width: 100%;
+}
+
+.sectionA,
+.sectionC {
+  margin: 0 0 28px;
+}
+
+.figure {
+  margin: 0;
+}
+
+.aLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .aLayout {
+    grid-template-columns: minmax(0, 1fr) 156px;
+    gap: 16px 20px;
+    align-items: start;
+  }
+}
+
+.chartShell {
+  width: 100%;
+  position: relative;
+}
+
+.chartShellHero {
+  min-height: 520px;
+  height: 520px;
+  position: relative;
+}
+
+.labelLayer text {
+  pointer-events: none;
+}
+
+.labelPool {
+  fill: #0b9f84;
+}
+
+.labelSpitze {
+  fill: #e86a3a;
+}
+
+.labelUeberschuss {
+  fill: #0b9f84;
+}
+
+.labelMarkt {
+  fill: #f5b731;
+}
+
+.labelRef {
+  fill: var(--v4-muted);
+}
+
+.labelCallout {
+  fill: var(--v4-muted);
+}
+
+.labelDefault {
+  fill: var(--v4-muted);
+}
+
+.calloutGwLine {
+  fill: hsl(var(--foreground));
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.yTick,
+.xTick,
+.axisTitle,
+.yAxisTitle {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  fill: var(--v4-muted);
+}
+
+.axisTitle {
+  font-size: 12px;
+}
+
+.yAxisTitle {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.konzeptEyebrow {
+  margin: 0 0 8px;
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v4-muted);
+}
+
+.konzeptAussageH2 {
+  margin: 0 0 14px;
+  font-size: clamp(1.05rem, 2.4vw, 1.4rem);
+  line-height: 1.28;
+  font-weight: 600;
+  max-width: 52rem;
+  color: hsl(var(--foreground));
+}
+
+.chartCaption {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--v4-muted);
+}
+
+.konzeptAnnahmen {
+  margin: 20px 0 0;
+  font-size: 12px;
+  color: var(--v4-muted);
+}
+
+.konzeptAnnahmen summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.konzeptAnnahmenDl {
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.konzeptAnnahmenDl dt {
+  font-weight: 600;
+  margin: 0 0 2px;
+  color: hsl(var(--foreground));
+}
+
+.konzeptAnnahmenDl dd {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.factorPointLabel {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  fill: var(--v4-muted);
+  pointer-events: none;
+}
+
+.dauerHeroGw {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 40px;
+  font-weight: 700;
+  fill: hsl(var(--foreground));
+}
+
+.konzeptWerkbenchHint {
+  display: none;
+  margin: 12px 0 24px;
+  font-size: 12px;
+}
+
+@media (min-width: 640px) {
+  .konzeptWerkbenchHint {
+    display: block;
+  }
+}
+
+.gridLine {
+  stroke: var(--v4-border);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.zeroLine {
+  stroke: var(--v4-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+}
+
+.refLineLabel {
+  font-size: 11px;
+  fill: var(--v4-muted);
+}
+
+.negativeFill {
+  fill: hsl(var(--muted-foreground) / 0.07);
+}
+
+.poolLine {
+  stroke: #0b9f84;
+  stroke-width: 1.25;
+  stroke-dasharray: 5 4;
+  opacity: 0.75;
+}
+
+.poolLineLabel {
+  font-size: 11px;
+  fill: #0b9f84;
+}
+
+.pointDot {
+  cursor: pointer;
+  stroke-width: 2;
+}
+
+.pointDot.spitze {
+  fill: #e86a3a;
+  stroke: #e86a3a;
+}
+
+.pointDot.ueberschuss {
+  fill: #0b9f84;
+  stroke: #0b9f84;
+}
+
+.pointDot.markt {
+  fill: #f5b731;
+  stroke: #f5b731;
+}
+
+.pointDot.hollow {
+  fill: hsl(var(--background));
+}
+
+.pointDot.isActive {
+  stroke: hsl(var(--foreground));
+  stroke-width: 2.5;
+}
+
+.pathLine {
+  fill: none;
+  stroke-width: 2.5;
+  opacity: 0.9;
+}
+
+.pathLine.spitze {
+  stroke: #e86a3a;
+}
+
+.pathLine.ueberschuss {
+  stroke: #0b9f84;
+}
+
+.pathLine.markt {
+  stroke: #f5b731;
+}
+
+.chartFootnote {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--v4-muted);
+}
+
+.annotationMuted {
+  font-size: 11px;
+  fill: var(--v4-muted);
+}
+
+.fleetAside {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.fleetAsideTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--v4-muted);
+}
+
+.fleetTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.fleetTable td {
+  padding: 3px 0;
+  vertical-align: top;
+}
+
+.fleetTable td:last-child {
+  text-align: right;
+}
+
+.fleetHint {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--v4-muted);
+  line-height: 1.4;
+}
+
+.mobilePaths {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding-inline: 0;
+}
+
+.mobilePathTitle {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.mobileGwUnit {
+  font-weight: 500;
+  color: var(--v4-muted);
+}
+
+.mobilePlotFrame {
+  padding-inline: 0 12px;
+}
+
+.mobilePathChart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.desktopChart {
+  display: block;
+}
+
+.morphScrollTrack {
+  position: relative;
+  min-height: 55vh;
+  margin: 0 0 8px;
+}
+
+.morphSticky {
+  position: sticky;
+  top: 64px;
+  z-index: 1;
+}
+
+.chartShellC {
+  min-height: 320px;
+}
+
+.chartShellCMobile {
+  min-height: 0;
+  height: 336px;
+  max-height: 336px;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.chartShellCMobile .svg,
+.svgCMobile {
+  display: block;
+  width: 100%;
+  height: 336px;
+  max-height: 336px;
+  vertical-align: top;
+}
+
+.chartShellC.chartShellCMobile {
+  min-height: 0;
+}
+
+.dauerViewportDesktop {
+  display: block;
+}
+
+.dauerViewportMobile {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .dauerViewportDesktop {
+    display: none;
+  }
+
+  .dauerViewportMobile {
+    display: block;
+  }
+}
+
+.morphScrollTrackMobile {
+  min-height: 0;
+  margin: 0 0 6px;
+}
+
+@media (min-width: 900px) {
+  .chartShellC {
+    min-height: 400px;
+  }
+}
+
+.shaveFill {
+  fill: #e86a3a;
+  opacity: 0.22;
+}
+
+.dauerLabel {
+  font-size: 12px;
+  fill: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.dauerLabelMuted {
+  font-size: 12px;
+  fill: var(--v4-muted);
+}
+
+.ref60Line {
+  stroke: var(--v4-muted);
+  stroke-dasharray: 6 5;
+  opacity: 0.7;
+}
+
+.morphScrollTrackCompact {
+  min-height: 0;
+  margin: 0 0 4px;
+}
+
+.morphNote {
+  font-size: 12px;
+  color: var(--v4-muted);
+  margin: 4px 0 0;
+}
+
+.sectionC .chartFootnote {
+  margin-top: 8px;
+}
+
+.mobileValue {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  fill: hsl(var(--foreground));
+}
+
+.workbench {
+  margin: 8px 0 24px;
+}
+
+.workbench :global(.v4-fleet-ts-legend) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  max-width: 100%;
+}
+
+.workbench :global(.v4-fleet-ts-legend-compare),
+.workbench :global(.v4-fleet-ts-legend-e) {
+  display: none;
+}
+
+.workbench :global(.v4-fleet-caption-main) {
+  font-size: 13px;
+}
+
+@media (max-width: 639px) {
+  .desktopChart,
+  .fleetAside {
+    display: none;
+  }
+
+  .mobilePaths {
+    display: flex;
+  }
+
+  .aLayout {
+    display: block;
+  }
+}
+
+@media (min-width: 640px) {
+  .mobilePaths {
+    display: none;
+  }
+}
