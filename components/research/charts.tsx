@@ -41,13 +41,14 @@ function WeekMarker4h({ kind, cx, cy }: { kind: "tick" | "square" | "double"; cx
   return <line x1={cx - 6} x2={cx + 6} y1={cy} y2={cy} stroke="var(--research-fg)" strokeWidth={2} />;
 }
 
-export function WeekDotsChart({ week, width = 350, height = 320 }: { week: ResearchWeekDay[]; width?: number; height?: number }) {
+export function WeekDotsChart({ week, width = 350, height = 332 }: { week: ResearchWeekDay[]; width?: number; height?: number }) {
   const yMin = 0;
   const yMax = -14;
+  const padBottom = 56;
   const colW = (width - 78) / Math.max(week.length, 1);
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Spitzensenkung je Tag national">
-      <text x={32} y={14} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+      <text x={26} y={10} textAnchor="end" fontSize={11} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
       </text>
       {[-2, -4, -6, -8, -10, -12, -14, 0].map((tick) => (
@@ -84,36 +85,18 @@ export function WeekDotsChart({ week, width = 350, height = 320 }: { week: Resea
                     strokeWidth={2.5}
                     strokeDasharray={pt.marker175 === "dashed" ? "2 2" : undefined}
                   />
-                  {factor === 2 && day.isFocus ? (
-                    <text x={width - 12} y={cy + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-                      ×2
-                    </text>
-                  ) : null}
-                  {factor === 5 && day.isFocus ? (
-                    <text x={width - 12} y={cy + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-                      ×5
-                    </text>
-                  ) : null}
-                  {factor === 10 && day.isFocus ? (
-                    <text x={width - 12} y={cy + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-                      ×10
-                    </text>
-                  ) : null}
                 </g>
               );
             })}
-            <text x={cx} y={height - 22} textAnchor="middle" fontSize={12} fill={day.isFocus ? "var(--research-fg)" : "var(--research-muted)"} fontFamily="var(--font-jetbrains-mono)">
+            <text x={cx} y={height - padBottom + 14} textAnchor="middle" fontSize={11} fill={day.isFocus ? "var(--research-fg)" : "var(--research-muted)"} fontFamily="var(--font-jetbrains-mono)">
               {day.weekdayShort}
             </text>
-            <text x={cx} y={height - 6} textAnchor="middle" fontSize={12} fill={day.isFocus ? "var(--research-fg)" : "var(--research-muted)"} fontFamily="var(--font-jetbrains-mono)">
+            <text x={cx} y={height - padBottom + 30} textAnchor="middle" fontSize={11} fill={day.isFocus ? "var(--research-fg)" : "var(--research-muted)"} fontFamily="var(--font-jetbrains-mono)">
               {day.shortLabel}
             </text>
           </g>
         );
       })}
-      <text x={40} y={height - 26} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-        Spitzensenkung je Tag, national (Modell)
-      </text>
     </svg>
   );
 }
@@ -187,10 +170,10 @@ export function SaturationChart({
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Gestern auf der Sättigungskurve">
-      <text x={32} y={14} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+      <text x={26} y={10} textAnchor="end" fontSize={11} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
       </text>
-      {[0, -6, -12, -18].map((tick) => (
+      {[-6, -12, -18].map((tick) => (
         <g key={tick}>
           <line x1={40} x2={width - 16} y1={yMap(tick, yMin, yMax, height)} y2={yMap(tick, yMin, yMax, height)} stroke="var(--research-line)" />
           <text x={32} y={yMap(tick, yMin, yMax, height) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
@@ -208,30 +191,41 @@ export function SaturationChart({
       <path d={y4Line} fill="none" stroke="var(--research-muted)" strokeWidth={1.5} strokeDasharray="2 3" />
       <path d={yLine} fill="none" stroke="var(--research-accent)" strokeWidth={2} />
       {x5p ? <circle cx={x5p.x} cy={x5p.y} r={5} fill="var(--research-accent)" /> : null}
-      <text x={(x5p?.x ?? 160) + 8} y={(x5p?.y ?? 120) - 8} fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-        Knick bei ×5
-      </text>
-      <text x={xGw(15, width)} y={yMap(-2.2, yMin, yMax, height)} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-        {margA} je GW
-      </text>
-      <text x={xGw(38, width)} y={yMap(-8.5, yMin, yMax, height)} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-        {margB} je GW
-      </text>
-      {([1, 2, 5, 10] as const).map((f) => (
+      {x5p ? (
+        <g>
+          <line x1={x5p.x} y1={x5p.y - 6} x2={x5p.x - 52} y2={yMap(-3.4, yMin, yMax, height)} stroke="var(--research-muted)" strokeWidth={1} />
+          <text x={x5p.x - 54} y={yMap(-3.4, yMin, yMax, height) - 4} textAnchor="end" fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+            Knick bei ×5
+          </text>
+        </g>
+      ) : null}
+      <g>
+        <line x1={xGw(15, width)} y1={yMap(-2.2, yMin, yMax, height)} x2={width - 58} y2={30} stroke="var(--research-muted)" strokeWidth={1} />
+        <text x={width - 60} y={26} textAnchor="end" fontSize={11} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          {margA} je GW
+        </text>
+      </g>
+      <g>
+        <line x1={xGw(38, width)} y1={yMap(-8.5, yMin, yMax, height) + 8} x2={xGw(46, width)} y2={yMap(-11.5, yMin, yMax, height) - 6} stroke="var(--research-muted)" strokeWidth={1} />
+        <text x={xGw(48, width)} y={yMap(-11.5, yMin, yMax, height) - 8} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          {margB} je GW
+        </text>
+      </g>
+      {([2, 5, 10] as const).map((f, i) => (
         <text
           key={f}
-          x={xGw((f * RESEARCH_FLEET_POWER_MW) / 1000, width)}
-          y={height - 28}
+          x={xGw((f * RESEARCH_FLEET_POWER_MW) / 1000, width) + (f === 2 ? -6 : f === 5 ? 0 : 4)}
+          y={height - 44 - (i % 2) * 10}
           textAnchor="middle"
-          fontSize={12}
+          fontSize={11}
           fill="var(--research-muted)"
           fontFamily="var(--font-jetbrains-mono)"
         >
           ×{f}
         </text>
       ))}
-      {[0, 10, 20, 30, 40, 50].map((gw) => (
-        <text key={gw} x={xGw(gw, width)} y={height - 12} textAnchor="middle" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+      {[25, 50].map((gw) => (
+        <text key={gw} x={xGw(gw, width, 50)} y={height - 12} textAnchor="middle" fontSize={11} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
           {gw}
         </text>
       ))}

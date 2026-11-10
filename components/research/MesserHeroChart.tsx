@@ -9,7 +9,7 @@ const FACTORS: ResearchFactor[] = [2, 5, 10];
 const Y_MIN = 45;
 const Y_MAX = 70;
 const WIDTH = 350;
-const HEIGHT = 330;
+const HEIGHT = 342;
 const PAD_X = 40;
 const PAD_RIGHT = 44;
 const MARGIN_COL_W = 44;
@@ -122,9 +122,11 @@ export function MesserHeroChart({
       {[45, 50, 55, 60, 65, 70].map((tick) => (
         <g key={tick}>
           <line x1={PAD_X} x2={WIDTH - PAD_RIGHT} y1={yMap(tick, HEIGHT)} y2={yMap(tick, HEIGHT)} stroke="var(--research-line)" />
-          <text x={32} y={yMap(tick, HEIGHT) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {tick}
-          </text>
+          {tick === 45 ? null : (
+            <text x={32} y={yMap(tick, HEIGHT) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+              {tick}
+            </text>
+          )}
         </g>
       ))}
       {cappedPaths.map((d, i) => (
@@ -225,8 +227,16 @@ export function MesserHeroChart({
         const idx = Math.max(0, model.series.findIndex((p) => p.hour === h && p.minute === 0));
         const x = xMap(idx, model.series.length);
         return (
-          <text key={h} x={x} y={HEIGHT - 8} textAnchor={h === 0 ? "start" : h === 24 ? "end" : "middle"} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {h === 24 ? "24 Uhr" : String(h).padStart(2, "0")}
+          <text
+            key={h}
+            x={x}
+            y={HEIGHT - 4}
+            textAnchor={h === 0 ? "start" : h === 24 ? "end" : "middle"}
+            fontSize={11}
+            fill="var(--research-muted)"
+            fontFamily="var(--font-jetbrains-mono)"
+          >
+            {h === 24 ? "24 h" : String(h)}
           </text>
         );
       })}
