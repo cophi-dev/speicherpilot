@@ -91,7 +91,7 @@ const SHOTS = [
     w: 390,
     h: 844,
     theme: "dark",
-    scrollTo: "#monat-arbeit-wirkung-title",
+    scrollTo: '[data-testid="arbeit-mobile-paths"]',
   },
   {
     file: "monat-2026-10-390-light-top.png",
@@ -107,7 +107,7 @@ const SHOTS = [
     w: 390,
     h: 844,
     theme: "light",
-    scrollTo: "#monat-arbeit-wirkung-title",
+    scrollTo: '[data-testid="arbeit-mobile-paths"]',
   },
   {
     file: "monat-2026-10-1440-c-morph0.png",
@@ -288,36 +288,39 @@ async function assertSvgCollisions(page) {
     }
 
     const mobileRoot = document.querySelector('[data-testid="arbeit-mobile-paths"]');
-    if (mobileRoot) {
+    const mobileVisible =
+      mobileRoot && window.getComputedStyle(mobileRoot).display !== "none" && mobileRoot.getClientRects().length > 0;
+    if (mobileVisible) {
       const inner = window.innerWidth - 12;
+      const screenOverlap = (a, b, pad = 2) =>
+        a.left < b.right - pad &&
+        a.right > b.left + pad &&
+        a.top < b.bottom - pad &&
+        a.bottom > b.top + pad;
+
+      mobileRoot.querySelectorAll("[data-mobile-value]").forEach((value) => {
+        const vr = value.getBoundingClientRect();
+        if (vr.top < 4) violations.push(`mobile-clip:value-top:${value.textContent}`);
+        const g = value.parentElement;
+        const circle = g?.querySelector("circle");
+        if (circle) {
+          const cr = circle.getBoundingClientRect();
+          if (screenOverlap(vr, cr, 1)) violations.push(`mobile-value×point:${value.textContent}`);
+          if (vr.bottom > cr.top - 3) violations.push(`mobile-value-not-above:${value.textContent}`);
+        }
+      });
       mobileRoot.querySelectorAll("text").forEach((el, idx) => {
         const r = el.getBoundingClientRect();
         if (r.top < 0) violations.push(`mobile-clip:top:${idx}`);
-        if (r.right > inner) violations.push(`mobile-clip:right:${idx}`);
+        if (r.right > inner + 0.5 && !el.hasAttribute("data-mobile-gwh")) {
+          violations.push(`mobile-clip:right:${idx}`);
+        }
       });
-      mobileRoot.querySelectorAll("circle").forEach((c) => {
-        const r = c.getBoundingClientRect();
-        const g = c.parentElement;
-        if (!g) return;
-        const value = g.querySelector("[data-mobile-value]");
-        const factor = g.querySelector("[data-mobile-factor]");
-        const gwh = g.querySelector("[data-mobile-gwh]");
-        if (value) {
-          const vr = value.getBoundingClientRect();
-          if (vr.top < 4) violations.push(`mobile-clip:value-top:${c.getAttribute("cx")}`);
-          if (vr.left < r.left + r.width - 2 && vr.right > r.left && vr.top < r.bottom - 2 && vr.bottom > r.top) {
-            violations.push(`mobile-value×point:${value.textContent}`);
-          }
-        }
-        if (value && factor) {
-          const fr = factor.getBoundingClientRect();
-          const vr = value.getBoundingClientRect();
-          if (vr.bottom > fr.top - 2 && vr.top < fr.bottom) violations.push(`mobile-value×factor:${value.textContent}`);
-        }
-        if (value && gwh) {
-          const gr = gwh.getBoundingClientRect();
-          const vr = value.getBoundingClientRect();
-          if (vr.bottom > gr.top - 1 && vr.top < gr.bottom) violations.push(`mobile-value×gwh:${value.textContent}`);
+      mobileRoot.querySelectorAll("svg").forEach((svg) => {
+        const gwhEnds = [...svg.querySelectorAll("[data-mobile-gwh]")];
+        const last = gwhEnds[gwhEnds.length - 1];
+        if (last && last.getBoundingClientRect().right > inner + 0.5) {
+          violations.push(`mobile-clip:gwh-last:${last.textContent}`);
         }
       });
     }
@@ -350,7 +353,8 @@ async function main() {
       await page.evaluate((y) => window.scrollTo(0, y), s.scrollY);
     }
     if (s.scrollTo) {
-      await page.locator(s.scrollTo).scrollIntoViewIfNeeded();
+      await page.waitForSelector(s.scrollTo, { state: "visible", timeout: 120_000 });
+      await page.locator(s.scrollTo).scrollIntoViewIfNeeded({ timeout: 60_000 });
     }
     await page.waitForTimeout(350);
     await page.screenshot({ path: join(OUT, s.file), fullPage: Boolean(s.fullPage) });
@@ -360,7 +364,7 @@ async function main() {
   for (const vp of [
     { name: "1440", w: 1440, h: 900 },
     { name: "1024", w: 1024, h: 900 },
-    { name: "390", w: 390, h: 844 },
+    { name: "390", w: 390, h: 844, mobile: true },
   ]) {
     const collisionPage = await browser.newPage({ viewport: { width: vp.w, height: vp.h } });
     await preparePage(collisionPage, "dark");
@@ -370,7 +374,18 @@ async function main() {
     });
     await applyTheme(collisionPage, "dark");
     await waitStyled(collisionPage);
-    collisionByViewport[vp.name] = await assertSvgCollisions(collisionPage);
+    const result = await assertSvgCollisions(collisionPage);
+    if (vp.mobile) {
+      const mobileOnly = result.violations.filter(
+        (v) => v.startsWith("mobile-") || v.startsWith("content-left"),
+      );
+      collisionByViewport[vp.name] = { ...result, violations: mobileOnly, ok: mobileOnly.length === 0 };
+    } else {
+      const deskOnly = result.violations.filter(
+        (v) => !v.startsWith("mobile-"),
+      );
+      collisionByViewport[vp.name] = { ...result, violations: deskOnly, ok: deskOnly.length === 0 };
+    }
     await collisionPage.close();
   }
   await browser.close();

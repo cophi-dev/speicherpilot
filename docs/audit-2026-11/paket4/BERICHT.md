@@ -29,6 +29,13 @@ Stand: 9. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81]
 - **Mobil:** reservierte Wertzeile oben, ×/GWh getrennt, negativ zwischen Punkt und Faktor.
 - **Abnahme:** `label-collision-before-2ca167c.json` (alter Test fälschlich ok) vs. `label-collision.json` (SVG `getBBox` / Pfadsegmente, 1440/1024/390).
 
+### Mobil / Feinschliff (Post f7f16b9)
+
+- Wertezeile **oberhalb** des Miniplots (×/GWh darunter; letzte GWh-Spalte `text-anchor: end`).
+- Referenzlabel Desktop: `text-anchor: end` am Plot-Innenrand.
+- C: `morphScrollTrackCompact` bei sortiert + kleineres `PAD_B_C` (~24 px bis Fußnote).
+- Mobil-Kollision: `getBoundingClientRect`-Overlap Wert↔Kreis + `value.bottom <= circle.top - 3px` (alter Test prüfte nur eine Teilmenge der Überschneidungs-Logik).
+
 ## Designrunde (Post eb95331)
 
 1. **Inhaltbreite:** Konzept-Slot wieder `v4-content` + `konzeptRoot` (max `min(94rem, 1240px)`); gleiche Flucht wie Kopf/Nav.

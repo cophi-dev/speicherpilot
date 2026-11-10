@@ -317,10 +317,35 @@
   opacity: 0.7;
 }
 
+.morphScrollTrackCompact {
+  min-height: 0;
+  margin: 0 0 4px;
+}
+
 .morphNote {
   font-size: 12px;
   color: var(--v4-muted);
-  margin: 8px 0 0;
+  margin: 4px 0 0;
+}
+
+.sectionC .chartFootnote {
+  margin-top: 8px;
+}
+
+.mobileValue {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+}
+
+.mobileValue.spitze {
+  fill: #e86a3a;
+}
+
+.mobileValue.ueberschuss {
+  fill: #0b9f84;
+}
+
+.mobileValue.markt {
+  fill: #f5b731;
 }
 
 .workbench {

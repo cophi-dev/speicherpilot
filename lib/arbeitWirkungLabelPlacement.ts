@@ -269,8 +269,8 @@ export function arbeitWirkungLabelSpecs(
     },
     {
       id: "arbeit-ref-label",
-      anchorX: viewW - CHART_PAD_R - 12,
-      anchorY: yZero + 6,
+      anchorX: viewW - CHART_PAD_R - 6,
+      anchorY: yZero + 4,
       lines: [
         {
           text: `Referenz ohne Speicher ${formatQuantity(model.refPeakGw, "de", 2)} GW ·`,
@@ -282,7 +282,7 @@ export function arbeitWirkungLabelSpecs(
         },
       ],
       priority: 4,
-      prefer: ["S", "SE", "SW", "E"],
+      prefer: ["S", "SW", "SE"],
     },
   ];
 

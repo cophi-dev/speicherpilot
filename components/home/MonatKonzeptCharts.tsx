@@ -73,10 +73,21 @@ function labelStyleClass(id: string, styles: Record<string, string>): string {
   return styles.labelDefault;
 }
 
-function PlacedSvgLabel({ placed, styles }: { placed: PlacedLabel; styles: Record<string, string> }) {
+function PlacedSvgLabel({
+  placed,
+  styles,
+  viewW,
+}: {
+  placed: PlacedLabel;
+  styles: Record<string, string>;
+  viewW: number;
+}) {
   const { lineHeights } = labelTextBox(placed.lines);
-  const x0 =
-    placed.textAnchor === "middle"
+  const isRef = placed.id === "arbeit-ref-label";
+  const textAnchor: PlacedLabel["textAnchor"] = isRef ? "end" : placed.textAnchor;
+  const x0 = isRef
+    ? viewW - CHART_PAD_R - 4
+    : placed.textAnchor === "middle"
       ? placed.x + placed.box.w / 2
       : placed.textAnchor === "end"
         ? placed.x + placed.box.w
@@ -88,7 +99,7 @@ function PlacedSvgLabel({ placed, styles }: { placed: PlacedLabel; styles: Recor
       data-placement-label={placed.id}
       x={x0}
       y={y0}
-      textAnchor={placed.textAnchor}
+      textAnchor={textAnchor}
       className={`num ${labelStyleClass(placed.id, styles)}`}
     >
       {placed.lines.map((line, i) => (
@@ -361,7 +372,7 @@ export function MonatArbeitWirkungChart({
               <line x1={poolX} y1={CHART_PAD_T} x2={poolX} y2={CHART_PAD_T + plotH} className={styles.poolLine} />
               <g className={styles.labelLayer}>
                 {placedLabels.map((placed) => (
-                  <PlacedSvgLabel key={placed.id} placed={placed} styles={styles} />
+                  <PlacedSvgLabel key={placed.id} placed={placed} styles={styles} viewW={viewW} />
                 ))}
               </g>
               {STRATEGIES.flatMap((strategy) =>
@@ -443,11 +454,11 @@ function MobileArbeitPaths({
   onSelect: (f: NationalFleetFactor, s: NationalFleetStrategyUi) => void;
 }) {
   const plotW = 372;
-  const valueRow = 22;
+  const valueY = 15;
   const plotH = 64;
   const padL = 36;
   const padR = 16;
-  const padT = valueRow + 6;
+  const padT = 28;
   const factorRowY = padT + plotH + 12;
   const gwhRowY = padT + plotH + 26;
   const totalH = gwhRowY + 8;
@@ -477,27 +488,34 @@ function MobileArbeitPaths({
                 const active = p.factor === activeFactor && p.strategy === activeStrategy;
                 const cx = x(i);
                 const cy = y(p.wirkungGw);
-                const valueLabelY =
-                  p.wirkungGw < 0.5
-                    ? Math.min(cy + 15, factorRowY - 8)
-                    : Math.max(padT + 12, cy - 12);
+                const isLast = i === 3;
+                const gwhX = isLast ? innerRight : cx;
+                const gwhAnchor = isLast ? "end" : "middle";
                 return (
                   <g key={p.factor}>
-                    <text x={cx} y={factorRowY} className={styles.xTick} textAnchor="middle" data-mobile-factor>
-                      ×{p.factor}
-                    </text>
-                    <text x={cx} y={gwhRowY} className={styles.xTick} textAnchor="middle" fontSize={10} data-mobile-gwh>
-                      {formatQuantity(p.chargeGwh, "de", p.chargeGwh >= 100 ? 0 : 1)} GWh
-                    </text>
                     <text
                       x={cx}
-                      y={valueLabelY}
-                      className={styles.yTick}
+                      y={valueY}
+                      className={`${styles.mobileValue} ${styles[strategy]}`}
                       textAnchor="middle"
                       fontWeight={600}
+                      fontSize={12}
                       data-mobile-value
                     >
                       {formatQuantity(p.wirkungGw, "de", 2)}
+                    </text>
+                    <text x={cx} y={factorRowY} className={styles.xTick} textAnchor="middle" data-mobile-factor>
+                      ×{p.factor}
+                    </text>
+                    <text
+                      x={gwhX}
+                      y={gwhRowY}
+                      className={styles.xTick}
+                      textAnchor={gwhAnchor}
+                      fontSize={10}
+                      data-mobile-gwh
+                    >
+                      {formatQuantity(p.chargeGwh, "de", p.chargeGwh >= 100 ? 0 : 1)} GWh
                     </text>
                     <a
                       href={arbeitWirkungHref(monthKey, p.factor, strategy)}
@@ -584,7 +602,7 @@ export function MonatDauerlinieChart({
     const PAD_L_C = 92;
     const PAD_R_C = 28;
     const PAD_T_C = 48;
-    const PAD_B_C = 52;
+    const PAD_B_C = 24;
     const plotW = 980;
     const plotH = 300;
     const yMin = Math.min(model.observedMinGw, model.withStorageMinGw ?? model.observedMinGw) - 5;
@@ -659,7 +677,10 @@ export function MonatDauerlinieChart({
           : "Beobachtete Restlast — ohne Modelllauf für diesen Monat."}
       </p>
       <figure className={styles.figure}>
-        <div ref={trackRef} className={styles.morphScrollTrack}>
+        <div
+          ref={trackRef}
+          className={`${styles.morphScrollTrack}${morphT >= 0.88 ? ` ${styles.morphScrollTrackCompact}` : ""}`}
+        >
           <div className={styles.morphSticky}>
             <div className={`${styles.chartShell} ${styles.chartShellC}`}>
               <svg viewBox={`0 0 ${scene.viewW} ${scene.viewH}`} className={styles.svg} role="img">
