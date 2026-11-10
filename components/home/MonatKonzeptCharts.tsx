@@ -34,7 +34,14 @@ import {
   type PlacedLabel,
 } from "@/lib/arbeitWirkungLabelPlacement";
 import type { DauerlinieModel } from "@/lib/monatKonzeptC";
-import { dauerlinieSeriesSamples, morphX } from "@/lib/monatKonzeptC";
+import {
+  buildDauerlinieScene,
+  DAUER_SORTED_HOURS,
+  DAUER_X_TICKS_H,
+  DAUER_Y_TICKS,
+  konzeptCDauerHeadline,
+} from "@/lib/dauerlinieChartLayout";
+import { formatMobileChargeLabel } from "@/lib/formatMobileCharge";
 import {
   NATIONAL_FLEET_FACTORS,
   NATIONAL_FLEET_STRATEGY_UI,
@@ -190,7 +197,7 @@ export function MonatArbeitWirkungChart({
         const svg = svgRef.current;
         if (!svg) return;
         const measured: { kind: "box"; box: { x: number; y: number; w: number; h: number } }[] = [];
-        svg.querySelectorAll("[data-placement-label]").forEach((el) => {
+        svg.querySelectorAll("[data-placement-label], [data-chart-factor]").forEach((el) => {
           const b = (el as SVGGraphicsElement).getBBox();
           measured.push({ kind: "box", box: { x: b.x - 6, y: b.y - 4, w: b.width + 12, h: b.height + 8 } });
         });
@@ -236,8 +243,18 @@ export function MonatArbeitWirkungChart({
     const cx = logX(p.chargeGwh, viewW);
     const cy = yWirkung(p.wirkungGw);
     const active = p.factor === activeFactor && p.strategy === activeStrategy;
+    const isFirst = p.strategy === "spitze" && p.factor === 1;
     return (
       <g key={`${p.strategy}-${p.factor}`} data-chart-point={`${p.strategy}-${p.factor}`}>
+        <text
+          x={cx}
+          y={cy - 12}
+          className={styles.factorPointLabel}
+          textAnchor="middle"
+          data-chart-factor={`${p.strategy}-${p.factor}`}
+        >
+          ×{p.factor}
+        </text>
         <a
           href={arbeitWirkungHref(monthKey, p.factor, p.strategy)}
           className={`${styles.pointDot} ${styles[p.strategy]}${hollow ? ` ${styles.hollow}` : ""}${active ? ` ${styles.isActive}` : ""}`}
@@ -248,6 +265,9 @@ export function MonatArbeitWirkungChart({
             navigate(p.factor, p.strategy);
           }}
         >
+          {isFirst ? (
+            <title>Punkt wählen öffnet die Monatskurve. ← → Faktor · ↑ ↓ Ziel</title>
+          ) : null}
           <circle cx={cx} cy={cy} r={hollow ? 5.5 : 7} />
         </a>
       </g>
@@ -256,9 +276,9 @@ export function MonatArbeitWirkungChart({
 
   return (
     <section className={`v4-chapter ${styles.sectionA}`} aria-labelledby="monat-arbeit-wirkung-title">
-      <h2 id="monat-arbeit-wirkung-title" className="v4-chapter-h2">
+      <p id="monat-arbeit-wirkung-title" className={styles.konzeptEyebrow}>
         Arbeit gegen Wirkung
-      </h2>
+      </p>
       <figure className={styles.figure}>
         <div className={styles.aLayout}>
           <div
@@ -394,11 +414,6 @@ export function MonatArbeitWirkungChart({
                 ))}
               </tbody>
             </table>
-            <p className={styles.fleetHint}>
-              Punkt wählen öffnet die Monatskurve.
-              <br />
-              ← → Faktor · ↑ ↓ Ziel
-            </p>
           </aside>
         </div>
         <MobileArbeitPaths
@@ -408,11 +423,8 @@ export function MonatArbeitWirkungChart({
           activeStrategy={activeStrategy}
           onSelect={navigate}
         />
-        <p className={`${styles.chartFootnote} num`} data-testid="arbeit-chart-footnote">
-          Jeder Punkt = ein vorberechneter Lauf (Ziel × Flottenfaktor). Oben: Spitze sinkt um so viele GW wie die
-          Referenzspitze ohne Speicher minus der höchsten Restlast mit Speicher. Modell: Round-Trip 85&nbsp;%, SoC
-          10–90&nbsp;%, Day-Ahead Price Taker, perfekte Voraussicht — ohne Preisrückwirkung bei ×5/×10. Quelle
-          Energy-Charts / SMARD CC BY 4.0.
+        <p className={`${styles.chartCaption} num`} data-testid="arbeit-chart-caption">
+          Jeder Punkt = vorberechneter Lauf (Ziel × Flottenfaktor).
         </p>
         <table className="sr-only">
           <caption>Arbeit gegen Wirkung</caption>
@@ -496,7 +508,7 @@ function MobileArbeitPaths({
                     <text
                       x={cx}
                       y={valueY}
-                      className={`${styles.mobileValue} ${styles[strategy]}`}
+                      className={styles.mobileValue}
                       textAnchor="middle"
                       fontWeight={600}
                       fontSize={12}
@@ -515,7 +527,7 @@ function MobileArbeitPaths({
                       fontSize={10}
                       data-mobile-gwh
                     >
-                      {formatQuantity(p.chargeGwh, "de", p.chargeGwh >= 100 ? 0 : 1)} GWh
+                      {formatMobileChargeLabel(p.chargeGwh)}
                     </text>
                     <a
                       href={arbeitWirkungHref(monthKey, p.factor, strategy)}
@@ -549,34 +561,169 @@ function useMorphScroll(fixedMorph: number | null) {
   const trackRef = useRef<HTMLDivElement>(null);
   const reducedMotion =
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const [scrollMorph, setScrollMorph] = useState(reducedMotion ? 1 : 0);
+  const morphTargetRef = useRef(reducedMotion ? 1 : 0);
+  const [morphT, setMorphT] = useState(reducedMotion ? 1 : 0);
 
   useEffect(() => {
     if (fixedMorph != null && Number.isFinite(fixedMorph)) {
       return;
     }
-    if (reducedMotion) {
-      return;
-    }
+    if (reducedMotion) return;
+    let raf = 0;
+    const stepMs = 600;
+    const tick = () => {
+      setMorphT((cur) => {
+        const target = morphTargetRef.current;
+        const delta = target - cur;
+        if (Math.abs(delta) < 0.008) return target;
+        return cur + Math.sign(delta) * Math.min(Math.abs(delta), 16.67 / stepMs);
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
     const onScroll = () => {
       const track = trackRef.current;
       if (!track) return;
       const rect = track.getBoundingClientRect();
       const vh = window.innerHeight;
       const progress = (vh * 0.25 - rect.top) / Math.max(1, rect.height - vh * 0.35);
-      setScrollMorph(Math.min(1, Math.max(0, progress)));
+      morphTargetRef.current = progress < 0.45 ? 0 : 1;
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [fixedMorph, reducedMotion]);
 
-  const morphT =
-    fixedMorph != null && Number.isFinite(fixedMorph)
-      ? Math.min(1, Math.max(0, fixedMorph))
-      : scrollMorph;
+  const displayMorph =
+    fixedMorph != null && Number.isFinite(fixedMorph) ? Math.min(1, Math.max(0, fixedMorph)) : morphT;
 
-  return { trackRef, morphT };
+  return { trackRef, morphT: displayMorph, sorted: displayMorph >= 0.92 };
+}
+
+function useMediaMobile() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const fn = () => setMobile(mq.matches);
+    fn();
+    mq.addEventListener("change", fn);
+    return () => mq.removeEventListener("change", fn);
+  }, []);
+  return mobile;
+}
+
+function DauerlinieSvg({
+  scene,
+  fleetAvailable,
+  sorted,
+}: {
+  scene: ReturnType<typeof buildDauerlinieScene>;
+  fleetAvailable: boolean;
+  sorted: boolean;
+}) {
+  return (
+    <svg
+      viewBox={`0 0 ${scene.viewW} ${scene.viewH}`}
+      width="100%"
+      height={scene.viewH}
+      className={styles.svg}
+      role="img"
+      data-testid="dauerlinie-svg"
+    >
+      <text x={scene.padL} y={scene.padT - 14} className={styles.yAxisTitle} textAnchor="start" fontSize={12}>
+        Restlast, GW
+      </text>
+      {DAUER_Y_TICKS.map((tick) => (
+        <g key={tick}>
+          <line
+            x1={scene.padL}
+            x2={scene.padL + scene.plotW}
+            y1={scene.yPix(tick)}
+            y2={scene.yPix(tick)}
+            className={styles.gridLine}
+          />
+          <text
+            x={scene.padL - 8}
+            y={scene.yPix(tick) + 4}
+            className={styles.yTick}
+            textAnchor="end"
+            fontSize={12}
+            data-chart-tick={`y-${tick}`}
+          >
+            {tick > 0 ? `+${tick}` : tick}
+          </text>
+        </g>
+      ))}
+      {DAUER_X_TICKS_H.map((h) => (
+        <g key={h}>
+          <line
+            x1={scene.xPixFromHours(h)}
+            x2={scene.xPixFromHours(h)}
+            y1={scene.padT}
+            y2={scene.padT + scene.plotH}
+            className={styles.gridLine}
+          />
+          <text
+            x={scene.xPixFromHours(h)}
+            y={scene.viewH - 22}
+            className={styles.xTick}
+            textAnchor="middle"
+            fontSize={12}
+            data-chart-tick={`x-${h}`}
+          >
+            {formatQuantity(h, "de", 0)} h
+          </text>
+        </g>
+      ))}
+      <text
+        x={scene.padL + scene.plotW / 2}
+        y={scene.viewH - 6}
+        className={styles.axisTitle}
+        textAnchor="middle"
+        fontSize={12}
+        data-chart-tick="x-title"
+      >
+        Stunden im Monat, nach Restlast sortiert ({DAUER_SORTED_HOURS} h)
+      </text>
+      <line
+        x1={scene.padL}
+        x2={scene.padL + scene.plotW}
+        y1={scene.y60}
+        y2={scene.y60}
+        className={styles.ref60Line}
+      />
+      {scene.dTint ? <path d={scene.dTint} className={styles.shaveFill} /> : null}
+      <path d={scene.dObs} fill="none" stroke="hsl(var(--foreground))" strokeWidth={1.35} opacity={0.95} />
+      {scene.dStor ? <path d={scene.dStor} fill="none" stroke={scene.storColor} strokeWidth={2.6} /> : null}
+      {fleetAvailable && sorted ? (
+        <>
+          <text
+            x={scene.padL + 4}
+            y={scene.padT + 42}
+            className={styles.dauerHeroGw}
+            textAnchor="start"
+            data-testid="dauer-hero-gw"
+          >
+            {formatQuantity(scene.peakLabel, "de", 2)} GW
+          </text>
+          {scene.valleyStor != null ? (
+            <text
+              x={scene.padL + scene.plotW - 4}
+              y={scene.yPix(scene.valleyStor) + 16}
+              className={styles.dauerLabelMuted}
+              textAnchor="end"
+              fontSize={12}
+            >
+              Tal {formatQuantity(scene.valleyStor, "de", 1)} statt {formatQuantity(scene.valleyObs, "de", 1)}
+            </text>
+          ) : null}
+        </>
+      ) : null}
+    </svg>
+  );
 }
 
 export function MonatDauerlinieChart({
@@ -585,182 +732,66 @@ export function MonatDauerlinieChart({
   activeFactor,
   activeStrategy,
   fleetAvailable,
+  peakAfterGw,
+  wirkungGw,
 }: {
   model: DauerlinieModel;
   monthKey: string;
   activeFactor: NationalFleetFactor;
   activeStrategy: NationalFleetStrategyUi;
   fleetAvailable: boolean;
+  peakAfterGw: number;
+  wirkungGw: number;
 }) {
   const searchParams = useSearchParams();
   const morphParam = searchParams.get("morph");
   const fixedMorph = morphParam != null && morphParam !== "" ? Number(morphParam) : null;
-  const { trackRef, morphT } = useMorphScroll(fixedMorph);
+  const { trackRef, morphT, sorted } = useMorphScroll(fixedMorph);
+  const isMobile = useMediaMobile();
+  const shellRef = useRef<HTMLDivElement>(null);
+  const shellW = useChartViewWidth(shellRef);
+  const layoutW = isMobile ? Math.max(340, shellW) : Math.max(shellW, 680);
+  const storColor =
+    activeStrategy === "spitze" ? "#e86a3a" : activeStrategy === "markt" ? "#f5b731" : "#0b9f84";
 
-  const scene = useMemo(() => {
-    const n = model.intervalCount;
-    const PAD_L_C = 92;
-    const PAD_R_C = 28;
-    const PAD_T_C = 48;
-    const PAD_B_C = 24;
-    const plotW = 980;
-    const plotH = 300;
-    const yMin = Math.min(model.observedMinGw, model.withStorageMinGw ?? model.observedMinGw) - 5;
-    const yMax = Math.max(model.observedMaxGw, model.withStorageMaxGw ?? model.observedMaxGw) + 8;
-    const yPix = (gw: number) => PAD_T_C + plotH - ((gw - yMin) / (yMax - yMin)) * plotH;
-    const xPix = (xNorm: number) => PAD_L_C + (xNorm / Math.max(1, n - 1)) * plotW;
+  const scene = useMemo(
+    () =>
+      buildDauerlinieScene(model, morphT, isMobile ? "mobile" : "desktop", layoutW, fleetAvailable, storColor),
+    [model, morphT, isMobile, layoutW, fleetAvailable, storColor],
+  );
 
-    const obsSamples = dauerlinieSeriesSamples(model, morphT, "observed");
-    const storSamples = fleetAvailable ? dauerlinieSeriesSamples(model, morphT, "storage") : [];
-
-    const toPath = (samples: { x: number; y: number }[]) =>
-      samples
-        .map((p, i) => `${i === 0 ? "M" : "L"}${xPix(p.x).toFixed(1)},${yPix(p.y).toFixed(1)}`)
-        .join("");
-
-    let dTint = "";
-    if (fleetAvailable && morphT > 0.55) {
-      const step = Math.max(1, Math.ceil(n / 400));
-      const byObs = new Map(model.points.map((p) => [p.sortRankObserved, p]));
-      const bySt = new Map(
-        model.points.filter((p) => p.sortRankStorage != null).map((p) => [p.sortRankStorage!, p]),
-      );
-      const top: string[] = [];
-      const bot: string[] = [];
-      for (let rank = 0; rank < n; rank += step) {
-        const po = byObs.get(rank);
-        const ps = bySt.get(rank);
-        if (!po || !ps || ps.withStorageGw == null) continue;
-        const x = xPix(morphX(rank, rank, morphT, n));
-        const yO = po.observedGw;
-        const yS = ps.withStorageGw;
-        if (Math.max(yO, yS) <= 60) continue;
-        top.push(`${x.toFixed(1)},${yPix(Math.max(yO, yS)).toFixed(1)}`);
-        bot.push(`${x.toFixed(1)},${yPix(Math.min(yO, yS)).toFixed(1)}`);
-      }
-      if (top.length > 2) {
-        dTint = `M${top.join(" L")} L${[...bot].reverse().join(" L")} Z`;
-      }
-    }
-
-    const y60 = yPix(60);
-    const storColor =
-      activeStrategy === "spitze" ? "#e86a3a" : activeStrategy === "markt" ? "#f5b731" : "#0b9f84";
-
-    return {
-      viewW: plotW + PAD_L_C + PAD_R_C,
-      viewH: plotH + PAD_T_C + PAD_B_C,
-      PAD_L_C,
-      plotW,
-      plotH,
-      PAD_T_C,
-      dObs: toPath(obsSamples),
-      dStor: storSamples.length ? toPath(storSamples) : "",
-      dTint,
-      y60,
-      yPix,
-      storColor,
-      peakLabel: model.withStorageMaxGw ?? model.observedMaxGw,
-      valleyObs: model.observedMinGw,
-      valleyStor: model.withStorageMinGw,
-    };
-  }, [activeStrategy, fleetAvailable, model, morphT]);
+  const aussage = konzeptCDauerHeadline(
+    monthKey,
+    NATIONAL_FLEET_STRATEGY_UI[activeStrategy].shortDe,
+    activeFactor,
+    peakAfterGw,
+    wirkungGw,
+  );
 
   return (
     <section className={`v4-chapter ${styles.sectionC}`} aria-labelledby="monat-dauerlinie-title">
-      <h2 id="monat-dauerlinie-title" className="v4-chapter-h2">
+      <p id="monat-dauerlinie-title" className={styles.konzeptEyebrow}>
         Der Monat sortiert sich
-      </h2>
-      <p className="v4-subline">
-        {fleetAvailable
-          ? `Der Oktober nach Höhe sortiert — gewählt: ${NATIONAL_FLEET_STRATEGY_UI[activeStrategy].shortDe} ×${activeFactor}.`
-          : "Beobachtete Restlast — ohne Modelllauf für diesen Monat."}
       </p>
+      <h3 className={styles.konzeptAussageH2}>{aussage}</h3>
       <figure className={styles.figure}>
         <div
           ref={trackRef}
-          className={`${styles.morphScrollTrack}${morphT >= 0.88 ? ` ${styles.morphScrollTrackCompact}` : ""}`}
+          className={`${styles.morphScrollTrack}${sorted ? ` ${styles.morphScrollTrackCompact}` : ""}${isMobile ? ` ${styles.morphScrollTrackMobile}` : ""}`}
         >
-          <div className={styles.morphSticky}>
-            <div className={`${styles.chartShell} ${styles.chartShellC}`}>
-              <svg viewBox={`0 0 ${scene.viewW} ${scene.viewH}`} className={styles.svg} role="img">
-                <text x={24} y={scene.PAD_T_C - 12} className={styles.yAxisTitle} textAnchor="start">
-                  Restlast, GW
-                </text>
-                <text
-                  x={scene.PAD_L_C + scene.plotW / 2}
-                  y={scene.viewH - 10}
-                  className={styles.axisTitle}
-                  textAnchor="middle"
-                >
-                  Stunden im Monat, nach Restlast sortiert ({formatQuantity(model.intervalCount, "de", 0)} Viertelstunden)
-                </text>
-                <line
-                  x1={scene.PAD_L_C}
-                  x2={scene.PAD_L_C + scene.plotW}
-                  y1={scene.y60}
-                  y2={scene.y60}
-                  className={styles.ref60Line}
-                />
-                <text x={scene.PAD_L_C + 4} y={scene.y60 - 5} className={styles.dauerLabelMuted} fontSize={11}>
-                  60 GW
-                </text>
-                {scene.dTint ? <path d={scene.dTint} className={styles.shaveFill} /> : null}
-                <path
-                  d={scene.dObs}
-                  fill="none"
-                  stroke="hsl(var(--foreground))"
-                  strokeWidth={1.35}
-                  opacity={0.95}
-                />
-                {scene.dStor ? (
-                  <path d={scene.dStor} fill="none" stroke={scene.storColor} strokeWidth={2.6} />
-                ) : null}
-                {fleetAvailable && morphT > 0.65 ? (
-                  <>
-                    <text x={scene.PAD_L_C + 8} y={scene.yPix(scene.peakLabel) - 8} className={styles.dauerLabel}>
-                      {formatQuantity(scene.peakLabel, "de", 2)} GW
-                    </text>
-                    {activeStrategy === "spitze" && scene.valleyStor != null ? (
-                      <text
-                        x={scene.PAD_L_C + scene.plotW - 6}
-                        y={scene.yPix(scene.valleyStor) + 16}
-                        className={styles.dauerLabelMuted}
-                        textAnchor="end"
-                      >
-                        Tal {formatQuantity(scene.valleyStor, "de", 1)} statt {formatQuantity(scene.valleyObs, "de", 1)}
-                      </text>
-                    ) : activeStrategy === "markt" && scene.valleyStor != null ? (
-                      <text
-                        x={scene.PAD_L_C + scene.plotW - 6}
-                        y={scene.yPix(scene.valleyStor) + 16}
-                        className={styles.dauerLabelMuted}
-                        textAnchor="end"
-                      >
-                        Tal {formatQuantity(scene.valleyStor, "de", 1)} statt {formatQuantity(scene.valleyObs, "de", 1)}
-                      </text>
-                    ) : null}
-                    {activeStrategy === "spitze" ? (
-                      <text x={scene.PAD_L_C + scene.plotW * 0.35} y={scene.PAD_T_C + 24} className={styles.dauerLabelMuted}>
-                        {formatQuantity(model.observedMaxGw, "de", 2)} → {formatQuantity(scene.peakLabel, "de", 2)} GW
-                      </text>
-                    ) : null}
-                  </>
-                ) : null}
-              </svg>
+          <div className={isMobile ? undefined : styles.morphSticky}>
+            <div
+              ref={shellRef}
+              className={`${styles.chartShell} ${styles.chartShellC}${isMobile ? ` ${styles.chartShellCMobile}` : ""}`}
+            >
+              <DauerlinieSvg scene={scene} fleetAvailable={fleetAvailable} sorted={sorted} />
             </div>
           </div>
         </div>
-        <p className={`${styles.morphNote} num`}>
-          {morphT < 0.12
-            ? "Chronologisch — weiter scrollen sortiert nach Restlast"
-            : morphT < 0.88
-              ? "Sortieren …"
-              : "Sortierte Dauerlinie (höchste Restlast links)"}
-        </p>
-        <p className={`${styles.chartFootnote} num`}>
-          Weiß: beobachtet (Last − Wind − Sonne). Farbig: gewählter Lauf. Links die höchsten Viertelstunden, rechts die
-          niedrigsten.
+        <p className={`${styles.chartCaption} num`} data-testid="dauer-chart-caption">
+          {sorted
+            ? "Höchste Restlast links, tiefste rechts — weiße Linie beobachtet, farbige Linie gewählter Lauf."
+            : "Weiter scrollen sortiert die Viertelstunden nach Restlast."}
         </p>
       </figure>
     </section>

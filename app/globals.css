@@ -10268,6 +10268,10 @@ html:not(.dark) .ort-v4-page .site-quiet {
     line-height: 1.1;
     max-width: none;
   }
+  .monat-page.has-fleet-konzept .v4-h1 {
+    font-size: 40px;
+    line-height: 1.08;
+  }
   .monat-page .v4-fleet-controls {
     flex-direction: row;
     flex-wrap: nowrap;
@@ -10318,6 +10322,13 @@ html:not(.dark) .ort-v4-page .site-quiet {
     overflow: hidden;
   }
 }
+@media (min-width: 1280px) {
+  .monat-page.has-fleet-konzept .v4-h1 {
+    font-size: 56px;
+    line-height: 1.05;
+    max-width: 22ch;
+  }
+}
 @media (max-width: 767px) {
   .monat-page.has-fleet-konzept > .v4-tag-nav {
     order: 1;
@@ -10351,6 +10362,10 @@ html:not(.dark) .ort-v4-page .site-quiet {
     line-height: 1.15;
     max-width: none;
     margin-bottom: 0.35rem;
+  }
+  .monat-page.has-fleet-konzept .v4-h1 {
+    font-size: 32px;
+    line-height: 1.12;
   }
   .monat-page {
     display: flex;

@@ -109,8 +109,90 @@
 }
 
 .yAxisTitle {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
+}
+
+.konzeptEyebrow {
+  margin: 0 0 8px;
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v4-muted);
+}
+
+.konzeptAussageH2 {
+  margin: 0 0 14px;
+  font-size: clamp(1.05rem, 2.4vw, 1.4rem);
+  line-height: 1.28;
+  font-weight: 600;
+  max-width: 52rem;
+  color: hsl(var(--foreground));
+}
+
+.chartCaption {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--v4-muted);
+}
+
+.konzeptAnnahmen {
+  margin: 20px 0 0;
+  font-size: 12px;
+  color: var(--v4-muted);
+}
+
+.konzeptAnnahmen summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.konzeptAnnahmenDl {
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.konzeptAnnahmenDl dt {
+  font-weight: 600;
+  margin: 0 0 2px;
+  color: hsl(var(--foreground));
+}
+
+.konzeptAnnahmenDl dd {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.factorPointLabel {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 12px;
+  fill: var(--v4-muted);
+  pointer-events: none;
+}
+
+.dauerHeroGw {
+  font-family: var(--font-jetbrains-mono, var(--font-mono));
+  font-size: 40px;
+  font-weight: 700;
+  fill: hsl(var(--foreground));
+}
+
+.konzeptWerkbenchHint {
+  display: none;
+  margin: 12px 0 24px;
+  font-size: 12px;
+}
+
+@media (min-width: 640px) {
+  .konzeptWerkbenchHint {
+    display: block;
+  }
 }
 
 .gridLine {
@@ -289,6 +371,20 @@
   min-height: 320px;
 }
 
+.chartShellCMobile {
+  min-height: 0;
+  height: auto;
+}
+
+.chartShellCMobile .svg {
+  height: 320px;
+}
+
+.morphScrollTrackMobile {
+  min-height: 0;
+  margin: 0 0 6px;
+}
+
 @media (min-width: 900px) {
   .chartShellC {
     min-height: 400px;
@@ -334,18 +430,7 @@
 
 .mobileValue {
   font-family: var(--font-jetbrains-mono, var(--font-mono));
-}
-
-.mobileValue.spitze {
-  fill: #e86a3a;
-}
-
-.mobileValue.ueberschuss {
-  fill: #0b9f84;
-}
-
-.mobileValue.markt {
-  fill: #f5b731;
+  fill: hsl(var(--foreground));
 }
 
 .workbench {

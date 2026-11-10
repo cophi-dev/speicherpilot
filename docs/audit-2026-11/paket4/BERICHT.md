@@ -1,6 +1,6 @@
 # Paket 4 — Kurzbericht (Opus Monat A+C)
 
-Stand: 9. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81](https://github.com/cophi-dev/speicherpilot/pull/81) (nicht gemergt).
+Stand: 10. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81](https://github.com/cophi-dev/speicherpilot/pull/81) (nicht gemergt).
 
 ## Umgesetzt
 
@@ -43,6 +43,15 @@ Stand: 9. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81]
 3. **Spitze-×10-Label:** einzeilig (`white-space: nowrap`), mehr Kopf (`PAD_T` + Overlay-Inset).
 4. **Mobil-Miniplots:** 12 px rechter Innenabstand; Wertlabels bei negativen GW unter dem Punkt.
 5. **Abnahme:** `label-collision.json` prüft Fluchtlinie (≥ Kopf), Callout vs. Fußnote/Plot, Mobil-Clip + Label-auf-Punkt.
+
+## Designrunde v6 (Urteil NEIN → Korrektur)
+
+- **C mobil:** eigene Layout-Breite (`buildDauerlinieScene`, Modus `mobile`), Plot gesamt ~320 px CSS, Y-Ticks −60/0/60/100 GW, X in Stunden 0/350/700 h (745 h); Hero „96,76 GW“ ≥ 40 px.
+- **Hierarchie:** H1 `has-fleet-konzept` 56 px (≥1280) / 32 px mobil; Abschnitt als Mono-Eyebrow 12 px; C mit Aussage-H2 aus Lauf-Daten.
+- **Text:** je Chart eine Caption; Modell/Quelle in `<details>` **Annahmen**; „Punkt wählen“ nur Desktop (+ Tooltip am ersten Punkt).
+- **A 1440:** Referenz oberhalb Nulllinie rechts; Pool-Differenz mit 8 px; Faktor ×1–×10 (12 px muted) in Kollision; Mono-Labels 12 px.
+- **Mobil:** GWh ≥ 1000 → TWh (eine NK); Werte in Textfarbe; Morph snap 0|1 ≤ 600 ms, kein morph0.5-Screenshot.
+- **Abnahme:** `label-collision.json` grün 1440/1024/390; Kontroll-Crops `crop-c-390-light.png`, `crop-kopf-1440-dark.png`, `crop-miniplot-markt-390-light.png`.
 
 ## Visuelle Korrektur (Sichtprüfung v2)
 

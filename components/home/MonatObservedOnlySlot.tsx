@@ -23,6 +23,8 @@ export function MonatObservedOnlySlot({ monthKey }: { monthKey: string }) {
         activeFactor={1}
         activeStrategy="ueberschuss"
         fleetAvailable={false}
+        peakAfterGw={model.observedMaxGw}
+        wirkungGw={0}
       />
       <footer className="v4-content v4-day-footnotes">
         <p className="v4-footnote num">

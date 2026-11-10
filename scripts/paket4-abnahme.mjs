@@ -4,7 +4,7 @@
  */
 import { chromium } from "playwright";
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const BASE = process.env.SITE_E2E_BASE_URL ?? "http://127.0.0.1:3001";
@@ -14,13 +14,40 @@ const LH = join(process.cwd(), "docs/audit-2026-11/paket4");
 function patchTurbopackCssChunk() {
   const chunks = join(process.cwd(), ".next/static/chunks");
   if (!existsSync(chunks)) return;
-  const builtList = readdirSync(chunks).filter((f) => f.endsWith(".css") && !f.includes(".."));
-  if (!builtList.length) return;
-  const built = builtList.sort((a, b) => b.length - a.length)[0];
+  const cssList = readdirSync(chunks).filter((f) => f.endsWith(".css") && !f.includes(".."));
+  const mainCss = cssList.sort((a, b) => statSync(join(chunks, b)).size - statSync(join(chunks, a)).size)[0];
+  if (!mainCss) return;
+  const linkMissing = (name) => {
+    if (!name.endsWith(".css")) return;
+    const target = join(chunks, name);
+    if (existsSync(target)) return;
+    execSync(`ln -sf ${JSON.stringify(mainCss)} ${JSON.stringify(name)}`, { cwd: chunks });
+  };
   for (const name of readdirSync(chunks)) {
-    if (name.endsWith(".css") && name.includes("..") && !existsSync(join(chunks, name))) {
-      execSync(`ln -sf ${JSON.stringify(built)} ${JSON.stringify(name)}`, { cwd: chunks });
+    if (name.endsWith(".css") && name.includes("..")) linkMissing(name);
+  }
+  const manifest = join(process.cwd(), ".next/app-build-manifest.json");
+  if (existsSync(manifest)) {
+    const walk = (node) => {
+      if (Array.isArray(node)) {
+        for (const v of node) {
+          if (typeof v === "string" && v.includes("/_next/static/chunks/")) {
+            linkMissing(v.replace(/^\//, "").split("/").pop());
+          } else walk(v);
+        }
+      } else if (node && typeof node === "object") {
+        for (const v of Object.values(node)) walk(v);
+      }
+    };
+    walk(JSON.parse(readFileSync(manifest, "utf8")));
+  }
+  try {
+    const html = execSync(`curl -s ${JSON.stringify(BASE + "/monat/2026-10")}`, { encoding: "utf8" });
+    for (const m of html.matchAll(/\/_next\/static\/chunks\/([^"']+)/g)) {
+      linkMissing(m[1]);
     }
+  } catch {
+    /* server may not be up yet */
   }
 }
 
@@ -118,14 +145,6 @@ const SHOTS = [
     scrollTo: "#monat-dauerlinie-title",
   },
   {
-    file: "monat-2026-10-1440-c-morph05.png",
-    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=0.5",
-    w: 1440,
-    h: 900,
-    theme: "dark",
-    scrollTo: "#monat-dauerlinie-title",
-  },
-  {
     file: "monat-2026-10-1440-c-morph1.png",
     path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
     w: 1440,
@@ -142,14 +161,6 @@ const SHOTS = [
     scrollTo: "#monat-dauerlinie-title",
   },
   {
-    file: "monat-2026-10-390-c-morph05.png",
-    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=0.5",
-    w: 390,
-    h: 844,
-    theme: "dark",
-    scrollTo: "#monat-dauerlinie-title",
-  },
-  {
     file: "monat-2026-10-390-c-morph1.png",
     path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
     w: 390,
@@ -159,6 +170,34 @@ const SHOTS = [
   },
   { file: "ort-390-dark.png", path: "/ort", w: 390, h: 844, theme: "dark" },
   { file: "ort-390-light.png", path: "/ort", w: 390, h: 844, theme: "light" },
+];
+
+const CROP_SHOTS = [
+  {
+    file: "crop-c-390-light.png",
+    path: "/monat/2026-10?faktor=10&fahrweise=markt&morph=1",
+    w: 390,
+    h: 844,
+    theme: "light",
+    selector: '[data-testid="dauerlinie-svg"]',
+  },
+  {
+    file: "crop-kopf-1440-dark.png",
+    path: "/monat/2026-10?faktor=10&fahrweise=markt",
+    w: 1440,
+    h: 900,
+    theme: "dark",
+    scrollY: 0,
+    clip: { selector: ".v4-kopf, [data-testid=arbeit-chart-shell]", pad: 8 },
+  },
+  {
+    file: "crop-miniplot-markt-390-light.png",
+    path: "/monat/2026-10?faktor=1&fahrweise=markt",
+    w: 390,
+    h: 844,
+    theme: "light",
+    selector: '[data-testid="arbeit-mobile-paths"] > div:nth-child(3)',
+  },
 ];
 
 async function assertSvgCollisions(page) {
@@ -270,6 +309,11 @@ async function assertSvgCollisions(page) {
             add(`label×point:${id}×${pt.getAttribute("data-chart-point")}`);
           }
         }
+        for (const factor of svg.querySelectorAll("[data-chart-factor]")) {
+          if (overlap(lb, boxOf(factor), 1)) {
+            add(`label×factor:${id}×${factor.getAttribute("data-chart-factor")}`);
+          }
+        }
         for (const tick of ticks) {
           if (overlap(lb, boxOf(tick), 1)) add(`label×tick:${id}×${tick.getAttribute("data-chart-tick")}`);
         }
@@ -348,7 +392,9 @@ async function main() {
     await page.goto(`${BASE}${s.path}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
     await applyTheme(page, s.theme);
     await waitStyled(page);
-    await page.waitForSelector("#monat-arbeit-wirkung-title, [data-testid=ort-unb-hinweis]", { timeout: 60_000 }).catch(() => {});
+    await page.waitForSelector("[data-testid=konzept-root], #monat-arbeit-wirkung-title, [data-testid=ort-unb-hinweis]", {
+      timeout: 120_000,
+    }).catch(() => {});
     if (s.scrollY != null) {
       await page.evaluate((y) => window.scrollTo(0, y), s.scrollY);
     }
@@ -358,6 +404,44 @@ async function main() {
     }
     await page.waitForTimeout(350);
     await page.screenshot({ path: join(OUT, s.file), fullPage: Boolean(s.fullPage) });
+    await page.close();
+  }
+  for (const s of CROP_SHOTS) {
+    const page = await browser.newPage({ viewport: { width: s.w, height: s.h } });
+    await preparePage(page, s.theme);
+    await page.goto(`${BASE}${s.path}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+    await applyTheme(page, s.theme);
+    await waitStyled(page);
+    await page.waitForSelector("[data-testid=konzept-root]", { timeout: 60_000 }).catch(() => {});
+    if (s.scrollY != null) await page.evaluate((y) => window.scrollTo(0, y), s.scrollY);
+    if (s.scrollTo) {
+      await page.waitForSelector(s.scrollTo, { state: "visible", timeout: 120_000 });
+      await page.locator(s.scrollTo).scrollIntoViewIfNeeded({ timeout: 60_000 });
+    }
+    await page.waitForTimeout(350);
+    if (s.clip?.selector) {
+      const box = await page.evaluate(({ sel, pad }) => {
+        const nodes = [...document.querySelectorAll(sel)];
+        if (!nodes.length) return null;
+        let x1 = Infinity;
+        let y1 = Infinity;
+        let x2 = -Infinity;
+        let y2 = -Infinity;
+        for (const n of nodes) {
+          const r = n.getBoundingClientRect();
+          x1 = Math.min(x1, r.left);
+          y1 = Math.min(y1, r.top);
+          x2 = Math.max(x2, r.right);
+          y2 = Math.max(y2, r.bottom);
+        }
+        return { x: Math.max(0, x1 - pad), y: Math.max(0, y1 - pad), width: x2 - x1 + 2 * pad, height: y2 - y1 + 2 * pad };
+      }, { sel: s.clip.selector, pad: s.clip.pad ?? 0 });
+      if (box) await page.screenshot({ path: join(OUT, s.file), clip: box });
+    } else if (s.selector) {
+      const loc = page.locator(s.selector).first();
+      await loc.waitFor({ state: "visible", timeout: 60_000 });
+      await loc.screenshot({ path: join(OUT, s.file) });
+    }
     await page.close();
   }
   const collisionByViewport = {};
@@ -425,5 +509,6 @@ async function main() {
 
 main().catch((e) => {
   console.error(e);
-  process.exit(1);
+  process.exitCode = 1;
+  throw e;
 });

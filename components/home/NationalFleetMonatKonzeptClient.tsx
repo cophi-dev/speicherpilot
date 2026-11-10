@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 
 import {
   MonatArbeitWirkungChart,
   MonatDauerlinieChart,
   MonatKonzeptWerkbank,
 } from "@/components/home/MonatKonzeptCharts";
+import { MonatKonzeptAnnahmen } from "@/components/home/MonatKonzeptAnnahmen";
 import styles from "@/components/home/monat-konzept.module.css";
 import type { ArbeitWirkungModel } from "@/lib/monatKonzeptA";
 import type { FleetSizeRow } from "@/lib/monatKonzeptA";
@@ -46,6 +47,11 @@ export function NationalFleetMonatKonzeptClient({
     setWerkbenchOpen(true);
   }, []);
 
+  const wirkungGw = useMemo(
+    () => arbeit.points.find((p) => p.factor === factor && p.strategy === strategy)?.wirkungGw ?? 0,
+    [arbeit.points, factor, strategy],
+  );
+
   return (
     <div className={`v4-monat-konzept v4-content ${styles.konzeptRoot}`} data-testid="konzept-root">
       <MonatArbeitWirkungChart
@@ -68,8 +74,8 @@ export function NationalFleetMonatKonzeptClient({
           plateauNote={plateauNote}
         />
       ) : (
-        <p className="v4-footnote num" style={{ margin: "12px 0 24px", fontSize: 12 }}>
-          Punkt wählen (tippen oder ←→↑↓) — darunter öffnet sich die Viertelstundenkurve des Laufs.
+        <p className={`v4-footnote num ${styles.konzeptWerkbenchHint}`}>
+          Punkt wählen (←→↑↓) — darunter öffnet sich die Viertelstundenkurve des Laufs.
         </p>
       )}
       <Suspense fallback={<div className="v4-content" style={{ minHeight: 320 }} />}>
@@ -79,17 +85,11 @@ export function NationalFleetMonatKonzeptClient({
           activeFactor={factor}
           activeStrategy={strategy}
           fleetAvailable
+          peakAfterGw={peakAfterGw}
+          wirkungGw={wirkungGw}
         />
       </Suspense>
-      <footer className={`v4-day-footnotes v4-monat-slot-foot ${styles.konzeptFoot}`}>
-        <p className="v4-footnote num">
-          Modellflotte {fleetFootnote} · Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Day-Ahead Price Taker, perfekte
-          Voraussicht, ohne Preisrückwirkung. Quelle Energy-Charts / SMARD CC BY 4.0.{" "}
-          <a href="/methodik#monat-konzept-ac" className="v4-footnote-link">
-            Methodik
-          </a>
-        </p>
-      </footer>
+      <MonatKonzeptAnnahmen fleetFootnote={fleetFootnote} />
     </div>
   );
 }

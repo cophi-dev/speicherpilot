@@ -206,6 +206,13 @@ export function buildChartObstacles(model: ArbeitWirkungModel, viewW: number, st
   for (const b of xTickBoxes(viewW)) obs.push({ kind: "box", box: b });
   for (const b of axisTitleBoxes(viewW)) obs.push({ kind: "box", box: b });
   for (const b of pointObstacles(model, strategies as never, viewW)) obs.push({ kind: "box", box: b });
+  for (const strategy of strategies) {
+    for (const p of model.points.filter((pt) => pt.strategy === strategy)) {
+      const cx = logX(p.chargeGwh, viewW);
+      const cy = yWirkung(p.wirkungGw);
+      obs.push({ kind: "box", box: { x: cx - 18, y: cy - 28, w: 36, h: 14 } });
+    }
+  }
   for (const seg of pathSegments(model, strategies as never, viewW)) obs.push({ kind: "segment", segment: seg, threshold: 4 });
   obs.push({ kind: "segment", segment: zeroLineSegment(viewW), threshold: 2 });
   obs.push({ kind: "segment", segment: poolLineSegment(logX(model.surplusPoolGwh, viewW)), threshold: 2 });
@@ -229,13 +236,13 @@ export function arbeitWirkungLabelSpecs(
     {
       id: "arbeit-label-pool",
       anchorX: poolX - 8,
-      anchorY: CHART_PAD_T + 20,
+      anchorY: CHART_PAD_T + 28,
       lines: [
-        { text: `Überschuss-Pool ${formatQuantity(model.surplusPoolGwh, "de", 1)} GWh`, fontSize: 11 },
-        { text: "mehr Überschuss gab es nicht", fontSize: 11 },
+        { text: `Überschuss-Pool ${formatQuantity(model.surplusPoolGwh, "de", 1)} GWh`, fontSize: 12 },
+        { text: "mehr Überschuss gab es nicht", fontSize: 12 },
       ],
       priority: 3,
-      prefer: ["NW", "N", "NE", "W"],
+      prefer: ["W", "NW", "SW"],
     },
     {
       id: "arbeit-label-spitze",
@@ -250,8 +257,8 @@ export function arbeitWirkungLabelSpecs(
       anchorX: logX(ue10.chargeGwh, viewW) - 16,
       anchorY: yWirkung(ue10.wirkungGw) + 4,
       lines: [
-        { text: "Differenz aufnehmen ·", fontSize: 11, bold: true },
-        { text: "stößt bei ×10 an den Pool", fontSize: 11, bold: true },
+        { text: "Differenz aufnehmen ·", fontSize: 12, bold: true },
+        { text: "stößt bei ×10 an den Pool", fontSize: 12, bold: true },
       ],
       priority: 7,
       prefer: ["W", "NW", "SW", "N"],
@@ -261,28 +268,24 @@ export function arbeitWirkungLabelSpecs(
       anchorX: logX(markt1.chargeGwh, viewW),
       anchorY: yWirkung(markt1.wirkungGw),
       lines: [
-        { text: "Marktorientiert ×1:", fontSize: 11, bold: true },
-        { text: pathLabels.markt.replace(/^Marktorientiert ×1:\s*/, ""), fontSize: 10, bold: true },
+        { text: "Marktorientiert ×1:", fontSize: 12, bold: true },
+        { text: pathLabels.markt.replace(/^Marktorientiert ×1:\s*/, ""), fontSize: 12, bold: true },
       ],
       priority: 8,
       prefer: ["N", "NW", "NE", "W"],
     },
     {
       id: "arbeit-ref-label",
-      anchorX: viewW - CHART_PAD_R - 6,
-      anchorY: yZero + 4,
+      anchorX: viewW - CHART_PAD_R - 4,
+      anchorY: yZero - 6,
       lines: [
         {
-          text: `Referenz ohne Speicher ${formatQuantity(model.refPeakGw, "de", 2)} GW ·`,
-          fontSize: 11,
-        },
-        {
-          text: `${formatKonzeptPeakInstant(model.refPeakTs) ?? "—"}`,
-          fontSize: 11,
+          text: `Referenz ohne Speicher ${formatQuantity(model.refPeakGw, "de", 2)} GW · ${formatKonzeptPeakInstant(model.refPeakTs) ?? "—"}`,
+          fontSize: 12,
         },
       ],
       priority: 4,
-      prefer: ["S", "SW", "SE"],
+      prefer: ["N", "NE", "NW", "S"],
     },
   ];
 
@@ -295,11 +298,11 @@ export function arbeitWirkungLabelSpecs(
         { text: `${formatQuantity(marktX10.peakAfterGw, "de", 2)} GW`, fontSize: 26, bold: true },
         {
           text: `neue Monatsspitze · ${marktX10.peakTs?.slice(0, 10) ?? ""}`,
-          fontSize: 11,
+          fontSize: 12,
         },
         {
           text: `${formatQuantity(marktX10Detail.residualGw, "de", 2)} GW Restlast + ${formatQuantity(marktX10Detail.chargeGw, "de", 2)} GW Laden · ${formatQuantity(marktX10Detail.priceEurMwh, "de", 2)} €/MWh`,
-          fontSize: 11,
+          fontSize: 12,
         },
       ],
       priority: 0,

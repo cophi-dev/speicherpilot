@@ -1,15 +1,24 @@
 {
-  "commit": "f7f16b9b1417c9bbeb99c7ecf2c206da1784d636",
-  "buildId": "20261109T2356Z",
-  "builtAt": "2026-11-09T23:56:47.788Z",
+  "commit": "1f8a94be77cdb5453a59c0fa09832233ae87234a",
+  "buildId": "20261110T0047Z",
+  "builtAt": "2026-11-10T00:47:15.080Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/home/MonatKonzeptCharts.tsx",
+    "M app/globals.css",
+    " M components/home/MonatKonzeptCharts.tsx",
+    " M components/home/MonatObservedOnlySlot.tsx",
+    " M components/home/NationalFleetMonatKonzeptClient.tsx",
     " M components/home/monat-konzept.module.css",
-    " M docs/audit-2026-11/paket4/BERICHT.md",
+    " M docs/audit-2026-11/paket4/screens/monat-2026-10-1024-dark.png",
+    " M docs/audit-2026-11/paket4/screens/monat-2026-10-1440-dark.png",
+    " M docs/audit-2026-11/paket4/screens/monat-2026-10-1440-light.png",
+    " M docs/audit-2026-11/paket4/screens/monat-2026-10-390-dark-top.png",
     " M lib/arbeitWirkungLabelPlacement.ts",
-    " M scripts/paket4-abnahme.mjs"
+    " M scripts/paket4-abnahme.mjs",
+    "?? components/home/MonatKonzeptAnnahmen.tsx",
+    "?? lib/dauerlinieChartLayout.ts",
+    "?? lib/formatMobileCharge.ts"
   ],
   "ci": false
 }
