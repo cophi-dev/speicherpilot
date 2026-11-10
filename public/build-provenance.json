@@ -1,13 +1,11 @@
 {
-  "commit": "817ac261cc41079d166c9bae9af6122857a83759",
-  "buildId": "20261110T1238Z",
-  "builtAt": "2026-11-10T12:38:31.340Z",
+  "commit": "44cdaa7a786868d204889f5c8099bf8cc33e3a1f",
+  "buildId": "20261110T1345Z",
+  "builtAt": "2026-11-10T13:45:58.986Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/research/ResearchHomePage.tsx",
-    " M components/research/charts.tsx",
-    " M components/research/research.module.css",
+    "M components/research/charts.tsx",
     "?? opt/",
     "?? scripts/check-live-0911.mjs",
     "?? scripts/count-ec-slots.mjs",
