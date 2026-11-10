@@ -20,7 +20,8 @@ type SiteShellProps = {
 type ThemePreference = "light" | "dark" | "system";
 
 const NAV = [
-  { href: "/", label: "Start" },
+  { href: "/", label: "Gestern" },
+  { href: "/vision", label: "Vision" },
   { href: "/tag", label: "Tag" },
   { href: "/monat", label: "Monat" },
   { href: "/ort", label: "Ort" },

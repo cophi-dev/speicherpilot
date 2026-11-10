@@ -9,7 +9,15 @@ import { join } from "node:path";
 const OUT = join(process.cwd(), "data/tag-pages");
 /** Nur historische Abrufe — im Betrieb gilt tagRollSnapshotPolicy (≥3 Tage live). */
 const START = "2026-09-01";
-const END = process.env.TAG_ROLL_SNAPSHOT_END ?? "2026-11-06";
+/** Default: gestern (Berlin), damit committed Snapshot nicht hinter Live-Daten endet. */
+function berlinYesterdayKey() {
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" });
+  const today = fmt.format(new Date());
+  const d = new Date(`${today}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return fmt.format(d);
+}
+const END = process.env.TAG_ROLL_SNAPSHOT_END ?? berlinYesterdayKey();
 
 async function main() {
   const { parsePowerPayload, residualDaysFromSlots } = await import("../lib/powerMix.ts");
