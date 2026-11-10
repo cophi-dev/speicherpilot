@@ -640,8 +640,8 @@ function DauerlinieSvg({
   layoutMode: "desktop" | "mobile";
 }) {
   const plotBottom = scene.padT + scene.plotH;
-  const xTickY = layoutMode === "mobile" ? plotBottom + 5 : scene.viewH - 28;
-  const xTitleY = layoutMode === "mobile" ? plotBottom + 17 : scene.viewH - 8;
+  const xTickY = layoutMode === "mobile" ? plotBottom + 4 : scene.viewH - 28;
+  const xTitleY = layoutMode === "mobile" ? plotBottom + 15 : scene.viewH - 8;
   const valleyEndX = scene.xPixFromHours(DAUER_SORTED_HOURS);
 
   const mobilePixelBox = layoutMode === "mobile";
@@ -666,7 +666,14 @@ function DauerlinieSvg({
         fill="none"
         stroke="transparent"
       />
-      <text x={scene.padL} y={scene.padT - 14} className={styles.yAxisTitle} textAnchor="start" fontSize={12}>
+      <text
+        x={scene.padL}
+        y={layoutMode === "mobile" ? scene.padT - 10 : scene.padT - 14}
+        className={styles.yAxisTitle}
+        textAnchor="start"
+        fontSize={12}
+        data-chart-tick="y-title"
+      >
         Restlast, GW
       </text>
       {DAUER_Y_TICKS.map((tick) => (
@@ -720,10 +727,12 @@ function DauerlinieSvg({
         y={xTitleY}
         className={styles.axisTitle}
         textAnchor="middle"
-        fontSize={12}
+        fontSize={layoutMode === "mobile" ? 10 : 12}
         data-chart-tick="x-title"
       >
-        Stunden im Monat, nach Restlast sortiert ({DAUER_SORTED_HOURS} h)
+        {layoutMode === "mobile"
+          ? `Stunden, sortiert (${DAUER_SORTED_HOURS} h)`
+          : `Stunden im Monat, nach Restlast sortiert (${DAUER_SORTED_HOURS} h)`}
       </text>
       <line
         x1={scene.padL}
@@ -833,7 +842,7 @@ export function MonatDauerlinieChart({
         </div>
         <p className={`${styles.chartCaption} num`} data-testid="dauer-chart-caption">
           {sorted
-            ? "Höchste Restlast links, tiefste rechts — weiße Linie beobachtet, farbige Linie gewählter Lauf."
+            ? "Höchste Restlast links, tiefste rechts — dünne Linie beobachtet, farbige Linie gewählter Lauf."
             : "Weiter scrollen sortiert die Viertelstunden nach Restlast."}
         </p>
       </figure>

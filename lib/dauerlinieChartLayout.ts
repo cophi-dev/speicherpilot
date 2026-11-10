@@ -5,7 +5,7 @@ export const DAUER_SORTED_HOURS = 745;
 export const DAUER_Y_TICKS = [-60, 0, 60, 100] as const;
 export const DAUER_X_TICKS_H = [0, 350, 700] as const;
 /** Gesamthöhe C-Chart in CSS-Pixel (Mobil). */
-export const DAUER_MOBILE_CHART_H = 320;
+export const DAUER_MOBILE_CHART_H = 336;
 
 export type DauerlinieLayoutMode = "desktop" | "mobile";
 
@@ -46,7 +46,7 @@ export function buildDauerlinieScene(
   const n = model.intervalCount;
   const padL = mode === "mobile" ? 44 : 92;
   const padR = mode === "mobile" ? 12 : 28;
-  const padT = mode === "mobile" ? 20 : 48;
+  const padT = mode === "mobile" ? 36 : 48;
   const padB = mode === "mobile" ? 20 : 36;
   const viewH = mode === "mobile" ? DAUER_MOBILE_CHART_H : 48 + 300 + 36;
   const plotH = mode === "mobile" ? viewH - padT - padB : 300;

@@ -350,6 +350,22 @@ async function assertSvgCollisions(page) {
             add(`dauer-tick-font:${tick.getAttribute("data-chart-tick")}:${th.toFixed(1)}`);
           }
         }
+        const vb = dauer.viewBox.baseVal;
+        const vw = vb.width;
+        const vh = vb.height;
+        const textEls = [
+          ...dauer.querySelectorAll("[data-chart-tick]"),
+          ...dauer.querySelectorAll('[data-testid="dauer-hero-gw"]'),
+          ...dauer.querySelectorAll('[data-testid="dauer-tal-label"]'),
+        ];
+        for (const el of textEls) {
+          const bb = el.getBBox();
+          if (bb.x < -1 || bb.y < -1 || bb.x + bb.width > vw + 1 || bb.y + bb.height > vh + 1) {
+            add(
+              `dauer-text-clip:${el.getAttribute("data-chart-tick") || el.getAttribute("data-testid")}:${bb.x.toFixed(0)},${bb.y.toFixed(0)},${bb.width.toFixed(0)},${bb.height.toFixed(0)}`,
+            );
+          }
+        }
       }
     }
 
