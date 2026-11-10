@@ -36,6 +36,7 @@ import {
 import type { DauerlinieModel } from "@/lib/monatKonzeptC";
 import {
   buildDauerlinieScene,
+  DAUER_MOBILE_CHART_H,
   DAUER_SORTED_HOURS,
   DAUER_X_TICKS_H,
   DAUER_Y_TICKS,
@@ -68,6 +69,26 @@ function useChartViewWidth(shellRef: React.RefObject<HTMLDivElement | null>): nu
     return () => ro.disconnect();
   }, []);
   return viewW > 0 ? viewW : 920;
+}
+
+function useShellContentWidth(shellRef: React.RefObject<HTMLDivElement | null>): number {
+  const [viewW, setViewW] = useState(358);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = shellRef.current;
+      const w = el
+        ? Math.round(el.getBoundingClientRect().width)
+        : Math.round(typeof window !== "undefined" ? window.innerWidth : 358);
+      if (w > 80) setViewW(w);
+    };
+    measure();
+    const el = shellRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return viewW;
 }
 
 function labelStyleClass(id: string, styles: Record<string, string>): string {
@@ -607,18 +628,6 @@ function useMorphScroll(fixedMorph: number | null) {
   return { trackRef, morphT: displayMorph, sorted: displayMorph >= 0.92 };
 }
 
-function useMediaMobile() {
-  const [mobile, setMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 639px)");
-    const fn = () => setMobile(mq.matches);
-    fn();
-    mq.addEventListener("change", fn);
-    return () => mq.removeEventListener("change", fn);
-  }, []);
-  return mobile;
-}
-
 function DauerlinieSvg({
   scene,
   fleetAvailable,
@@ -631,20 +640,32 @@ function DauerlinieSvg({
   layoutMode: "desktop" | "mobile";
 }) {
   const plotBottom = scene.padT + scene.plotH;
-  const xTickY = layoutMode === "mobile" ? plotBottom + 16 : scene.viewH - 28;
-  const xTitleY = layoutMode === "mobile" ? plotBottom + 32 : scene.viewH - 8;
+  const xTickY = layoutMode === "mobile" ? plotBottom + 5 : scene.viewH - 28;
+  const xTitleY = layoutMode === "mobile" ? plotBottom + 17 : scene.viewH - 8;
   const valleyEndX = scene.xPixFromHours(DAUER_SORTED_HOURS);
+
+  const mobilePixelBox = layoutMode === "mobile";
 
   return (
     <svg
       viewBox={`0 0 ${scene.viewW} ${scene.viewH}`}
-      width="100%"
+      width={mobilePixelBox ? scene.viewW : "100%"}
       height={scene.viewH}
-      className={styles.svg}
+      preserveAspectRatio={mobilePixelBox ? "xMinYMin meet" : undefined}
+      className={`${styles.svg}${mobilePixelBox ? ` ${styles.svgCMobile}` : ""}`}
       role="img"
       data-testid="dauerlinie-svg"
       data-dauer-layout={layoutMode}
     >
+      <rect
+        data-testid="dauer-plot-frame"
+        x={scene.padL}
+        y={scene.padT}
+        width={scene.plotW}
+        height={scene.plotH}
+        fill="none"
+        stroke="transparent"
+      />
       <text x={scene.padL} y={scene.padT - 14} className={styles.yAxisTitle} textAnchor="start" fontSize={12}>
         Restlast, GW
       </text>
@@ -764,17 +785,17 @@ export function MonatDauerlinieChart({
   const morphParam = searchParams.get("morph");
   const fixedMorph = morphParam != null && morphParam !== "" ? Number(morphParam) : null;
   const { trackRef, morphT, sorted } = useMorphScroll(fixedMorph);
-  const isMobile = useMediaMobile();
   const shellRef = useRef<HTMLDivElement>(null);
-  const shellW = useChartViewWidth(shellRef);
-  const layoutW = isMobile ? Math.max(340, shellW) : Math.max(shellW, 680);
+  const shellW = useShellContentWidth(shellRef);
+  const mobileLayout = shellW < 640;
+  const layoutW = mobileLayout ? shellW : Math.max(shellW, 680);
   const storColor =
     activeStrategy === "spitze" ? "#e86a3a" : activeStrategy === "markt" ? "#f5b731" : "#0b9f84";
 
   const scene = useMemo(
     () =>
-      buildDauerlinieScene(model, morphT, isMobile ? "mobile" : "desktop", layoutW, fleetAvailable, storColor),
-    [model, morphT, isMobile, layoutW, fleetAvailable, storColor],
+      buildDauerlinieScene(model, morphT, mobileLayout ? "mobile" : "desktop", layoutW, fleetAvailable, storColor),
+    [model, morphT, mobileLayout, layoutW, fleetAvailable, storColor],
   );
 
   const aussage = konzeptCDauerHeadline(
@@ -794,18 +815,18 @@ export function MonatDauerlinieChart({
       <figure className={styles.figure}>
         <div
           ref={trackRef}
-          className={`${styles.morphScrollTrack}${sorted ? ` ${styles.morphScrollTrackCompact}` : ""}${isMobile ? ` ${styles.morphScrollTrackMobile}` : ""}`}
+          className={`${styles.morphScrollTrack}${sorted ? ` ${styles.morphScrollTrackCompact}` : ""}${mobileLayout ? ` ${styles.morphScrollTrackMobile}` : ""}`}
         >
-          <div className={isMobile ? undefined : styles.morphSticky}>
+          <div className={mobileLayout ? undefined : styles.morphSticky}>
             <div
               ref={shellRef}
-              className={`${styles.chartShell} ${styles.chartShellC}${isMobile ? ` ${styles.chartShellCMobile}` : ""}`}
+              className={`${styles.chartShell} ${styles.chartShellC}${mobileLayout ? ` ${styles.chartShellCMobile}` : ""}`}
             >
               <DauerlinieSvg
                 scene={scene}
                 fleetAvailable={fleetAvailable}
                 sorted={sorted}
-                layoutMode={isMobile ? "mobile" : "desktop"}
+                layoutMode={mobileLayout ? "mobile" : "desktop"}
               />
             </div>
           </div>

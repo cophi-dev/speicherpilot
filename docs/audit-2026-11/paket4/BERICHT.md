@@ -44,6 +44,11 @@ Stand: 10. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81
 4. **Mobil-Miniplots:** 12 px rechter Innenabstand; Wertlabels bei negativen GW unter dem Punkt.
 5. **Abnahme:** `label-collision.json` prüft Fluchtlinie (≥ Kopf), Callout vs. Fußnote/Plot, Mobil-Clip + Label-auf-Punkt.
 
+## Korrektur 8 (C mobil viewBox)
+
+- Mobil-Szene: `viewBox` = Shell-Breite × 320 (ResizeObserver), kein Desktop-920-Skalieren; Plot ≥280 CSS-px, Tick-Schrift ~16 px.
+- Screens `390-c-*-morph1`: Scroll zu `dauerlinie-svg`, Morph=1.
+
 ## Korrektur 7 (vor Abnahme)
 
 - **C mobil:** X-Ticks unter dem Plot; Y-Tick −60 nach innen; Tal-Label oberhalb, links; SVG/CSS fix 320 px.

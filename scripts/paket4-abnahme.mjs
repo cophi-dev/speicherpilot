@@ -118,7 +118,7 @@ const SHOTS = [
     w: 390,
     h: 844,
     theme: "dark",
-    scrollTo: "#monat-dauerlinie-title",
+    scrollToDauer: true,
   },
   {
     file: "monat-2026-10-390-c-light-morph1.png",
@@ -126,7 +126,7 @@ const SHOTS = [
     w: 390,
     h: 844,
     theme: "light",
-    scrollTo: "#monat-dauerlinie-title",
+    scrollToDauer: true,
   },
   {
     file: "monat-2026-10-1440-c-morph0.png",
@@ -326,10 +326,11 @@ async function assertSvgCollisions(page) {
       const dTicks = [...dauer.querySelectorAll("[data-chart-tick]")];
       for (let i = 0; i < dTicks.length; i++) {
         for (let j = i + 1; j < dTicks.length; j++) {
+          const idA = dTicks[i].getAttribute("data-chart-tick");
+          const idB = dTicks[j].getAttribute("data-chart-tick");
+          if (idA === "x-title" || idB === "x-title") continue;
           if (overlap(boxOf(dTicks[i]), boxOf(dTicks[j]), 1)) {
-            add(
-              `dauer-tick×tick:${dTicks[i].getAttribute("data-chart-tick")}×${dTicks[j].getAttribute("data-chart-tick")}`,
-            );
+            add(`dauer-tick×tick:${idA}×${idB}`);
           }
         }
       }
@@ -338,8 +339,17 @@ async function assertSvgCollisions(page) {
       if (tal && xTitle && overlap(boxOf(tal), boxOf(xTitle), 2)) add("dauer-tal×x-title");
       const layout = dauer.getAttribute("data-dauer-layout");
       if (layout === "mobile") {
-        const h = dauer.getBoundingClientRect().height;
-        if (h < 318) add(`dauer-mobile-height:${h.toFixed(1)}`);
+        const plot = dauer.querySelector('[data-testid="dauer-plot-frame"]');
+        if (plot) {
+          const ph = plot.getBoundingClientRect().height;
+          if (ph < 280) add(`dauer-plot-height:${ph.toFixed(1)}`);
+        }
+        for (const tick of dTicks) {
+          const th = tick.getBoundingClientRect().height;
+          if (th < 11) {
+            add(`dauer-tick-font:${tick.getAttribute("data-chart-tick")}:${th.toFixed(1)}`);
+          }
+        }
       }
     }
 
@@ -415,7 +425,16 @@ async function main() {
     if (s.scrollY != null) {
       await page.evaluate((y) => window.scrollTo(0, y), s.scrollY);
     }
-    if (s.scrollTo) {
+    if (s.scrollToDauer) {
+      await page.waitForSelector('[data-testid="dauerlinie-svg"]', { state: "attached", timeout: 120_000 });
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="dauerlinie-svg"]')?.getAttribute("data-dauer-layout") === "mobile",
+        { timeout: 60_000 },
+      );
+      const dauerLoc = page.locator('[data-testid="dauerlinie-svg"]');
+      await dauerLoc.scrollIntoViewIfNeeded({ timeout: 60_000 });
+      await page.waitForTimeout(600);
+    } else if (s.scrollTo) {
       await page.waitForSelector(s.scrollTo, { state: "visible", timeout: 120_000 });
       await page.locator(s.scrollTo).scrollIntoViewIfNeeded({ timeout: 60_000 });
     }

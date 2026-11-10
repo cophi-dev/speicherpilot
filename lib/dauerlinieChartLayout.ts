@@ -46,8 +46,8 @@ export function buildDauerlinieScene(
   const n = model.intervalCount;
   const padL = mode === "mobile" ? 44 : 92;
   const padR = mode === "mobile" ? 12 : 28;
-  const padT = mode === "mobile" ? 38 : 48;
-  const padB = mode === "mobile" ? 44 : 36;
+  const padT = mode === "mobile" ? 20 : 48;
+  const padB = mode === "mobile" ? 20 : 36;
   const viewH = mode === "mobile" ? DAUER_MOBILE_CHART_H : 48 + 300 + 36;
   const plotH = mode === "mobile" ? viewH - padT - padB : 300;
   const plotW = viewW - padL - padR;
