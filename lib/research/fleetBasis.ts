@@ -33,8 +33,15 @@ export function additionalFleetMw(factor: number, durationH = RESEARCH_FLEET_DUR
   return { powerMw, energyMwh };
 }
 
+/** Sichtbares Minus (U+2212), nicht ASCII-Hyphen. */
+export const GW_MINUS = "\u2212";
+
 export function formatGwSenkung(gw: number): string {
   const rounded = Math.round(gw * 10) / 10;
   const text = rounded.toFixed(1).replace(".", ",");
-  return `−${text} GW`;
+  return `${GW_MINUS}${text} GW`;
+}
+
+export function formatReductionTickGw(tick: number): string {
+  return tick === 0 ? "0" : `${GW_MINUS}${tick}`;
 }

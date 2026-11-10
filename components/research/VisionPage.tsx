@@ -8,7 +8,7 @@ import styles from "@/components/research/research.module.css";
 import { useResearchLayout } from "@/components/research/useResearchLayout";
 import { VisionPlot } from "@/components/research/VisionPlot";
 import { ResearchSubnav } from "@/components/research/ResearchSubnav";
-import { formatGwSenkung } from "@/lib/research/fleetBasis";
+import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
 import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
 const DURATIONS = [
@@ -108,7 +108,7 @@ export function VisionPage({ model }: { model: VisionPageModel }) {
           setGapLabel(
             diff < 0.15
               ? "Fast getroffen."
-              : `Abstand zur Schätzung: ${formatGwSenkung(diff).replace("−", "")}`
+              : `Abstand zur Schätzung: ${formatGwSenkung(diff).replace(GW_MINUS, "")}`
           );
           setRevealed(true);
         }}

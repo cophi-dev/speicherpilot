@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { reductionFromY, yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
-import { formatGwSenkung } from "@/lib/research/fleetBasis";
+import { formatGwSenkung, formatReductionTickGw } from "@/lib/research/fleetBasis";
 import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
 import styles from "@/components/research/research.module.css";
@@ -17,6 +17,12 @@ const HIT = 44;
 
 function xPos(gw: number, width: number) {
   return 40 + (gw / X_MAX) * (width - 72);
+}
+
+function durationCurveLabel(duration: "1.76" | "2" | "4"): string {
+  if (duration === "1.76") return "1,76 h";
+  if (duration === "2") return "2 h";
+  return "4 h";
 }
 
 export function VisionPlot({
@@ -101,6 +107,8 @@ export function VisionPlot({
 
   const plotLo = yPos(Y_MAX);
   const plotHi = yPos(0);
+  const rightEnd = points[points.length - 1]!;
+  const stackNepALabel = width < 420;
 
   return (
     <div
@@ -131,7 +139,7 @@ export function VisionPlot({
                 opacity={guessMode && !showCurves ? 0.45 : 1}
               />
               <text x={32} y={yPos(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-                {tick === 0 ? "0" : `−${tick}`}
+                {formatReductionTickGw(tick)}
               </text>
             </g>
           ))}
@@ -181,6 +189,35 @@ export function VisionPlot({
                   </g>
                 );
               })}
+              {(() => {
+                const roomRight = width - rightEnd.x;
+                const anchorEnd = roomRight < 36;
+                const lx = anchorEnd ? Math.max(rightEnd.x - 4, 44) : Math.min(rightEnd.x + 8, width - 4);
+                return (
+                  <>
+                    <text
+                      x={lx}
+                      y={Math.min(rightEnd.y4 + 14, plotLo - 6)}
+                      textAnchor={anchorEnd ? "end" : "start"}
+                      fontSize={12}
+                      fill="var(--research-muted)"
+                      fontFamily="var(--font-jetbrains-mono)"
+                    >
+                      4 h
+                    </text>
+                    <text
+                      x={lx}
+                      y={Math.max(rightEnd.y - 6, plotHi + 12)}
+                      textAnchor={anchorEnd ? "end" : "start"}
+                      fontSize={12}
+                      fill="var(--research-accent)"
+                      fontFamily="var(--font-jetbrains-mono)"
+                    >
+                      {durationCurveLabel(duration)}
+                    </text>
+                  </>
+                );
+              })()}
             </>
           ) : (
             <>
@@ -276,19 +313,22 @@ export function VisionPlot({
           <circle cx={active.x} cy={trackY} r={10} fill="var(--research-accent)" style={{ pointerEvents: "none" }} />
           {points
             .filter((p) => p.id !== "x1")
-            .map((p) => (
-              <text
-                key={p.id}
-                x={p.x}
-                y={height - 14}
-                textAnchor="middle"
-                fontSize={12}
-                fill={p.id === stageId ? "var(--research-fg)" : "var(--research-muted)"}
-                fontFamily="var(--font-jetbrains-mono)"
-              >
-                {p.label}
-              </text>
-            ))}
+            .map((p) => {
+              const yLabel = p.id === "nep-a" && stackNepALabel ? height - 2 : height - 14;
+              return (
+                <text
+                  key={p.id}
+                  x={p.x}
+                  y={yLabel}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fill={p.id === stageId ? "var(--research-fg)" : "var(--research-muted)"}
+                  fontFamily="var(--font-jetbrains-mono)"
+                >
+                  {p.label}
+                </text>
+              );
+            })}
         </svg>
       </motion.div>
     </div>

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import type { ResearchCloudModel, ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
-import { RESEARCH_FLEET_POWER_MW } from "@/lib/research/fleetBasis";
+import { formatReductionTickGw, RESEARCH_FLEET_POWER_MW } from "@/lib/research/fleetBasis";
 
 import styles from "@/components/research/research.module.css";
 
@@ -75,7 +75,7 @@ export function WeekDotsChart({
         <g key={tick}>
           <line x1={40} x2={width - 16} y1={y(tick)} y2={y(tick)} stroke="var(--research-line)" />
           <text x={32} y={y(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {tick === 0 ? "0" : `−${tick}`}
+            {formatReductionTickGw(tick)}
           </text>
         </g>
       ))}
@@ -240,7 +240,7 @@ export function SaturationChart({
         <g key={tick}>
           <line x1={40} x2={width - 16} y1={y(tick)} y2={y(tick)} stroke="var(--research-line)" />
           <text x={32} y={y(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {tick === 0 ? "0" : `−${tick}`}
+            {formatReductionTickGw(tick)}
           </text>
         </g>
       ))}
