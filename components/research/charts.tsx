@@ -1,163 +1,104 @@
 "use client";
 
-import type { ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
+import { useMemo } from "react";
 
-const FACTORS: ResearchFactor[] = [2, 5, 10];
+import type { ResearchCloudModel, ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
+import { RESEARCH_FLEET_POWER_MW } from "@/lib/research/fleetBasis";
 
-function yMap(value: number, yMin: number, yMax: number, height: number, padTop = 26, padBottom = 40) {
+const FACTOR_GW: Record<ResearchFactor, number> = {
+  2: 9.28818044,
+  5: 23.2204511,
+  10: 46.4409022,
+};
+
+function yMap(value: number, yMin: number, yMax: number, height: number, padTop = 26, padBottom = 44) {
   const inner = height - padTop - padBottom;
   return padTop + ((yMax - value) / (yMax - yMin)) * inner;
 }
 
-function xMap(index: number, n: number, width: number, padX = 40) {
-  const inner = width - padX - 36;
-  return padX + (index / Math.max(1, n - 1)) * inner;
+function xGw(gw: number, width: number, xMax = 50) {
+  return 40 + (gw / xMax) * (width - 72);
 }
 
-export function ResidualMesserChart({
-  model,
-  factor,
-  width = 350,
-  height = 330,
-}: {
-  model: ResearchDayModel;
-  factor: ResearchFactor;
-  width?: number;
-  height?: number;
-}) {
-  const yMin = 45;
-  const yMax = 70;
-  const stage = model.stages.find((s) => s.factor === factor)!;
-  const cap = stage.capGw;
+function jitter(seed: string, amp = 4): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) % 997;
+  return ((h % (amp * 2 + 1)) - amp) * 0.35;
+}
 
-  const line = model.series
-    .map((p, i) => {
-      const x = xMap(i, model.series.length, width);
-      const y = yMap(p.residualGw, yMin, yMax, height);
-      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-
-  const cappedAreas: string[] = [];
-  let area: Array<{ x: number; y: number; yCap: number }> = [];
-  const flush = () => {
-    if (area.length < 2) {
-      area = [];
-      return;
-    }
-    const capY = yMap(cap, yMin, yMax, height);
-    const top = area.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L");
-    const bottom = [...area].reverse().map((p) => `${p.x.toFixed(1)},${capY.toFixed(1)}`).join(" L");
-    cappedAreas.push(`M${top} L${bottom} Z`);
-    area = [];
-  };
-
-  model.series.forEach((p, i) => {
-    const x = xMap(i, model.series.length, width);
-    const y = yMap(p.residualGw, yMin, yMax, height);
-    const yCap = yMap(cap, yMin, yMax, height);
-    if (p.residualGw > cap) {
-      area.push({ x, y, yCap });
-    } else {
-      flush();
-    }
-  });
-  flush();
-
-  const peakIdx = model.series.findIndex((p) => Math.abs(p.residualGw - model.peakGw) < 0.05);
-  const peakPoint = model.series[peakIdx] ?? model.series[model.series.length - 1]!;
-  const px = xMap(peakIdx, model.series.length, width);
-  const py = yMap(peakPoint.residualGw, yMin, yMax, height);
-  const capY = yMap(cap, yMin, yMax, height);
-
-  return (
-    <svg
-      className="research-chart"
-      width="100%"
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label={`Restlast national mit Kappung bei ×${factor}`}
-    >
-      {[45, 50, 55, 60, 65, 70].map((tick) => (
-        <g key={tick}>
-          <line x1={40} x2={width - 36} y1={yMap(tick, yMin, yMax, height)} y2={yMap(tick, yMin, yMax, height)} stroke="var(--research-line)" />
-          <text x={32} y={yMap(tick, yMin, yMax, height) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {tick}
-          </text>
-        </g>
-      ))}
-      {FACTORS.map((f) => {
-        const st = model.stages.find((s) => s.factor === f)!;
-        const y = yMap(st.capGw, yMin, yMax, height);
-        const active = f === factor;
-        return (
-          <g key={f}>
-            <line
-              x1={40}
-              x2={width - 36}
-              y1={y}
-              y2={y}
-              stroke={active ? "var(--research-accent)" : "var(--research-dim)"}
-              strokeWidth={active ? 2 : 1}
-              strokeDasharray={active ? undefined : "3 4"}
-            />
-            <text x={width - 28} y={y + 4} fontSize={active ? 14 : 12} fontWeight={active ? 700 : 500} fill={active ? "var(--research-fg)" : "var(--research-muted)"} fontFamily="var(--font-jetbrains-mono)">
-              ×{f}
-            </text>
-          </g>
-        );
-      })}
-      {cappedAreas.map((d, i) => (
-        <path key={i} d={d} fill="color-mix(in srgb, var(--research-accent) 30%, transparent)" />
-      ))}
-      <path d={line} fill="none" stroke="var(--research-fg)" strokeWidth={1.5} />
-      <circle cx={px} cy={py} r={3.5} fill="var(--research-fg)" />
-      <text x={px - 4} y={py - 10} textAnchor="end" fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-        {model.peakGw.toFixed(2).replace(".", ",")} GW · {model.peakTime}
-      </text>
-      <line x1={px} x2={px} y1={py} y2={capY} stroke="var(--research-accent)" strokeWidth={2} />
-      {[0, 6, 12, 18, 24].map((h) => {
-        const idx = model.series.findIndex((p) => p.hour === h && p.minute === 0) || 0;
-        const x = xMap(idx < 0 ? 0 : idx, model.series.length, width);
-        return (
-          <text key={h} x={x} y={height - 8} textAnchor={h === 0 ? "start" : h === 24 ? "end" : "middle"} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {h === 24 ? "24 Uhr" : String(h).padStart(2, "0")}
-          </text>
-        );
-      })}
-    </svg>
-  );
+function WeekMarker4h({ kind, cx, cy }: { kind: "tick" | "square" | "double"; cx: number; cy: number }) {
+  if (kind === "square") {
+    return <rect x={cx - 5} y={cy - 5} width={10} height={10} fill="var(--research-fg)" />;
+  }
+  if (kind === "double") {
+    return (
+      <g>
+        <line x1={cx - 6} x2={cx + 6} y1={cy - 2} y2={cy - 2} stroke="var(--research-muted)" strokeWidth={1.5} />
+        <line x1={cx - 6} x2={cx + 6} y1={cy + 2} y2={cy + 2} stroke="var(--research-muted)" strokeWidth={1.5} />
+      </g>
+    );
+  }
+  return <line x1={cx - 6} x2={cx + 6} y1={cy} y2={cy} stroke="var(--research-fg)" strokeWidth={2} />;
 }
 
 export function WeekDotsChart({ week, width = 350, height = 320 }: { week: ResearchWeekDay[]; width?: number; height?: number }) {
   const yMin = 0;
   const yMax = -14;
-  const colW = (width - 80) / Math.max(week.length, 1);
+  const colW = (width - 78) / Math.max(week.length, 1);
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Spitzensenkung je Tag national">
+      <text x={32} y={14} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+        GW
+      </text>
       {[-2, -4, -6, -8, -10, -12, -14, 0].map((tick) => (
         <g key={tick}>
-          <line x1={40} x2={width - 20} y1={yMap(tick, yMin, yMax, height)} y2={yMap(tick, yMin, yMax, height)} stroke="var(--research-line)" />
+          <line x1={40} x2={width - 16} y1={yMap(tick, yMin, yMax, height)} y2={yMap(tick, yMin, yMax, height)} stroke="var(--research-line)" />
           <text x={32} y={yMap(tick, yMin, yMax, height) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {tick}
           </text>
         </g>
       ))}
       {week.map((day, col) => {
-        const cx = 56 + col * colW;
+        const cx = 52 + col * colW;
+        const colX2 = cx - 10;
+        const colX4 = cx + 4;
         return (
           <g key={day.dateKey}>
-            {day.isFocus ? <rect x={cx - 18} y={18} width={36} height={height - 64} rx={6} fill="var(--research-card)" /> : null}
+            {day.isFocus ? <rect x={cx - 20} y={16} width={40} height={height - 58} rx={6} fill="var(--research-card)" /> : null}
             {([2, 5, 10] as const).map((factor) => {
               const pt = day.points.find((p) => p.factor === factor)!;
               const cy = yMap(-pt.reduction175Gw, yMin, yMax, height, 26, 54);
               const cy4 = yMap(-pt.reduction4hGw, yMin, yMax, height, 26, 54);
               const active = day.isFocus && factor === 5;
+              const stroke = active ? "var(--research-accent)" : "var(--research-fg)";
               return (
                 <g key={factor}>
-                  <path d={`M${cx - 8},${cy} H${cx + 8} V${cy4}`} fill="none" stroke="var(--research-dim)" strokeWidth={1} />
-                  {pt.powerLimited4h ? <rect x={cx + 2} y={cy4 - 5} width={10} height={10} fill="var(--research-fg)" /> : <line x1={cx - 2} x2={cx + 12} y1={cy4} y2={cy4} stroke="var(--research-fg)" strokeWidth={2} />}
-                  <circle cx={cx - 8} cy={cy} r={6} fill="var(--research-bg)" stroke={active ? "var(--research-accent)" : "var(--research-fg)"} strokeWidth={2.5} />
+                  <path d={`M${colX2 + 6},${cy} H${colX4 - 6} V${cy4}`} fill="none" stroke="var(--research-dim)" strokeWidth={1} />
+                  <WeekMarker4h kind={pt.marker4h} cx={colX4} cy={cy4} />
+                  <circle
+                    cx={colX2}
+                    cy={cy}
+                    r={6}
+                    fill="var(--research-bg)"
+                    stroke={stroke}
+                    strokeWidth={2.5}
+                    strokeDasharray={pt.marker175 === "dashed" ? "2 2" : undefined}
+                  />
+                  {factor === 2 && day.isFocus ? (
+                    <text x={width - 12} y={cy + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+                      ×2
+                    </text>
+                  ) : null}
+                  {factor === 5 && day.isFocus ? (
+                    <text x={width - 12} y={cy + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+                      ×5
+                    </text>
+                  ) : null}
+                  {factor === 10 && day.isFocus ? (
+                    <text x={width - 12} y={cy + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+                      ×10
+                    </text>
+                  ) : null}
                 </g>
               );
             })}
@@ -170,6 +111,9 @@ export function WeekDotsChart({ week, width = 350, height = 320 }: { week: Resea
           </g>
         );
       })}
+      <text x={40} y={height - 26} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+        Spitzensenkung je Tag, national (Modell)
+      </text>
     </svg>
   );
 }
@@ -178,42 +122,121 @@ export function SaturationChart({
   model,
   cloud,
   width = 350,
-  height = 280,
+  height = 360,
 }: {
   model: ResearchDayModel;
-  cloud: { median: { x5: number }; p10: { x5: number }; p90: { x5: number } };
+  cloud: ResearchCloudModel;
   width?: number;
   height?: number;
 }) {
   const yMin = 0;
   const yMax = -18;
-  const pts = model.saturation.filter((p) => p.factor >= 1);
-  const line = pts
-    .map((p, i) => {
-      const x = 40 + (p.factor / 10) * (width - 80);
-      const y = yMap(-p.reductionGw, yMin, yMax, height);
-      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-  const x5 = model.saturation.find((p) => p.factor === 5);
-  const x5x = 40 + 0.5 * (width - 80);
-  const x5y = x5 ? yMap(-x5.reductionGw, yMin, yMax, height) : 0;
+
+  const cloudDots = useMemo(() => {
+    const dots: Array<{ x: number; y: number }> = [];
+    for (const row of cloud.points) {
+      (["x2", "x5", "x10"] as const).forEach((key) => {
+        const val = row[key];
+        if (val == null) return;
+        const factor = key === "x2" ? 2 : key === "x5" ? 5 : 10;
+        const x = xGw(FACTOR_GW[factor], width) + jitter(`${row.date}-${key}`);
+        const y = yMap(-val, yMin, yMax, height) + jitter(`${row.date}-${key}-y`, 3);
+        dots.push({ x, y });
+      });
+    }
+    return dots;
+  }, [cloud.points, height, width]);
+
+  const medianPts = ([2, 5, 10] as const).map((f) => ({
+    x: xGw(FACTOR_GW[f], width),
+    y: yMap(-cloud.median[`x${f}` as "x2"], yMin, yMax, height),
+  }));
+
+  const p10p90 = ([2, 5, 10] as const).map((f) => ({
+    x: xGw(FACTOR_GW[f], width),
+    yLo: yMap(-cloud.p90[`x${f}` as "x2"], yMin, yMax, height),
+    yHi: yMap(-cloud.p10[`x${f}` as "x2"], yMin, yMax, height),
+  }));
+
+  const yesterdayPts = model.saturation
+    .filter((p) => p.factor >= 1 && p.factor <= 10)
+    .map((p) => ({
+      x: xGw((p.factor * RESEARCH_FLEET_POWER_MW) / 1000, width),
+      y: yMap(-p.reductionGw, yMin, yMax, height),
+    }));
+
+  const yesterday4h = model.saturation4h
+    .filter((p) => p.factor >= 1 && p.factor <= 10)
+    .map((p) => ({
+      x: xGw((p.factor * RESEARCH_FLEET_POWER_MW) / 1000, width),
+      y: yMap(-p.reductionGw, yMin, yMax, height),
+    }));
+
+  const yLine = yesterdayPts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const y4Line = yesterday4h.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const medLine = medianPts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+
+  const x5 = model.saturation.find((p) => p.factor === 5)!;
+  const x2 = model.saturation.find((p) => p.factor === 2)!;
+  const x10 = model.saturation.find((p) => p.factor === 10)!;
+  const margA = ((x5.reductionGw - x2.reductionGw) / (3 * (RESEARCH_FLEET_POWER_MW / 1000))).toFixed(2).replace(".", ",");
+  const margB = ((x10.reductionGw - x5.reductionGw) / (5 * (RESEARCH_FLEET_POWER_MW / 1000))).toFixed(2).replace(".", ",");
+
+  const x5Idx = model.saturation.findIndex((p) => p.factor === 5);
+  const x5p = yesterdayPts[x5Idx];
+
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Gestern auf der Sättigungskurve">
-      <rect
-        x={40}
-        y={yMap(-cloud.p90.x5, yMin, yMax, height)}
-        width={width - 80}
-        height={Math.abs(yMap(-cloud.p10.x5, yMin, yMax, height) - yMap(-cloud.p90.x5, yMin, yMax, height))}
-        fill="color-mix(in srgb, var(--research-dim) 25%, transparent)"
-      />
-      <path d={line} fill="none" stroke="var(--research-accent)" strokeWidth={2} />
-      {x5 ? <circle cx={x5x} cy={x5y} r={5} fill="var(--research-accent)" /> : null}
-      <text x={x5x + 8} y={x5y - 6} fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+      <text x={32} y={14} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+        GW
+      </text>
+      {[0, -6, -12, -18].map((tick) => (
+        <g key={tick}>
+          <line x1={40} x2={width - 16} y1={yMap(tick, yMin, yMax, height)} y2={yMap(tick, yMin, yMax, height)} stroke="var(--research-line)" />
+          <text x={32} y={yMap(tick, yMin, yMax, height) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            {tick}
+          </text>
+        </g>
+      ))}
+      {p10p90.map((b, i) => (
+        <rect key={i} x={b.x - 8} y={b.yLo} width={16} height={Math.max(2, b.yHi - b.yLo)} fill="color-mix(in srgb, var(--research-dim) 28%, transparent)" />
+      ))}
+      {cloudDots.map((d, i) => (
+        <circle key={i} cx={d.x} cy={d.y} r={1.2} fill="var(--research-dim)" opacity={0.65} />
+      ))}
+      <path d={medLine} fill="none" stroke="var(--research-muted)" strokeWidth={1.5} strokeDasharray="4 4" />
+      <path d={y4Line} fill="none" stroke="var(--research-muted)" strokeWidth={1.5} strokeDasharray="2 3" />
+      <path d={yLine} fill="none" stroke="var(--research-accent)" strokeWidth={2} />
+      {x5p ? <circle cx={x5p.x} cy={x5p.y} r={5} fill="var(--research-accent)" /> : null}
+      <text x={(x5p?.x ?? 160) + 8} y={(x5p?.y ?? 120) - 8} fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
         Knick bei ×5
       </text>
-      <text x={52} y={yMap(-3.5, yMin, yMax, height)} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-        Median ×5 {cloud.median.x5.toFixed(2).replace(".", ",")} GW
+      <text x={xGw(15, width)} y={yMap(-2.2, yMin, yMax, height)} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+        {margA} je GW
+      </text>
+      <text x={xGw(38, width)} y={yMap(-8.5, yMin, yMax, height)} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+        {margB} je GW
+      </text>
+      {([1, 2, 5, 10] as const).map((f) => (
+        <text
+          key={f}
+          x={xGw((f * RESEARCH_FLEET_POWER_MW) / 1000, width)}
+          y={height - 28}
+          textAnchor="middle"
+          fontSize={12}
+          fill="var(--research-muted)"
+          fontFamily="var(--font-jetbrains-mono)"
+        >
+          ×{f}
+        </text>
+      ))}
+      {[0, 10, 20, 30, 40, 50].map((gw) => (
+        <text key={gw} x={xGw(gw, width)} y={height - 12} textAnchor="middle" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          {gw}
+        </text>
+      ))}
+      <text x={width - 8} y={height - 12} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+        GW
       </text>
     </svg>
   );

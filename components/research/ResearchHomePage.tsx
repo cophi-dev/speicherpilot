@@ -1,18 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 
 import styles from "@/components/research/research.module.css";
-import { ResidualMesserChart, SaturationChart, WeekDotsChart } from "@/components/research/charts";
+import { SaturationChart, WeekDotsChart } from "@/components/research/charts";
+import { MesserHeroChart } from "@/components/research/MesserHeroChart";
 import { ResearchSubnav } from "@/components/research/ResearchSubnav";
 import { formatGwSenkung } from "@/lib/research/fleetBasis";
 import type { ResearchFactor, ResearchHomeModel } from "@/lib/research/researchTypes";
-import { heroReductionDisplay, researchEyebrowGestern, weekRangeLabel } from "@/lib/research/researchFormat";
+import { fourHourSensitivityLine, heroReductionDisplay, researchEyebrowGestern, weekRangeLabel } from "@/lib/research/researchFormat";
 
 const FACTORS: ResearchFactor[] = [2, 5, 10];
 
 export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
+  const reduced = useReducedMotion();
   const [factor, setFactor] = useState<ResearchFactor>(model.day.heroFactor);
   const stage = model.day.stages.find((s) => s.factor === factor)!;
 
@@ -26,14 +29,18 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
       <header>
         <p className={styles.eyebrow}>{researchEyebrowGestern(model.day)}</p>
         <h1 className={styles.h1}>{model.day.h1}</h1>
-        <div className={styles.heroNum} aria-live="polite">
+        <motion.div
+          className={styles.heroNum}
+          key={`hero-${factor}-${heroText}`}
+          initial={reduced ? false : { opacity: 0.55, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduced ? { duration: 0 } : { duration: 0.4 }}
+          aria-live="polite"
+        >
           {heroText}
-        </div>
+        </motion.div>
         <p className={styles.meta}>Spitze bei ×{factor} · Modell · national</p>
-        <p className={styles.meta}>
-          mit 4 h: {formatGwSenkung(fourh)}
-          {fourh > ten - 0.01 ? `, mehr als ×10 (${formatGwSenkung(ten).replace("−", "")})` : null}
-        </p>
+        <p className={styles.meta}>{fourHourSensitivityLine(fourh, ten)}</p>
         <div className={styles.seg} role="group" aria-label="Flottenstufe">
           {FACTORS.map((f) => (
             <button
@@ -48,7 +55,7 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
         </div>
       </header>
 
-      <ResidualMesserChart model={model.day} factor={factor} />
+      <MesserHeroChart model={model.day} factor={factor} onFactor={setFactor} />
 
       <p className={styles.meta} style={{ marginTop: 6 }}>
         Restlast national · Fläche: gekappt (Modell)
@@ -57,11 +64,11 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
       <section id="woche" className={styles.section}>
         <p className={styles.eyebrow}>DIESE WOCHE · {weekRangeLabel(model.week)} · TAGESHORIZONT</p>
         <h2 className={styles.h2}>{model.weekHeadline}</h2>
-        <div className={styles.legend}>
+        <div className={styles.legend} aria-hidden>
           <span>○ 1,76 h: Energie leer</span>
           <span>— 4 h</span>
           <span>■ 4 h: GW fehlen</span>
-          <span>= Tagesgrenze</span>
+          <span>‖ Tagesgrenze</span>
         </div>
         <WeekDotsChart week={model.week} />
         <p className={styles.meta}>Spitzensenkung je Tag, national (Modell)</p>

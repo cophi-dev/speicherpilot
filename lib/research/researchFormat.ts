@@ -18,3 +18,12 @@ export function researchEyebrowGestern(day: ResearchDayModel): string {
   const wd = day.weekdayLabel.slice(0, 2).toUpperCase();
   return `GESTERN · ${wd}, ${cal.toUpperCase()} · NATIONAL · TAGESHORIZONT`;
 }
+
+export function fourHourSensitivityLine(fourhGw: number, tenGw: number): string {
+  const base = `mit 4 h: ${formatGwSenkung(fourhGw)}`;
+  if (fourhGw > tenGw + 1e-9) {
+    const tenLabel = formatGwSenkung(tenGw).replace("−", "");
+    return `${base}, mehr als ×10 (${tenLabel})`;
+  }
+  return base;
+}

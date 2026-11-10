@@ -1,15 +1,18 @@
 import { ResearchHomePage } from "@/components/research/ResearchHomePage";
-import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
 import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { buildResearchHome } from "@/lib/research/loadResearchHome.server";
+import { loadResearchDays } from "@/lib/research/loadResearchDays.server";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
+/** Gestern: Snapshot plus Live-Tail — nicht beim Build einfrieren. */
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const todayKey = formatBerlinDateKeyFromUtcDate(new Date());
-  const snap = loadTagRollSnapshot();
-  const model = buildResearchHome(snap.days, todayKey);
+  const now = new Date();
+  const todayKey = formatBerlinDateKeyFromUtcDate(now);
+  const days = await loadResearchDays(now);
+  const model = buildResearchHome(days, todayKey);
   if (!model) {
     return null;
   }

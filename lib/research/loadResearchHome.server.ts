@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prevBerlinDateKey } from "@/lib/berlinCalendar";
-import { isCompleteBerlinDay } from "@/lib/completeBerlinDay";
+import { expectedBerlinQuarters } from "@/lib/berlinDayCompleteness";
 import wolkeSummary from "@/data/forschung/wolke_12m_zusammenfassung.json";
 import wolkeScatter from "@/data/forschung/wolke-scatter.json";
 import {
@@ -122,7 +122,7 @@ function weekHeadline(week: ResearchWeekDay[]): string {
   let count = 0;
   for (const d of week) {
     const x2 = d.points.find((p) => p.factor === 2);
-    if (x2?.powerLimited4h) count += 1;
+    if (x2?.marker4h === "square") count += 1;
   }
   return `Mit 4 h fehlen bei ×2 an ${count} von 7 Tagen GW, nicht Stunden.`;
 }
@@ -147,14 +147,20 @@ function buildWeek(days: ResidualDay[], focusKey: string): ResearchWeekDay[] {
         const add4 = additionalFleetMw(factor, 4);
         const r4 = peakReductionGw(residualMw, add4.powerMw, add4.energyMwh).reductionGw;
         const powerCapGw = add4.powerMw / 1000;
-        const pLimit4 = r4 >= powerCapGw - 0.02;
+        const atDayLimit175 = r175 >= dayLimitGw - 0.03;
+        const atDayLimit4 = r4 >= dayLimitGw - 0.03;
+        const powerLimited4h = r4 >= powerCapGw - 0.02 && !atDayLimit4;
+        let marker4h: "tick" | "square" | "double" = "tick";
+        if (atDayLimit4) marker4h = "double";
+        else if (powerLimited4h) marker4h = "square";
+        const marker175: "hollow" | "dashed" = atDayLimit175 ? "dashed" : "hollow";
         return {
           factor,
           reduction175Gw: r175,
           reduction4hGw: r4,
-          energyLimited: true,
-          powerLimited4h: pLimit4,
           dayLimitGw,
+          marker175,
+          marker4h,
         };
       });
       return {
@@ -194,9 +200,24 @@ function buildCloud(focusKey: string, day: ResearchDayModel): ResearchCloudModel
   return { points: points as ResearchCloudModel["points"], median, p10, p90, yesterday };
 }
 
+function isStrictResearchDay(day: ResidualDay, todayKey: string): boolean {
+  if (day.dateBerlin >= todayKey) return false;
+  try {
+    return day.slots.length === expectedBerlinQuarters(day.dateBerlin);
+  } catch {
+    return false;
+  }
+}
+
+/** Newest Berlin day with full Energy-Charts grid (96/96 etc.) strictly before today. */
 export function pickResearchDay(days: ResidualDay[], todayKey: string): ResidualDay | null {
+  const yesterday = prevBerlinDateKey(todayKey);
+  const yDay = days.find((d) => d.dateBerlin === yesterday);
+  if (yDay && isStrictResearchDay(yDay, todayKey)) {
+    return yDay;
+  }
   const complete = days
-    .filter((d) => isCompleteBerlinDay(d, todayKey))
+    .filter((d) => isStrictResearchDay(d, todayKey))
     .sort((a, b) => (a.dateBerlin < b.dateBerlin ? 1 : -1));
   return complete[0] ?? null;
 }

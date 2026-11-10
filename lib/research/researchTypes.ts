@@ -44,9 +44,9 @@ export type ResearchWeekDay = {
     factor: ResearchFactor;
     reduction175Gw: number;
     reduction4hGw: number;
-    energyLimited: boolean;
-    powerLimited4h: boolean;
     dayLimitGw: number;
+    marker175: "hollow" | "dashed";
+    marker4h: "tick" | "square" | "double";
   }>;
 };
 
@@ -75,17 +75,18 @@ export type ResearchHomeModel = {
 
 export type VisionStageId = "x2" | "x5" | "x10" | "nep-a" | "nep-b" | "nep-c";
 
-export type VisionStagePoint = {
-  id: VisionStageId;
+export type VisionCurvePoint = {
+  id: VisionStageId | "x1";
   label: string;
   powerGw: number;
-  durations: Record<"1.76" | "2" | "4", number>;
+  senkungGw: Record<"1.76" | "2" | "4", number>;
 };
 
 export type VisionPageModel = {
   monthLabel: string;
   peakGw: number;
-  stages: VisionStagePoint[];
+  commitmentsGw: number;
+  curve: VisionCurvePoint[];
   defaultDuration: "2";
-  defaultStage: "nep-b";
+  defaultStage: VisionStageId;
 };
