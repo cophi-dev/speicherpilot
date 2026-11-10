@@ -12,6 +12,24 @@ export function weekRangeLabel(week: ResearchWeekDay[]): string {
   return `${first.shortLabel}–${last.shortLabel}`;
 }
 
+/** Eine Dezimalstelle, kein Vorzeichen (Senkungsmagnitude). */
+export function formatReductionMagnitudeGw(gw: number): string {
+  const rounded = Math.round(gw * 10) / 10;
+  return rounded.toFixed(1).replace(".", ",");
+}
+
+/** ×2 / 1,76 h – Headline aus Min/Max der Wochentageswerte. */
+export function weekHeadline(week: ResearchWeekDay[]): string {
+  if (week.length === 0) return "";
+  const vals = week.map((d) => d.points.find((p) => p.factor === 2)!.reduction175Gw);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  return `Letzte Woche hätte doppelt so viel Speicher die Tagesspitze jeden Tag um ${formatReductionMagnitudeGw(min)} bis ${formatReductionMagnitudeGw(max)} GW gesenkt.`;
+}
+
+export const weekDurationFootnote =
+  "1,76 h = heutige Flottendauer (Modell) · 4 h = mehr Energie, oft trotzdem GW-Stopp statt reiner Stunden.";
+
 export function researchEyebrowGestern(day: ResearchDayModel): string {
   const parts = day.dateLabel.split(", ");
   const cal = parts[1] ?? "";

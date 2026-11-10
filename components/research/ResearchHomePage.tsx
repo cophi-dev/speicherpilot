@@ -10,7 +10,13 @@ import { MesserHeroChart } from "@/components/research/MesserHeroChart";
 import { ResearchSubnav } from "@/components/research/ResearchSubnav";
 import { useResearchLayout } from "@/components/research/useResearchLayout";
 import type { ResearchFactor, ResearchHomeModel } from "@/lib/research/researchTypes";
-import { fourHourSensitivityLine, heroReductionDisplay, researchEyebrowGestern, weekRangeLabel } from "@/lib/research/researchFormat";
+import {
+  fourHourSensitivityLine,
+  heroReductionDisplay,
+  researchEyebrowGestern,
+  weekDurationFootnote,
+  weekRangeLabel,
+} from "@/lib/research/researchFormat";
 
 const FACTORS: ResearchFactor[] = [2, 5, 10];
 
@@ -18,6 +24,8 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
   const reduced = useReducedMotion();
   const layout = useResearchLayout();
   const [factor, setFactor] = useState<ResearchFactor>(model.day.heroFactor);
+  const [weekFactor, setWeekFactor] = useState<ResearchFactor>(2);
+  const [weekFourHour, setWeekFourHour] = useState(false);
   const stage = model.day.stages.find((s) => s.factor === factor)!;
 
   const heroText = useMemo(() => heroReductionDisplay(stage.reductionGw), [stage.reductionGw]);
@@ -68,15 +76,34 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
       </p>
 
       <div className={styles.lowerSplit}>
-        <section id="woche" className={styles.sectionInSplit}>
+        <section id="woche" className={styles.sectionInSplit} style={{ scrollMarginTop: 12 }}>
           <p className={styles.eyebrow}>DIESE WOCHE · {weekRangeLabel(model.week)} · TAGESHORIZONT</p>
-          <h2 className={styles.h2}>{model.weekHeadline}</h2>
-          <p className={styles.legendWeek} aria-hidden>
-            <span>○ 1,76 h · — 4 h · ■ 4 h fehlt</span>
-            <span>‖ Grenze</span>
+          <h2 className={`${styles.h2} ${styles.weekHeadline}`}>{model.weekHeadline}</h2>
+          <div className={styles.seg} role="group" aria-label="Woche Flottenstufe" style={{ marginTop: 4, marginBottom: 6 }}>
+            {FACTORS.map((f) => (
+              <button key={f} type="button" aria-pressed={weekFactor === f} onClick={() => setWeekFactor(f)}>
+                ×{f}
+              </button>
+            ))}
+          </div>
+          <div className={styles.seg} role="group" aria-label="Woche Speicherdauer" style={{ marginTop: 0, marginBottom: 10 }}>
+            <button type="button" aria-pressed={!weekFourHour} onClick={() => setWeekFourHour(false)}>
+              1,76 h
+            </button>
+            <button type="button" aria-pressed={weekFourHour} onClick={() => setWeekFourHour(true)}>
+              4 h
+            </button>
+          </div>
+          <WeekDotsChart
+            week={model.week}
+            factor={weekFactor}
+            useFourHour={weekFourHour}
+            width={layout.week.width}
+            height={layout.week.height}
+          />
+          <p className={styles.meta}>
+            Spitzensenkung je Tag, national (Modell) · {weekDurationFootnote}
           </p>
-          <WeekDotsChart week={model.week} width={layout.week.width} height={layout.week.height} />
-          <p className={styles.meta}>Spitzensenkung je Tag, national (Modell)</p>
         </section>
 
         <section className={styles.sectionInSplit}>

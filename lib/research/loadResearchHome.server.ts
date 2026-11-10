@@ -17,6 +17,7 @@ import {
   peakReductionGw,
   saturationCurveGw,
 } from "@/lib/research/nationalPeakShaveEngine";
+import { weekHeadline } from "@/lib/research/researchFormat";
 import type {
   ResearchCloudModel,
   ResearchDayModel,
@@ -118,14 +119,6 @@ function buildDayModel(day: ResidualDay): ResearchDayModel {
   };
 }
 
-function weekHeadline(week: ResearchWeekDay[]): string {
-  let count = 0;
-  for (const d of week) {
-    const x2 = d.points.find((p) => p.factor === 2);
-    if (x2?.marker4h === "square") count += 1;
-  }
-  return `Mit 4 h fehlen bei ×2 an ${count} von 7 Tagen GW, nicht Stunden.`;
-}
 
 function buildWeek(days: ResidualDay[], focusKey: string): ResearchWeekDay[] {
   const byKey = new Map(days.map((d) => [d.dateBerlin, d]));
