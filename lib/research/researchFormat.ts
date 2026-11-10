@@ -24,7 +24,7 @@ export function weekHeadline(week: ResearchWeekDay[]): string {
   const vals = week.map((d) => d.points.find((p) => p.factor === 2)!.reduction175Gw);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
-  return `Letzte Woche hätte doppelt so viel Speicher die Abendspitze jeden Tag um ${formatReductionMagnitudeGw(min)} bis ${formatReductionMagnitudeGw(max)} GW gesenkt.`;
+  return `Letzte Woche hätte doppelt so viel Speicher die Tagesspitze jeden Tag um ${formatReductionMagnitudeGw(min)} bis ${formatReductionMagnitudeGw(max)} GW gesenkt.`;
 }
 
 export const weekDurationFootnote =

@@ -52,7 +52,7 @@ function weekStub(reductions: number[]): ResearchWeekDay[] {
 describe("weekHeadline", () => {
   it("nutzt ×2-Min/Max der Woche", () => {
     expect(weekHeadline(weekStub([2.52, 3.1, 5.8, 4.0, 3.3, 2.9, 4.5]))).toBe(
-      "Letzte Woche hätte doppelt so viel Speicher die Abendspitze jeden Tag um 2,5 bis 5,8 GW gesenkt."
+      "Letzte Woche hätte doppelt so viel Speicher die Tagesspitze jeden Tag um 2,5 bis 5,8 GW gesenkt."
     );
   });
 });
