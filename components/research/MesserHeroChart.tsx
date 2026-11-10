@@ -1,41 +1,51 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import type { ResearchDayModel, ResearchFactor } from "@/lib/research/researchTypes";
+
+import styles from "@/components/research/research.module.css";
 
 const FACTORS: ResearchFactor[] = [2, 5, 10];
 const Y_MIN = 45;
 const Y_MAX = 70;
-const WIDTH = 350;
-const HEIGHT = 342;
 const PAD_X = 40;
 const PAD_RIGHT = 44;
-const MARGIN_COL_W = 44;
+const MARGIN_COL_W = 48;
+const HIT = 44;
 
 function yMap(value: number, height: number) {
   const inner = height - 66;
   return 26 + ((Y_MAX - value) / (Y_MAX - Y_MIN)) * inner;
 }
 
-function xMap(index: number, n: number) {
-  const inner = WIDTH - PAD_X - 36;
+function xMap(index: number, n: number, width: number) {
+  const inner = width - PAD_X - 36;
   return PAD_X + (index / Math.max(1, n - 1)) * inner;
+}
+
+function hourIndex(model: ResearchDayModel, h: number): number {
+  if (h === 24) return model.series.length - 1;
+  const idx = model.series.findIndex((p) => p.hour === h && p.minute === 0);
+  return idx >= 0 ? idx : 0;
 }
 
 export function MesserHeroChart({
   model,
   factor,
   onFactor,
+  width = 350,
+  height = 342,
 }: {
   model: ResearchDayModel;
   factor: ResearchFactor;
   onFactor: (f: ResearchFactor) => void;
+  width?: number;
+  height?: number;
 }) {
   const reduced = useReducedMotion();
-  const dragRef = useRef<SVGGElement | null>(null);
-  const [dragging, setDragging] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   const stages = useMemo(() => FACTORS.map((f) => model.stages.find((s) => s.factor === f)!), [model.stages]);
   const active = model.stages.find((s) => s.factor === factor)!;
@@ -52,8 +62,10 @@ export function MesserHeroChart({
     return idx;
   }, [model.series]);
 
+  const n = model.series.length;
+
   const line = model.series
-    .map((p, i) => `${i === 0 ? "M" : "L"}${xMap(i, model.series.length).toFixed(1)},${yMap(p.residualGw, HEIGHT).toFixed(1)}`)
+    .map((p, i) => `${i === 0 ? "M" : "L"}${xMap(i, n, width).toFixed(1)},${yMap(p.residualGw, height).toFixed(1)}`)
     .join(" ");
 
   const cappedPaths = useMemo(() => {
@@ -65,38 +77,40 @@ export function MesserHeroChart({
         run = [];
         return;
       }
-      const capY = yMap(cap, HEIGHT);
+      const capY = yMap(cap, height);
       const top = run.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L");
       const bot = [...run].reverse().map((p) => `${p.x.toFixed(1)},${capY.toFixed(1)}`).join(" L");
       paths.push(`M${top} L${bot} Z`);
       run = [];
     };
     model.series.forEach((p, i) => {
-      const x = xMap(i, model.series.length);
-      const y = yMap(p.residualGw, HEIGHT);
+      const x = xMap(i, n, width);
+      const y = yMap(p.residualGw, height);
       if (p.residualGw > cap) run.push({ x, y });
       else flush();
     });
     flush();
     return paths;
-  }, [active.capGw, model.series]);
+  }, [active.capGw, height, model.series, n, width]);
 
   const peak = model.series[peakIdx]!;
-  const px = xMap(peakIdx, model.series.length);
-  const py = yMap(peak.residualGw, HEIGHT);
-  const capY = yMap(active.capGw, HEIGHT);
+  const px = xMap(peakIdx, n, width);
+  const py = yMap(peak.residualGw, height);
+  const capY = yMap(active.capGw, height);
+  const ghost4hGw = model.peakGw - active.reduction4hGw;
+  const ghost4hY = yMap(ghost4hGw, height);
 
   const snapFromClientY = useCallback(
     (clientY: number) => {
-      const svg = dragRef.current?.ownerSVGElement;
+      const svg = svgRef.current;
       if (!svg) return;
       const pt = svg.createSVGPoint();
-      pt.x = WIDTH - MARGIN_COL_W / 2;
+      pt.x = width - MARGIN_COL_W / 2;
       pt.y = clientY;
       const ctm = svg.getScreenCTM();
       if (!ctm) return;
       const local = pt.matrixTransform(ctm.inverse());
-      const gw = Y_MAX - ((local.y - 26) / (HEIGHT - 66)) * (Y_MAX - Y_MIN);
+      const gw = Y_MAX - ((local.y - 26) / (height - 66)) * (Y_MAX - Y_MIN);
       const caps = stages.map((s) => s.capGw);
       let best = FACTORS[1]!;
       let bestDist = Infinity;
@@ -109,26 +123,46 @@ export function MesserHeroChart({
       });
       onFactor(best);
     },
-    [onFactor, stages]
+    [height, onFactor, stages, width]
   );
 
   const labelRows = FACTORS.map((f) => {
     const cap = model.stages.find((s) => s.factor === f)!.capGw;
-    return { f, y: yMap(cap, HEIGHT), active: f === factor };
+    return { f, y: yMap(cap, height), active: f === factor };
   });
 
+  const gripTop = 20;
+  const gripH = height - 60;
+  const zoneH = gripH / 3;
+
   return (
-    <svg width="100%" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label="Restlast national mit Kappung">
+    <svg
+      ref={svgRef}
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      className={styles.chartFixed}
+      role="img"
+      aria-label="Restlast national mit Kappung"
+    >
       {[45, 50, 55, 60, 65, 70].map((tick) => (
         <g key={tick}>
-          <line x1={PAD_X} x2={WIDTH - PAD_RIGHT} y1={yMap(tick, HEIGHT)} y2={yMap(tick, HEIGHT)} stroke="var(--research-line)" />
-          {tick === 45 ? null : (
-            <text x={32} y={yMap(tick, HEIGHT) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-              {tick}
-            </text>
-          )}
+          <line x1={PAD_X} x2={width - PAD_RIGHT} y1={yMap(tick, height)} y2={yMap(tick, height)} stroke="var(--research-line)" />
+          <text x={32} y={yMap(tick, height) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            {tick}
+          </text>
         </g>
       ))}
+      <line
+        x1={PAD_X}
+        x2={width - PAD_RIGHT}
+        y1={ghost4hY}
+        y2={ghost4hY}
+        stroke="var(--research-muted)"
+        strokeWidth={1.5}
+        strokeDasharray="4 4"
+        opacity={0.7}
+      />
       {cappedPaths.map((d, i) => (
         <motion.path
           key={`${factor}-${i}`}
@@ -143,7 +177,7 @@ export function MesserHeroChart({
         <g key={f}>
           <line
             x1={PAD_X}
-            x2={WIDTH - PAD_RIGHT}
+            x2={width - PAD_RIGHT}
             y1={y}
             y2={y}
             stroke={isOn ? "var(--research-accent)" : "var(--research-dim)"}
@@ -160,22 +194,22 @@ export function MesserHeroChart({
       <motion.line
         x1={px}
         x2={px}
-        y1={py}
-        animate={{ y2: capY }}
+        initial={false}
+        animate={{ y1: py, y2: capY }}
         transition={reduced ? { duration: 0 } : { duration: 0.25 }}
         stroke="var(--research-accent)"
         strokeWidth={2}
       />
       <motion.line
         x1={PAD_X}
-        x2={WIDTH - PAD_RIGHT}
+        x2={width - PAD_RIGHT}
+        initial={false}
         animate={{ y1: capY, y2: capY }}
         transition={reduced ? { duration: 0 } : { duration: 0.25 }}
         stroke="var(--research-accent)"
         strokeWidth={2}
       />
       <g
-        ref={dragRef}
         role="slider"
         aria-label="Das Messer: Stufe ×2 ×5 ×10"
         aria-valuemin={2}
@@ -188,29 +222,30 @@ export function MesserHeroChart({
           if (e.key === "ArrowDown" && i < FACTORS.length - 1) onFactor(FACTORS[i + 1]!);
         }}
       >
-        <rect
-          x={WIDTH - MARGIN_COL_W}
-          y={20}
-          width={MARGIN_COL_W}
-          height={HEIGHT - 60}
-          fill="transparent"
-          style={{ touchAction: "pan-y" }}
-          onPointerDown={(e) => {
-            setDragging(true);
-            (e.target as Element).setPointerCapture(e.pointerId);
-            snapFromClientY(e.clientY);
-          }}
-          onPointerMove={(e) => {
-            if (!dragging) return;
-            snapFromClientY(e.clientY);
-          }}
-          onPointerUp={() => setDragging(false)}
-          onPointerCancel={() => setDragging(false)}
-        />
+        {FACTORS.map((f, i) => (
+          <rect
+            key={f}
+            x={width - MARGIN_COL_W}
+            y={gripTop + i * zoneH}
+            width={MARGIN_COL_W}
+            height={Math.max(zoneH, HIT)}
+            fill="transparent"
+            style={{ touchAction: "none" }}
+            onPointerDown={(e) => {
+              (e.target as Element).setPointerCapture(e.pointerId);
+              onFactor(f);
+              snapFromClientY(e.clientY);
+            }}
+            onPointerMove={(e) => {
+              if (!(e.target as Element).hasPointerCapture(e.pointerId)) return;
+              snapFromClientY(e.clientY);
+            }}
+          />
+        ))}
         {labelRows.map(({ f, y, active: isOn }) => (
           <text
             key={f}
-            x={WIDTH - 6}
+            x={width - 8}
             y={y + 4}
             textAnchor="end"
             fontSize={isOn ? 14 : 12}
@@ -224,19 +259,20 @@ export function MesserHeroChart({
         ))}
       </g>
       {[0, 6, 12, 18, 24].map((h) => {
-        const idx = Math.max(0, model.series.findIndex((p) => p.hour === h && p.minute === 0));
-        const x = xMap(idx, model.series.length);
+        const idx = hourIndex(model, h);
+        const x = xMap(idx, n, width);
+        const label = h === 24 ? "24" : h === 0 ? "0" : String(h).padStart(2, "0");
         return (
           <text
             key={h}
             x={x}
-            y={HEIGHT - 4}
+            y={height - 6}
             textAnchor={h === 0 ? "start" : h === 24 ? "end" : "middle"}
-            fontSize={11}
+            fontSize={12}
             fill="var(--research-muted)"
             fontFamily="var(--font-jetbrains-mono)"
           >
-            {h === 24 ? "24 h" : String(h)}
+            {label}
           </text>
         );
       })}

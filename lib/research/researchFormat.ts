@@ -1,5 +1,5 @@
 import { formatGwSenkung } from "@/lib/research/fleetBasis";
-import type { ResearchDayModel, ResearchWeekDay } from "@/lib/research/researchTypes";
+import type { ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
 
 export function heroReductionDisplay(gw: number): string {
   return formatGwSenkung(gw);
@@ -19,9 +19,9 @@ export function researchEyebrowGestern(day: ResearchDayModel): string {
   return `GESTERN · ${wd}, ${cal.toUpperCase()} · NATIONAL · TAGESHORIZONT`;
 }
 
-export function fourHourSensitivityLine(fourhGw: number, tenGw: number): string {
+export function fourHourSensitivityLine(fourhGw: number, tenGw: number, factor?: ResearchFactor): string {
   const base = `mit 4 h: ${formatGwSenkung(fourhGw)}`;
-  if (fourhGw > tenGw + 1e-9) {
+  if (factor === 5 && fourhGw > tenGw + 1e-9) {
     const tenLabel = formatGwSenkung(tenGw).replace("−", "");
     return `${base}, mehr als ×10 (${tenLabel})`;
   }
