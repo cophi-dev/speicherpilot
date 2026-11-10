@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import {
   MonatArbeitWirkungChart,
   MonatDauerlinieChart,
   MonatKonzeptWerkbank,
 } from "@/components/home/MonatKonzeptCharts";
+
 import { MonatKonzeptAnnahmen } from "@/components/home/MonatKonzeptAnnahmen";
 import styles from "@/components/home/monat-konzept.module.css";
 import type { ArbeitWirkungModel } from "@/lib/monatKonzeptA";
@@ -42,6 +44,9 @@ export function NationalFleetMonatKonzeptClient({
   fleetFootnote: string;
 }) {
   const [werkbenchOpen, setWerkbenchOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const morphParam = searchParams.get("morph");
+  const fixedMorph = morphParam != null && morphParam !== "" ? Number(morphParam) : null;
 
   const onPointSelect = useCallback(() => {
     setWerkbenchOpen(true);
@@ -51,7 +56,6 @@ export function NationalFleetMonatKonzeptClient({
     () => arbeit.points.find((p) => p.factor === factor && p.strategy === strategy)?.wirkungGw ?? 0,
     [arbeit.points, factor, strategy],
   );
-
   return (
     <div className={`v4-monat-konzept v4-content ${styles.konzeptRoot}`} data-testid="konzept-root">
       <MonatArbeitWirkungChart
@@ -73,22 +77,17 @@ export function NationalFleetMonatKonzeptClient({
           peakAfterGw={peakAfterGw}
           plateauNote={plateauNote}
         />
-      ) : (
-        <p className={`v4-footnote num ${styles.konzeptWerkbenchHint}`}>
-          Punkt wählen (←→↑↓) — darunter öffnet sich die Viertelstundenkurve des Laufs.
-        </p>
-      )}
-      <Suspense fallback={<div className="v4-content" style={{ minHeight: 320 }} />}>
-        <MonatDauerlinieChart
-          model={dauer}
-          monthKey={monthKey}
-          activeFactor={factor}
-          activeStrategy={strategy}
-          fleetAvailable
-          peakAfterGw={peakAfterGw}
-          wirkungGw={wirkungGw}
-        />
-      </Suspense>
+      ) : null}
+      <MonatDauerlinieChart
+        model={dauer}
+        monthKey={monthKey}
+        activeFactor={factor}
+        activeStrategy={strategy}
+        fleetAvailable
+        peakAfterGw={peakAfterGw}
+        wirkungGw={wirkungGw}
+        fixedMorph={fixedMorph}
+      />
       <MonatKonzeptAnnahmen fleetFootnote={fleetFootnote} />
     </div>
   );

@@ -71,14 +71,20 @@ function useChartViewWidth(shellRef: React.RefObject<HTMLDivElement | null>): nu
   return viewW > 0 ? viewW : 920;
 }
 
-function useShellContentWidth(shellRef: React.RefObject<HTMLDivElement | null>): number {
-  const [viewW, setViewW] = useState(358);
+function useDauerShellWidth(
+  shellRef: React.RefObject<HTMLDivElement | null>,
+  mobileViewport: boolean,
+): number {
+  const [viewW, setViewW] = useState(() => {
+    if (typeof window === "undefined") return mobileViewport ? 358 : 920;
+    return mobileViewport ? Math.round(window.innerWidth) : 920;
+  });
   useLayoutEffect(() => {
     const measure = () => {
       const el = shellRef.current;
       const w = el
         ? Math.round(el.getBoundingClientRect().width)
-        : Math.round(typeof window !== "undefined" ? window.innerWidth : 358);
+        : Math.round(typeof window !== "undefined" ? window.innerWidth : mobileViewport ? 358 : 920);
       if (w > 80) setViewW(w);
     };
     measure();
@@ -87,7 +93,8 @@ function useShellContentWidth(shellRef: React.RefObject<HTMLDivElement | null>):
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [mobileViewport]);
+  if (!mobileViewport && viewW < 640) return 920;
   return viewW;
 }
 
@@ -284,6 +291,7 @@ export function MonatArbeitWirkungChart({
           href={arbeitWirkungHref(monthKey, p.factor, p.strategy)}
           className={`${styles.pointDot} ${styles[p.strategy]}${hollow ? ` ${styles.hollow}` : ""}${active ? ` ${styles.isActive}` : ""}`}
           aria-label={`${NATIONAL_FLEET_STRATEGY_UI[p.strategy].shortDe}, ×${p.factor}`}
+          aria-describedby={isFirst ? "arbeit-point-hint" : undefined}
           aria-current={active ? "true" : undefined}
           onClick={(e) => {
             e.preventDefault();
@@ -291,7 +299,7 @@ export function MonatArbeitWirkungChart({
           }}
         >
           {isFirst ? (
-            <title>Punkt wählen öffnet die Monatskurve. ← → Faktor · ↑ ↓ Ziel</title>
+            <title id="arbeit-point-hint">Punkt wählen öffnet die Monatskurve. ← → Faktor · ↑ ↓ Ziel</title>
           ) : null}
           <circle cx={cx} cy={cy} r={hollow ? 5.5 : 7} />
         </a>
@@ -781,6 +789,7 @@ export function MonatDauerlinieChart({
   fleetAvailable,
   peakAfterGw,
   wirkungGw,
+  fixedMorph,
 }: {
   model: DauerlinieModel;
   monthKey: string;
@@ -789,22 +798,31 @@ export function MonatDauerlinieChart({
   fleetAvailable: boolean;
   peakAfterGw: number;
   wirkungGw: number;
+  fixedMorph?: number | null;
 }) {
-  const searchParams = useSearchParams();
-  const morphParam = searchParams.get("morph");
-  const fixedMorph = morphParam != null && morphParam !== "" ? Number(morphParam) : null;
-  const { trackRef, morphT, sorted } = useMorphScroll(fixedMorph);
-  const shellRef = useRef<HTMLDivElement>(null);
-  const shellW = useShellContentWidth(shellRef);
-  const mobileLayout = shellW < 640;
-  const layoutW = mobileLayout ? shellW : Math.max(shellW, 680);
+  const { trackRef, morphT, sorted } = useMorphScroll(fixedMorph ?? null);
+  const desktopShellRef = useRef<HTMLDivElement>(null);
+  const mobileShellRef = useRef<HTMLDivElement>(null);
+  const desktopW = useChartViewWidth(desktopShellRef);
+  const mobileW = useDauerShellWidth(mobileShellRef, true);
   const storColor =
     activeStrategy === "spitze" ? "#e86a3a" : activeStrategy === "markt" ? "#f5b731" : "#0b9f84";
 
-  const scene = useMemo(
+  const desktopScene = useMemo(
     () =>
-      buildDauerlinieScene(model, morphT, mobileLayout ? "mobile" : "desktop", layoutW, fleetAvailable, storColor),
-    [model, morphT, mobileLayout, layoutW, fleetAvailable, storColor],
+      buildDauerlinieScene(
+        model,
+        morphT,
+        "desktop",
+        Math.max(desktopW, 680),
+        fleetAvailable,
+        storColor,
+      ),
+    [model, morphT, desktopW, fleetAvailable, storColor],
+  );
+  const mobileScene = useMemo(
+    () => buildDauerlinieScene(model, morphT, "mobile", mobileW, fleetAvailable, storColor),
+    [model, morphT, mobileW, fleetAvailable, storColor],
   );
 
   const aussage = konzeptCDauerHeadline(
@@ -824,18 +842,32 @@ export function MonatDauerlinieChart({
       <figure className={styles.figure}>
         <div
           ref={trackRef}
-          className={`${styles.morphScrollTrack}${sorted ? ` ${styles.morphScrollTrackCompact}` : ""}${mobileLayout ? ` ${styles.morphScrollTrackMobile}` : ""}`}
+          className={`${styles.morphScrollTrack}${sorted ? ` ${styles.morphScrollTrackCompact}` : ""}`}
         >
-          <div className={mobileLayout ? undefined : styles.morphSticky}>
+          <div className={styles.dauerViewportDesktop}>
+            <div className={styles.morphSticky}>
+              <div ref={desktopShellRef} className={`${styles.chartShell} ${styles.chartShellC}`}>
+                <DauerlinieSvg
+                  scene={desktopScene}
+                  fleetAvailable={fleetAvailable}
+                  sorted={sorted}
+                  layoutMode="desktop"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            className={`${styles.dauerViewportMobile} ${styles.morphScrollTrackMobile}${sorted ? ` ${styles.morphScrollTrackCompact}` : ""}`}
+          >
             <div
-              ref={shellRef}
-              className={`${styles.chartShell} ${styles.chartShellC}${mobileLayout ? ` ${styles.chartShellCMobile}` : ""}`}
+              ref={mobileShellRef}
+              className={`${styles.chartShell} ${styles.chartShellC} ${styles.chartShellCMobile}`}
             >
               <DauerlinieSvg
-                scene={scene}
+                scene={mobileScene}
                 fleetAvailable={fleetAvailable}
                 sorted={sorted}
-                layoutMode={mobileLayout ? "mobile" : "desktop"}
+                layoutMode="mobile"
               />
             </div>
           </div>

@@ -154,7 +154,7 @@ const CROP_SHOTS = [
     h: 844,
     theme: "light",
     scrollTo: "#monat-dauerlinie-title",
-    selector: '[data-testid="dauerlinie-svg"]',
+    selector: '[data-testid="dauerlinie-svg"][data-dauer-layout="mobile"]',
   },
   {
     file: "crop-kopf-1440-dark.png",
@@ -318,7 +318,13 @@ async function assertSvgCollisions(page) {
       }
     }
 
-    const dauer = document.querySelector('[data-testid="dauerlinie-svg"]');
+    const dauer =
+      [...document.querySelectorAll('[data-testid="dauerlinie-svg"]')].find((el) => {
+        const st = window.getComputedStyle(el);
+        if (st.display === "none" || st.visibility === "hidden") return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 2 && r.height > 2;
+      }) ?? null;
     if (dauer) {
       const add = (v) => {
         if (!violations.includes(v)) violations.push(v);
@@ -338,12 +344,15 @@ async function assertSvgCollisions(page) {
       const xTitle = dauer.querySelector('[data-chart-tick="x-title"]');
       if (tal && xTitle && overlap(boxOf(tal), boxOf(xTitle), 2)) add("dauer-tal×x-title");
       const layout = dauer.getAttribute("data-dauer-layout");
-      if (layout === "mobile") {
-        const plot = dauer.querySelector('[data-testid="dauer-plot-frame"]');
-        if (plot) {
-          const ph = plot.getBoundingClientRect().height;
-          if (ph < 280) add(`dauer-plot-height:${ph.toFixed(1)}`);
+      const plot = dauer.querySelector('[data-testid="dauer-plot-frame"]');
+      if (plot) {
+        const pr = plot.getBoundingClientRect();
+        if (layout === "mobile" && pr.height < 280) add(`dauer-plot-height:${pr.height.toFixed(1)}`);
+        if (layout === "desktop" && window.innerWidth >= 1000 && pr.width < 700) {
+          add(`dauer-plot-width:${pr.width.toFixed(1)}`);
         }
+      }
+      if (layout === "mobile") {
         for (const tick of dTicks) {
           const th = tick.getBoundingClientRect().height;
           if (th < 11) {
@@ -443,12 +452,24 @@ async function main() {
     }
     if (s.scrollToDauer) {
       await page.waitForSelector('[data-testid="dauerlinie-svg"]', { state: "attached", timeout: 120_000 });
+      await page.waitForTimeout(500);
       await page.waitForFunction(
-        () => document.querySelector('[data-testid="dauerlinie-svg"]')?.getAttribute("data-dauer-layout") === "mobile",
+        () => {
+          const svg = [...document.querySelectorAll('[data-testid="dauerlinie-svg"]')].find((el) => {
+            const r = el.getBoundingClientRect();
+            return r.width > 2 && r.height > 2;
+          });
+          return svg?.getAttribute("data-dauer-layout") === "mobile";
+        },
         { timeout: 60_000 },
       );
-      const dauerLoc = page.locator('[data-testid="dauerlinie-svg"]');
-      await dauerLoc.scrollIntoViewIfNeeded({ timeout: 60_000 });
+      await page.evaluate(() => {
+        const svg = [...document.querySelectorAll('[data-testid="dauerlinie-svg"]')].find((el) => {
+          const r = el.getBoundingClientRect();
+          return r.width > 2 && r.height > 2;
+        });
+        svg?.scrollIntoView({ block: "center" });
+      });
       await page.waitForTimeout(600);
     } else if (s.scrollTo) {
       await page.waitForSelector(s.scrollTo, { state: "visible", timeout: 120_000 });
@@ -514,10 +535,40 @@ async function main() {
     });
     await applyTheme(collisionPage, "dark");
     await waitStyled(collisionPage);
-    if (vp.mobile && vp.name === "390") {
+    if (vp.name === "390") {
       await collisionPage.waitForSelector("#monat-dauerlinie-title", { timeout: 60_000 }).catch(() => {});
       await collisionPage.locator("#monat-dauerlinie-title").scrollIntoViewIfNeeded({ timeout: 60_000 });
-      await collisionPage.waitForTimeout(400);
+      await collisionPage.waitForTimeout(600);
+      await collisionPage.waitForFunction(
+        () => {
+          const svg = [...document.querySelectorAll('[data-testid="dauerlinie-svg"]')].find((el) => {
+            const r = el.getBoundingClientRect();
+            return r.width > 2 && r.height > 2;
+          });
+          return svg?.getAttribute("data-dauer-layout") === "mobile";
+        },
+        { timeout: 60_000 },
+      );
+    } else if (vp.name === "1440") {
+      await collisionPage.waitForSelector('[data-testid="dauerlinie-svg"]', { timeout: 60_000 }).catch(() => {});
+      await collisionPage.evaluate(() => {
+        const svg = [...document.querySelectorAll('[data-testid="dauerlinie-svg"]')].find((el) => {
+          const r = el.getBoundingClientRect();
+          return r.width > 2 && r.height > 2;
+        });
+        svg?.scrollIntoView({ block: "center" });
+      });
+      await collisionPage.waitForTimeout(500);
+      await collisionPage.waitForFunction(
+        () => {
+          const svg = [...document.querySelectorAll('[data-testid="dauerlinie-svg"]')].find((el) => {
+            const r = el.getBoundingClientRect();
+            return r.width > 2 && r.height > 2;
+          });
+          return svg?.getAttribute("data-dauer-layout") === "desktop";
+        },
+        { timeout: 60_000 },
+      );
     }
     const result = await assertSvgCollisions(collisionPage);
     if (vp.mobile) {

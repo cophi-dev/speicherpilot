@@ -44,6 +44,12 @@ Stand: 10. November 2026, Branch `cursor/paket3-award-alle-ebenen-048c`, PR [#81
 4. **Mobil-Miniplots:** 12 px rechter Innenabstand; Wertlabels bei negativen GW unter dem Punkt.
 5. **Abnahme:** `label-collision.json` prüft Fluchtlinie (≥ Kopf), Callout vs. Fußnote/Plot, Mobil-Clip + Label-auf-Punkt.
 
+## Korrektur 10 (Desktop-C Regression)
+
+- C: parallele Desktop-/Mobil-Szene, Sichtbarkeit per CSS `@media (max-width: 639px)` (kein Shell-<640-Layout).
+- `morph`/`useSearchParams` im Parent; Abnahme: Plot ≥700 px (1440) / ≥280 px (390).
+- Desktop: Fußnote „Punkt wählen“ entfernt (Tooltip ×1 bleibt).
+
 ## Korrektur 9 (C mobil Achsen + Caption)
 
 - Mobil-viewBox +16 px oben (336 px); y-Titel „Restlast, GW“; x-Titel „Stunden, sortiert (745 h)“; Clip-Test.
