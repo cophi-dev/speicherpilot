@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { formatBerlinDateKeyFromUtcDate, addBerlinCalendarDays } from "@/lib/berlinCalendar";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { buildLiveReadings } from "@/lib/liveStrip";
-import { chooseStorageDay, dayIsUsable, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
+import { chooseStorageDay, type LiveFleetPublic } from "@/lib/liveFleetDispatch";
 import type { LargeBatteryFleetSource } from "@/lib/largeBatteryFleet";
 import { evaluateOverview, type OverviewEvaluation } from "@/lib/overviewChain";
 import { buildPowerBoard, type PowerBoardModel } from "@/lib/powerBoard";
@@ -20,6 +20,7 @@ import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
 import { berlinDayPrices } from "@/lib/preisFenster";
 import {
   tagRollSnapshotDataStandLabel,
+  tagRollSnapshotDayComplete,
   tagRollSnapshotEligible,
   type TagRollSnapshotSlice,
 } from "@/lib/tagRollSnapshotPolicy";
@@ -98,9 +99,9 @@ export function buildGermanyViewFromTagSnapshot(dayKey: string, now: Date): Germ
   } else {
     const tagged = snap.days.find((d) => d.dateBerlin === dayKey);
     if (!tagged) {
-      requestedTagStatus = "ausserhalb";
+      requestedTagStatus = "unvollstaendig";
     } else {
-      requestedTagStatus = dayIsUsable(tagged) ? "ok" : "unvollstaendig";
+      requestedTagStatus = tagRollSnapshotDayComplete(snap, dayKey).ok ? "ok" : "unvollstaendig";
     }
   }
 
