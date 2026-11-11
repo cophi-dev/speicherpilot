@@ -21,6 +21,7 @@ import { parseMixRange, powerSeriesFresh, residualDaysFromSlots } from "@/lib/po
 import { uniqueQuarterLabels } from "@/lib/quarterMarks";
 import { buildTagesKennzahlRecords } from "@/lib/auffaelligkeitRecords";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { isTagBerlinDayStrictComplete } from "@/lib/germanyViewCachePolicy";
 import { pickNewestStrictCompletePowerDayKey } from "@/lib/berlinDayCompleteness";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { buildHomeDayPanelData, type HomeDayPanelData } from "@/lib/homeDayPanel";
@@ -237,12 +238,15 @@ export async function loadGermanyView(
     } else {
       const tagged: ResidualDay | undefined = days.find((day) => day.dateBerlin === requestedTag);
       if (!tagged) {
-        requestedTagStatus = "ausserhalb";
+        requestedTagStatus = "unvollstaendig";
       } else {
         const day = tagged;
-        const usable = dayIsUsable(day);
+        const usable =
+          path === "/tag" && parsed
+            ? isTagBerlinDayStrictComplete(parsed, day)
+            : dayIsUsable(day);
         requestedTagStatus = usable ? "ok" : "unvollstaendig";
-        chosen = { day, fallback: day.dateBerlin !== todayKey };
+        chosen = usable ? { day, fallback: day.dateBerlin !== todayKey } : null;
       }
     }
   }
@@ -333,7 +337,10 @@ export async function loadGermanyView(
     }
   }
 
-  const lastCompleteDayKey = pickLastCompleteDayKey(days, todayKey);
+  const lastCompleteDayKey = parsed
+    ? (pickNewestStrictCompletePowerDayKey(parsed.slots, parsed.offshorePresent, todayKey) ??
+      pickLastCompleteDayKey(days, todayKey))
+    : pickLastCompleteDayKey(days, todayKey);
   const kopfDayKey = lastCompleteDayKey;
   const homeTagesDayKey =
     path === "/" && parsed

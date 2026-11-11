@@ -5,6 +5,7 @@ import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
 import { TagUnavailable } from "@/components/home/TagUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
+import { isTagDateInSelectWindow } from "@/lib/germanyViewCachePolicy";
 import { loadGermanyViewForTag } from "@/lib/germanyViewTag.server";
 import { lastSurplusBefore } from "@/lib/kopfTagCopy";
 import {
@@ -47,11 +48,36 @@ export default async function TagDetailPage({
     permanentRedirect(`/tag/${lastComplete}`);
   }
 
-  if (view.requestedTagStatus === "unvollstaendig" || datum > lastComplete) {
+  if (datum > lastComplete) {
     permanentRedirect(`/tag/${lastComplete}`);
   }
 
+  const inWindow = isTagDateInSelectWindow(datum, view.todayKey);
+
+  if (view.requestedTagStatus === "unvollstaendig") {
+    return (
+      <TagUnavailable
+        requested={datum}
+        todayKey={view.todayKey}
+        status="unvollstaendig"
+        record={record}
+        lastCompleteDayKey={lastComplete}
+      />
+    );
+  }
+
   if (view.requestedTagStatus === "ausserhalb") {
+    if (inWindow) {
+      return (
+        <TagUnavailable
+          requested={datum}
+          todayKey={view.todayKey}
+          status="unvollstaendig"
+          record={record}
+          lastCompleteDayKey={lastComplete}
+        />
+      );
+    }
     return (
       <TagUnavailable
         requested={datum}
@@ -67,6 +93,17 @@ export default async function TagDetailPage({
   const day = view.dispatch.day;
 
   if (!records || !day || day.dateBerlin !== datum) {
+    if (inWindow) {
+      return (
+        <TagUnavailable
+          requested={datum}
+          todayKey={view.todayKey}
+          status="unvollstaendig"
+          record={record}
+          lastCompleteDayKey={lastComplete}
+        />
+      );
+    }
     return (
       <TagUnavailable
         requested={datum}
