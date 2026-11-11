@@ -13,9 +13,12 @@ import type { ResearchFactor, ResearchHomeModel } from "@/lib/research/researchT
 import {
   fourHourSensitivityLine,
   heroReductionDisplay,
-  researchEyebrowGestern,
+  researchDayEyebrow,
+  researchIncompleteFootnote,
+  saturationChartAriaLabel,
+  saturationSectionH2,
   weekDurationFootnote,
-  weekRangeLabel,
+  weekSectionEyebrow,
 } from "@/lib/research/researchFormat";
 
 const FACTORS: ResearchFactor[] = [2, 5, 10];
@@ -61,8 +64,13 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
       <ResearchSubnav active="gestern" />
       <header className={styles.heroRow}>
         <div>
-          <p className={styles.eyebrow}>{researchEyebrowGestern(model.day)}</p>
+          <p className={styles.eyebrow}>{researchDayEyebrow(model.day, model.dayPerspective)}</p>
           <h1 className={styles.h1}>{model.day.h1}</h1>
+          {model.incompleteDayNote ? (
+            <p className={styles.meta} style={{ marginTop: 8 }}>
+              {researchIncompleteFootnote(model.incompleteDayNote)}
+            </p>
+          ) : null}
         </div>
         <div className={styles.heroAside}>{heroBlock}</div>
       </header>
@@ -77,7 +85,7 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
 
       <div className={styles.lowerSplit}>
         <section id="woche" className={styles.sectionInSplit} style={{ scrollMarginTop: 12 }}>
-          <p className={styles.eyebrow}>DIESE WOCHE · {weekRangeLabel(model.week)} · TAGESHORIZONT</p>
+          <p className={styles.eyebrow}>{weekSectionEyebrow(model.week, model.dayPerspective)}</p>
           <h2 className={`${styles.h2} ${styles.weekHeadline}`}>{model.weekHeadline}</h2>
           <div className={styles.seg} role="group" aria-label="Woche Flottenstufe" style={{ marginTop: 4, marginBottom: 6 }}>
             {FACTORS.map((f) => (
@@ -108,11 +116,17 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
 
         <section className={styles.sectionInSplit}>
           <p className={styles.eyebrow}>SÄTTIGUNG · 12 MONATE · 1,76 h</p>
-          <h2 className={styles.h2}>Gestern brachte ab ×5 jedes weitere GW kaum noch etwas.</h2>
-          <SaturationChart model={model.day} cloud={model.cloud} width={layout.saturation.width} height={layout.saturation.height} />
+          <h2 className={styles.h2}>{saturationSectionH2(model.day, model.dayPerspective)}</h2>
+          <SaturationChart
+            model={model.day}
+            cloud={model.cloud}
+            width={layout.saturation.width}
+            height={layout.saturation.height}
+            ariaLabel={saturationChartAriaLabel(model.day, model.dayPerspective)}
+          />
           <p className={styles.legendInline}>
-            <span>— gestern</span>
-            <span>··· gestern 4 h</span>
+            <span>— {model.day.shortLabel}</span>
+            <span>··· {model.day.shortLabel} 4 h</span>
             <span>--- Median</span>
             <span>▌ P10–P90</span>
           </p>

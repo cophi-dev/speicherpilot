@@ -1,5 +1,11 @@
-import { fourHourSensitivityLine, weekHeadline } from "@/lib/research/researchFormat";
-import type { ResearchWeekDay } from "@/lib/research/researchTypes";
+import {
+  fourHourSensitivityLine,
+  researchDayEyebrow,
+  saturationSectionH2,
+  weekHeadline,
+  weekSectionEyebrow,
+} from "@/lib/research/researchFormat";
+import type { ResearchDayModel, ResearchWeekDay } from "@/lib/research/researchTypes";
 
 describe("fourHourSensitivityLine", () => {
   it("×5: 4h auf ×10-Niveau ohne widersprüchliches «mehr als»", () => {
@@ -54,5 +60,45 @@ describe("weekHeadline", () => {
     expect(weekHeadline(weekStub([2.52, 3.1, 5.8, 4.0, 3.3, 2.9, 4.5]))).toBe(
       "Letzte Woche hätte doppelt so viel Speicher die Tagesspitze jeden Tag um 2,5 bis 5,8 GW gesenkt."
     );
+  });
+});
+
+const dayStub: ResearchDayModel = {
+  dateKey: "2026-11-09",
+  dateLabel: "Montag, 09.11.2026",
+  shortLabel: "09.11.",
+  weekdayLabel: "Montag",
+  peakGw: 1,
+  peakTime: "12:00",
+  residualGw: [],
+  stages: [],
+  series: [],
+  saturation: [],
+  saturation4h: [],
+  h1: "",
+  heroFactor: 5,
+  heroReductionGw: 1,
+  hero4hGw: 1,
+  tenGw: 1,
+};
+
+describe("Gestern vs. letzter voller Tag", () => {
+  it("Eyebrow und Sättigungs-H2", () => {
+    expect(researchDayEyebrow(dayStub, "yesterday")).toBe(
+      "GESTERN · MO, 09.11.2026 · NATIONAL · TAGESHORIZONT"
+    );
+    expect(researchDayEyebrow(dayStub, "latestComplete")).toBe(
+      "LETZTER VOLLSTÄNDIGER TAG · MO, 09.11.2026 · NATIONAL · TAGESHORIZONT"
+    );
+    expect(saturationSectionH2(dayStub, "yesterday")).toMatch(/^Gestern brachte/);
+    expect(saturationSectionH2(dayStub, "latestComplete")).toBe(
+      "Am 09.11. brachte ab ×5 jedes weitere GW kaum noch etwas."
+    );
+  });
+
+  it("Wochen-Eyebrow bei Fallback", () => {
+    const week = weekStub([1, 2, 3, 4, 5, 6, 7]);
+    expect(weekSectionEyebrow(week, "yesterday")).toMatch(/^DIESE WOCHE ·/);
+    expect(weekSectionEyebrow(week, "latestComplete")).toMatch(/^7 VOLLE TAGE ·/);
   });
 });

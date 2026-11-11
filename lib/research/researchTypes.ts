@@ -65,12 +65,22 @@ export type ResearchCloudModel = {
   yesterday: { x2: number; x5: number; x10: number };
 };
 
+export type ResearchDayPerspective = "yesterday" | "latestComplete";
+
+export type ResearchIncompleteDayNote = {
+  dateKey: string;
+  quarters: number;
+  expected: number;
+};
+
 export type ResearchHomeModel = {
   day: ResearchDayModel;
   week: ResearchWeekDay[];
   weekHeadline: string;
   cloud: ResearchCloudModel;
   fleetLabel: string;
+  dayPerspective: ResearchDayPerspective;
+  incompleteDayNote?: ResearchIncompleteDayNote;
 };
 
 export type VisionStageId = "x2" | "x5" | "x10" | "nep-a" | "nep-b" | "nep-c";
