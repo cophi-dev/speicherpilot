@@ -1,5 +1,11 @@
 import { formatGwSenkung } from "@/lib/research/fleetBasis";
-import type { ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
+import type {
+  ResearchDayModel,
+  ResearchDayPerspective,
+  ResearchFactor,
+  ResearchIncompleteDayNote,
+  ResearchWeekDay,
+} from "@/lib/research/researchTypes";
 
 export function heroReductionDisplay(gw: number): string {
   return formatGwSenkung(gw);
@@ -30,11 +36,45 @@ export function weekHeadline(week: ResearchWeekDay[]): string {
 export const weekDurationFootnote =
   "1,76 h = heutige Flottendauer (Modell) · 4 h = mehr Energie, oft trotzdem GW-Stopp statt reiner Stunden.";
 
-export function researchEyebrowGestern(day: ResearchDayModel): string {
+function researchDayEyebrowTail(day: ResearchDayModel): string {
   const parts = day.dateLabel.split(", ");
   const cal = parts[1] ?? "";
   const wd = day.weekdayLabel.slice(0, 2).toUpperCase();
-  return `GESTERN · ${wd}, ${cal.toUpperCase()} · NATIONAL · TAGESHORIZONT`;
+  return `${wd}, ${cal.toUpperCase()} · NATIONAL · TAGESHORIZONT`;
+}
+
+export function researchDayEyebrow(day: ResearchDayModel, perspective: ResearchDayPerspective): string {
+  const tail = researchDayEyebrowTail(day);
+  if (perspective === "yesterday") return `GESTERN · ${tail}`;
+  return `LETZTER VOLLSTÄNDIGER TAG · ${tail}`;
+}
+
+/** @deprecated Prefer researchDayEyebrow with dayPerspective from the model. */
+export function researchEyebrowGestern(day: ResearchDayModel): string {
+  return researchDayEyebrow(day, "yesterday");
+}
+
+export function saturationSectionH2(day: ResearchDayModel, perspective: ResearchDayPerspective): string {
+  if (perspective === "yesterday") return "Gestern brachte ab ×5 jedes weitere GW kaum noch etwas.";
+  return `Am ${day.shortLabel} brachte ab ×5 jedes weitere GW kaum noch etwas.`;
+}
+
+export function saturationChartAriaLabel(day: ResearchDayModel, perspective: ResearchDayPerspective): string {
+  if (perspective === "yesterday") return "Gestern auf der Sättigungskurve";
+  return `Sättigungskurve für ${day.shortLabel}`;
+}
+
+export function weekSectionEyebrow(week: ResearchWeekDay[], perspective: ResearchDayPerspective): string {
+  const range = weekRangeLabel(week);
+  if (perspective === "yesterday") return `DIESE WOCHE · ${range} · TAGESHORIZONT`;
+  return `7 VOLLE TAGE · ${range} · TAGESHORIZONT`;
+}
+
+export function researchIncompleteFootnote(note: ResearchIncompleteDayNote): string {
+  const noon = new Date(`${note.dateKey}T12:00:00+01:00`);
+  const weekdayShort = new Intl.DateTimeFormat("de-DE", { weekday: "short", timeZone: "Europe/Berlin" }).format(noon);
+  const [, m, d] = note.dateKey.split("-");
+  return `Daten für ${weekdayShort}, ${d}.${m}. sind bei Energy-Charts noch unvollständig (${note.quarters}/${note.expected} Viertelstunden); die Seite springt automatisch um, sobald sie vollständig sind.`;
 }
 
 export function fourHourSensitivityLine(fourhGw: number, tenGw: number, factor?: ResearchFactor): string {

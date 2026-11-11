@@ -29,6 +29,39 @@ function jitter(seed: string, amp = 4): number {
   return ((h % (amp * 2 + 1)) - amp) * 0.35;
 }
 
+function chartHaloLabel({
+  x,
+  y,
+  text,
+  textAnchor,
+  fontSize = 12,
+  fill = "var(--research-muted)",
+  padX = 5,
+  padY = 3,
+}: {
+  x: number;
+  y: number;
+  text: string;
+  textAnchor: "start" | "middle" | "end";
+  fontSize?: number;
+  fill?: string;
+  padX?: number;
+  padY?: number;
+}) {
+  const charW = fontSize * 0.62;
+  const w = text.length * charW + padX * 2;
+  const h = fontSize + padY * 2;
+  const rectX = textAnchor === "middle" ? x - w / 2 : textAnchor === "end" ? x - w : x;
+  return (
+    <g>
+      <rect x={rectX} y={y - fontSize - padY + 1} width={w} height={h} fill="var(--research-bg)" rx={2} opacity={0.94} />
+      <text x={x} y={y} textAnchor={textAnchor} fontSize={fontSize} fill={fill} fontFamily="var(--font-jetbrains-mono)">
+        {text}
+      </text>
+    </g>
+  );
+}
+
 function dayOnly(shortLabel: string): string {
   const d = shortLabel.slice(0, 2);
   return `${d}.`;
@@ -195,15 +228,20 @@ export function SaturationChart({
   cloud,
   width = 350,
   height = 388,
+  ariaLabel = "Sättigungskurve",
 }: {
   model: ResearchDayModel;
   cloud: ResearchCloudModel;
   width?: number;
   height?: number;
+  ariaLabel?: string;
 }) {
   const yMax = 18;
   const padTop = 26;
-  const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, padTop, 52);
+  const padBottom = 30;
+  const xAxisY = height - 22;
+  const xTickY = height - 6;
+  const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, padTop, padBottom);
 
   const cloudDots = useMemo(() => {
     const dots: Array<{ x: number; y: number }> = [];
@@ -257,8 +295,9 @@ export function SaturationChart({
   const margA = ((x5p.reductionGw - x2p.reductionGw) / (3 * (RESEARCH_FLEET_POWER_MW / 1000))).toFixed(2).replace(".", ",");
   const margB = ((x10p.reductionGw - x5p.reductionGw) / (5 * (RESEARCH_FLEET_POWER_MW / 1000))).toFixed(2).replace(".", ",");
 
-  const midA = { x: (x2p.x + x5p.x) / 2, y: (x2p.y + x5p.y) / 2 };
-  const midB = { x: (x5p.x + x10p.x) / 2, y: (x5p.y + x10p.y) / 2 };
+  const calloutX = width - 14;
+  const calloutLine = 17;
+  const calloutBaseY = padTop + 12;
 
   return (
     <svg
@@ -267,7 +306,7 @@ export function SaturationChart({
       viewBox={`0 0 ${width} ${height}`}
       className={styles.chartFixed}
       role="img"
-      aria-label="Gestern auf der Sättigungskurve"
+      aria-label={ariaLabel}
     >
       <text x={32} y={yAxisUnitLabelY(padTop)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
@@ -290,39 +329,37 @@ export function SaturationChart({
       <path d={y4Line} fill="none" stroke="var(--research-muted)" strokeWidth={1.5} strokeDasharray="2 3" />
       <path d={yLine} fill="none" stroke="var(--research-accent)" strokeWidth={2} />
       <circle cx={x5p.x} cy={x5p.y} r={5} fill="var(--research-accent)" />
-      <line x1={x5p.x} y1={x5p.y - 8} x2={x5p.x} y2={x5p.y - 20} stroke="var(--research-muted)" strokeWidth={1} />
-      <text x={x5p.x} y={x5p.y - 22} textAnchor="middle" fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-        Knick bei ×5
-      </text>
-      <text x={midA.x} y={midA.y - 10} textAnchor="middle" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-        {margA} je GW
-      </text>
-      <text
-        x={width < 400 ? Math.min(midB.x, width - 52) : Math.min(midB.x + 8, width - 8)}
-        y={midB.y - 12}
-        textAnchor={width < 400 ? "end" : "start"}
-        fontSize={12}
-        fill="var(--research-muted)"
-        fontFamily="var(--font-jetbrains-mono)"
-      >
-        {margB} je GW
-      </text>
+      {chartHaloLabel({
+        x: calloutX,
+        y: calloutBaseY,
+        text: "Knick bei ×5",
+        textAnchor: "end",
+        fill: "var(--research-fg)",
+      })}
+      {chartHaloLabel({
+        x: calloutX,
+        y: calloutBaseY + calloutLine,
+        text: `${margA} je GW`,
+        textAnchor: "end",
+      })}
+      {chartHaloLabel({
+        x: calloutX,
+        y: calloutBaseY + 2 * calloutLine,
+        text: `${margB} je GW`,
+        textAnchor: "end",
+      })}
+      <line x1={40} x2={width - 16} y1={xAxisY} y2={xAxisY} stroke="var(--research-line)" />
       {([1, 2, 5, 10] as const).map((f) => (
         <text
           key={f}
           x={xGw((f * RESEARCH_FLEET_POWER_MW) / 1000, width)}
-          y={height - 36}
+          y={xTickY}
           textAnchor="middle"
           fontSize={12}
           fill="var(--research-muted)"
           fontFamily="var(--font-jetbrains-mono)"
         >
           ×{f}
-        </text>
-      ))}
-      {[0, 25, 50].map((gw) => (
-        <text key={gw} x={xGw(gw, width, 50)} y={height - 14} textAnchor="middle" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-          {gw}
         </text>
       ))}
     </svg>

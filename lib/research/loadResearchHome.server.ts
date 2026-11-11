@@ -21,7 +21,9 @@ import { weekHeadline } from "@/lib/research/researchFormat";
 import type {
   ResearchCloudModel,
   ResearchDayModel,
+  ResearchDayPerspective,
   ResearchHomeModel,
+  ResearchIncompleteDayNote,
   ResearchWeekDay,
 } from "@/lib/research/researchTypes";
 import type { ResidualDay, ResidualSlot } from "@/lib/windSolarResidual";
@@ -57,7 +59,12 @@ function formatDateLabel(dateKey: string): { weekday: string; weekdayShort: stri
   };
 }
 
-function buildDayModel(day: ResidualDay): ResearchDayModel {
+function buildDayH1(perspective: ResearchDayPerspective, shortLabel: string): string {
+  if (perspective === "yesterday") return "Gestern fehlten Stunden, nicht Gigawatt.";
+  return `Am ${shortLabel} fehlten Stunden, nicht Gigawatt.`;
+}
+
+function buildDayModel(day: ResidualDay, perspective: ResearchDayPerspective): ResearchDayModel {
   const residualMw = residualMwFromSlots(day.slots);
   const { peakGw, peakTime } = peakMeta(day.slots, residualMw);
   const labels = formatDateLabel(day.dateBerlin);
@@ -97,7 +104,7 @@ function buildDayModel(day: ResidualDay): ResearchDayModel {
     reductionGw: p.reductionGw,
   }));
 
-  const h1 = "Gestern fehlten Stunden, nicht Gigawatt.";
+  const h1 = buildDayH1(perspective, labels.short);
 
   return {
     dateKey: day.dateBerlin,
@@ -215,10 +222,32 @@ export function pickResearchDay(days: ResidualDay[], todayKey: string): Residual
   return complete[0] ?? null;
 }
 
+function incompleteDayNoteFor(
+  days: ResidualDay[],
+  todayKey: string,
+  perspective: ResearchDayPerspective
+): ResearchIncompleteDayNote | undefined {
+  if (perspective === "yesterday") return undefined;
+  const pendingKey = prevBerlinDateKey(todayKey);
+  const pending = days.find((d) => d.dateBerlin === pendingKey);
+  const quarters = pending?.slots.length ?? 0;
+  let expected: number;
+  try {
+    expected = expectedBerlinQuarters(pendingKey);
+  } catch {
+    return undefined;
+  }
+  if (quarters >= expected) return undefined;
+  return { dateKey: pendingKey, quarters, expected };
+}
+
 export function buildResearchHome(days: ResidualDay[], todayKey: string): ResearchHomeModel | null {
   const focus = pickResearchDay(days, todayKey);
   if (!focus) return null;
-  const day = buildDayModel(focus);
+  const yesterdayKey = prevBerlinDateKey(todayKey);
+  const dayPerspective: ResearchDayPerspective =
+    focus.dateBerlin === yesterdayKey ? "yesterday" : "latestComplete";
+  const day = buildDayModel(focus, dayPerspective);
   const week = buildWeek(days, focus.dateBerlin);
   const cloud = buildCloud(focus.dateBerlin, day);
   return {
@@ -227,6 +256,8 @@ export function buildResearchHome(days: ResidualDay[], todayKey: string): Resear
     weekHeadline: weekHeadline(week),
     cloud,
     fleetLabel: RESEARCH_FLEET_LABEL_DE,
+    dayPerspective,
+    incompleteDayNote: incompleteDayNoteFor(days, todayKey, dayPerspective),
   };
 }
 
