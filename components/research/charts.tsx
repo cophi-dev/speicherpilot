@@ -238,8 +238,9 @@ export function SaturationChart({
 }) {
   const yMax = 18;
   const padTop = 26;
-  const padBottom = 40;
-  const xAxisY = height - 24;
+  const padBottom = 30;
+  const xAxisY = height - 22;
+  const xTickY = height - 6;
   const y = (reductionGw: number) => yFromReduction(reductionGw, yMax, height, padTop, padBottom);
 
   const cloudDots = useMemo(() => {
@@ -294,15 +295,9 @@ export function SaturationChart({
   const margA = ((x5p.reductionGw - x2p.reductionGw) / (3 * (RESEARCH_FLEET_POWER_MW / 1000))).toFixed(2).replace(".", ",");
   const margB = ((x10p.reductionGw - x5p.reductionGw) / (5 * (RESEARCH_FLEET_POWER_MW / 1000))).toFixed(2).replace(".", ",");
 
-  const midA = { x: (x2p.x + x5p.x) / 2, y: (x2p.y + x5p.y) / 2 };
-  const midB = { x: (x5p.x + x10p.x) / 2, y: (x5p.y + x10p.y) / 2 };
-
-  const labelOffset = 17;
-  const knickLabelY = x5p.y - 8 - labelOffset;
-  const margALabelY = midA.y - labelOffset;
-  const margBLabelY = midB.y - labelOffset;
-  const margBX = width < 400 ? Math.min(midB.x, width - 52) : Math.min(midB.x + 8, width - 8);
-  const margBAnchor: "start" | "end" = width < 400 ? "end" : "start";
+  const calloutX = width - 14;
+  const calloutLine = 17;
+  const calloutBaseY = padTop + 12;
 
   return (
     <svg
@@ -334,29 +329,31 @@ export function SaturationChart({
       <path d={y4Line} fill="none" stroke="var(--research-muted)" strokeWidth={1.5} strokeDasharray="2 3" />
       <path d={yLine} fill="none" stroke="var(--research-accent)" strokeWidth={2} />
       <circle cx={x5p.x} cy={x5p.y} r={5} fill="var(--research-accent)" />
-      <line x1={x5p.x} y1={x5p.y - 8} x2={x5p.x} y2={knickLabelY + 4} stroke="var(--research-muted)" strokeWidth={1} />
-      {chartHaloLabel({ x: x5p.x, y: knickLabelY, text: "Knick bei ×5", textAnchor: "middle", fill: "var(--research-fg)" })}
-      {chartHaloLabel({ x: midA.x, y: margALabelY, text: `${margA} je GW`, textAnchor: "middle" })}
-      {chartHaloLabel({ x: margBX, y: margBLabelY, text: `${margB} je GW`, textAnchor: margBAnchor })}
+      {chartHaloLabel({
+        x: calloutX,
+        y: calloutBaseY,
+        text: "Knick bei ×5",
+        textAnchor: "end",
+        fill: "var(--research-fg)",
+      })}
+      {chartHaloLabel({
+        x: calloutX,
+        y: calloutBaseY + calloutLine,
+        text: `${margA} je GW`,
+        textAnchor: "end",
+      })}
+      {chartHaloLabel({
+        x: calloutX,
+        y: calloutBaseY + 2 * calloutLine,
+        text: `${margB} je GW`,
+        textAnchor: "end",
+      })}
       <line x1={40} x2={width - 16} y1={xAxisY} y2={xAxisY} stroke="var(--research-line)" />
-      {[0, 25, 50].map((gw) => (
-        <text
-          key={`gw-${gw}`}
-          x={xGw(gw, width, 50)}
-          y={xAxisY - 6}
-          textAnchor="middle"
-          fontSize={10}
-          fill="var(--research-dim)"
-          fontFamily="var(--font-jetbrains-mono)"
-        >
-          {gw}
-        </text>
-      ))}
       {([1, 2, 5, 10] as const).map((f) => (
         <text
           key={f}
           x={xGw((f * RESEARCH_FLEET_POWER_MW) / 1000, width)}
-          y={xAxisY + 16}
+          y={xTickY}
           textAnchor="middle"
           fontSize={12}
           fill="var(--research-muted)"
