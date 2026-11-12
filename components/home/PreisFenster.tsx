@@ -107,7 +107,14 @@ export function PreisFenster({
 
   return (
     <figure className={styles.figure} data-testid="preis-fenster">
-      <div ref={shellRef} className={styles.frame}>
+      <div
+        ref={shellRef}
+        className={styles.frame}
+        style={{ ["--preis-pad-l" as string]: `${padL}px` }}
+      >
+        <p className={`num ${styles.unitLabel}`} aria-hidden="true">
+          €/MWh
+        </p>
         <svg
           className={compact ? styles.svgCompact : styles.svg}
           viewBox={`0 0 ${width} ${height}`}
@@ -115,9 +122,6 @@ export function PreisFenster({
           role="img"
           aria-label={satz}
         >
-          <text className={`num ${styles.unit}`} x={padL} y={13} textAnchor="start">
-            €/MWh
-          </text>
           {axis.ticks.map((tick) => (
             <g key={tick}>
               <line className={styles.grid} x1={padL} x2={padL + plotW} y1={yOf(tick)} y2={yOf(tick)} />

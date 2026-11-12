@@ -24,14 +24,14 @@
 
 .text {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--type-14);
   line-height: 1.45;
   max-width: 62ch;
 }
 
 .meta {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--type-12);
   color: var(--v4-muted);
   display: flex;
   flex-wrap: wrap;
@@ -45,7 +45,7 @@
 
 .foot {
   margin-top: 12px;
-  font-size: 12px;
+  font-size: var(--type-12);
 }
 
 @media (max-width: 639px) {
@@ -55,6 +55,6 @@
   }
 
   .text {
-    font-size: 13px;
+    font-size: var(--type-14);
   }
 }

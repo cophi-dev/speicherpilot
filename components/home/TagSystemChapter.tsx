@@ -54,19 +54,19 @@ export function TagSystemChapter({
         </h2>
         {hasSurplus ? (
           <>
-            <p className="v4-system-pct num v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
+            <p className="v4-system-pct v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
             <p className="v4-tag-side">
               des Überschusses hätte die heutige Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW,{" "}
               {formatQuantity(fleetEnergyGwh, "de", 2)} GWh) bei ×1 aufgenommen.{" "}
               <span className="v4-chip num">Modellschätzung</span>
             </p>
             {socPct != null ? (
-              <p className="v4-tag-side num">Ladestand am Tagesende im Modell: etwa {formatQuantity(socPct, "de", 0)}&nbsp;%.</p>
+              <p className="v4-tag-side">Ladestand am Tagesende im Modell: etwa {formatQuantity(socPct, "de", 0)}&nbsp;%.</p>
             ) : null}
           </>
         ) : (
           <>
-            <p className="v4-tag-kern num">{formatQuantity(fleetEnergyGwh, "de", 2)} GWh</p>
+            <p className="v4-tag-kern">{formatQuantity(fleetEnergyGwh, "de", 2)} GWh</p>
             <p className="v4-tag-side">
               Nennenergie der heutigen Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW Leistung) — keine verfügbare
               Energie zum Ladetag, sondern Größenordnung des Speichers in der ×1-Referenz.
@@ -82,13 +82,13 @@ export function TagSystemChapter({
           </>
         )}
         {priceLine ? (
-          <p className="v4-tag-side num v4-tag-price-desktop">Day-Ahead: {priceLine}</p>
+          <p className="v4-tag-side v4-tag-price-desktop">Day-Ahead: {priceLine}</p>
         ) : null}
       </div>
       {(showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss") || priceLine ? (
         <details className="v4-content v4-tag-system-footnote">
           <summary>Ergänzungen (Preis, Monatsmodell)</summary>
-          {priceLine ? <p className="v4-tag-side num">Börsenpreis Day-Ahead: {priceLine}</p> : null}
+          {priceLine ? <p className="v4-tag-side">Börsenpreis Day-Ahead: {priceLine}</p> : null}
           {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
             <p className="v4-tag-side">
               Monatslauf unten (

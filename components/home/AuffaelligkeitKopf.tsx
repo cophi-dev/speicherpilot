@@ -186,7 +186,7 @@ export function AuffaelligkeitKopf({
                 {hero.value}
                 <span className="v4-riesenzahl-unit">{hero.unit}</span>
               </p>
-              <div className="v4-kern-row num">
+              <div className="v4-kern-row">
                 <span>{hero.kernLabel}</span>
                 {metricHero?.rankLabel ? <span>{metricHero.rankLabel}</span> : null}
               </div>

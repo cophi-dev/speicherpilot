@@ -15,7 +15,7 @@ describe("design-run chart layout", () => {
 
   it("hält Achsen-/Tick-Labels ≥12px", () => {
     const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
-    expect(css).toMatch(/\.v4-fleet-ts-x[\s\S]*font-size:\s*12px/);
-    expect(css).toMatch(/\.v4-fleet-ts-ytick[\s\S]*font-size:\s*12px/);
+    expect(css).toMatch(/\.v4-fleet-ts-x[\s\S]*font-size:\s*(?:12px|var\(--type-12\))/);
+    expect(css).toMatch(/\.v4-fleet-ts-ytick[\s\S]*font-size:\s*(?:12px|var\(--type-12\))/);
   });
 });
