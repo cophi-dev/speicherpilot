@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 
 const base = process.env.BASE_URL ?? "http://127.0.0.1:3000";
 const viewports = [390, 768, 1024, 1280];
-const paths = ["/tag/2026-10-09", "/monat/2026-10"];
+const paths = ["/tag/2026-10-25", "/monat/2026-10"];
 const themes = ["light", "dark"];
 
 const browser = await chromium.launch();

@@ -8,7 +8,7 @@ const out = "/opt/cursor/artifacts";
 mkdirSync(out, { recursive: true });
 
 const pages = [
-  { key: "tag", path: "/tag/2026-10-09" },
+  { key: "tag", path: "/tag/2026-10-25" },
   { key: "monat", path: "/monat/2026-10" },
 ];
 
