@@ -437,9 +437,9 @@ function StundenChart({ model }: { model: MonatV1Model }) {
         {cats.map((c, i) => {
           const x = vb.L + ((i + 0.5) / cats.length) * plotW;
           const pts = [
-            { off: -dodge, val: c.h176, fill: "var(--mv-ink)", hollow: false, r: 4 },
-            { off: 0, val: c.h2, fill: "none", hollow: true, r: 4 },
-            { off: dodge, val: c.h4, fill: "#B4532A", hollow: false, r: 6 },
+            { series: "h176" as const, off: -dodge, val: c.h176, fill: "var(--mv-ink)", hollow: false, r: 4 },
+            { series: "h2" as const, off: 0, val: c.h2, fill: "none", hollow: true, r: 4 },
+            { series: "h4" as const, off: dodge, val: c.h4, fill: "#B4532A", hollow: false, r: 6 },
           ];
           return (
             <g key={c.factor}>
@@ -465,7 +465,8 @@ function StundenChart({ model }: { model: MonatV1Model }) {
                     ) : (
                       <circle cx={x + p.off} cy={y} r={p.r} fill={p.fill} />
                     )}
-                    {(p.val === c.h4 || (c.factor === 10 && p.val === c.h176)) && wide ? (
+                    {/* ×1 ist der Referenzpunkt (Senkung 0): kein Punktlabel, sonst stapeln sich drei gleiche Werte. */}
+                    {wide && c.factor !== 1 && (p.series === "h4" || (c.factor === 10 && p.series === "h176")) ? (
                       <text x={x + p.off} y={y - 8} textAnchor="middle" fontSize="12" fill="var(--mv-ink)">
                         {formatGwReduction(p.val, 2)}
                       </text>
@@ -643,7 +644,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <h2 id="monat-v1-a3" className={styles.h2}>
           Es fehlen Stunden, nicht Gigawatt.
         </h2>
-        <p className={styles.kern}>−{formatGwReduction(model.duration.find((d) => d.factor === 10)?.h176 ?? 0, 1)}</p>
+        <p className={styles.kern}>{formatGwReduction(model.duration.find((d) => d.factor === 10)?.h176 ?? 0, 1)}</p>
         <p className={styles.lead}>{MONAT_V1_KERN3}.</p>
         <StundenChart model={model} />
       </section>

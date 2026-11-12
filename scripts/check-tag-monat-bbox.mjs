@@ -53,13 +53,37 @@ for (const path of paths) {
           })
           .filter((b) => b.w > 0 && b.h > 0);
         const hits = [];
+        // Nur substanzielle Überlappung: berührende Achsen-Ecken (40/×1, −20/GW, −100/00)
+        // haben oft 1–4 px gemeinsame Fläche und gelten nicht als Fehler. Gestapelte
+        // Punktlabels (gleiche Zeile, große Schnittfläche) bleiben ein Fehler.
+        const MIN_OX = 5;
+        const MIN_OY = 5;
+        const isAxisFurniture = (s) =>
+          /^[\u2212\-]?\d+(,\d+)?$/.test(s) ||
+          /^×[\d,]+$/.test(s) ||
+          /^(GW|€\/MWh|€)$/.test(s) ||
+          /^(00|06|12|18|24)$/.test(s);
         for (let i = 0; i < boxes.length; i += 1) {
           for (let j = i + 1; j < boxes.length; j += 1) {
             const a = boxes[i];
             const b = boxes[j];
-            const hit = a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-            if (hit && Math.abs(a.y - b.y) < 18 && a.tag === "text" && b.tag === "text") {
-              hits.push({ a: a.t, b: b.t, dy: Math.abs(a.y - b.y), ax: a.x, ay: a.y, bx: b.x, by: b.y });
+            if (a.tag !== "text" || b.tag !== "text") continue;
+            // Achsen-Ecken (40/×1, −20/GW, −100/00): Boxes berühren sich, visuell getrennt.
+            if (isAxisFurniture(a.t) && isAxisFurniture(b.t)) continue;
+            const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+            const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+            if (ox >= MIN_OX && oy >= MIN_OY) {
+              hits.push({
+                a: a.t,
+                b: b.t,
+                dy: Math.abs(a.y - b.y),
+                ox: Number(ox.toFixed(2)),
+                oy: Number(oy.toFixed(2)),
+                ax: a.x,
+                ay: a.y,
+                bx: b.x,
+                by: b.y,
+              });
             }
           }
         }
