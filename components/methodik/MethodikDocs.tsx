@@ -25,6 +25,8 @@ import { GLOSSARY } from "@/lib/glossary";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
+import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+import { formatQuantity } from "@/lib/formatQuantity";
 
 import {
   METHODIK_CHAPTERS,
@@ -37,6 +39,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
+  const modellFlotte = `${formatQuantity(NATIONAL_BASE_FLEET.powerMw / 1000, language, 2)} GW / ${formatQuantity(NATIONAL_BASE_FLEET.energyMwh / 1000, language, 2)} GWh`;
   return (
     <div className="methodik v4-subpage methodik-v4">
       <MethodikHashScroll />
@@ -134,8 +137,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
               <p>
                 {tx(
-                  "Auf /monat/2026-10 liegt ein vorberechneter Monatslauf (Oktober 2026): Modell-Referenzflotte 4,64 GW / 8,15 GWh Nennenergie, Größen ×1–×10, drei Fahrweisen (Differenz aufnehmen, Restlastspitze mit Vollvoraussicht, Day-Ahead ohne Preisrückwirkung). Speicher 10–90 %, 85 % Wirkungsgrad je Richtung, kein Tages-Reset, Monatsanfang und -ende jeweils 50 % Nennenergie. Das ist eine Modellrechnung auf beobachteter Last und Wind/Solar — nicht der Tagesrechner mit 17-Uhr-Grenze oben, nicht der Anschlussnetz-Rechner unter /ort. Keine amtliche Ist-Flotte, keine Netzdienlichkeit, keine Abregelungsquote.",
-                  "On /monat/2026-10 there is a precomputed month run (October 2026): model reference fleet 4.64 GW / 8.15 GWh nameplate, sizes ×1–×10, three strategies (capture difference, residual peak with perfect foresight, day-ahead without price impact). Storage 10–90%, 85% efficiency each way, no daily reset, month start and end each at 50% of nameplate. It is a model calculation on observed load and wind/solar — not the day calculator with the 17:00 limit above, not the grid calculator under /ort. Not the official stock, not grid support, not a curtailment figure.",
+                  `Auf /monat/2026-10 liegt ein vorberechneter Monatslauf (Oktober 2026): Modell-Referenzflotte ${modellFlotte} Nennenergie, Größen ×1–×10, drei Fahrweisen (Differenz aufnehmen, Restlastspitze mit Vollvoraussicht, Day-Ahead ohne Preisrückwirkung). Speicher 10–90 %, 85 % Wirkungsgrad je Richtung, kein Tages-Reset, Monatsanfang und -ende jeweils 50 % Nennenergie. Das ist eine Modellrechnung auf beobachteter Last und Wind/Solar — nicht der Tagesrechner mit 17-Uhr-Grenze oben, nicht der Anschlussnetz-Rechner unter /ort. Keine amtliche Ist-Flotte, keine Netzdienlichkeit, keine Abregelungsquote.`,
+                  `On /monat/2026-10 there is a precomputed month run (October 2026): model reference fleet ${modellFlotte} nameplate, sizes ×1–×10, three strategies (capture difference, residual peak with perfect foresight, day-ahead without price impact). Storage 10–90%, 85% efficiency each way, no daily reset, month start and end each at 50% of nameplate. It is a model calculation on observed load and wind/solar — not the day calculator with the 17:00 limit above, not the grid calculator under /ort. Not the official stock, not grid support, not a curtailment figure.`,
                 )}
               </p>
             </MethodikSection>

@@ -4,7 +4,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { additionalFleetAtFactor } from "@/lib/fleetXkConvention";
 import {
   getFleetRun,
   monthStatsForRun,
@@ -37,10 +36,19 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
       it(`SoC physics ${key}`, () => {
         const run = getFleetRun(bundle, factor, strategy);
         expect(run.intervalCount).toBe(2980);
-        const eNom = additionalFleetAtFactor(factor).energyMwh;
-        const maxRes = verifyFleetRunSocPhysics(run, 0.1 * eNom, 0.9 * eNom);
+        const eNom = monthStatsForRun(bundle, factor, strategy).fleetEnergyGwh * 1000;
+        // SoC-Band des vorberechneten Laufs (Summary e_nominal), nicht die live ungerundete Basis
+        const eNomRun =
+          (bundle.summary[String(factor)]?.[
+            strategy === "ueberschuss"
+              ? "surplus_wind_solar_over_load"
+              : strategy === "spitze"
+                ? "min_peak_perfect_foresight"
+                : "price_oriented_da_arbitrage"
+          ] as { e_nominal_mwh?: number } | undefined)?.e_nominal_mwh ?? eNom;
+        const maxRes = verifyFleetRunSocPhysics(run, 0.1 * eNomRun, 0.9 * eNomRun);
         expect(maxRes).toBeLessThan(0.001);
-        const alt = replaySocFromAsymmetricStart(run, eNom > 0 ? 0.25 * eNom : 0);
+        const alt = replaySocFromAsymmetricStart(run, eNomRun > 0 ? 0.25 * eNomRun : 0);
         expect(alt.length).toBe(run.intervalCount + 1);
       });
     }

@@ -188,6 +188,38 @@ export type NationalFleetMonthStats = {
   fleetEnergyGwh: number;
 };
 
+
+/**
+ * Markt-Spitze, die der Preisnehmer durch Voll-Laden erzeugt (after > Referenz):
+ * Restlast in dieser Viertelstunde + Zusatzleistung. Die vorberechneten Läufe
+ * nutzten 4 640 MW; die Basis ist 4 644,09022 MW. Nur diese Identität korrigieren,
+ * nicht die MIP-Spitzen der anderen Fahrweisen.
+ */
+export function marketPeakWithExactFleet(
+  strategy: NationalFleetStrategyUi,
+  factor: NationalFleetFactor,
+  stats: Record<string, number>,
+): { afterMw: number; reductionMw: number; reductionPct: number } {
+  const afterMw0 = stats.after_max_residual_mw as number;
+  const reductionMw0 = stats.peak_reduction_mw as number;
+  const reductionPct0 = stats.peak_reduction_pct_of_ref_64405_9 as number;
+  const baselineMw = stats.baseline_max_residual_mw as number;
+  const bundledPowerMw = (stats.p_mw as number) ?? 0;
+  const exactPowerMw = NATIONAL_BASE_FLEET.powerMw * Math.max(0, factor - 1);
+  if (
+    strategy !== "markt" ||
+    bundledPowerMw <= 0 ||
+    !(afterMw0 > baselineMw + 1e-6) ||
+    Math.abs(exactPowerMw - bundledPowerMw) < 1e-6
+  ) {
+    return { afterMw: afterMw0, reductionMw: reductionMw0, reductionPct: reductionPct0 };
+  }
+  const afterMw = afterMw0 - bundledPowerMw + exactPowerMw;
+  const reductionMw = baselineMw - afterMw;
+  const reductionPct = baselineMw !== 0 ? (reductionMw / baselineMw) * 100 : reductionPct0;
+  return { afterMw, reductionMw, reductionPct };
+}
+
 export function monthStatsForRun(
   bundle: NationalFleetMonthBundle,
   factor: NationalFleetFactor,
@@ -213,13 +245,14 @@ export function monthStatsForRun(
     strategy === "ueberschuss"
       ? (stats.surplus_pool_capture_share_of_134_241975_gwh as number | undefined) ?? null
       : null;
+  const { afterMw, reductionMw, reductionPct } = marketPeakWithExactFleet(strategy, factor, stats);
   return {
     chargeGwh: charge,
     dischargeGwh: discharge,
     lossGwh: loss,
-    peakAfterGw: (stats.after_max_residual_mw as number) / 1000,
-    peakReductionGw: (stats.peak_reduction_mw as number) / 1000,
-    peakReductionPct: stats.peak_reduction_pct_of_ref_64405_9 as number,
+    peakAfterGw: afterMw / 1000,
+    peakReductionGw: reductionMw / 1000,
+    peakReductionPct: reductionPct,
     surplusCaptureGwh: capture,
     surplusCaptureSharePct: share != null ? share * 100 : null,
     socStartGwh: (stats.soc_start_mwh as number) / 1000,

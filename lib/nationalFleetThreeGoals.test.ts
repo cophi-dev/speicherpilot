@@ -20,7 +20,7 @@ describe("buildThreeGoalsCompare", () => {
     const model = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
     expect(model.marktX10PeakTs).toContain("2026-10-21T14:00");
     const mk10 = model.rows.find((r) => r.strategy === "markt")!.cells.find((c) => c.factor === 10)!;
-    expect(mk10.peakAfterGw).toBeCloseTo(92.72, 2);
+    expect(mk10.peakAfterGw).toBeCloseTo(92.76, 2);
   });
 });
 

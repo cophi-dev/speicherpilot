@@ -2,12 +2,19 @@ import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyF
 import { getGermanyEnergyFlowForBerlinRange, type GermanyDispatchSlot } from "@/lib/energyChartsApi";
 import { verifySurplusDispatchEnergyBalance } from "@/lib/dispatchEnergyBalance";
 import { additionalFleetAtFactor } from "@/lib/fleetXkConvention";
+import {
+  RESEARCH_FLEET_ENERGY_MWH,
+  RESEARCH_FLEET_POWER_MW,
+} from "@/lib/research/fleetBasis";
 import { evaluateSurplusDayFactor } from "@/lib/surplusDaySimulation";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
-/** battery-charts Großspeicher 31.10.2026 · ×k = k-mal diese Flotte insgesamt. */
-export const NATIONAL_BASE_FLEET = { powerMw: 4_640, energyMwh: 8_150 };
+/** battery-charts Großspeicher 31.10.2026, ungerundet · Anzeige 4,64 GW / 8,15 GWh. ×k = k-mal diese Flotte insgesamt. */
+export const NATIONAL_BASE_FLEET = {
+  powerMw: RESEARCH_FLEET_POWER_MW,
+  energyMwh: RESEARCH_FLEET_ENERGY_MWH,
+};
 
 const USABLE_SOC_FRACTION = CHAIN_SOC_MAX - CHAIN_SOC_MIN;
 
