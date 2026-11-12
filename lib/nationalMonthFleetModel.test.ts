@@ -80,7 +80,7 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
     const run = getFleetRun(bundle, 2, "spitze");
     const slice = sliceFleetDay(run, "2026-10-29")!;
     expect(slice.positiveSurplusQuarterHours).toBe(0);
-    expect(slice.chargeMwh / 1000).toBeCloseTo(7.07, 2);
+    expect(slice.chargeMwh / 1000).toBeCloseTo(6.62, 2);
     expect(slice.maxRPrimeMw / 1000).toBeCloseTo(60.82, 2);
   });
 

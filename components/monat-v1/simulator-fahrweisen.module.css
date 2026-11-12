@@ -1,0 +1,172 @@
+.display {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.5rem, 8vw, 3.5rem);
+  font-weight: 500;
+  line-height: 0.95;
+  margin: 0 0 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.modelNote {
+  font-size: 0.75rem;
+  color: var(--mv-muted);
+  margin: 0 0 1rem;
+}
+
+.paretoStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.paretoWide {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.sliderRow {
+  margin: 1rem 0;
+}
+
+.sliderLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--mv-muted);
+  margin-bottom: 0.35rem;
+}
+
+.range {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--mv-rust);
+}
+
+.namedButtons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.namedBtn {
+  min-height: 44px;
+  border: 1px solid var(--mv-linie);
+  background: var(--mv-flaeche);
+  color: var(--mv-ink);
+  font-size: 0.875rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.namedBtn[aria-pressed="true"] {
+  border-color: var(--mv-rust);
+  background: var(--mv-rust-tint);
+}
+
+.rowActive {
+  font-weight: 500;
+  background: var(--mv-rust-tint);
+}
+
+.arteFakt {
+  color: var(--mv-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.kipppunktHint {
+  font-size: 0.75rem;
+  color: var(--mv-muted);
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+}
+
+.stripeWrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.dayLinks {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.dayLink {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mv-linie);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--mv-ink);
+  font-size: 0.875rem;
+}
+
+.dayLink:hover {
+  border-color: var(--mv-rust);
+}
+
+.fnavGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 1100px) {
+  .fnavGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.fnavCard {
+  border: 1px solid var(--mv-linie);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.fnavCard h3 {
+  font-size: 1rem;
+  margin: 0 0 0.35rem;
+}
+
+.legalBox {
+  border: 1px solid var(--mv-linie);
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.legalBox h2 {
+  font-size: 1.125rem;
+  margin: 0 0 0.75rem;
+}
+
+.legalBox ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.legalBox li {
+  margin-bottom: 0.5rem;
+}
+
+.chipEntwurf {
+  font-size: 0.65rem;
+  border: 1px solid var(--mv-muted);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.simulatorRoot {
+  border-top: 1px solid var(--mv-linie);
+  padding-top: 2rem;
+  margin-top: 1rem;
+}

@@ -1,14 +1,14 @@
 {
   "bundleFile": "fleet-month-bundle.json",
-  "sha256": "31b693e98dc82569cc70cfe94ba48708f5a41cde7fd182f6e76153ef94d16f2e",
+  "sha256": "faae60f01abd3c978bedada376ccdbd1ef7f7b95e2847204cd1c5fd2e2f3be19",
   "monthKey": "2026-10",
   "quarters": 2980,
   "hours": 745,
   "dstOct25Quarters": 100,
   "inputCsvSha256": "f9d795a924cb80054a5ede5ecfa7d41f366869ec87d4d0559c7cf5769fbe60f4",
-  "run9SummarySha256": "abfe7b53b85eac91e3ad24b6d75d5f07c213574617453667224ab76f49d94522",
+  "run9SummarySha256": "9995e38923799714e98dc9b251cd8e9d9851382e1292be911d0ca03cf71c9c05",
   "metaFile": "fleet-month-meta.json",
-  "metaSha256": "0048533c65d43b5f890e6bbbf61ff61eb772b6edd0a635c86a5bd1de3bb3866b",
+  "metaSha256": "c4f49e12fe625567fb68adc8d8cdc7c2d362cfe6a6c2a8b65ab2cbd36a30a3f3",
   "runShards": {
     "x1_surplus_wind_solar_over_load": {
       "file": "runs/x1_surplus_wind_solar_over_load.json",
@@ -27,48 +27,48 @@
     },
     "x2_surplus_wind_solar_over_load": {
       "file": "runs/x2_surplus_wind_solar_over_load.json",
-      "sha256": "2000d1a02a41f7dc67b8d7fb174f7ec9b248a09b329cc36efabec6a0e3f85327",
-      "bytes": 190407
+      "sha256": "be18763b574daf7467a1c5aa6d064dea358d0bc2b7c5d4eef8f59aab1ce535c9",
+      "bytes": 222811
     },
     "x2_min_peak_perfect_foresight": {
       "file": "runs/x2_min_peak_perfect_foresight.json",
-      "sha256": "e6ac7d38fc9e8d6bc0a147b63100dcb77cf4b707f01dea6a9c69556210316080",
-      "bytes": 194363
+      "sha256": "9f2e50f74bd60634b3d414bedcd933ba4a3b66b7f5729611151270677832bbf3",
+      "bytes": 231173
     },
     "x2_price_oriented_da_arbitrage": {
       "file": "runs/x2_price_oriented_da_arbitrage.json",
-      "sha256": "8bd341c764a309bd494da502249bd01106d1ab572c4ba98fac1e11483ea4bca8",
-      "bytes": 208076
+      "sha256": "81b819af751c0984faf76fa9663c0cd2f0bfd67ca0728000af8ce08291dd78c8",
+      "bytes": 236070
     },
     "x5_surplus_wind_solar_over_load": {
       "file": "runs/x5_surplus_wind_solar_over_load.json",
-      "sha256": "7e47581f23444d6d8443c0103185658ea9a6b40be63b6ff3572a89387c0895ec",
-      "bytes": 207950
+      "sha256": "b0f3052c0f15af90e3ca0ae3ca6c6ef8dffcb53bbd0646a32edaf2fae41f999e",
+      "bytes": 230446
     },
     "x5_min_peak_perfect_foresight": {
       "file": "runs/x5_min_peak_perfect_foresight.json",
-      "sha256": "14429e8fa741b089dc06a228be629a631a30bc8f07ed319b5fa8613d18cbb390",
-      "bytes": 205187
+      "sha256": "9dfb9ea67764cda758996b4a2c52da9bc8c20c2e590f36e8a9f8599967705846",
+      "bytes": 232213
     },
     "x5_price_oriented_da_arbitrage": {
       "file": "runs/x5_price_oriented_da_arbitrage.json",
-      "sha256": "63604d0e4f498477c7cd69d6948e03564f6dc5a2cdbe582f055dd130b34805fe",
-      "bytes": 214362
+      "sha256": "17ced5be027dd6c3c94b320f7d910985d267c1f6bf8a9734d4a222b77753f81f",
+      "bytes": 242557
     },
     "x10_surplus_wind_solar_over_load": {
       "file": "runs/x10_surplus_wind_solar_over_load.json",
-      "sha256": "0c4ee4098770716fdcdc25c931027b5b63e50f825914f012faae7c5a10bc4fc8",
-      "bytes": 216428
+      "sha256": "6a18a1866b53abb3d8a2ee5557d86e4f4da7aaa72240b5053b02214a259e1fb8",
+      "bytes": 232900
     },
     "x10_min_peak_perfect_foresight": {
       "file": "runs/x10_min_peak_perfect_foresight.json",
-      "sha256": "639c426ca09a0d69bba33190bfd94cdb0a96973e514f7ca4797dd26e31042c5e",
-      "bytes": 205689
+      "sha256": "ca188efdf8edf614296561095c841502a273a5196c0dac9948f528d3d87f3d14",
+      "bytes": 237423
     },
     "x10_price_oriented_da_arbitrage": {
       "file": "runs/x10_price_oriented_da_arbitrage.json",
-      "sha256": "b7e39d52e22e6bf16ec073703ffd94d01bdbd3f17ba8152f8227a932eb1da82c",
-      "bytes": 214600
+      "sha256": "580590336f04cf88e3184be289ee04c21eda27886a8f94f38346ae20078879b9",
+      "bytes": 241649
     }
   }
 }

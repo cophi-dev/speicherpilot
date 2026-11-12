@@ -46,6 +46,11 @@ export async function MethodikMonatKonzept() {
           Modell) ≈ {eurLabel}&nbsp;Mio&nbsp;€ Modellschätzung (Day-Ahead, ohne Entgelte/Degradation).
         </li>
         <li>Quelle: Energy-Charts / Bundesnetzagentur | SMARD.de, CC BY 4.0. Oktober-Läufe: Bundle im Repo.</li>
+        <li id="simulator-kipppunkt">
+          <strong>Simulator · Kipppunkt:</strong> analytisch 64&nbsp;428&nbsp;MW (21.10. 14:00, Restlast 50,96&nbsp;GW
+          plus Voll-Laden bei k≈3,9). Abweichung zu interpolierten MIP-Werten (z. B. 64&nbsp;416&nbsp;MW) =
+          Rundung/Interpolation, kein Modellbruch.
+        </li>
       </ul>
     </section>
   );

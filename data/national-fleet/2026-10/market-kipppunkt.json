@@ -1,7 +1,7 @@
 {
   "factor_approx": 3.9,
-  "after_max_residual_mw": 64416,
+  "after_max_residual_mw": 64428,
   "reference_mw": 64405.9,
   "computed_at": "2026-11-12",
-  "method": "lineare Interpolation MIP zwischen k=3.8 und k=3.9 (Zusatzflotte)"
+  "method": "analytisch: Restlast 21.10. 14:00 + Voll-Laden, (64,41 − 50,96) / 4,64409022 + 1 ≈ 3,90 → 64 428 MW"
 }
