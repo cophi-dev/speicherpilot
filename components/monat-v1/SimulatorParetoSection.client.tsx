@@ -25,6 +25,7 @@ import {
   type SimulatorFrontPoint,
 } from "@/lib/simulatorFahrweisenTypes";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
+import { FrontSlider } from "@/components/monat-v1/FrontSlider";
 
 export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData }) {
   const wide = useLayoutWide(1100);
@@ -57,7 +58,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
         der Monatssenkung.
       </h2>
       <p className={`${styles.lead} ${simStyles.leadShort}`}>
-        Die volle Senkung kostet {voll.vonLabel} Mio.{"\u00A0"}€. Modellschätzung, Endpunkte lexikographisch.
+        Die volle Senkung kostet {voll.vonLabel} Mio.{"\u00A0"}€. Modellschätzung.
       </p>
       <div className={wide ? simStyles.insight3wide : simStyles.insight3}>
         <div>
@@ -90,34 +91,24 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
       <p className={simStyles.modelNote}>
         Fest ×2, ohne Preisrückwirkung · {data.euroLabel} bei Euro-Zahlen
       </p>
-      <div className={simStyles.sliderRow}>
-        <label className={simStyles.sliderLabel} htmlFor="sim-front-range">
-          Fahrweise
-        </label>
-        <input
-          id="sim-front-range"
-          className={simStyles.range}
-          type="range"
-          min={0}
-          max={data.front.length - 1}
-          step={1}
-          value={idx}
-          onChange={(e) => setIdx(Number(e.target.value))}
-          aria-valuemin={0}
-          aria-valuemax={data.front.length - 1}
-          aria-valuenow={idx}
-          aria-valuetext={ariaFor(
-            point,
-            idx === data.namedIndices.markt
-              ? "Maximaler Erlös"
-              : idx === data.namedIndices.netzdienlich
-                ? "Netzdienlich"
-                : idx === data.namedIndices.kompromiss
-                  ? "Kompromiss"
-                  : "Frontpunkt",
-          )}
-        />
-        <div className={simStyles.namedButtons} role="group" aria-label="Benannte Fahrweisen">
+      <FrontSlider
+        id="sim-front-range"
+        value={idx}
+        count={data.front.length}
+        namedIndices={[data.namedIndices.markt, data.namedIndices.kompromiss, data.namedIndices.netzdienlich]}
+        onChange={setIdx}
+        ariaValueText={ariaFor(
+          point,
+          idx === data.namedIndices.markt
+            ? "Maximaler Erlös"
+            : idx === data.namedIndices.netzdienlich
+              ? "Netzdienlich"
+              : idx === data.namedIndices.kompromiss
+                ? "Kompromiss"
+                : "Frontpunkt",
+        )}
+      />
+      <div className={simStyles.namedButtons} role="group" aria-label="Benannte Fahrweisen">
           {(
             [
               ["markt", "Max. Erlös"],
@@ -136,7 +127,6 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
             </button>
           ))}
         </div>
-      </div>
       <table className={styles.valuesTable} aria-label="Fahrweisen nach Frontpunkt">
         <thead>
           <tr>
@@ -169,7 +159,10 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
           </tr>
           <tr>
             <td colSpan={4} className={simStyles.arteFakt}>
-              {data.endpoints.solverArtefactNote}
+              <>
+              Ein reiner Spitzen-Löser liefert bei ×2 einen „Erlös“ von −3,08 Mio.{"\u00A0"}€ — Löser-Artefakt, kein
+              Netz-Endpunkt.
+            </>
             </td>
           </tr>
           <tr
@@ -514,7 +507,7 @@ function ZoomChart({
           <TwoLineLabel
             x={nx + 12}
             y1={ny - 4}
-            line1={"Netzdienlich  ·  lex."}
+            line1="Netzdienlich"
             line2={valN}
             anchor="start"
             fill={colors.ink}
@@ -532,7 +525,7 @@ function ZoomChart({
           <TwoLineLabel
             x={mx - 12}
             y1={my - 8}
-            line1={"Max. Erlös  ·  lex."}
+            line1="Max. Erlös"
             line2={valM}
             anchor="end"
             fill={colors.ink}

@@ -148,7 +148,7 @@ const payload = {
       peakGw: fnavB["2"].peak_gw,
     },
     solverArtefactNote:
-      "Ohne Lexikographie liefert min-Peak-Löser ×2 einen „Erlös“ von −3,08 Mio. € — Löser-Artefakt, kein Netz-Endpunkt.",
+      "Ein reiner Spitzen-Löser liefert bei ×2 einen „Erlös“ von −3,08 Mio. € — Löser-Artefakt, kein Netz-Endpunkt.",
   },
   front,
   defaultIndex,
