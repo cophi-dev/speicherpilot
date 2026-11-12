@@ -189,8 +189,8 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
       <p className={styles.figcaption}>{MONAT_V1_GRAPH_CAPTION}</p>
       <p className={simStyles.kipppunktHint}>
         Kipppunkt neue Monatsspitze unter Markt-Fahrplan ≈×3,9 (Preisnehmer) —{" "}
-        <a href="#monat-v1-a1" className="v4-text-link">
-          siehe Graph 1 oben
+        <a href="/monat/2026-10#graph-1" className="v4-text-link">
+          siehe Graph 1 auf der Monatsseite
         </a>
         . Analytisch: Restlast 21.10. 14:00 plus Voll-Laden ergibt 64{"\u00A0"}428 MW (
         <a href="/methodik#simulator-kipppunkt" className="v4-text-link">

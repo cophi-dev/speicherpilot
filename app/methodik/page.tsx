@@ -8,7 +8,7 @@ import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 export const metadata = {
   title: "Methodik",
   description:
-    "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells. Nachvollziehbar für Live, Standort und Szenarien.",
+    "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells, einschließlich Simulator (ε-70, Kipppunkt, Rechtsrahmen)."
 };
 
 export default async function MethodikPage() {

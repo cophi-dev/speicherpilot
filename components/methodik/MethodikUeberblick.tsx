@@ -200,7 +200,7 @@ function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFle
     },
     {
       assumption: tx("Netz-Demo", "Grid demo"),
-      value: tx("/ort Netzsicht", "/ort grid view"),
+      value: tx("Archiv (Ort-Netzsicht)", "Archive (Ort grid view)"),
       unit: "—",
       why: tx(
         "Zwei SimBench-Archetypen: 1-MV-rural (Land, optional Zukunftsszenario mit mehr PV) und 1-MV-urban (Stadt). Typtag = Tag mit maximaler Einspeisung bzw. Restbezug. Kein reales Netz.",
@@ -312,8 +312,8 @@ function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFle
     {
       name: "SimBench",
       use: tx(
-        "Archetypen 1-MV-rural / 1-MV-urban für /ort?sicht=netz.",
-        "Archetypes 1-MV-rural / 1-MV-urban for /ort?sicht=netz."
+        "Archetypen 1-MV-rural / 1-MV-urban (Ort-Netzsicht, archiviert).",
+        "Archetypes 1-MV-rural / 1-MV-urban (Ort grid view, archived)."
       ),
       licence: "ODbL 1.0 + DbCL 1.0",
       credit: tx(

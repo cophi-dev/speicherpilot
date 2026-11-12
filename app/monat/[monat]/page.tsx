@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ monat: st
     return {
       title: `Monat · ${label} · Speicher und Restlastspitze`,
       description:
-        "Fahrweisen-Simulator Oktober: Monatsfront Erlös vs. Spitzensenkung (×2, Modellschätzung), Tageshorizont Regel T, Kipppunkt — national, kein Netzengpass, Vollvoraussicht.",
+        "Höchste Restlast je Flottenstufe und Fahrweise, Stunden und Überschuss-Pool — national, Modellrechnung.",
     };
   }
   return {

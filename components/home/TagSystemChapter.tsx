@@ -99,8 +99,8 @@ export function TagSystemChapter({
         </details>
       ) : null}
       <p className="v4-chapter-foot v4-content">
-        <Link href="/ort?sicht=projekt" className="v4-chapter-next-link">
-          03 · Ort — Speicher am Anschluss →
+        <Link href="/simulator" className="v4-chapter-next-link">
+          Im Simulator selbst ausprobieren →
         </Link>
       </p>
     </section>

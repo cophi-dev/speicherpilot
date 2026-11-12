@@ -14,9 +14,14 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       { source: "/news", destination: "/beitraege#extern-gelesen", permanent: true },
-      { source: "/site", destination: "/ort?sicht=projekt", permanent: true },
-      { source: "/netz", destination: "/ort?sicht=netz#testnetz", permanent: true },
-      { source: "/szenarien", destination: "/ort?sicht=netz#grenze", permanent: true },
+      { source: "/ort", destination: "/simulator", permanent: true },
+      { source: "/ort/:path*", destination: "/simulator", permanent: true },
+      { source: "/vision", destination: "/simulator", permanent: true },
+      { source: "/vision/:path*", destination: "/simulator", permanent: true },
+      { source: "/site", destination: "/simulator", permanent: true },
+      { source: "/site/:path*", destination: "/simulator", permanent: true },
+      { source: "/netz", destination: "/simulator", permanent: true },
+      { source: "/szenarien", destination: "/simulator", permanent: true },
     ];
   },
   async headers() {

@@ -186,15 +186,15 @@ describe("navigation links e2e", () => {
 
   (runBrowser ? it : it.skip)("marks current page in desktop and mobile nav", async () => {
     await withPage({ width: 1280, height: 900 }, async (page) => {
-      await gotoOk(page, "/vision");
-      const desktopVision = page.locator("#site-desktop-nav").getByRole("link", { name: "Vision", exact: true });
-      expect(await desktopVision.getAttribute("aria-current")).toBe("page");
+      await gotoOk(page, "/simulator");
+      const desktopSim = page.locator("#site-desktop-nav").getByRole("link", { name: "Simulator", exact: true });
+      expect(await desktopSim.getAttribute("aria-current")).toBe("page");
     });
     await withPage({ width: 390, height: 844 }, async (page) => {
-      await gotoOk(page, "/vision");
+      await gotoOk(page, "/simulator");
       await openMobileMenu(page);
-      const mobileVision = page.locator("#site-mobile-nav").getByRole("link", { name: "Vision", exact: true });
-      expect(await mobileVision.getAttribute("aria-current")).toBe("page");
+      const mobileSim = page.locator("#site-mobile-nav").getByRole("link", { name: "Simulator", exact: true });
+      expect(await mobileSim.getAttribute("aria-current")).toBe("page");
     });
   });
 });

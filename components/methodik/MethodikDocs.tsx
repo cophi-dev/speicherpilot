@@ -137,8 +137,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               <p>{tx("Die Stromspeicher-Strategie setzt kein Mengenziel für Speicher. ×1 ist der registrierte Bestand, keine Zielstufe.", "The electricity-storage strategy sets no quantity target for storage. ×1 is the registered stock, not a target step.")}</p>
               <p>
                 {tx(
-                  `Auf /monat/2026-10 liegt ein vorberechneter Monatslauf (Oktober 2026): Modell-Referenzflotte ${modellFlotte} Nennenergie, Größen ×1–×10, drei Fahrweisen (Differenz aufnehmen, Restlastspitze mit Vollvoraussicht, Day-Ahead ohne Preisrückwirkung). Speicher 10–90 %, 85 % Wirkungsgrad je Richtung, kein Tages-Reset, Monatsanfang und -ende jeweils 50 % Nennenergie. Das ist eine Modellrechnung auf beobachteter Last und Wind/Solar — nicht der Tagesrechner mit 17-Uhr-Grenze oben, nicht der Anschlussnetz-Rechner unter /ort. Keine amtliche Ist-Flotte, keine Netzdienlichkeit, keine Abregelungsquote.`,
-                  `On /monat/2026-10 there is a precomputed month run (October 2026): model reference fleet ${modellFlotte} nameplate, sizes ×1–×10, three strategies (capture difference, residual peak with perfect foresight, day-ahead without price impact). Storage 10–90%, 85% efficiency each way, no daily reset, month start and end each at 50% of nameplate. It is a model calculation on observed load and wind/solar — not the day calculator with the 17:00 limit above, not the grid calculator under /ort. Not the official stock, not grid support, not a curtailment figure.`,
+                  `Auf /monat/2026-10 liegt ein vorberechneter Monatslauf (Oktober 2026): Modell-Referenzflotte ${modellFlotte} Nennenergie, Größen ×1–×10, drei Fahrweisen (Differenz aufnehmen, Restlastspitze mit Vollvoraussicht, Day-Ahead ohne Preisrückwirkung). Speicher 10–90 %, 85 % Wirkungsgrad je Richtung, kein Tages-Reset, Monatsanfang und -ende jeweils 50 % Nennenergie. Das ist eine Modellrechnung auf beobachteter Last und Wind/Solar — nicht der Tagesrechner mit 17-Uhr-Grenze oben, nicht der frühere Anschlussnetz-Rechner (Ort, archiviert). Keine amtliche Ist-Flotte, keine Netzdienlichkeit, keine Abregelungsquote.`,
+                  `On /monat/2026-10 there is a precomputed month run (October 2026): model reference fleet ${modellFlotte} nameplate, sizes ×1–×10, three strategies (capture difference, residual peak with perfect foresight, day-ahead without price impact). Storage 10–90%, 85% efficiency each way, no daily reset, month start and end each at 50% of nameplate. It is a model calculation on observed load and wind/solar — not the day calculator with the 17:00 limit above, not the former grid calculator (Ort, archived). Not the official stock, not grid support, not a curtailment figure.`,
                 )}
               </p>
             </MethodikSection>
@@ -435,6 +435,12 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </LazyMethodikBody>
             </MethodikSection>
             <MethodikSection id="ort-archetypen" title={methodikSectionLabel("ort-archetypen", language)}>
+              <p>
+                {tx(
+                  "Archiv: Die Ort-Seiten sind durch den Simulator ersetzt. Die folgende Dokumentation bleibt als Referenz, ohne Live-Link.",
+                  "Archive: The Ort pages have been replaced by the Simulator. The documentation below remains as a reference, without a live link.",
+                )}
+              </p>
               <p>
                 {tx(
                   "Zwei SimBench-Mittelspannungsnetze: 1-MV-rural--2-no_sw (Land, Zukunftsszenario mit mehr Photovoltaik) und 1-MV-urban--0-no_sw (Stadt). Typtag Land = Tag mit maximaler Einspeisung, Stadt = maximaler Restbezug. Engpass = höchste Auslastung am Typtag im Normalbetrieb und im kritischen (n-1)-Ausfall. Speicherknoten = MS-Knoten mit größter Impedanz zum Umspannwerk auf dem Pfad zum Engpass. Netzlast 2016, Day-ahead-Preise 2025/26 — kein gemeinsames Wetter.",

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
-import { TagOrtTeaser } from "@/components/home/OrtTeasers";
+import { TagSimulatorTeaser } from "@/components/home/SimulatorTeasers";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
 import { TagChapter } from "@/components/home/TagChapter";
@@ -237,6 +237,7 @@ export function TagPageV4({
   fleetDayNoWindSolarSurplus,
   preisTag = [],
   marktInsights = [],
+  simulatorCostPct,
   children,
 }: {
   dayKey: string;
@@ -255,6 +256,7 @@ export function TagPageV4({
   fleetDayNoWindSolarSurplus?: boolean;
   preisTag?: PreisTick[];
   marktInsights?: MarktInsight[];
+  simulatorCostPct: string;
   children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
@@ -305,7 +307,7 @@ export function TagPageV4({
       />
       {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
       {children}
-      <TagOrtTeaser dayLabel={formatBerlinDayLabel(dayKey)} />
+      <TagSimulatorTeaser costPctText={simulatorCostPct} />
     </div>
   );
 }

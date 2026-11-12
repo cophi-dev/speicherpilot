@@ -33,7 +33,7 @@ for (const width of WIDTHS) {
       colorScheme: dark ? "dark" : "light",
     });
     const page = await ctx.newPage();
-    await page.goto(`${BASE}/monat/2026-10`, { waitUntil: "networkidle", timeout: 60_000 });
+    await page.goto(`${BASE}/simulator`, { waitUntil: "networkidle", timeout: 60_000 });
     if (dark) {
       await page.evaluate(() => document.documentElement.classList.add("dark"));
       await page.waitForTimeout(200);
