@@ -2,7 +2,7 @@
   <rect width="1600" height="900" fill="#F4F3EE"/>
   <line x1="120" y1="780" x2="1480" y2="780" stroke="#2A323B" stroke-width="1"/>
   <line x1="120" y1="780" x2="120" y2="140" stroke="#2A323B" stroke-width="1"/>
-  <rect x="120" y="520" width="1360" height="260" fill="#B3361A" fill-opacity="0.12"/>
+  <rect x="120" y="520" width="1360" height="260" fill="#B4532A" fill-opacity="0.12"/>
   <polyline fill="none" stroke="#14181C" stroke-width="3" points="120,620 360,580 520,420 680,380 840,360 1000,400 1160,520 1320,680 1480,740"/>
   <text x="140" y="110" fill="#5C5548" font-family="'Space Grotesk', system-ui, sans-serif" font-size="28" letter-spacing="0.08em">DAY-AHEAD-PREIS</text>
   <text x="140" y="200" fill="#14181C" font-family="'Space Grotesk', system-ui, sans-serif" font-size="72" font-weight="400" letter-spacing="-0.02em">235 €/MWh</text>
