@@ -2,7 +2,7 @@
 
 import { StartGesternTeaser } from "@/components/home/StartGesternTeaser";
 import { StartKopf } from "@/components/home/StartKopf";
-import { StartOrtTeaser } from "@/components/home/OrtTeasers";
+import { StartSimulatorTeaser } from "@/components/home/SimulatorTeasers";
 import { SystemChapter } from "@/components/home/SystemChapter";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewsBundle } from "@/lib/germanyView";
@@ -24,6 +24,7 @@ export function StartPageV4({
   kopfDay,
   preisTag,
   marktInsights = [],
+  simulatorCostPct,
 }: {
   overviews: OverviewsBundle | null;
   dispatch: LiveDispatchInput;
@@ -35,6 +36,7 @@ export function StartPageV4({
   kopfDay: ResidualDay | null;
   preisTag: PreisTick[];
   marktInsights?: MarktInsight[];
+  simulatorCostPct: string;
 }) {
   const tagRecord = auffaelligkeitRecords.find((r) => r.dateKey === kopfDayKey);
   const systemModel = overviews?.byBlick["30tage"];
@@ -70,7 +72,7 @@ export function StartPageV4({
 
       {marktInsights && marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
 
-      <StartOrtTeaser />
+      <StartSimulatorTeaser costPctText={simulatorCostPct} />
     </div>
   );
 }

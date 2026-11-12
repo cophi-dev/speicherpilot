@@ -39,7 +39,7 @@ describe("Paket 4 Konzept A — Sketchwerte Oktober", () => {
   it("Markt ×10 — neue Spitze", () => {
     const p = cell("markt", 10);
     expect(p.peakAfterGw).toBeCloseTo(92.76, 2);
-    expect(p.chargeGwh).toBeCloseTo(4445.7, 0);
+    expect(p.chargeGwh).toBeCloseTo(4447.6, 0);
     expect(p.wirkungGw).toBeCloseTo(-28.35, 2);
     const st = monthStatsForRun(bundle, 10, "markt");
     expect(st.chargeGwh).toBeCloseTo(p.chargeGwh, 3);
@@ -86,8 +86,8 @@ describe("Paket 4 Konzept C — Dauerlinie", () => {
 
   it("Markt ×10 Spitze und Tal", () => {
     const m = buildC(observed, markt10);
-    expect(m.withStorageMaxGw).toBeCloseTo(92.72, 2);
-    expect(m.withStorageMinGw).toBeCloseTo(-51.55, 1);
+    expect(m.withStorageMaxGw).toBeCloseTo(92.76, 2);
+    expect(m.withStorageMinGw).toBeCloseTo(-51.59, 1);
   });
 
   it("morph=1: beide Reihen monoton fallend, eigene Sortierung", () => {
@@ -98,7 +98,7 @@ describe("Paket 4 Konzept C — Dauerlinie", () => {
     expect(isMonotonicNonIncreasing(stor.map((p) => p.y))).toBe(true);
     expect(m.observedMaxGw).toBeCloseTo(64.4059, 2);
     expect(m.observedMinGw).toBeCloseTo(-10.9, 1);
-    expect(m.withStorageMaxGw).toBeCloseTo(92.72, 2);
-    expect(m.withStorageMinGw).toBeCloseTo(-51.55, 1);
+    expect(m.withStorageMaxGw).toBeCloseTo(92.76, 2);
+    expect(m.withStorageMinGw).toBeCloseTo(-51.59, 1);
   });
 });

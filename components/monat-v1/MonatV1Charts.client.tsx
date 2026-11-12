@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "@/components/monat-v1/monat-v1.module.css";
@@ -556,7 +557,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
 export function MonatV1Charts({ model }: { model: MonatV1Model }) {
   return (
     <>
-      <section className={styles.section} aria-labelledby="monat-v1-a1">
+      <section className={styles.section} id="graph-1" aria-labelledby="monat-v1-a1">
         <h1 id="monat-v1-a1" className={styles.h1}>
           Dieselbe Flotte senkt
           <br />
@@ -579,6 +580,11 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
           </div>
         </div>
         <HeroChart model={model} />
+        <p className={styles.simulatorTry}>
+          <Link href="/simulator" className="v4-text-link">
+            im Simulator selbst ausprobieren
+          </Link>
+        </p>
       </section>
       <section className={styles.section} aria-labelledby="monat-v1-a3">
         <h2 id="monat-v1-a3" className={styles.h2}>

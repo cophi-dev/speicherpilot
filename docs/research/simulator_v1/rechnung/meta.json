@@ -1,0 +1,18 @@
+{
+  "input_csv": "/workspace/speicherpilot/forschung/simulator_rechnung_v1/beobachtungen-viertelstunden-202610-berlin.csv",
+  "input_sha256": "f9d795a924cb80054a5ede5ecfa7d41f366869ec87d4d0559c7cf5769fbe60f4",
+  "source_original": "/workspace/sp-ro/artifacts/october-storage-counterfactual-20261107/inputs/beobachtungen-viertelstunden-202610-berlin.csv",
+  "fleet_power_mw": 4644.09022,
+  "fleet_energy_mwh": 8152.4588,
+  "fleet_source": "battery-charts Großspeicher, Monatswert 31.10.2026, Abruf 10.11.2026 (nachrechnung v3 / fleetBasis.ts)",
+  "convention": "a: x1=0 zusätzlich, xk=(k-1)*Basis",
+  "rte": 0.85,
+  "eta": 0.9219544457292888,
+  "soc": "10–90 %, Start=Ende=50 %",
+  "solver": "scipy.optimize.linprog method=highs (HiGHS LP)",
+  "reference_mip": "MonthStorageMip in artifacts/october-storage-counterfactual-20261107/mip_month.py",
+  "timezone": "Europe/Berlin",
+  "fnav": "statisches Entnahmeverbot 16:00–21:00 Europe/Berlin, Einspeisung frei",
+  "generated_at": "2026-11-12T10:42:25.947200+01:00",
+  "euro_policy": "Euro-Beträge nur für ×2 (eine Zusatzflotte heutiger Größe), beschriftet Modellschätzung"
+}

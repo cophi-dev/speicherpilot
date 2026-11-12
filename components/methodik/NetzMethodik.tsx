@@ -39,8 +39,8 @@ export function NetzMethodik({ language, bodyOnly = false }: { language: AppLang
     <>
       <p>
         {tx(
-          "Die interaktive Netzsicht liegt unter /ort?sicht=netz: zwei SimBench-Archetypen (Land mit optional mehr Photovoltaik, Stadt) mit Typtag, Engpass, X/Y und Fahrweisen. Der folgende Abschnitt dokumentiert zusätzlich das ältere statische Prüfnetz (SimBench halbstädtisch), das für Spannungs- und Lastflussreferenzen noch ausgewertet wird.",
-          "The interactive grid view is at /ort?sicht=netz: two SimBench archetypes (rural with optional extra PV, urban) with typical day, bottleneck, X/Y and dispatch modes. The section below additionally documents the older static test grid (SimBench semi-urban) still used for voltage and load-flow references."
+          "Die frühere interaktive Netzsicht (Ort) ist archiviert. Zwei SimBench-Archetypen (Land mit optional mehr Photovoltaik, Stadt) mit Typtag, Engpass, X/Y und Fahrweisen sind im Repo dokumentiert. Der folgende Abschnitt beschreibt zusätzlich das ältere statische Prüfnetz (SimBench halbstädtisch), das für Spannungs- und Lastflussreferenzen noch ausgewertet wird.",
+          "The former interactive grid view (Ort) is archived. Two SimBench archetypes (rural with optional extra PV, urban) with typical day, bottleneck, X/Y and dispatch modes remain documented in the repo. The section below additionally documents the older static test grid (SimBench semi-urban) still used for voltage and load-flow references."
         )}
       </p>
       <h3>{tx("Netz und Studienfälle (Referenz)", "Grid and study cases (reference)")}</h3>

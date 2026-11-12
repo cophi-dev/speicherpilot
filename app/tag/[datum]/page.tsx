@@ -17,6 +17,7 @@ import {
 import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
 import { NationalFleetTagSlot, fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
+import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -182,6 +183,7 @@ export default async function TagDetailPage({
         fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplusFlag}
         preisTag={view.preisTag}
         marktInsights={marktInsights}
+        simulatorCostPct={loadEps70Teaser().costPctText}
       >
         {fleetSlot}
       </TagPageV4>

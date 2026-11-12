@@ -190,3 +190,10 @@
   border-top: 1px solid var(--mv-linie);
   padding-top: 1rem;
 }
+
+.simulatorTry {
+  margin-top: 1rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}

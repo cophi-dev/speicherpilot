@@ -1,0 +1,353 @@
+Lade Daten …
+  2980 Intervalle, sha256=f9d795a924cb80054a5ede5ecfa7d41f366869ec87d4d0559c7cf5769fbe60f4
+  Restlastspitze 64405.90 MW um 2026-10-29T18:15:00+01:00
+
+===== ×1 Konsistenz (0 zusätzlich) =====
+  price: Spitze 64405.9000 MW, Erlös 0.0000, Senkung 0.000000
+  peak: Spitze 64405.9000 MW, Erlös 0.0000, Senkung 0.000000
+
+===== ×2  P=4644.0902 MW  E=8152.4588 MWh =====
+  lex price …
+    Markt lex: Erlös 34.0899 Mio €, Spitze 64.0400 GW, Senkung 0.3659 GW, t=0.4s
+  lex peak …
+    Netz lex: Erlös 33.7863 Mio €, Spitze 60.8156 GW, Senkung 3.5903 GW, t=0.1s
+  λ_mid = 94.1689 €/MW  (94168.9 €/kW bzw. 94168909 €/GW)
+  λ-grid [1/15] λ=0.297788 …
+    Erlös 34.0899 Mio, Senkung 0.3658 GW, t=0.1s
+  λ-grid [2/15] λ=0.67772 …
+    Erlös 34.0899 Mio, Senkung 0.3658 GW, t=0.1s
+  λ-grid [3/15] λ=1.54239 …
+    Erlös 34.0899 Mio, Senkung 0.3658 GW, t=0.0s
+  λ-grid [4/15] λ=3.51023 …
+    Erlös 34.0899 Mio, Senkung 0.3658 GW, t=0.0s
+  λ-grid [5/15] λ=7.98875 …
+    Erlös 34.0890 Mio, Senkung 0.5499 GW, t=0.1s
+  λ-grid [6/15] λ=18.1812 …
+    Erlös 34.0890 Mio, Senkung 0.5499 GW, t=0.0s
+  λ-grid [7/15] λ=41.3775 …
+    Erlös 34.0516 Mio, Senkung 1.5300 GW, t=0.1s
+  λ-grid [8/15] λ=94.1689 …
+    Erlös 33.9736 Mio, Senkung 2.4536 GW, t=0.0s
+  λ-grid [9/15] λ=214.314 …
+    Erlös 33.7998 Mio, Senkung 3.5326 GW, t=0.0s
+  λ-grid [10/15] λ=487.745 …
+    Erlös 33.7863 Mio, Senkung 3.5904 GW, t=0.0s
+  λ-grid [11/15] λ=1110.03 …
+    Erlös 33.7863 Mio, Senkung 3.5904 GW, t=0.0s
+  λ-grid [12/15] λ=2526.27 …
+    Erlös 33.7863 Mio, Senkung 3.5904 GW, t=0.0s
+  λ-grid [13/15] λ=5749.39 …
+    Erlös 33.7863 Mio, Senkung 3.5904 GW, t=0.0s
+  λ-grid [14/15] λ=13084.7 …
+    Erlös 33.7863 Mio, Senkung 3.5904 GW, t=0.0s
+  λ-grid [15/15] λ=29778.8 …
+    Erlös 33.7863 Mio, Senkung 3.5904 GW, t=0.0s
+  Dichotomie …
+    λ=5.14947: Erlös 34.0895, Senkung 0.4524
+    λ=5.93673: Erlös 34.0890, Senkung 0.5499
+    λ=32.9467: Erlös 34.0888, Senkung 0.5562
+    λ=55.7209: Erlös 34.0516, Senkung 1.5300
+    λ=84.4213: Erlös 33.9908, Senkung 2.2668
+    λ=94.1689: Erlös 33.9736, Senkung 2.4536
+    λ=120.175: Erlös 33.9561, Senkung 2.6044
+    λ=127.811: Erlös 33.9235, Senkung 2.8701
+    λ=151.383: Erlös 33.9174, Senkung 2.9182
+    λ=164.787: Erlös 33.9031, Senkung 3.0050
+    λ=199.618: Erlös 33.8513, Senkung 3.2906
+    λ=212.719: Erlös 33.8482, Senkung 3.3052
+    λ=217.069: Erlös 33.7998, Senkung 3.5326
+  ε-Schnitt 70 % Senkung (Peak-UB 61.8927 GW) …
+    Erlös 33.9667 (99.6 % vom Markt), Senkung 2.5132 GW
+  ε-50 %: Erlös 34.0297 (99.8 %), Senkung 1.7951
+  ε-90 %: Erlös 33.8621 (99.3 %), Senkung 3.2312
+  fNAV (Entnahmeverbot 16–21, max. Erlös, lex min Peak) …
+    fNAV: Erlös 33.9962 (99.7 % Markt), Senkung 0.3659 GW, Spitze 64.0400
+
+===== ×5  P=18576.3609 MW  E=32609.8352 MWh =====
+  lex price …
+    Markt lex: Erlös 136.3596 Mio €, Spitze 69.5364 GW, Senkung -5.1305 GW, t=0.6s
+  lex peak …
+    Netz lex: Erlös 132.1833 Mio €, Spitze 54.9948 GW, Senkung 9.4111 GW, t=0.1s
+  λ_mid = 287.2014 €/MW  (287201.4 €/kW bzw. 287201424 €/GW)
+  λ-grid [1/15] λ=0.908211 …
+    Erlös 136.3596 Mio, Senkung -5.1310 GW, t=0.1s
+  λ-grid [2/15] λ=2.06695 …
+    Erlös 136.3590 Mio, Senkung -4.6608 GW, t=0.0s
+  λ-grid [3/15] λ=4.70405 …
+    Erlös 136.3590 Mio, Senkung -4.6608 GW, t=0.0s
+  λ-grid [4/15] λ=10.7057 …
+    Erlös 136.3451 Mio, Senkung -3.1027 GW, t=0.1s
+  λ-grid [5/15] λ=24.3645 …
+    Erlös 136.2855 Mio, Senkung -0.2610 GW, t=0.1s
+  λ-grid [6/15] λ=55.4499 …
+    Erlös 136.2381 Mio, Senkung 1.1750 GW, t=0.1s
+  λ-grid [7/15] λ=126.195 …
+    Erlös 136.0561 Mio, Senkung 3.3945 GW, t=0.1s
+  λ-grid [8/15] λ=287.201 …
+    Erlös 135.8579 Mio, Senkung 4.4429 GW, t=0.1s
+  λ-grid [9/15] λ=653.626 …
+    Erlös 135.0076 Mio, Senkung 6.4406 GW, t=0.1s
+  λ-grid [10/15] λ=1487.55 …
+    Erlös 132.1832 Mio, Senkung 9.4111 GW, t=0.1s
+  λ-grid [11/15] λ=3385.44 …
+    Erlös 132.1832 Mio, Senkung 9.4111 GW, t=0.1s
+  λ-grid [12/15] λ=7704.74 …
+    Erlös 132.1832 Mio, Senkung 9.4111 GW, t=0.1s
+  λ-grid [13/15] λ=17534.8 …
+    Erlös 132.1832 Mio, Senkung 9.4111 GW, t=0.1s
+  λ-grid [14/15] λ=39906.5 …
+    Erlös 132.1832 Mio, Senkung 9.4111 GW, t=0.1s
+  λ-grid [15/15] λ=90821.1 …
+    Erlös 132.1832 Mio, Senkung 9.4111 GW, t=0.1s
+  Dichotomie …
+    λ=1.43341: Erlös 136.3594, Senkung -4.9153
+    λ=4.77986: Erlös 136.3590, Senkung -4.6608
+    λ=6.91396: Erlös 136.3581, Senkung -4.4965
+    λ=9.7582: Erlös 136.3539, Senkung -3.9242
+    λ=13.8878: Erlös 136.3451, Senkung -3.1027
+    λ=18.0488: Erlös 136.3400, Senkung -2.8093
+    λ=19.2669: Erlös 136.3337, Senkung -2.4699
+    λ=20.2309: Erlös 136.3311, Senkung -2.3368
+    λ=21.7975: Erlös 136.3089, Senkung -1.2445
+    λ=23.7494: Erlös 136.2863, Senkung -0.2925
+    λ=26.208: Erlös 136.2855, Senkung -0.2610
+    λ=28.4529: Erlös 136.2723, Senkung 0.2069
+    λ=32.9926: Erlös 136.2677, Senkung 0.3658
+    λ=34.3503: Erlös 136.2647, Senkung 0.4524
+    λ=35.6329: Erlös 136.2611, Senkung 0.5562
+    λ=36.5089: Erlös 136.2506, Senkung 0.8438
+    λ=37.7735: Erlös 136.2466, Senkung 0.9530
+    λ=52.4101: Erlös 136.2381, Senkung 1.1750
+    λ=116.359: Erlös 136.0679, Senkung 3.2937
+    λ=287.201: Erlös 135.8579, Senkung 4.4429
+  ε-Schnitt 70 % Senkung (Peak-UB 57.8182 GW) …
+    Erlös 134.9096 (98.9 % vom Markt), Senkung 6.5877 GW
+  ε-50 %: Erlös 135.7672 (99.6 %), Senkung 4.7055
+  ε-90 %: Erlös 133.3597 (97.8 %), Senkung 8.4699
+  fNAV (Entnahmeverbot 16–21, max. Erlös, lex min Peak) …
+    fNAV: Erlös 135.9846 (99.7 % Markt), Senkung -5.1305 GW, Spitze 69.5364
+
+===== ×10  P=41796.8120 MW  E=73372.1292 MWh =====
+  lex price …
+    Markt lex: Erlös 306.8092 Mio €, Spitze 92.7569 GW, Senkung -28.3510 GW, t=0.7s
+  lex peak …
+    Netz lex: Erlös 280.3814 Mio €, Spitze 50.4265 GW, Senkung 13.9794 GW, t=0.2s
+  λ_mid = 624.3217 €/MW  (624321.7 €/kW bzw. 624321749 €/GW)
+  λ-grid [1/15] λ=1.97428 …
+    Erlös 306.8085 Mio, Senkung -27.8812 GW, t=0.1s
+  λ-grid [2/15] λ=4.49315 …
+    Erlös 306.8085 Mio, Senkung -27.8812 GW, t=0.1s
+  λ-grid [3/15] λ=10.2257 …
+    Erlös 306.8034 Mio, Senkung -27.1446 GW, t=0.1s
+  λ-grid [4/15] λ=23.2722 …
+    Erlös 306.7377 Mio, Senkung -23.5129 GW, t=0.1s
+  λ-grid [5/15] λ=52.9639 …
+    Erlös 306.5588 Mio, Senkung -18.1474 GW, t=0.1s
+  λ-grid [6/15] λ=120.538 …
+    Erlös 305.8713 Mio, Senkung -10.1050 GW, t=0.1s
+  λ-grid [7/15] λ=274.325 …
+    Erlös 303.9366 Mio, Senkung 0.7821 GW, t=0.1s
+  λ-grid [8/15] λ=624.322 …
+    Erlös 302.2473 Mio, Senkung 5.0503 GW, t=0.1s
+  λ-grid [9/15] λ=1420.86 …
+    Erlös 299.3084 Mio, Senkung 8.2207 GW, t=0.1s
+  λ-grid [10/15] λ=3233.66 …
+    Erlös 292.7453 Mio, Senkung 11.1280 GW, t=0.1s
+  λ-grid [11/15] λ=7359.31 …
+    Erlös 280.3811 Mio, Senkung 13.9795 GW, t=0.1s
+  λ-grid [12/15] λ=16748.7 …
+    Erlös 280.3811 Mio, Senkung 13.9795 GW, t=0.1s
+  λ-grid [13/15] λ=38117.4 …
+    Erlös 280.3811 Mio, Senkung 13.9795 GW, t=0.1s
+  λ-grid [14/15] λ=86749.2 …
+    Erlös 280.3811 Mio, Senkung 13.9795 GW, t=0.1s
+  λ-grid [15/15] λ=197428 …
+    Erlös 280.3811 Mio, Senkung 13.9795 GW, t=0.1s
+  Dichotomie …
+    λ=1.43341: Erlös 306.8089, Senkung -28.1357
+    λ=2.38547: Erlös 306.8085, Senkung -27.8812
+    λ=7.17108: Erlös 306.8076, Senkung -27.7169
+    λ=9.34807: Erlös 306.8034, Senkung -27.1446
+    λ=16.265: Erlös 306.7946, Senkung -26.3231
+    λ=18.0488: Erlös 306.7895, Senkung -26.0297
+    λ=18.9426: Erlös 306.7832, Senkung -25.6903
+    λ=21.1506: Erlös 306.7594, Senkung -24.4649
+    λ=23.2914: Erlös 306.7377, Senkung -23.5129
+    λ=23.7703: Erlös 306.7261, Senkung -23.0135
+    λ=25.1143: Erlös 306.7148, Senkung -22.5485
+    λ=25.5857: Erlös 306.7104, Senkung -22.3766
+    λ=26.2976: Erlös 306.7076, Senkung -22.2674
+    λ=26.8241: Erlös 306.6926, Senkung -21.7067
+    λ=27.8639: Erlös 306.6849, Senkung -21.4223
+    λ=29.4495: Erlös 306.6808, Senkung -21.2804
+    λ=36.2713: Erlös 306.6312, Senkung -19.7100
+    λ=56.4541: Erlös 306.5478, Senkung -17.9461
+    λ=136.578: Erlös 305.7078, Senkung -8.8420
+    λ=624.322: Erlös 302.2473, Senkung 5.0503
+  ε-Schnitt 70 % Senkung (Peak-UB 54.6203 GW) …
+    Erlös 296.4063 (96.6 % vom Markt), Senkung 9.7856 GW
+  ε-50 %: Erlös 300.7594 (98.0 %), Senkung 6.9897
+  ε-90 %: Erlös 287.2712 (93.6 %), Senkung 12.5814
+  fNAV (Entnahmeverbot 16–21, max. Erlös, lex min Peak) …
+    fNAV: Erlös 305.9654 (99.7 % Markt), Senkung -28.3510 GW, Spitze 92.7569
+
+===== Tagesklassen Oktober, ×2, Tageshorizont =====
+  2026-10-01: Markt +0.704 GW / 1.064 Mio, Netz +3.350 GW, Spread 167.7
+  2026-10-02: Markt +1.101 GW / 1.289 Mio, Netz +3.613 GW, Spread 193.9
+  2026-10-03: Markt +1.523 GW / 0.980 Mio, Netz +3.725 GW, Spread 190.3
+  2026-10-04: Markt +0.000 GW / 1.044 Mio, Netz +3.551 GW, Spread 202.6
+  2026-10-05: Markt +0.831 GW / 1.814 Mio, Netz +4.644 GW, Spread 256.4
+  2026-10-06: Markt +1.772 GW / 1.757 Mio, Netz +3.864 GW, Spread 281.7
+  2026-10-07: Markt +0.709 GW / 1.157 Mio, Netz +4.644 GW, Spread 157.5
+  2026-10-08: Markt +0.048 GW / 0.696 Mio, Netz +3.985 GW, Spread 108.8
+  2026-10-09: Markt +0.563 GW / 1.219 Mio, Netz +3.940 GW, Spread 166.5
+  2026-10-10: Markt +0.658 GW / 0.907 Mio, Netz +3.786 GW, Spread 174.0
+  2026-10-11: Markt +0.000 GW / 1.180 Mio, Netz +4.321 GW, Spread 227.8
+  2026-10-12: Markt +1.561 GW / 1.135 Mio, Netz +4.403 GW, Spread 155.4
+  2026-10-13: Markt +0.403 GW / 0.776 Mio, Netz +4.510 GW, Spread 137.6
+  2026-10-14: Markt +0.735 GW / 1.483 Mio, Netz +3.872 GW, Spread 215.9
+  2026-10-15: Markt +0.468 GW / 1.218 Mio, Netz +4.463 GW, Spread 180.6
+  2026-10-16: Markt +1.531 GW / 0.830 Mio, Netz +4.644 GW, Spread 144.0
+  2026-10-17: Markt +0.464 GW / 0.678 Mio, Netz +4.165 GW, Spread 127.1
+  2026-10-18: Markt +0.000 GW / 0.385 Mio, Netz +3.429 GW, Spread 89.5
+  2026-10-19: Markt +0.969 GW / 0.966 Mio, Netz +4.382 GW, Spread 138.6
+  2026-10-20: Markt +0.367 GW / 0.734 Mio, Netz +3.230 GW, Spread 118.6
+  2026-10-21: Markt -1.309 GW / 0.648 Mio, Netz +2.613 GW, Spread 126.8
+  2026-10-22: Markt +0.879 GW / 1.254 Mio, Netz +3.918 GW, Spread 217.1
+  2026-10-23: Markt +0.000 GW / 0.586 Mio, Netz +3.974 GW, Spread 173.1
+  2026-10-24: Markt +1.124 GW / 0.847 Mio, Netz +4.444 GW, Spread 111.3
+  2026-10-25: Markt -0.629 GW / 0.406 Mio, Netz +2.591 GW, Spread 71.6
+  2026-10-26: Markt +0.000 GW / 1.541 Mio, Netz +4.475 GW, Spread 234.8
+  2026-10-27: Markt +0.000 GW / 1.417 Mio, Netz +3.808 GW, Spread 234.0
+  2026-10-28: Markt +0.000 GW / 1.039 Mio, Netz +4.018 GW, Spread 177.1
+  2026-10-29: Markt +0.366 GW / 2.113 Mio, Netz +3.590 GW, Spread 344.6
+  2026-10-30: Markt +0.000 GW / 0.887 Mio, Netz +3.149 GW, Spread 139.4
+  2026-10-31: Markt +0.000 GW / 0.209 Mio, Netz +2.973 GW, Spread 89.5
+  Sensitivität: Tagesscheiben des Monatsfahrplans …
+
+===== Konsistenz =====
+  OK: x1_price_peak_64405.9 — peak=64405.9000, expected 64405.9
+  OK: x1_price_revenue_zero — revenue=0.0
+  OK: x1_price_reduction_zero — red=0.0
+  OK: x1_peak_peak_64405.9 — peak=64405.9000, expected 64405.9
+  OK: x1_peak_revenue_zero — revenue=0.0
+  OK: x1_peak_reduction_zero — red=0.0
+  OK: observed_peak — 64405.9 vs 64405.9
+  OK: x2_netz_senkung_vs_v3 — 3.590313 vs v3 3.590363 GW (Tol 0,005)
+  OK: x5_netz_senkung_vs_v3 — 9.411050 vs v3 9.411100 GW (Tol 0,005)
+  OK: x10_netz_senkung_vs_v3 — 13.979437 vs v3 13.979487 GW (Tol 0,005)
+  OK: x10_netz_peak_50.43 — 50.4265 vs 50,43 GW
+  OK: x10_markt_peak_92.72 — 92.7569 vs 92,72 GW (PR #99)
+  OK: 2/market_lex/rte_85 — rte=0.850000, charge=506297.29871306603
+  OK: 2/market_lex/soc_balance — residue=-6.230039e-11 MWh
+  OK: 2/market_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/market_lex/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/market_raw/rte_85 — rte=0.850000, charge=505039.32097415766
+  OK: 2/market_raw/soc_balance — residue=-6.002665e-11 MWh
+  OK: 2/market_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/market_raw/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/netz_lex/rte_85 — rte=0.850000, charge=502199.57204836013
+  OK: 2/netz_lex/soc_balance — residue=-5.866241e-11 MWh
+  OK: 2/netz_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/netz_lex/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/netz_raw/rte_85 — rte=0.850000, charge=168066.7003471324
+  OK: 2/netz_raw/soc_balance — residue=2.410161e-11 MWh
+  OK: 2/netz_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/netz_raw/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/eps70/rte_85 — rte=0.850000, charge=508306.52634050377
+  OK: 2/eps70/soc_balance — residue=-5.911716e-11 MWh
+  OK: 2/eps70/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/eps70/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/eps50/rte_85 — rte=0.850000, charge=505244.2073073929
+  OK: 2/eps50/soc_balance — residue=-6.002665e-11 MWh
+  OK: 2/eps50/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/eps50/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/eps90/rte_85 — rte=0.850000, charge=501994.6857151248
+  OK: 2/eps90/soc_balance — residue=-6.230039e-11 MWh
+  OK: 2/eps90/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/eps90/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/fnav_lex/rte_85 — rte=0.850000, charge=496189.57294012484
+  OK: 2/fnav_lex/soc_balance — residue=-6.411938e-11 MWh
+  OK: 2/fnav_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/fnav_lex/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 2/fnav_raw/rte_85 — rte=0.850000, charge=492063.18653592234
+  OK: 2/fnav_raw/soc_balance — residue=-6.457412e-11 MWh
+  OK: 2/fnav_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 2/fnav_raw/soc_start_end_50 — start=4076.229 end=4076.229 mid=4076.229
+  OK: 5/market_lex/rte_85 — rte=0.850000, charge=2032406.5600290739
+  OK: 5/market_lex/soc_balance — residue=-2.401066e-10 MWh
+  OK: 5/market_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/market_lex/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/market_raw/rte_85 — rte=0.850000, charge=2020157.2838966306
+  OK: 5/market_raw/soc_balance — residue=-2.401066e-10 MWh
+  OK: 5/market_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/market_raw/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/netz_lex/rte_85 — rte=0.850000, charge=1988571.9398521725
+  OK: 5/netz_lex/soc_balance — residue=-2.291927e-10 MWh
+  OK: 5/netz_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/netz_lex/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/netz_raw/rte_85 — rte=0.850000, charge=356716.70289501536
+  OK: 5/netz_raw/soc_balance — residue=3.274181e-11 MWh
+  OK: 5/netz_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/netz_raw/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/eps70/rte_85 — rte=0.850000, charge=2011042.9595541586
+  OK: 5/eps70/soc_balance — residue=-2.619345e-10 MWh
+  OK: 5/eps70/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/eps70/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/eps50/rte_85 — rte=0.850000, charge=2006828.1082476461
+  OK: 5/eps50/soc_balance — residue=-2.437446e-10 MWh
+  OK: 5/eps50/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/eps50/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/eps90/rte_85 — rte=0.850000, charge=2008268.2789996914
+  OK: 5/eps90/soc_balance — residue=-2.455636e-10 MWh
+  OK: 5/eps90/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/eps90/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/fnav_lex/rte_85 — rte=0.850000, charge=1994866.0175334404
+  OK: 5/fnav_lex/soc_balance — residue=-2.473826e-10 MWh
+  OK: 5/fnav_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/fnav_lex/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 5/fnav_raw/rte_85 — rte=0.850000, charge=1968252.7461436894
+  OK: 5/fnav_raw/soc_balance — residue=-2.582965e-10 MWh
+  OK: 5/fnav_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 5/fnav_raw/soc_start_end_50 — start=16304.918 end=16304.918 mid=16304.918
+  OK: 10/market_lex/rte_85 — rte=0.850000, charge=4447623.107814183
+  OK: 10/market_lex/soc_balance — residue=2.182787e-11 MWh
+  OK: 10/market_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/market_lex/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/market_raw/rte_85 — rte=0.850000, charge=4545353.888767419
+  OK: 10/market_raw/soc_balance — residue=1.091394e-11 MWh
+  OK: 10/market_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/market_raw/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/netz_lex/rte_85 — rte=0.850000, charge=4192045.3175623734
+  OK: 10/netz_lex/soc_balance — residue=1.018634e-10 MWh
+  OK: 10/netz_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/netz_lex/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/netz_raw/rte_85 — rte=0.850000, charge=458427.57153229334
+  OK: 10/netz_raw/soc_balance — residue=-9.094947e-11 MWh
+  OK: 10/netz_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/netz_raw/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/eps70/rte_85 — rte=0.850000, charge=4344180.252555354
+  OK: 10/eps70/soc_balance — residue=1.637090e-10 MWh
+  OK: 10/eps70/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/eps70/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/eps50/rte_85 — rte=0.850000, charge=4383816.787846115
+  OK: 10/eps50/soc_balance — residue=1.346052e-10 MWh
+  OK: 10/eps50/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/eps50/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/eps90/rte_85 — rte=0.850000, charge=4270768.4189572595
+  OK: 10/eps90/soc_balance — residue=1.527951e-10 MWh
+  OK: 10/eps90/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/eps90/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/fnav_lex/rte_85 — rte=0.850000, charge=4351736.3038600655
+  OK: 10/fnav_lex/soc_balance — residue=2.910383e-11 MWh
+  OK: 10/fnav_lex/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/fnav_lex/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+  OK: 10/fnav_raw/rte_85 — rte=0.850000, charge=4428568.678823301
+  OK: 10/fnav_raw/soc_balance — residue=1.455192e-11 MWh
+  OK: 10/fnav_raw/no_simultaneous — sim_max=0.0000 MW
+  OK: 10/fnav_raw/soc_start_end_50 — start=36686.065 end=36686.065 mid=36686.065
+
+Tagesklassen (Tageshorizont, ×2): {'konflikt_schwach': 11, 'neutral': 18, 'konflikt_hebung': 2}
+Tagesklassen (Monatsscheibe, ×2): {'win_win': 17, 'neutral': 11, 'konflikt_hebung': 2, 'konflikt_schwach': 1}
+
+Fertig in 0.2 min. Checks 120/120 OK.

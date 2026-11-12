@@ -22,7 +22,7 @@ import {
 
 const FACTORS: ResearchFactor[] = [2, 5, 10];
 
-export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
+export function ResearchHomePage({ model, simulatorCostPct }: { model: ResearchHomeModel; simulatorCostPct: string }) {
   const reduced = useReducedMotion();
   const layout = useResearchLayout();
   const [factor, setFactor] = useState<ResearchFactor>(model.day.heroFactor);
@@ -129,13 +129,22 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
             <span>▌ P10–P90</span>
           </p>
           <p className={styles.meta}>Wolke: 365 Tage bis {model.day.shortLabel ?? model.day.dateKey} · heutige Flotte · Tageshorizont</p>
-          <p style={{ marginTop: 12 }}>
-            <Link href="/vision" className={styles.link}>
-              In der Vision öffnen →
-            </Link>
-          </p>
         </section>
       </div>
+
+      <section className={styles.simTeaser} aria-labelledby="simulator-teaser-title">
+        <p className={styles.eyebrow}>SIMULATOR · FAHRWEISEN · OKTOBER</p>
+        <p className={styles.simTeaserNum}>{simulatorCostPct}</p>
+        <h2 id="simulator-teaser-title" className={styles.h2}>
+          70 Prozent der Monatssenkung kosten {simulatorCostPct} des Erlöses (ε-70)
+        </h2>
+        <p className={styles.meta}>Flotte ×2, Modellschätzung, national, kein Netzengpass.</p>
+        <p style={{ marginTop: 12 }}>
+          <Link href="/simulator" className={styles.link}>
+            Im Simulator selbst ausprobieren →
+          </Link>
+        </p>
+      </section>
 
       <ResearchFoot fleetLabel={model.fleetLabel} />
     </div>

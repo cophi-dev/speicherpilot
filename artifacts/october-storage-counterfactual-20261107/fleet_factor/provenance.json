@@ -1,0 +1,18 @@
+{
+  "as_of": "2026-11-07",
+  "model_fleet": {
+    "power_mw": 4644.09022,
+    "energy_mwh": 8152.4588,
+    "source": "SpeicherPilot exportLaunchNationalDays.ts NATIONAL_BASE_FLEET (4,64409022 MW / 8,1524588 MWh, battery-charts 31.10.2026)"
+  },
+  "not_claimed": "Kein amtlicher Ist-Bestand; hypothetischer Overlay auf beobachteter Last/Erzeugung.",
+  "observed_curve_includes_storage_effect_uncertain": true,
+  "energy_charts_battery_series": "Keine separate grid-Battery-Charging/Discharging-Serie im Oktober-EC total_power; nur hydro_pumped_storage*.",
+  "baseline_R_is_observed": "residual_wind_solar_mw = load - wind - solar (CSV); kein NO-storage Back-Cast.",
+  "month_surplus_pool_gwh_definition": "Modellaufnahme-Referenzpool: Σ max(0, wind+solar−load)·¼h",
+  "month_surplus_pool_gwh": 134.241975,
+  "input_sha256": {
+    "csv": "f9d795a924cb80054a5ede5ecfa7d41f366869ec87d4d0559c7cf5769fbe60f4",
+    "definitions": "af38e70a13c4618f0dbd03ae44ccab3c85c63716e1ee2fb2f4c11fdfea438383"
+  }
+}
