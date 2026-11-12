@@ -42,19 +42,4 @@ for (const [w, h, tag] of [
   }
 }
 
-for (const [state, theme, suffix] of [
-  ["light", "light", "hell_zu"],
-  ["dark", "dark", "dunkel_an"],
-]) {
-  const page = await browser.newPage({ viewport: { width: 480, height: 200 } });
-  await page.goto(`${base}/`, { waitUntil: "networkidle", timeout: 120_000 });
-  await setTheme(page, theme);
-  await page.reload({ waitUntil: "networkidle", timeout: 120_000 });
-  const btn = page.locator("button.theme-btn");
-  const file = `${out}/schalter_${suffix}.png`;
-  await btn.screenshot({ path: file });
-  console.log(file);
-  await page.close();
-}
-
 await browser.close();
