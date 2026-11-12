@@ -380,15 +380,16 @@ function Day21Labels({
       <SvgText x={x14 - 8} y={y556 - 6} anchor="end" fill={colors.ink}>
         {lab2}
       </SvgText>
-      <SvgText x={x1830 - 4} y={y543 + 16} anchor="end" fill={colors.muted}>
+      <Knockout x={x1830 - 4 - 172} y={y543 + 48} width={176} height={20} fill={colors.flaeche} opacity={1} />
+      <SvgText x={x1830 - 4} y={y543 + 64} anchor="end" fill={colors.muted}>
         beobachtet {formatDec(metrics.observedPeakGw)} · {metrics.observedLabel}
       </SvgText>
       {wide ? (
-        <SvgText x={x23 - 8} y={y516 + 44} anchor="end" fill={colors.ink}>
+        <SvgText x={x23 - 8} y={y516 + 80} anchor="end" fill={colors.ink}>
           Netzdienlich {formatDec(metrics.netzPeakGw)}
         </SvgText>
       ) : (
-        <SvgText x={vb.L + plotW - 2} y={y516 + 44} anchor="end" fill={colors.ink}>
+        <SvgText x={vb.L + plotW - 2} y={y516 + 80} anchor="end" fill={colors.ink}>
           Netzdienlich {formatDec(metrics.netzPeakGw)}
         </SvgText>
       )}
