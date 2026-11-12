@@ -1,0 +1,7 @@
+{
+  "factor_approx": 3.9,
+  "after_max_residual_mw": 64416,
+  "reference_mw": 64405.9,
+  "computed_at": "2026-11-12",
+  "method": "lineare Interpolation MIP zwischen k=3.8 und k=3.9 (Zusatzflotte)"
+}

@@ -1,4 +1,4 @@
-import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+import { additionalFleetAtFactor } from "@/lib/fleetXkConvention";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 
 const USABLE = CHAIN_SOC_MAX - CHAIN_SOC_MIN;
@@ -13,10 +13,11 @@ export type NationalFactorRunLike = {
 };
 
 export function expectedNationalCaps(factor: number): { energyMwh: number; powerMw: number; usableMwh: number } {
+  const { energyMwh, powerMw } = additionalFleetAtFactor(factor);
   return {
-    energyMwh: NATIONAL_BASE_FLEET.energyMwh * factor,
-    powerMw: NATIONAL_BASE_FLEET.powerMw * factor,
-    usableMwh: NATIONAL_BASE_FLEET.energyMwh * factor * USABLE,
+    energyMwh,
+    powerMw,
+    usableMwh: energyMwh * USABLE,
   };
 }
 

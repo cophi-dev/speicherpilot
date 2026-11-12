@@ -190,18 +190,18 @@ function rulePreisRegime(records: TagesKennzahlRecord[]): MarktInsight | null {
 }
 
 function ruleDreiZiele(bundle: NationalFleetMonthBundle): MarktInsight | null {
-  const ue = monthStatsForRun(bundle, 1, "ueberschuss");
-  const sp = monthStatsForRun(bundle, 1, "spitze");
-  const mk = monthStatsForRun(bundle, 1, "markt");
+  const ue = monthStatsForRun(bundle, 2, "ueberschuss");
+  const sp = monthStatsForRun(bundle, 2, "spitze");
+  const mk = monthStatsForRun(bundle, 2, "markt");
   if (mk.chargeGwh <= sp.chargeGwh * 5 || mk.peakReductionGw >= 1) {
     return null;
   }
   return {
     id: "drei_ziele",
     category: "monat",
-    text: `Oktober ×1: Markt bewegt ${fmtEur(mk.chargeGwh)} GWh und senkt die Spitze um ${fmtEur(mk.peakReductionGw)} GW. Spitze senken: ${fmtEur(sp.peakReductionGw)} GW bei ${fmtEur(sp.chargeGwh)} GWh. Differenz: ${fmtEur(ue.chargeGwh)} GWh, Spitze −${fmtEur(ue.peakReductionGw)} GW.`,
+    text: `Oktober, 1× Zusatzflotte (×2): Markt bewegt ${fmtEur(mk.chargeGwh)} GWh und senkt die Spitze um ${fmtEur(mk.peakReductionGw)} GW. Spitze senken: ${fmtEur(sp.peakReductionGw)} GW bei ${fmtEur(sp.chargeGwh)} GWh. Differenz: ${fmtEur(ue.chargeGwh)} GWh, Spitze −${fmtEur(ue.peakReductionGw)} GW.`,
     period: "Oktober 2026",
-    source: "Vorberechneter Monatslauf 4,58 GW / 8 GWh",
+    source: "Vorberechneter Monatslauf 4,64 GW / 8,15 GWh je ×",
     methodikHref: "/methodik#insight-drei-ziele",
   };
 }
@@ -321,14 +321,14 @@ export function threeGoalsSummarySentence(model: ThreeGoalsCompareModel): string
   const ue = model.rows.find((r) => r.strategy === "ueberschuss");
   const sp = model.rows.find((r) => r.strategy === "spitze");
   const mk = model.rows.find((r) => r.strategy === "markt");
-  const cell = (row: ThreeGoalsStrategyRow | undefined) => row?.cells.find((c) => c.factor === 1);
-  const u1 = cell(ue);
-  const s1 = cell(sp);
-  const m1 = cell(mk);
-  if (!u1 || !s1 || !m1) {
+  const cell2 = (row: ThreeGoalsStrategyRow | undefined) => row?.cells.find((c) => c.factor === 2);
+  const u2 = cell2(ue);
+  const s2 = cell2(sp);
+  const m2 = cell2(mk);
+  if (!u2 || !s2 || !m2) {
     return "";
   }
-  return `Oktober, Flotte 4,58 GW / 8 GWh, ×1: Differenz senkt ${fmtEur(u1.peakReductionGw)} GW bei ${fmtEur(u1.chargeGwh)} GWh; Spitze ${fmtEur(s1.peakReductionGw)} GW bei ${fmtEur(s1.chargeGwh)} GWh; Markt ${fmtEur(m1.chargeGwh)} GWh bei ${fmtEur(m1.peakReductionGw)} GW Spitzenwirkung.`;
+  return `Oktober, Basis 4,64 GW / 8,15 GWh, ×1 Zusatz (×2): Differenz senkt ${fmtEur(u2.peakReductionGw)} GW bei ${fmtEur(u2.chargeGwh)} GWh; Spitze ${fmtEur(s2.peakReductionGw)} GW bei ${fmtEur(s2.chargeGwh)} GWh; Markt ${fmtEur(m2.chargeGwh)} GWh bei ${fmtEur(m2.peakReductionGw)} GW Spitzenwirkung.`;
 }
 
 export const MARKT_INSIGHT_RULE_IDS = [

@@ -1,8 +1,8 @@
 {
   "factor": 3,
   "strategy": "price_oriented_da_arbitrage",
-  "after_max_residual_mw": 64880.5,
-  "peak_reduction_mw": -474.6,
+  "after_max_residual_mw": 64040.1,
+  "peak_reduction_mw": 365.8,
   "computed_at": "2026-11-12",
-  "note": "MIP-Lauf gleiche Eingänge wie Fleet-Bundle, Basis 4640/8150"
+  "note": "Zusatzflotte 2×4640 MW, noch unter Oktober-Referenz"
 }

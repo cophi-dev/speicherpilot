@@ -8,21 +8,27 @@ from pathlib import Path
 
 import numpy as np
 
-from run_fleet_factor_month import BASE_POWER_MW, FACTORS, load_rows, solve
+from run_fleet_factor_month import BASE_POWER_MW, FACTORS, additional_units, load_rows
 
 NOMINAL_DURATION_H = 8150.0 / BASE_POWER_MW
 DURATION_LABELS = ("1.76", "2", "4")
 
 
 def energy_nominal_mwh(factor: int, duration_h: float) -> float:
-    p = BASE_POWER_MW * factor
+    add = additional_units(factor)
+    p = BASE_POWER_MW * add
+    if add == 0:
+        return 0.0
     if abs(duration_h - NOMINAL_DURATION_H) < 0.02:
-        return 8150.0 * factor
+        return 8150.0 * add
     return p * duration_h
 
 
 def solve_spitze_duration(rows, factor: int, duration_h: float) -> float:
-    p = BASE_POWER_MW * factor
+    add = additional_units(factor)
+    if add == 0:
+        return 0.0
+    p = BASE_POWER_MW * add
     e_nom = energy_nominal_mwh(factor, duration_h)
     residual = np.array([r.residual_mw for r in rows])
     from mip_month import MonthStorageMip

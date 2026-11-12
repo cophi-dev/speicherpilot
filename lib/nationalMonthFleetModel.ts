@@ -224,8 +224,8 @@ export function monthStatsForRun(
     surplusCaptureSharePct: share != null ? share * 100 : null,
     socStartGwh: (stats.soc_start_mwh as number) / 1000,
     socEndGwh: (stats.soc_end_mwh as number) / 1000,
-    fleetPowerGw: (NATIONAL_BASE_FLEET.powerMw * factor) / 1000,
-    fleetEnergyGwh: (NATIONAL_BASE_FLEET.energyMwh * factor) / 1000,
+    fleetPowerGw: (NATIONAL_BASE_FLEET.powerMw * Math.max(0, factor - 1)) / 1000,
+    fleetEnergyGwh: (NATIONAL_BASE_FLEET.energyMwh * Math.max(0, factor - 1)) / 1000,
   };
 }
 

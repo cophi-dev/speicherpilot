@@ -17,10 +17,10 @@ const close = (a: number, b: number, digits = 2) => {
 };
 
 describe("nationalPeakShaveEngine · nachrechnung v3", () => {
-  it("09.11.2026: ×2 / ×5 / ×10 mit 1,76 h (Gesamtflotte)", () => {
-    close(factorReductionGw(residualMw, 2), 3.84, 2);
-    close(factorReductionGw(residualMw, 5), 6.15, 2);
-    close(factorReductionGw(residualMw, 10), 7.78, 2);
+  it("09.11.2026: ×2 / ×5 / ×10 mit 1,76 h (Zusatzflotte)", () => {
+    close(factorReductionGw(residualMw, 2), 2.52, 2);
+    close(factorReductionGw(residualMw, 5), 5.81, 2);
+    close(factorReductionGw(residualMw, 10), 7.46, 2);
   });
 
   it("09.11.2026: ×5 mit 4 h", () => {
@@ -33,7 +33,7 @@ describe("nationalPeakShaveEngine · nachrechnung v3", () => {
     const x2 = curve[1]!.reductionGw;
     const x5 = curve[4]!.reductionGw;
     const x10 = curve[9]!.reductionGw;
-    close((x5 - x2) / (3 * 4.64409022), 0.166, 2);
+    close((x5 - x2) / (3 * 4.64409022), 0.236, 2);
     close((x10 - x5) / (5 * 4.64409022), 0.071, 2);
   });
 

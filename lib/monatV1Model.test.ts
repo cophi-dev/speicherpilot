@@ -10,8 +10,13 @@ describe("Monat v1 Modell", () => {
   });
 
   it("Spitze ×1 und ×10", () => {
-    expect(model.heroTable.spitzeX1).toBeCloseTo(60.82, 1);
-    expect(model.heroTable.spitzeX10).toBeCloseTo(49.6, 1);
+    expect(model.heroTable.spitzeX1).toBeCloseTo(64.4, 1);
+    expect(model.heroTable.spitzeX10).toBeCloseTo(50.4, 1);
+  });
+
+  it("Kipppunkt-Label ≈×3,9", () => {
+    expect(model.hero.kipppunktLabel).toBe("ab ≈×3,9");
+    expect(model.hero.kipppunktFactor).toBeCloseTo(3.9, 1);
   });
 
   it("Markt ×10 über Referenz", () => {

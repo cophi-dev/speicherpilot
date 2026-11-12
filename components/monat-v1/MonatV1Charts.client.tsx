@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "@/components/monat-v1/monat-v1.module.css";
-import { formatGwAbs, formatGwReduction, formatMioEurModell } from "@/lib/monatV1Format";
+import { formatGwAbs, formatGwReduction } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
@@ -18,17 +18,18 @@ function yGw(gw: number, yMin: number, yMax: number, plotH: number, padT: number
   return padT + plotH - ((gw - yMin) / (yMax - yMin)) * plotH;
 }
 
-function useLayout() {
+function useLayout(minWidth = 720) {
   const ref = useRef<HTMLDivElement>(null);
   const [wide, setWide] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setWide(el.clientWidth >= 720));
+    const apply = () => setWide(el.clientWidth >= minWidth);
+    const ro = new ResizeObserver(apply);
     ro.observe(el);
-    setWide(el.clientWidth >= 720);
+    apply();
     return () => ro.disconnect();
-  }, []);
+  }, [minWidth]);
   return { ref, wide };
 }
 
@@ -62,6 +63,10 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   ].map((p) => ({ ...p, y: yGw(p.gw, yMinGw, yMaxGw, plotH, vb.T) }));
 
   const refY = yGw(refPeakGw, yMinGw, yMaxGw, plotH, vb.T);
+  const yTicks = wide
+    ? model.yTicksGw
+    : [40, 60, 80, 100].filter((t) => t >= yMinGw && t <= yMaxGw);
+  const lastSpitze = spitzePts[spitzePts.length - 1]!;
 
   return (
     <div ref={ref} className={styles.chartWrap} data-testid="monat-v1-hero">
@@ -76,7 +81,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
             <line x1="0" y1="0" x2="0" y2="7" stroke="#B4532A" strokeWidth="1.25" />
           </pattern>
         </defs>
-        {model.yTicksGw.map((tick) => {
+        {yTicks.map((tick) => {
           const y = yGw(tick, yMinGw, yMaxGw, plotH, vb.T);
           return (
             <g key={tick}>
@@ -87,6 +92,22 @@ function HeroChart({ model }: { model: MonatV1Model }) {
             </g>
           );
         })}
+        {!yTicks.some((t) => Math.abs(t - refPeakGw) < 0.05) ? (
+          <g>
+            <line
+              x1={vb.L}
+              x2={vb.L + plotW}
+              y1={refY}
+              y2={refY}
+              stroke="var(--mv-gridline, #e4e4dc)"
+              strokeWidth="1"
+              strokeDasharray={wide ? "0" : "3 3"}
+            />
+            <text x={vb.L - 4} y={refY + 4} textAnchor="end" fill="var(--mv-muted, #43474c)">
+              {refPeakGw.toFixed(1).replace(".", ",")}
+            </text>
+          </g>
+        ) : null}
         <text x={vb.L - 4} y={vb.T - 8} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="12">
           GW
         </text>
@@ -112,20 +133,15 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           );
         })}
         <rect x={vb.L} y={vb.T} width={plotW} height={refY - vb.T} fill="rgba(180, 83, 42, 0.1)" />
-        <text x={vb.L + 4} y={vb.T + 12} fill="var(--mv-muted, #43474c)" fontSize="12">
-          neue Spitze
-        </text>
         <line x1={vb.L} x2={vb.L + plotW} y1={refY} y2={refY} stroke="var(--mv-ink)" strokeWidth="1.25" />
-        <text x={vb.L + 4} y={refY - (wide ? 6 : 14)} fill="var(--mv-ink)" fontSize="12">
-          {wide ? "Oktober, beobachtet" : "Oktober,"}
-        </text>
-        {!wide ? (
-          <text x={vb.L + 4} y={refY - 2} fill="var(--mv-ink)" fontSize="12">
-            beobachtet
-          </text>
-        ) : null}
-        <text x={vb.L + 8} y={refY - 10} fill="var(--mv-muted)" fontSize="12">
-          {refPeakGw.toFixed(1).replace(".", ",")}
+        <text
+          x={wide ? vb.L + plotW * 0.42 : vb.L + plotW - 6}
+          y={wide ? vb.T + 14 : vb.T + 12}
+          textAnchor={wide ? "start" : "end"}
+          fill="var(--mv-ink)"
+          fontSize="12"
+        >
+          Oktober, beobachtet
         </text>
         <polyline
           fill="none"
@@ -145,6 +161,13 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         {ueberPts.map((p) => (
           <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="var(--mv-muted)" strokeWidth="1.75" />
         ))}
+        {marktPts.length >= 2 ? (
+          <polygon
+            points={`${marktPts.map((p) => `${p.x},${p.y}`).join(" ")} ${marktPts[marktPts.length - 1]!.x},${refY} ${marktPts[0]!.x},${refY}`}
+            fill="url(#hatch-markt)"
+            opacity="0.35"
+          />
+        ) : null}
         <polyline
           fill="none"
           stroke="#B4532A"
@@ -155,36 +178,46 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         {marktPts.length > 0 ? (
           <circle cx={marktPts[0]!.x} cy={marktPts[0]!.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="#B4532A" strokeWidth="1.75" />
         ) : null}
-        {marktPts.length >= 2 ? (
-          <polygon
-            points={`${marktPts.map((p) => `${p.x},${p.y}`).join(" ")} ${marktPts[marktPts.length - 1]!.x},${refY} ${marktPts[0]!.x},${refY}`}
-            fill="url(#hatch-markt)"
-            opacity="0.35"
-          />
-        ) : null}
-        <text x={wide ? vb.L + plotW + 12 : vb.L + 8} y={wide ? spitzePts[spitzePts.length - 1]!.y : vb.T + 16} fill="var(--mv-ink)" fontSize="12">
+        <text
+          x={wide ? vb.L + plotW + 12 : lastSpitze.x + 6}
+          y={lastSpitze.y}
+          fill="var(--mv-ink)"
+          fontSize="12"
+        >
           Spitze
         </text>
         <text x={wide ? vb.L + plotW + 12 : vb.L + plotW * 0.55} y={wide ? ueberPts[ueberPts.length - 1]!.y + 4 : ueberPts[0]!.y} fill="var(--mv-muted)" fontSize="12">
           Überschuss
         </text>
-        <text
-          x={wide ? vb.L + plotW + 12 : vb.L + 8}
-          y={wide ? marktPts[0]!.y - 12 : 90}
-          fill="#B4532A"
-          fontSize="12"
-        >
-          {wide ? "Markt · ohne Preisrückwirkung" : "Markt"}
-        </text>
-        {!wide ? (
-          <text x={vb.L + 8} y={102} fill="var(--mv-muted)" fontSize="12">
-            ohne Preisrückwirkung
+        {wide ? (
+          <text
+            x={vb.L + plotW + 12}
+            y={marktPts[0]!.y - 16}
+            fill="var(--mv-ink)"
+            stroke="var(--mv-flaeche, #fff)"
+            strokeWidth="3"
+            paintOrder="stroke"
+            fontSize="12"
+          >
+            <tspan x={vb.L + plotW + 12}>Markt · ohne</tspan>
+            <tspan x={vb.L + plotW + 12} dy="14">
+              Preisrückwirkung
+            </tspan>
           </text>
-        ) : null}
+        ) : (
+          <>
+            <text x={vb.L + 8} y={90} fill="var(--mv-ink)" fontSize="12">
+              Markt
+            </text>
+            <text x={vb.L + 8} y={104} fill="var(--mv-ink)" fontSize="12">
+              ohne Preisrückwirkung
+            </text>
+          </>
+        )}
       </svg>
       <p className={styles.figcaption}>{MONAT_V1_GRAPH_CAPTION}</p>
       <table className={styles.valuesTable}>
-        <caption>Modellschätzung nur bei Markt ×1; keine Markt-Zahl für ×5/×10.</caption>
+        <caption>Keine Euro im Graph; Markt ×5/×10 ohne Preisrückwirkung.</caption>
         <thead>
           <tr>
             <th scope="col">Fahrweise</th>
@@ -205,10 +238,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           </tr>
           <tr>
             <th scope="row">Markt</th>
-            <td>
-              {formatGwAbs(model.heroTable.marktX1, 1)}
-              {model.heroTable.marktX1EurMio != null ? ` — ${formatMioEurModell(model.heroTable.marktX1EurMio)}` : null}
-            </td>
+            <td>{formatGwAbs(model.heroTable.marktX1, 1)}</td>
             <td>— ohne Preisrückwirkung</td>
           </tr>
         </tbody>
@@ -273,6 +303,12 @@ function StundenChart({ model }: { model: MonatV1Model }) {
               <text x={x} y={vb.T + plotH + 30} textAnchor="middle" fill="var(--mv-muted)">
                 {c.powerGwLabel}
               </text>
+              <polyline
+                fill="none"
+                stroke="var(--mv-linie)"
+                strokeWidth="1.25"
+                points={pts.map((p) => `${x + p.off},${yRed(p.val)}`).join(" ")}
+              />
               {pts.map((p) => {
                 const y = yRed(p.val);
                 return (
@@ -283,7 +319,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
                       <circle cx={x + p.off} cy={y} r={p.r} fill={p.fill} />
                     )}
                     {(p.val === c.h4 || (c.factor === 10 && p.val === c.h176)) && wide ? (
-                      <text x={x + p.off} y={y - 8} textAnchor="middle" fontSize="11" fill="var(--mv-ink)">
+                      <text x={x + p.off} y={y - 8} textAnchor="middle" fontSize="12" fill="var(--mv-ink)">
                         {formatGwReduction(p.val, 2)}
                       </text>
                     ) : null}
@@ -305,7 +341,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
               return (
                 <>
                   <line x1={x5} y1={y5} x2={x10} y2={y10} stroke="var(--mv-muted)" strokeDasharray="4 4" />
-                  <text x={(x5 + x10) / 2} y={(y5 + y10) / 2 - 6} textAnchor="middle" fill="var(--mv-muted)" fontSize="11">
+                  <text x={(x5 + x10) / 2} y={(y5 + y10) / 2 - 6} textAnchor="middle" fill="var(--mv-muted)" fontSize="12">
                     mehr als
                   </text>
                 </>
@@ -340,7 +376,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
 }
 
 function UeberschussChart({ model }: { model: MonatV1Model }) {
-  const { ref, wide } = useLayout();
+  const { ref, wide } = useLayout(1100);
   const vb = wide ? { w: 1152, h: 384, poolW: 520 } : { w: 350, h: 404, poolW: 200 };
   const rowH = wide ? 56 : 52;
   const barH = 18;
@@ -365,21 +401,27 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
           const fillW = (row.poolSharePct / 100) * vb.poolW;
           return (
             <g key={row.factor}>
-              <text x={poolX - 8} y={y + barH / 2 + 4} textAnchor="end" fill="var(--mv-ink)">
+              <text
+                x={poolX + vb.poolW / 2}
+                y={y - 4}
+                textAnchor="middle"
+                fill="var(--mv-ink)"
+                fontSize="12"
+              >
                 ×{row.factor}
               </text>
               <rect x={poolX} y={y} width={vb.poolW} height={barH} fill="var(--mv-linie)" />
               <rect x={poolX} y={y} width={fillW} height={barH} fill="var(--mv-ink)" />
               {fillW > 36 ? (
-                <text x={poolX + 6} y={y + barH - 4} fill="var(--mv-bg, #f6f6f3)" fontSize="11">
+                <text x={poolX + fillW / 2} y={y + barH - 4} textAnchor="middle" fill="var(--mv-bg, #f6f6f3)" fontSize="12">
                   {row.poolLabel}
                 </text>
               ) : (
-                <text x={poolX + fillW + 4} y={y + barH - 2} fill="var(--mv-ink)" fontSize="11">
+                <text x={poolX + fillW / 2} y={y + barH - 4} textAnchor="middle" fill="var(--mv-ink)" fontSize="12">
                   {row.poolLabel}
                 </text>
               )}
-              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)">
+              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize="12">
                 {formatGwReduction(row.reductionGw, 2)}
               </text>
             </g>
@@ -397,12 +439,12 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
           const w = (row.gw / maxGw) * vb.poolW;
           return (
             <g key={row.label}>
-              <text x={poolX - 8} y={y + barH / 2 + 2} textAnchor="end" fill="var(--mv-muted)" fontSize="11">
-                {row.label.length > 22 && !wide ? "Spitze" : row.label}
+              <text x={poolX + vb.poolW / 2} y={y - 4} textAnchor="middle" fill="var(--mv-muted)" fontSize="12">
+                {wide ? row.label : row.label === "Überschuss" ? "Überschuss" : "Spitze, orientiert"}
               </text>
               <rect x={poolX} y={y} width={vb.poolW} height={barH} fill="var(--mv-linie)" />
               <rect x={poolX} y={y} width={w} height={barH} fill={row.color} />
-              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)">
+              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize="12">
                 {formatGwReduction(row.gw, 2)}
               </text>
             </g>
@@ -419,7 +461,9 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
     <>
       <section className={styles.section} aria-labelledby="monat-v1-a1">
         <h1 id="monat-v1-a1" className={styles.h1}>
-          Dieselbe Flotte senkt die Spitze
+          Dieselbe Flotte senkt
+          <br />
+          die{"\u00A0"}Spitze
           <br />
           oder hebt sie.
         </h1>

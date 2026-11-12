@@ -7,24 +7,20 @@ import {
 import { loadNationalFleetBundleMeta } from "@/lib/nationalMonthFleetModel.server";
 
 describe("buildThreeGoalsCompare", () => {
-  it("matches audit figures at ×1", () => {
+  it("×1 Ist ohne Zusatz — null Wirkung", () => {
     const model = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
-    const ue = model.rows.find((r) => r.strategy === "ueberschuss")!.cells.find((c) => c.factor === 1)!;
-    const sp = model.rows.find((r) => r.strategy === "spitze")!.cells.find((c) => c.factor === 1)!;
-    const mk = model.rows.find((r) => r.strategy === "markt")!.cells.find((c) => c.factor === 1)!;
-    expect(ue.chargeGwh).toBeCloseTo(56.7, 0);
-    expect(ue.peakReductionGw).toBeCloseTo(2.27, 2);
-    expect(sp.peakReductionGw).toBeCloseTo(3.59, 2);
-    expect(sp.chargeGwh).toBeCloseTo(12.8, 0);
-    expect(mk.chargeGwh).toBeCloseTo(493.6, 0);
-    expect(mk.peakReductionGw).toBeCloseTo(0.37, 2);
+    for (const strategy of ["ueberschuss", "spitze", "markt"] as const) {
+      const c = model.rows.find((r) => r.strategy === strategy)!.cells.find((x) => x.factor === 1)!;
+      expect(c.chargeGwh).toBeCloseTo(0, 1);
+      expect(c.peakReductionGw).toBeCloseTo(0, 2);
+    }
   });
 
   it("markt ×10 peak timestamp from bundle", () => {
     const model = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
     expect(model.marktX10PeakTs).toContain("2026-10-21T14:00");
     const mk10 = model.rows.find((r) => r.strategy === "markt")!.cells.find((c) => c.factor === 10)!;
-    expect(mk10.peakAfterGw).toBeCloseTo(97.36, 2);
+    expect(mk10.peakAfterGw).toBeCloseTo(92.72, 2);
   });
 });
 

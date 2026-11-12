@@ -1,6 +1,5 @@
 import { MonatV1Charts } from "@/components/monat-v1/MonatV1Charts.client";
 import styles from "@/components/monat-v1/monat-v1.module.css";
-import { FLEET_XK_FOOTNOTE_DE } from "@/lib/fleetXkConvention";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { formatBerlinMonthShort } from "@/lib/monatCalendar";
 
@@ -14,7 +13,6 @@ export function MonatV1Page({ model, monthKey }: { model: MonatV1Model; monthKey
       <MonatV1Charts model={model} />
       <footer className={styles.pageFooter}>
         <p>{model.pageFootnote}</p>
-        <p>{FLEET_XK_FOOTNOTE_DE}</p>
         <p>
           Quellen und Annahmen:{" "}
           <a href="/methodik#monat-konzept-ac" className="v4-text-link">

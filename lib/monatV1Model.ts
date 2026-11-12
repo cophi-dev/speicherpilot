@@ -49,6 +49,7 @@ export type MonatV1Model = {
     marktFromFactor3Gw: number;
     insightSpitzeX10Gw: number;
     kipppunktLabel: string;
+    kipppunktFactor: number;
   };
   heroTable: {
     spitzeX1: number;
@@ -56,7 +57,6 @@ export type MonatV1Model = {
     ueberschussX1: number;
     ueberschussX10: number;
     marktX1: number;
-    marktX1EurMio: number | null;
   };
   duration: MonatV1DurationPoint[];
   showMehrAlsLink: boolean;
@@ -80,9 +80,16 @@ function loadMarktFactor3PeakGw(): number {
   return raw.after_max_residual_mw / 1000;
 }
 
-function marktRevenueMioEur(bundle: NationalFleetMonthBundle): number | null {
+function loadMarktKipppunktFactor(): number {
+  const path = join(process.cwd(), "data/national-fleet/2026-10/market-kipppunkt.json");
+  const raw = JSON.parse(readFileSync(path, "utf8")) as { factor_approx: number };
+  return raw.factor_approx;
+}
+
+/** Day-Ahead-Erlös bei Markt ×2 (= 1× zusätzliche Flotte), Modellschätzung. */
+export function marktAdditionEurMio(bundle: NationalFleetMonthBundle): number | null {
   try {
-    const run = getFleetRun(bundle, 1, "markt");
+    const run = getFleetRun(bundle, 2, "markt");
     let eur = 0;
     for (let i = 0; i < run.intervalCount; i += 1) {
       eur += run.day_ahead_eur_mwh[i] * DT_H * (run.d_mw[i] - run.c_mw[i]);
@@ -181,7 +188,8 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
       points: heroPoints,
       marktFromFactor3Gw: roundGw(marktX3, 2),
       insightSpitzeX10Gw: roundGw(spitze10.peakAfterGw, 1),
-      kipppunktLabel: marktX3 > refPeakGw + 0.05 ? "ab ×3" : "nahe ×3",
+      kipppunktLabel: "ab ≈×3,9",
+      kipppunktFactor: loadMarktKipppunktFactor(),
     },
     heroTable: {
       spitzeX1: roundGw(spitze1.peakAfterGw, 1),
@@ -189,7 +197,6 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
       ueberschussX1: roundGw(ueber1.peakAfterGw, 1),
       ueberschussX10: roundGw(ueber10.peakAfterGw, 1),
       marktX1: roundGw(markt1.peakAfterGw, 1),
-      marktX1EurMio: marktRevenueMioEur(bundle),
     },
     duration,
     showMehrAlsLink,
@@ -204,7 +211,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
 }
 
 const FLEET_XK_FOOTNOTE_SHORT =
-  "×k = k-mal die heutige Flotte insgesamt; ×1 = Ist-Zustand.";
+  "Zusatzflotte = (k−1)× Basis; ×1 = Ist ohne Zusatz. Unterzeile: k-mal Gesamtflotte.";
 
 function formatFleetBasisDe(): string {
   const gw = (NATIONAL_BASE_FLEET.powerMw / 1000).toFixed(2).replace(".", ",");

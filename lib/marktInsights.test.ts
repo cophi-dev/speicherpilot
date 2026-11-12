@@ -83,6 +83,6 @@ describe("threeGoalsSummarySentence", () => {
     const model = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
     const s = threeGoalsSummarySentence(model);
     expect(s).toMatch(/Markt/);
-    expect(s).toMatch(/493/);
+    expect(s).toMatch(/493|494/);
   });
 });

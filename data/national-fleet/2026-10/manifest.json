@@ -1,74 +1,74 @@
 {
   "bundleFile": "fleet-month-bundle.json",
-  "sha256": "11413606d36240f6992cf66ee3fd0c14a6a86b29fae26ffb3c3b1cb382fc2a4f",
+  "sha256": "31b693e98dc82569cc70cfe94ba48708f5a41cde7fd182f6e76153ef94d16f2e",
   "monthKey": "2026-10",
   "quarters": 2980,
   "hours": 745,
   "dstOct25Quarters": 100,
   "inputCsvSha256": "f9d795a924cb80054a5ede5ecfa7d41f366869ec87d4d0559c7cf5769fbe60f4",
-  "run9SummarySha256": "2c20d1d5f3f262753580e835a8ece173437159fbad441dbee373c769d258d75f",
+  "run9SummarySha256": "abfe7b53b85eac91e3ad24b6d75d5f07c213574617453667224ab76f49d94522",
   "metaFile": "fleet-month-meta.json",
-  "metaSha256": "ffae253986f5e392734830f55ebba504d0111a53705835bc1e35752778d2e281",
+  "metaSha256": "0048533c65d43b5f890e6bbbf61ff61eb772b6edd0a635c86a5bd1de3bb3866b",
   "runShards": {
     "x1_surplus_wind_solar_over_load": {
       "file": "runs/x1_surplus_wind_solar_over_load.json",
-      "sha256": "b0d6617ccdc3d5d2a0bf7610a85e7353b318025ec846db0d3c519e7c5f19e93a",
-      "bytes": 190407
+      "sha256": "dad58cf9dc8ffffcdea2af5b63000024787f34980801b743d4583d49cfde598a",
+      "bytes": 172665
     },
     "x1_min_peak_perfect_foresight": {
       "file": "runs/x1_min_peak_perfect_foresight.json",
-      "sha256": "e3949ced9c103b527caa88154a89b13c4bd385183903e49c322f0ff1f79f85d9",
-      "bytes": 194363
+      "sha256": "f5f5028d623ea4c3828f582781aa265a77196bf53651a2779449dc69625c9182",
+      "bytes": 172658
     },
     "x1_price_oriented_da_arbitrage": {
       "file": "runs/x1_price_oriented_da_arbitrage.json",
-      "sha256": "8287b79c5ca2decc2aac42d18890eb44a1d6d081223485af9bf885d75fdbcd40",
-      "bytes": 208076
+      "sha256": "25b7897f0d1e63a29ea92ebd3ea39ab4cf603cf30614d4ba5c26db9f3422d58b",
+      "bytes": 172658
     },
     "x2_surplus_wind_solar_over_load": {
       "file": "runs/x2_surplus_wind_solar_over_load.json",
-      "sha256": "9465277f346706edba888e2509c52ba0d7cc3bb6c5eda282ebbd77ded5be5e97",
-      "bytes": 200393
+      "sha256": "2000d1a02a41f7dc67b8d7fb174f7ec9b248a09b329cc36efabec6a0e3f85327",
+      "bytes": 190407
     },
     "x2_min_peak_perfect_foresight": {
       "file": "runs/x2_min_peak_perfect_foresight.json",
-      "sha256": "2fa459b645619d29b3ea2d9e2a45035673b8326e731f97b4ba6d5fdfc070cb95",
-      "bytes": 200544
+      "sha256": "e6ac7d38fc9e8d6bc0a147b63100dcb77cf4b707f01dea6a9c69556210316080",
+      "bytes": 194363
     },
     "x2_price_oriented_da_arbitrage": {
       "file": "runs/x2_price_oriented_da_arbitrage.json",
-      "sha256": "b9796bd488df9d06ad94e4bb93ec48076af1b4a67789e0b1513f40e7eb83beea",
-      "bytes": 212606
+      "sha256": "8bd341c764a309bd494da502249bd01106d1ab572c4ba98fac1e11483ea4bca8",
+      "bytes": 208076
     },
     "x5_surplus_wind_solar_over_load": {
       "file": "runs/x5_surplus_wind_solar_over_load.json",
-      "sha256": "08b0fbc93bf49caa39d56a4b1fd888afea8612b70e4930ec11c4a2a90ea779a2",
-      "bytes": 207887
+      "sha256": "7e47581f23444d6d8443c0103185658ea9a6b40be63b6ff3572a89387c0895ec",
+      "bytes": 207950
     },
     "x5_min_peak_perfect_foresight": {
       "file": "runs/x5_min_peak_perfect_foresight.json",
-      "sha256": "a124ed7ade186af6d25922cf0c72b64a6ccf15eaae7470ed616f01b95aeb54a5",
-      "bytes": 197543
+      "sha256": "14429e8fa741b089dc06a228be629a631a30bc8f07ed319b5fa8613d18cbb390",
+      "bytes": 205187
     },
     "x5_price_oriented_da_arbitrage": {
       "file": "runs/x5_price_oriented_da_arbitrage.json",
-      "sha256": "43591fe7b7df5c3125bc795f6598193f3419e2420d20722f40b6dc0940b8c394",
-      "bytes": 214215
+      "sha256": "63604d0e4f498477c7cd69d6948e03564f6dc5a2cdbe582f055dd130b34805fe",
+      "bytes": 214362
     },
     "x10_surplus_wind_solar_over_load": {
       "file": "runs/x10_surplus_wind_solar_over_load.json",
-      "sha256": "02b2e69fe0c3c3b3c9415b7aa3877f5ae13c1d54843dbf8395e69f6d57dbb7a7",
-      "bytes": 215693
+      "sha256": "0c4ee4098770716fdcdc25c931027b5b63e50f825914f012faae7c5a10bc4fc8",
+      "bytes": 216428
     },
     "x10_min_peak_perfect_foresight": {
       "file": "runs/x10_min_peak_perfect_foresight.json",
-      "sha256": "2fa761355884fdcafb0a98746f698f94c951b9c6f9471fca7c9f07b644f0016a",
-      "bytes": 207305
+      "sha256": "639c426ca09a0d69bba33190bfd94cdb0a96973e514f7ca4797dd26e31042c5e",
+      "bytes": 205689
     },
     "x10_price_oriented_da_arbitrage": {
       "file": "runs/x10_price_oriented_da_arbitrage.json",
-      "sha256": "9ad8758cfbbebdf30a4bbbb2dd2543aace47ec75339b79dee0c75c105ce0cd6e",
-      "bytes": 214464
+      "sha256": "b7e39d52e22e6bf16ec073703ffd94d01bdbd3f17ba8152f8227a932eb1da82c",
+      "bytes": 214600
     }
   }
 }

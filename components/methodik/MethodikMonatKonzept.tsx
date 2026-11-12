@@ -33,7 +33,8 @@ export function MethodikMonatKonzept() {
           Preisrückwirkung bei ×5/×10-Marktlinie.
         </li>
         <li>
-          Euro nur bei Markt ×1 als Modellschätzung (Day-Ahead-Arbitrage im Modell, ohne Entgelte/Degradation).
+          Euro nicht auf der Monatsseite. In der Methodik: heutige Flotte, marktgeführt, eine × zusätzlich (×2 im
+          Modell) ≈ 34,1&nbsp;Mio&nbsp;€ Modellschätzung (Day-Ahead, ohne Entgelte/Degradation).
         </li>
         <li>Quelle: Energy-Charts / Bundesnetzagentur | SMARD.de, CC BY 4.0. Oktober-Läufe: Bundle im Repo.</li>
       </ul>

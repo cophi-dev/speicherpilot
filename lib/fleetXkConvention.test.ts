@@ -2,9 +2,10 @@ import { additionalFleetAtFactor, FLEET_XK_FOOTNOTE_DE, totalFleetAtFactor } fro
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 
 describe("×k-Konvention (a)", () => {
-  it("×1 entspricht der Ist-Flotte", () => {
+  it("×1 = Ist ohne Zusatz im Modell", () => {
     expect(totalFleetAtFactor(1)).toEqual(NATIONAL_BASE_FLEET);
     expect(additionalFleetAtFactor(1).powerMw).toBe(0);
+    expect(additionalFleetAtFactor(1).energyMwh).toBe(0);
   });
 
   it("×k skaliert Gesamtflotte linear", () => {

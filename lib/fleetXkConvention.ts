@@ -1,8 +1,8 @@
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 
-/** ×k = k-mal die heutige Flotte insgesamt; ×1 = Ist-Zustand ((k−1) zusätzlich ab ×2). */
+/** ×k Anzeige = k-mal die heutige Flotte; im Modell zusätzlich (k−1)× Basis, ×1 = Ist ohne Zusatz. */
 export const FLEET_XK_FOOTNOTE_DE =
-  "×k = k-mal die heutige Flotte insgesamt; ×1 = beobachteter Ist-Zustand im Modell.";
+  "×k = k-mal die heutige Flotte insgesamt (Unterzeile); im Modell: Zusatzflotte = (k−1)× Basis, ×1 = beobachteter Ist-Zustand.";
 
 export function totalFleetAtFactor(factor: number): { powerMw: number; energyMwh: number } {
   return {

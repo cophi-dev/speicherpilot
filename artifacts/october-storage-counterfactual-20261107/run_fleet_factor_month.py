@@ -30,6 +30,11 @@ REF_RESIDUAL_PEAK_MW = 64405.9
 MONTH_SURPLUS_POOL_GWH = 134.241975
 
 FACTORS = (1, 2, 5, 10)
+
+
+def additional_units(factor: int) -> int:
+    """Konvention (a): ×k = k-mal Gesamtflotte sichtbar, Modell = (k−1)× Basis zusätzlich; ×1 = Ist (0 Zusatz)."""
+    return max(0, factor - 1)
 STRATEGIES = (
     "surplus_wind_solar_over_load",
     "min_peak_perfect_foresight",
@@ -205,11 +210,27 @@ def oct29_slice(rows: list[Row], c, d, e) -> list[dict]:
 
 def solve(rows: list[Row], factor: int, strategy: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
     n = len(rows)
-    p = BASE_POWER_MW * factor
-    e_nom = BASE_ENERGY_MWH * factor
+    add = additional_units(factor)
+    p = BASE_POWER_MW * add
+    e_nom = BASE_ENERGY_MWH * add
     residual = np.array([r.residual_mw for r in rows])
     surplus = np.array([r.surplus_mw for r in rows])
     prices = np.array([r.price_eur_mwh for r in rows])
+
+    if add == 0:
+        c = np.zeros(n)
+        d = np.zeros(n)
+        e = np.zeros(n + 1)
+        stats = dispatch_stats(rows, c, d, e, p, e_nom)
+        stats["factor"] = factor
+        stats["strategy"] = strategy
+        stats["p_mw"] = p
+        stats["e_nominal_mwh"] = e_nom
+        stats["peak_reduction_mw"] = 0.0
+        stats["peak_reduction_pct_of_ref_64405_9"] = 0.0
+        stats["surplus_pool_capture_share_of_134_241975_gwh"] = 0.0
+        stats["solver"] = {"noop": "observed baseline ×1"}
+        return c, d, e, stats
 
     if strategy == "surplus_wind_solar_over_load":
         m1 = MonthStorageMip(n, p, e_nom)
