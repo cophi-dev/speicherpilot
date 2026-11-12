@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import { BrandLockup } from "@/components/BrandLockup";
@@ -132,6 +133,37 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
     window.localStorage.setItem("speicherpilot-theme", themePref);
   }, [themePref, mounted]);
 
+  const handleThemeToggle = () => {
+    const currentlyDark = resolveTheme(themePref) === "dark";
+    const next = currentlyDark ? "light" : "dark";
+    const root = document.documentElement;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const apply = () => {
+      setThemePref(next);
+    };
+
+    if (reducedMotion) {
+      apply();
+      return;
+    }
+
+    root.classList.add("theme-color-transition");
+    const endTransition = () => {
+      root.classList.remove("theme-color-transition");
+    };
+    window.setTimeout(endTransition, 300);
+
+    const doc = document as Document & {
+      startViewTransition?: (callback: () => void) => { finished: Promise<void> };
+    };
+    if (typeof doc.startViewTransition === "function") {
+      doc.startViewTransition(apply);
+    } else {
+      apply();
+    }
+  };
+
   useEffect(() => {
     if (themePref !== "system") {
       return undefined;
@@ -210,9 +242,6 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
 
   const resolvedTheme = mounted ? resolveTheme(themePref) : "light";
   const themeIsDark = resolvedTheme === "dark";
-  const themeToggleLabel = themeIsDark
-    ? "Dunkle Darstellung aktiv – zu hell wechseln"
-    : "Helle Darstellung aktiv – zu dunkel wechseln";
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: () => {} }}>
@@ -253,20 +282,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
             </nav>
             ) : null}
             <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-current focus-visible:ring-2 focus-visible:ring-ring"
-                aria-pressed={mounted ? themeIsDark : undefined}
-                aria-label={mounted ? themeToggleLabel : "Darstellung"}
-                title="Helle oder dunkle Darstellung"
-                onClick={() => setThemePref(themeIsDark ? "light" : "dark")}
-              >
-                {themeIsDark ? (
-                  <Moon className="size-5" strokeWidth={1.5} aria-hidden />
-                ) : (
-                  <Sun className="size-5" strokeWidth={1.5} aria-hidden />
-                )}
-              </button>
+              <ThemeToggle isDark={themeIsDark} mounted={mounted} onToggle={handleThemeToggle} />
               <button
                 type="button"
                 className="inline-flex h-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"

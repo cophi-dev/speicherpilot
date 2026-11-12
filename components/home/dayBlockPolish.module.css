@@ -27,5 +27,5 @@
 
 :global(.v4-start) :global(.v4-chip),
 :global(.v4-start-day-section) {
-  font-size: 12px;
+  font-size: var(--type-12);
 }

@@ -25,12 +25,12 @@
 .axis,
 .unit {
   fill: var(--v4-muted, #5c5548);
-  font-size: 13px;
+  font-size: var(--type-14);
   font-variant-numeric: tabular-nums;
 }
 
 .unit {
-  font-size: 12px;
+  font-size: var(--type-12);
 }
 
 .line {
@@ -59,7 +59,7 @@
   margin-top: 8px;
   max-width: 68ch;
   color: hsl(var(--muted-foreground));
-  font-size: 13px;
+  font-size: var(--type-14);
   line-height: 1.4;
 }
 
