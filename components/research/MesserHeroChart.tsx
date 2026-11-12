@@ -281,7 +281,7 @@ export function MesserHeroChart({
             y={y + 4}
             textAnchor="end"
             fontSize={isOn ? 14 : 12}
-            fontWeight={isOn ? 700 : 500}
+            fontWeight={isOn ? 600 : 500}
             fill={isOn ? "var(--research-fg)" : "var(--research-muted)"}
             fontFamily="var(--font-jetbrains-mono)"
             style={{ pointerEvents: "none" }}

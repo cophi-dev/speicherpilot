@@ -260,7 +260,7 @@ function ChartGeometry({
         ) : null
       )}
       <path d={line} fill="none" className="stroke-load" strokeWidth={2.25} strokeLinejoin="miter" />
-      <text x={pad.l} y={18} className="fill-foreground" fontSize="13">
+      <text x={pad.l} y={18} className="fill-foreground" fontSize="12">
         {language === "de" ? "Residuallast" : "Residual load"}
       </text>
       <line x1={futureX} x2={futureX} y1={pad.t} y2={pad.t + plotH} className="jetzt-in stroke-foreground" strokeWidth={1} />
@@ -271,7 +271,7 @@ function ChartGeometry({
           y={pad.t + 18}
           textAnchor="middle"
           className="fill-background"
-          fontSize="10"
+          fontSize="12"
           fontFamily="var(--font-jetbrains), monospace"
         >
           {language === "de" ? "JETZT" : "NOW"}

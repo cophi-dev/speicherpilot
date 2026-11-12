@@ -70,7 +70,7 @@ export function StartKopf({
               {pointe.heroValue}
               <span className="v4-riesenzahl-unit">{pointe.heroUnit}</span>
             </p>
-            <div className="v4-kern-row num">
+            <div className="v4-kern-row">
               <span>{pointe.heroKern}</span>
             </div>
           </div>

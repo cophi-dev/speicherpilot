@@ -52,14 +52,14 @@
 .h2 {
   font-family: var(--font-heading), sans-serif;
   font-weight: 600;
-  font-size: clamp(1.35rem, 3vw, 1.5rem);
+  font-size: clamp(var(--type-18), 3vw, var(--type-24));
   line-height: 1.25;
   margin: 8px 0 12px;
   color: var(--research-fg);
 }
 
 .weekHeadline {
-  font-size: clamp(1.08rem, 4.2vw, 1.45rem);
+  font-size: clamp(var(--type-18), 4.2vw, var(--type-24));
   line-height: 1.32;
   max-width: 36em;
 }
@@ -87,6 +87,15 @@
   font-family: var(--font-jetbrains-mono), monospace;
   font-size: var(--type-12);
   color: var(--research-muted);
+}
+
+.prose {
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--type-14);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-regular);
+  color: var(--research-muted);
+  max-width: 42em;
 }
 
 .seg {

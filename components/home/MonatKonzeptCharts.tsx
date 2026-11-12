@@ -143,7 +143,7 @@ function PlacedSvgLabel({
           x={x0}
           dy={i === 0 ? 0 : lineHeights[i - 1]!}
           fontSize={line.fontSize}
-          fontWeight={line.bold ? 700 : 500}
+          fontWeight={line.bold ? 600 : 500}
           className={placed.id === "arbeit-markt-callout" && i === 0 ? styles.calloutGwLine : undefined}
         >
           {line.text}
@@ -557,7 +557,7 @@ function MobileArbeitPaths({
                       y={gwhRowY}
                       className={styles.xTick}
                       textAnchor={gwhAnchor}
-                      fontSize={10}
+                      fontSize={12}
                       data-mobile-gwh
                     >
                       {formatMobileChargeLabel(p.chargeGwh)}

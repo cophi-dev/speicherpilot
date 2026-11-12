@@ -142,6 +142,9 @@ body {
     --weight-regular: 400;
     --weight-medium: 500;
     --weight-semibold: 600;
+    --weight-hero-num: 500;
+    /* Fluid display: clamp-based hero KPI (not a fixed step; audit allows this token). */
+    --type-riesenzahl: clamp(3.25rem, 14vw, 9rem);
     --tracking-meta: 0.06em;
     --tracking-caps: 0.08em;
     --tracking-headline: -0.03em;
@@ -280,7 +283,7 @@ body {
     font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
     font-size: var(--type-hero);
     line-height: 0.9;
-    font-weight: 300;
+    font-weight: var(--weight-hero-num);
     letter-spacing: var(--tracking-headline);
     font-variant-numeric: tabular-nums lining-nums;
     font-feature-settings: "tnum" 1;
@@ -4545,7 +4548,15 @@ footer .site-fold a {
 .day-missing h1 { max-width: 16ch; }
 @media (min-width: 960px) { .day-missing-split { grid-template-columns: 280px minmax(0, 1fr); } }
 
-.methodik-hero h1 { max-width: 18ch; margin-top: 12px; font-size: var(--type-48); font-weight: 300; line-height: 1.1; }
+.methodik-hero h1 { max-width: 18ch; margin-top: 12px; font-size: var(--type-48); font-weight: var(--weight-regular); line-height: 1.1; }
+.methodik th,
+.methodik thead th {
+  font-weight: var(--weight-semibold);
+}
+.methodik strong,
+.methodik b {
+  font-weight: var(--weight-semibold);
+}
 .methodik-scales, .methodik-phases, .methodik-gauges { display: grid; gap: 16px; margin-top: 28px; max-width: 100%; }
 .methodik-scales { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .methodik-scales-placeholder {
@@ -4622,9 +4633,10 @@ footer .site-fold a {
 }
 .methodik-chapter-title {
   margin: 0;
-  font-size: clamp(22px, 3vw, 28px);
-  font-weight: 500;
+  font-size: clamp(var(--type-18), 3vw, var(--type-32));
+  font-weight: var(--weight-medium);
   line-height: 1.2;
+  font-family: var(--font-heading);
 }
 .methodik-chapter-lead {
   margin: 8px 0 0;
@@ -4830,7 +4842,7 @@ math mi {
     border-bottom: 1px solid rgb(20 24 28 / 12%);
   }
   .methodik-fit th[scope="row"] {
-    font-weight: 700;
+    font-weight: var(--weight-semibold);
     border-bottom: 0;
     padding-bottom: 4px;
   }
@@ -4850,7 +4862,7 @@ math mi {
 }
 .methodik th, .methodik td { padding: 8px 6px; border-bottom: 1px solid rgb(20 24 28 / 12%); text-align: left; overflow-wrap: anywhere; }
 .methodik-formula { margin: 0; padding: 16px 18px; background: #fff; border-left: 3px solid #1e9cb0; border-radius: 8px; }
-.methodik-formula math { font-family: var(--font-space-grotesk); font-weight: 300; font-size: var(--type-24); max-width: 100%; }
+.methodik-formula math { font-family: var(--font-space-grotesk); font-weight: var(--weight-regular); font-size: var(--type-24); max-width: 100%; }
 @media (max-width: 767px) { .methodik-formula math { font-size: var(--type-16); } }
 .methodik-formula mi { font-style: italic; }
 .methodik-formula figcaption { margin-top: 8px; color: #3c444c; font-size: var(--type-14); }
@@ -6218,7 +6230,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .live-stale {
   color: #8a4b00;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 .mix-board {
   --mix-lignite: #3a332e;
@@ -6304,7 +6316,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .mix-surplus-slider .day-slider-stops .is-current {
   color: #0a5c48;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -6803,7 +6815,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .uebersicht-insights { max-width: 72ch; margin: 12px 0 0; padding-left: 1.1rem; font-size: var(--type-16); line-height: 1.5; }
 .uebersicht-insights a { text-underline-offset: 3px; }
 .site-netz-principle { max-width: 62ch; margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid #0e9a72; font-size: var(--type-16); line-height: 1.5; }
-.beitraege-section-title { font-size: clamp(22px, 3vw, 28px); font-weight: 300; margin: 32px 0 16px; }
+.beitraege-section-title { font-size: clamp(var(--type-18), 3vw, var(--type-32)); font-weight: var(--weight-semibold); margin: 32px 0 16px; font-family: var(--font-heading); }
 .beitraege-extern { margin-top: 48px; padding-top: 8px; border-top: 1px solid hsl(var(--border)); }
 .day-slider-block { min-height: 72px; }
 .day-slider input[type="range"] { min-height: 44px; }
@@ -6902,14 +6914,14 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .v4-h1 {
   font-family: var(--font-heading);
-  font-weight: 300;
-  font-size: clamp(1.75rem, 3.2vw, 2.75rem);
+  font-weight: var(--weight-regular);
+  font-size: clamp(var(--type-24), 3.2vw, var(--type-48));
   line-height: 1.15;
   max-width: 22ch;
   margin-bottom: 0.75rem;
 }
 .v4-subline {
-  font-size: 0.95rem;
+  font-size: var(--type-14);
   line-height: 1.5;
   color: hsl(var(--muted-foreground));
   max-width: 48ch;
@@ -6928,10 +6940,12 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .v4-riesenzahl {
   font-family: var(--font-space-grotesk), sans-serif;
-  font-weight: 300;
-  font-size: clamp(4rem, 14vw, 9rem);
+  font-weight: var(--weight-hero-num);
+  font-size: var(--type-riesenzahl);
   line-height: 0.9;
   letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
 }
 .v4-riesenzahl-unit {
   font-size: 0.22em;
@@ -6981,7 +6995,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   margin-top: 1.5rem;
 }
 .v4-text-link {
-  font-size: 0.9rem;
+  font-size: var(--type-14);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -7141,13 +7155,13 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 
 .v4-riesenzahl {
-  --v4-ries-max: 360px;
+  --v4-ries-max: 22.5rem;
   --v4-ries-ch: 6;
   font-family: var(--font-space-grotesk), sans-serif;
-  font-weight: 300;
+  font-weight: var(--weight-hero-num);
   font-size: clamp(
     4.5rem,
-    calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 28px),
+    calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 1.75rem),
     var(--v4-ries-max)
   );
   line-height: 0.74;
@@ -7156,10 +7170,10 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 @media (max-width: 767px) {
   .v4-riesenzahl {
-    --v4-ries-max: 136px;
+    --v4-ries-max: 8.5rem;
     font-size: clamp(
       3.25rem,
-      calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 12px),
+      calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 0.75rem),
       var(--v4-ries-max)
     );
   }
@@ -7188,9 +7202,12 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem 1rem;
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   font-size: var(--type-14);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  line-height: var(--lh-body);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0.02em;
+  text-transform: none;
   color: hsl(var(--muted-foreground));
   margin-top: 0.75rem;
 }
@@ -7262,14 +7279,19 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .v4-tag-kern {
   font-family: var(--font-space-grotesk), sans-serif;
-  font-weight: 300;
+  font-weight: var(--weight-hero-num);
   font-size: clamp(3.25rem, 9vw, 6rem);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
   line-height: 0.9;
   letter-spacing: -0.05em;
   margin-bottom: 0.5rem;
 }
 .v4-tag-side {
-  font-size: var(--type-18);
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--type-14);
+  line-height: var(--lh-body);
+  font-weight: var(--weight-regular);
   color: hsl(var(--muted-foreground));
   max-width: 480px;
   margin-bottom: 1rem;
@@ -7734,7 +7756,7 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 .v4-luecke-peak-value {
   font-family: var(--font-space-grotesk), sans-serif;
   font-size: var(--type-display);
-  font-weight: 300;
+  font-weight: var(--weight-hero-num);
   fill: hsl(var(--foreground));
 }
 .v4-luecke-peak-caption {
@@ -8742,8 +8764,8 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 .v4-subpage .blog-hero h1,
 .v4-subpage .legal-doc h1 {
   font-family: var(--font-space-grotesk), sans-serif;
-  font-weight: 400;
-  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: var(--weight-regular);
+  font-size: clamp(var(--type-24), 5vw, var(--type-48));
   line-height: 1.08;
   letter-spacing: -0.02em;
   max-width: 900px;
@@ -9394,6 +9416,23 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   }
 }
 
+.methodik-v4 h1,
+.methodik-v4 h2,
+.methodik-v4 h3,
+.methodik-v4 h4 {
+  font-family: var(--font-heading);
+}
+.methodik-v4 h1 {
+  font-weight: var(--weight-regular);
+}
+.methodik-v4 h2,
+.methodik-v4 h3 {
+  font-weight: var(--weight-semibold);
+}
+.methodik-v4 th {
+  font-weight: var(--weight-semibold);
+}
+
 .methodik-v4 .methodik-hero-copy {
   grid-area: hero;
 }
@@ -9474,14 +9513,14 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 
 .v4-chapter-next-link {
   font-family: var(--font-space-grotesk), ui-sans-serif, sans-serif;
-  font-size: 1rem;
+  font-size: var(--type-16);
   color: hsl(var(--foreground));
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 .v4-chapter-foot .v4-chapter-next-link {
-  font-size: 1.05rem;
+  font-size: var(--type-16);
 }
 
 .v4-subpage .blog-figure-title img {
@@ -10842,6 +10881,11 @@ table.sr-only-focusable:focus-within {
       border-color 250ms ease,
       fill 250ms ease,
       stroke 250ms ease;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 250ms;
   }
 }
 
