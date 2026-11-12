@@ -6,7 +6,10 @@ export function simulatorPalette(dark: boolean) {
         muted: "#9EA3A9",
         grid: "#1F2529",
         flaeche: "#121417",
+        bg: "#0B0D0F",
         rust: "#B4532A",
+        rustTint: "rgba(180, 83, 42, 0.20)",
+        inkTint: "rgba(233, 238, 242, 0.12)",
         winWin: "#6FBF93",
         neutral: "#2A2E32",
         konfliktSchwach: "#8B5A1A",
@@ -18,7 +21,10 @@ export function simulatorPalette(dark: boolean) {
         muted: "#43474C",
         grid: "#E4E4DC",
         flaeche: "#FFFFFF",
+        bg: "#F6F6F3",
         rust: "#B4532A",
+        rustTint: "rgba(180, 83, 42, 0.10)",
+        inkTint: "rgba(16, 18, 20, 0.10)",
         winWin: "#1B6B45",
         neutral: "#D5D5CD",
         konfliktSchwach: "#C9A46A",
@@ -26,3 +32,5 @@ export function simulatorPalette(dark: boolean) {
         field70: "rgba(27,107,69,0.10)",
       };
 }
+
+export type SimulatorPalette = ReturnType<typeof simulatorPalette>;

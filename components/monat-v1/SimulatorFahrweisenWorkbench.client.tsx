@@ -4,6 +4,7 @@ import styles from "@/components/monat-v1/monat-v1.module.css";
 import simStyles from "@/components/monat-v1/simulator-fahrweisen.module.css";
 import { SimulatorParetoSection } from "@/components/monat-v1/SimulatorParetoSection.client";
 import { SimulatorTagesSection } from "@/components/monat-v1/SimulatorTagesSection.client";
+import { SimulatorBeispieltageSection } from "@/components/monat-v1/SimulatorBeispieltageSection.client";
 import { SimulatorFnavSection } from "@/components/monat-v1/SimulatorFnavSection.client";
 import type { SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
 
@@ -16,6 +17,7 @@ export function SimulatorFahrweisenWorkbench({ data }: { data: SimulatorFahrweis
       </div>
       <SimulatorParetoSection data={data} />
       <SimulatorTagesSection data={data} />
+      <SimulatorBeispieltageSection data={data} />
       <SimulatorFnavSection data={data} />
       <LegalBox />
     </div>
