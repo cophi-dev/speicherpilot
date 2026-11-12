@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { chromium } from "playwright";
 
 const base = process.env.BASE_URL ?? "http://127.0.0.1:3000";
-const out = join(process.cwd(), "/opt/cursor/artifacts");
+const out = "/opt/cursor/artifacts";
 mkdirSync(out, { recursive: true });
 
 const shots = [
