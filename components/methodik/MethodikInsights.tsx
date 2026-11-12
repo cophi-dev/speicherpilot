@@ -80,11 +80,11 @@ const RULES = [
     id: "insight-drei-ziele",
     title: "Drei Ziele, ein Monat",
     bullets: [
-      "Formel: Oktober-Lauf ×1; Markt-Ladung > 5 × Spitze-Ladung und Markt-Spitzenreduktion < 1 GW.",
+      "Formel: Oktober-Lauf ×2 (heutige Flotte + eine weitere); Markt-Ladung > 5 × Spitze-Ladung und Markt-Spitzenreduktion < 1 GW.",
       "Daten: fleet-month-meta.json, Strategien Differenz / Spitze / Markt.",
       "Quelle: Vorberechneter Monatslauf 4,64 GW / 8,15 GWh.",
-      "Gegenrechnung: Markt 485,45 GWh, Spitze 12,49 GWh, Senkung Markt 0,37 GW.",
-      "Grenzfall: Chart zeigt alle Faktoren; Regel-Satz nur bei ×1-Gate.",
+      "Gegenrechnung, heutige Flotte + eine weitere (×2): Markt 485,45 GWh, Spitze 12,49 GWh, Senkung Markt 0,37 GW.",
+      "Grenzfall: Chart zeigt alle Faktoren; Regel-Satz nur bei ×2 (heutige Flotte + eine weitere).",
     ],
   },
   {

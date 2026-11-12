@@ -173,7 +173,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
                 y={vb.T + plotH + 16}
                 textAnchor="middle"
                 fill="var(--mv-ink)"
-                fontWeight={f === 3 ? 500 : 400}
+                fontWeight={400}
               >
                 ×{f}
               </text>
@@ -240,6 +240,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         />
         {marktPts
           .filter((pt) => pt.f > 1.05)
+          .filter((pt) => wide || Math.abs(pt.f - kipF) > 0.05)
           .map((pt) => (
             <circle
               key={`m-${pt.f}`}
@@ -251,6 +252,20 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               strokeWidth="1.75"
             />
           ))}
+        {wide ? (
+          <text
+            x={kipX}
+            y={refY + 12}
+            textAnchor="middle"
+            fill="var(--mv-muted)"
+            stroke="var(--mv-flaeche, #fff)"
+            strokeWidth="3"
+            paintOrder="stroke"
+            fontSize="10"
+          >
+            Kipppunkt ≈×{String(kipF).replace(".", ",")}
+          </text>
+        ) : null}
         <text
           x={wide ? lastSpitze.x + 12 : lastSpitze.x - 8}
           y={lastSpitze.y + 4}
