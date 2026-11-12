@@ -87,7 +87,7 @@
 
 .title {
   margin: 0;
-  font-weight: 300;
+  font-weight: 400;
   font-size: clamp(30px, 4vw, 44px);
   line-height: 1.12;
   letter-spacing: -0.02em;
@@ -444,7 +444,7 @@
 .howto dt {
   margin-top: 8px;
   font-size: var(--type-16);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
   color: #e1e6ea;
 }
@@ -493,7 +493,7 @@
 
 .lineTitle {
   margin: 0 0 8px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lineNote p:last-child {

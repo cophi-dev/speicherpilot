@@ -179,7 +179,7 @@
 .dauerHeroGw {
   font-family: var(--font-jetbrains-mono, var(--font-mono));
   font-size: var(--type-48);
-  font-weight: 700;
+  font-weight: 600;
   fill: hsl(var(--foreground));
 }
 
@@ -295,7 +295,7 @@
 .fleetAsideTitle {
   margin: 0 0 8px;
   font-size: var(--type-12);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--v4-muted);
