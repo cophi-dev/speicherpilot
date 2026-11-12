@@ -14,10 +14,10 @@
 
 :global(html.dark) .page {
   background: var(--research-bg);
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  padding-left: max(20px, calc(50vw - 680px));
-  padding-right: max(20px, calc(50vw - 680px));
+  /* Vollflächig ohne 100vw: vw zählt die Scrollleiste mit und verschob den Inhalt beim Umschalten. */
+  max-width: none;
+  padding-left: max(20px, calc(50% - 660px));
+  padding-right: max(20px, calc(50% - 660px));
 }
 
 :global(html:not(.dark)) .page {
