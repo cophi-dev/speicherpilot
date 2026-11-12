@@ -31,8 +31,8 @@ type BrandLockupProps = {
 };
 
 /**
- * Approved Logo-C lockup. The two theme files stay separate documents so their
- * gradient ids never collide. Which one is visible is decided in CSS: `.dark`
+ * Approved Logo-C lockup. The two theme files stay separate documents (rost signet
+ * on light, paper signet on dark). Which one is visible is decided in CSS: `.dark`
  * shows the dark-background file, including while the header sits on a dark hero.
  */
 export function BrandLockup({ height = HEADER_LOCKUP_HEIGHT }: BrandLockupProps) {
