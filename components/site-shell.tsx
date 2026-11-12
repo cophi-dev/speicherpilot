@@ -11,6 +11,13 @@ import { NavigationProgress } from "@/components/NavigationProgress";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
 
 import type { NavShortcuts } from "@/lib/navShortcuts.server";
+import {
+  isSiteMainNavActive,
+  isSiteMobileExtraNavActive,
+  SITE_MAIN_NAV,
+  SITE_MOBILE_EXTRA_NAV,
+  type SiteMainNavHref,
+} from "@/lib/siteNav";
 
 type SiteShellProps = {
   children: React.ReactNode;
@@ -18,16 +25,6 @@ type SiteShellProps = {
 };
 
 type ThemePreference = "light" | "dark" | "system";
-
-const NAV = [
-  { href: "/", label: "Gestern" },
-  { href: "/vision", label: "Vision" },
-  { href: "/tag", label: "Tag" },
-  { href: "/monat", label: "Monat" },
-  { href: "/ort", label: "Ort" },
-  { href: "/methodik", label: "Methodik" },
-  { href: "/beitraege", label: "Beiträge" },
-] as const;
 
 function resolveTheme(pref: ThemePreference): "light" | "dark" {
   if (pref === "system") {
@@ -51,7 +48,7 @@ function readThemePreferenceFromStorage(): ThemePreference {
   return "system";
 }
 
-function navItemHref(item: (typeof NAV)[number], navShortcuts: NavShortcuts): string {
+function navItemHref(item: (typeof SITE_MAIN_NAV)[number], navShortcuts: NavShortcuts): string {
   if (item.href === "/tag") {
     return navShortcuts.tagHref;
   }
@@ -59,6 +56,18 @@ function navItemHref(item: (typeof NAV)[number], navShortcuts: NavShortcuts): st
     return navShortcuts.monatHref;
   }
   return item.href;
+}
+
+function mainNavLinkClass(active: boolean) {
+  return active
+    ? "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 font-semibold text-[var(--v4-warm)]"
+    : "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 text-muted-foreground hover:text-foreground";
+}
+
+function mobileNavLinkClass(active: boolean) {
+  return `inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring ${
+    active ? "font-semibold text-[var(--v4-warm)]" : "text-foreground"
+  }`;
 }
 
 export function SiteShell({ children, navShortcuts }: SiteShellProps) {
@@ -69,6 +78,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
   const language: AppLanguage = "de";
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLgNav, setIsLgNav] = useState(false);
+  const [locationHash, setLocationHash] = useState("");
   const nightHero = pathname === "/" || pathname.startsWith("/tag");
   const [overHero, setOverHero] = useState(nightHero);
   const [atTop, setAtTop] = useState(true);
@@ -91,10 +101,17 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
     if (!mounted) {
       return;
     }
-    for (const item of NAV) {
+    for (const item of SITE_MAIN_NAV) {
       router.prefetch(navItemHref(item, navShortcuts));
     }
   }, [mounted, router, pathname, navShortcuts]);
+
+  useEffect(() => {
+    const syncHash = () => setLocationHash(window.location.hash);
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [pathname]);
 
   useLayoutEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -192,6 +209,10 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
   }, [nightHero, pathname]);
 
   const resolvedTheme = mounted ? resolveTheme(themePref) : "light";
+  const themeIsDark = resolvedTheme === "dark";
+  const themeToggleLabel = themeIsDark
+    ? "Dunkle Darstellung aktiv – zu hell wechseln"
+    : "Helle Darstellung aktiv – zu dunkel wechseln";
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: () => {} }}>
@@ -214,22 +235,15 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
               className="flex min-h-6 min-w-0 items-center gap-5 text-sm font-medium"
               aria-label="Hauptnavigation"
             >
-              {NAV.map((item) => {
+              {SITE_MAIN_NAV.map((item) => {
                 const href = navItemHref(item, navShortcuts);
-                const active =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : item.href === "/tag"
-                      ? pathname.startsWith("/tag")
-                      : item.href === "/monat"
-                        ? pathname.startsWith("/monat")
-                        : pathname.startsWith(item.href);
+                const active = isSiteMainNavActive(pathname, item.href as SiteMainNavHref);
                 return (
                   <Link
                     key={item.href}
                     href={href}
                     prefetch
-                    className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 ${active ? "font-semibold text-[var(--v4-warm)]" : "text-muted-foreground hover:text-foreground"}`}
+                    className={mainNavLinkClass(active)}
                     aria-current={active ? "page" : undefined}
                   >
                     {item.label}
@@ -242,14 +256,15 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
               <button
                 type="button"
                 className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-current focus-visible:ring-2 focus-visible:ring-ring"
-                aria-pressed={mounted ? resolvedTheme === "dark" : undefined}
-                aria-label="Darstellung"
-                onClick={() => setThemePref(resolvedTheme === "dark" ? "light" : "dark")}
+                aria-pressed={mounted ? themeIsDark : undefined}
+                aria-label={mounted ? themeToggleLabel : "Darstellung"}
+                title="Helle oder dunkle Darstellung"
+                onClick={() => setThemePref(themeIsDark ? "light" : "dark")}
               >
-                {resolvedTheme === "dark" ? (
-                  <Sun className="size-5" strokeWidth={1.5} aria-hidden />
-                ) : (
+                {themeIsDark ? (
                   <Moon className="size-5" strokeWidth={1.5} aria-hidden />
+                ) : (
+                  <Sun className="size-5" strokeWidth={1.5} aria-hidden />
                 )}
               </button>
               <button
@@ -267,17 +282,37 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
           {menuOpen ? (
             <div className="border-t border-border bg-card px-5 py-4 md:px-8 lg:hidden">
               <nav id="site-mobile-nav" className="flex flex-col gap-1 text-sm font-medium" aria-label="Hauptnavigation">
-                {NAV.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={navItemHref(item, navShortcuts)}
-                    prefetch
-                    className="inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {SITE_MAIN_NAV.map((item) => {
+                  const href = navItemHref(item, navShortcuts);
+                  const active = isSiteMainNavActive(pathname, item.href as SiteMainNavHref);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={href}
+                      prefetch
+                      className={mobileNavLinkClass(active)}
+                      aria-current={active ? "page" : undefined}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+                {SITE_MOBILE_EXTRA_NAV.map((item) => {
+                  const active = isSiteMobileExtraNavActive(pathname, item.href, locationHash);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      prefetch
+                      className={mobileNavLinkClass(active)}
+                      aria-current={active ? "page" : undefined}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
           ) : null}

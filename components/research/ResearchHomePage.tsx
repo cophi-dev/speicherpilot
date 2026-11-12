@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import styles from "@/components/research/research.module.css";
 import { SaturationChart, WeekDotsChart } from "@/components/research/charts";
 import { MesserHeroChart } from "@/components/research/MesserHeroChart";
-import { ResearchSubnav } from "@/components/research/ResearchSubnav";
 import { useResearchLayout } from "@/components/research/useResearchLayout";
 import type { ResearchFactor, ResearchHomeModel } from "@/lib/research/researchTypes";
 import {
@@ -61,7 +60,6 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
 
   return (
     <div className={styles.page}>
-      <ResearchSubnav active="gestern" />
       <header className={styles.heroRow}>
         <div>
           <p className={styles.eyebrow}>{researchDayEyebrow(model.day, model.dayPerspective)}</p>

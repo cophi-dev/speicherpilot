@@ -7,7 +7,6 @@ import { useState } from "react";
 import styles from "@/components/research/research.module.css";
 import { useResearchLayout } from "@/components/research/useResearchLayout";
 import { VisionPlot } from "@/components/research/VisionPlot";
-import { ResearchSubnav } from "@/components/research/ResearchSubnav";
 import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
 import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
@@ -43,7 +42,6 @@ export function VisionPage({ model }: { model: VisionPageModel }) {
 
   return (
     <div className={styles.page}>
-      <ResearchSubnav active="vision" />
       <p className={styles.eyebrow}>VISION · {model.monthLabel.toUpperCase()} · MONATSHORIZONT</p>
       <h1 className={styles.h1}>Mehr Gigawatt helfen. Mehr Stunden helfen mehr.</h1>
 

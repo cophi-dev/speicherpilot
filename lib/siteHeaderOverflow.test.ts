@@ -16,7 +16,9 @@ describe("site header layout", () => {
     expect(src).toMatch(/matchMedia\("\(min-width: 1024px\)"\)/);
     expect(src).toMatch(/isLgNav[\s\S]*id="site-desktop-nav"[\s\S]*aria-label="Hauptnavigation"/);
     expect(src).toMatch(/whitespace-nowrap/);
-    expect(src).toMatch(/label: "Monat"/);
+    expect(src).toMatch(/SITE_MAIN_NAV/);
+    const navSrc = readFileSync(join(process.cwd(), "lib/siteNav.ts"), "utf8");
+    expect(navSrc).toMatch(/label: "Monat"/);
     expect(src).toMatch(/lg:hidden[\s\S]*aria-expanded=\{menuOpen\}/);
   });
 });

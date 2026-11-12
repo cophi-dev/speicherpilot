@@ -35,14 +35,14 @@
 
 .line {
   fill: none;
-  stroke: var(--v4-warm, #b3361a);
+  stroke: var(--v4-warm);
   stroke-width: 1.75;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .mark {
-  fill: var(--v4-warm, #b3361a);
+  fill: var(--v4-warm);
 }
 
 .zero {
