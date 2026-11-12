@@ -92,6 +92,60 @@ export function layoutChartLabels(labels: ChartLabel[], frame: LabelFrame): Plac
 }
 
 /** Clamp a single annotation so its estimated box stays inside horizontal plot bounds. */
+export type PeakPointLabelPlacement = PlacedLabel & { above: boolean };
+
+const PEAK_LABEL_GAP_ABOVE = 10;
+const PEAK_LABEL_GAP_BELOW = 14;
+/** Past end-anchored y-tick numbers at x≈32. */
+const Y_TICK_LABEL_MAX_X = 46;
+
+/**
+ * Peak marker callout: default above the point (legacy Messer layout), clamped into the plot,
+ * flipped below when the box would hit the top y-tick band or plot top.
+ */
+export function placePeakPointLabel(params: {
+  pointX: number;
+  pointY: number;
+  text: string;
+  plotLeft: number;
+  plotRight: number;
+  plotTop: number;
+  /** Baseline of the highest y-axis tick label (collision band on the left). */
+  topTickLabelBaselineY?: number;
+  gapAbove?: number;
+  gapBelow?: number;
+}): PeakPointLabelPlacement {
+  const gapAbove = params.gapAbove ?? PEAK_LABEL_GAP_ABOVE;
+  const gapBelow = params.gapBelow ?? PEAK_LABEL_GAP_BELOW;
+  const anchor: LabelAnchor = "end";
+  const x0 = params.pointX - 4;
+
+  const labelCollidesTopBand = (placed: PlacedLabel) => {
+    const box = labelBox(placed.x, placed.y, placed.anchor, params.text);
+    if (box.top < params.plotTop) {
+      return true;
+    }
+    if (params.pointY - gapAbove - ASCENT < params.plotTop) {
+      return true;
+    }
+    if (params.topTickLabelBaselineY != null && box.left < Y_TICK_LABEL_MAX_X) {
+      const tickTop = params.topTickLabelBaselineY - ASCENT;
+      return box.top < tickTop + GAP;
+    }
+    return false;
+  };
+
+  const aboveY = params.pointY - gapAbove;
+  const belowY = params.pointY + gapBelow;
+  let placed = clampChartAnnotationInPlot(x0, aboveY, anchor, params.text, params.plotLeft, params.plotRight);
+  let above = true;
+  if (labelCollidesTopBand(placed)) {
+    above = false;
+    placed = clampChartAnnotationInPlot(x0, belowY, anchor, params.text, params.plotLeft, params.plotRight);
+  }
+  return { ...placed, above };
+}
+
 export function clampChartAnnotationInPlot(
   x: number,
   y: number,

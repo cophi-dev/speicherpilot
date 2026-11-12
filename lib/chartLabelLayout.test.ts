@@ -1,4 +1,4 @@
-import { labelBox, layoutChartLabels } from "@/lib/chartLabelLayout";
+import { labelBox, layoutChartLabels, placePeakPointLabel } from "@/lib/chartLabelLayout";
 
 function overlaps(
   a: { left: number; right: number; top: number; bottom: number },
@@ -37,5 +37,38 @@ describe("chart label layout", () => {
     expect(overlaps(boxes[0], boxes[1])).toBe(false);
     expect(overlaps(boxes[0], boxes[2])).toBe(false);
     expect(overlaps(boxes[1], boxes[2])).toBe(false);
+  });
+
+  it("keeps morning peak labels off the left y ticks on a narrow plot", () => {
+    const text = "68,24 GW · 07:45";
+    const placed = placePeakPointLabel({
+      pointX: 143,
+      pointY: 38,
+      text,
+      plotLeft: 40,
+      plotRight: 302,
+      plotTop: 26,
+      topTickLabelBaselineY: 30,
+    });
+    const box = labelBox(placed.x, placed.y, placed.anchor, text);
+    expect(box.left).toBeGreaterThanOrEqual(40 - 0.01);
+    expect(box.right).toBeLessThanOrEqual(302 + 0.01);
+  });
+
+  it("preserves legacy above placement for an evening peak on a wide plot", () => {
+    const text = "14,73 GW · 17:45";
+    const placed = placePeakPointLabel({
+      pointX: 920,
+      pointY: 210,
+      text,
+      plotLeft: 40,
+      plotRight: 1232,
+      plotTop: 26,
+      topTickLabelBaselineY: 30,
+    });
+    expect(placed.above).toBe(true);
+    expect(placed.anchor).toBe("end");
+    expect(placed.x).toBeCloseTo(916, 0);
+    expect(placed.y).toBeCloseTo(200, 0);
   });
 });
