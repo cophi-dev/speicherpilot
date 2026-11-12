@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="de" class="">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1280"/>
+<title>Überschuss allein trägt nicht · Vorentwurf</title>
+<style>
+@font-face{font-family:'Space Grotesk';src:url('file:///usr/share/fonts/truetype/sand-box/google/Space Grotesk/SpaceGrotesk-VariableFont_wght.ttf') format('truetype');font-weight:300 700;font-style:normal;font-display:block}
+@font-face{font-family:'JetBrains Mono';src:url('file:///usr/share/fonts/truetype/sand-box/google/JetBrains Mono/JetBrainsMono-VariableFont_wght.ttf') format('truetype');font-weight:100 800;font-style:normal;font-display:block}
+:root{
+  --bg:#F6F6F3;--ink:#101214;--muted:#43474C;--linie:#DADAD3;--flaeche:#FFFFFF;
+  --gridline:#E4E4DC;--rust:#B4532A;--rust-tint:rgba(180,83,42,.10);--rust-hatch:rgba(180,83,42,.18);
+  --type-12:0.75rem;--type-14:0.875rem;--type-16:1rem;--type-18:1.125rem;
+  --type-24:1.5rem;--type-32:2rem;--type-48:3rem;--type-display:3.5rem;
+  --lh-body:1.55;--lh-heading:1.15;--lh-tight:1.1;--lh-meta:1.5;
+  --weight-regular:400;--weight-medium:500;--weight-semibold:600;
+  --tracking-caps:.08em;--tracking-headline:-.03em;--tracking-title:-.02em;--tracking-meta:.06em;
+  --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.25rem;
+  --space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;--space-12:3rem;
+}
+.dark{
+  --bg:#0B0D0F;--ink:#E9EEF2;--muted:#9EA3A9;--linie:#262B31;--flaeche:#121417;
+  --gridline:#1F2529;--rust:#B4532A;--rust-tint:rgba(180,83,42,.20);--rust-hatch:rgba(180,83,42,.32);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Space Grotesk',sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+body{overflow-x:visible}
+.mono,.num,table,figcaption,svg text{font-family:'JetBrains Mono',ui-monospace,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'kern' 1}
+.wrap{margin:0 auto;padding:0 20px}
+body.w390 .wrap{width:390px;padding:0 20px}
+body.w1280 .wrap{width:1280px;padding:0 64px}
+.nav{display:flex;justify-content:space-between;align-items:center;height:56px;
+  border-bottom:1px solid var(--linie);padding:0;position:relative}
+body.w390 .nav-inner,body.w1280 .nav-inner{display:flex;justify-content:space-between;align-items:center;height:56px}
+.nav b{font-weight:600;font-size:var(--type-16);letter-spacing:-.01em}
+.nav .page{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);font-weight:500;
+  letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--ink);
+  border-bottom:2px solid var(--rust);padding:16px 0 14px}
+.eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:16px}
+.eb-text{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);font-weight:500;
+  letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--muted);line-height:var(--lh-meta)}
+.chip{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);font-weight:500;
+  letter-spacing:var(--tracking-caps);text-transform:uppercase;line-height:1;
+  border:1px solid var(--linie);border-radius:4px;padding:6px 8px;color:var(--ink);background:transparent}
+.chip-model{border-color:var(--ink)}
+.chip-ph{color:var(--muted)}
+h1{font-weight:600;letter-spacing:var(--tracking-headline);line-height:var(--lh-heading);margin-top:12px;max-width:20ch}
+body.w390 h1{font-size:var(--type-32)}
+body.w1280 h1{font-size:var(--type-48);max-width:28ch;margin-top:16px}
+h2{font-weight:600;letter-spacing:var(--tracking-title);line-height:var(--lh-heading);margin-top:0;max-width:24ch}
+body.w390 h2{font-size:var(--type-24)}
+body.w1280 h2{font-size:var(--type-32)}
+.lead{font-size:var(--type-16);font-weight:400;line-height:var(--lh-body);margin-top:12px;max-width:52ch;color:var(--ink)}
+body.w1280 .lead{font-size:var(--type-18);margin-top:16px}
+.insight{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 8px;padding:12px 0;
+  border-top:1px solid var(--linie);border-bottom:1px solid var(--linie)}
+.insight .fig{font-family:'JetBrains Mono',monospace;font-weight:500;font-variant-numeric:tabular-nums;
+  font-size:var(--type-24);line-height:var(--lh-tight);letter-spacing:var(--tracking-title)}
+body.w1280 .insight .fig{font-size:var(--type-32)}
+.insight .lbl{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);
+  margin-top:6px;line-height:var(--lh-meta)}
+figure{margin:16px 0 0}
+svg{display:block;width:100%;height:auto}
+.val{margin-top:16px;width:100%;border-collapse:collapse;font-size:var(--type-12);line-height:1.45}
+.val th,.val td{padding:8px 10px 8px 0;text-align:left;vertical-align:top;font-weight:400;color:var(--ink)}
+.val th{color:var(--muted);font-weight:500;border-bottom:1px solid var(--linie)}
+.val td{border-bottom:1px solid var(--linie)}
+.val th:not(:first-child),.val td:not(:first-child){text-align:right;padding-right:0;padding-left:10px}
+.val .ph{color:var(--muted)}
+.val .note{color:var(--muted);font-weight:400;display:block;margin-top:2px}
+.val caption{caption-side:bottom;text-align:left;color:var(--muted);font-size:var(--type-12);
+  padding-top:8px;font-weight:400;letter-spacing:0;text-transform:none}
+.val .hi{background:var(--rust-tint)}
+.disclaimer{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);
+  margin-top:12px;line-height:var(--lh-meta)}
+.section{border-top:1px solid var(--linie);margin-top:48px;padding-top:32px}
+body.w1280 .section{margin-top:64px;padding-top:48px}
+.sec-head{margin-bottom:8px}
+footer.site{margin-top:64px;padding:24px 0 40px;border-top:1px solid var(--linie);
+  font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);line-height:var(--lh-meta)}
+footer.site p+p{margin-top:8px}
+.ph-banner{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);
+  margin-top:6px;line-height:var(--lh-meta)}
+/* isolate cards */
+body.isolate{}
+body.isolate .wrap{padding-top:20px;padding-bottom:28px}
+body.w1280.isolate .wrap{padding-top:32px;padding-bottom:40px}
+body.uebersicht .wrap{padding-bottom:48px}
+.uv-head{margin-top:24px;margin-bottom:8px}
+.uv-grid{display:block}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+a{color:var(--ink);text-decoration:none}
+</style>
+</head>
+<body class="w1280  isolate" style="width:1280px">
+
+<div class="wrap">
+  <p class="eb-text" style="margin:0">SpeicherPilot /monat · Vorentwurf</p>
+  
+<section id="ueberschuss" aria-labelledby="h-ueber">
+  
+<div class="sec-head">
+  <p class="eb-text" style="margin:0">Kernantwort 4</p>
+  <h2>Überschuss allein trägt nicht.</h2>
+  <p class="lead">×10 nimmt den ganzen Oktober-Pool auf. Die Spitze sinkt trotzdem nur etwa halb so weit wie mit derselben Flotte spitzenorientiert.</p>
+</div>
+
+  <figure>
+    <svg viewBox="0 0 1152 384" width="1152" height="384" role="img" aria-labelledby="g4b-w-t g4b-w-d" xmlns="http://www.w3.org/2000/svg"><title id="g4b-w-t">Aufnahme aus dem Oktober-Überschusspool und Spitzensenkung (Beispielwerte)</title><desc id="g4b-w-d">Der Balken Pool 134,2 Gigawattstunden ist bei mal 10 voll. Die Spitze sinkt dabei nur um 7,91 Gigawatt, gegenüber 14,63 Gigawatt spitzenorientiert. Alle Zahlen sind Platzhalter.</desc>
+<text x="72.0" y="18.0" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--muted)" font-variant-numeric="tabular-nums">Pool 134,2 GWh</text>
+<text x="624.0" y="18.0" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--muted)" font-variant-numeric="tabular-nums">sinkt um</text>
+<line x1="72" x2="592" y1="32" y2="32" stroke="var(--linie)" stroke-width="1"/>
+<text x="64.0" y="57.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">×1</text>
+<rect x="72" y="44" width="520" height="18" fill="var(--linie)" rx="1"/>
+<rect x="72" y="44" width="218.4" height="18" fill="var(--ink)" rx="1"/>
+<text x="284.4" y="57.5" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--bg)" font-variant-numeric="tabular-nums">42 %</text>
+<text x="624.0" y="57.5" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−2,24 GW</text>
+<rect x="748" y="46" width="240" height="14" fill="var(--linie)" rx="1"/>
+<rect x="748" y="46" width="33.6" height="14" fill="var(--ink)" rx="1"/>
+<text x="64.0" y="113.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">×2</text>
+<rect x="72" y="100" width="520" height="18" fill="var(--linie)" rx="1"/>
+<rect x="72" y="100" width="317.2" height="18" fill="var(--ink)" rx="1"/>
+<text x="383.2" y="113.5" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--bg)" font-variant-numeric="tabular-nums">61 %</text>
+<text x="624.0" y="113.5" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−3,55 GW</text>
+<rect x="748" y="102" width="240" height="14" fill="var(--linie)" rx="1"/>
+<rect x="748" y="102" width="53.2" height="14" fill="var(--ink)" rx="1"/>
+<text x="64.0" y="169.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">×5</text>
+<rect x="72" y="156" width="520" height="18" fill="var(--linie)" rx="1"/>
+<rect x="72" y="156" width="436.8" height="18" fill="var(--ink)" rx="1"/>
+<text x="502.8" y="169.5" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--bg)" font-variant-numeric="tabular-nums">84 %</text>
+<text x="624.0" y="169.5" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−6,03 GW</text>
+<rect x="748" y="158" width="240" height="14" fill="var(--linie)" rx="1"/>
+<rect x="748" y="158" width="90.5" height="14" fill="var(--ink)" rx="1"/>
+<text x="64.0" y="225.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600" fill="var(--ink)" font-variant-numeric="tabular-nums">×10</text>
+<rect x="72" y="212" width="520" height="18" fill="var(--linie)" rx="1"/>
+<rect x="72" y="212" width="520.0" height="18" fill="var(--ink)" rx="1"/>
+<text x="586.0" y="225.5" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--bg)" font-variant-numeric="tabular-nums">voll</text>
+<text x="624.0" y="225.5" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600" fill="var(--ink)" font-variant-numeric="tabular-nums">−7,91 GW</text>
+<rect x="748" y="214" width="240" height="14" fill="var(--linie)" rx="1"/>
+<rect x="748" y="214" width="118.7" height="14" fill="var(--ink)" rx="1"/>
+<line x1="68" x2="1124" y1="262" y2="262" stroke="var(--linie)" stroke-width="1"/>
+<text x="72.0" y="278.0" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--muted)" font-variant-numeric="tabular-nums">Bei ×10, zum Vergleich</text>
+<text x="72.0" y="294.0" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">Überschuss</text>
+<rect x="72" y="298" width="520" height="16" fill="var(--linie)" rx="1"/>
+<rect x="72" y="298" width="257.1" height="16" fill="var(--muted)" rx="1"/>
+<text x="624.0" y="311.0" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−7,91 GW</text>
+<text x="72.0" y="330.0" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">dieselbe Flotte, spitzenorientiert</text>
+<rect x="72" y="334" width="520" height="16" fill="var(--linie)" rx="1"/>
+<rect x="72" y="334" width="475.5" height="16" fill="var(--ink)" rx="1"/>
+<text x="624.0" y="347.0" text-anchor="start" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−14,63 GW</text>
+</svg>
+    <figcaption class="disclaimer">national, kein Netzengpass, Vollvoraussicht · Modell · Beispielwerte</figcaption>
+  </figure>
+</section>
+
+</div>
+
+</body>
+</html>

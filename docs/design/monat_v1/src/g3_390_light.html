@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de" class="">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=390"/>
+<title>Stunden, nicht Gigawatt · Vorentwurf</title>
+<style>
+@font-face{font-family:'Space Grotesk';src:url('file:///usr/share/fonts/truetype/sand-box/google/Space Grotesk/SpaceGrotesk-VariableFont_wght.ttf') format('truetype');font-weight:300 700;font-style:normal;font-display:block}
+@font-face{font-family:'JetBrains Mono';src:url('file:///usr/share/fonts/truetype/sand-box/google/JetBrains Mono/JetBrainsMono-VariableFont_wght.ttf') format('truetype');font-weight:100 800;font-style:normal;font-display:block}
+:root{
+  --bg:#F6F6F3;--ink:#101214;--muted:#43474C;--linie:#DADAD3;--flaeche:#FFFFFF;
+  --gridline:#E4E4DC;--rust:#B4532A;--rust-tint:rgba(180,83,42,.10);--rust-hatch:rgba(180,83,42,.18);
+  --type-12:0.75rem;--type-14:0.875rem;--type-16:1rem;--type-18:1.125rem;
+  --type-24:1.5rem;--type-32:2rem;--type-48:3rem;--type-display:3.5rem;
+  --lh-body:1.55;--lh-heading:1.15;--lh-tight:1.1;--lh-meta:1.5;
+  --weight-regular:400;--weight-medium:500;--weight-semibold:600;
+  --tracking-caps:.08em;--tracking-headline:-.03em;--tracking-title:-.02em;--tracking-meta:.06em;
+  --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.25rem;
+  --space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;--space-12:3rem;
+}
+.dark{
+  --bg:#0B0D0F;--ink:#E9EEF2;--muted:#9EA3A9;--linie:#262B31;--flaeche:#121417;
+  --gridline:#1F2529;--rust:#B4532A;--rust-tint:rgba(180,83,42,.20);--rust-hatch:rgba(180,83,42,.32);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Space Grotesk',sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+body{overflow-x:visible}
+.mono,.num,table,figcaption,svg text{font-family:'JetBrains Mono',ui-monospace,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'kern' 1}
+.wrap{margin:0 auto;padding:0 20px}
+body.w390 .wrap{width:390px;padding:0 20px}
+body.w1280 .wrap{width:1280px;padding:0 64px}
+.nav{display:flex;justify-content:space-between;align-items:center;height:56px;
+  border-bottom:1px solid var(--linie);padding:0;position:relative}
+body.w390 .nav-inner,body.w1280 .nav-inner{display:flex;justify-content:space-between;align-items:center;height:56px}
+.nav b{font-weight:600;font-size:var(--type-16);letter-spacing:-.01em}
+.nav .page{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);font-weight:500;
+  letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--ink);
+  border-bottom:2px solid var(--rust);padding:16px 0 14px}
+.eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:16px}
+.eb-text{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);font-weight:500;
+  letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--muted);line-height:var(--lh-meta)}
+.chip{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);font-weight:500;
+  letter-spacing:var(--tracking-caps);text-transform:uppercase;line-height:1;
+  border:1px solid var(--linie);border-radius:4px;padding:6px 8px;color:var(--ink);background:transparent}
+.chip-model{border-color:var(--ink)}
+.chip-ph{color:var(--muted)}
+h1{font-weight:600;letter-spacing:var(--tracking-headline);line-height:var(--lh-heading);margin-top:12px;max-width:20ch}
+body.w390 h1{font-size:var(--type-32)}
+body.w1280 h1{font-size:var(--type-48);max-width:28ch;margin-top:16px}
+h2{font-weight:600;letter-spacing:var(--tracking-title);line-height:var(--lh-heading);margin-top:0;max-width:24ch}
+body.w390 h2{font-size:var(--type-24)}
+body.w1280 h2{font-size:var(--type-32)}
+.lead{font-size:var(--type-16);font-weight:400;line-height:var(--lh-body);margin-top:12px;max-width:52ch;color:var(--ink)}
+body.w1280 .lead{font-size:var(--type-18);margin-top:16px}
+.insight{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 8px;padding:12px 0;
+  border-top:1px solid var(--linie);border-bottom:1px solid var(--linie)}
+.insight .fig{font-family:'JetBrains Mono',monospace;font-weight:500;font-variant-numeric:tabular-nums;
+  font-size:var(--type-24);line-height:var(--lh-tight);letter-spacing:var(--tracking-title)}
+body.w1280 .insight .fig{font-size:var(--type-32)}
+.insight .lbl{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);
+  margin-top:6px;line-height:var(--lh-meta)}
+figure{margin:16px 0 0}
+svg{display:block;width:100%;height:auto}
+.val{margin-top:16px;width:100%;border-collapse:collapse;font-size:var(--type-12);line-height:1.45}
+.val th,.val td{padding:8px 10px 8px 0;text-align:left;vertical-align:top;font-weight:400;color:var(--ink)}
+.val th{color:var(--muted);font-weight:500;border-bottom:1px solid var(--linie)}
+.val td{border-bottom:1px solid var(--linie)}
+.val th:not(:first-child),.val td:not(:first-child){text-align:right;padding-right:0;padding-left:10px}
+.val .ph{color:var(--muted)}
+.val .note{color:var(--muted);font-weight:400;display:block;margin-top:2px}
+.val caption{caption-side:bottom;text-align:left;color:var(--muted);font-size:var(--type-12);
+  padding-top:8px;font-weight:400;letter-spacing:0;text-transform:none}
+.val .hi{background:var(--rust-tint)}
+.disclaimer{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);
+  margin-top:12px;line-height:var(--lh-meta)}
+.section{border-top:1px solid var(--linie);margin-top:48px;padding-top:32px}
+body.w1280 .section{margin-top:64px;padding-top:48px}
+.sec-head{margin-bottom:8px}
+footer.site{margin-top:64px;padding:24px 0 40px;border-top:1px solid var(--linie);
+  font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);line-height:var(--lh-meta)}
+footer.site p+p{margin-top:8px}
+.ph-banner{font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--muted);
+  margin-top:6px;line-height:var(--lh-meta)}
+/* isolate cards */
+body.isolate{}
+body.isolate .wrap{padding-top:20px;padding-bottom:28px}
+body.w1280.isolate .wrap{padding-top:32px;padding-bottom:40px}
+body.uebersicht .wrap{padding-bottom:48px}
+.uv-head{margin-top:24px;margin-bottom:8px}
+.uv-grid{display:block}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+a{color:var(--ink);text-decoration:none}
+</style>
+</head>
+<body class="w390  isolate" style="width:390px">
+
+<div class="wrap">
+  <p class="eb-text" style="margin:0">SpeicherPilot /monat · Vorentwurf</p>
+  
+<section id="stunden" aria-labelledby="h-stunden">
+  
+<div class="sec-head">
+  <p class="eb-text" style="margin:0">Kernantwort 3</p>
+  <h2>Es fehlen Stunden, nicht Gigawatt.</h2>
+  <p class="lead">Unbegrenzte Leistung ändert nichts. Der 4-Stunden-Punkt liegt an jeder Stufe deutlich höher — und ×5 mit 4 h senkt mehr als ×10 mit 1,76 h.</p>
+</div>
+
+  
+<div class="g3-leg" style="display:flex;flex-wrap:wrap;gap:16px 24px;margin:12px 0 4px;
+  font-family:'JetBrains Mono',monospace;font-size:var(--type-12);color:var(--ink)">
+  <span style="display:flex;align-items:center;gap:8px">
+    <svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="var(--ink)"/></svg>
+    1,76 h
+  </span>
+  <span style="display:flex;align-items:center;gap:8px">
+    <svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.75"/></svg>
+    2 h
+  </span>
+  <span style="display:flex;align-items:center;gap:8px">
+    <svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="var(--rust)"/></svg>
+    4 h
+  </span>
+</div>
+
+  <figure>
+    <svg viewBox="0 0 350 320" width="350" height="320" role="img" aria-labelledby="g3-n-t g3-n-d" xmlns="http://www.w3.org/2000/svg"><title id="g3-n-t">Spitzensenkung nach Flottengröße und Speicherdauer (Beispielwerte)</title><desc id="g3-n-d">Je Stufe drei Punkte für 1,76 Stunden, 2 Stunden und 4 Stunden. Der 4-Stunden-Punkt liegt immer deutlich höher. Mal 5 mit 4 Stunden senkt mehr als mal 10 mit 1,76 Stunden. Alle Zahlen sind Platzhalter.</desc>
+<line x1="38" x2="340" y1="276.0" y2="276.0" stroke="var(--gridline)" stroke-width="1"/>
+<text x="30.0" y="280.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">0</text>
+<line x1="38" x2="340" y1="214.0" y2="214.0" stroke="var(--gridline)" stroke-width="1"/>
+<text x="30.0" y="218.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">5</text>
+<line x1="38" x2="340" y1="152.0" y2="152.0" stroke="var(--gridline)" stroke-width="1"/>
+<text x="30.0" y="156.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">10</text>
+<line x1="38" x2="340" y1="90.0" y2="90.0" stroke="var(--gridline)" stroke-width="1"/>
+<text x="30.0" y="94.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">15</text>
+<line x1="38" x2="340" y1="28.0" y2="28.0" stroke="var(--gridline)" stroke-width="1"/>
+<text x="30.0" y="32.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">20</text>
+<text x="30.0" y="18.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">GW</text>
+<text x="75.8" y="296.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">×1</text>
+<text x="75.8" y="312.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">4,6 GW</text>
+<text x="151.2" y="296.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">×2</text>
+<text x="151.2" y="312.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">9,3 GW</text>
+<text x="226.8" y="296.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">×5</text>
+<text x="226.8" y="312.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">23 GW</text>
+<text x="302.2" y="296.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">×10</text>
+<text x="302.2" y="312.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="400" fill="var(--muted)" font-variant-numeric="tabular-nums">46 GW</text>
+<line x1="75.75" x2="75.75" y1="231.484" y2="218.464" stroke="var(--linie)" stroke-width="2"/>
+<circle cx="65.75" cy="231.484" r="4.0" fill="var(--ink)"/>
+<circle cx="75.75" cy="227.392" r="4.0" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.75"/>
+<circle cx="85.75" cy="218.464" r="6.0" fill="var(--rust)"/>
+<text x="85.8" y="206.5" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−4,64 GW</text>
+<line x1="151.25" x2="151.25" y1="205.568" y2="160.804" stroke="var(--linie)" stroke-width="2"/>
+<circle cx="141.25" cy="205.568" r="4.0" fill="var(--ink)"/>
+<circle cx="151.25" cy="198.748" r="4.0" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.75"/>
+<circle cx="161.25" cy="160.804" r="6.0" fill="var(--rust)"/>
+<text x="161.2" y="148.8" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−9,29 GW</text>
+<line x1="226.75" x2="226.75" y1="146.668" y2="83.05599999999998" stroke="var(--linie)" stroke-width="2"/>
+<circle cx="216.75" cy="146.668" r="4.0" fill="var(--ink)"/>
+<circle cx="226.75" cy="138.36" r="4.0" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.75"/>
+<circle cx="236.75" cy="83.05599999999998" r="6.0" fill="var(--rust)"/>
+<text x="236.8" y="71.1" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−15,56 GW</text>
+<line x1="302.25" x2="302.25" y1="92.72800000000001" y2="48.95600000000002" stroke="var(--linie)" stroke-width="2"/>
+<circle cx="292.25" cy="92.72800000000001" r="4.0" fill="var(--ink)"/>
+<circle cx="302.25" cy="83.05599999999998" r="4.0" fill="var(--bg)" stroke="var(--muted)" stroke-width="1.75"/>
+<circle cx="312.25" cy="48.95600000000002" r="6.0" fill="var(--rust)"/>
+<text x="312.2" y="37.0" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−18,31 GW</text>
+<text x="284.2" y="96.7" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink)" font-variant-numeric="tabular-nums">−14,78 GW</text>
+</svg>
+    <figcaption class="disclaimer">national, kein Netzengpass, Vollvoraussicht · Modell · Beispielwerte</figcaption>
+  </figure>
+  
+<table class="val num">
+  <caption>Spitzensenkung, Platzhalter. Hervorgehoben: ×5 mit 4 h senkt mehr als ×10 mit 1,76 h.</caption>
+  <thead>
+    <tr><th scope="col">Stufe</th><th scope="col">1,76 h</th><th scope="col">2 h</th><th scope="col">4 h</th></tr>
+  </thead>
+  <tbody>
+    <tr><th scope="row">×1</th><td>−3,59 GW</td><td>−3,92 GW</td><td>−4,64 GW</td></tr><tr><th scope="row">×2</th><td>−5,68 GW</td><td>−6,23 GW</td><td>−9,29 GW</td></tr><tr><th scope="row">×5</th><td>−10,43 GW</td><td>−11,10 GW</td><td class="hi">−15,56 GW</td></tr><tr><th scope="row">×10</th><td class="hi">−14,78 GW</td><td>−15,56 GW</td><td>−18,31 GW</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+</div>
+
+</body>
+</html>
