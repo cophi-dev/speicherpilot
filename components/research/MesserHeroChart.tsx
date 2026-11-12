@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useMemo, useRef } from "react";
 
 import type { ResearchDayModel, ResearchFactor } from "@/lib/research/researchTypes";
-import { placePeakPointLabel } from "@/lib/chartLabelLayout";
+import { labelBox, placePeakPointLabel } from "@/lib/chartLabelLayout";
 import { formatResearchPeakPointLabel } from "@/lib/research/researchFormat";
 
 import styles from "@/components/research/research.module.css";
@@ -112,6 +112,7 @@ export function MesserHeroChart({
     plotTop: 26,
     topTickLabelBaselineY: yMap(Y_MAX, height) + 4,
   });
+  const peakLabelBox = labelBox(peakLabel.x, peakLabel.y, peakLabel.anchor, peakLabelText);
 
   const snapFromClientY = useCallback(
     (clientY: number) => {
@@ -201,16 +202,6 @@ export function MesserHeroChart({
       ))}
       <path d={line} fill="none" stroke="var(--research-fg)" strokeWidth={1.5} />
       <circle cx={px} cy={py} r={3.5} fill="var(--research-fg)" />
-      <text
-        x={peakLabel.x}
-        y={peakLabel.y}
-        textAnchor={peakLabel.anchor}
-        fontSize={12}
-        fill="var(--research-fg)"
-        fontFamily="var(--font-jetbrains-mono)"
-      >
-        {peakLabelText}
-      </text>
       <motion.line
         x1={px}
         x2={px}
@@ -229,6 +220,27 @@ export function MesserHeroChart({
         stroke="var(--research-accent)"
         strokeWidth={2}
       />
+      <g aria-hidden="true">
+        <rect
+          className={styles.peakPointLabelBackdrop}
+          x={peakLabelBox.left - 3}
+          y={peakLabelBox.top - 2}
+          width={peakLabelBox.right - peakLabelBox.left + 6}
+          height={peakLabelBox.bottom - peakLabelBox.top + 4}
+          rx={2}
+        />
+        <text
+          x={peakLabel.x}
+          y={peakLabel.y}
+          textAnchor={peakLabel.anchor}
+          fontSize={12}
+          fill="var(--research-fg)"
+          fontFamily="var(--font-jetbrains-mono)"
+          className={styles.peakPointLabelText}
+        >
+          {peakLabelText}
+        </text>
+      </g>
       <g
         role="slider"
         aria-label="Das Messer: Stufe ×2 ×5 ×10"
