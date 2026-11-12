@@ -4,6 +4,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useMemo, useRef } from "react";
 
 import type { ResearchDayModel, ResearchFactor } from "@/lib/research/researchTypes";
+import { placePeakPointLabel } from "@/lib/chartLabelLayout";
+import { formatResearchPeakPointLabel } from "@/lib/research/researchFormat";
 
 import styles from "@/components/research/research.module.css";
 
@@ -100,6 +102,17 @@ export function MesserHeroChart({
   const ghost4hGw = model.peakGw - active.reduction4hGw;
   const ghost4hY = yMap(ghost4hGw, height);
 
+  const peakLabelText = formatResearchPeakPointLabel(model.peakGw, model.peakTime);
+  const peakLabel = placePeakPointLabel({
+    pointX: px,
+    pointY: py,
+    text: peakLabelText,
+    plotLeft: PAD_X,
+    plotRight: width - MARGIN_COL_W,
+    plotTop: 26,
+    topTickLabelBaselineY: yMap(Y_MAX, height) + 4,
+  });
+
   const snapFromClientY = useCallback(
     (clientY: number) => {
       const svg = svgRef.current;
@@ -188,8 +201,15 @@ export function MesserHeroChart({
       ))}
       <path d={line} fill="none" stroke="var(--research-fg)" strokeWidth={1.5} />
       <circle cx={px} cy={py} r={3.5} fill="var(--research-fg)" />
-      <text x={px - 4} y={py - 10} textAnchor="end" fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-        {model.peakGw.toFixed(2).replace(".", ",")} GW · {model.peakTime}
+      <text
+        x={peakLabel.x}
+        y={peakLabel.y}
+        textAnchor={peakLabel.anchor}
+        fontSize={12}
+        fill="var(--research-fg)"
+        fontFamily="var(--font-jetbrains-mono)"
+      >
+        {peakLabelText}
       </text>
       <motion.line
         x1={px}

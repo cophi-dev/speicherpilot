@@ -11,6 +11,11 @@ export function heroReductionDisplay(gw: number): string {
   return formatGwSenkung(gw);
 }
 
+/** Point label on residual-load charts, e.g. `68,24 GW · 07:45`. */
+export function formatResearchPeakPointLabel(peakGw: number, peakTime: string): string {
+  return `${peakGw.toFixed(2).replace(".", ",")} GW · ${peakTime}`;
+}
+
 export function weekRangeLabel(week: ResearchWeekDay[]): string {
   if (week.length === 0) return "";
   const first = week[0]!;
