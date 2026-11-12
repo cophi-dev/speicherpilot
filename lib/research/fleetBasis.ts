@@ -22,14 +22,32 @@ export function researchDurationLabel(h: number): string {
   return `${h.toFixed(2)} h`;
 }
 
-/** Zusatzflotte für ×k: (k−1) × Basis, optional andere Dauer. */
+/** Gesamtflotte ×k = k-mal die heutige Basis (×1 = Ist). */
+export function totalFleetMw(factor: number, durationH = RESEARCH_FLEET_DURATION_H): {
+  powerMw: number;
+  energyMwh: number;
+} {
+  const powerMw = RESEARCH_FLEET_POWER_MW * factor;
+  const energyMwh =
+    Math.abs(durationH - RESEARCH_FLEET_DURATION_H) < 0.02
+      ? RESEARCH_FLEET_ENERGY_MWH * factor
+      : powerMw * durationH;
+  return { powerMw, energyMwh };
+}
+
+/** Zusatzflotte über ×1: (k−1) × Basis, optional andere Dauer. */
 export function additionalFleetMw(factor: number, durationH = RESEARCH_FLEET_DURATION_H): {
   powerMw: number;
   energyMwh: number;
 } {
   const add = Math.max(0, factor - 1);
   const powerMw = add * RESEARCH_FLEET_POWER_MW;
-  const energyMwh = powerMw * durationH;
+  const energyMwh =
+    add === 0
+      ? 0
+      : Math.abs(durationH - RESEARCH_FLEET_DURATION_H) < 0.02
+        ? RESEARCH_FLEET_ENERGY_MWH * add
+        : powerMw * durationH;
   return { powerMw, energyMwh };
 }
 

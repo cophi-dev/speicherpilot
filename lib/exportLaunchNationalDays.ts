@@ -1,11 +1,13 @@
 import { resolveGermanyEnergyFlowBerlinRangeForDate } from "@/lib/germanyEnergyFlowPeriod";
 import { getGermanyEnergyFlowForBerlinRange, type GermanyDispatchSlot } from "@/lib/energyChartsApi";
 import { verifySurplusDispatchEnergyBalance } from "@/lib/dispatchEnergyBalance";
+import { additionalFleetAtFactor } from "@/lib/fleetXkConvention";
 import { evaluateSurplusDayFactor } from "@/lib/surplusDaySimulation";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
-export const NATIONAL_BASE_FLEET = { powerMw: 4_580, energyMwh: 8_000 };
+/** battery-charts Großspeicher 31.10.2026 · ×k = k-mal diese Flotte insgesamt. */
+export const NATIONAL_BASE_FLEET = { powerMw: 4_640, energyMwh: 8_150 };
 
 const USABLE_SOC_FRACTION = CHAIN_SOC_MAX - CHAIN_SOC_MIN;
 
@@ -21,7 +23,7 @@ export type NationalDayEvidence = {
     fetchedAt: string;
   };
   convention: {
-    surplusGwh: "max(0, wind+solar-load) quarter integration × factor",
+    surplusGwh: "max(0, wind+solar-load); Zusatzflotte (k−1)× Basis",
     socWindow: [number, number];
     rteOnDischarge: number;
     chargeBeforeHourBerlin: 17;
@@ -54,10 +56,11 @@ export async function exportNationalDayEvidence(
   }
   const fetchedAt = new Date().toISOString();
   const factorRuns = factors.map((factor) => {
-    const day = evaluateSurplusDayFactor(flow.slots, NATIONAL_BASE_FLEET, factor);
+    const caps = additionalFleetAtFactor(factor);
+    const day = evaluateSurplusDayFactor(flow.slots, caps, 1);
     const balance = verifySurplusDispatchEnergyBalance(day.quarters);
-    const nameplateEnergyMwh = NATIONAL_BASE_FLEET.energyMwh * factor;
-    const nameplatePowerMw = NATIONAL_BASE_FLEET.powerMw * factor;
+    const nameplateEnergyMwh = caps.energyMwh;
+    const nameplatePowerMw = caps.powerMw;
     const usableEnergyCapMwh = nameplateEnergyMwh * USABLE_SOC_FRACTION;
     const maxSocMwhObserved = Math.max(...day.quarters.map((q) => q.socMwh));
     return {
@@ -84,7 +87,7 @@ export async function exportNationalDayEvidence(
       fetchedAt,
     },
     convention: {
-      surplusGwh: "max(0, wind+solar-load) quarter integration × factor",
+      surplusGwh: "max(0, wind+solar-load); Zusatzflotte (k−1)× Basis",
       socWindow: [CHAIN_SOC_MIN, CHAIN_SOC_MAX],
       rteOnDischarge: ROUND_TRIP_EFFICIENCY,
       chargeBeforeHourBerlin: 17,

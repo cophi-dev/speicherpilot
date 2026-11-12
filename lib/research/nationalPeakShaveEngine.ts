@@ -1,9 +1,9 @@
 import {
-  additionalFleetMw,
   RESEARCH_DISPATCH_ETA,
   RESEARCH_FLEET_DURATION_H,
   RESEARCH_FLEET_POWER_MW,
   RESEARCH_QUARTER_H,
+  additionalFleetMw,
   type ResearchFactor,
 } from "@/lib/research/fleetBasis";
 
@@ -90,9 +90,9 @@ export function saturationCurveGw(
   const points: Array<{ factor: number; reductionGw: number; marginalGwPerGw: number | null }> = [];
   let prev: { factor: number; reductionGw: number; fleetGw: number } | null = null;
   for (let k = 1; k <= maxFactor; k += 1) {
-    const { powerMw } = additionalFleetMw(k, durationH);
-    const fleetGw = (RESEARCH_FLEET_POWER_MW * k) / 1000;
-    const { reductionGw } = peakReductionGw(residualMw, powerMw, additionalFleetMw(k, durationH).energyMwh);
+    const { powerMw, energyMwh } = additionalFleetMw(k, durationH);
+    const fleetGw = (RESEARCH_FLEET_POWER_MW * Math.max(0, k - 1)) / 1000;
+    const { reductionGw } = peakReductionGw(residualMw, powerMw, energyMwh);
     const marginal =
       prev === null
         ? null

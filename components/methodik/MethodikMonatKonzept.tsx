@@ -1,40 +1,43 @@
+import { FLEET_XK_FOOTNOTE_DE } from "@/lib/fleetXkConvention";
+import { MONAT_V1_KERN3 } from "@/lib/monatV1Format";
+import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+
 export function MethodikMonatKonzept() {
+  const gw = (NATIONAL_BASE_FLEET.powerMw / 1000).toFixed(2).replace(".", ",");
+  const gwh = (NATIONAL_BASE_FLEET.energyMwh / 1000).toFixed(2).replace(".", ",");
+  const h = (NATIONAL_BASE_FLEET.energyMwh / NATIONAL_BASE_FLEET.powerMw).toFixed(2).replace(".", ",");
   return (
     <section className="v4-content methodik-section" id="monat-konzept-ac" aria-labelledby="methodik-monat-ac-title">
       <h2 id="methodik-monat-ac-title" className="v4-chapter-h2">
-        Monatsseite: Arbeit gegen Wirkung und Dauerlinie
+        Monatsseite: Restlastspitze, Stunden und Überschuss-Pool
       </h2>
       <ul className="methodik-insights-footnotes">
         <li>
-          <strong>Konzept A:</strong> Wirkung auf die Monats-Restlastspitze = Referenzspitze minus Spitze mit Speicher
-          (GW, positiv = Senkung). Netz-Ladung = Summe der viertelstündlichen Ladeleistung (GWh). Logarithmische
-          x-Achse nur Darstellung.
+          <strong>Kernantwort 1 (Hero):</strong> Höchste Monats-Restlast in GW (absolut), nicht Senkung. Drei Fahrweisen:
+          spitzenorientiert, Überschuss, Markt ohne Preisrückwirkung (gestrichelt/schraffiert), über der beobachteten Spitze ab ≈×3,9. Referenzlinie =
+          beobachtete Oktober-Spitze.
         </li>
         <li>
-          <strong>Konzept C:</strong> Restlast (Last − Wind − Sonne) je Viertelstunde, chronologisch oder nach Höhe
-          sortiert (Dauerlinie). Übergang per Scroll; bei <code>prefers-reduced-motion</code> nur sortiert.
+          <strong>Kernantwort 3:</strong> {MONAT_V1_KERN3}. Darstellung je Flottenstufe ×1/×2/×5/×10 für 1,76 h, 2 h
+          und 4 h bei gleicher Nennleistung (separate MIP-Läufe).
         </li>
         <li>
-          Annahmen: Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Price Taker, nur Day-Ahead, perfekte Voraussicht, ohne
-          Preisrückwirkung bei ×5/×10.
+          <strong>Kernantwort 4:</strong> Anteil des Modell-Pools Σ max(0, Wind+Sonne−Last) und Spitzensenkung bei
+          Überschuss-Strategie; Vergleich zu spitzenorientiert bei ×10.
         </li>
         <li>
-          <strong>Unsicherheit:</strong> Perfekte Voraussicht = Obergrenze. Ohne Preisrückwirkung überschätzt die
-          Marktfahrt bei ×5/×10 die Monatsspitze. Round-Trip typisch 80–90&nbsp;% — die Modellannahme 85&nbsp;% liegt in
-          der Bandbreite. Price Taker: keine Marktmacht des Aggregators.
+          <strong>Flottenbasis:</strong> {gw} GW / {gwh} GWh (≈ {h} h), battery-charts Großspeicher 31.10.2026.{" "}
+          {FLEET_XK_FOOTNOTE_DE}
         </li>
         <li>
-          Spitze senken ×5/×10: steht die Restlast an mehreren Viertelstunden auf dem gleichen Plateau, ist der
-          Zeitstempel der <em>ersten von n</em> gleichen Viertelstunden am Maximum.
+          Annahmen: Round-Trip 85&nbsp;%, SoC 10–90&nbsp;%, Price Taker, nur Day-Ahead, Vollvoraussicht, ohne
+          Preisrückwirkung bei ×5/×10-Marktlinie.
         </li>
         <li>
-          Quelle: Energy-Charts / Bundesnetzagentur | SMARD.de, CC BY 4.0. Oktober-Läufe: Run9-Bundle im Repo.
+          Euro nicht auf der Monatsseite. In der Methodik: heutige Flotte, marktgeführt, eine × zusätzlich (×2 im
+          Modell) ≈ 34,1&nbsp;Mio&nbsp;€ Modellschätzung (Day-Ahead, ohne Entgelte/Degradation).
         </li>
-        <li>
-          <strong>Tie-Break Optimierer:</strong> Bei mehreren optimalen Lösungen wählt der Solver die kleinste
-          Zielfunktionsabweichung bei gleicher Primärzielfunktion; indifferente SoC-Phasen werden in der Methodik der
-          Monatsoptimierung dokumentiert (vgl. Paket-4-Audit).
-        </li>
+        <li>Quelle: Energy-Charts / Bundesnetzagentur | SMARD.de, CC BY 4.0. Oktober-Läufe: Bundle im Repo.</li>
       </ul>
     </section>
   );

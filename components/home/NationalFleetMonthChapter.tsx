@@ -22,7 +22,7 @@ function formatGw(gw: number, digits = 2): string {
   return formatQuantity(gw, "de", digits);
 }
 
-const FLEET_SIZE_LEGEND = "Größe (×1 = 4,58 GW / 8 GWh Nennenergie)";
+const FLEET_SIZE_LEGEND = "Größe (×1 = 4,64 GW / 8,15 GWh Nennenergie)";
 const FLEET_GOAL_LEGEND = "Ziel / Fahrweise";
 
 function FleetMonthFootnotes({
@@ -49,7 +49,7 @@ function FleetMonthFootnotes({
           <dd className="v4-month-mobile-note">{peakNote}</dd>
           <dd>{`Vorberechneter Monatslauf (×${factor}, hypothetisch).`}</dd>
           <dd>Modell auf beobachteter Last und Erzeugung (Okt. 2026).</dd>
-          <dd>{`Referenz 4,58 GW / 8 GWh Nennenergie, skaliert mit ×${factor}.`}</dd>
+          <dd>{`Referenz 4,64 GW / 8,15 GWh Nennenergie, skaliert mit ×${factor}.`}</dd>
           <dd>Hypothetisch, kein amtlicher Bestand.</dd>
           <dd>Alle drei Fahrweisen rechnen jeden Viertelstundentag.</dd>
           <dd>Rampen, Starts und Abregelung am Ort fehlen.</dd>

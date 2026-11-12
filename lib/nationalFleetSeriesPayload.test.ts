@@ -10,15 +10,15 @@ describe("fleetChartSeriesPayload", () => {
   const bundle = loadNationalFleetMonthBundle();
 
   it("skaliert ×5 Leistung und Energie in der Zeitreihe, ohne Euro-Felder", () => {
-    const run1 = getFleetRun(bundle, 1, "spitze");
+    const run2 = getFleetRun(bundle, 2, "spitze");
     const run5 = getFleetRun(bundle, 5, "spitze");
-    const month1 = fleetChartSeriesForMonth(run1, null, 1);
+    const month1 = fleetChartSeriesForMonth(getFleetRun(bundle, 1, "spitze"), null, 1);
     const month5 = fleetChartSeriesForMonth(run5, null, 5);
 
-    expect(month1.selected.r_mw[0]).toBeCloseTo(run1.r_mw[0]!, 3);
-    const maxC1 = Math.max(...run1.c_mw);
+    expect(month1.selected.r_mw[0]).toBeCloseTo(getFleetRun(bundle, 1, "spitze").r_mw[0]!, 3);
+    const maxC2 = Math.max(...run2.c_mw);
     const maxC5 = Math.max(...run5.c_mw);
-    expect(maxC5 / maxC1).toBeCloseTo(5, 0.15);
+    expect(maxC5 / maxC2).toBeCloseTo(4, 0.2);
 
     for (const payload of [month1.selected, month5.selected]) {
       expect(Object.keys(payload)).not.toContain("revenueEur");

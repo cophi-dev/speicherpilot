@@ -241,10 +241,19 @@ describe("HiGHS reference", () => {
   });
 
   const live = highsReady ? it : it.skip;
+  const highsJson = (stdout: string) => {
+    const line = stdout
+      .trim()
+      .split("\n")
+      .filter((l) => l.startsWith("{"))
+      .pop();
+    return JSON.parse(line!) as Record<string, unknown>;
+  };
+
   live("recomputes the stored reference when highspy is installed", () => {
     const hand = spawnSync("python3", ["scripts/fca_lp.py", "hand"], { encoding: "utf8" });
     expect(hand.status).toBe(0);
-    const handJson = JSON.parse(hand.stdout) as { eta1: Record<string, number>; eta: Record<string, number>; homogeneity: number };
+    const handJson = highsJson(hand.stdout) as { eta1: Record<string, number>; eta: Record<string, number>; homogeneity: number };
     expect(handJson.eta1["10"]).toBe(reference.hand.eta1["10"]);
     expect(handJson.eta1["4"]).toBe(reference.hand.eta1["4"]);
     expect(handJson.eta1["0"]).toBe(reference.hand.eta1["0"]);
@@ -255,13 +264,13 @@ describe("HiGHS reference", () => {
     for (const entry of reference.days) {
       const run = spawnSync("python3", ["scripts/fca_lp.py", "day", entry.date, "103.5", "238.5", String(entry.limitMw)], { encoding: "utf8" });
       expect(run.status).toBe(0);
-      const got = (JSON.parse(run.stdout) as { eur: number }).eur;
+      const got = (highsJson(run.stdout) as { eur: number }).eur;
       expect(Math.abs(got - entry.eur)).toBeLessThanOrEqual(1);
     }
 
     const sample = spawnSync("python3", ["scripts/fca_lp.py", "sample"], { encoding: "utf8" });
     expect(sample.status).toBe(0);
-    const sampleJson = JSON.parse(sample.stdout) as { days: number; worstMono: number; worstConcave: number; negative: boolean };
+    const sampleJson = highsJson(sample.stdout) as { days: number; worstMono: number; worstConcave: number; negative: boolean };
     expect(sampleJson.days).toBe(reference.sample.days);
     expect(sampleJson.negative).toBe(reference.sample.negative);
     expect(sampleJson.worstMono).toBeGreaterThanOrEqual(-1e-4);

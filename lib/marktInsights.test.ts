@@ -62,7 +62,7 @@ describe("buildMarktInsights", () => {
       fleetBundle: loadNationalFleetBundleMeta() as never,
     });
     const drei = all.find((i) => i.id === "drei_ziele");
-    expect(drei?.text).toMatch(/485/);
+    expect(drei?.text).toMatch(/493/);
   });
 
   it("pickMarktInsightsForRoute respects order", () => {
@@ -83,6 +83,6 @@ describe("threeGoalsSummarySentence", () => {
     const model = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
     const s = threeGoalsSummarySentence(model);
     expect(s).toMatch(/Markt/);
-    expect(s).toMatch(/485/);
+    expect(s).toMatch(/493|494/);
   });
 });

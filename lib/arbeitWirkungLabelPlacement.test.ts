@@ -10,7 +10,7 @@ import { pathSegments, pointObstacles, plotFrameBox } from "@/lib/arbeitWirkungC
 
 describe("arbeitWirkungLabelPlacement", () => {
   const model = buildArbeitWirkungModel(loadNationalFleetMonthBundle());
-  const viewW = 920;
+  const viewW = 960;
 
   it("platziert alle Labels ohne Kollision mit Pfaden oder Punkten", () => {
     const placed = buildArbeitWirkungLabels(model, viewW, {
@@ -29,7 +29,7 @@ describe("arbeitWirkungLabelPlacement", () => {
         expect(boxesOverlap(a.box, b.box, 1)).toBe(false);
       }
       for (const seg of segments) {
-        expect(boxNearSegment(a.box, seg, 2.5)).toBe(false);
+        expect(boxNearSegment(a.box, seg, 5)).toBe(false);
       }
       for (const pt of points) {
         expect(boxesOverlap(a.box, pt, 1)).toBe(false);

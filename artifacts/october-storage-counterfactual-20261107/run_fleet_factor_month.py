@@ -23,13 +23,18 @@ TS_OUT = OUT / "timeseries"
 DAY_OUT = OUT / "daily"
 EVENT_OUT = OUT / "events"
 
-BASE_POWER_MW = 4_580.0
-BASE_ENERGY_MWH = 8_000.0
-MODEL_FLEET_SOURCE = "SpeicherPilot exportLaunchNationalDays.ts NATIONAL_BASE_FLEET (Model referenz, 07.11.2026)"
+BASE_POWER_MW = 4_640.0
+BASE_ENERGY_MWH = 8_150.0
+MODEL_FLEET_SOURCE = "SpeicherPilot exportLaunchNationalDays.ts NATIONAL_BASE_FLEET (4,64 GW / 8,15 GWh, 12.11.2026)"
 REF_RESIDUAL_PEAK_MW = 64405.9
 MONTH_SURPLUS_POOL_GWH = 134.241975
 
 FACTORS = (1, 2, 5, 10)
+
+
+def additional_units(factor: int) -> int:
+    """Konvention (a): ×k = k-mal Gesamtflotte sichtbar, Modell = (k−1)× Basis zusätzlich; ×1 = Ist (0 Zusatz)."""
+    return max(0, factor - 1)
 STRATEGIES = (
     "surplus_wind_solar_over_load",
     "min_peak_perfect_foresight",
@@ -112,6 +117,11 @@ def dispatch_stats(rows: list[Row], c: np.ndarray, d: np.ndarray, e: np.ndarray,
         "soc_min_mwh": float(np.min(e)),
         "soc_max_mwh": float(np.max(e)),
         "binding_power_fraction": float(np.mean((c > 0.999 * p_mw) | (d > 0.999 * p_mw))),
+        "surplus_pool_capture_grid_gwh": absorbed_mwh / 1000,
+        "surplus_pool_capture_share_of_134_241975_gwh": capture_ratio,
+        "surplus_pool_utilisation_of_positive_qh_energy": util_surplus,
+        "model_capture_grid_gwh": absorbed_mwh / 1000,
+        "model_capture_share_of_month_surplus_pool": capture_ratio,
     }
 
 
@@ -200,11 +210,27 @@ def oct29_slice(rows: list[Row], c, d, e) -> list[dict]:
 
 def solve(rows: list[Row], factor: int, strategy: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
     n = len(rows)
-    p = BASE_POWER_MW * factor
-    e_nom = BASE_ENERGY_MWH * factor
+    add = additional_units(factor)
+    p = BASE_POWER_MW * add
+    e_nom = BASE_ENERGY_MWH * add
     residual = np.array([r.residual_mw for r in rows])
     surplus = np.array([r.surplus_mw for r in rows])
     prices = np.array([r.price_eur_mwh for r in rows])
+
+    if add == 0:
+        c = np.zeros(n)
+        d = np.zeros(n)
+        e = np.zeros(n + 1)
+        stats = dispatch_stats(rows, c, d, e, p, e_nom)
+        stats["factor"] = factor
+        stats["strategy"] = strategy
+        stats["p_mw"] = p
+        stats["e_nominal_mwh"] = e_nom
+        stats["peak_reduction_mw"] = 0.0
+        stats["peak_reduction_pct_of_ref_64405_9"] = 0.0
+        stats["surplus_pool_capture_share_of_134_241975_gwh"] = 0.0
+        stats["solver"] = {"noop": "observed baseline ×1"}
+        return c, d, e, stats
 
     if strategy == "surplus_wind_solar_over_load":
         m1 = MonthStorageMip(n, p, e_nom)

@@ -27,32 +27,20 @@ describe("Paket 4 Konzept A — Sketchwerte Oktober", () => {
   const cell = (strategy: "ueberschuss" | "spitze" | "markt", factor: 1 | 2 | 5 | 10) =>
     model.points.find((p) => p.strategy === strategy && p.factor === factor)!;
 
-  it("Differenz ×1", () => {
-    const p = cell("ueberschuss", 1);
-    expect(p.peakAfterGw).toBeCloseTo(62.16, 2);
-    expect(p.chargeGwh).toBeCloseTo(55.9, 1);
-    expect(p.wirkungGw).toBeCloseTo(2.24, 2);
+  it("×1 Ist ohne Zusatz — alles bei Referenz", () => {
+    for (const strategy of ["ueberschuss", "spitze", "markt"] as const) {
+      const p = cell(strategy, 1);
+      expect(p.peakAfterGw).toBeCloseTo(64.41, 2);
+      expect(p.chargeGwh).toBeCloseTo(0, 1);
+      expect(p.wirkungGw).toBeCloseTo(0, 2);
+    }
   });
 
-  it("Spitze ×1", () => {
-    const p = cell("spitze", 1);
-    expect(p.peakAfterGw).toBeCloseTo(60.86, 2);
-    expect(p.chargeGwh).toBeCloseTo(12.49, 1);
-    expect(p.wirkungGw).toBeCloseTo(3.55, 2);
-  });
-
-  it("Markt ×1", () => {
-    const p = cell("markt", 1);
-    expect(p.peakAfterGw).toBeCloseTo(64.04, 2);
-    expect(p.chargeGwh).toBeCloseTo(485.45, 0);
-    expect(p.wirkungGw).toBeCloseTo(0.37, 2);
-  });
-
-  it("Markt ×10 — neue Spitze 96,76 GW", () => {
+  it("Markt ×10 — neue Spitze", () => {
     const p = cell("markt", 10);
-    expect(p.peakAfterGw).toBeCloseTo(96.76, 2);
-    expect(p.chargeGwh).toBeCloseTo(4854.5, 0);
-    expect(p.wirkungGw).toBeCloseTo(-32.35, 2);
+    expect(p.peakAfterGw).toBeCloseTo(92.72, 2);
+    expect(p.chargeGwh).toBeCloseTo(4445.7, 0);
+    expect(p.wirkungGw).toBeCloseTo(-28.31, 2);
     const st = monthStatsForRun(bundle, 10, "markt");
     expect(st.chargeGwh).toBeCloseTo(p.chargeGwh, 3);
     expect(st.peakReductionGw).toBeCloseTo(p.wirkungGw, 3);
@@ -60,15 +48,15 @@ describe("Paket 4 Konzept A — Sketchwerte Oktober", () => {
 
   it("Spitze ×10", () => {
     const p = cell("spitze", 10);
-    expect(p.peakAfterGw).toBeCloseTo(49.77, 2);
-    expect(p.wirkungGw).toBeCloseTo(14.63, 2);
+    expect(p.peakAfterGw).toBeCloseTo(50.43, 2);
+    expect(p.wirkungGw).toBeCloseTo(13.98, 2);
   });
 
   it("Pfadbeschriftungen wie Skizze", () => {
     const labels = arbeitPathCallouts(model);
-    expect(labels.spitze).toContain("14,63");
+    expect(labels.spitze).toContain("13,98");
     expect(labels.ueberschuss).toContain("Pool");
-    expect(labels.markt).toMatch(/39/);
+    expect(labels.markt).toMatch(/0,00/);
   });
 
   it("Summary und statsForRun stimmen überein", () => {
@@ -98,8 +86,8 @@ describe("Paket 4 Konzept C — Dauerlinie", () => {
 
   it("Markt ×10 Spitze und Tal", () => {
     const m = buildC(observed, markt10);
-    expect(m.withStorageMaxGw).toBeCloseTo(96.76, 2);
-    expect(m.withStorageMinGw).toBeCloseTo(-55.6, 1);
+    expect(m.withStorageMaxGw).toBeCloseTo(92.72, 2);
+    expect(m.withStorageMinGw).toBeCloseTo(-51.55, 1);
   });
 
   it("morph=1: beide Reihen monoton fallend, eigene Sortierung", () => {
@@ -110,7 +98,7 @@ describe("Paket 4 Konzept C — Dauerlinie", () => {
     expect(isMonotonicNonIncreasing(stor.map((p) => p.y))).toBe(true);
     expect(m.observedMaxGw).toBeCloseTo(64.4059, 2);
     expect(m.observedMinGw).toBeCloseTo(-10.9, 1);
-    expect(m.withStorageMaxGw).toBeCloseTo(96.76, 2);
-    expect(m.withStorageMinGw).toBeCloseTo(-55.6, 1);
+    expect(m.withStorageMaxGw).toBeCloseTo(92.72, 2);
+    expect(m.withStorageMinGw).toBeCloseTo(-51.55, 1);
   });
 });
