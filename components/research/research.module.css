@@ -1,8 +1,8 @@
 .page {
   --research-bg: #0b0d0f;
   --research-fg: #ecedee;
-  --research-accent: #ff8a5b;
-  --research-accent-light: #b4532a;
+  --research-accent: var(--v4-warm);
+  --research-accent-light: var(--v4-warm);
   --research-muted: #9ea3a9;
   --research-dim: #6b7178;
   --research-line: #1e2226;
@@ -23,61 +23,12 @@
 :global(html:not(.dark)) .page {
   --research-bg: transparent;
   --research-fg: #14161a;
-  --research-accent: #b4532a;
-  --research-accent-light: #b4532a;
+  --research-accent: var(--v4-warm);
+  --research-accent-light: var(--v4-warm);
   --research-muted: #5a6068;
   --research-dim: #80868e;
   --research-line: #e3e5e8;
   --research-card: #f4f5f6;
-}
-
-.subnav {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 13px;
-  margin: 8px 0 24px;
-  border-bottom: 1px solid var(--research-line);
-  padding-bottom: 12px;
-}
-
-@media (min-width: 1024px) {
-  .subnav {
-    display: none;
-  }
-}
-
-@media (max-width: 1023px) {
-  .subnav {
-    position: sticky;
-    top: 64px;
-    z-index: 30;
-    margin-top: 0;
-    padding-top: 8px;
-    background: var(--research-bg);
-  }
-}
-
-:global(html:not(.dark)) .subnav {
-  background: #f6f6f3;
-}
-
-.subnav a {
-  color: var(--research-muted);
-  text-decoration: none;
-  min-height: 44px;
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  box-sizing: border-box;
-}
-
-.subnav a[data-active="true"] {
-  color: var(--research-fg);
-  border-bottom: 2px solid var(--research-accent);
-  padding-bottom: 6px;
 }
 
 .eyebrow {

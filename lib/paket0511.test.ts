@@ -36,7 +36,8 @@ describe("startPointe", () => {
 describe("site shell footer (Paket 05.11)", () => {
   it("does not expose Quellen/Glossar accordion columns", () => {
     const src = readFileSync(join(process.cwd(), "components/site-shell.tsx"), "utf8");
-    expect(src).toMatch(/label: "Monat"/);
+    const navSrc = readFileSync(join(process.cwd(), "lib/siteNav.ts"), "utf8");
+    expect(navSrc).toMatch(/label: "Monat"/);
     expect(src).not.toMatch(/site-footer-cols/);
     expect(src).not.toMatch(/uppercase">Quellen/);
     expect(src).not.toMatch(/uppercase">Glossar/);

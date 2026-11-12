@@ -70,7 +70,7 @@
 }
 
 .barAccent {
-  fill: var(--v4-warm, #e86a3a);
+  fill: var(--v4-warm);
 }
 
 .barMuted {
@@ -131,7 +131,7 @@
 }
 
 .swatchAccent {
-  background: var(--v4-warm, #e86a3a);
+  background: var(--v4-warm);
 }
 
 .swatchMuted {
