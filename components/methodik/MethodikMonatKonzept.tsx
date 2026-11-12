@@ -13,7 +13,7 @@ export function MethodikMonatKonzept() {
       <ul className="methodik-insights-footnotes">
         <li>
           <strong>Kernantwort 1 (Hero):</strong> Höchste Monats-Restlast in GW (absolut), nicht Senkung. Drei Fahrweisen:
-          spitzenorientiert, Überschuss, Markt ab ×3 ohne Preisrückwirkung (gestrichelt/schraffiert). Referenzlinie =
+          spitzenorientiert, Überschuss, Markt ohne Preisrückwirkung (gestrichelt/schraffiert), über der beobachteten Spitze ab ≈×3,9. Referenzlinie =
           beobachtete Oktober-Spitze.
         </li>
         <li>

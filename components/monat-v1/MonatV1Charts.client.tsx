@@ -33,6 +33,50 @@ function useLayout(minWidth = 720) {
   return { ref, wide };
 }
 
+
+function MarktLabel390({
+  pts,
+  yGw: yOf,
+  yMinGw,
+  yMaxGw,
+  plotH,
+  padT,
+}: {
+  pts: { f: number; gw: number; x: number; y: number }[];
+  yGw: (gw: number, yMin: number, yMax: number, plotH: number, padT: number) => number;
+  yMinGw: number;
+  yMaxGw: number;
+  plotH: number;
+  padT: number;
+}) {
+  const a = pts.find((p) => p.f === 5) ?? pts[pts.length - 2];
+  const b = pts[pts.length - 1];
+  if (!a || !b || b.gw <= a.gw) {
+    return null;
+  }
+  const targetGw = 86;
+  const t = Math.min(1, Math.max(0, (targetGw - a.gw) / (b.gw - a.gw)));
+  const x = a.x + t * (b.x - a.x) - 10;
+  const y = yOf(targetGw, yMinGw, yMaxGw, plotH, padT) + 4;
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor="end"
+      fill="var(--mv-ink)"
+      stroke="var(--mv-flaeche, #fff)"
+      strokeWidth="3"
+      paintOrder="stroke"
+      fontSize="12"
+    >
+      <tspan x={x}>Markt · ohne</tspan>
+      <tspan x={x} dy="14">
+        Preisrückwirkung
+      </tspan>
+    </text>
+  );
+}
+
 function HeroChart({ model }: { model: MonatV1Model }) {
   const { ref, wide } = useLayout();
   const vb = wide ? { w: 1152, h: 460, L: 52, R: 188, T: 32, B: 62 } : { w: 350, h: 348, L: 38, R: 26, T: 24, B: 54 };
@@ -54,19 +98,27 @@ function HeroChart({ model }: { model: MonatV1Model }) {
     return { f, x: factorX(f, plotW, vb.L), y: yGw(p.ueberschussGw, yMinGw, yMaxGw, plotH, vb.T) };
   });
 
-  const marktPts = [
-    { f: 3, gw: model.hero.marktFromFactor3Gw, x: factorX(3, plotW, vb.L) },
-    ...FACTOR_PLOT.filter((f) => f >= 5).map((f) => {
-      const p = model.hero.points.find((x) => x.factor === f)!;
-      return { f, gw: p.marktGw!, x: factorX(f, plotW, vb.L) };
-    }),
-  ].map((p) => ({ ...p, y: yGw(p.gw, yMinGw, yMaxGw, plotH, vb.T) }));
+  const marktKnown = model.hero.points
+    .filter((pt) => pt.marktGw != null)
+    .map((pt) => ({
+      f: pt.factor,
+      gw: pt.marktGw as number,
+      x: factorX(pt.factor, plotW, vb.L),
+    }));
+  const kipF = model.hero.kipppunktFactor;
+  const kipX = factorX(kipF, plotW, vb.L);
+  const marktPts = [...marktKnown, { f: kipF, gw: refPeakGw, x: kipX }]
+    .sort((a, b) => a.f - b.f)
+    .map((pt) => ({ ...pt, y: yGw(pt.gw, yMinGw, yMaxGw, plotH, vb.T) }));
 
   const refY = yGw(refPeakGw, yMinGw, yMaxGw, plotH, vb.T);
   const yTicks = wide
     ? model.yTicksGw
     : [40, 60, 80, 100].filter((t) => t >= yMinGw && t <= yMaxGw);
   const lastSpitze = spitzePts[spitzePts.length - 1]!;
+  const lastUeber = ueberPts[ueberPts.length - 1]!;
+  const lastMarkt = marktPts[marktPts.length - 1]!;
+  const hatchPts = [{ x: kipX, y: refY }, ...marktPts.filter((pt) => pt.f > kipF + 0.01)];
 
   return (
     <div ref={ref} className={styles.chartWrap} data-testid="monat-v1-hero">
@@ -74,7 +126,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
           Spitzenorientiert sinkt die Monatsspitze mit wachsender Flotte; Marktorientiert ohne Preisrückwirkung steigt
-          ab ×3 über die beobachtete Oktober-Spitze.
+          ab etwa ×3,9 über die beobachtete Oktober-Spitze.
         </desc>
         <defs>
           <pattern id="hatch-markt" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -135,13 +187,25 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         <rect x={vb.L} y={vb.T} width={plotW} height={refY - vb.T} fill="rgba(180, 83, 42, 0.1)" />
         <line x1={vb.L} x2={vb.L + plotW} y1={refY} y2={refY} stroke="var(--mv-ink)" strokeWidth="1.25" />
         <text
-          x={wide ? vb.L + plotW * 0.42 : vb.L + plotW - 6}
-          y={wide ? vb.T + 14 : vb.T + 12}
-          textAnchor={wide ? "start" : "end"}
+          x={wide ? kipX - 14 : factorX(7, plotW, vb.L)}
+          y={wide ? refY - 8 : refY - 18}
+          textAnchor={wide ? "end" : "middle"}
           fill="var(--mv-ink)"
+          stroke="var(--mv-flaeche, #fff)"
+          strokeWidth="3"
+          paintOrder="stroke"
           fontSize="12"
         >
-          Oktober, beobachtet
+          {wide ? (
+            "Oktober, beobachtet"
+          ) : (
+            <>
+              <tspan x={factorX(7, plotW, vb.L)}>Oktober,</tspan>
+              <tspan x={factorX(7, plotW, vb.L)} dy="14">
+                beobachtet
+              </tspan>
+            </>
+          )}
         </text>
         <polyline
           fill="none"
@@ -161,9 +225,9 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         {ueberPts.map((p) => (
           <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="var(--mv-muted)" strokeWidth="1.75" />
         ))}
-        {marktPts.length >= 2 ? (
+        {hatchPts.length >= 2 ? (
           <polygon
-            points={`${marktPts.map((p) => `${p.x},${p.y}`).join(" ")} ${marktPts[marktPts.length - 1]!.x},${refY} ${marktPts[0]!.x},${refY}`}
+            points={`${hatchPts.map((pt) => `${pt.x},${pt.y}`).join(" ")} ${hatchPts[hatchPts.length - 1]!.x},${refY}`}
             fill="url(#hatch-markt)"
             opacity="0.35"
           />
@@ -173,51 +237,67 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           stroke="#B4532A"
           strokeWidth="2.25"
           strokeDasharray="7 5"
-          points={marktPts.map((p) => `${p.x},${p.y}`).join(" ")}
+          points={marktPts.map((pt) => `${pt.x},${pt.y}`).join(" ")}
         />
-        {marktPts.length > 0 ? (
-          <circle cx={marktPts[0]!.x} cy={marktPts[0]!.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="#B4532A" strokeWidth="1.75" />
-        ) : null}
+        {marktPts
+          .filter((pt) => pt.f > 1.05)
+          .map((pt) => (
+            <circle
+              key={`m-${pt.f}`}
+              cx={pt.x}
+              cy={pt.y}
+              r="4"
+              fill="var(--mv-flaeche, #fff)"
+              stroke="#B4532A"
+              strokeWidth="1.75"
+            />
+          ))}
         <text
-          x={wide ? vb.L + plotW + 12 : lastSpitze.x + 6}
-          y={lastSpitze.y}
+          x={wide ? lastSpitze.x + 12 : lastSpitze.x - 8}
+          y={lastSpitze.y + 4}
+          textAnchor={wide ? "start" : "end"}
           fill="var(--mv-ink)"
+          stroke="var(--mv-flaeche, #fff)"
+          strokeWidth="3"
+          paintOrder="stroke"
           fontSize="12"
         >
           Spitze
         </text>
-        <text x={wide ? vb.L + plotW + 12 : vb.L + plotW * 0.55} y={wide ? ueberPts[ueberPts.length - 1]!.y + 4 : ueberPts[0]!.y} fill="var(--mv-muted)" fontSize="12">
+        <text
+          x={wide ? lastUeber.x + 12 : lastUeber.x - 8}
+          y={lastUeber.y + 4}
+          textAnchor={wide ? "start" : "end"}
+          fill="var(--mv-muted)"
+          stroke="var(--mv-flaeche, #fff)"
+          strokeWidth="3"
+          paintOrder="stroke"
+          fontSize="12"
+        >
           Überschuss
         </text>
         {wide ? (
           <text
-            x={vb.L + plotW + 12}
-            y={marktPts[0]!.y - 16}
+            x={lastMarkt.x + 12}
+            y={lastMarkt.y + 4}
             fill="var(--mv-ink)"
             stroke="var(--mv-flaeche, #fff)"
             strokeWidth="3"
             paintOrder="stroke"
             fontSize="12"
           >
-            <tspan x={vb.L + plotW + 12}>Markt · ohne</tspan>
-            <tspan x={vb.L + plotW + 12} dy="14">
+            <tspan x={lastMarkt.x + 12}>Markt · ohne</tspan>
+            <tspan x={lastMarkt.x + 12} dy="14">
               Preisrückwirkung
             </tspan>
           </text>
         ) : (
-          <>
-            <text x={vb.L + 8} y={90} fill="var(--mv-ink)" fontSize="12">
-              Markt
-            </text>
-            <text x={vb.L + 8} y={104} fill="var(--mv-ink)" fontSize="12">
-              ohne Preisrückwirkung
-            </text>
-          </>
+          <MarktLabel390 pts={marktPts} yGw={yGw} yMinGw={yMinGw} yMaxGw={yMaxGw} plotH={plotH} padT={vb.T} />
         )}
       </svg>
       <p className={styles.figcaption}>{MONAT_V1_GRAPH_CAPTION}</p>
       <table className={styles.valuesTable}>
-        <caption>Keine Euro im Graph; Markt ×5/×10 ohne Preisrückwirkung.</caption>
+        <caption>Markt bei ×10 ohne Preisrückwirkung gerechnet.</caption>
         <thead>
           <tr>
             <th scope="col">Fahrweise</th>
@@ -469,7 +549,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         </h1>
         <p className={styles.lead}>
           Drei Fahrweisen auf derselben Restlast: netz- und spitzenorientiert, Überschuss und Markt ohne
-          Preisrückwirkung ab ×3.
+          Preisrückwirkung.
         </p>
         <div className={styles.insight}>
           <div>

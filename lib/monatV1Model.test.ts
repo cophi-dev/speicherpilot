@@ -19,8 +19,17 @@ describe("Monat v1 Modell", () => {
     expect(model.hero.kipppunktFactor).toBeCloseTo(3.9, 1);
   });
 
+  it("Markt ×1 ist die beobachtete Spitze, ×2 liegt knapp darunter", () => {
+    const m1 = model.hero.points.find((p) => p.factor === 1)!;
+    const m2 = model.hero.points.find((p) => p.factor === 2)!;
+    expect(m1.marktGw).toBeCloseTo(model.refPeakGw, 1);
+    expect(m2.marktGw).toBeCloseTo(64.04, 2);
+    expect(m2.marktGw!).toBeLessThan(model.refPeakGw);
+  });
+
   it("Markt ×10 über Referenz", () => {
     const m10 = model.hero.points.find((p) => p.factor === 10)!;
+    expect(m10.marktGw).toBeCloseTo(92.72, 1);
     expect(m10.marktGw).toBeGreaterThan(model.refPeakGw);
   });
 

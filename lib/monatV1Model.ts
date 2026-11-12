@@ -46,7 +46,6 @@ export type MonatV1Model = {
   yTicksGw: number[];
   hero: {
     points: MonatV1HeroPoint[];
-    marktFromFactor3Gw: number;
     insightSpitzeX10Gw: number;
     kipppunktLabel: string;
     kipppunktFactor: number;
@@ -72,12 +71,6 @@ function loadDurationSensitivity(): Record<string, Record<string, number>> {
     peak_reduction_gw: Record<string, Record<string, number>>;
   };
   return raw.peak_reduction_gw;
-}
-
-function loadMarktFactor3PeakGw(): number {
-  const path = join(process.cwd(), "data/national-fleet/2026-10/market-factor-3.json");
-  const raw = JSON.parse(readFileSync(path, "utf8")) as { after_max_residual_mw: number };
-  return raw.after_max_residual_mw / 1000;
 }
 
 function loadMarktKipppunktFactor(): number {
@@ -113,8 +106,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
   const heroPoints: MonatV1HeroPoint[] = GRAPH_FACTORS.map((factor) => {
     const spitze = monthStatsForRun(bundle, factor, "spitze");
     const ueberschuss = monthStatsForRun(bundle, factor, "ueberschuss");
-    const markt =
-      factor >= 3 ? monthStatsForRun(bundle, factor, "markt") : null;
+    const markt = monthStatsForRun(bundle, factor, "markt");
     return {
       factor,
       spitzeGw: roundGw(spitze.peakAfterGw, 2),
@@ -123,11 +115,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
     };
   });
 
-  const marktX3 = loadMarktFactor3PeakGw();
-  const marktPeaks = [
-    ...heroPoints.filter((p) => p.marktGw != null).map((p) => p.marktGw as number),
-    marktX3,
-  ];
+  const marktPeaks = heroPoints.filter((p) => p.marktGw != null).map((p) => p.marktGw as number);
   const allPeaks = [
     ...heroPoints.flatMap((p) => [p.spitzeGw, p.ueberschussGw]),
     ...marktPeaks,
@@ -186,7 +174,6 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
     yTicksGw,
     hero: {
       points: heroPoints,
-      marktFromFactor3Gw: roundGw(marktX3, 2),
       insightSpitzeX10Gw: roundGw(spitze10.peakAfterGw, 1),
       kipppunktLabel: "ab ≈×3,9",
       kipppunktFactor: loadMarktKipppunktFactor(),
