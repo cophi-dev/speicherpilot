@@ -20,7 +20,7 @@ import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
 import type { MarktInsight } from "@/lib/marktInsights";
-import type { PreisTick } from "@/lib/preisFenster";
+import { formatPreisSpanne, type PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -136,12 +136,12 @@ export function AuffaelligkeitKopf({
     record?.pmin != null && record.pmax != null && metricKey !== "spread"
       ? {
           label: priceDayLabel,
-          value: `${formatQuantity(Math.round(record.pmin), "de", 0)}–${formatQuantity(Math.round(record.pmax), "de", 0)} €/MWh`,
+          value: formatPreisSpanne(record.pmin, record.pmax),
         }
       : metricKey === "spread" && record?.spread != null
         ? {
             label: priceSpreadLabel,
-            value: `${formatQuantity(Math.round(record.pmin ?? 0), "de", 0)}–${formatQuantity(Math.round(record.pmax ?? 0), "de", 0)} €/MWh`,
+            value: formatPreisSpanne(record.pmin ?? 0, record.pmax ?? 0),
           }
         : null;
 
@@ -313,7 +313,7 @@ export function TagPageV4({
         fleetStrategyBelow={fleetStrategy ?? null}
         priceLine={
           record.pmin != null && record.pmax != null
-            ? `${formatQuantity(Math.round(record.pmin), "de", 0)}–${formatQuantity(Math.round(record.pmax), "de", 0)} €/MWh`
+            ? formatPreisSpanne(record.pmin, record.pmax)
             : null
         }
         prices={preisTag}

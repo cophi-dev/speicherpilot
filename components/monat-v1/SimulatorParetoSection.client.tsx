@@ -289,7 +289,7 @@ function FullAxisChart({
       testId="simulator-g1-full-tooltip"
       tooltip={(i) => {
         const pt = i != null ? frontPts[i] : null;
-        return { timeLabel: pt ? paretoTooltipTime(pt) : null, rows: pt ? paretoTooltipRows(pt) : null };
+        return { timeLabel: pt ? paretoTooltipTime(pt, frontPts.length) : null, rows: pt ? paretoTooltipRows(pt) : null };
       }}
     >
       {(activeIndex) => (
@@ -453,7 +453,7 @@ function ZoomChart({
       testId="simulator-g1-zoom-tooltip"
       tooltip={(i) => {
         const pt = i != null ? frontPts[i] : null;
-        return { timeLabel: pt ? paretoTooltipTime(pt) : null, rows: pt ? paretoTooltipRows(pt) : null };
+        return { timeLabel: pt ? paretoTooltipTime(pt, frontPts.length) : null, rows: pt ? paretoTooltipRows(pt) : null };
       }}
     >
       {(activeIndex) => (

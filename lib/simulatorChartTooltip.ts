@@ -11,7 +11,7 @@ export function paretoTooltipRows(point: SimulatorFrontPoint): ChartTooltipRow[]
   ];
 }
 
-export function paretoTooltipTime(point: SimulatorFrontPoint): string {
+export function paretoTooltipTime(point: SimulatorFrontPoint, frontCount: number): string {
   if (point.isMarketLex) {
     return "Max. Erlös";
   }
@@ -21,7 +21,7 @@ export function paretoTooltipTime(point: SimulatorFrontPoint): string {
   if (point.isEps70) {
     return "Kompromiss ε-70";
   }
-  return point.name || "Frontpunkt";
+  return `Front-Punkt ${point.index + 1} von ${frontCount}`;
 }
 
 const KLASSE_DE: Record<string, string> = {

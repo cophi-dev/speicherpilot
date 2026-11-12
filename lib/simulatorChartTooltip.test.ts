@@ -21,7 +21,7 @@ describe("simulatorChartTooltip", () => {
     expect(rows[0]?.value).toBe(formatMioEur(komp.revenueMioEur, 2));
     expect(rows[1]?.value).toBe(formatGw(komp.reductionGw));
     expect(rows[2]?.value).toBe(formatGw(komp.peakGw));
-    expect(paretoTooltipTime(komp)).toBe("Kompromiss ε-70");
+    expect(paretoTooltipTime(komp, data.front.length)).toBe("Kompromiss ε-70");
     // nicht genauer als 2 Stellen
     expect(rows[0]?.value).toMatch(/^\d+,\d{2} Mio/);
     expect(rows[1]?.value).toMatch(/^\d+,\d{2}\u00A0GW$/);
@@ -66,4 +66,41 @@ describe("simulatorChartTooltip", () => {
     expect(fnavTooltipTime(10)).toBe("×10");
     expect(fnavTooltipTime(3.9)).toBe("×3,9");
   });
+
+  it("Pareto-Zeitlabel: lesbare Namen, nie ein interner Bezeichner", () => {
+    const n = data.front.length;
+    const labels = data.front.map((p) => paretoTooltipTime(p, n));
+    expect(labels[0]).toBe("Max. Erlös");
+    expect(labels[data.namedIndices.kompromiss]).toBe("Kompromiss ε-70");
+    expect(labels[data.namedIndices.netzdienlich]).toBe("Netzdienlich");
+    expect(labels[2]).toBe(`Front-Punkt 3 von ${n}`);
+    const intern = /x2_|_lam|lexpeak|grid_lam|dichotomy|market_lex|peak_lex|eps\d|lam\d/i;
+    for (const [i, label] of labels.entries()) {
+      expect(label).not.toMatch(intern);
+      expect(label).not.toBe(data.front[i]!.name);
+    }
+    expect(n).toBe(18);
+  });
+
+  it("kein Simulator-Tooltip enthält einen internen Bezeichner", () => {
+    const intern = /x2_|_lam|lexpeak|grid_lam|dichotomy|market_lex|peak_lex|eps\d|lam\d/i;
+    for (const p of data.front) {
+      const time = paretoTooltipTime(p, data.front.length);
+      const rows = paretoTooltipRows(p);
+      expect(time).not.toMatch(intern);
+      for (const row of rows) {
+        expect(`${row.label} ${row.value}`).not.toMatch(intern);
+      }
+    }
+    for (const day of data.tagesklassen) {
+      expect(tagesTooltipTime(day)).not.toMatch(intern);
+      for (const row of tagesTooltipRows(day)) {
+        expect(`${row.label} ${row.value}`).not.toMatch(intern);
+        expect(row.value).not.toMatch(/_/);
+      }
+    }
+    expect(fnavTooltipTime(3.9)).not.toMatch(intern);
+    expect(fnavTooltipTime(10)).not.toMatch(intern);
+  });
+
 });

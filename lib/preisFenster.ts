@@ -128,8 +128,18 @@ export function computeDauerSpanne(
   };
 }
 
-function roundedRange(pmin: number, pmax: number): string {
-  return `${formatQuantity(Math.round(pmin), "de", 0)}–${formatQuantity(Math.round(pmax), "de", 0)} €/MWh`;
+const MINUS = "\u2212";
+const NBSP = "\u00a0";
+
+/** Ganze Euro, keine negative Null, „bis“, festes Leerzeichen vor der Einheit. */
+export function formatPreisSpanne(pmin: number, pmax: number): string {
+  const fmt = (value: number): string => {
+    const rounded = Math.round(value);
+    const abs = rounded === 0 ? 0 : Math.abs(rounded);
+    const body = formatQuantity(abs, "de", 0);
+    return rounded < 0 ? `${MINUS}${body}` : body;
+  };
+  return `${fmt(pmin)} bis ${fmt(pmax)}${NBSP}€/MWh`;
 }
 
 /** Price clause for a day that already has min and max. Null when the series is missing. */
@@ -139,7 +149,7 @@ export function boerseKlausel(
   if (record.pmin === null || record.pmax === null) {
     return null;
   }
-  const range = roundedRange(record.pmin, record.pmax);
+  const range = formatPreisSpanne(record.pmin, record.pmax);
   if ((record.negH ?? 0) >= PREIS_FENSTER_QUARTER_H) {
     return `${range}, ${formatQuantity(record.negH ?? 0, "de", 1)} Stunden unter null`;
   }
