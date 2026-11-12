@@ -1,0 +1,413 @@
+/* SpeicherPilot /tag — Aufräum-Vorentwurf (Inject-CSS)
+ * Inhalte und Konzept unverändert. Nur Raster, Typo, Abstände, details.
+ * Mockup-Technik: !important, um Live-Module zu schlagen.
+ * Im Bau: Tokens in globals setzen, Module (MarktInsights) anpassen, !important entfernen.
+ */
+
+:root {
+  /* --- Raster -------------------------------------------------------- */
+  --page-max: 1248px;          /* 12×74 + 11×24 + 2×48 = 1248; Kante bleibt 64 bei 1280 */
+  --page-gutter: 20px;         /* <768, 4er-System */
+  --grid-cols: 4;
+  --grid-gutter: 16px;
+
+  /* --- 6 Stufen (bestehende --type-* Tokens, konsolidiert) ----------- */
+  --type-label: var(--type-12);      /* 12px  Label/Mono */
+  --type-body:  var(--type-16);      /* 16px  Body        */
+  --type-lead:  var(--type-18);      /* 18px  Lead        */
+  --type-h2:    var(--type-32);      /* 32px Desktop, 24px mobil */
+  --type-h1:    var(--type-48);      /* 48px  H1, fluid <768 */
+  /* --type-display bereits 3.5rem (56px) im Repo */
+
+  --lh-label: 1.4;
+  --lh-body: 1.55;
+  --lh-lead: 1.45;
+  --lh-h2: 1.2;
+  --lh-h1: 1.12;
+  --lh-display: 0.95;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --rust: #b4532a;
+  --focus-ring: var(--rust);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-gutter: 48px;       /* 8er-System (44 war keins) */
+    --grid-cols: 12;
+    --grid-gutter: 24px;
+  }
+}
+
+/* =====================================================================
+   1. Gemeinsames Spaltenraster — eine linke Kante
+   ===================================================================== */
+
+.site-header > div,
+.v4-content,
+.v4-kopf-inner.v4-content,
+.v4-content.v4-footnote,
+.v4-content.v4-markt-insights,
+[data-testid="markt-insights"],
+footer.border-t > div,
+footer > div.mx-auto,
+.v4-subpage .day-paper {
+  max-width: var(--page-max) !important;
+  padding-inline: var(--page-gutter) !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+/* Fußnoten-Maß 68ch gilt für den Text, nicht für den Container —
+   sonst wandert die Kante nach innen (Ist: 44 statt 64 bei 1280). */
+.v4-content.v4-footnote,
+footer.v4-footnote,
+.v4-footnote.v4-content,
+.v4-footnote {
+  max-width: var(--page-max) !important;
+}
+.v4-footnote p,
+.v4-footnote > * {
+  max-width: 68ch;
+}
+
+/* Markt-Insights: Modul setzt max-width 1200 + Extra-Padding (Ist: Kante 84)
+   und unter 640px padding: 12px 0 (Ist: Kante 0, Text klebt). */
+.v4-markt-insights,
+.v4-content.v4-markt-insights,
+[data-testid="markt-insights"] {
+  padding-block: var(--space-8) var(--space-6) !important;
+  margin-top: var(--space-8) !important;
+  margin-bottom: var(--space-2) !important;
+  border-top: 1px solid var(--linie) !important;
+}
+
+/* =====================================================================
+   2. Größenskala — H2 nicht mehr = H1, Kernzahl nicht mehr 96
+   ===================================================================== */
+
+/* H1 bleibt --type-48 (Seite), unter 768 fluid. Nicht antasten. */
+
+.v4-chapter-h2,
+h2.v4-chapter-h2,
+.v4-h2 {
+  font-family: var(--font-space-grotesk), ui-sans-serif, sans-serif !important;
+  font-size: var(--type-32) !important;          /* 32px Desktop, wie /monat-Vorentwurf; war 48 */
+  font-weight: 500 !important;
+  line-height: var(--lh-h2) !important;
+  letter-spacing: -0.02em;
+  max-width: 32ch !important;
+  margin: 0 0 var(--space-4) !important;
+  color: var(--ink);
+}
+
+.v4-chapter-num {
+  font-family: var(--font-jetbrains), ui-monospace, monospace !important;
+  font-size: var(--type-label) !important;       /* 12 */
+  line-height: var(--lh-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-2) !important;
+}
+
+/* Kapitel-Kernzahl: 56 / 40 statt clamp 52–96 (bzw. 140–190 über .v4-system-pct) */
+.v4-tag-kern,
+.v4-system-pct,
+p.v4-tag-kern,
+p.v4-system-pct,
+.v4-chapter-kern {
+  font-family: var(--font-space-grotesk), ui-sans-serif, sans-serif !important;
+  font-size: var(--type-display) !important;     /* 56px */
+  font-weight: 500 !important;
+  line-height: var(--lh-display) !important;
+  letter-spacing: -0.03em;
+  margin: 0 0 var(--space-4) !important;
+  max-width: 100%;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+@media (max-width: 767px) {
+  .v4-chapter-h2,
+  h2.v4-chapter-h2,
+  .v4-h2 {
+    font-size: var(--type-24) !important;          /* 24px mobil, wie /monat */
+  }
+  .v4-tag-kern,
+  .v4-system-pct,
+  p.v4-tag-kern,
+  p.v4-system-pct,
+  .v4-chapter-kern {
+    font-size: 2.5rem !important;                /* 40px */
+  }
+}
+
+/* Fließtext neben der Zahl: Body 16, Farbe Ink — nicht 14px Grau. */
+.v4-tag-side,
+p.v4-tag-side,
+.v4-chapter-kern-sub {
+  font-family: var(--font-space-grotesk), ui-sans-serif, sans-serif !important;
+  font-size: var(--type-body) !important;
+  line-height: var(--lh-body) !important;
+  font-weight: 400 !important;
+  color: var(--ink) !important;
+  max-width: 46ch;
+  margin: 0 0 var(--space-3) !important;
+}
+
+/* Lead bleibt 18, für Subline im Kopf. */
+.v4-subline {
+  font-size: var(--type-lead) !important;
+  line-height: var(--lh-lead);
+}
+
+/* Nacht / Mittag / Abend: Body 16, Titel medium, Nummern Label. */
+.v4-st-steps {
+  padding-block: 0 !important;
+  margin-top: var(--space-6) !important;
+}
+.v4-st-steps li {
+  font-size: var(--type-body) !important;
+  grid-template-columns: 40px 1fr !important;    /* 8er statt 2.5rem */
+  gap: var(--space-3) !important;
+  padding-block: var(--space-4) !important;
+}
+.v4-st-title {
+  font-size: var(--type-body) !important;
+  font-weight: 600 !important;
+  line-height: var(--lh-body);
+  color: var(--ink);
+  margin: 0 0 var(--space-1) !important;
+}
+.v4-st-body {
+  font-size: var(--type-body) !important;
+  line-height: var(--lh-body) !important;
+  color: var(--ink);
+  margin: 0 !important;
+}
+.v4-st-num {
+  font-family: var(--font-jetbrains), ui-monospace, monospace !important;
+  font-size: var(--type-label) !important;
+  letter-spacing: 0.08em;
+}
+
+/* Markt-Insights Titel = Lead 18, Text = Body 16, Meta = Label 12. */
+.v4-markt-insights h2,
+[data-testid="markt-insights"] h2,
+#markt-insights-title {
+  font-family: var(--font-space-grotesk), ui-sans-serif, sans-serif !important;
+  font-size: var(--type-lead) !important;
+  font-weight: 600 !important;
+  line-height: var(--lh-lead) !important;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-4) !important;
+  color: var(--ink);
+}
+.v4-markt-insights p,
+[data-testid="markt-insights"] li p:first-child {
+  font-size: var(--type-body) !important;
+  line-height: var(--lh-body) !important;
+  color: var(--ink);
+  max-width: 62ch;
+}
+
+/* Fußnoten: Body 16 (keine 7. Stufe). Meta/Kicker bleiben Label 12 Mono. */
+.v4-footnote,
+.v4-footnote p {
+  font-size: var(--type-body) !important;
+  line-height: var(--lh-body);
+}
+
+/* Chip „Modellschätzung“ bleibt sichtbar, Label-Größe. */
+.v4-chip,
+.v4-chip.num {
+  font-family: var(--font-jetbrains), ui-monospace, monospace !important;
+  font-size: var(--type-label) !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+/* =====================================================================
+   3. details/summary — eigener Chevron, 44-px-Tap, Fokusring
+   ===================================================================== */
+
+.v4-start details > summary,
+.v4-subpage details > summary,
+.v4-tag-system-footnote > summary,
+.v4-tag-steps-disclosure > summary,
+.v4-footnote summary,
+details[class*="PreisFenster"] > summary,
+details[class*="more"] > summary,
+.v4-content details > summary,
+details.v4-tag-system-footnote > summary,
+details.v4-tag-steps-disclosure > summary {
+  list-style: none !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: var(--space-2) 0 !important;
+  font-family: var(--font-space-grotesk), ui-sans-serif, sans-serif !important;
+  font-size: var(--type-body) !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  color: var(--ink) !important;
+  letter-spacing: 0;
+  text-transform: none !important;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.v4-start details > summary::-webkit-details-marker,
+.v4-subpage details > summary::-webkit-details-marker,
+.v4-tag-system-footnote > summary::-webkit-details-marker,
+.v4-tag-steps-disclosure > summary::-webkit-details-marker,
+.v4-footnote summary::-webkit-details-marker,
+details > summary::-webkit-details-marker {
+  display: none !important;
+}
+
+.v4-start details > summary::marker,
+.v4-subpage details > summary::marker,
+.v4-tag-system-footnote > summary::marker,
+.v4-tag-steps-disclosure > summary::marker,
+.v4-footnote summary::marker,
+details > summary::marker {
+  content: none !important;
+  display: none !important;
+  font-size: 0;
+}
+
+/* Chevron rechts: Text bleibt auf der gemeinsamen Kante. */
+.v4-start details > summary::after,
+.v4-subpage details > summary::after,
+.v4-tag-system-footnote > summary::after,
+.v4-tag-steps-disclosure > summary::after,
+details[class*="PreisFenster"] > summary::after,
+details[class*="more"] > summary::after,
+details.v4-tag-system-footnote > summary::after,
+details.v4-tag-steps-disclosure > summary::after {
+  content: "" !important;
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  flex: 0 0 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);          /* zeigt nach unten, geschlossen */
+  transform-origin: 50% 50%;
+  transition: transform 180ms ease;
+  position: relative;
+  top: -2px;
+}
+
+details[open] > summary::after {
+  transform: rotate(225deg);         /* zeigt nach oben, offen */
+  top: 2px;
+}
+
+.v4-start details > summary:focus,
+.v4-subpage details > summary:focus,
+.v4-tag-system-footnote > summary:focus,
+.v4-tag-steps-disclosure > summary:focus,
+details > summary:focus {
+  outline: none;
+}
+
+.v4-start details > summary:focus-visible,
+.v4-subpage details > summary:focus-visible,
+.v4-tag-system-footnote > summary:focus-visible,
+.v4-tag-steps-disclosure > summary:focus-visible,
+details > summary:focus-visible {
+  outline: 2px solid var(--focus-ring) !important;
+  outline-offset: 2px !important;
+}
+
+.v4-tag-system-footnote,
+.v4-tag-steps-disclosure,
+details[class*="PreisFenster"],
+details[class*="more"] {
+  margin-top: var(--space-3) !important;
+  margin-bottom: 0 !important;
+  border-top: 1px solid var(--linie);
+}
+
+.v4-tag-system-footnote > :not(summary),
+.v4-tag-steps-disclosure > :not(summary),
+details[class*="more"] > :not(summary) {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  details > summary::after {
+    transition: none !important;
+  }
+}
+
+/* =====================================================================
+   4. Vertikaler Rhythmus, 8er-System
+   ===================================================================== */
+
+.v4-chapter {
+  padding-top: var(--space-8) !important;
+  margin-top: var(--space-8) !important;
+}
+
+.v4-chapter-head {
+  margin-top: 0 !important;
+}
+
+.v4-chapter-foot,
+p.v4-chapter-foot {
+  margin-top: var(--space-4) !important;
+  padding-top: var(--space-2) !important;
+  margin-bottom: 0;
+}
+
+.v4-chapter-next-link,
+.v4-text-link {
+  font-size: var(--type-body) !important;
+}
+
+/* Preis-Fenster-Disclosure nicht aus dem Raster werfen. */
+[class*="PreisFenster"] details,
+.v4-content [class*="more"] {
+  max-width: 100%;
+}
+
+/* =====================================================================
+   5. Ausnahmen (begründet, siehe SPEC)
+   =====================================================================
+   - .v4-riesenzahl im Kopf: bleibt --type-riesenzahl (eine Hero-Zahl pro Seite).
+   - Chart-Innere (Achsen, Peak-Label): dürfen einrücken, Plot braucht Platz.
+   - Header-Nav in der Mitte: zentriert, nicht kantengebunden.
+   ===================================================================== */
+
+
+/* Legal-Footer sitzt in footer > div.mx-auto (schon gerastert). Kein zweites Padding. */
+.legal-footer,
+footer .legal-footer {
+  max-width: none !important;
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+  width: 100% !important;
+}
+footer.border-t > div > p,
+footer > div.mx-auto > p {
+  max-width: 52rem;
+}
