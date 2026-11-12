@@ -67,15 +67,15 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
       <div className={wide ? simStyles.insight3wide : simStyles.insight3}>
         <div>
           {formatGw(e70.reductionGw)}
-          <div className={styles.insightMuted}>Senkung · Kompromiss ε-70</div>
+          <div className={styles.insightMuted}>Senkung · ε-70</div>
         </div>
         <div>
           {formatMioEur(e70.revenueMioEur)}
-          <div className={styles.insightMuted}>Erlös · {data.euroLabel}</div>
+          <div className={styles.insightMuted}>Erlös</div>
         </div>
         <div>
           {pctOfMarket(e70.revenueMioEur, mkt.revenueMioEur)}
-          <div className={styles.insightMuted}>des Markt-Erlöses</div>
+          <div className={styles.insightMuted}>Marktanteil</div>
         </div>
       </div>
       <ParetoCharts

@@ -242,12 +242,16 @@
 }
 
 .chipEntwurf {
-  font-size: 0.65rem;
-  border: 1px solid var(--mv-muted, #43474c);
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 500;
+  color: var(--mv-ink, #101214);
+  border: 1px solid var(--mv-ink, #101214);
   border-radius: 3px;
-  padding: 0 0.25rem;
+  padding: 0 0.3rem;
   margin-left: 0.35rem;
   vertical-align: middle;
+  display: inline-block;
 }
 
 .simulatorRoot {
