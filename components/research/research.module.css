@@ -42,6 +42,27 @@
   padding-bottom: 12px;
 }
 
+@media (min-width: 1024px) {
+  .subnav {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .subnav {
+    position: sticky;
+    top: 64px;
+    z-index: 30;
+    margin-top: 0;
+    padding-top: 8px;
+    background: var(--research-bg);
+  }
+}
+
+:global(html:not(.dark)) .subnav {
+  background: #f6f6f3;
+}
+
 .subnav a {
   color: var(--research-muted);
   text-decoration: none;
