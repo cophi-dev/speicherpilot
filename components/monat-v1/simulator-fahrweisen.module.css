@@ -43,6 +43,80 @@
   accent-color: var(--mv-rust);
 }
 
+.frontTrack {
+  position: relative;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  touch-action: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.frontTrack:focus-visible {
+  outline: 2px solid var(--mv-ink, #101214);
+  outline-offset: 3px;
+}
+
+.frontTrackLine {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--mv-ink, #101214);
+  pointer-events: none;
+}
+
+.frontTicks {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.frontTick,
+.frontTickNamed {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 8px;
+  margin-top: -4px;
+  margin-left: -1px;
+  background: var(--mv-muted, #43474c);
+  display: block;
+}
+
+.frontTickNamed {
+  height: 12px;
+  margin-top: -6px;
+  background: var(--mv-ink, #101214);
+}
+
+.frontThumb {
+  position: absolute;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  border-radius: 22px;
+  background: var(--mv-ink, #101214);
+  border: 2px solid var(--mv-bg, #f6f6f3);
+  box-shadow: 0 0 0 1px var(--mv-ink, #101214);
+  pointer-events: none;
+}
+
+.sliderHint {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--mv-muted, #43474c);
+  margin: 0.25rem 0 0;
+}
+
 .namedButtons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -184,11 +258,11 @@
 
 .insight3 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem 1.5rem;
-  margin: 0 0 1rem;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.35rem 0.6rem;
+  margin: 0 0 0.25rem;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-size: clamp(1rem, 3.4vw, 1.35rem);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -205,8 +279,9 @@
 @media (max-width: 480px) {
   .insight3,
   .insight3wide {
-    margin: 0 0 0.25rem;
-    gap: 0.5rem 1rem;
+    margin: 0 0 0.15rem;
+    gap: 0.25rem 0.4rem;
+    font-size: 1rem;
   }
 }
 
