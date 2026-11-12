@@ -49,20 +49,15 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
     <section className={styles.section} aria-labelledby="sim-g1-title" data-testid="simulator-pareto">
       <p className={styles.eyebrow}>Monatsfront · Monatsspitze, Oktober · Zusatzflotte ×2 (4,64 GW / 8,15 GWh)</p>
       <p className={simStyles.display} aria-hidden="true">
-        {komp.costLabel}%
+        {komp.costLabel}{"\u00A0"}%
       </p>
       <h2 id="sim-g1-title" className={styles.h1}>
         für 70 Prozent
         <br />
         der Monatssenkung.
       </h2>
-      <p className={styles.lead}>
-        Die volle Senkung kostet {voll.vonLabel} Mio.{"\u00A0"}€. Modellschätzung, Endpunkte lexikographisch.{" "}
-        <strong>netzdienlich = senkt die Monatsspitze, nicht jeden Tag.</strong> Auf Tagesbasis gab es im Oktober keinen
-        Tag, an dem beide Ziele gleichzeitig optimal waren.
-      </p>
-      <p className={simStyles.modelNote}>
-        Fest ×2, ohne Preisrückwirkung · {data.euroLabel} bei Euro-Zahlen
+      <p className={`${styles.lead} ${simStyles.leadShort}`}>
+        Die volle Senkung kostet {voll.vonLabel} Mio.{"\u00A0"}€. Modellschätzung, Endpunkte lexikographisch.
       </p>
       <div className={wide ? simStyles.insight3wide : simStyles.insight3}>
         <div>
@@ -88,6 +83,13 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
         selected={idx}
         voll={voll}
       />
+      <p className={styles.lead}>
+        <strong>netzdienlich = senkt die Monatsspitze, nicht jeden Tag.</strong> Auf Tagesbasis gab es im Oktober keinen
+        Tag, an dem beide Ziele gleichzeitig optimal waren.
+      </p>
+      <p className={simStyles.modelNote}>
+        Fest ×2, ohne Preisrückwirkung · {data.euroLabel} bei Euro-Zahlen
+      </p>
       <div className={simStyles.sliderRow}>
         <label className={simStyles.sliderLabel} htmlFor="sim-front-range">
           Fahrweise
@@ -192,11 +194,15 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
         <a href="/monat/2026-10#graph-1" className="v4-text-link">
           siehe Graph 1 auf der Monatsseite
         </a>
-        . Analytisch: Restlast 21.10. 14:00 plus Voll-Laden ergibt 64{"\u00A0"}428 MW (
-        <a href="/methodik#simulator-kipppunkt" className="v4-text-link">
-          Methodik
-        </a>
-        ).
+        . Analytisch: Restlast 21.10. 14:00 plus Voll-Laden ergibt{" "}
+        <span className={simStyles.nowrap}>
+          64{"\u00A0"}428{"\u00A0"}MW{"\u00A0"}(
+          <a href="/methodik#simulator-kipppunkt" className="v4-text-link">
+            Methodik
+          </a>
+          )
+        </span>
+        .
       </p>
     </section>
   );
