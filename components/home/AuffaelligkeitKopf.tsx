@@ -316,6 +316,11 @@ export function TagPageV4({
             ? `${formatQuantity(Math.round(record.pmin), "de", 0)}–${formatQuantity(Math.round(record.pmax), "de", 0)} €/MWh`
             : null
         }
+        prices={preisTag}
+        powerGw={fleetPowerGw}
+        energyGwh={fleetEnergyGwh}
+        dateLabel={formatBerlinDayLabel(dayKey)}
+        surplusGwh={record.surplusGwh ?? 0}
         fleetExtra={fleetSoGerechnet}
       />
       <TagSimulatorTeaser costPctText={simulatorCostPct} />

@@ -174,3 +174,28 @@ export function preisFigurSatz(args: {
     : "Die günstigen Viertelstunden liegen nicht geschlossen vor den teuren.";
   return `${leer}Dauer-Spanne ${gap} €/MWh: Mittel der ${args.dauer.n} teuersten minus Mittel der ${args.dauer.n} günstigsten Viertelstunden. ${order} Kein Erlös.`;
 }
+
+
+/** Copy for „So gerechnet“: Mittel und Fenster, Spanne, Modellzeile — nichts geht verloren, wenn der Graph kompakt ist. */
+export function preisSpanneLine(dauer: DauerSpanne | null): string {
+  return dauer
+    ? `${formatQuantity(dauer.dauerSpanne, "de", 2)} €/MWh (Ø ${dauer.n} teuerste − Ø ${dauer.n} günstigste ¼ h)`
+    : "nicht gebildet";
+}
+
+export function preisModellLine(surplusGwh: number): string {
+  return surplusGwh < 0.05 ? "lädt an diesem Tag nicht · kein Erlös" : "kann an diesem Tag laden · kein Erlös";
+}
+
+export function preisMittelFensterText(
+  dauer: DauerSpanne,
+  powerGw: number,
+  energyGwh: number,
+  dateLabel: string,
+): string {
+  return (
+    `Mittel günstig / teuer: ${formatQuantity(dauer.meanLow, "de", 2)} und ${formatQuantity(dauer.meanHigh, "de", 2)}. ` +
+    `Die markierten Punkte sind diese Viertelstunden (${dauer.n}, Flotte ${formatQuantity(powerGw, "de", 2)} GW / ` +
+    `${formatQuantity(energyGwh, "de", 2)} GWh, ${dateLabel}).`
+  );
+}

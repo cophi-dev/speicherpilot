@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SoGerechnetBlock } from "@/components/home/SoGerechnetBlock";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { computeDauerSpanne, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
 import { tagLastSurplusLine, tagSurplusDefinitionLine } from "@/lib/kopfTagCopy";
 import {
   fleetMonatHref,
@@ -36,6 +37,11 @@ export type TagSoGerechnetProps = {
   showFleetMonthBelow?: boolean;
   fleetStrategyBelow?: NationalFleetStrategyUi | null;
   priceLine: string | null;
+  prices?: PreisTick[];
+  powerGw?: number;
+  energyGwh?: number;
+  dateLabel?: string;
+  surplusGwh?: number;
   fleetExtra?: TagFleetSoGerechnetExtra | null;
 };
 
@@ -77,12 +83,22 @@ export function TagSoGerechnet({
   showFleetMonthBelow,
   fleetStrategyBelow,
   priceLine,
+  prices,
+  powerGw,
+  energyGwh,
+  dateLabel,
+  surplusGwh = 0,
   fleetExtra,
 }: TagSoGerechnetProps) {
   const peakSlot = eveningSlot(day);
   const loadGw = peakSlot.loadMw / 1000;
   const wsGw = (peakSlot.windMw + peakSlot.solarMw) / 1000;
   const lastLine = tagLastSurplusLine(lastSurplusKey);
+  const dauer =
+    prices && prices.length >= 2 && powerGw != null && energyGwh != null
+      ? computeDauerSpanne(prices, powerGw, energyGwh)
+      : null;
+
 
   const rows =
     fleetExtra?.slice.indices.map((i) => ({
@@ -127,6 +143,21 @@ export function TagSoGerechnet({
           Ladeenergie an diesem Tag.
         </p>
         {priceLine ? <p>Börsenpreis Day-Ahead: {priceLine}</p> : null}
+        {prices && prices.length >= 2 && powerGw != null && energyGwh != null && dateLabel ? (
+          <>
+            <p>
+              Preis: Day-Ahead DE-LU, €/MWh. Spanne: {preisSpanneLine(dauer)}. Modell: {preisModellLine(surplusGwh)}.
+            </p>
+            {dauer ? <p>{preisMittelFensterText(dauer, powerGw, energyGwh, dateLabel)}</p> : null}
+            <p>
+              Quelle: Energy-Charts / SMARD, CC BY 4.0 ·{" "}
+              <Link href="/methodik#preis-fenster" className="v4-text-link">
+                Methodik
+              </Link>
+              .
+            </p>
+          </>
+        ) : null}
         {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
           <p>
             Monatslauf unten (

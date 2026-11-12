@@ -43,3 +43,41 @@ export function chartIndexFromKey(
   }
   return null;
 }
+
+/** Nächster Index zu einer ViewBox-X-Koordinate (nicht notwendig gleichmäßig). */
+export function nearestIndexFromXs(viewBoxX: number, xs: readonly number[]): number {
+  if (xs.length === 0) {
+    return 0;
+  }
+  let best = 0;
+  let bestD = Math.abs(xs[0]! - viewBoxX);
+  for (let i = 1; i < xs.length; i += 1) {
+    const d = Math.abs(xs[i]! - viewBoxX);
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+/** clientX → ViewBox-X, wenn das Probe-Element dem viewBox-Raum 0…viewBoxWidth entspricht. */
+export function viewBoxXFromClientX(
+  clientX: number,
+  rect: Pick<DOMRect, "left" | "width">,
+  viewBoxWidth: number,
+): number {
+  if (rect.width <= 0) {
+    return 0;
+  }
+  return ((clientX - rect.left) / rect.width) * viewBoxWidth;
+}
+
+export function nearestIndexFromClientXs(
+  clientX: number,
+  rect: Pick<DOMRect, "left" | "width">,
+  viewBoxWidth: number,
+  xs: readonly number[],
+): number {
+  return nearestIndexFromXs(viewBoxXFromClientX(clientX, rect, viewBoxWidth), xs);
+}

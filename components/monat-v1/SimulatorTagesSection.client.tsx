@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 
+import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
+import { tagesTooltipRows, tagesTooltipTime } from "@/lib/simulatorChartTooltip";
+
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import simStyles from "@/components/monat-v1/simulator-fahrweisen.module.css";
 import type { SimulatorPalette } from "@/components/monat-v1/simulatorPalette";
@@ -113,8 +117,22 @@ function StripeChart({
   const day21 = days.find((d) => d.date === "2026-10-21");
   const hebung = day21 ? Math.abs(day21.marketReductionGw) : 0;
   const aria = `31 Oktobertage nach Regel T: ${data.tagesklassenSummary.winWin} Win-win, ${data.tagesklassenSummary.neutral} neutral, ${data.tagesklassenSummary.konfliktSchwach} Konflikt-schwach, ${data.tagesklassenSummary.konfliktHebung} Konflikt-Hebung`;
+  const xs = days.map((_, i) => vb.L + i * (bw + gap) + bw / 2);
+  const pick = (clientX: number, target: HTMLDivElement) =>
+    nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
+    <SvgChartShell
+      pointCount={days.length}
+      pickIndex={pick}
+      ariaLabel={aria}
+      testId="simulator-g2-tooltip"
+      tooltip={(i) => {
+        const day = i != null ? days[i] : null;
+        return { timeLabel: day ? tagesTooltipTime(day) : null, rows: day ? tagesTooltipRows(day) : null };
+      }}
+    >
+      {(activeIndex) => (
     <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-label={aria} data-testid="simulator-g2">
       <line x1={vb.L} x2={vb.L + plotW} y1={p70} y2={p70} stroke={colors.winWin} strokeWidth={1} strokeDasharray="4 3" />
       <line
@@ -208,6 +226,17 @@ function StripeChart({
           </g>
         );
       })}
+      {activeIndex != null ? (
+        <line
+          x1={xs[activeIndex]}
+          x2={xs[activeIndex]}
+          y1={barT}
+          y2={zeroY + (wide ? 20 : 12)}
+          className="v4-chart-crosshair"
+        />
+      ) : null}
     </svg>
+      )}
+    </SvgChartShell>
   );
 }

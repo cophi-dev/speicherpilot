@@ -1,5 +1,8 @@
 "use client";
 
+import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
+import { beispieltagTooltipRows, beispieltagTooltipTime } from "@/lib/simulatorChartTooltip";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import simStyles from "@/components/monat-v1/simulator-fahrweisen.module.css";
 import type { SimulatorPalette } from "@/components/monat-v1/simulatorPalette";
@@ -132,8 +135,30 @@ function DayChart({
   const aria = is21
     ? `Restlast und Fahrpläne am 21.10., Europe/Berlin, 15 Minuten. Neue Tagesspitze ${formatGw(metrics.marketPeakGw)} um ${metrics.marketPeakLabel}, beobachtet ${formatGw(metrics.observedPeakGw)} um ${metrics.observedLabel}.`
     : `Restlast und Fahrpläne am 29.10., Europe/Berlin, 15 Minuten. Preismaximum ${formatDec(metrics.maxPrice, 0)} Euro je Megawattstunde um ${metrics.maxPriceLabel}, Restlastspitze ${formatGw(metrics.observedPeakGw)} um ${metrics.observedLabel}, Markt noch ${formatGw(metrics.marketDischargeAtObservedGw)} übrig.`;
+  const xs = market.map((r) => xRow(r));
+  const pick = (clientX: number, target: HTMLDivElement) =>
+    nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
+    <SvgChartShell
+      pointCount={market.length}
+      pickIndex={pick}
+      ariaLabel={aria}
+      testId={`simulator-g3-${is21 ? "21" : "29"}-tooltip`}
+      tooltip={(i) => {
+        if (i == null) {
+          return { timeLabel: null, rows: null };
+        }
+        const m = market[i];
+        const n = netz[i];
+        const k = komp[i];
+        if (!m || !n || !k) {
+          return { timeLabel: null, rows: null };
+        }
+        return { timeLabel: beispieltagTooltipTime(m), rows: beispieltagTooltipRows(m, n, k) };
+      }}
+    >
+      {(activeIndex) => (
     <svg
       viewBox={`0 0 ${vb.w} ${VH}`}
       className={styles.svg}
@@ -340,7 +365,18 @@ function DayChart({
           </SvgText>
         </g>
       )}
+      {activeIndex != null ? (
+        <line
+          x1={xs[activeIndex]}
+          x2={xs[activeIndex]}
+          y1={residualT}
+          y2={priceT + vb.priceH}
+          className="v4-chart-crosshair"
+        />
+      ) : null}
     </svg>
+      )}
+    </SvgChartShell>
   );
 }
 

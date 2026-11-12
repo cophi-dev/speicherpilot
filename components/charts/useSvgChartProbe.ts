@@ -4,7 +4,12 @@ import { useCallback, useState, type KeyboardEvent, type MouseEvent, type TouchE
 
 import { chartIndexFromKey, nearestIndexFromClientX } from "@/lib/chartNearestIndex";
 
-export function useSvgChartProbe(pointCount: number) {
+export type SvgChartProbePick = (
+  clientX: number,
+  target: HTMLDivElement,
+) => number;
+
+export function useSvgChartProbe(pointCount: number, pickIndex?: SvgChartProbePick) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
 
@@ -13,11 +18,14 @@ export function useSvgChartProbe(pointCount: number) {
   const pickFromClientX = useCallback(
     (clientX: number, target: HTMLDivElement) => {
       const rect = target.getBoundingClientRect();
-      const idx = nearestIndexFromClientX(clientX, rect, pointCount, target.scrollLeft);
-      setHoverIndex(idx);
+      const idx = pickIndex
+        ? pickIndex(clientX, target)
+        : nearestIndexFromClientX(clientX, rect, pointCount, target.scrollLeft);
+      const clamped = Math.min(Math.max(0, idx), Math.max(0, pointCount - 1));
+      setHoverIndex(clamped);
       setFocusIndex(null);
     },
-    [pointCount],
+    [pointCount, pickIndex],
   );
 
   const onMouseMove = useCallback(

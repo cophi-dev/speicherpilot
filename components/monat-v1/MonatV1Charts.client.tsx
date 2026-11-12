@@ -82,7 +82,7 @@ function MarktLabel390({
 
 function HeroChart({ model }: { model: MonatV1Model }) {
   const { ref, wide } = useLayout();
-  const vb = wide ? { w: 1152, h: 460, L: 52, R: 188, T: 32, B: 62 } : { w: 350, h: 348, L: 38, R: 26, T: 24, B: 54 };
+  const vb = wide ? { w: 1152, h: 460, L: 52, R: 188, T: 32, B: 62 } : { w: 350, h: 356, L: 38, R: 26, T: 24, B: 62 };
   const plotW = vb.w - vb.L - vb.R;
   const plotH = vb.h - vb.T - vb.B;
   const { yMinGw, yMaxGw, refPeakGw } = model;
@@ -220,7 +220,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               >
                 ×{f}
               </text>
-              <text x={x} y={vb.T + plotH + 30} textAnchor="middle" fill="var(--mv-muted, #43474c)">
+              <text x={x} y={vb.T + plotH + 36} textAnchor="middle" fill="var(--mv-muted, #43474c)">
                 {gw}
               </text>
             </g>
@@ -362,7 +362,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
 
 function StundenChart({ model }: { model: MonatV1Model }) {
   const { ref, wide } = useLayout();
-  const vb = wide ? { w: 1152, h: 400, L: 52, R: 24, T: 36, B: 48 } : { w: 350, h: 320, L: 38, R: 10, T: 28, B: 44 };
+  const vb = wide ? { w: 1152, h: 400, L: 52, R: 24, T: 36, B: 48 } : { w: 350, h: 334, L: 38, R: 10, T: 28, B: 58 };
   const plotW = vb.w - vb.L - vb.R;
   const plotH = vb.h - vb.T - vb.B;
   const yMax = 20;
@@ -447,7 +447,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
               <text x={x} y={vb.T + plotH + 16} textAnchor="middle" fill="var(--mv-ink)">
                 ×{c.factor}
               </text>
-              <text x={x} y={vb.T + plotH + 30} textAnchor="middle" fill="var(--mv-muted)">
+              <text x={x} y={vb.T + plotH + 36} textAnchor="middle" fill="var(--mv-muted)">
                 {c.powerGwLabel}
               </text>
               <polyline

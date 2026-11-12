@@ -17,7 +17,8 @@
   --mv-linie: #262b31;
   --mv-flaeche: #121417;
   --mv-gridline: #1f2529;
-  --mv-rust-tint: rgba(180, 83, 42, 0.2);
+  --mv-rust: #e07a48;
+  --mv-rust-tint: rgba(224, 122, 72, 0.25);
 }
 
 .eyebrow {

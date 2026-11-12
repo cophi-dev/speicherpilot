@@ -8,7 +8,7 @@ import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/home/PreisFenster.module.css";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LUECKE_DESKTOP, LUECKE_MOBILE_PAD, plotXFromSlotIndex } from "@/lib/lueckeChartGeometry";
-import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, type PreisTick } from "@/lib/preisFenster";
+import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
 
 const DESKTOP_H = 180;
 const MOBILE_H = 120;
@@ -104,11 +104,8 @@ export function PreisFenster({
     `L${(padL + plotW).toFixed(1)},${yOf(last.eurPerMwh).toFixed(1)}`,
   ].join(" ");
   const marked = new Set([...(dauer?.low ?? []), ...(dauer?.high ?? [])]);
-  const modelLine =
-    surplusGwh < 0.05 ? "lädt an diesem Tag nicht · kein Erlös" : "kann an diesem Tag laden · kein Erlös";
-  const spanLine = dauer
-    ? `${formatQuantity(dauer.dauerSpanne, "de", 2)} €/MWh (Ø ${dauer.n} teuerste − Ø ${dauer.n} günstigste ¼ h)`
-    : "nicht gebildet";
+  const modelLine = preisModellLine(surplusGwh);
+  const spanLine = preisSpanneLine(dauer);
 
   const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(points.length);
   const tooltipRows = useMemo(() => {
@@ -219,9 +216,7 @@ export function PreisFenster({
         <details className={styles.more}>
           <summary>Mittel und Fenster</summary>
           <p>
-            Mittel günstig / teuer: {formatQuantity(dauer.meanLow, "de", 2)} und {formatQuantity(dauer.meanHigh, "de", 2)}.
-            Die markierten Punkte sind diese Viertelstunden ({dauer.n}, Flotte {formatQuantity(powerGw, "de", 2)} GW /{" "}
-            {formatQuantity(energyGwh, "de", 2)} GWh, {dateLabel}).
+            {preisMittelFensterText(dauer, powerGw, energyGwh, dateLabel)}
           </p>
         </details>
       ) : null}

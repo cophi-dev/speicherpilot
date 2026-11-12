@@ -1,5 +1,8 @@
 "use client";
 
+import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
+import { fnavTooltipRows, fnavTooltipTime } from "@/lib/simulatorChartTooltip";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import simStyles from "@/components/monat-v1/simulator-fahrweisen.module.css";
 import type { SimulatorPalette } from "@/components/monat-v1/simulatorPalette";
@@ -95,12 +98,29 @@ function KipppunktChart({
     `${fx(10)},${fy(ref)}`,
   ].join(" ");
 
+  const xs = marktPts.map((p) => fx(p.factor));
+  const pick = (clientX: number, target: HTMLDivElement) =>
+    nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
+  const ariaKipp =
+    "Monatsspitze nach Flottengröße: neue Spitze ab mal 3,9 unter dem Markt-Fahrplan, Preisnehmer, keine Euro-Zahl";
+
   return (
+    <SvgChartShell
+      pointCount={marktPts.length}
+      pickIndex={pick}
+      ariaLabel={ariaKipp}
+      testId="simulator-g4-kipp-tooltip"
+      tooltip={(i) => {
+        const pt = i != null ? marktPts[i] : null;
+        return { timeLabel: pt ? fnavTooltipTime(pt.factor) : null, rows: pt ? fnavTooltipRows(pt) : null };
+      }}
+    >
+      {(activeIndex) => (
     <svg
       viewBox={`0 0 ${vb.w} ${vb.h}`}
       className={styles.svg}
       role="img"
-      aria-label="Monatsspitze nach Flottengröße: neue Spitze ab mal 3,9 unter dem Markt-Fahrplan, Preisnehmer, keine Euro-Zahl"
+      aria-label={ariaKipp}
       data-testid="simulator-g4-kipp"
     >
       <HatchDefs id="kipp" color={colors.rust} bg={colors.bg} />
@@ -219,6 +239,17 @@ function KipppunktChart({
       <SvgText x={(vb.L + vb.L + plotW) / 2} y={vb.h - 8} anchor="middle" fill={colors.muted}>
         Zusatzflotte, Konvention{"\u00A0"}(a)
       </SvgText>
+      {activeIndex != null ? (
+        <line
+          x1={xs[activeIndex]}
+          x2={xs[activeIndex]}
+          y1={vb.T}
+          y2={vb.T + plotH}
+          className="v4-chart-crosshair"
+        />
+      ) : null}
     </svg>
+      )}
+    </SvgChartShell>
   );
 }

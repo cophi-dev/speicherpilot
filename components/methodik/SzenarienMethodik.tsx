@@ -169,7 +169,7 @@ export function SzenarienMethodik({ language, bodyOnly = false }: { language: Ap
         </li>
       </ul>
       <p>
-        <a href="/netz">{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</a>
+        <a href="/methodik#netz">{tx("Netzwirkung im Testnetz", "Grid effect in a test grid")}</a>
         {tx(
           " rechnet Spannung und Auslastung für einen Speicher in einem öffentlichen Lehrnetz. Das ist eine andere Rechnung als der Vergleich auf dieser Seite.",
           " calculates voltage and loading for a storage unit in a public teaching grid. That is a different calculation from the comparison on this page."

@@ -2,6 +2,10 @@
 
 import { useMemo, useState } from "react";
 
+import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
+import { paretoTooltipRows, paretoTooltipTime } from "@/lib/simulatorChartTooltip";
+
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import simStyles from "@/components/monat-v1/simulator-fahrweisen.module.css";
 import type { SimulatorPalette } from "@/components/monat-v1/simulatorPalette";
@@ -280,8 +284,22 @@ function FullAxisChart({
   const line = frontPts.map((p) => `${fx(p.xMio)},${fy(p.yGw)}`).join(" ");
   const mid = (wx1 + Math.max(wx2, wx1 + 4)) / 2;
   const aria = `Volle Pareto-Achse, 0 bis 36 Millionen Euro, Zoomfenster ${ZOOM_X[0].toFixed(2).replace(".", ",")}–${ZOOM_X[1].toFixed(2).replace(".", ",")}, ${voll.vonLabel} Millionen Euro`;
+  const xs = frontPts.map((p) => fx(p.xMio));
+  const pick = (clientX: number, target: HTMLDivElement) =>
+    nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
+    <SvgChartShell
+      pointCount={frontPts.length}
+      pickIndex={pick}
+      ariaLabel={aria}
+      testId="simulator-g1-full-tooltip"
+      tooltip={(i) => {
+        const pt = i != null ? frontPts[i] : null;
+        return { timeLabel: pt ? paretoTooltipTime(pt) : null, rows: pt ? paretoTooltipRows(pt) : null };
+      }}
+    >
+      {(activeIndex) => (
     <svg
       viewBox={`0 0 ${vb.w} ${vb.h}`}
       className={styles.svg}
@@ -364,7 +382,18 @@ function FullAxisChart({
           </SvgText>
         </>
       )}
+      {activeIndex != null ? (
+        <line
+          x1={xs[activeIndex]}
+          x2={xs[activeIndex]}
+          y1={vb.T}
+          y2={vb.T + plotH}
+          className="v4-chart-crosshair"
+        />
+      ) : null}
     </svg>
+      )}
+    </SvgChartShell>
   );
 }
 
@@ -419,8 +448,22 @@ function ZoomChart({
   const valM = `${formatDec(mkt.revenueMioEur)}  ·  ${formatGw(mkt.reductionGw)}`;
   const zoomRange = `${formatDec(ZOOM_X[0], 2)}–${formatDec(ZOOM_X[1], 2)}`;
   const aria = `Zoom der Pareto-Front zwischen ${zoomRange} Millionen Euro. ${voll.fullCostSentence}`;
+  const xs = frontPts.map((p) => fx(p.xMio));
+  const pick = (clientX: number, target: HTMLDivElement) =>
+    nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
+    <SvgChartShell
+      pointCount={frontPts.length}
+      pickIndex={pick}
+      ariaLabel={aria}
+      testId="simulator-g1-zoom-tooltip"
+      tooltip={(i) => {
+        const pt = i != null ? frontPts[i] : null;
+        return { timeLabel: pt ? paretoTooltipTime(pt) : null, rows: pt ? paretoTooltipRows(pt) : null };
+      }}
+    >
+      {(activeIndex) => (
     <svg
       viewBox={`0 0 ${vb.w} ${vb.h}`}
       className={styles.svg}
@@ -571,7 +614,18 @@ function ZoomChart({
           />
         </>
       )}
+      {activeIndex != null ? (
+        <line
+          x1={xs[activeIndex]}
+          x2={xs[activeIndex]}
+          y1={vb.T}
+          y2={vb.T + plotH}
+          className="v4-chart-crosshair"
+        />
+      ) : null}
     </svg>
+      )}
+    </SvgChartShell>
   );
 }
 
