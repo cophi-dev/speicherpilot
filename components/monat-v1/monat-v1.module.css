@@ -73,11 +73,22 @@
   margin: 0 0 0.75rem;
 }
 
+.kern {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.5rem, 7vw, 3.5rem);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 0.5rem;
+}
+
 .lead {
   font-size: clamp(1rem, 2vw, 1.125rem);
   line-height: 1.55;
   max-width: 52ch;
   margin: 0 0 1rem;
+  color: var(--mv-ink);
   color: var(--mv-ink);
 }
 

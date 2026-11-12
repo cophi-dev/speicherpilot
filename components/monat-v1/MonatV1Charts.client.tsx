@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
+import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { formatGwAbs, formatGwReduction, MONAT_V1_GRAPH_CAPTION, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
@@ -121,8 +123,47 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   const lastMarkt = marktPts[marktPts.length - 1]!;
   const hatchPts = [{ x: kipX, y: refY }, ...marktPts.filter((pt) => pt.f > kipF + 0.01)];
 
+  const factorSteps = 10;
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(factorSteps);
+  const activeFactor = activeIndex != null ? activeIndex + 1 : null;
+  const tooltipRows = useMemo(() => {
+    if (activeFactor == null) {
+      return null;
+    }
+    const p = model.hero.points.find((x) => x.factor === activeFactor);
+    if (!p) {
+      return null;
+    }
+    const rows = [
+      { label: "Spitze", value: `${formatGwAbs(p.spitzeGw, 1)}` },
+      { label: "Überschuss", value: `${formatGwAbs(p.ueberschussGw, 1)}` },
+    ];
+    if (p.marktGw != null) {
+      rows.push({ label: "Markt", value: `${formatGwAbs(p.marktGw, 2)}` });
+    }
+    return rows;
+  }, [activeFactor, model.hero.points]);
+  const crossX = activeFactor != null ? factorX(activeFactor, plotW, vb.L) : null;
+
   return (
-    <div ref={ref} className={styles.chartWrap} data-testid="monat-v1-hero">
+    <div
+      ref={ref}
+      className={`${styles.chartWrap} v4-chart-probe`}
+      data-testid="monat-v1-hero"
+      tabIndex={0}
+      role="application"
+      aria-label="Höchste Restlast je Flottenstufe"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      onTouchStart={onTouch}
+      onTouchMove={onTouch}
+      onKeyDown={onKeyDown}
+    >
+      <ChartTooltipPanel
+        timeLabel={activeFactor != null ? `×${activeFactor}` : null}
+        rows={tooltipRows}
+        testId="monat-v1-hero-tooltip"
+      />
       <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g1-title g1-desc">
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
@@ -310,35 +351,11 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         ) : (
           <MarktLabel390 pts={marktPts} yGw={yGw} yMinGw={yMinGw} yMaxGw={yMaxGw} plotH={plotH} padT={vb.T} />
         )}
+        {crossX != null ? (
+          <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
+        ) : null}
       </svg>
-      <p className={styles.figcaption}>{MONAT_V1_GRAPH_CAPTION}</p>
-      <table className={styles.valuesTable}>
-        <caption>Markt bei ×10 ohne Preisrückwirkung gerechnet.</caption>
-        <thead>
-          <tr>
-            <th scope="col">Fahrweise</th>
-            <th scope="col">×1</th>
-            <th scope="col">×10</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">Spitze</th>
-            <td>{formatGwAbs(model.heroTable.spitzeX1, 1)}</td>
-            <td>{formatGwAbs(model.heroTable.spitzeX10, 1)}</td>
-          </tr>
-          <tr>
-            <th scope="row">Überschuss</th>
-            <td>{formatGwAbs(model.heroTable.ueberschussX1, 1)}</td>
-            <td>{formatGwAbs(model.heroTable.ueberschussX10, 1)}</td>
-          </tr>
-          <tr>
-            <th scope="row">Markt</th>
-            <td>{formatGwAbs(model.heroTable.marktX1, 1)}</td>
-            <td>{formatGwAbs(model.heroTable.marktX10, 2)}</td>
-          </tr>
-        </tbody>
-      </table>
+      <p className={`${styles.figcaption} num`}>{MONAT_V1_GRAPH_CAPTION}</p>
     </div>
   );
 }
@@ -353,8 +370,40 @@ function StundenChart({ model }: { model: MonatV1Model }) {
   const cats = model.duration;
   const yRed = (reductionGw: number) => vb.T + plotH - (reductionGw / yMax) * plotH;
 
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(cats.length);
+  const activeCat = activeIndex != null ? cats[activeIndex] : null;
+  const tooltipRows = useMemo(() => {
+    if (!activeCat) {
+      return null;
+    }
+    return [
+      { label: "1,76 h", value: formatGwReduction(activeCat.h176, 2) },
+      { label: "2 h", value: formatGwReduction(activeCat.h2, 2) },
+      { label: "4 h", value: formatGwReduction(activeCat.h4, 2) },
+    ];
+  }, [activeCat]);
+  const crossX =
+    activeIndex != null ? vb.L + ((activeIndex + 0.5) / cats.length) * plotW : null;
+
   return (
-    <div ref={ref} className={styles.chartWrap} data-testid="monat-v1-stunden">
+    <div
+      ref={ref}
+      className={`${styles.chartWrap} v4-chart-probe`}
+      data-testid="monat-v1-stunden"
+      tabIndex={0}
+      role="application"
+      aria-label="Spitzensenkung je Dauer"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      onTouchStart={onTouch}
+      onTouchMove={onTouch}
+      onKeyDown={onKeyDown}
+    >
+      <ChartTooltipPanel
+        timeLabel={activeCat ? `×${activeCat.factor}` : null}
+        rows={tooltipRows}
+        testId="monat-v1-stunden-tooltip"
+      />
       <div className={styles.legend}>
         <span className={styles.legendItem}>
           <span className={styles.dotFilled} /> 1,76 h
@@ -447,28 +496,11 @@ function StundenChart({ model }: { model: MonatV1Model }) {
             })()}
           </g>
         ) : null}
+        {crossX != null ? (
+          <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
+        ) : null}
       </svg>
-      <p className={styles.figcaption}>{MONAT_V1_GRAPH_CAPTION}</p>
-      <table className={styles.valuesTable}>
-        <thead>
-          <tr>
-            <th scope="col">Stufe</th>
-            <th scope="col">1,76 h</th>
-            <th scope="col">2 h</th>
-            <th scope="col">4 h</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cats.map((c) => (
-            <tr key={c.factor}>
-              <th scope="row">×{c.factor}</th>
-              <td className={c.factor === 10 ? styles.highlightCell : undefined}>{formatGwReduction(c.h176, 2)}</td>
-              <td>{formatGwReduction(c.h2, 2)}</td>
-              <td className={c.factor === 5 ? styles.highlightCell : undefined}>{formatGwReduction(c.h4, 2)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <p className={`${styles.figcaption} num`}>{MONAT_V1_GRAPH_CAPTION}</p>
     </div>
   );
 }
@@ -481,8 +513,38 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
   const startY = 48;
   const poolX = 40;
 
+  const rowCount = model.pool.length;
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(rowCount);
+  const activeRow = activeIndex != null ? model.pool[activeIndex] : null;
+  const tooltipRows = useMemo(() => {
+    if (!activeRow) {
+      return null;
+    }
+    return [
+      { label: "Pool", value: activeRow.poolLabel },
+      { label: "Senkung", value: formatGwReduction(activeRow.reductionGw, 2) },
+    ];
+  }, [activeRow]);
+
   return (
-    <div ref={ref} className={styles.chartWrap} data-testid="monat-v1-ueberschuss">
+    <div
+      ref={ref}
+      className={`${styles.chartWrap} v4-chart-probe`}
+      data-testid="monat-v1-ueberschuss"
+      tabIndex={0}
+      role="application"
+      aria-label="Überschuss-Pool und Spitzensenkung"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      onTouchStart={onTouch}
+      onTouchMove={onTouch}
+      onKeyDown={onKeyDown}
+    >
+      <ChartTooltipPanel
+        timeLabel={activeRow ? `×${activeRow.factor}` : null}
+        rows={tooltipRows}
+        testId="monat-v1-ueberschuss-tooltip"
+      />
       <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g4-title g4-desc">
         <title id="g4-title">Überschuss-Pool und Spitzensenkung</title>
         <desc id="g4-desc">
@@ -497,8 +559,9 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
         {model.pool.map((row, i) => {
           const y = startY + i * rowH;
           const fillW = (row.poolSharePct / 100) * vb.poolW;
+          const active = activeIndex === i;
           return (
-            <g key={row.factor}>
+            <g key={row.factor} opacity={activeIndex == null || active ? 1 : 0.45}>
               <text
                 x={poolX + vb.poolW / 2}
                 y={y - 4}
@@ -549,7 +612,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
           );
         })}
       </svg>
-      <p className={styles.figcaption}>{MONAT_V1_GRAPH_CAPTION}</p>
+      <p className={`${styles.figcaption} num`}>{MONAT_V1_GRAPH_CAPTION}</p>
     </div>
   );
 }
@@ -565,20 +628,10 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
           <br />
           oder hebt sie.
         </h1>
+        <p className={styles.kern}>{formatGwAbs(model.hero.insightSpitzeX10Gw, 1)}</p>
         <p className={styles.lead}>
-          Drei Fahrweisen auf derselben Restlast: netz- und spitzenorientiert, Überschuss und Markt ohne
-          Preisrückwirkung.
+          Spitze bei ×10 und Kipppunkt {model.hero.kipppunktLabel} — drei Fahrweisen auf derselben Restlast.
         </p>
-        <div className={styles.insight}>
-          <div>
-            {formatGwAbs(model.hero.insightSpitzeX10Gw, 1)}
-            <div className={styles.insightMuted}>Spitze · ×10 · fällt</div>
-          </div>
-          <div>
-            {model.hero.kipppunktLabel}
-            <div className={styles.insightMuted}>Markt über {model.refPeakGw.toFixed(1).replace(".", ",")} GW, ohne Preisrückwirkung</div>
-          </div>
-        </div>
         <HeroChart model={model} />
         <p className={styles.simulatorTry}>
           <Link href="/simulator" className="v4-text-link">
@@ -590,6 +643,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <h2 id="monat-v1-a3" className={styles.h2}>
           Es fehlen Stunden, nicht Gigawatt.
         </h2>
+        <p className={styles.kern}>−{formatGwReduction(model.duration.find((d) => d.factor === 10)?.h176 ?? 0, 1)}</p>
         <p className={styles.lead}>{MONAT_V1_KERN3}.</p>
         <StundenChart model={model} />
       </section>
@@ -597,6 +651,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <h2 id="monat-v1-a4" className={styles.h2}>
           Überschuss allein trägt nicht.
         </h2>
+        <p className={styles.kern}>{model.surplusPoolGwh.toFixed(1).replace(".", ",")} GWh</p>
         <p className={styles.lead}>
           Der Aufnahme-Pool ist bei ×10 voll, die Spitzensenkung bleibt deutlich unter spitzenorientiertem Fahren.
         </p>

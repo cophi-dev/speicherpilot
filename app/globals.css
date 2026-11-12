@@ -11111,3 +11111,89 @@ table.sr-only-focusable:focus-within {
   align-items: center;
   padding: 4px 2px;
 }
+
+.v4-so-gerechnet {
+  margin: 2.5rem auto 2rem;
+  border-top: 1px solid var(--linie);
+  padding-top: 0.75rem;
+}
+
+.v4-so-gerechnet-body {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0.5rem 0 1rem;
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.v4-so-gerechnet-kicker {
+  font-size: var(--type-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 0.35rem;
+}
+
+.v4-so-gerechnet-section > p {
+  margin: 0 0 0.65rem;
+}
+
+.v4-monat-so-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-label);
+  margin: 0.5rem 0;
+}
+
+.v4-monat-so-table th,
+.v4-monat-so-table td {
+  border-bottom: 1px solid var(--linie);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+}
+
+.v4-monat-so-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.v4-chart-tooltip-shell {
+  max-width: calc(100vw - 40px);
+  margin: 0 0 0.5rem;
+}
+
+.v4-chart-tooltip {
+  font-size: var(--type-label);
+  line-height: 1.45;
+  margin: 0;
+  color: var(--ink);
+}
+
+.v4-chart-tooltip-time {
+  font-weight: 600;
+}
+
+.v4-chart-probe {
+  outline: none;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.v4-chart-probe:focus-visible {
+  outline: 2px solid #b4532a;
+  outline-offset: 2px;
+}
+
+.v4-chart-crosshair {
+  stroke: #b4532a;
+  stroke-width: 1.25;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.v4-tag-side {
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}

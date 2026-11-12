@@ -82,12 +82,12 @@ export function HeuteHero({ heute }: { heute: HeuteImNetz }) {
 
           <div className="heute-cta flex flex-wrap items-center gap-x-5 gap-y-3">
             <Link
-              href="/site?view=projekt"
+              href="/simulator"
               className="inline-flex h-12 items-center rounded-md bg-primary px-5 text-[15px] font-medium text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               {tx("Eigenen Standort rechnen →", "Size your own site →")}
             </Link>
-            <Link href="/szenarien" className="text-sm font-medium underline underline-offset-[3px]">
+            <Link href="/simulator" className="text-sm font-medium underline underline-offset-[3px]">
               {tx("Szenarien rechnen", "Run scenarios")}
             </Link>
             <Link href="/live" className="text-sm text-muted-foreground underline underline-offset-[3px]">

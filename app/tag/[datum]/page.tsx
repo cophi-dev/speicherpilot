@@ -10,11 +10,12 @@ import { loadGermanyViewForTag } from "@/lib/germanyViewTag.server";
 import { lastSurplusBefore } from "@/lib/kopfTagCopy";
 import {
   nationalFleetMonthAvailable,
+  monthStatsForRun,
   parseFleetFactor,
   parseFleetStrategy,
   sliceFleetDay,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
+import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { NationalFleetTagSlot, fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
@@ -145,6 +146,19 @@ export default async function TagDetailPage({
   const fleetRun = fleetMonth ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy) : null;
   const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, dayKey) : null;
   const fleetDayNoWindSolarSurplusFlag = fleetDayNoWindSolarSurplus(fleetSlice);
+  const fleetSoGerechnet =
+    fleetRun && fleetSlice
+      ? {
+          dayKey,
+          factor: fleetFactor,
+          strategy: fleetStrategy,
+          run: fleetRun,
+          slice: fleetSlice,
+          monthStats: monthStatsForRun(nationalFleetContext(fleetFactor, fleetStrategy), fleetFactor, fleetStrategy),
+          showPeakWithoutSurplus:
+            fleetStrategy === "spitze" && fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
+        }
+      : null;
   const fleetSlot =
     fleetRun && fleetSlice ? (
       <NationalFleetTagSlot
@@ -184,6 +198,7 @@ export default async function TagDetailPage({
         preisTag={view.preisTag}
         marktInsights={marktInsights}
         simulatorCostPct={loadEps70Teaser().costPctText}
+        fleetSoGerechnet={fleetSoGerechnet}
       >
         {fleetSlot}
       </TagPageV4>

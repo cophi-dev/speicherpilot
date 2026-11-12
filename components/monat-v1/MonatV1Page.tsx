@@ -1,4 +1,5 @@
 import { MonatV1Charts } from "@/components/monat-v1/MonatV1Charts.client";
+import { MonatSoGerechnet } from "@/components/monat-v1/MonatSoGerechnet";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { formatBerlinMonthShort } from "@/lib/monatCalendar";
@@ -17,15 +18,7 @@ export function MonatV1Page({
         <span className={styles.chip}>MODELL</span>
       </div>
       <MonatV1Charts model={model} />
-      <footer className={styles.pageFooter}>
-        <p>{model.pageFootnote}</p>
-        <p>
-          Quellen und Annahmen:{" "}
-          <a href="/methodik#monat-konzept-ac" className="v4-text-link">
-            Methodik → Monatsmodell
-          </a>
-        </p>
-      </footer>
+      <MonatSoGerechnet model={model} />
     </div>
   );
 }

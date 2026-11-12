@@ -10,6 +10,10 @@ import {
   type CSSProperties,
 } from "react";
 
+import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
+import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
+import { formatBerlinChartTimeFromIso } from "@/lib/formatBerlinChartTime";
+import { lueckeTooltipRows } from "@/lib/lueckeChartTooltip";
 import { formatQuantity } from "@/lib/formatQuantity";
 import polish from "@/components/home/dayBlockPolish.module.css";
 import {
@@ -174,6 +178,22 @@ export function LueckeChart({
   const plotW = frame.w - frame.pad.left - frame.pad.right;
   const plotH = frame.h - frame.pad.top - frame.pad.bottom;
 
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(slots.length);
+
+  const xAtIndex = (index: number) => plotXFromSlotIndex(index, slots.length, frame.pad.left, plotW);
+
+  const tooltipRows = useMemo(() => {
+    if (activeIndex == null || !slots[activeIndex]) {
+      return null;
+    }
+    return lueckeTooltipRows(slots[activeIndex]!);
+  }, [activeIndex, slots]);
+
+  const tooltipTime =
+    activeIndex != null && slots[activeIndex]
+      ? formatBerlinChartTimeFromIso(slots[activeIndex]!.timestampIso)
+      : null;
+
   const padVars = compact
     ? ({
         "--v4-luecke-pad-left": `${MOBILE_PAD.left}px`,
@@ -188,7 +208,19 @@ export function LueckeChart({
       data-luecke-slot-count={slots.length}
       data-luecke-day-kind={dayKind}
     >
-      <div ref={shellRef} className="v4-luecke-svg-shell">
+      <ChartTooltipPanel timeLabel={tooltipTime} rows={tooltipRows} testId="luecke-chart-tooltip" />
+      <div
+        ref={shellRef}
+        className="v4-luecke-svg-shell v4-chart-probe"
+        tabIndex={0}
+        role="application"
+        aria-label="Tagesverlauf Verbrauch, Wind und Sonne, Residuallast"
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        onTouchStart={onTouch}
+        onTouchMove={onTouch}
+        onKeyDown={onKeyDown}
+      >
         {compact ? (
           <div className="v4-luecke-overlay" aria-hidden="true">
             <span
@@ -259,6 +291,16 @@ export function LueckeChart({
           <path d={geometry.wsPath} className="v4-luecke-ws-line" fill="none" vectorEffect="non-scaling-stroke" />
           <path d={geometry.gapPath} fill={`url(#${patternId})`} className="v4-luecke-gap" />
           <path d={geometry.loadPath} className="v4-luecke-load" fill="none" vectorEffect="non-scaling-stroke" />
+          {activeIndex != null ? (
+            <line
+              x1={xAtIndex(activeIndex)}
+              x2={xAtIndex(activeIndex)}
+              y1={geometry.plotTop}
+              y2={geometry.plotBottom}
+              className="v4-chart-crosshair"
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
           {!compact ? (
             <>
               <text x={frame.pad.left + plotW * 0.34} y={frame.pad.top + 18} className="v4-luecke-label">

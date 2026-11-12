@@ -248,7 +248,7 @@ export function HomeRing({
               <span className="day-door-title">{tx("Welche Speichergröße passt an meinen Standort?", "Which storage size fits my site?")}</span>
               <span className="day-door-go">{tx("Standort rechnen →", "Size a site →")}</span>
             </Link>
-            <Link className="day-door" href="/szenarien">
+            <Link className="day-door" href="/simulator">
               <span className="day-kicker">{tx("Für Netzbetreiber", "For grid operators")}</span>
               <span className="day-door-title">{tx("Welche Grenze trägt der Anschluss?", "What limit does the connection carry?")}</span>
               <span className="day-door-go">{tx("Szenarien rechnen →", "Run scenarios →")}</span>

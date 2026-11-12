@@ -536,7 +536,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 ))}
               </dl>
               </MethodikSection>
-              <p><Link href="/site?view=netz">{tx("Zum Standort", "To the site")}</Link></p>
+              <p><Link href="/simulator">{tx("Zum Simulator", "To the simulator")}</Link></p>
             </section>
           </article>
           </div>
