@@ -1,16 +1,17 @@
 .block {
-  margin: 24px auto 8px;
-  padding: 16px clamp(16px, 4vw, 44px);
+  margin: var(--space-8) auto var(--space-2);
+  padding-block: var(--space-8) var(--space-6);
   border-top: 1px solid var(--v4-border);
-  max-width: var(--v4-content-max, 1200px);
   box-sizing: border-box;
 }
 
 .title {
-  font-size: 1rem;
+  font-size: var(--type-lead);
   font-weight: 600;
-  margin: 0 0 12px;
+  line-height: var(--lh-lead);
+  margin: 0 0 var(--space-4);
   letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .list {
@@ -24,14 +25,15 @@
 
 .text {
   margin: 0;
-  font-size: var(--type-14);
-  line-height: 1.45;
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
   max-width: 62ch;
 }
 
 .meta {
   margin: 4px 0 0;
-  font-size: var(--type-12);
+  font-size: var(--type-label);
   color: var(--v4-muted);
   display: flex;
   flex-wrap: wrap;
@@ -45,16 +47,4 @@
 
 .foot {
   margin-top: 12px;
-  font-size: var(--type-12);
-}
-
-@media (max-width: 639px) {
-  .block {
-    margin-top: 16px;
-    padding: 12px 0;
-  }
-
-  .text {
-    font-size: var(--type-14);
-  }
 }

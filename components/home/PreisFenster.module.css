@@ -72,14 +72,9 @@
 .more {
   margin-top: 8px;
   max-width: 68ch;
-  color: hsl(var(--muted-foreground));
-  font-size: var(--type-14);
-  line-height: 1.4;
-}
-
-.more summary {
-  cursor: pointer;
-  min-height: 24px;
+  color: var(--ink);
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
 }
 
 .more p {
