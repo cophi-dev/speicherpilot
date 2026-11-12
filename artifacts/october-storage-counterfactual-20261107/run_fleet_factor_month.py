@@ -23,9 +23,9 @@ TS_OUT = OUT / "timeseries"
 DAY_OUT = OUT / "daily"
 EVENT_OUT = OUT / "events"
 
-BASE_POWER_MW = 4_580.0
-BASE_ENERGY_MWH = 8_000.0
-MODEL_FLEET_SOURCE = "SpeicherPilot exportLaunchNationalDays.ts NATIONAL_BASE_FLEET (Model referenz, 07.11.2026)"
+BASE_POWER_MW = 4_640.0
+BASE_ENERGY_MWH = 8_150.0
+MODEL_FLEET_SOURCE = "SpeicherPilot exportLaunchNationalDays.ts NATIONAL_BASE_FLEET (4,64 GW / 8,15 GWh, 12.11.2026)"
 REF_RESIDUAL_PEAK_MW = 64405.9
 MONTH_SURPLUS_POOL_GWH = 134.241975
 
@@ -112,6 +112,11 @@ def dispatch_stats(rows: list[Row], c: np.ndarray, d: np.ndarray, e: np.ndarray,
         "soc_min_mwh": float(np.min(e)),
         "soc_max_mwh": float(np.max(e)),
         "binding_power_fraction": float(np.mean((c > 0.999 * p_mw) | (d > 0.999 * p_mw))),
+        "surplus_pool_capture_grid_gwh": absorbed_mwh / 1000,
+        "surplus_pool_capture_share_of_134_241975_gwh": capture_ratio,
+        "surplus_pool_utilisation_of_positive_qh_energy": util_surplus,
+        "model_capture_grid_gwh": absorbed_mwh / 1000,
+        "model_capture_share_of_month_surplus_pool": capture_ratio,
     }
 
 

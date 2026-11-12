@@ -5,7 +5,8 @@ import { evaluateSurplusDayFactor } from "@/lib/surplusDaySimulation";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
-export const NATIONAL_BASE_FLEET = { powerMw: 4_580, energyMwh: 8_000 };
+/** battery-charts Großspeicher 31.10.2026 · ×k = k-mal diese Flotte insgesamt. */
+export const NATIONAL_BASE_FLEET = { powerMw: 4_640, energyMwh: 8_150 };
 
 const USABLE_SOC_FRACTION = CHAIN_SOC_MAX - CHAIN_SOC_MIN;
 

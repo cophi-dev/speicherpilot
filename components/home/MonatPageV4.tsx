@@ -85,35 +85,25 @@ export function MonatPageV4({
       buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey }),
     );
   return (
-    <div className={`v4-start monat-page${fleetOnPage ? " has-fleet-konzept" : ""}`}>
+    <div className={`v4-start monat-page${fleetOnPage ? " has-fleet-konzept monat-page-v1" : ""}`}>
       <MonatNav monthKey={monthKey} records={records} />
-      <section className="v4-kopf" aria-labelledby="monat-h1">
-        <div className="v4-kopf-inner v4-content">
-          {fleetOnPage ? (
-            <p className="v4-kicker num v4-kicker-short v4-monat-kicker-single">
+      {!fleetOnPage ? (
+        <section className="v4-kopf" aria-labelledby="monat-h1">
+          <div className="v4-kopf-inner v4-content">
+            <p className="v4-kicker num v4-kicker-long">
+              Monat · {formatBerlinMonthLabel(monthKey)} · Datenstand {dataStand}
+            </p>
+            <p className="v4-kicker num v4-kicker-short">
               {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
             </p>
-          ) : (
-            <>
-              <p className="v4-kicker num v4-kicker-long">
-                Monat · {formatBerlinMonthLabel(monthKey)} · Datenstand {dataStand}
-              </p>
-              <p className="v4-kicker num v4-kicker-short">
-                {formatBerlinMonthShort(monthKey)} · Datenstand {standDay}
-              </p>
-            </>
-          )}
-          <h1 id="monat-h1" className="v4-h1">
-            {fleetOnPage ? "Wer am meisten lädt, senkt die Spitze am wenigsten." : h1}
-          </h1>
-          {fleetOnPage ? null : (
-            <>
-              <p className="v4-subline">{subline}</p>
-              <p className="v4-footnote">{heroFootnote}</p>
-            </>
-          )}
-        </div>
-      </section>
+            <h1 id="monat-h1" className="v4-h1">
+              {h1}
+            </h1>
+            <p className="v4-subline">{subline}</p>
+            <p className="v4-footnote">{heroFootnote}</p>
+          </div>
+        </section>
+      ) : null}
 
       {children}
 

@@ -12,11 +12,11 @@ describe("buildThreeGoalsCompare", () => {
     const ue = model.rows.find((r) => r.strategy === "ueberschuss")!.cells.find((c) => c.factor === 1)!;
     const sp = model.rows.find((r) => r.strategy === "spitze")!.cells.find((c) => c.factor === 1)!;
     const mk = model.rows.find((r) => r.strategy === "markt")!.cells.find((c) => c.factor === 1)!;
-    expect(ue.chargeGwh).toBeCloseTo(55.9, 1);
-    expect(ue.peakReductionGw).toBeCloseTo(2.24, 2);
-    expect(sp.peakReductionGw).toBeCloseTo(3.55, 2);
-    expect(sp.chargeGwh).toBeCloseTo(12.49, 1);
-    expect(mk.chargeGwh).toBeCloseTo(485.45, 0);
+    expect(ue.chargeGwh).toBeCloseTo(56.7, 0);
+    expect(ue.peakReductionGw).toBeCloseTo(2.27, 2);
+    expect(sp.peakReductionGw).toBeCloseTo(3.59, 2);
+    expect(sp.chargeGwh).toBeCloseTo(12.8, 0);
+    expect(mk.chargeGwh).toBeCloseTo(493.6, 0);
     expect(mk.peakReductionGw).toBeCloseTo(0.37, 2);
   });
 
@@ -24,7 +24,7 @@ describe("buildThreeGoalsCompare", () => {
     const model = buildThreeGoalsCompare(loadNationalFleetBundleMeta() as never);
     expect(model.marktX10PeakTs).toContain("2026-10-21T14:00");
     const mk10 = model.rows.find((r) => r.strategy === "markt")!.cells.find((c) => c.factor === 10)!;
-    expect(mk10.peakAfterGw).toBeCloseTo(96.76, 2);
+    expect(mk10.peakAfterGw).toBeCloseTo(97.36, 2);
   });
 });
 

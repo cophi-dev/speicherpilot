@@ -7,6 +7,7 @@ import { MonatUnavailable } from "@/components/home/MonatUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   buildMonatGrid,
+  formatBerlinMonthLabel,
   isBerlinMonthKey,
   MONAT_SURPLUS_EXPLAIN_DE,
   monatPointe,
@@ -24,8 +25,16 @@ export const revalidate = 1800;
 
 export async function generateMetadata({ params }: { params: Promise<{ monat: string }> }) {
   const { monat } = await params;
+  const label = isBerlinMonthKey(monat) ? formatBerlinMonthLabel(monat) : monat;
+  if (nationalFleetMonthAvailable(monat)) {
+    return {
+      title: `Monat · ${label} · Speicher und Restlastspitze`,
+      description:
+        "Nationales Monatsmodell: höchste Restlast je Flottenstufe und Fahrweise, Stunden vs. Gigawatt, Überschuss-Pool — national, kein Netzengpass, Vollvoraussicht.",
+    };
+  }
   return {
-    title: `Monat · ${monat}`,
+    title: `Monat · ${label}`,
     description: "Monatsverlauf in der geladenen Tagesreihe: Überschuss-Graph und Sprung zu einzelnen Tagen.",
   };
 }

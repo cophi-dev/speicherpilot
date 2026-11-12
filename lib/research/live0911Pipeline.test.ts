@@ -3,7 +3,7 @@ import ec0911 from "@/data/forschung/ec_total_power_20261109_abruf0647.json";
 import ec0911v2 from "@/data/forschung/ec_v2_20261109.json";
 
 import { factorReductionGw, peakReductionGw } from "@/lib/research/nationalPeakShaveEngine";
-import { additionalFleetMw } from "@/lib/research/fleetBasis";
+import { totalFleetMw } from "@/lib/research/fleetBasis";
 import { buildResearchHome } from "@/lib/research/loadResearchHome.server";
 import { residualDaysFromEnergyChartsPayload } from "@/lib/research/legacyResearchPower";
 import { parsePowerPayload, residualDaysFromSlots } from "@/lib/powerMix";
@@ -29,13 +29,13 @@ describe("live loader path · 09.11.2026 v3 fixture", () => {
     }
   });
 
-  it("Senkungen −2,52 / −5,81 / −7,46 und ×5·4h −7,50", () => {
+  it("Senkungen ×2/×5/×10 (Konvention k·Gesamtflotte) und ×5·4 h", () => {
     const R = residualMw(day!.slots);
-    expect(factorReductionGw(R, 2)).toBeCloseTo(2.52, 2);
-    expect(factorReductionGw(R, 5)).toBeCloseTo(5.81, 2);
-    expect(factorReductionGw(R, 10)).toBeCloseTo(7.46, 2);
-    const p5 = additionalFleetMw(5, 4);
-    expect(peakReductionGw(R, p5.powerMw, p5.energyMwh).reductionGw).toBeCloseTo(7.5, 2);
+    expect(factorReductionGw(R, 2)).toBeCloseTo(3.84, 2);
+    expect(factorReductionGw(R, 5)).toBeCloseTo(6.15, 2);
+    expect(factorReductionGw(R, 10)).toBeCloseTo(7.78, 2);
+    const p5 = totalFleetMw(5, 4);
+    expect(peakReductionGw(R, p5.powerMw, p5.energyMwh).reductionGw).toBeCloseTo(8.23, 2);
   });
 
   it("v2 API load_incl_self_consumption ≠ v3 Restlast (legacy Load)", () => {
