@@ -22,19 +22,19 @@
 .refLabel,
 .yUnit {
   font-family: var(--font-jetbrains-mono, var(--font-mono));
-  font-size: 12px;
+  font-size: var(--type-12);
   fill: var(--v4-muted);
 }
 
 .xLabel {
   font-family: var(--font-jetbrains-mono, var(--font-mono));
-  font-size: 12px;
+  font-size: var(--type-12);
   fill: var(--v4-muted);
   opacity: 0.92;
 }
 
 .yUnit {
-  font-size: 12px;
+  font-size: var(--type-12);
 }
 
 .gridLine {
@@ -94,17 +94,17 @@
   display: grid;
   gap: 6px 16px;
   margin: 12px 0 8px;
-  font-size: 13px;
+  font-size: var(--type-14);
 }
 
 .kpiDl dt {
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--type-12);
 }
 
 .kpiDl dd {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--type-14);
 }
 
 .legend {
@@ -112,7 +112,7 @@
   flex-wrap: wrap;
   gap: 8px 16px;
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--type-12);
   align-items: center;
 }
 
@@ -162,6 +162,6 @@
   }
 
   .kpiDl {
-    font-size: 12px;
+    font-size: var(--type-12);
   }
 }

@@ -47,7 +47,7 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
         {heroText}
       </motion.div>
       <p className={styles.meta}>Spitze bei ×{factor} · Modell · national</p>
-      <p className={styles.meta}>{fourHourSensitivityLine(fourh, ten, factor)}</p>
+      <p className={styles.prose}>{fourHourSensitivityLine(fourh, ten, factor)}</p>
       <div className={styles.seg} role="group" aria-label="Flottenstufe">
         {FACTORS.map((f) => (
           <button key={f} type="button" aria-pressed={factor === f} onClick={() => setFactor(f)}>
@@ -65,7 +65,7 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
           <p className={styles.eyebrow}>{researchDayEyebrow(model.day, model.dayPerspective)}</p>
           <h1 className={styles.h1}>{model.day.h1}</h1>
           {model.incompleteDayNote ? (
-            <p className={styles.meta} style={{ marginTop: 8 }}>
+            <p className={styles.prose} style={{ marginTop: 8 }}>
               {researchIncompleteFootnote(model.incompleteDayNote)}
             </p>
           ) : null}
@@ -77,7 +77,7 @@ export function ResearchHomePage({ model }: { model: ResearchHomeModel }) {
         <MesserHeroChart model={model.day} factor={factor} onFactor={setFactor} width={layout.messer.width} height={layout.messer.height} />
       </div>
 
-      <p className={styles.meta} style={{ marginTop: 6 }}>
+      <p className={styles.prose} style={{ marginTop: 6 }}>
         Restlast national · Fläche: gekappt (Modell) · 4-h-Geist: gestrichelt
       </p>
 

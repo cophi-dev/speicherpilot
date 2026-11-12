@@ -189,7 +189,7 @@ export function WeekDotsChart({
                 x={cx}
                 y={labelY}
                 textAnchor="middle"
-                fontSize={10}
+                fontSize={12}
                 fill={labelInside ? "var(--research-bg)" : "var(--research-fg)"}
                 fontFamily="var(--font-jetbrains-mono)"
               >

@@ -3,7 +3,21 @@
 }
 
 .frame {
+  position: relative;
   width: 100%;
+}
+
+.unitLabel {
+  position: absolute;
+  top: 0;
+  left: var(--preis-pad-l, 56px);
+  z-index: 1;
+  margin: 0;
+  pointer-events: none;
+  color: var(--v4-muted, #5c5548);
+  font-size: var(--type-12);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .svg,
@@ -25,12 +39,12 @@
 .axis,
 .unit {
   fill: var(--v4-muted, #5c5548);
-  font-size: 13px;
+  font-size: var(--type-14);
   font-variant-numeric: tabular-nums;
 }
 
 .unit {
-  font-size: 12px;
+  font-size: var(--type-12);
 }
 
 .line {
@@ -59,7 +73,7 @@
   margin-top: 8px;
   max-width: 68ch;
   color: hsl(var(--muted-foreground));
-  font-size: 13px;
+  font-size: var(--type-14);
   line-height: 1.4;
 }
 
