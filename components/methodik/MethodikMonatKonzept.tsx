@@ -1,11 +1,19 @@
 import { FLEET_XK_FOOTNOTE_DE } from "@/lib/fleetXkConvention";
+import { formatQuantity } from "@/lib/formatQuantity";
 import { MONAT_V1_KERN3 } from "@/lib/monatV1Format";
+import { marktAdditionEurMio } from "@/lib/monatV1Model";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+import { monthStatsForRun } from "@/lib/nationalMonthFleetModel";
+import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
 
-export function MethodikMonatKonzept() {
+export async function MethodikMonatKonzept() {
   const gw = (NATIONAL_BASE_FLEET.powerMw / 1000).toFixed(2).replace(".", ",");
   const gwh = (NATIONAL_BASE_FLEET.energyMwh / 1000).toFixed(2).replace(".", ",");
   const h = (NATIONAL_BASE_FLEET.energyMwh / NATIONAL_BASE_FLEET.powerMw).toFixed(2).replace(".", ",");
+  const bundle = loadNationalFleetMonthBundle();
+  const eurMio = marktAdditionEurMio(bundle);
+  const eurLabel = eurMio != null ? formatQuantity(eurMio, "de", 1) : "—";
+  const markt10Gw = formatQuantity(monthStatsForRun(bundle, 10, "markt").peakAfterGw, "de", 2);
   return (
     <section className="v4-content methodik-section" id="monat-konzept-ac" aria-labelledby="methodik-monat-ac-title">
       <h2 id="methodik-monat-ac-title" className="v4-chapter-h2">
@@ -14,7 +22,7 @@ export function MethodikMonatKonzept() {
       <ul className="methodik-insights-footnotes">
         <li>
           <strong>Kernantwort 1 (Hero):</strong> Höchste Monats-Restlast in GW (absolut), nicht Senkung. Drei Fahrweisen:
-          spitzenorientiert, Überschuss, Markt ohne Preisrückwirkung (gestrichelt/schraffiert), über der beobachteten Spitze ab ≈×3,9. Referenzlinie =
+          spitzenorientiert, Überschuss, Markt ohne Preisrückwirkung (gestrichelt/schraffiert), über der beobachteten Spitze ab ≈×3,9 (×10: {markt10Gw} GW). Referenzlinie =
           beobachtete Oktober-Spitze.
         </li>
         <li>
@@ -35,7 +43,7 @@ export function MethodikMonatKonzept() {
         </li>
         <li>
           Euro nicht auf der Monatsseite. In der Methodik: heutige Flotte, marktgeführt, eine × zusätzlich (×2 im
-          Modell) ≈ 34,1&nbsp;Mio&nbsp;€ Modellschätzung (Day-Ahead, ohne Entgelte/Degradation).
+          Modell) ≈ {eurLabel}&nbsp;Mio&nbsp;€ Modellschätzung (Day-Ahead, ohne Entgelte/Degradation).
         </li>
         <li>Quelle: Energy-Charts / Bundesnetzagentur | SMARD.de, CC BY 4.0. Oktober-Läufe: Bundle im Repo.</li>
       </ul>

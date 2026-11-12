@@ -38,9 +38,9 @@ describe("Paket 4 Konzept A — Sketchwerte Oktober", () => {
 
   it("Markt ×10 — neue Spitze", () => {
     const p = cell("markt", 10);
-    expect(p.peakAfterGw).toBeCloseTo(92.72, 2);
+    expect(p.peakAfterGw).toBeCloseTo(92.76, 2);
     expect(p.chargeGwh).toBeCloseTo(4445.7, 0);
-    expect(p.wirkungGw).toBeCloseTo(-28.31, 2);
+    expect(p.wirkungGw).toBeCloseTo(-28.35, 2);
     const st = monthStatsForRun(bundle, 10, "markt");
     expect(st.chargeGwh).toBeCloseTo(p.chargeGwh, 3);
     expect(st.peakReductionGw).toBeCloseTo(p.wirkungGw, 3);

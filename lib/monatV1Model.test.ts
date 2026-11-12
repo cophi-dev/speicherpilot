@@ -1,5 +1,6 @@
 import { MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import { buildMonatV1Model } from "@/lib/monatV1Model";
+import { monthStatsForRun } from "@/lib/nationalMonthFleetModel";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
 
 describe("Monat v1 Modell", () => {
@@ -30,7 +31,7 @@ describe("Monat v1 Modell", () => {
 
   it("Markt ×10 über Referenz", () => {
     const m10 = model.hero.points.find((p) => p.factor === 10)!;
-    expect(m10.marktGw).toBeCloseTo(92.72, 1);
+    expect(m10.marktGw).toBeCloseTo(92.76, 2);
     expect(m10.marktGw).toBeGreaterThan(model.refPeakGw);
   });
 
@@ -48,5 +49,17 @@ describe("Monat v1 Modell", () => {
   it("Y-Achse fasst Marktmaximum ein", () => {
     const m10 = model.hero.points.find((p) => p.factor === 10)!.marktGw!;
     expect(model.yMaxGw).toBeGreaterThanOrEqual(m10);
+  });
+  it("Markt ×10 nutzt die ungerundete Basis, nicht 9 × 4,64", () => {
+    const mk10 = monthStatsForRun(bundle, 10, "markt");
+    const mk5 = monthStatsForRun(bundle, 5, "markt");
+    const mk2 = monthStatsForRun(bundle, 2, "markt");
+    // 50,9605 + 9 × 4,64409022 = 92,7573 → 92,76; nicht 50,9605 + 9 × 4,64 = 92,72
+    expect(mk10.peakAfterGw).toBeCloseTo(50.9605 + 9 * 4.64409022, 4);
+    expect(mk10.peakAfterGw).not.toBeCloseTo(50.9605 + 9 * 4.64, 3);
+    expect(model.heroTable.marktX10).toBeCloseTo(92.76, 2);
+    expect(mk5.peakAfterGw).toBeCloseTo(50.9605 + 4 * 4.64409022, 4);
+    // ×2: Abendspitze, keine Korrektur über die Leistungsidentität
+    expect(mk2.peakAfterGw).toBeCloseTo(64.0401, 3);
   });
 });

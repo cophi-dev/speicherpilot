@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "@/components/monat-v1/monat-v1.module.css";
+import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { formatGwAbs, formatGwReduction, MONAT_V1_GRAPH_CAPTION, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 
@@ -68,9 +69,9 @@ function MarktLabel390({
       paintOrder="stroke"
       fontSize="12"
     >
-      <tspan x={x}>Markt · ohne</tspan>
+      <tspan x={x}>Markt · {formatGwAbs(b.gw, 2)}</tspan>
       <tspan x={x} dy="14">
-        Preisrückwirkung
+        ohne Preisrückwirkung
       </tspan>
     </text>
   );
@@ -125,7 +126,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
           Spitzenorientiert sinkt die Monatsspitze mit wachsender Flotte; Marktorientiert ohne Preisrückwirkung steigt
-          ab etwa ×3,9 über die beobachtete Oktober-Spitze.
+          ab etwa ×3,9 über die beobachtete Oktober-Spitze und liegt bei ×10 bei {formatGwAbs(model.heroTable.marktX10, 2)}.
         </desc>
         <defs>
           <pattern id="hatch-markt" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -164,7 +165,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         </text>
         {FACTOR_TICKS.map((f) => {
           const x = factorX(f, plotW, vb.L);
-          const gw = ((4640 * f) / 1000).toFixed(f === 10 ? 0 : 1).replace(".", ",");
+          const gw = fleetPowerGwLabel(f, f === 10 ? 0 : 1);
           return (
             <g key={f}>
               <line x1={x} x2={x} y1={vb.T + plotH} y2={vb.T + plotH + 4} stroke="var(--mv-ink)" />
@@ -300,9 +301,9 @@ function HeroChart({ model }: { model: MonatV1Model }) {
             paintOrder="stroke"
             fontSize="12"
           >
-            <tspan x={lastMarkt.x + 12}>Markt · ohne</tspan>
+            <tspan x={lastMarkt.x + 12}>Markt · {formatGwAbs(lastMarkt.gw, 2)}</tspan>
             <tspan x={lastMarkt.x + 12} dy="14">
-              Preisrückwirkung
+              ohne Preisrückwirkung
             </tspan>
           </text>
         ) : (
@@ -333,7 +334,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           <tr>
             <th scope="row">Markt</th>
             <td>{formatGwAbs(model.heroTable.marktX1, 1)}</td>
-            <td>— ohne Preisrückwirkung</td>
+            <td>{formatGwAbs(model.heroTable.marktX10, 2)}</td>
           </tr>
         </tbody>
       </table>

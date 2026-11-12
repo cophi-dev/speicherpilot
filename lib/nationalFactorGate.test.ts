@@ -1,11 +1,12 @@
+import { additionalFleetAtFactor } from "@/lib/fleetXkConvention";
 import { auditNationalFactorRun, expectedNationalCaps } from "@/lib/nationalFactorGate";
 
 describe("nationalFactorGate", () => {
-  it("expects additional-fleet caps 0/6520/26080/58680 usable at factor 1/2/5/10", () => {
+  it("usable cap is 80 % der Zusatzflotte (ungerundete Basis)", () => {
     expect(expectedNationalCaps(1).usableMwh).toBe(0);
-    expect(expectedNationalCaps(2).usableMwh).toBe(6520);
-    expect(expectedNationalCaps(5).usableMwh).toBe(26080);
-    expect(expectedNationalCaps(10).usableMwh).toBe(58680);
+    expect(expectedNationalCaps(2).usableMwh).toBeCloseTo(additionalFleetAtFactor(2).energyMwh * 0.8, 5);
+    expect(expectedNationalCaps(5).usableMwh).toBeCloseTo(additionalFleetAtFactor(5).energyMwh * 0.8, 5);
+    expect(expectedNationalCaps(10).usableMwh).toBeCloseTo(additionalFleetAtFactor(10).energyMwh * 0.8, 5);
   });
 
   it("rejects over-cap SoC", () => {

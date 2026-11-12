@@ -1,3 +1,6 @@
+import { dreiZieleMethodikBullets } from "@/lib/methodikDreiZiele";
+import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
+
 const RULES = [
   {
     id: "insight-trockenstrecke",
@@ -79,13 +82,7 @@ const RULES = [
   {
     id: "insight-drei-ziele",
     title: "Drei Ziele, ein Monat",
-    bullets: [
-      "Formel: Oktober-Lauf ×2 (heutige Flotte + eine weitere); Markt-Ladung > 5 × Spitze-Ladung und Markt-Spitzenreduktion < 1 GW.",
-      "Daten: fleet-month-meta.json, Strategien Differenz / Spitze / Markt.",
-      "Quelle: Vorberechneter Monatslauf 4,64 GW / 8,15 GWh.",
-      "Gegenrechnung, heutige Flotte + eine weitere (×2): Markt 485,45 GWh, Spitze 12,49 GWh, Senkung Markt 0,37 GW.",
-      "Grenzfall: Chart zeigt alle Faktoren; Regel-Satz nur bei ×2 (heutige Flotte + eine weitere).",
-    ],
+    bullets: [] as string[],
   },
   {
     id: "insight-saettigung",
@@ -100,7 +97,12 @@ const RULES = [
   },
 ] as const;
 
-export function MethodikInsights() {
+export async function MethodikInsights() {
+  const bundle = loadNationalFleetMonthBundle();
+  const dreiZiele = dreiZieleMethodikBullets(bundle);
+  const rules = RULES.map((rule) =>
+    rule.id === "insight-drei-ziele" ? { ...rule, bullets: dreiZiele } : rule,
+  );
   return (
     <section className="v4-chapter" id="insights" aria-labelledby="insights-h">
       <div className="v4-chapter-head v4-content">
@@ -114,7 +116,7 @@ export function MethodikInsights() {
         </p>
       </div>
       <div className="v4-content methodik-insights-rules">
-        {RULES.map((rule) => (
+        {rules.map((rule) => (
           <article key={rule.id} id={rule.id} className="methodik-insights-row">
             <h3 className="methodik-insights-dt">{rule.title}</h3>
             <ul className="methodik-insights-footnotes">

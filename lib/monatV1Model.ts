@@ -56,6 +56,7 @@ export type MonatV1Model = {
     ueberschussX1: number;
     ueberschussX10: number;
     marktX1: number;
+    marktX10: number;
   };
   duration: MonatV1DurationPoint[];
   showDauerVergleich: boolean;
@@ -160,6 +161,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
   const spitze1 = monthStatsForRun(bundle, 1, "spitze");
   const ueber1 = monthStatsForRun(bundle, 1, "ueberschuss");
   const markt1 = monthStatsForRun(bundle, 1, "markt");
+  const markt10 = monthStatsForRun(bundle, 10, "markt");
 
   const graphFootnote =
     "national, kein Netzengpass, Vollvoraussicht · Modell";
@@ -184,6 +186,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
       ueberschussX1: roundGw(ueber1.peakAfterGw, 1),
       ueberschussX10: roundGw(ueber10.peakAfterGw, 1),
       marktX1: roundGw(markt1.peakAfterGw, 1),
+      marktX10: roundGw(markt10.peakAfterGw, 2),
     },
     duration,
     showDauerVergleich,
