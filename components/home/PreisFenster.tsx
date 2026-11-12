@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
+import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
+import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/home/PreisFenster.module.css";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LUECKE_DESKTOP, LUECKE_MOBILE_PAD, plotXFromSlotIndex } from "@/lib/lueckeChartGeometry";
-import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, type PreisTick } from "@/lib/preisFenster";
+import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
 
 const DESKTOP_H = 180;
 const MOBILE_H = 120;
@@ -35,12 +37,15 @@ export function PreisFenster({
   powerGw,
   energyGwh,
   surplusGwh,
+  compactCopy = false,
 }: {
   dateLabel: string;
   points: PreisTick[];
   powerGw: number;
   energyGwh: number;
   surplusGwh: number;
+  /** Nur Graph + Tooltip — Details in „So gerechnet“. */
+  compactCopy?: boolean;
 }) {
   const shellRef = useRef<HTMLDivElement>(null);
   const compact = useSyncExternalStore(subscribeCompact, getCompactSnapshot, () => false);
@@ -99,18 +104,34 @@ export function PreisFenster({
     `L${(padL + plotW).toFixed(1)},${yOf(last.eurPerMwh).toFixed(1)}`,
   ].join(" ");
   const marked = new Set([...(dauer?.low ?? []), ...(dauer?.high ?? [])]);
-  const modelLine =
-    surplusGwh < 0.05 ? "lädt an diesem Tag nicht · kein Erlös" : "kann an diesem Tag laden · kein Erlös";
-  const spanLine = dauer
-    ? `${formatQuantity(dauer.dauerSpanne, "de", 2)} €/MWh (Ø ${dauer.n} teuerste − Ø ${dauer.n} günstigste ¼ h)`
-    : "nicht gebildet";
+  const modelLine = preisModellLine(surplusGwh);
+  const spanLine = preisSpanneLine(dauer);
+
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(points.length);
+  const tooltipRows = useMemo(() => {
+    if (activeIndex == null || !points[activeIndex]) {
+      return null;
+    }
+    const p = points[activeIndex]!;
+    return [{ label: "Day-Ahead", value: `${formatQuantity(p.eurPerMwh, "de", 2)} €/MWh` }];
+  }, [activeIndex, points]);
+  const tooltipTime = activeIndex != null && points[activeIndex] ? points[activeIndex]!.hm : null;
 
   return (
     <figure className={styles.figure} data-testid="preis-fenster">
+      <ChartTooltipPanel timeLabel={tooltipTime} rows={tooltipRows} testId="preis-fenster-tooltip" />
       <div
         ref={shellRef}
-        className={styles.frame}
+        className={`${styles.frame} v4-chart-probe`}
         style={{ ["--preis-pad-l" as string]: `${padL}px` }}
+        tabIndex={0}
+        role="application"
+        aria-label={`Day-Ahead Preis am ${dateLabel}`}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        onTouchStart={onTouch}
+        onTouchMove={onTouch}
+        onKeyDown={onKeyDown}
       >
         <p className={`num ${styles.unitLabel}`} aria-hidden="true">
           €/MWh
@@ -155,8 +176,19 @@ export function PreisFenster({
               <circle key={`${point.i ?? index}-${point.hm}`} className={styles.mark} cx={xAt(index)} cy={yOf(point.eurPerMwh)} r={3} />
             ) : null,
           )}
+          {activeIndex != null ? (
+            <line
+              x1={xAt(activeIndex)}
+              x2={xAt(activeIndex)}
+              y1={padT}
+              y2={padT + plotH}
+              className="v4-chart-crosshair"
+            />
+          ) : null}
         </svg>
       </div>
+      {compactCopy ? null : (
+        <>
       <dl className={`v4-day-notes ${styles.notes}`}>
         <div>
           <dt>Preis</dt>
@@ -184,12 +216,12 @@ export function PreisFenster({
         <details className={styles.more}>
           <summary>Mittel und Fenster</summary>
           <p>
-            Mittel günstig / teuer: {formatQuantity(dauer.meanLow, "de", 2)} und {formatQuantity(dauer.meanHigh, "de", 2)}.
-            Die markierten Punkte sind diese Viertelstunden ({dauer.n}, Flotte {formatQuantity(powerGw, "de", 2)} GW /{" "}
-            {formatQuantity(energyGwh, "de", 2)} GWh, {dateLabel}).
+            {preisMittelFensterText(dauer, powerGw, energyGwh, dateLabel)}
           </p>
         </details>
       ) : null}
+        </>
+      )}
     </figure>
   );
 }

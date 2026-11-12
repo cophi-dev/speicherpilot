@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
+import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
+import { fleetTooltipRows, fleetTooltipTime } from "@/lib/fleetChartTooltip";
 
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
@@ -143,8 +147,6 @@ export function NationalFleetTimeSeriesChart({
 }: NationalFleetTimeSeriesChartProps) {
   const [frame, setFrame] = useState<ChartFrame | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [hover, setHover] = useState<FleetChartPoint | null>(null);
-  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const [scrollWidth, setScrollWidth] = useState(0);
@@ -247,6 +249,28 @@ export function NationalFleetTimeSeriesChart({
     return best;
   }, [points]);
 
+  const pickFleetIndex = useCallback(
+    (clientX: number, target: HTMLDivElement) => {
+      const n = points.length;
+      if (n <= 0) {
+        return 0;
+      }
+      const rect = target.getBoundingClientRect();
+      const width = target.scrollWidth || rect.width;
+      if (width <= 0) {
+        return 0;
+      }
+      const x = clientX - rect.left + target.scrollLeft;
+      return Math.min(n - 1, Math.max(0, Math.round(x / (width / n))));
+    },
+    [points.length],
+  );
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(
+    points.length,
+    pickFleetIndex,
+  );
+  const activePoint = activeIndex != null ? points[activeIndex] ?? null : null;
+
   const xTicks = useMemo(
     () => fleetChartTickIndices(points, isDay ? "day" : "month"),
     [points, isDay],
@@ -309,54 +333,6 @@ export function NationalFleetTimeSeriesChart({
         ? formatPeakCaptionMonthContext(frame.peakReductionGw, frame.peakReductionPct)
         : null;
 
-  const indexFromClientX = (clientX: number, target: HTMLDivElement) => {
-    const rect = target.getBoundingClientRect();
-    const x = clientX - rect.left + target.scrollLeft;
-    return Math.min(points.length - 1, Math.max(0, Math.round(x / pxPerQh)));
-  };
-
-  const onMove = (ev: React.MouseEvent<HTMLDivElement>) => {
-    setHover(points[indexFromClientX(ev.clientX, ev.currentTarget)]);
-    setFocusIndex(null);
-  };
-
-  const onTouch = (ev: React.TouchEvent<HTMLDivElement>) => {
-    const touch = ev.touches[0];
-    if (!touch) {
-      return;
-    }
-    setHover(points[indexFromClientX(touch.clientX, ev.currentTarget)]);
-    setFocusIndex(null);
-  };
-
-  const activePoint =
-    focusIndex != null && points[focusIndex] ? points[focusIndex] : hover;
-
-  const onChartKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
-    if (points.length === 0) {
-      return;
-    }
-    const cur = focusIndex ?? (hover ? points.indexOf(hover) : Math.floor(points.length / 2));
-  const move = (next: number) => {
-      const j = Math.min(points.length - 1, Math.max(0, next));
-      setFocusIndex(j);
-      setHover(null);
-    };
-    if (ev.key === "ArrowRight") {
-      ev.preventDefault();
-      move(cur + 1);
-    } else if (ev.key === "ArrowLeft") {
-      ev.preventDefault();
-      move(cur - 1);
-    } else if (ev.key === "Home") {
-      ev.preventDefault();
-      move(0);
-    } else if (ev.key === "End") {
-      ev.preventDefault();
-      move(points.length - 1);
-    }
-  };
-
   const showPowerNote = powerMaxGw < 0.01;
   const socSpanGwh =
     points.length > 0
@@ -389,21 +365,18 @@ export function NationalFleetTimeSeriesChart({
           trotzdem die Modellwirkung. Leistungs- und SoC-Diagramm ausgeblendet.
         </p>
       ) : null}
-      {activePoint ? (
-        <p className="v4-fleet-ts-tooltip num" role="status" data-testid="fleet-ts-tooltip">
-          {activePoint.ts}: Restlast {formatQuantity(activePoint.rGw, "de", 2)} GW · mit Speicher{" "}
-          {formatQuantity(activePoint.rpGw, "de", 2)} GW · Laden {formatQuantity(activePoint.cMw / 1000, "de", 2)} GW ·
-          Entladen {formatQuantity(activePoint.dMw / 1000, "de", 2)} GW · SoC{" "}
-          {formatQuantity(activePoint.socGwh, "de", 2)} GWh (Beginn)
-        </p>
-      ) : (
-        <p className="v4-fleet-ts-tooltip num muted">
-          Tippen oder Zeiger über die Kurven · Pfeiltasten auf dem Chart für die Viertelstunde
-        </p>
-      )}
+      <ChartTooltipPanel
+        timeLabel={activePoint ? fleetTooltipTime(activePoint) : null}
+        rows={
+          activePoint
+            ? fleetTooltipRows(activePoint, comparePoints?.[activeIndex!]?.rpGw ?? null)
+            : null
+        }
+        testId="fleet-ts-tooltip"
+      />
       <div
         ref={chartRef}
-        className="v4-fleet-ts-interactive"
+        className="v4-fleet-ts-interactive v4-chart-probe"
         tabIndex={0}
         role="application"
         aria-label={
@@ -411,13 +384,13 @@ export function NationalFleetTimeSeriesChart({
             ? `Tagesverlauf Restlast und Speicher am ${dateKey}, Viertelstunden mit Pfeiltasten wählbar`
             : `Monatsverlauf Restlast und Speicher, Viertelstunden mit Pfeiltasten wählbar`
         }
-        onKeyDown={onChartKeyDown}
+        onKeyDown={onKeyDown}
       >
       <div
         ref={scrollRef}
         className="v4-fleet-ts-scroll is-fit"
-        onMouseMove={onMove}
-        onMouseLeave={() => setHover(null)}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
         onTouchStart={onTouch}
         onTouchMove={onTouch}
       >
@@ -458,6 +431,15 @@ export function NationalFleetTimeSeriesChart({
               )}
             />
             <circle className="v4-fleet-peak-mark" cx={xs[peakI]} cy={rScale.y(peakRpGw)} r={3.5} />
+            {activeIndex != null ? (
+              <line
+                x1={xs[activeIndex]}
+                x2={xs[activeIndex]}
+                y1={0}
+                y2={panelH}
+                className="v4-chart-crosshair"
+              />
+            ) : null}
           </SinglePanel>
           {hideAuxPanels ? null : (
           <SinglePanel
@@ -488,6 +470,15 @@ export function NationalFleetTimeSeriesChart({
                 )}
               />
             )}
+            {activeIndex != null ? (
+              <line
+                x1={xs[activeIndex]}
+                x2={xs[activeIndex]}
+                y1={0}
+                y2={auxPanelH}
+                className="v4-chart-crosshair"
+              />
+            ) : null}
           </SinglePanel>
           )}
           {hideAuxPanels ? null : (
@@ -507,6 +498,15 @@ export function NationalFleetTimeSeriesChart({
                 points.map((p) => socScale.y(p.socGwh)),
               )}
             />
+            {activeIndex != null ? (
+              <line
+                x1={xs[activeIndex]}
+                x2={xs[activeIndex]}
+                y1={0}
+                y2={auxPanelH}
+                className="v4-chart-crosshair"
+              />
+            ) : null}
           </SinglePanel>
           )}
           <div className="v4-fleet-ts-x num" style={{ width }} aria-hidden="true">

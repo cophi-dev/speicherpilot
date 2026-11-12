@@ -69,14 +69,13 @@ describe("/tag layout raster", () => {
       const surplusChip = page.locator(".v4-chip").filter({ hasText: "Modellschätzung" });
       expect(await surplusChip.count()).toBeGreaterThan(0);
 
-      const ergSummary = page.locator("details.v4-tag-system-footnote > summary");
-      if ((await ergSummary.count()) > 0) {
-        const box = await ergSummary.first().boundingBox();
-        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-        await ergSummary.first().focus();
-        const outline = await ergSummary.first().evaluate((el) => getComputedStyle(el).outlineColor);
-        expect(outline).toMatch(/b4532a|180,\s*83,\s*42/i);
-      }
+      const soGerechnet = page.locator("details.v4-so-gerechnet > summary");
+      expect(await soGerechnet.count()).toBeGreaterThan(0);
+      const box = await soGerechnet.first().boundingBox();
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      await soGerechnet.first().focus();
+      const outline = await soGerechnet.first().evaluate((el) => getComputedStyle(el).outlineColor);
+      expect(outline).toMatch(/b4532a|180,\s*83,\s*42/i);
 
       const preisMore = page.locator('.v4-content details[class*="more"] > summary');
       expect(await preisMore.count()).toBeGreaterThan(0);

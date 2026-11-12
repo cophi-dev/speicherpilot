@@ -13,9 +13,13 @@ export function formatGwAbs(valueGw: number, decimals = 1): string {
   return `${formatQuantity(valueGw, "de", decimals)}${NBSP}GW`;
 }
 
+/** Spitzensenkung, mit Minus. Gerundete Null ohne Vorzeichen — nie „−0,00“. */
 export function formatGwReduction(valueGw: number, decimals = 2): string {
-  const t = formatQuantity(valueGw, "de", decimals);
-  return `${MINUS}${t}${NBSP}GW`;
+  const rounded = Number.parseFloat(Math.abs(valueGw).toFixed(decimals));
+  if (rounded === 0) {
+    return `${formatQuantity(0, "de", decimals)}${NBSP}GW`;
+  }
+  return `${MINUS}${formatQuantity(rounded, "de", decimals)}${NBSP}GW`;
 }
 
 export function formatMioEurModell(valueMio: number): string {

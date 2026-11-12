@@ -8,6 +8,7 @@ import { TagSimulatorTeaser } from "@/components/home/SimulatorTeasers";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
 import { TagChapter } from "@/components/home/TagChapter";
+import { TagSoGerechnet, type TagFleetSoGerechnetExtra } from "@/components/home/TagSoGerechnet";
 import { tagSurplusLine } from "@/lib/kopfTagCopy";
 import type { AuffaelligkeitResult } from "@/lib/auffaelligkeit";
 import { kopfMetric, type TagesKennzahlRecord, weekdayLabelDe } from "@/lib/auffaelligkeit";
@@ -19,7 +20,7 @@ import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
 import type { MarktInsight } from "@/lib/marktInsights";
-import type { PreisTick } from "@/lib/preisFenster";
+import { formatPreisSpanne, type PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -135,12 +136,12 @@ export function AuffaelligkeitKopf({
     record?.pmin != null && record.pmax != null && metricKey !== "spread"
       ? {
           label: priceDayLabel,
-          value: `${formatQuantity(Math.round(record.pmin), "de", 0)}–${formatQuantity(Math.round(record.pmax), "de", 0)} €/MWh`,
+          value: formatPreisSpanne(record.pmin, record.pmax),
         }
       : metricKey === "spread" && record?.spread != null
         ? {
             label: priceSpreadLabel,
-            value: `${formatQuantity(Math.round(record.pmin ?? 0), "de", 0)}–${formatQuantity(Math.round(record.pmax ?? 0), "de", 0)} €/MWh`,
+            value: formatPreisSpanne(record.pmin ?? 0, record.pmax ?? 0),
           }
         : null;
 
@@ -238,6 +239,7 @@ export function TagPageV4({
   preisTag = [],
   marktInsights = [],
   simulatorCostPct,
+  fleetSoGerechnet = null,
   children,
 }: {
   dayKey: string;
@@ -257,6 +259,7 @@ export function TagPageV4({
   preisTag?: PreisTick[];
   marktInsights?: MarktInsight[];
   simulatorCostPct: string;
+  fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
   children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
@@ -282,13 +285,9 @@ export function TagPageV4({
       />
       <TagChapter
         day={day}
-        lastSurplusKey={lastSurplusKey}
-        surplusLine={tagSurplusLine(record.surplusGwh ?? 0)}
         peakGw={record.eveningPeakGw ?? null}
         peakAt={record.eveningPeakAt ?? null}
-        todayKey={todayKey}
         useTagDateHeading
-        showFooterLink={false}
         prices={preisTag}
         powerGw={fleetPowerGw}
         energyGwh={fleetEnergyGwh}
@@ -300,13 +299,30 @@ export function TagPageV4({
         dayOverview={dayOverview}
         fleetPowerGw={fleetPowerGw}
         fleetEnergyGwh={fleetEnergyGwh}
-        lastSurplusKey={lastSurplusKey}
-        showFleetMonthBelow={nationalFleetMonthAvailable(dayKey.slice(0, 7)) && Boolean(children)}
-        fleetStrategyBelow={fleetStrategy ?? null}
         fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
       />
       {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
       {children}
+      <TagSoGerechnet
+        day={day}
+        lastSurplusKey={lastSurplusKey}
+        surplusLine={tagSurplusLine(record.surplusGwh ?? 0)}
+        peakGw={record.eveningPeakGw ?? null}
+        peakAt={record.eveningPeakAt ?? null}
+        showFleetMonthBelow={nationalFleetMonthAvailable(dayKey.slice(0, 7)) && Boolean(children)}
+        fleetStrategyBelow={fleetStrategy ?? null}
+        priceLine={
+          record.pmin != null && record.pmax != null
+            ? formatPreisSpanne(record.pmin, record.pmax)
+            : null
+        }
+        prices={preisTag}
+        powerGw={fleetPowerGw}
+        energyGwh={fleetEnergyGwh}
+        dateLabel={formatBerlinDayLabel(dayKey)}
+        surplusGwh={record.surplusGwh ?? 0}
+        fleetExtra={fleetSoGerechnet}
+      />
       <TagSimulatorTeaser costPctText={simulatorCostPct} />
     </div>
   );

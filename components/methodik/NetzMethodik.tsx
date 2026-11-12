@@ -198,7 +198,7 @@ export function NetzMethodik({ language, bodyOnly = false }: { language: AppLang
         )}
       </p>
       <p>
-        <a href="/netz">{tx("Zur Seite Netzwirkung im Testnetz", "To the test-grid page")}</a>
+        <a href="/methodik#netz">{tx("Zur Seite Netzwirkung im Testnetz", "To the test-grid page")}</a>
       </p>
     </>
   );

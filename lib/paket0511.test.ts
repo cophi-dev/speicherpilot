@@ -20,7 +20,7 @@ describe("startPointe", () => {
     expect(start.tagH1ForCompare).toBe(tagSerieH1);
     expect(start.subline).not.toMatch(/Peak-/);
     expect(start.footnote).toMatch(/ohne Überschuss zum Laden/);
-    expect(start.footnote).toMatch(/203–341 €\/MWh/);
+    expect(start.footnote).toMatch(/203 bis 341\u00A0€\/MWh/);
     expect(start.footnote).not.toMatch(/Erlös/);
   });
 

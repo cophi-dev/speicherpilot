@@ -13,11 +13,11 @@ export function StartOrtTeaser() {
         <p className="v4-subline v4-ort-teaser-subline">Speicher am Anschluss: Leistung, Vertrag, Uhrzeit.</p>
       </div>
       <div className="v4-ort-doors v4-content">
-        <Link href="/ort?sicht=projekt" className="v4-door">
+        <Link href="/simulator" className="v4-door">
           <span className="v4-door-title">Ich entwickle Speicherprojekte</span>
           <span className="v4-door-label num">→</span>
         </Link>
-        <Link href="/ort?sicht=netz" className="v4-door">
+        <Link href="/simulator" className="v4-door">
           <span className="v4-door-title">Zwei Musterorte vergleichen</span>
           <span className="v4-door-label num">Netz</span>
         </Link>
@@ -39,7 +39,7 @@ export function TagOrtTeaser({ dayLabel }: { dayLabel: string }) {
         </p>
       </div>
       <p className="v4-chapter-foot v4-content num">
-        <Link href="/ort?sicht=netz" className="v4-text-link">
+        <Link href="/simulator" className="v4-text-link">
           Netzwirkung vergleichen →
         </Link>
       </p>

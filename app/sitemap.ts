@@ -13,8 +13,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/methodik",
     "/beitraege",
     "/live",
-    "/szenarien",
-    "/netz",
     "/blog",
     "/impressum",
     "/datenschutz",

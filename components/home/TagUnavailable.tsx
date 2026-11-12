@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { formatQuantity } from "@/lib/formatQuantity";
+import { formatPreisSpanne } from "@/lib/preisFenster";
 import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 
@@ -44,7 +45,7 @@ export function TagUnavailable({
             <div>
               <dt>Börsenpreis</dt>
               <dd>
-                {formatQuantity(record.pmin, "de", 0)}–{formatQuantity(record.pmax, "de", 0)} €/MWh
+                {formatPreisSpanne(record.pmin, record.pmax)}
               </dd>
             </div>
           ) : null}
