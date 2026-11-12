@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Moon, Sun, X } from "lucide-react";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { flushSync } from "react-dom";
 
 import { BrandLockup } from "@/components/BrandLockup";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NavigationMain } from "@/components/NavigationMain";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import { AppLanguage, LanguageContext } from "@/components/language-context";
@@ -46,6 +48,14 @@ function readThemePreferenceFromStorage(): ThemePreference {
     return stored;
   }
   return "system";
+}
+
+function applyThemePreferenceToDocument(pref: ThemePreference) {
+  const root = document.documentElement;
+  const resolved = resolveTheme(pref);
+  root.classList.toggle("dark", resolved === "dark");
+  root.style.colorScheme = resolved === "dark" ? "dark" : "light";
+  window.localStorage.setItem("speicherpilot-theme", pref);
 }
 
 function navItemHref(item: (typeof SITE_MAIN_NAV)[number], navShortcuts: NavShortcuts): string {
@@ -125,11 +135,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
     if (!mounted) {
       return;
     }
-    const root = document.documentElement;
-    const resolved = resolveTheme(themePref);
-    root.classList.toggle("dark", resolved === "dark");
-    root.style.colorScheme = resolved === "dark" ? "dark" : "light";
-    window.localStorage.setItem("speicherpilot-theme", themePref);
+    applyThemePreferenceToDocument(themePref);
   }, [themePref, mounted]);
 
   useEffect(() => {
@@ -210,9 +216,47 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
 
   const resolvedTheme = mounted ? resolveTheme(themePref) : "light";
   const themeIsDark = resolvedTheme === "dark";
-  const themeToggleLabel = themeIsDark
-    ? "Dunkle Darstellung aktiv – zu hell wechseln"
-    : "Helle Darstellung aktiv – zu dunkel wechseln";
+
+  const handleThemeToggle = useCallback(
+    (btn: HTMLButtonElement) => {
+      const next: ThemePreference = themeIsDark ? "light" : "dark";
+      const goingDark = next === "dark";
+
+      const apply = () => {
+        flushSync(() => {
+          setThemePref(next);
+        });
+        applyThemePreferenceToDocument(next);
+      };
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const startVT = (
+        document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } }
+      ).startViewTransition;
+
+      if (reduce || typeof startVT !== "function") {
+        apply();
+        return;
+      }
+
+      const rect = btn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+      const html = document.documentElement;
+      html.style.setProperty("--vt-x", `${x}px`);
+      html.style.setProperty("--vt-y", `${y}px`);
+      html.style.setProperty("--vt-r", `${radius}px`);
+      html.classList.toggle("vt-to-dark", goingDark);
+      html.classList.toggle("vt-to-light", !goingDark);
+
+      const vt = startVT.call(document, apply);
+      void vt.finished.finally(() => {
+        html.classList.remove("vt-to-dark", "vt-to-light");
+      });
+    },
+    [themeIsDark],
+  );
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: () => {} }}>
@@ -253,20 +297,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
             </nav>
             ) : null}
             <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-current focus-visible:ring-2 focus-visible:ring-ring"
-                aria-pressed={mounted ? themeIsDark : undefined}
-                aria-label={mounted ? themeToggleLabel : "Darstellung"}
-                title="Helle oder dunkle Darstellung"
-                onClick={() => setThemePref(themeIsDark ? "light" : "dark")}
-              >
-                {themeIsDark ? (
-                  <Moon className="size-5" strokeWidth={1.5} aria-hidden />
-                ) : (
-                  <Sun className="size-5" strokeWidth={1.5} aria-hidden />
-                )}
-              </button>
+              <ThemeToggle isDark={themeIsDark} mounted={mounted} onToggle={handleThemeToggle} />
               <button
                 type="button"
                 className="inline-flex h-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
