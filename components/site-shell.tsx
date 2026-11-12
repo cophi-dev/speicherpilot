@@ -271,7 +271,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
         <header
           className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
         >
-          <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center justify-between gap-3 px-5 md:px-8">
+          <div className="mx-auto flex h-16 w-full items-center justify-between gap-3">
             <BrandLockup />
             {isLgNav ? (
             <nav
@@ -311,7 +311,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
             </div>
           </div>
           {menuOpen ? (
-            <div className="border-t border-border bg-card px-5 py-4 md:px-8 lg:hidden">
+            <div className="border-t border-border bg-card px-[var(--page-gutter)] py-4 lg:hidden">
               <nav id="site-mobile-nav" className="flex flex-col gap-1 text-sm font-medium" aria-label="Hauptnavigation">
                 {SITE_MAIN_NAV.map((item) => {
                   const href = navItemHref(item, navShortcuts);
@@ -352,7 +352,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
           <NavigationMain>{children}</NavigationMain>
         </main>
         <footer className="border-t border-border">
-          <div className="mx-auto max-w-[1200px] px-5 py-8 text-sm text-muted-foreground md:px-8">
+          <div className="mx-auto py-8 text-sm text-muted-foreground">
             <nav className="legal-footer" aria-label="Rechtliches und Methodik">
               <Link href="/impressum">Impressum</Link>
               <Link href="/datenschutz">Datenschutz</Link>
