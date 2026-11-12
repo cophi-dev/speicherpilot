@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de" class="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1280"/>
+<title>SpeicherPilot · Fahrweisen</title>
+<style>
+@font-face{font-family:'Space Grotesk';src:url('file:///usr/share/fonts/truetype/sand-box/google/Space Grotesk/SpaceGrotesk-VariableFont_wght.ttf') format('truetype');font-weight:300 700;font-style:normal;font-display:block}
+@font-face{font-family:'JetBrains Mono';src:url('file:///usr/share/fonts/truetype/sand-box/google/JetBrains Mono/JetBrainsMono-VariableFont_wght.ttf') format('truetype');font-weight:100 800;font-style:normal;font-display:block}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#F6F6F3;color:#101214;font-family:'Space Grotesk',sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{width:1280px;min-height:100vh;overflow-x:hidden}
+.inner{padding:0 64px;width:1280px}
+header.nav{height:56px;border-bottom:1px solid #DADAD3;display:flex;align-items:center}
+header.nav .inner{display:flex;align-items:center;justify-content:space-between;width:1280px}
+.wordmark{font-weight:600;font-size:16px;letter-spacing:-0.02em}
+nav.links{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#43474C;display:flex;gap:16px}
+nav.links em{font-style:normal;color:#101214;font-weight:500;border-bottom:2px solid #B4532A;padding-bottom:2px}
+.kicker-row{display:flex;align-items:center;gap:12px;margin:24px 0 8px;flex-wrap:wrap}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#43474C}
+.chip{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;
+  border:1px solid #101214;border-radius:4px;padding:2px 8px;line-height:20px;color:#101214;background:transparent}
+.scale{font-family:'JetBrains Mono',monospace;font-size:12px;color:#43474C;margin:0 0 12px}
+.display{font-size:56px;font-weight:500;letter-spacing:-0.03em;line-height:0.95;font-variant-numeric:tabular-nums;
+  font-family:'Space Grotesk',sans-serif;margin:8px 0 4px}
+h1{font-size:48px;font-weight:600;line-height:1.15;letter-spacing:-0.03em;text-wrap:balance;max-width:18ch;margin:0 0 12px}
+h2{font-size:32px;font-weight:600;line-height:1.2;letter-spacing:-0.02em;text-wrap:balance;max-width:22ch;margin:0 0 8px}
+.lead{font-size:18px;line-height:1.55;font-weight:400;max-width:52ch;margin:0 0 20px;color:#101214}
+.lead-muted{color:#43474C}
+.insight{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:8px 0 16px;padding:12px 0;
+  border-top:1px solid #DADAD3;border-bottom:1px solid #DADAD3}
+@media (max-width:500px){
+  .insight{grid-template-columns:1fr 1fr;}
+  .insight .cell:nth-child(3){grid-column:1 / -1}
+}
+.insight .num{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1;letter-spacing:-0.02em}
+.insight .lbl{font-family:'JetBrains Mono',monospace;font-size:12px;color:#43474C;margin-top:4px;line-height:1.4;max-width:18ch}
+.fig{font-family:'JetBrains Mono',monospace;font-size:12px;color:#43474C;line-height:1.5;margin:8px 0 12px;max-width:68ch}
+.values{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12px;font-variant-numeric:tabular-nums;margin:0 0 8px}
+.values th,.values td{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid #DADAD3;font-weight:400;line-height:1.4}
+.values th{color:#43474C;font-weight:400}
+.values tr.is-on td{font-weight:500}
+.values td:first-child{color:#101214}
+.section{margin:56px 0 0}
+.section:first-of-type{margin-top:32px}
+footer.page{margin:64px 0 0;padding:24px 0 48px;border-top:1px solid #DADAD3;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:#43474C;line-height:1.5}
+/* slider */
+.slider{margin:8px 0 20px}
+.slider-names{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px}
+.slider-names button{min-height:44px;min-width:44px;padding:8px 10px;border:1px solid #DADAD3;background:#FFFFFF;
+  color:#101214;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;cursor:default;border-radius:4px;text-align:center}
+.slider-names button.is-on{border-color:#101214;box-shadow:inset 0 0 0 1px #101214}
+.slider-track-wrap{position:relative;height:44px;display:flex;align-items:center}
+.slider-track-wrap input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:0;cursor:default}
+.slider-track-wrap input[type=range]::-webkit-slider-runnable-track{height:2px;background:#101214}
+.slider-track-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:44px;height:44px;border-radius:22px;
+  background:#101214;border:2px solid #F6F6F3;box-shadow:0 0 0 1px #101214;margin-top:-21px}
+.slider-ticks{position:absolute;left:22px;right:22px;top:0;bottom:0;pointer-events:none}
+.slider-ticks i{position:absolute;top:50%;width:2px;height:8px;margin-top:-4px;background:#43474C;display:block}
+.slider-ticks i.named{height:12px;margin-top:-6px;background:#101214}
+.slider-hint{font-family:'JetBrains Mono',monospace;font-size:12px;color:#43474C;margin-top:4px}
+/* legal */
+.legal{border:1px solid #DADAD3;padding:20px 24px;background:#FFFFFF;margin-top:12px}
+.legal h3{font-size:18px;font-weight:600;letter-spacing:-0.02em;margin:0 0 12px;max-width:32ch}
+.legal dl{display:grid;gap:12px}
+.legal dt{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#101214;margin-bottom:2px}
+.legal dd{font-size:16px;line-height:1.55;color:#101214}
+.legal .entwurf{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.08em;
+  border:1px solid #101214;border-radius:4px;padding:0 6px;margin-left:6px;vertical-align:middle}
+.legal .foot{font-family:'JetBrains Mono',monospace;font-size:12px;color:#43474C;margin-top:16px;line-height:1.5}
+/* day cards */
+.day-links{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.day-links a{display:flex;align-items:center;min-height:44px;padding:10px 12px;border:1px solid #DADAD3;
+  color:#101214;text-decoration:none;font-size:16px;background:#FFFFFF}
+.day-links a strong{font-weight:600;margin-right:8px}
+.day-links a span{font-family:'JetBrains Mono',monospace;font-size:12px;color:#43474C}
+.legend{display:flex;flex-wrap:wrap;gap:12px 16px;margin:8px 0 12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#101214}
+.legend b{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+svg{display:block;overflow:visible}
+text{font-family:'JetBrains Mono',monospace}
+.hero-wrap{display:flex;gap:24px;align-items:stretch;margin-top:8px}
+.hero-wrap.stack{flex-direction:column;gap:8px}
+.g4-wrap{display:flex;gap:32px;align-items:flex-start}
+.g4-wrap.stack{flex-direction:column;gap:24px}
+.g3-wrap{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.g3-wrap.stack{grid-template-columns:1fr;gap:32px}
+.mod-kicker{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#43474C;margin-bottom:6px}
+.fnav-cards{display:flex;flex-direction:column;gap:12px}
+@media (min-width:1100px){
+  .fnav-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+  .fnav-cards article{padding:0 0 0 0;border-bottom:none;border-top:1px solid #DADAD3;padding-top:12px}
+}
+.fnav-cards article{padding:12px 0;border-bottom:1px solid #DADAD3}
+.fnav-cards article:last-child{border-bottom:none}
+.fnav-cards .who{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#43474C;margin-bottom:4px}
+.fnav-cards .num{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;font-variant-numeric:tabular-nums;margin-bottom:4px}
+.fnav-cards p{font-size:16px;line-height:1.55;color:#101214}
+.values{max-width:100%}
+.values th,.values td{overflow-wrap:anywhere}
+
+@media (max-width:500px){
+  .kicker-row{margin:12px 0 6px}
+  .display{margin:4px 0 2px}
+  h1{margin:0 0 8px}
+  .lead{margin:0 0 12px}
+  .insight{margin:4px 0 8px;padding:8px 0;gap:12px}
+  .slider{margin:4px 0 10px}
+  .section{margin:40px 0 0}
+  .hero-wrap.stack{gap:4px}
+}
+</style>
+</head>
+<body>
+<header class="nav"><div class="inner"><div class="wordmark">SpeicherPilot</div><nav class='links'><span>Gestern</span><span>Vision</span><span>Tag</span><em>Monat</em><span>Ort</span><span>Methodik</span><span>Beiträge</span></nav></div></header><main class="inner">
+<p class="scale">Monatsfront  ·  Monatsspitze, Oktober  ·  Zusatzflotte ×2 (4,64 GW / 8,15 GWh)</p>
+<div class="display">0,36 %</div>
+<h1>für 70 Prozent<br />der Monatssenkung.</h1>
+<p class="lead">Die volle Senkung kostet 0,30 von 34,09 Mio. €. Modellschätzung, Endpunkte lexikographisch.</p>
+<div class="insight"><div class="cell"><div class="num">3,59 GW</div><div class="lbl">Senkung der Monatsspitze</div></div><div class="cell"><div class="num">33,79 Mio. €</div><div class="lbl">Erlös, Modellschätzung</div></div><div class="cell"><div class="num">99,1 %</div><div class="lbl">des Markt-Erlöses</div></div></div>
+<div class="hero-wrap">
+  <svg viewBox="0 0 260 360" width="260" height="360" role="img" aria-label="Volle Pareto-Achse, 0 bis 34 Millionen Euro, Zoomfenster oben rechts" overflow="visible"><defs><pattern id="hatch-f1280light" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#F6F6F3"/><line x1="0" y1="0" x2="0" y2="7" stroke="#B4532A" stroke-width="1.25"/></pattern><pattern id="hatch-soc-f1280light" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#B4532A" stroke-width="0.9" opacity="0.55"/></pattern></defs><rect x="40.00" y="32.00" width="206.00" height="276.00" fill="#FFFFFF" stroke="none"/><rect x="176.55" y="32.00" width="69.45" height="110.85" fill="rgba(27,107,69,0.10)" stroke="none"/><line x1="40.00" y1="32.00" x2="40.00" y2="308.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="40.00" y="324.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >0</text><line x1="97.22" y1="32.00" x2="97.22" y2="308.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="97.22" y="324.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >10</text><line x1="154.44" y1="32.00" x2="154.44" y2="308.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="154.44" y="324.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >20</text><line x1="211.67" y1="32.00" x2="211.67" y2="308.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="211.67" y="324.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >30</text><line x1="234.56" y1="32.00" x2="234.56" y2="308.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="234.56" y="324.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >34</text><line x1="40.00" y1="308.00" x2="246.00" y2="308.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="34.00" y="312.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >0</text><line x1="40.00" y1="242.29" x2="246.00" y2="242.29" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="34.00" y="246.29" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >1</text><line x1="40.00" y1="176.57" x2="246.00" y2="176.57" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="34.00" y="180.57" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >2</text><line x1="40.00" y1="110.86" x2="246.00" y2="110.86" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="34.00" y="114.86" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >3</text><line x1="40.00" y1="45.14" x2="246.00" y2="45.14" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="34.00" y="49.14" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >4</text><line x1="40.00" y1="308.00" x2="246.00" y2="308.00" stroke="#101214" stroke-width="1.25" fill="none" stroke-linecap="butt"/><line x1="40.00" y1="32.00" x2="40.00" y2="308.00" stroke="#101214" stroke-width="1.25" fill="none" stroke-linecap="butt"/><line x1="40.00" y1="142.85" x2="246.00" y2="142.85" stroke="#43474C" stroke-width="1" fill="none" stroke-linecap="butt" stroke-dasharray="4 3"/><polyline points="235.07,283.95 235.07,278.27 235.06,271.87 235.06,271.45 234.85,207.46 234.73,190.04 234.50,159.04 234.40,146.76 234.36,142.85 234.30,136.85 234.12,119.39 234.08,116.23 234.00,110.53 233.77,95.66 233.70,91.76 233.69,90.80 233.41,75.86 233.33,72.07" fill="none" stroke="#101214" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="235.07" cy="283.95" r="3.2" fill="#B4532A" stroke="#F6F6F3" stroke-width="1"/><circle cx="234.36" cy="142.85" r="3.2" fill="#101214" stroke="#F6F6F3" stroke-width="1"/><circle cx="233.33" cy="72.07" r="3.2" fill="#101214" stroke="#F6F6F3" stroke-width="1"/><rect x="231.84" y="32.00" width="6.00" height="276.00" fill="rgba(180,83,42,0.18)" stroke="#B4532A" stroke-width="1.5"/><text x="40.00" y="16.00" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="start" font-variant-numeric="tabular-nums" >Volle Achse</text><text x="226.84" y="26.00" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="end" font-variant-numeric="tabular-nums" >Zoom</text><text x="234.84" y="342.00" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="middle" font-variant-numeric="tabular-nums" >0,30</text></svg>
+  <svg viewBox="0 0 868 360" width="868" height="360" role="img" aria-label="Zoom der Pareto-Front zwischen 33,70 und 34,18 Millionen Euro" overflow="visible"><defs><pattern id="hatch-z1280lightnetz" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#F6F6F3"/><line x1="0" y1="0" x2="0" y2="7" stroke="#B4532A" stroke-width="1.25"/></pattern><pattern id="hatch-soc-z1280lightnetz" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#B4532A" stroke-width="0.9" opacity="0.55"/></pattern></defs><rect x="52.00" y="32.00" width="780.00" height="274.00" fill="#FFFFFF" stroke="none"/><rect x="52.00" y="32.00" width="780.00" height="110.05" fill="rgba(27,107,69,0.10)" stroke="none"/><line x1="52.00" y1="32.00" x2="52.00" y2="306.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="52.00" y="322.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >33,7</text><line x1="214.50" y1="32.00" x2="214.50" y2="306.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="214.50" y="322.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >33,8</text><line x1="377.00" y1="32.00" x2="377.00" y2="306.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="377.00" y="322.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >33,9</text><line x1="539.50" y1="32.00" x2="539.50" y2="306.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="539.50" y="322.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >34,0</text><line x1="702.00" y1="32.00" x2="702.00" y2="306.00" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="702.00" y="322.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >34,1</text><line x1="52.00" y1="240.76" x2="832.00" y2="240.76" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="44.00" y="244.76" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >1</text><line x1="52.00" y1="175.52" x2="832.00" y2="175.52" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="44.00" y="179.52" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >2</text><line x1="52.00" y1="110.29" x2="832.00" y2="110.29" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="44.00" y="114.29" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >3</text><line x1="52.00" y1="45.05" x2="832.00" y2="45.05" stroke="#E4E4DC" stroke-width="1" fill="none" stroke-linecap="butt"/><text x="44.00" y="49.05" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >4</text><line x1="52.00" y1="142.05" x2="832.00" y2="142.05" stroke="#43474C" stroke-width="1" fill="none" stroke-linecap="butt" stroke-dasharray="5 4"/><text x="44.00" y="146.05" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="end" font-variant-numeric="tabular-nums" >2,51</text><line x1="52.00" y1="306.00" x2="832.00" y2="306.00" stroke="#101214" stroke-width="1.25" fill="none" stroke-linecap="butt"/><line x1="52.00" y1="32.00" x2="52.00" y2="306.00" stroke="#101214" stroke-width="1.25" fill="none" stroke-linecap="butt"/><text x="442.00" y="352.00" fill="#43474C" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="middle" font-variant-numeric="tabular-nums" >Day-Ahead-Erlös, Mio. €  ·  Modellschätzung</text><text x="52.00" y="16.00" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="start" font-variant-numeric="tabular-nums" >Zoom 33,70–34,18  ·  Senkung in GW</text><rect x="60.00" y="120.05" width="188.00" height="16.00" fill="#FFFFFF" stroke="none" opacity="0.92"/><text x="62.00" y="132.05" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="start" font-variant-numeric="tabular-nums" >70 % der max. Senkung</text><polyline points="685.60,282.13 684.94,276.49 684.06,270.13 683.76,269.71 623.28,206.19 587.77,188.89 524.61,158.12 496.56,145.93 485.37,142.05 468.23,136.09 415.23,118.76 405.23,115.62 382.05,109.96 315.39,95.20 297.90,91.33 292.87,90.37 214.25,75.54 192.18,71.77" fill="none" stroke="#101214" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="684.94" cy="276.49" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="684.06" cy="270.13" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="683.76" cy="269.71" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="623.28" cy="206.19" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="587.77" cy="188.89" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="524.61" cy="158.12" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="496.56" cy="145.93" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="468.23" cy="136.09" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="415.23" cy="118.76" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="405.23" cy="115.62" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="382.05" cy="109.96" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="315.39" cy="95.20" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="297.90" cy="91.33" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="292.87" cy="90.37" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="214.25" cy="75.54" r="3" fill="#FFFFFF" stroke="#101214" stroke-width="1.25"/><circle cx="685.60" cy="282.13" r="6" fill="#B4532A" stroke="#F6F6F3" stroke-width="1.5"/><circle cx="192.18" cy="71.77" r="6" fill="#101214" stroke="#F6F6F3" stroke-width="1.5"/><circle cx="485.37" cy="142.05" r="6" fill="#101214" stroke="#F6F6F3" stroke-width="1.5"/><circle cx="192.18" cy="71.77" r="11" fill="none" stroke="#B4532A" stroke-width="2.25"/><circle cx="192.18" cy="71.77" r="6" fill="#101214" stroke="#F6F6F3" stroke-width="1.5"/><rect x="200.18" y="55.77" width="165.30" height="36.00" fill="#FFFFFF" stroke="none" opacity="0.9"/><text x="204.18" y="67.77" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="start" font-variant-numeric="tabular-nums" >Netzdienlich  ·  lex.</text><text x="204.18" y="85.77" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="start" font-variant-numeric="tabular-nums" >33,79  ·  3,59 GW</text><rect x="493.37" y="146.05" width="136.10" height="36.00" fill="#FFFFFF" stroke="none" opacity="0.9"/><text x="497.37" y="158.05" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="start" font-variant-numeric="tabular-nums" >Kompromiss</text><text x="497.37" y="176.05" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="start" font-variant-numeric="tabular-nums" >33,97  ·  2,51 GW</text><rect x="526.90" y="262.13" width="150.70" height="36.00" fill="#FFFFFF" stroke="none" opacity="0.9"/><text x="673.60" y="274.13" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="end" font-variant-numeric="tabular-nums" >Max. Erlös  ·  lex.</text><text x="673.60" y="292.13" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="400" text-anchor="end" font-variant-numeric="tabular-nums" >34,09  ·  0,37 GW</text><line x1="192.18" y1="46.00" x2="685.60" y2="46.00" stroke="#101214" stroke-width="1" fill="none" stroke-linecap="butt"/><line x1="192.18" y1="42.00" x2="192.18" y2="50.00" stroke="#101214" stroke-width="1" fill="none" stroke-linecap="butt"/><line x1="685.60" y1="42.00" x2="685.60" y2="50.00" stroke="#101214" stroke-width="1" fill="none" stroke-linecap="butt"/><rect x="328.89" y="30.00" width="220.00" height="16.00" fill="#FFFFFF" stroke="none" opacity="0.92"/><text x="438.89" y="41.00" fill="#101214" font-size="12" font-family="JetBrains Mono, monospace" font-weight="500" text-anchor="middle" font-variant-numeric="tabular-nums" >volle Senkung kostet 0,30 Mio. €  (0,89 %)</text></svg>
+</div>
+
+<div class="slider" role="group" aria-label="Fahrweise auf der Pareto-Front">
+  <div class="slider-names">
+    <button type="button" class="" tabindex="0">Max. Erlös</button>
+    <button type="button" class="" tabindex="0">Kompromiss</button>
+    <button type="button" class=" is-on" tabindex="0">Netzdienlich</button>
+  </div>
+  <div class="slider-track-wrap">
+    <div class="slider-ticks"><i class=" named" style="left:0.000%"></i><i class="" style="left:5.882%"></i><i class="" style="left:11.765%"></i><i class="" style="left:17.647%"></i><i class="" style="left:23.529%"></i><i class="" style="left:29.412%"></i><i class="" style="left:35.294%"></i><i class="" style="left:41.176%"></i><i class=" named" style="left:47.059%"></i><i class="" style="left:52.941%"></i><i class="" style="left:58.824%"></i><i class="" style="left:64.706%"></i><i class="" style="left:70.588%"></i><i class="" style="left:76.471%"></i><i class="" style="left:82.353%"></i><i class="" style="left:88.235%"></i><i class="" style="left:94.118%"></i><i class=" named" style="left:100.000%"></i></div>
+    <input type="range" min="0" max="17" step="1" value="17"
+      aria-label="Fahrweise" aria-valuemin="0" aria-valuemax="17" aria-valuenow="17"
+      aria-valuetext="Netzdienlich: 33,79 Millionen Euro Modellschätzung, Senkung 3,59 Gigawatt" />
+  </div>
+  <p class="slider-hint">Rastet auf 18 vorgerechneten Front-Punkten  ·  Pfeiltasten  ·  kein Live-LP</p>
+</div>
+
+<p class="fig">national, kein Netzengpass, Vollvoraussicht · Modell. x = Day-Ahead-Erlös der Zusatzflotte. y = Senkung der Monatsspitze. Das 70/70-Feld liegt links der gesamten Front: jeder Punkt hält mehr als 99 % des Erlöses. 70 % der Senkung liegen auf dem Kompromiss.</p>
+<table class="values"><thead><tr><th>Fahrweise</th><th>Erlös (Modellschätzung)</th><th>Senkung</th><th>Spitze</th></tr></thead><tbody><tr><td>Max. Erlös</td><td>34,09 Mio. €</td><td>0,37 GW</td><td>64,04 GW</td></tr><tr><td>Kompromiss</td><td>33,97 Mio. € (99,64 %)</td><td>2,51 GW</td><td>61,89 GW</td></tr><tr class="is-on"><td>Netzdienlich</td><td>33,79 Mio. €</td><td>3,59 GW</td><td>60,82 GW</td></tr></tbody></table><p class="fig">Endpunkte lexikographisch: erst das Ziel, dann das andere. Ohne das zweite Ziel wäre der Netz-„Erlös“ −3,08 Mio. € — ein Löser-Artefakt, nicht der Preis der Netzdienlichkeit.</p>
+</main>
+</body>
+</html>

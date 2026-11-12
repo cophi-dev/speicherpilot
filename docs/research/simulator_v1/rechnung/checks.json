@@ -1,0 +1,606 @@
+{
+  "checks": [
+    {
+      "name": "x1_price_peak_64405.9",
+      "ok": true,
+      "detail": "peak=64405.9000, expected 64405.9"
+    },
+    {
+      "name": "x1_price_revenue_zero",
+      "ok": true,
+      "detail": "revenue=0.0"
+    },
+    {
+      "name": "x1_price_reduction_zero",
+      "ok": true,
+      "detail": "red=0.0"
+    },
+    {
+      "name": "x1_peak_peak_64405.9",
+      "ok": true,
+      "detail": "peak=64405.9000, expected 64405.9"
+    },
+    {
+      "name": "x1_peak_revenue_zero",
+      "ok": true,
+      "detail": "revenue=0.0"
+    },
+    {
+      "name": "x1_peak_reduction_zero",
+      "ok": true,
+      "detail": "red=0.0"
+    },
+    {
+      "name": "observed_peak",
+      "ok": true,
+      "detail": "64405.9 vs 64405.9"
+    },
+    {
+      "name": "x2_netz_senkung_vs_v3",
+      "ok": true,
+      "detail": "3.590313 vs v3 3.590363 GW (Tol 0,005)"
+    },
+    {
+      "name": "x5_netz_senkung_vs_v3",
+      "ok": true,
+      "detail": "9.411050 vs v3 9.411100 GW (Tol 0,005)"
+    },
+    {
+      "name": "x10_netz_senkung_vs_v3",
+      "ok": true,
+      "detail": "13.979437 vs v3 13.979487 GW (Tol 0,005)"
+    },
+    {
+      "name": "x10_netz_peak_50.43",
+      "ok": true,
+      "detail": "50.4265 vs 50,43 GW"
+    },
+    {
+      "name": "x10_markt_peak_92.72",
+      "ok": true,
+      "detail": "92.7569 vs 92,72 GW (PR #99)"
+    },
+    {
+      "name": "2/market_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=506297.29871306603"
+    },
+    {
+      "name": "2/market_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=-6.230039e-11 MWh"
+    },
+    {
+      "name": "2/market_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/market_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/market_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=505039.32097415766"
+    },
+    {
+      "name": "2/market_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=-6.002665e-11 MWh"
+    },
+    {
+      "name": "2/market_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/market_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/netz_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=502199.57204836013"
+    },
+    {
+      "name": "2/netz_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=-5.866241e-11 MWh"
+    },
+    {
+      "name": "2/netz_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/netz_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/netz_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=168066.7003471324"
+    },
+    {
+      "name": "2/netz_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=2.410161e-11 MWh"
+    },
+    {
+      "name": "2/netz_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/netz_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/eps70/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=508306.52634050377"
+    },
+    {
+      "name": "2/eps70/soc_balance",
+      "ok": true,
+      "detail": "residue=-5.911716e-11 MWh"
+    },
+    {
+      "name": "2/eps70/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/eps70/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/eps50/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=505244.2073073929"
+    },
+    {
+      "name": "2/eps50/soc_balance",
+      "ok": true,
+      "detail": "residue=-6.002665e-11 MWh"
+    },
+    {
+      "name": "2/eps50/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/eps50/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/eps90/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=501994.6857151248"
+    },
+    {
+      "name": "2/eps90/soc_balance",
+      "ok": true,
+      "detail": "residue=-6.230039e-11 MWh"
+    },
+    {
+      "name": "2/eps90/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/eps90/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/fnav_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=496189.57294012484"
+    },
+    {
+      "name": "2/fnav_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=-6.411938e-11 MWh"
+    },
+    {
+      "name": "2/fnav_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/fnav_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "2/fnav_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=492063.18653592234"
+    },
+    {
+      "name": "2/fnav_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=-6.457412e-11 MWh"
+    },
+    {
+      "name": "2/fnav_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "2/fnav_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=4076.229 end=4076.229 mid=4076.229"
+    },
+    {
+      "name": "5/market_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=2032406.5600290739"
+    },
+    {
+      "name": "5/market_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.401066e-10 MWh"
+    },
+    {
+      "name": "5/market_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/market_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/market_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=2020157.2838966306"
+    },
+    {
+      "name": "5/market_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.401066e-10 MWh"
+    },
+    {
+      "name": "5/market_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/market_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/netz_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=1988571.9398521725"
+    },
+    {
+      "name": "5/netz_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.291927e-10 MWh"
+    },
+    {
+      "name": "5/netz_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/netz_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/netz_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=356716.70289501536"
+    },
+    {
+      "name": "5/netz_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=3.274181e-11 MWh"
+    },
+    {
+      "name": "5/netz_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/netz_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/eps70/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=2011042.9595541586"
+    },
+    {
+      "name": "5/eps70/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.619345e-10 MWh"
+    },
+    {
+      "name": "5/eps70/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/eps70/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/eps50/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=2006828.1082476461"
+    },
+    {
+      "name": "5/eps50/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.437446e-10 MWh"
+    },
+    {
+      "name": "5/eps50/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/eps50/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/eps90/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=2008268.2789996914"
+    },
+    {
+      "name": "5/eps90/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.455636e-10 MWh"
+    },
+    {
+      "name": "5/eps90/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/eps90/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/fnav_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=1994866.0175334404"
+    },
+    {
+      "name": "5/fnav_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.473826e-10 MWh"
+    },
+    {
+      "name": "5/fnav_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/fnav_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "5/fnav_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=1968252.7461436894"
+    },
+    {
+      "name": "5/fnav_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=-2.582965e-10 MWh"
+    },
+    {
+      "name": "5/fnav_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "5/fnav_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=16304.918 end=16304.918 mid=16304.918"
+    },
+    {
+      "name": "10/market_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4447623.107814183"
+    },
+    {
+      "name": "10/market_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=2.182787e-11 MWh"
+    },
+    {
+      "name": "10/market_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/market_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/market_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4545353.888767419"
+    },
+    {
+      "name": "10/market_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=1.091394e-11 MWh"
+    },
+    {
+      "name": "10/market_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/market_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/netz_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4192045.3175623734"
+    },
+    {
+      "name": "10/netz_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=1.018634e-10 MWh"
+    },
+    {
+      "name": "10/netz_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/netz_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/netz_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=458427.57153229334"
+    },
+    {
+      "name": "10/netz_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=-9.094947e-11 MWh"
+    },
+    {
+      "name": "10/netz_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/netz_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/eps70/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4344180.252555354"
+    },
+    {
+      "name": "10/eps70/soc_balance",
+      "ok": true,
+      "detail": "residue=1.637090e-10 MWh"
+    },
+    {
+      "name": "10/eps70/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/eps70/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/eps50/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4383816.787846115"
+    },
+    {
+      "name": "10/eps50/soc_balance",
+      "ok": true,
+      "detail": "residue=1.346052e-10 MWh"
+    },
+    {
+      "name": "10/eps50/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/eps50/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/eps90/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4270768.4189572595"
+    },
+    {
+      "name": "10/eps90/soc_balance",
+      "ok": true,
+      "detail": "residue=1.527951e-10 MWh"
+    },
+    {
+      "name": "10/eps90/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/eps90/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/fnav_lex/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4351736.3038600655"
+    },
+    {
+      "name": "10/fnav_lex/soc_balance",
+      "ok": true,
+      "detail": "residue=2.910383e-11 MWh"
+    },
+    {
+      "name": "10/fnav_lex/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/fnav_lex/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    },
+    {
+      "name": "10/fnav_raw/rte_85",
+      "ok": true,
+      "detail": "rte=0.850000, charge=4428568.678823301"
+    },
+    {
+      "name": "10/fnav_raw/soc_balance",
+      "ok": true,
+      "detail": "residue=1.455192e-11 MWh"
+    },
+    {
+      "name": "10/fnav_raw/no_simultaneous",
+      "ok": true,
+      "detail": "sim_max=0.0000 MW"
+    },
+    {
+      "name": "10/fnav_raw/soc_start_end_50",
+      "ok": true,
+      "detail": "start=36686.065 end=36686.065 mid=36686.065"
+    }
+  ],
+  "n_ok": 120,
+  "n": 120
+}
