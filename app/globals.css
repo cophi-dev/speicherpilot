@@ -7649,7 +7649,7 @@ html.vt-to-light::view-transition-new(root) {
   margin-top: 0.35rem;
 }
 .v4-footnote {
-  margin: 0.5rem 0 0;
+  margin-block-start: 0.5rem;
   max-width: 68ch;
   color: var(--ink);
   font-size: var(--type-body);
@@ -7658,6 +7658,7 @@ html.vt-to-light::view-transition-new(root) {
 .v4-content.v4-footnote,
 footer.v4-content.v4-footnote {
   max-width: var(--page-max);
+  margin-inline: auto;
 }
 .v4-content.v4-footnote > p,
 footer.v4-content.v4-footnote > p {
