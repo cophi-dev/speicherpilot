@@ -179,6 +179,17 @@
   height: auto;
 }
 
+.peakPointLabelBackdrop {
+  fill: hsl(var(--background));
+}
+
+.peakPointLabelText {
+  paint-order: stroke fill;
+  stroke: hsl(var(--background));
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
 .section {
   border-top: 1px solid var(--research-line);
   padding-top: 28px;
