@@ -1,3 +1,4 @@
+import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   type StrategyMarginalStep,
@@ -113,7 +114,7 @@ export function NationalFleetMarginalBenefit({
                   ×{row.from_factor} → ×{row.to_factor}
                   <span className="v4-fleet-marginal-delta"> (+{row.delta_factor_units})</span>
                 </td>
-                <td>+{formatGw((row.to_factor - row.from_factor) * 4.58, 2)} GW</td>
+                <td>+{formatGw((row.to_factor - row.from_factor) * (NATIONAL_BASE_FLEET.powerMw / 1000), 2)} GW</td>
                 <td>{formatGw(row.delta_capture_gwh)}</td>
                 <td>
                   {row.delta_peak_reduction_mw >= 0

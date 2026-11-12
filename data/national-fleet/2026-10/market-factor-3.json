@@ -1,8 +1,0 @@
-{
-  "factor": 3,
-  "strategy": "price_oriented_da_arbitrage",
-  "after_max_residual_mw": 64040.1,
-  "peak_reduction_mw": 365.8,
-  "computed_at": "2026-11-12",
-  "note": "Zusatzflotte 2×4640 MW, noch unter Oktober-Referenz"
-}

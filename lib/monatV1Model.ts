@@ -58,7 +58,7 @@ export type MonatV1Model = {
     marktX1: number;
   };
   duration: MonatV1DurationPoint[];
-  showMehrAlsLink: boolean;
+  showDauerVergleich: boolean;
   pool: MonatV1PoolRow[];
   compareX10: { ueberschussGw: number; spitzeGw: number };
   graphFootnote: string;
@@ -140,7 +140,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
 
   const x5h4 = duration.find((d) => d.factor === 5)!.h4;
   const x10h176 = duration.find((d) => d.factor === 10)!.h176;
-  const showMehrAlsLink = x5h4 > x10h176 + 0.05;
+  const showDauerVergleich = Math.abs(x5h4 - x10h176) <= 0.2;
 
   const pool: MonatV1PoolRow[] = GRAPH_FACTORS.map((factor) => {
     const st = monthStatsForRun(bundle, factor, "ueberschuss");
@@ -186,7 +186,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
       marktX1: roundGw(markt1.peakAfterGw, 1),
     },
     duration,
-    showMehrAlsLink,
+    showDauerVergleich,
     pool,
     compareX10: {
       ueberschussGw: roundGw(ueber10.peakReductionGw, 2),

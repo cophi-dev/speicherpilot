@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "@/components/monat-v1/monat-v1.module.css";
-import { formatGwAbs, formatGwReduction } from "@/lib/monatV1Format";
+import { formatGwAbs, formatGwReduction, MONAT_V1_GRAPH_CAPTION, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
-import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
 const FACTOR_PLOT = [1, 2, 5, 10] as const;
@@ -352,7 +351,9 @@ function StundenChart({ model }: { model: MonatV1Model }) {
       </div>
       <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g3-title g3-desc">
         <title id="g3-title">Spitzensenkung je Dauer und Flottenstufe</title>
-        <desc id="g3-desc">Längere Speicherdauer senkt die Spitze stärker; bei gleicher Leistung begrenzt Energie die Wirkung.</desc>
+        <desc id="g3-desc">
+          {MONAT_V1_KERN3}. Längere Speicherdauer senkt die Spitze stärker; bei gleicher Leistung begrenzt Energie die Wirkung.
+        </desc>
         {[0, 5, 10, 15, 20].map((tick) => {
           const y = yRed(tick);
           return (
@@ -409,7 +410,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
             </g>
           );
         })}
-        {model.showMehrAlsLink && wide ? (
+        {model.showDauerVergleich && wide ? (
           <g>
             {(() => {
               const i5 = cats.findIndex((c) => c.factor === 5);
@@ -422,7 +423,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
                 <>
                   <line x1={x5} y1={y5} x2={x10} y2={y10} stroke="var(--mv-muted)" strokeDasharray="4 4" />
                   <text x={(x5 + x10) / 2} y={(y5 + y10) / 2 - 6} textAnchor="middle" fill="var(--mv-muted)" fontSize="12">
-                    mehr als
+                    genauso stark
                   </text>
                 </>
               );
@@ -567,10 +568,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <h2 id="monat-v1-a3" className={styles.h2}>
           Es fehlen Stunden, nicht Gigawatt.
         </h2>
-        <p className={styles.lead}>
-          Bei gleicher Nennleistung begrenzt die nutzbare Energie die Spitzensenkung — längere Dauer wirkt stärker als
-          mehr Gigawatt-Leistung allein.
-        </p>
+        <p className={styles.lead}>{MONAT_V1_KERN3}.</p>
         <StundenChart model={model} />
       </section>
       <section className={styles.section} aria-labelledby="monat-v1-a4">

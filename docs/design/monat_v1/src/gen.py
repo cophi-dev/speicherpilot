@@ -452,7 +452,7 @@ def graph3_svg(width: int, dark: bool) -> str:
                       "Spitzensenkung nach Flottengröße und Speicherdauer (Beispielwerte)",
                       "Je Stufe drei Punkte für 1,76 Stunden, 2 Stunden und 4 Stunden. "
                       "Der 4-Stunden-Punkt liegt immer deutlich höher. "
-                      "Mal 5 mit 4 Stunden senkt mehr als mal 10 mit 1,76 Stunden. "
+                      "Mal 5 mit 4 Stunden senkt die Spitze genauso stark wie mal 10 mit 1,76 Stunden, mit halb so viel Leistung. "
                       "Alle Zahlen sind Platzhalter.",
                       uid)]
 
@@ -537,7 +537,7 @@ def graph3_svg(width: int, dark: bool) -> str:
         parts.append(
             f'<rect x="{mx-42}" y="{my-12}" width="84" height="16" fill="var(--bg)" fill-opacity=".92"/>'
         )
-        parts.append(txt(mx, my + 2, "mehr als", size=12, fill="var(--ink)", anchor="middle", weight=500))
+        parts.append(txt(mx, my + 2, "genauso stark", size=12, fill="var(--ink)", anchor="middle", weight=500))
 
 
     parts.append("</svg>")
@@ -581,7 +581,7 @@ def graph3_values() -> str:
         )
     return f"""
 <table class="val num">
-  <caption>Spitzensenkung, Platzhalter. Hervorgehoben: \u00d75 mit 4\u00A0h senkt mehr als \u00d710 mit 1,76\u00A0h.</caption>
+  <caption>Spitzensenkung, Platzhalter. Hervorgehoben: \u00d75 mit 4\u00A0h senkt die Spitze genauso stark wie \u00d710 mit 1,76\u00A0h – mit halb so viel Leistung.</caption>
   <thead>
     <tr><th scope="col">Stufe</th><th scope="col">1,76\u00A0h</th><th scope="col">2\u00A0h</th><th scope="col">4\u00A0h</th></tr>
   </thead>
@@ -599,7 +599,7 @@ def graph3_block(width: int, dark: bool, heading=True) -> str:
 <div class="sec-head">
   <p class="eb-text" style="margin:0">Kernantwort 3</p>
   <h2>Es fehlen Stunden, nicht Gigawatt.</h2>
-  <p class="lead">Unbegrenzte Leistung ändert nichts. Der 4-Stunden-Punkt liegt an jeder Stufe deutlich höher \u2014 und \u00d75 mit 4\u00A0h senkt mehr als \u00d710 mit 1,76\u00A0h.</p>
+  <p class="lead">Unbegrenzte Leistung ändert nichts. Der 4-Stunden-Punkt liegt an jeder Stufe deutlich höher \u2014 und \u00d75 mit 4\u00A0h senkt die Spitze genauso stark wie \u00d710 mit 1,76\u00A0h – mit halb so viel Leistung.</p>
 </div>
 """
     return f"""

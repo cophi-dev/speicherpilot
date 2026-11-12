@@ -1,3 +1,4 @@
+import { MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import { buildMonatV1Model } from "@/lib/monatV1Model";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
 
@@ -33,8 +34,15 @@ describe("Monat v1 Modell", () => {
     expect(m10.marktGw).toBeGreaterThan(model.refPeakGw);
   });
 
-  it("×5 mit 4 h senkt mehr als ×10 mit 1,76 h", () => {
-    expect(model.showMehrAlsLink).toBe(true);
+  it("×5 mit 4 h senkt die Spitze genauso stark wie ×10 mit 1,76 h", () => {
+    const x5h4 = model.duration.find((d) => d.factor === 5)!.h4;
+    const x10h176 = model.duration.find((d) => d.factor === 10)!.h176;
+    expect(x5h4).toBeCloseTo(14.07, 2);
+    expect(x10h176).toBeCloseTo(13.98, 2);
+    expect(Math.abs(x5h4 - x10h176)).toBeLessThanOrEqual(0.2);
+    expect(model.showDauerVergleich).toBe(true);
+    expect(MONAT_V1_KERN3).toMatch(/genauso stark/);
+    expect(MONAT_V1_KERN3).not.toMatch(/mehr als/);
   });
 
   it("Y-Achse fasst Marktmaximum ein", () => {

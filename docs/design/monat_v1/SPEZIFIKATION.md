@@ -144,7 +144,7 @@ Beispielwerte der Kurve (alte Konvention, nur Form): Spitze 60,86 / 58,80 / 54,0
 
 ## 5. Graph 3 — Stunden, nicht Gigawatt
 
-**Frage in 5 s:** Der 4-h-Punkt liegt an jeder Stufe deutlich höher; ×5 mit 4 h senkt mehr als ×10 mit 1,76 h.
+**Frage in 5 s:** Der 4-h-Punkt liegt an jeder Stufe deutlich höher; ×5 mit 4 h senkt die Spitze genauso stark wie ×10 mit 1,76 h – mit halb so viel Leistung.
 
 ### Maße
 
@@ -170,7 +170,7 @@ Je Stufe ein vertikaler Steg (`--linie`, 2 px) und drei Punkte, horizontal um ±
 
 HTML-Legende über dem Graph, dieselben Zeichen, 12 px, Tap-freie Beschriftung.
 
-Wertlabels direkt: alle 4-h-Punkte (`−4,64 GW` … `−18,31 GW`) und der 1,76-h-Punkt bei ×10 (`−14,78 GW`). Auf 1280 verbindet eine gestrichelte Linie ×5·4 h mit ×10·1,76 h, Label **„mehr als“**.
+Wertlabels direkt: alle 4-h-Punkte (`−4,64 GW` … `−18,31 GW`) und der 1,76-h-Punkt bei ×10 (`−14,78 GW`). Auf 1280 verbindet eine gestrichelte Linie ×5·4 h mit ×10·1,76 h, Label **„genauso stark“**.
 
 ### Wertezeile
 

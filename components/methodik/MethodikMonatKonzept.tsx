@@ -1,4 +1,5 @@
 import { FLEET_XK_FOOTNOTE_DE } from "@/lib/fleetXkConvention";
+import { MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 
 export function MethodikMonatKonzept() {
@@ -17,8 +18,8 @@ export function MethodikMonatKonzept() {
           beobachtete Oktober-Spitze.
         </li>
         <li>
-          <strong>Kernantwort 3:</strong> Spitzensenkung je Flottenstufe ×1/×2/×5/×10 für 1,76 h, 2 h und 4 h bei gleicher
-          Nennleistung (separate MIP-Läufe).
+          <strong>Kernantwort 3:</strong> {MONAT_V1_KERN3}. Darstellung je Flottenstufe ×1/×2/×5/×10 für 1,76 h, 2 h
+          und 4 h bei gleicher Nennleistung (separate MIP-Läufe).
         </li>
         <li>
           <strong>Kernantwort 4:</strong> Anteil des Modell-Pools Σ max(0, Wind+Sonne−Last) und Spitzensenkung bei
