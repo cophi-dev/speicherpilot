@@ -3,6 +3,7 @@ import Link from "next/link";
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
 import { formatPeakKpi } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { formatGwReduction } from "@/lib/monatV1Format";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import {
   fleetTagHref,
@@ -42,9 +43,9 @@ export function NationalFleetDayChapter({
           ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
         </h2>
         <p className="v4-tag-kern">
-          {peakReductionDayGw >= 0
-            ? `−${formatQuantity(peakReductionDayGw, "de", 2)} GW`
-            : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)} GW höher`}
+          {Number.parseFloat(peakReductionDayGw.toFixed(2)) >= 0
+            ? formatGwReduction(peakReductionDayGw)
+            : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}\u00A0GW höher`}
         </p>
         <p className="v4-tag-side">
           Tages-Spitze {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW. Monat:{" "}

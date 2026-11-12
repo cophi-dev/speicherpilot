@@ -8,7 +8,7 @@ import type { MonatV1Model } from "@/lib/monatV1Model";
 export function MonatSoGerechnet({ model }: { model: MonatV1Model }) {
   const cats = model.duration;
   return (
-    <SoGerechnetBlock id="monat-so-gerechnet">
+    <SoGerechnetBlock id="monat-so-gerechnet" padded={false}>
       <p>{model.pageFootnote}</p>
       <p>{MONAT_V1_GRAPH_CAPTION}</p>
       <p>{MONAT_V1_KERN3}</p>

@@ -11119,6 +11119,66 @@ table.sr-only-focusable:focus-within {
   padding-top: 0.75rem;
 }
 
+.v4-so-gerechnet > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  list-style: none;
+  box-sizing: border-box;
+}
+
+.v4-so-gerechnet > summary::-webkit-details-marker,
+.v4-so-gerechnet > summary::marker {
+  display: none;
+  content: none;
+}
+
+.v4-so-gerechnet > summary::after {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  flex: 0 0 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transform-origin: 50% 50%;
+  transition: transform 180ms ease;
+  position: relative;
+  top: -2px;
+}
+
+.v4-so-gerechnet[open] > summary::after {
+  transform: rotate(225deg);
+  top: 2px;
+}
+
+.v4-so-gerechnet > summary:focus {
+  outline: none;
+}
+
+.v4-so-gerechnet > summary:focus-visible {
+  outline: 2px solid #b4532a;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v4-so-gerechnet > summary::after {
+    transition: none;
+  }
+}
+
+.v4-so-gerechnet-body,
+.v4-so-gerechnet-section,
+.v4-st-steps,
+.v4-st-steps li {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .v4-so-gerechnet-body {
   display: grid;
   gap: 1.25rem;
@@ -11126,6 +11186,11 @@ table.sr-only-focusable:focus-within {
   font-size: var(--type-body);
   line-height: var(--lh-body);
   color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.v4-st-body {
+  overflow-wrap: anywhere;
 }
 
 .v4-so-gerechnet-kicker {

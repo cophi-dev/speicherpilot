@@ -24,7 +24,7 @@ export function tagSurplusLine(surplusGwh: number): string {
 }
 
 export function tagSurplusDefinitionLine(): string {
-  return "Summe der Viertelstunden, in denen Wind und Sonne über der Last lagen (Σ max(0, Wind+Sonne−Last)×¼h).";
+  return "Summe der Viertelstunden, in denen Wind und Sonne über der Last lagen (Σ max(0, Wind + Sonne − Last) × ¼h).";
 }
 
 export function tagLastSurplusLine(lastSurplusKey: string | null): string | null {
