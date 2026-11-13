@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { socialMeta } from "@/lib/siteOg";
+
 import { BlogIndex } from "@/components/blog/BlogIndex";
 import { getBlogPosts } from "@/content/blog/posts";
 
@@ -11,17 +13,7 @@ export const metadata: Metadata = {
   title: "Blog",
   description,
   alternates: { canonical: "/blog" },
-  openGraph: {
-    title: "Blog",
-    description,
-    images: [],
-  },
-  twitter: {
-    card: "summary",
-    title: "Blog",
-    description,
-    images: [],
-  },
+  ...socialMeta({ title: "Blog", description, url: "/blog" }),
 };
 
 export default function BlogPage() {

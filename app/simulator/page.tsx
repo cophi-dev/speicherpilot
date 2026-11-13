@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { socialMeta } from "@/lib/siteOg";
+
 import { SimulatorFahrweisenWorkbench } from "@/components/monat-v1/SimulatorFahrweisenWorkbench.client";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import { loadSimulatorFahrweisen } from "@/lib/simulatorFahrweisen.server";
@@ -15,18 +17,7 @@ function simulatorMeta(): Metadata {
     title,
     description,
     alternates: { canonical: "/simulator" },
-    openGraph: {
-      title,
-      description,
-      url: "/simulator",
-      images: [],
-    },
-    twitter: {
-      card: "summary",
-      title,
-      description,
-      images: [],
-    },
+    ...socialMeta({ title, description, url: "/simulator" }),
   };
 }
 

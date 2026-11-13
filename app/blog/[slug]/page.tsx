@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { socialMeta } from "@/lib/siteOg";
 import { notFound } from "next/navigation";
 
 import { BlogArticle } from "@/components/blog/BlogArticle";
@@ -26,17 +28,7 @@ export async function generateMetadata({
     title: post.title,
     description: post.description,
     alternates: { canonical },
-    openGraph: {
-      title: post.title,
-      description: post.description,
-      images: [],
-    },
-    twitter: {
-      card: "summary",
-      title: post.title,
-      description: post.description,
-      images: [],
-    },
+    ...socialMeta({ title: post.title, description: post.description, url: canonical }),
   };
 }
 
