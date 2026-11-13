@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { socialMeta } from "@/lib/siteOg";
+
 import { BeitraegePage } from "@/components/beitraege/BeitraegePage";
 import { getBlogPosts } from "@/content/blog/posts";
 import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
@@ -13,17 +15,7 @@ export const metadata: Metadata = {
   title: "Beiträge",
   description,
   alternates: { canonical: "/beitraege" },
-  openGraph: {
-    title: "Beiträge",
-    description,
-    images: [],
-  },
-  twitter: {
-    card: "summary",
-    title: "Beiträge",
-    description,
-    images: [],
-  },
+  ...socialMeta({ title: "Beiträge", description, url: "/beitraege" }),
 };
 
 export default async function BeitraegeIndexPage() {

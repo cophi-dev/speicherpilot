@@ -1,3 +1,4 @@
+import { socialMeta } from "@/lib/siteOg";
 import { MethodikDocs } from "@/components/methodik/MethodikDocs";
 import { MethodikInsights } from "@/components/methodik/MethodikInsights";
 import { MethodikMonatKonzept } from "@/components/methodik/MethodikMonatKonzept";
@@ -5,10 +6,13 @@ import { MethodikNetzKapazitaet } from "@/components/methodik/MethodikNetzKapazi
 import { MethodikPreisFenster } from "@/components/methodik/MethodikPreisFenster";
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 
+const methodikDescription =
+  "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells, einschließlich Simulator (ε-70, Kipppunkt, Rechtsrahmen).";
+
 export const metadata = {
   title: "Methodik",
-  description:
-    "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells, einschließlich Simulator (ε-70, Kipppunkt, Rechtsrahmen)."
+  description: methodikDescription,
+  ...socialMeta({ title: "Methodik", description: methodikDescription, url: "/methodik" }),
 };
 
 export default async function MethodikPage() {

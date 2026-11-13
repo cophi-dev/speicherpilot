@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+
+import { socialMeta } from "@/lib/siteOg";
 import { permanentRedirect } from "next/navigation";
 
 import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
@@ -25,9 +27,12 @@ export const revalidate = 1800;
 
 export async function generateMetadata({ params }: { params: Promise<{ datum: string }> }) {
   const { datum } = await params;
+  const description = "Ein Tag in Deutschland: Lücke, Residuallast und Kennzahlen mit Rang.";
+  const title = `Tag · ${datum}`;
   return {
-    title: `Tag · ${datum}`,
-    description: "Ein Tag in Deutschland: Lücke, Residuallast und Kennzahlen mit Rang.",
+    title,
+    description,
+    ...socialMeta({ title, description, url: `/tag/${datum}` }),
   };
 }
 

@@ -6,6 +6,7 @@ import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
 import { ThemeInitScript } from "@/components/ThemeInitScript";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 import { BUILD_PROVENANCE } from "@/lib/buildProvenance.generated";
+import { SITE_DESCRIPTION, SITE_TITLE, socialMeta } from "@/lib/siteOg";
 
 const siteOrigin = getPublicSiteOrigin();
 
@@ -18,11 +19,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: {
-    default: "SpeicherPilot — Speicher und Netz verständlich",
+    default: SITE_TITLE,
     template: "%s | SpeicherPilot",
   },
-  description:
-    "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien — auf Deutsch.",
+  description: SITE_DESCRIPTION,
+  ...socialMeta({
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
+  }),
 };
 
 export default async function RootLayout({

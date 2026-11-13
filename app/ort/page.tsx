@@ -1,3 +1,4 @@
+import { socialMeta } from "@/lib/siteOg";
 import { OrtServerShell } from "@/components/site/OrtServerShell";
 import { OrtUnbHinweis } from "@/components/site/OrtUnbHinweis";
 import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
@@ -24,15 +25,13 @@ export async function generateMetadata({
   const query = await searchParams;
   const sicht = first(query.sicht) ?? "projekt";
   if (sicht === "netz") {
-    return {
-      title: "Ort · Netz und Anschluss",
-      description: "Netzsicht: derselbe Speicher an zwei SimBench-Orten, fest und flexibel angeschlossen.",
-    };
+    const title = "Ort · Netz und Anschluss";
+    const description = "Netzsicht: derselbe Speicher an zwei SimBench-Orten, fest und flexibel angeschlossen.";
+    return { title, description, ...socialMeta({ title, description, url: "/ort" }) };
   }
-  return {
-    title: "Ort · Speicherprojekt",
-    description: "Projektentwicklung: Lastprofil, Peak Shaving und Einschätzung am Beispielanschluss.",
-  };
+  const title = "Ort · Speicherprojekt";
+  const description = "Projektentwicklung: Lastprofil, Peak Shaving und Einschätzung am Beispielanschluss.";
+  return { title, description, ...socialMeta({ title, description, url: "/ort" }) };
 }
 
 export default async function OrtPage({

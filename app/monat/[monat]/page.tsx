@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+import { socialMeta } from "@/lib/siteOg";
+
 import { MonatPageV4 } from "@/components/home/MonatPageV4";
 import { NationalFleetMonatSlot } from "@/components/home/NationalFleetMonatSlot";
 import { MonatObservedOnlySlot } from "@/components/home/MonatObservedOnlySlot";
@@ -27,15 +29,21 @@ export async function generateMetadata({ params }: { params: Promise<{ monat: st
   const { monat } = await params;
   const label = isBerlinMonthKey(monat) ? formatBerlinMonthLabel(monat) : monat;
   if (nationalFleetMonthAvailable(monat)) {
+    const title = `Monat · ${label} · Speicher und Restlastspitze`;
+    const description =
+      "Höchste Restlast je Flottenstufe und Fahrweise, Stunden und Überschuss-Pool — national, Modellrechnung.";
     return {
-      title: `Monat · ${label} · Speicher und Restlastspitze`,
-      description:
-        "Höchste Restlast je Flottenstufe und Fahrweise, Stunden und Überschuss-Pool — national, Modellrechnung.",
+      title,
+      description,
+      ...socialMeta({ title, description, url: `/monat/${monat}` }),
     };
   }
+  const title = `Monat · ${label}`;
+  const description = "Monatsverlauf in der geladenen Tagesreihe: Überschuss-Graph und Sprung zu einzelnen Tagen.";
   return {
-    title: `Monat · ${label}`,
-    description: "Monatsverlauf in der geladenen Tagesreihe: Überschuss-Graph und Sprung zu einzelnen Tagen.",
+    title,
+    description,
+    ...socialMeta({ title, description, url: `/monat/${monat}` }),
   };
 }
 

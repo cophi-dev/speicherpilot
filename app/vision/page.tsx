@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { socialMeta } from "@/lib/siteOg";
+
 import { VisionPage } from "@/components/research/VisionPage";
 import { buildResearchVision } from "@/lib/research/loadResearchVision.server";
 
@@ -9,17 +11,7 @@ const description =
 export const metadata: Metadata = {
   title: "Vision",
   description,
-  openGraph: {
-    title: "Vision",
-    description,
-    images: [],
-  },
-  twitter: {
-    card: "summary",
-    title: "Vision",
-    description,
-    images: [],
-  },
+  ...socialMeta({ title: "Vision", description, url: "/vision" }),
 };
 
 export const revalidate = 1800;
