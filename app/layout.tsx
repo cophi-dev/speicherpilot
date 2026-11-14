@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { jetbrainsMono, spaceGrotesk } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
@@ -53,6 +54,12 @@ export default async function RootLayout({
         />
         <ThemeInitScript />
         <SiteShell navShortcuts={navShortcuts}>{children}</SiteShell>
+        {/* Cloudflare Web Analytics: cookielos, nur zusammengefasste Seitenaufrufe */}
+        <Script
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          strategy="afterInteractive"
+          data-cf-beacon='{"token":"01cd64ebc563431ab2682356946c2d54"}'
+        />
       </body>
     </html>
   );
