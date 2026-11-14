@@ -60,6 +60,16 @@ describe("legal pages", () => {
     expect(document.body.textContent).not.toMatch(/Telefon|\+49|Cookie-Banner|Google Analytics/i);
   });
 
+  it("links Phillipp's personal LinkedIn and X profiles in the imprint", () => {
+    renderDe(<LegalNotice />);
+    const linkedin = screen.getByRole("link", { name: "LinkedIn" });
+    expect(linkedin).toHaveAttribute("href", "https://www.linkedin.com/in/phillipp-zarindast/");
+    expect(linkedin).toHaveAttribute("rel", "me noopener");
+    const x = screen.getByRole("link", { name: "X" });
+    expect(x).toHaveAttribute("href", "https://x.com/pphhiillliipppp");
+    expect(x).toHaveAttribute("rel", "me noopener");
+  });
+
   it("points the English view at the German text", () => {
     render(
       <LanguageContext.Provider value={{ language: "en", setLanguage: () => {} }}>
