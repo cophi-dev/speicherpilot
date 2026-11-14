@@ -5,7 +5,11 @@ import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { loadGermanyView } from "@/lib/germanyView";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
-import { tagRollSnapshotDataStandLabel, tagRollSnapshotMonthEligible } from "@/lib/tagRollSnapshotPolicy";
+import {
+  tagRollSnapshotDataStandLabel,
+  tagRollSnapshotMonthEligible,
+  tagRollSnapshotMonthFrozenRecords,
+} from "@/lib/tagRollSnapshotPolicy";
 import { monthHasAnyRecord } from "@/lib/monatCalendar";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
@@ -47,6 +51,28 @@ export async function loadMonatPageData(monthKey: string, now = new Date()): Pro
         records,
         dataStand: tagRollSnapshotDataStandLabel(snap),
         observationLive: monthHasAnyRecord(monthKey, records),
+        observationFallback,
+      };
+    }
+  } catch {
+    /* snapshot missing — live path */
+  }
+
+  try {
+    const snap = loadTagRollSnapshot();
+    const partialRecords = tagRollSnapshotMonthFrozenRecords(monthKey, todayKeyDirect, snap);
+    if (partialRecords.length > 0) {
+      const lastCompleteDayKey = pickLastCompleteDayKey(snap.days, todayKeyDirect);
+      let observationFallback: MonatObservationFallback | null = null;
+      if (nationalFleetMonthAvailable(monthKey) && fleetMonthPreferredObservation(monthKey)) {
+        observationFallback = loadMonatObservationFallback(monthKey);
+      }
+      return {
+        todayKey: todayKeyDirect,
+        lastCompleteDayKey,
+        records: partialRecords,
+        dataStand: `${tagRollSnapshotDataStandLabel(snap)} · eingefrorene Tage`,
+        observationLive: monthHasAnyRecord(monthKey, partialRecords),
         observationFallback,
       };
     }

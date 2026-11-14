@@ -23,12 +23,14 @@ describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
     }
   });
 
-  it("nimmt /simulator in die Sitemap und lässt /ort, /site, /vision draußen", () => {
+  it("nimmt /simulator in die Sitemap und lässt Redirect-Ziele draußen", () => {
     const urls = sitemap().map((entry) => new URL(entry.url).pathname);
     expect(urls).toContain("/simulator");
     expect(urls).not.toContain("/ort");
     expect(urls).not.toContain("/site");
     expect(urls).not.toContain("/vision");
+    expect(urls).not.toContain("/live");
+    expect(urls).not.toContain("/blog");
   });
 
   it("liest die Teaser-Kernzahl 0,36 % aus den Daten", () => {

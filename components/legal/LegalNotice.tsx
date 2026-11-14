@@ -25,6 +25,16 @@ export function LegalNotice() {
           E-Mail:{" "}
           <a href={`mailto:${MAIL}`}>{MAIL}</a>
         </p>
+        <p>
+          Profile:{" "}
+          <a href="https://www.linkedin.com/in/phillipp-zarindast/" target="_blank" rel="me noopener">
+            LinkedIn
+          </a>
+          {" · "}
+          <a href="https://x.com/pphhiillliipppp" target="_blank" rel="me noopener">
+            X
+          </a>
+        </p>
         <p>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV: Phillipp Zarindast, Anschrift wie oben.</p>
         <p>SpeicherPilot ist ein privates, nicht kommerzielles Projekt. Die Rechenwerte sind Modellschätzungen, keine Beratung.</p>
       </div>

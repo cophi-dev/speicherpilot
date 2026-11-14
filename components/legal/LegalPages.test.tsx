@@ -50,12 +50,24 @@ describe("legal pages", () => {
     );
     expect(screen.getByRole("link", { name: "Laufzeit-Protokolle" })).toHaveAttribute("href", "https://vercel.com/docs/runtime-logs");
     expect(document.body.textContent).not.toMatch(/Auftragsverarbeiter|\{\{PRÜFEN/);
-    expect(document.body.textContent).toContain("keine Cookies, kein Tracking, keine Kontaktformulare und keine Konten");
+    expect(document.body.textContent).toContain("keine Cookies, keine Kontaktformulare und keine Konten");
     expect(document.body.textContent).toContain("zum Beispiel beim Hamburgischen Beauftragten für Datenschutz und Informationsfreiheit");
     expect(document.body.textContent).not.toContain("bei Der Hamburgische");
     expect(screen.getByRole("link", { name: "datenschutz-hamburg.de" })).toHaveAttribute("href", "https://datenschutz-hamburg.de");
-    expect(document.body.textContent).toContain("Oktober 2026");
+    expect(document.body.textContent).toContain("November 2026");
+    expect(screen.getByRole("link", { name: "Cloudflare Web Analytics" })).toHaveAttribute("href", "https://www.cloudflare.com/web-analytics/");
+    expect(document.body.textContent).toContain("IP-Adresse wird dafür nicht gespeichert");
     expect(document.body.textContent).not.toMatch(/Telefon|\+49|Cookie-Banner|Google Analytics/i);
+  });
+
+  it("links Phillipp's personal LinkedIn and X profiles in the imprint", () => {
+    renderDe(<LegalNotice />);
+    const linkedin = screen.getByRole("link", { name: "LinkedIn" });
+    expect(linkedin).toHaveAttribute("href", "https://www.linkedin.com/in/phillipp-zarindast/");
+    expect(linkedin).toHaveAttribute("rel", "me noopener");
+    const x = screen.getByRole("link", { name: "X" });
+    expect(x).toHaveAttribute("href", "https://x.com/pphhiillliipppp");
+    expect(x).toHaveAttribute("rel", "me noopener");
   });
 
   it("points the English view at the German text", () => {

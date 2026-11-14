@@ -48,8 +48,19 @@ export function PrivacyNotice() {
         </section>
 
         <section aria-labelledby="privacy-none">
-          <h2 id="privacy-none">3 Keine Cookies</h2>
-          <p>Es gibt keine Cookies, kein Tracking, keine Kontaktformulare und keine Konten.</p>
+          <h2 id="privacy-none">3 Keine Cookies, anonyme Reichweitenmessung</h2>
+          <p>Es gibt keine Cookies, keine Kontaktformulare und keine Konten.</p>
+          <p>
+            Um zu sehen, wie oft welche Seite aufgerufen wird, nutzen wir{" "}
+            <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener noreferrer">
+              Cloudflare Web Analytics
+            </a>{" "}
+            der Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, USA. Der Dienst setzt keine Cookies, speichert nichts auf Ihrem Gerät und bildet keine personenbezogenen Profile. Erfasst werden die aufgerufene Seite, die verweisende Seite, Land, Gerätetyp, Browser und Ladezeiten. Ihre IP-Adresse wird dafür nicht gespeichert. Wir sehen nur zusammengefasste Zahlen, keine einzelnen Personen. Zweck ist die Reichweitenmessung. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer anonymen Reichweitenmessung). Empfänger: Cloudflare, Inc.; Cloudflare ist nach dem EU-U.S. Data Privacy Framework zertifiziert (Art. 45 DSGVO). Mehr dazu in der{" "}
+            <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">
+              Datenschutzerklärung von Cloudflare
+            </a>
+            .
+          </p>
         </section>
 
         <section aria-labelledby="privacy-links">
@@ -72,7 +83,7 @@ export function PrivacyNotice() {
 
         <section aria-labelledby="privacy-stand">
           <h2 id="privacy-stand">6 Stand</h2>
-          <p>Oktober 2026.</p>
+          <p>November 2026.</p>
         </section>
       </div>
     </article>
