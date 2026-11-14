@@ -20,4 +20,12 @@ describe("loadMonatPageData", () => {
     );
     expect(data.records[0]?.dateKey).toBe(snap.records[0]?.dateKey);
   });
+
+  it("nutzt Teilkap-Snapshot für laufenden Monat ohne Live-API", async () => {
+    const data = await loadMonatPageData("2026-11", new Date("2026-11-14T12:00:00Z"));
+    expect(data.observationLive).toBe(true);
+    expect(data.dataStand).toContain("eingefroren");
+    expect(data.records.length).toBeGreaterThan(0);
+    expect(data.records.every((r) => r.dateKey.startsWith("2026-11"))).toBe(true);
+  });
 });
