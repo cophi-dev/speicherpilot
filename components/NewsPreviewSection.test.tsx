@@ -39,6 +39,7 @@ describe("NewsPreviewSection", () => {
     expect(document.querySelector(".news-source")).toHaveTextContent("energate / Windindustrie in Deutschland");
     expect(document.querySelector(".news-source")).toHaveAttribute("title", "energate / Windindustrie in Deutschland");
     expect(screen.getByText(/Missbrauchsverfahren eines Speicherentwicklers gegen einen Übertragungsnetzbetreiber/)).toBeInTheDocument();
+    expect(screen.getByText("Einordnung")).toHaveClass("news-einordnung-label");
     expect(screen.getByText(/Antragsverfahren, nicht die Aufnahmefähigkeit/)).toHaveClass("news-einordnung");
     expect(screen.getByRole("heading", { level: 2, name: /Prüfgebühr/ })).toBeInTheDocument();
     expect(document.querySelectorAll(".news-list article")).toHaveLength(1);

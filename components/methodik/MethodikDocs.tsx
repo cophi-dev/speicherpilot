@@ -302,14 +302,14 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 </p>
                 <p>
                   {tx(
-                    "Jede Zeile wird an der Primärquelle geprüft. Jede Einordnung ist begrenzt und nennt ihre Reichweite (Verfahren, Markt, Netz — nicht automatisch eine örtliche Lage vor Ort).",
-                    "Each line is checked against the primary source. Each contextual note is bounded and states its scope (procedure, market, grid — not automatically a local on-site situation).",
+                    "Jede Zeile wird an der Primärquelle geprüft. Jede Einordnung ist begrenzt und nennt ihre Reichweite (Verfahren, Markt, Netz: nicht automatisch eine örtliche Lage vor Ort).",
+                    "Each line is checked against the primary source. Each contextual note is bounded and states its scope (procedure, market, grid: not automatically a local on-site situation).",
                   )}
                 </p>
                 <p>
                   {tx(
-                    "Ohne öffentlichen Orts- oder Spannungsbezug behaupten wir keine Lage vor Ort — etwa: „betrifft das Verfahren, nicht die Aufnahmefähigkeit vor Ort“. Betreiber- und Herstellernamen stehen nur in der verlinkten Quelle.",
-                    "Without a public place or voltage reference we do not claim a local situation — e.g. “concerns the procedure, not on-site hosting capacity”. Operator and vendor names appear only in the linked source.",
+                    "Ohne öffentlichen Orts- oder Spannungsbezug behaupten wir keine Lage vor Ort, etwa: „betrifft das Verfahren, nicht die Aufnahmefähigkeit vor Ort“. Betreiber- und Herstellernamen stehen nur in der verlinkten Quelle.",
+                    "Without a public place or voltage reference we do not claim a local situation, e.g. “concerns the procedure, not on-site hosting capacity”. Operator and vendor names appear only in the linked source.",
                   )}
                 </p>
                 <p>

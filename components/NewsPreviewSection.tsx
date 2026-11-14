@@ -80,7 +80,7 @@ export default function NewsPreviewSection({
           featured={index === 0}
           de={de}
           showEinordnung
-          showTeaser={place === "page"}
+          showTeaser
         />
       ))}
     </ol>
@@ -177,8 +177,13 @@ function NewsRow({
           </div>
           <div className="news-body">
             <Heading className="news-title">{headline}</Heading>
-            {showEinordnung ? <p className="news-einordnung">{einordnung}</p> : null}
             {showTeaserBlock ? <p className="news-teaser">{teaser}</p> : null}
+            {showEinordnung ? (
+              <div className="news-einordnung-block">
+                <p className="news-einordnung-label">{de ? "Einordnung" : "Context"}</p>
+                <p className="news-einordnung">{einordnung}</p>
+              </div>
+            ) : null}
             <span className="news-go">
               {lead ? <>{lead} </> : null}
               <span className="news-go-keep">
