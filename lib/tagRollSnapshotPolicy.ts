@@ -1,6 +1,7 @@
 import { addBerlinCalendarDays } from "@/lib/berlinCalendar";
 import { auditBerlinPowerDay, type BerlinDayCompleteness } from "@/lib/berlinDayCompleteness";
 import { dayIsUsable } from "@/lib/liveFleetDispatch";
+import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { PowerSlot } from "@/lib/powerMix";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
@@ -79,6 +80,28 @@ export function tagRollSnapshotMonthEligible(monthKey: string, todayKey: string,
     return false;
   }
   return monthEnd <= tagRollSnapshotNewestFrozenDay(todayKey);
+}
+
+/**
+ * Eingefrorene Tages-Kennzahlen für einen laufenden Monat (Monatsende noch in der Live-Tailschwanz).
+ * Vermeidet loadGermanyView beim ersten Render von /monat/YYYY-MM.
+ */
+export function tagRollSnapshotMonthFrozenRecords(
+  monthKey: string,
+  todayKey: string,
+  snap: TagRollSnapshotSlice & { records: TagesKennzahlRecord[] },
+): TagesKennzahlRecord[] {
+  const monthStart = `${monthKey}-01`;
+  const monthEnd = monthEndKey(monthKey);
+  if (monthEnd < snap.coverageStart || monthStart > snap.coverageEnd) {
+    return [];
+  }
+  return snap.records.filter(
+    (record) =>
+      record.dateKey >= monthStart &&
+      record.dateKey <= monthEnd &&
+      tagRollSnapshotEligible(record.dateKey, todayKey, snap),
+  );
 }
 
 function monthEndKey(monthKey: string): string {

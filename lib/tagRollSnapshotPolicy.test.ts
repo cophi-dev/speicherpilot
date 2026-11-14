@@ -2,6 +2,7 @@ import { addBerlinCalendarDays } from "@/lib/berlinCalendar";
 import {
   tagRollSnapshotEligible,
   tagRollSnapshotMonthEligible,
+  tagRollSnapshotMonthFrozenRecords,
   tagRollSnapshotNewestFrozenDay,
   TAG_SNAPSHOT_LIVE_TAIL_DAYS,
 } from "@/lib/tagRollSnapshotPolicy";
@@ -27,6 +28,14 @@ describe("tagRollSnapshotPolicy", () => {
 
   it("Monat Oktober eingefroren, laufender November live", () => {
     expect(tagRollSnapshotMonthEligible("2026-10", todayKey, snap)).toBe(true);
+    expect(tagRollSnapshotMonthEligible("2026-11", todayKey, snap)).toBe(false);
+  });
+
+  it("liefert eingefrorene November-Tage ohne vollen Monats-Snapshot", () => {
+    const nov = tagRollSnapshotMonthFrozenRecords("2026-11", todayKey, snap);
+    expect(nov.length).toBeGreaterThan(0);
+    expect(nov.every((r) => r.dateKey.startsWith("2026-11"))).toBe(true);
+    expect(nov.every((r) => r.dateKey <= tagRollSnapshotNewestFrozenDay(todayKey))).toBe(true);
     expect(tagRollSnapshotMonthEligible("2026-11", todayKey, snap)).toBe(false);
   });
 });
