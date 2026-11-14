@@ -48,8 +48,15 @@ export function PrivacyNotice() {
         </section>
 
         <section aria-labelledby="privacy-none">
-          <h2 id="privacy-none">3 Keine Cookies</h2>
-          <p>Es gibt keine Cookies, kein Tracking, keine Kontaktformulare und keine Konten.</p>
+          <h2 id="privacy-none">3 Keine Cookies, anonyme Reichweitenmessung</h2>
+          <p>Es gibt keine Cookies, keine Kontaktformulare und keine Konten.</p>
+          <p>
+            Um zu sehen, wie oft welche Seite aufgerufen wird, nutzen wir{" "}
+            <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noopener noreferrer">
+              Vercel Web Analytics
+            </a>
+            . Es setzt keine Cookies und speichert nichts auf Ihrem Gerät. Erfasst werden die aufgerufene Seite, die verweisende Seite, Land, Gerätetyp, Browser und Betriebssystem. Besucher werden nur über einen Hash aus Anfragedaten gezählt, der nach 24 Stunden verworfen wird; IP-Adressen werden dafür nicht gespeichert. Wir sehen nur zusammengefasste Zahlen, keine einzelnen Personen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer anonymen Reichweitenmessung). Empfänger: Vercel Inc. (siehe Abschnitt 2).
+          </p>
         </section>
 
         <section aria-labelledby="privacy-links">
@@ -72,7 +79,7 @@ export function PrivacyNotice() {
 
         <section aria-labelledby="privacy-stand">
           <h2 id="privacy-stand">6 Stand</h2>
-          <p>Oktober 2026.</p>
+          <p>November 2026.</p>
         </section>
       </div>
     </article>

@@ -50,11 +50,11 @@ describe("legal pages", () => {
     );
     expect(screen.getByRole("link", { name: "Laufzeit-Protokolle" })).toHaveAttribute("href", "https://vercel.com/docs/runtime-logs");
     expect(document.body.textContent).not.toMatch(/Auftragsverarbeiter|\{\{PRÜFEN/);
-    expect(document.body.textContent).toContain("keine Cookies, kein Tracking, keine Kontaktformulare und keine Konten");
+    expect(document.body.textContent).toContain("keine Cookies, keine Kontaktformulare und keine Konten");
     expect(document.body.textContent).toContain("zum Beispiel beim Hamburgischen Beauftragten für Datenschutz und Informationsfreiheit");
     expect(document.body.textContent).not.toContain("bei Der Hamburgische");
     expect(screen.getByRole("link", { name: "datenschutz-hamburg.de" })).toHaveAttribute("href", "https://datenschutz-hamburg.de");
-    expect(document.body.textContent).toContain("Oktober 2026");
+    expect(document.body.textContent).toContain("November 2026");
     expect(document.body.textContent).not.toMatch(/Telefon|\+49|Cookie-Banner|Google Analytics/i);
   });
 

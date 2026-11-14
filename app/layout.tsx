@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { jetbrainsMono, spaceGrotesk } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
@@ -53,6 +54,11 @@ export default async function RootLayout({
         />
         <ThemeInitScript />
         <SiteShell navShortcuts={navShortcuts}>{children}</SiteShell>
+        {/* Vercel Web Analytics: cookielos, nur Seitenaufrufe (kein @vercel/analytics-Paket nötig) */}
+        <Script id="vercel-analytics-init" strategy="afterInteractive">
+          {"window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };"}
+        </Script>
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
       </body>
     </html>
   );
