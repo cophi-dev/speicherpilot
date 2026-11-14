@@ -33,8 +33,7 @@ export function TagPageLaufend({ view }: { view: LiveTagView }) {
             {weekdayShort(view.dayKey, "de")}, {dayLabel}: der Tag läuft noch
           </h1>
           <p className="v4-subline mt-3">
-            Werte der letzten Stunden sind vorläufig, der Tag wird morgen früh endgültig. Kein Rang, keine Auffälligkeit,
-            keine Überschuss-Aussage für heute.
+            Werte der letzten Stunden sind vorläufig, der Tag wird morgen früh endgültig.
           </p>
         </div>
       </section>
