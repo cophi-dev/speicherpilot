@@ -64,7 +64,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 </li>
               ))}
             </ol>
-            <MethodikTocSections summary={tx("Alle Abschnitte (17)", "All sections (17)")}>
+            <MethodikTocSections summary={tx("Alle Abschnitte (18)", "All sections (18)")}>
               <ol className="methodik-section-nav">
                 {METHODIK_SECTIONS.map((section) => (
                   <li key={section.id}>
@@ -292,6 +292,32 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </MethodikSection>
               <MethodikSection id="grenzen" title={methodikSectionLabel("grenzen", language)}>
                 <MethodikGrenzenSection language={language} fleet={fleet} bodyOnly />
+              </MethodikSection>
+              <MethodikSection id="so-pruefen-wir" title={methodikSectionLabel("so-pruefen-wir", language)}>
+                <p>
+                  {tx(
+                    "Wir wählen wöchentlich drei bis fünf Meldungen zu BESS-Großprojekten, zur Netzentwicklung bei Übertragungs- und Verteilnetzbetreibern und zur Regulierung.",
+                    "Each week we pick three to five reports on large-scale BESS projects, grid development at transmission and distribution operators, and regulation.",
+                  )}
+                </p>
+                <p>
+                  {tx(
+                    "Jede Zeile wird an der Primärquelle geprüft. Jede Einordnung ist begrenzt und nennt ihre Reichweite (Verfahren, Markt, Netz — nicht automatisch eine örtliche Lage vor Ort).",
+                    "Each line is checked against the primary source. Each contextual note is bounded and states its scope (procedure, market, grid — not automatically a local on-site situation).",
+                  )}
+                </p>
+                <p>
+                  {tx(
+                    "Ohne öffentlichen Orts- oder Spannungsbezug behaupten wir keine Lage vor Ort — etwa: „betrifft das Verfahren, nicht die Aufnahmefähigkeit vor Ort“. Betreiber- und Herstellernamen stehen nur in der verlinkten Quelle.",
+                    "Without a public place or voltage reference we do not claim a local situation — e.g. “concerns the procedure, not on-site hosting capacity”. Operator and vendor names appear only in the linked source.",
+                  )}
+                </p>
+                <p>
+                  {tx(
+                    "Überschriften nennen keine Euro-Beträge. Die Auswahl ist ein Orientierungs- und Lagebild, keine Rechts- oder Planungsberatung. Der Beschluss bzw. die Quelle bleibt der Link.",
+                    "Headlines do not state euro amounts. The selection is orientation, not legal or planning advice. The ruling or source remains the link.",
+                  )}
+                </p>
               </MethodikSection>
             <MethodikSection id="einheiten" title={methodikSectionLabel("einheiten", language)}>
               <div className="methodik-table"><table>

@@ -5014,6 +5014,18 @@ math mi {
   text-underline-offset: 4px;
 }
 .news-v2 .news-sheet .is-new .news-title { font-size: var(--type-32); line-height: 32px; font-weight: 400; }
+.news-einordnung {
+  margin: 0;
+  max-width: 68ch;
+  overflow-wrap: anywhere;
+  color: #3c444c;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: var(--type-14);
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0.01em;
+}
+html.dark .news-einordnung { color: #a8adb4; }
 .news-teaser,
 .news-sheet .news-teaser {
   display: -webkit-box;
@@ -5030,6 +5042,12 @@ math mi {
   -webkit-line-clamp: 2;
   line-clamp: 2;
 }
+.news-home-embed .news-home.day-paper {
+  padding: 0;
+  background: transparent;
+}
+.news-home-embed .day-hero-inner { padding: 0; }
+.news-home-embed .news-list { margin-top: 8px; }
 .news-go {
   display: inline;
   justify-self: start;

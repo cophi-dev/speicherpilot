@@ -4,7 +4,15 @@ import Link from "next/link";
 
 import { useLanguage } from "@/components/language-context";
 import bundledNews from "@/data/news.json";
-import { formatNewsDate, parseNews, type NewsItem } from "@/lib/newsFeed";
+import {
+  formatNewsDate,
+  newsForExternPage,
+  newsForHome,
+  NEWS_EXTERN_WEEKS_DEFAULT,
+  NEWS_HOME_LIMIT,
+  parseNews,
+  type NewsItem,
+} from "@/lib/newsFeed";
 import { plainNewsText } from "@/lib/newsText";
 
 type NewsPlace = "page" | "home";
@@ -12,11 +20,13 @@ type NewsPlace = "page" | "home";
 type NewsPreviewSectionProps = {
   limit?: number;
   place?: NewsPlace;
+  /** Rollierendes Wochenfenster auf der Beiträge-Seite (8–12). */
+  windowWeeks?: number;
   /** Test seam. Production reads `data/news.json`. */
   items?: unknown;
 };
 
-const METHODIK_HREF = "/methodik";
+const METHODIK_HREF = "/methodik#so-pruefen-wir";
 
 function foldNews(value: string): string {
   return value.normalize("NFKC").replace(/\s+/g, " ").trim().toLocaleLowerCase("de");
@@ -42,13 +52,19 @@ function hasEuro(value: string): boolean {
 }
 
 /** Curated links from `data/news.json`. Rendered with the page, not fetched. */
-export default function NewsPreviewSection({ limit = 3, place = "page", items }: NewsPreviewSectionProps) {
+export default function NewsPreviewSection({
+  limit = NEWS_HOME_LIMIT,
+  place = "page",
+  windowWeeks = NEWS_EXTERN_WEEKS_DEFAULT,
+  items,
+}: NewsPreviewSectionProps) {
   const { language } = useLanguage();
   const de = language === "de";
-  const news = parseNews(items ?? bundledNews)
-    .filter((item) => !hasEuro(item.headline))
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, limit);
+  const parsed = parseNews(items ?? bundledNews);
+  const news =
+    place === "home"
+      ? newsForHome(parsed).slice(0, limit)
+      : newsForExternPage(parsed, windowWeeks);
 
   if (place === "home" && news.length === 0) {
     return null;
@@ -57,14 +73,22 @@ export default function NewsPreviewSection({ limit = 3, place = "page", items }:
   const list = (
     <ol className="news-list">
       {news.map((item, index) => (
-        <NewsRow key={`${item.date}-${item.url}`} item={item} heading={place === "home" ? "h3" : "h2"} featured={index === 0} de={de} />
+        <NewsRow
+          key={`${item.date}-${item.url}`}
+          item={item}
+          heading={place === "home" ? "h3" : "h2"}
+          featured={index === 0}
+          de={de}
+          showEinordnung
+          showTeaser={place === "page"}
+        />
       ))}
     </ol>
   );
 
   if (place === "home") {
     return (
-      <div className="news-v2">
+      <div className="news-v2 news-home-embed">
         <section className="day-paper news-home" id="home-news" aria-labelledby="home-news-title">
           <div className="day-hero-inner">
             <div className="news-home-head">
@@ -87,24 +111,24 @@ export default function NewsPreviewSection({ limit = 3, place = "page", items }:
     <div className="news-v2">
       <section className="day-paper news-sheet" aria-label={de ? "Geprüfte Meldungen" : "Checked reports"}>
         <div className="day-hero-inner">
-        {news.length === 0 ? (
-          <div className="news-empty" role="status">
-            <p>{de ? "Gerade keine neuen geprüften Meldungen." : "No new checked reports right now."}</p>
-            <Link className="news-textlink" href={METHODIK_HREF}>
-              {de ? "Wie wir Meldungen prüfen" : "How we check reports"}
-            </Link>
-          </div>
-        ) : (
-          <>
-            {list}
-            <p className="news-foot">
-              {de ? "Auswahl nach unseren Kriterien." : "Selected by our criteria."}{" "}
+          {news.length === 0 ? (
+            <div className="news-empty" role="status">
+              <p>{de ? "Gerade keine neuen geprüften Meldungen." : "No new checked reports right now."}</p>
               <Link className="news-textlink" href={METHODIK_HREF}>
-                {de ? "So prüfen wir Meldungen" : "How we check reports"}
+                {de ? "Wie wir Meldungen prüfen" : "How we check reports"}
               </Link>
-            </p>
-          </>
-        )}
+            </div>
+          ) : (
+            <>
+              {list}
+              <p className="news-foot">
+                {de ? "Auswahl nach unseren Kriterien." : "Selected by our criteria."}{" "}
+                <Link className="news-textlink" href={METHODIK_HREF}>
+                  {de ? "So prüfen wir Meldungen" : "How we check reports"}
+                </Link>
+              </p>
+            </>
+          )}
         </div>
       </section>
     </div>
@@ -116,18 +140,24 @@ function NewsRow({
   heading: Heading,
   featured,
   de,
+  showEinordnung,
+  showTeaser,
 }: {
   item: NewsItem;
   heading: "h2" | "h3";
   featured: boolean;
   de: boolean;
+  showEinordnung: boolean;
+  showTeaser: boolean;
 }) {
   const headline = plainNewsText(item.headline);
   const source = plainNewsText(item.source);
   const short = item.sourceShort ? plainNewsText(item.sourceShort) : "";
   const label = short || source;
   const teaser = item.teaser ? plainNewsText(item.teaser) : "";
-  const showTeaser = Boolean(teaser) && !sameCopy(teaser, headline, source) && !hasEuro(teaser);
+  const einordnung = plainNewsText(item.einordnung);
+  const showTeaserBlock =
+    showTeaser && Boolean(teaser) && !sameCopy(teaser, headline, source) && !hasEuro(teaser);
   const read = de ? `Lesen bei ${label}` : `Read at ${label}`;
   const words = read.split(" ");
   const lastWord = words.pop() ?? read;
@@ -147,7 +177,8 @@ function NewsRow({
           </div>
           <div className="news-body">
             <Heading className="news-title">{headline}</Heading>
-            {showTeaser ? <p className="news-teaser">{teaser}</p> : null}
+            {showEinordnung ? <p className="news-einordnung">{einordnung}</p> : null}
+            {showTeaserBlock ? <p className="news-teaser">{teaser}</p> : null}
             <span className="news-go">
               {lead ? <>{lead} </> : null}
               <span className="news-go-keep">

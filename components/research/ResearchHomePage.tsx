@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 
+import NewsPreviewSection from "@/components/NewsPreviewSection";
 import styles from "@/components/research/research.module.css";
 import { SaturationChart, WeekDotsChart } from "@/components/research/charts";
 import { MesserHeroChart } from "@/components/research/MesserHeroChart";
@@ -130,6 +131,10 @@ export function ResearchHomePage({ model, simulatorCostPct }: { model: ResearchH
           </p>
           <p className={styles.meta}>Wolke: 365 Tage bis {model.day.shortLabel ?? model.day.dateKey} · heutige Flotte · Tageshorizont</p>
         </section>
+      </div>
+
+      <div className={styles.marketNews}>
+        <NewsPreviewSection place="home" />
       </div>
 
       <section className={styles.simTeaser} aria-labelledby="simulator-teaser-title">
