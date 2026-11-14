@@ -55,6 +55,8 @@ describe("legal pages", () => {
     expect(document.body.textContent).not.toContain("bei Der Hamburgische");
     expect(screen.getByRole("link", { name: "datenschutz-hamburg.de" })).toHaveAttribute("href", "https://datenschutz-hamburg.de");
     expect(document.body.textContent).toContain("November 2026");
+    expect(screen.getByRole("link", { name: "Cloudflare Web Analytics" })).toHaveAttribute("href", "https://www.cloudflare.com/web-analytics/");
+    expect(document.body.textContent).toContain("IP-Adresse wird dafür nicht gespeichert");
     expect(document.body.textContent).not.toMatch(/Telefon|\+49|Cookie-Banner|Google Analytics/i);
   });
 

@@ -52,10 +52,14 @@ export function PrivacyNotice() {
           <p>Es gibt keine Cookies, keine Kontaktformulare und keine Konten.</p>
           <p>
             Um zu sehen, wie oft welche Seite aufgerufen wird, nutzen wir{" "}
-            <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noopener noreferrer">
-              Vercel Web Analytics
+            <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener noreferrer">
+              Cloudflare Web Analytics
+            </a>{" "}
+            der Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, USA. Der Dienst setzt keine Cookies, speichert nichts auf Ihrem Gerät und bildet keine personenbezogenen Profile. Erfasst werden die aufgerufene Seite, die verweisende Seite, Land, Gerätetyp, Browser und Ladezeiten. Ihre IP-Adresse wird dafür nicht gespeichert. Wir sehen nur zusammengefasste Zahlen, keine einzelnen Personen. Zweck ist die Reichweitenmessung. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer anonymen Reichweitenmessung). Empfänger: Cloudflare, Inc.; Cloudflare ist nach dem EU-U.S. Data Privacy Framework zertifiziert (Art. 45 DSGVO). Mehr dazu in der{" "}
+            <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">
+              Datenschutzerklärung von Cloudflare
             </a>
-            . Es setzt keine Cookies und speichert nichts auf Ihrem Gerät. Erfasst werden die aufgerufene Seite, die verweisende Seite, Land, Gerätetyp, Browser und Betriebssystem. Besucher werden nur über einen Hash aus Anfragedaten gezählt, der nach 24 Stunden verworfen wird; IP-Adressen werden dafür nicht gespeichert. Wir sehen nur zusammengefasste Zahlen, keine einzelnen Personen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer anonymen Reichweitenmessung). Empfänger: Vercel Inc. (siehe Abschnitt 2).
+            .
           </p>
         </section>
 

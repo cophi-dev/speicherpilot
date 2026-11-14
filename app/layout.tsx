@@ -54,11 +54,12 @@ export default async function RootLayout({
         />
         <ThemeInitScript />
         <SiteShell navShortcuts={navShortcuts}>{children}</SiteShell>
-        {/* Vercel Web Analytics: cookielos, nur Seitenaufrufe (kein @vercel/analytics-Paket nötig) */}
-        <Script id="vercel-analytics-init" strategy="afterInteractive">
-          {"window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };"}
-        </Script>
-        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
+        {/* Cloudflare Web Analytics: cookielos, nur zusammengefasste Seitenaufrufe */}
+        <Script
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          strategy="afterInteractive"
+          data-cf-beacon='{"token":"01cd64ebc563431ab2682356946c2d54"}'
+        />
       </body>
     </html>
   );
