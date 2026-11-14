@@ -1,35 +1,49 @@
-import { formatNewsDate, parseNews } from "@/lib/newsFeed";
+import { formatNewsDate, newsForExternPage, newsForHome, parseNews } from "@/lib/newsFeed";
 import news from "@/data/news.json";
 
+const baseItem = {
+  date: "2026-10-21",
+  source: "BNetzA",
+  url: "https://www.bundesnetzagentur.de/example",
+  headline: "Meldung",
+  einordnung: "Ein Satz zur Reichweite.",
+};
+
 describe("news feed", () => {
-  it("ships the curated Bundesnetzagentur item, and an empty list stays empty", () => {
+  it("ships the curated Bundesnetzagentur item with einordnung", () => {
     expect(parseNews([])).toEqual([]);
-    expect(parseNews(news)).toEqual([
-      {
-        date: "2026-10-21",
-        source: "energate / Windindustrie in Deutschland",
-        sourceShort: "energate",
-        url: "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27",
-        headline: "Bundesnetzagentur: Keine Prüfgebühr für Netzanschlussanträge",
-        teaser:
-          "Netzbetreiber dürfen für die Prüfung eines Anschlussantrags keine Gebühr verlangen, die später nicht auf das Projekt angerechnet wird. Anlass war ein Gerichtsverfahren eines Speicherentwicklers gegen einen Übertragungsnetzbetreiber.",
-      },
-    ]);
+    const items = parseNews(news);
+    expect(items).toHaveLength(1);
+    expect(items[0].sourceShort).toBe("energate / Windindustrie in Deutschland");
+    expect(items[0].einordnung).toContain("Antragsverfahren");
+    expect(items[0].teaser).toContain("Missbrauchsverfahren");
   });
 
-  it("keeps at most three valid public items, with or without a teaser", () => {
-    const item = (n: number) => ({
-      date: "2026-10-21",
-      source: "BNetzA",
-      url: `https://www.bundesnetzagentur.de/example-${n}`,
-      headline: `Meldung ${n}`,
-    });
-    expect(parseNews([item(1), item(2), item(3), item(4)])).toHaveLength(3);
-    expect(parseNews([{ ...item(1), teaser: "Ein Satz dazu." }])[0].teaser).toBe("Ein Satz dazu.");
-    expect(parseNews([{ ...item(1), sourceShort: "BNetzA" }])[0].sourceShort).toBe("BNetzA");
-    expect(parseNews([item(1)])[0].sourceShort).toBeUndefined();
-    expect(parseNews([{ ...item(1), url: "not a url" }])).toEqual([]);
-    expect(parseNews(null)).toEqual([]);
+  it("rejects items without einordnung", () => {
+    expect(parseNews([{ ...baseItem, einordnung: undefined }])).toEqual([]);
+  });
+
+  it("keeps euro-free headlines only", () => {
+    expect(parseNews([{ ...baseItem, headline: "Speicher für 12 € geplant" }])).toEqual([]);
+    expect(parseNews([baseItem])).toHaveLength(1);
+  });
+
+  it("limits home to three newest rows", () => {
+    const items = Array.from({ length: 5 }, (_, index) => ({
+      ...baseItem,
+      date: `2026-10-${String(20 - index).padStart(2, "0")}`,
+      headline: `Meldung ${index}`,
+    }));
+    expect(newsForHome(parseNews(items))).toHaveLength(3);
+    expect(newsForHome(parseNews(items))[0].headline).toBe("Meldung 0");
+  });
+
+  it("filters extern list by rolling weeks", () => {
+    const old = { ...baseItem, date: "2026-05-01", headline: "Alt" };
+    const recent = { ...baseItem, date: "2026-11-01", headline: "Neu" };
+    const list = parseNews([old, recent]);
+    const windowed = newsForExternPage(list, 10, new Date("2026-11-14T12:00:00Z"));
+    expect(windowed.map((item) => item.headline)).toEqual(["Neu"]);
   });
 
   it("formats a Berlin calendar date as 21. Okt. 2026", () => {

@@ -2,9 +2,10 @@
   {
     "date": "2026-10-21",
     "source": "energate / Windindustrie in Deutschland",
-    "sourceShort": "energate",
+    "sourceShort": "energate / Windindustrie in Deutschland",
     "url": "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27",
     "headline": "Bundesnetzagentur: Keine Prüfgebühr für Netzanschlussanträge",
-    "teaser": "Netzbetreiber dürfen für die Prüfung eines Anschlussantrags keine Gebühr verlangen, die später nicht auf das Projekt angerechnet wird. Anlass war ein Gerichtsverfahren eines Speicherentwicklers gegen einen Übertragungsnetzbetreiber."
+    "teaser": "Netzbetreiber dürfen für die Prüfung eines Anschlussbegehrens keine Gebühr verlangen, die später nicht auf das Vorhaben angerechnet wird. Anlass war ein Missbrauchsverfahren eines Speicherentwicklers gegen einen Übertragungsnetzbetreiber (Beschlusskammer 6).",
+    "einordnung": "Die Entscheidung betrifft das Antragsverfahren, nicht die Aufnahmefähigkeit. Für Speicherprojekte entfällt ein reiner Verfahrenspreis; der Engpass bleibt Anschlusskapazität, (n-1) und die Vertragsform, etwa eine flexible Anschlussvereinbarung."
   }
 ]
