@@ -366,6 +366,26 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
               . Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung. Wo Euro stehen, ist
               das als Modellschätzung gekennzeichnet.
             </p>
+            <p className="mt-4 flex flex-wrap gap-x-5">
+              <a
+                href="https://www.linkedin.com/in/phillipp-zarindast/"
+                target="_blank"
+                rel="me noopener"
+                aria-label="Phillipp Zarindast auf LinkedIn"
+                className="inline-flex min-h-11 items-center hover:text-foreground"
+              >
+                LinkedIn
+              </a>
+              <a
+                href="https://x.com/pphhiillliipppp"
+                target="_blank"
+                rel="me noopener"
+                aria-label="Phillipp Zarindast auf X"
+                className="inline-flex min-h-11 items-center hover:text-foreground"
+              >
+                X
+              </a>
+            </p>
           </div>
         </footer>
       </div>
