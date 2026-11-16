@@ -119,13 +119,31 @@
   margin: 0 0 0.75rem;
 }
 
+.chartWrapWide {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .svg {
   display: block;
   width: 100%;
   height: auto;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 14px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
+}
+
+/* viewBox 1152: feste CSS-Breite → keine Unter-Skalierung unter 12 px Label */
+.svgWide {
+  width: 1152px;
+  min-width: 1152px;
+  max-width: none;
+}
+
+.svgNarrow {
+  width: 350px;
+  min-width: 350px;
+  max-width: none;
 }
 
 .figcaption {

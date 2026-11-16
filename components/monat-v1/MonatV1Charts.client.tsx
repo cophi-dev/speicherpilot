@@ -149,7 +149,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   return (
     <div
       ref={ref}
-      className={`${styles.chartWrap} v4-chart-probe`}
+      className={`${styles.chartWrap}${wide ? ` ${styles.chartWrapWide}` : ""} v4-chart-probe`}
       data-testid="monat-v1-hero"
       tabIndex={0}
       role="application"
@@ -165,7 +165,12 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         rows={tooltipRows}
         testId="monat-v1-hero-tooltip"
       />
-      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g1-title g1-desc">
+      <svg
+        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        className={`${styles.svg}${wide ? ` ${styles.svgWide}` : ` ${styles.svgNarrow}`}`}
+        role="img"
+        aria-labelledby="g1-title g1-desc"
+      >
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
           Spitzenorientiert sinkt die Monatsspitze mit wachsender Flotte; Marktorientiert ohne Preisrückwirkung steigt
@@ -396,7 +401,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
   return (
     <div
       ref={ref}
-      className={`${styles.chartWrap} v4-chart-probe`}
+      className={`${styles.chartWrap}${wide ? ` ${styles.chartWrapWide}` : ""} v4-chart-probe`}
       data-testid="monat-v1-stunden"
       tabIndex={0}
       role="application"
@@ -423,7 +428,12 @@ function StundenChart({ model }: { model: MonatV1Model }) {
           <span className={styles.dotRust} /> 4 h
         </span>
       </div>
-      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g3-title g3-desc">
+      <svg
+        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        className={`${styles.svg}${wide ? ` ${styles.svgWide}` : ` ${styles.svgNarrow}`}`}
+        role="img"
+        aria-labelledby="g3-title g3-desc"
+      >
         <title id="g3-title">Spitzensenkung je Dauer und Flottenstufe</title>
         <desc id="g3-desc">
           {MONAT_V1_KERN3}. Längere Speicherdauer senkt die Spitze stärker; bei gleicher Leistung begrenzt Energie die Wirkung.
@@ -538,7 +548,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
   return (
     <div
       ref={ref}
-      className={`${styles.chartWrap} v4-chart-probe`}
+      className={`${styles.chartWrap}${wide ? ` ${styles.chartWrapWide}` : ""} v4-chart-probe`}
       data-testid="monat-v1-ueberschuss"
       tabIndex={0}
       role="application"
@@ -554,7 +564,12 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
         rows={tooltipRows}
         testId="monat-v1-ueberschuss-tooltip"
       />
-      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g4-title g4-desc">
+      <svg
+        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        className={`${styles.svg}${wide ? ` ${styles.svgWide}` : ` ${styles.svgNarrow}`}`}
+        role="img"
+        aria-labelledby="g4-title g4-desc"
+      >
         <title id="g4-title">Überschuss-Pool und Spitzensenkung</title>
         <desc id="g4-desc">
           Die Überschuss-Strategie füllt den Monats-Pool, senkt die Spitze aber weniger als spitzenorientiertes Fahren.
