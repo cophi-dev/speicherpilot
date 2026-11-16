@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { VisionPage } from "@/components/research/VisionPage";
 import { buildResearchVision } from "@/lib/research/loadResearchVision.server";
+import { buildVisionJahrKernsatz } from "@/lib/research/visionJahrKernsatz";
 import { VISION_CHART_SCOPE } from "@/lib/research/visionJahrScope";
 import { visionJahrCoreDisplayFromJson } from "@/lib/research/visionJahrData";
 import nextConfig from "../../next.config";
@@ -18,7 +19,9 @@ describe("/vision Jahresansicht", () => {
   });
 
   it("enthält kein verbotenes Wort und keine Euro-Zeichen", () => {
-    const html = renderToStaticMarkup(createElement(VisionPage, { model: buildResearchVision() }));
+    const html = renderToStaticMarkup(
+      createElement(VisionPage, { model: buildResearchVision(), kernsatz: buildVisionJahrKernsatz().paragraph })
+    );
     const lower = html.toLowerCase();
     expect(lower).not.toContain("netzdienlich");
     expect(html).not.toMatch(/€/);
@@ -26,7 +29,9 @@ describe("/vision Jahresansicht", () => {
   });
 
   it("trägt den Pflicht-Scope an den Graphen", () => {
-    const html = renderToStaticMarkup(createElement(VisionPage, { model: buildResearchVision() }));
+    const html = renderToStaticMarkup(
+      createElement(VisionPage, { model: buildResearchVision(), kernsatz: buildVisionJahrKernsatz().paragraph })
+    );
     expect(html.split(VISION_CHART_SCOPE).length).toBeGreaterThan(4);
   });
 

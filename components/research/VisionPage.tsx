@@ -12,6 +12,7 @@ import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJah
 import { VisionJahrG2Markt } from "@/components/research/vision-jahr/VisionJahrG2Markt";
 import { VisionJahrG3Ueberschuss } from "@/components/research/vision-jahr/VisionJahrG3Ueberschuss";
 import { VisionJahrG4Tage } from "@/components/research/vision-jahr/VisionJahrG4Tage";
+import { VisionJahrKernsatzBlock } from "@/components/research/VisionJahrKernsatz";
 import { formatVisionGermanDate, formatVisionGwMinus, formatVisionGwOne, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
@@ -25,7 +26,7 @@ const DURATIONS = [
 
 const VISION_SKIP_KEY = "speicherpilot-vision-guess-skip";
 
-export function VisionPage({ model }: { model: VisionJahrModel }) {
+export function VisionPage({ model, kernsatz }: { model: VisionJahrModel; kernsatz: string }) {
   const reduced = useReducedMotion();
   const layout = useResearchLayout();
   const pageRef = useRef<HTMLDivElement>(null);
@@ -52,6 +53,7 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
     <div ref={pageRef} className={`${styles.page} ${styles.visionJahrPage}`}>
       <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
+      <VisionJahrKernsatzBlock paragraph={kernsatz} />
       <p className={styles.prose}>
         Nationale Kupferplatte, Vollvoraussicht über zwölf Monate (Obergrenze). Spitzenorientiert heißt: die Flotte senkt die{" "}
         <strong> nationale</strong> Jahresspitze der Restlast. Der Oktober-Ausschnitt steht auf{" "}
