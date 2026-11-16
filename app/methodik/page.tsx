@@ -9,6 +9,9 @@ import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 const methodikDescription =
   "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells, einschließlich Simulator (ε-70, Kipppunkt, Rechtsrahmen).";
 
+/** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
+export const revalidate = 1800;
+
 export const metadata = {
   title: "Methodik",
   description: methodikDescription,

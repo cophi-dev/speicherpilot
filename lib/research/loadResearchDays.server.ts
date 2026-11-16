@@ -1,8 +1,7 @@
 import "server-only";
 
-import { unstable_noStore as noStore } from "next/cache";
-
 import { addBerlinCalendarDays, formatBerlinDateKeyFromUtcDate, prevBerlinDateKey } from "@/lib/berlinCalendar";
+import { dailySeriesFetchInit } from "@/lib/dailySeriesCache";
 import { expectedBerlinQuarters } from "@/lib/berlinDayCompleteness";
 import ec0911Abruf0647 from "@/data/forschung/ec_total_power_20261109_abruf0647.json";
 import { fetchLegacyResearchDays, legacyTotalPowerUrl, residualDaysFromEnergyChartsPayload } from "@/lib/research/legacyResearchPower.server";
@@ -46,11 +45,7 @@ async function refreshYesterdayIfNeeded(now: Date, byKey: Map<string, ResidualDa
     return;
   }
   const url = legacyTotalPowerUrl(yesterday, todayKey);
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-    signal: AbortSignal.timeout(20_000),
-  });
+  const res = await fetch(url, dailySeriesFetchInit(20_000));
   if (!res.ok) {
     return;
   }
@@ -63,7 +58,6 @@ async function refreshYesterdayIfNeeded(now: Date, byKey: Map<string, ResidualDa
 
 /** Snapshot plus live Energy-Charts tail so gestern tracks 96/96 publication. */
 export async function loadResearchDays(now: Date): Promise<ResidualDay[]> {
-  noStore();
   const snap = loadTagRollSnapshot();
   const byKey = new Map<string, ResidualDay>(snap.days.map((d) => [d.dateBerlin, d]));
 
