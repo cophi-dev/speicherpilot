@@ -20,10 +20,34 @@ describe("NewsList", () => {
 
   it("renders a real headline and keeps the list at three", () => {
     renderNews([
-      { date: "2026-10-20", source: "BNetzA", url: "https://example.com/a", headline: "Neue Regel" },
-      { date: "2026-10-19", source: "BNetzA", url: "https://example.com/b", headline: "Zweite Meldung" },
-      { date: "2026-10-18", source: "BNetzA", url: "https://example.com/c", headline: "Dritte Meldung" },
-      { date: "2026-10-17", source: "BNetzA", url: "https://example.com/d", headline: "Vierte Meldung" },
+      {
+        date: "2026-10-20",
+        source: "BNetzA",
+        url: "https://example.com/a",
+        headline: "Neue Regel",
+        einordnung: "Verfahren national.",
+      },
+      {
+        date: "2026-10-19",
+        source: "BNetzA",
+        url: "https://example.com/b",
+        headline: "Zweite Meldung",
+        einordnung: "Verfahren national.",
+      },
+      {
+        date: "2026-10-18",
+        source: "BNetzA",
+        url: "https://example.com/c",
+        headline: "Dritte Meldung",
+        einordnung: "Verfahren national.",
+      },
+      {
+        date: "2026-10-17",
+        source: "BNetzA",
+        url: "https://example.com/d",
+        headline: "Vierte Meldung",
+        einordnung: "Verfahren national.",
+      },
     ]);
     expect(screen.getByRole("link", { name: "Neue Regel" })).toHaveAttribute("href", "https://example.com/a");
     expect(screen.queryByRole("link", { name: "Vierte Meldung" })).toBeNull();

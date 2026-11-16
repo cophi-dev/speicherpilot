@@ -1,17 +1,15 @@
 {
-  "commit": "4d6e427efd106f56d113fb85c8c63a35b083c30e",
-  "buildId": "20261114T1608Z",
-  "builtAt": "2026-11-14T16:08:08.864Z",
+  "commit": "0091b7cea43f509dc6c826f1bd95afb84f9609a0",
+  "buildId": "20261116T0740Z",
+  "builtAt": "2026-11-16T07:40:08.874Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/home/LiveTagPreisPanel.tsx",
-    " M components/home/LiveTagResidualChart.tsx",
-    " M components/home/TagPageLaufend.tsx",
-    "?? app/tag/demo/",
-    "?? lib/liveTagChartGeometry.test.ts",
-    "?? lib/liveTagChartGeometry.ts",
-    "?? lib/loadLiveTagFixtureView.server.ts"
+    "M app/api/news/route.test.ts",
+    " M components/NewsPreviewSection.test.tsx",
+    " M data/news.json",
+    " M lib/newsFeed.test.ts",
+    " M lib/newsFeed.ts"
   ],
   "ci": false
 }

@@ -252,6 +252,19 @@
   align-items: center;
 }
 
+.marketNews {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--research-line);
+  max-width: 100%;
+}
+
+@media (min-width: 960px) {
+  .marketNews {
+    grid-column: 1 / -1;
+  }
+}
+
 .footer {
   margin-top: 32px;
   font-family: var(--font-jetbrains-mono), monospace;
