@@ -640,7 +640,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <HeroChart model={model} />
         <p className={styles.simulatorTry}>
           <Link href="/kompromiss" className="v4-text-link">
-            im Simulator selbst ausprobieren
+            Kompromiss selbst ausprobieren
           </Link>
         </p>
       </section>

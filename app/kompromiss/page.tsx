@@ -34,7 +34,7 @@ export default function KompromissPage() {
         <p>
           Quellen, Annahmen und Rechtsrahmen:{" "}
           <a href="/methodik#simulator-annahmen" className="v4-text-link">
-            Methodik → Simulator
+            Methodik → Kompromiss
           </a>
         </p>
       </footer>

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
-import { TagSimulatorTeaser } from "@/components/home/SimulatorTeasers";
+import { TagKompromissTeaser } from "@/components/home/SimulatorTeasers";
+import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
 import { TagChapter } from "@/components/home/TagChapter";
@@ -336,7 +337,8 @@ export function TagPageV4({
         surplusGwh={record.surplusGwh ?? 0}
         fleetExtra={fleetSoGerechnet}
       />
-      <TagSimulatorTeaser teaser={simulatorTeaser} />
+      <TagKompromissTeaser teaser={simulatorTeaser} />
+      <TagesvorlageModelBox />
     </div>
   );
 }

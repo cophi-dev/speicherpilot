@@ -10508,6 +10508,52 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 .v4-fleet-ts-svg {
   display: block;
 }
+.v4-fleet-line-r-measured {
+  stroke: var(--foreground);
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.v4-fleet-line-r-thin {
+  stroke: var(--muted-foreground);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+.v4-fleet-line-rp-main {
+  stroke: hsl(var(--primary));
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.v4-fleet-band-charge {
+  fill: hsl(var(--primary) / 0.22);
+  stroke: none;
+}
+.v4-fleet-band-discharge {
+  fill: hsl(142 55% 38% / 0.28);
+  stroke: none;
+}
+.v4-fleet-tageshorizont {
+  margin: 0 0 8px;
+  font-size: var(--type-14);
+  color: var(--muted-foreground);
+}
+.v4-fleet-energy-context {
+  margin: 12px 0 8px;
+  font-size: var(--type-14);
+  color: var(--muted-foreground);
+}
+.v4-tagesvorlage-modelbox {
+  margin: 32px auto 48px;
+  max-width: 42rem;
+  padding-top: 24px;
+  border-top: 1px solid var(--linie);
+  font-size: var(--type-14);
+  line-height: var(--lh-body);
+  color: var(--muted-foreground);
+}
 .v4-fleet-line-r {
   stroke: hsl(var(--foreground) / 0.55);
   stroke-width: 1;

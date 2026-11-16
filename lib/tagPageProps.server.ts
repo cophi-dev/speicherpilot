@@ -9,6 +9,7 @@ import {
   nationalFleetMonthAvailable,
   parseFleetFactor,
   sliceFleetDay,
+  type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
 import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
@@ -28,7 +29,7 @@ export type CompleteTagPageModel = {
   fleetPowerGw: number;
   fleetEnergyGwh: number;
   fleetFactor: ReturnType<typeof parseFleetFactor>;
-  fleetStrategy: ReturnType<typeof parseFleetStrategy>;
+  fleetStrategy: NationalFleetStrategyUi;
   fleetDayNoWindSolarSurplus: boolean;
   preisTag: Awaited<ReturnType<typeof loadGermanyViewForTag>>["preisTag"];
   marktInsights: ReturnType<typeof marktInsightsForRoute>;
@@ -36,7 +37,7 @@ export type CompleteTagPageModel = {
   fleetSoGerechnet: {
     dayKey: string;
     factor: ReturnType<typeof parseFleetFactor>;
-    strategy: ReturnType<typeof parseFleetStrategy>;
+    strategy: NationalFleetStrategyUi;
     run: NonNullable<ReturnType<typeof loadNationalFleetRunSeries>>;
     slice: NonNullable<ReturnType<typeof sliceFleetDay>>;
     monthStats: ReturnType<typeof monthStatsForRun>;
@@ -81,7 +82,7 @@ export async function loadCompleteTagPageModel(
   }
 
   const fleetFactor = parseFleetFactor(query.faktor);
-  const fleetStrategy: ReturnType<typeof parseFleetStrategy> = "spitze";
+  const fleetStrategy: NationalFleetStrategyUi = "spitze";
   const fleetMonth = nationalFleetMonthAvailable(datum.slice(0, 7));
   const fleetRun = fleetMonth ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy) : null;
   const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, datum) : null;

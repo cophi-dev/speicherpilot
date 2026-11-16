@@ -24,6 +24,7 @@ import { NationalFleetTimeSeriesChartSkeleton } from "@/components/home/National
 import type { FleetChartSeriesPayload } from "@/lib/nationalFleetSeriesPayload";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { formatKonzeptWorkbenchCaption } from "@/lib/monatKonzeptA";
+import { fleetBandPaths } from "@/lib/fleetTagesvorlagePaths";
 
 type SeriesPayload = FleetChartSeriesPayload;
 
@@ -129,6 +130,8 @@ export type NationalFleetTimeSeriesChartProps = {
   scrollHint?: string;
   prominentMonth?: boolean;
   konzeptWorkbench?: boolean;
+  /** P1-Tagesvorlage: ein Restlast-Panel mit R′, R und Lade-/Entlade-Flächen */
+  tagesvorlageDay?: boolean;
 };
 
 export function NationalFleetTimeSeriesChart({
@@ -144,6 +147,7 @@ export function NationalFleetTimeSeriesChart({
   scrollHint,
   prominentMonth = false,
   konzeptWorkbench = false,
+  tagesvorlageDay = false,
 }: NationalFleetTimeSeriesChartProps) {
   const [frame, setFrame] = useState<ChartFrame | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -293,7 +297,8 @@ export function NationalFleetTimeSeriesChart({
   const n = points.length;
   const width = scrollWidth > 0 ? scrollWidth : isDay ? Math.max(320, n * 4) : 320;
   const pxPerQh = width / n;
-  const panelH = prominentMonth && !isDay ? (monthNarrow ? 194 : 124) : isDay ? 104 : 92;
+  const panelH =
+    tagesvorlageDay && isDay ? 140 : prominentMonth && !isDay ? (monthNarrow ? 194 : 124) : isDay ? 104 : 92;
   const auxPanelH = prominentMonth && !isDay ? (monthNarrow ? 116 : 88) : panelH;
   const auxScaleH = prominentMonth && !isDay ? 124 : panelH;
   const pad = 6;
@@ -338,27 +343,51 @@ export function NationalFleetTimeSeriesChart({
     points.length > 0
       ? Math.max(...points.map((p) => p.socGwh)) - Math.min(...points.map((p) => p.socGwh))
       : 0;
-  const hideAuxPanels = isDay && showPowerNote && socSpanGwh < 0.12;
+  const hideAuxPanels = (tagesvorlageDay && isDay) || (isDay && showPowerNote && socSpanGwh < 0.12);
+  const bands =
+    tagesvorlageDay && isDay && factor !== 1
+      ? fleetBandPaths(points, xs, rScale.y, rScale.y, pxPerQh / 2)
+      : null;
 
   return (
     <figure
       className={`v4-fleet-ts-wrap v4-content${prominentMonth && !isDay ? " is-month-prominent" : ""}`}
     >
-      <figcaption className={`v4-fleet-caption${konzeptWorkbench && !isDay ? " sr-only" : ""}`}>
+      <figcaption
+        className={`v4-fleet-caption${konzeptWorkbench && !isDay ? " sr-only" : ""}${tagesvorlageDay && isDay ? " sr-only" : ""}`}
+      >
         <span className="v4-fleet-caption-main">{captionMain}</span>
         {captionMonth ? <span className="v4-fleet-caption-month num"> {captionMonth}</span> : null}
         {scrollHint ? <span className="v4-fleet-caption-hint"> · {scrollHint}</span> : null}
       </figcaption>
       <div className="v4-fleet-ts-legend num" aria-hidden="true">
-        <span className="v4-fleet-ts-legend-r">Restlast beobachtet (GW)</span>
-        <span className="v4-fleet-ts-legend-rp">Restlast mit Speicher (GW)</span>
-        {comparePoints ? (
-          <span className="v4-fleet-ts-legend-compare">×1 mit Speicher (Vergleich, GW)</span>
-        ) : null}
-        <span className="v4-fleet-ts-legend-c">Laden (GW)</span>
-        <span className="v4-fleet-ts-legend-d">Entladen (GW)</span>
-        <span className="v4-fleet-ts-legend-e">SoC Beginn Viertelstunde (GWh)</span>
+        {tagesvorlageDay && isDay ? (
+          <>
+            <span className="v4-fleet-ts-legend-rp">Gefahrene Restlast R′ (GW)</span>
+            <span className="v4-fleet-ts-legend-r">Gemessenes R (GW)</span>
+            {factor !== 1 ? (
+              <>
+                <span className="v4-fleet-ts-legend-c">Laden (neue Last)</span>
+                <span className="v4-fleet-ts-legend-d">Entladen</span>
+              </>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <span className="v4-fleet-ts-legend-r">Restlast beobachtet (GW)</span>
+            <span className="v4-fleet-ts-legend-rp">Restlast mit Speicher (GW)</span>
+            {comparePoints ? (
+              <span className="v4-fleet-ts-legend-compare">×1 mit Speicher (Vergleich, GW)</span>
+            ) : null}
+            <span className="v4-fleet-ts-legend-c">Laden (GW)</span>
+            <span className="v4-fleet-ts-legend-d">Entladen (GW)</span>
+            <span className="v4-fleet-ts-legend-e">SoC Beginn Viertelstunde (GWh)</span>
+          </>
+        )}
       </div>
+      {tagesvorlageDay && isDay && scrollHint ? (
+        <p className="v4-fleet-tageshorizont num">{scrollHint}</p>
+      ) : null}
       {hideAuxPanels ? (
         <p className="v4-fleet-ts-power-note num">
           Keine nennenswerte Lade- oder Entladeleistung und kaum SoC-Bewegung in diesem Szenario — die Restlast oben zeigt
@@ -380,9 +409,13 @@ export function NationalFleetTimeSeriesChart({
         tabIndex={0}
         role="application"
         aria-label={
-          isDay
-            ? `Tagesverlauf Restlast und Speicher am ${dateKey}, Viertelstunden mit Pfeiltasten wählbar`
-            : `Monatsverlauf Restlast und Speicher, Viertelstunden mit Pfeiltasten wählbar`
+          tagesvorlageDay && isDay
+            ? factor === 1
+              ? `Gemessene Restlast R am ${dateKey}, Viertelstunden mit Pfeiltasten wählbar`
+              : `Gefahrene Restlast R′ mit Ladung und Entladung am ${dateKey}, Viertelstunden mit Pfeiltasten wählbar`
+            : isDay
+              ? `Tagesverlauf Restlast und Speicher am ${dateKey}, Viertelstunden mit Pfeiltasten wählbar`
+              : `Monatsverlauf Restlast und Speicher, Viertelstunden mit Pfeiltasten wählbar`
         }
         onKeyDown={onKeyDown}
       >
@@ -396,7 +429,7 @@ export function NationalFleetTimeSeriesChart({
       >
         <div className="v4-fleet-ts-inner" style={{ width: "100%" }}>
           <SinglePanel
-            title="Restlast"
+            title={tagesvorlageDay && isDay ? "Restlast R′" : "Restlast"}
             unit="GW"
             width={width}
             height={panelH}
@@ -404,33 +437,54 @@ export function NationalFleetTimeSeriesChart({
             yMax={rScale.max}
             yTickValues={rYTicks}
           >
-            <polyline
-              className="v4-fleet-line-r"
-              fill="none"
-              points={polylinePoints(
-                xs,
-                points.map((p) => rScale.y(p.rGw)),
-              )}
-            />
-            {comparePoints ? (
+            {tagesvorlageDay && isDay && factor !== 1 && bands ? (
+              <>
+                {bands.charge ? <path className="v4-fleet-band-charge" d={bands.charge} /> : null}
+                {bands.discharge ? <path className="v4-fleet-band-discharge" d={bands.discharge} /> : null}
+              </>
+            ) : null}
+            {tagesvorlageDay && isDay && factor === 1 ? (
               <polyline
-                className="v4-fleet-line-compare"
+                className="v4-fleet-line-r-measured"
                 fill="none"
                 points={polylinePoints(
                   xs,
-                  comparePoints.map((p) => rScale.y(p.rpGw)),
+                  points.map((p) => rScale.y(p.rGw)),
                 )}
               />
+            ) : (
+              <>
+                <polyline
+                  className={tagesvorlageDay && isDay ? "v4-fleet-line-r-thin" : "v4-fleet-line-r"}
+                  fill="none"
+                  points={polylinePoints(
+                    xs,
+                    points.map((p) => rScale.y(p.rGw)),
+                  )}
+                />
+                {!tagesvorlageDay && comparePoints ? (
+                  <polyline
+                    className="v4-fleet-line-compare"
+                    fill="none"
+                    points={polylinePoints(
+                      xs,
+                      comparePoints.map((p) => rScale.y(p.rpGw)),
+                    )}
+                  />
+                ) : null}
+                <polyline
+                  className={tagesvorlageDay && isDay ? "v4-fleet-line-rp-main" : "v4-fleet-line-rp"}
+                  fill="none"
+                  points={polylinePoints(
+                    xs,
+                    points.map((p) => rScale.y(p.rpGw)),
+                  )}
+                />
+              </>
+            )}
+            {!(tagesvorlageDay && isDay && factor === 1) ? (
+              <circle className="v4-fleet-peak-mark" cx={xs[peakI]} cy={rScale.y(peakRpGw)} r={3.5} />
             ) : null}
-            <polyline
-              className="v4-fleet-line-rp"
-              fill="none"
-              points={polylinePoints(
-                xs,
-                points.map((p) => rScale.y(p.rpGw)),
-              )}
-            />
-            <circle className="v4-fleet-peak-mark" cx={xs[peakI]} cy={rScale.y(peakRpGw)} r={3.5} />
             {activeIndex != null ? (
               <line
                 x1={xs[activeIndex]}

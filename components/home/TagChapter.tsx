@@ -1,5 +1,6 @@
 "use client";
 
+import { GraphScopeMeta } from "@/components/home/GraphScopeMeta";
 import { LueckeChart } from "@/components/home/LueckeChart";
 import { PreisFenster } from "@/components/home/PreisFenster";
 import type { PreisTick } from "@/lib/preisFenster";
@@ -54,6 +55,7 @@ export function TagChapter({
       </div>
       <div className="v4-content v4-luecke-wrap">
         <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
+        <GraphScopeMeta />
       </div>
       {prices.length >= 2 ? (
         <div className="v4-content">

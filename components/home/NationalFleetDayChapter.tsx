@@ -1,21 +1,39 @@
-import Link from "next/link";
-
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
+import { GraphScopeMeta } from "@/components/home/GraphScopeMeta";
 import { formatPeakKpi } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatGwReduction } from "@/lib/monatV1Format";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import {
+  FLEET_SATURATION_HINT_DE,
+  shouldShowFleetSaturationHint,
+} from "@/lib/fleetDaySaturation";
+import {
   fleetTagHref,
   NATIONAL_FLEET_FACTORS,
   NATIONAL_FLEET_MONTH_KEY,
   NATIONAL_FLEET_STRATEGY_UI,
+  sliceFleetDay,
   type NationalFleetDaySlice,
   type NationalFleetFactor,
   type NationalFleetMonthStats,
   type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
+import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
+import Link from "next/link";
+
+function saturationSlices(dayKey: string): {
+  x1: NationalFleetDaySlice | null;
+  x5: NationalFleetDaySlice | null;
+  x10: NationalFleetDaySlice | null;
+} {
+  const strategy: NationalFleetStrategyUi = "spitze";
+  const x1 = sliceFleetDay(loadNationalFleetRunSeries(1, strategy), dayKey);
+  const x5 = sliceFleetDay(loadNationalFleetRunSeries(5, strategy), dayKey);
+  const x10 = sliceFleetDay(loadNationalFleetRunSeries(10, strategy), dayKey);
+  return { x1, x5, x10 };
+}
 
 export function NationalFleetDayChapter({
   dayKey,
@@ -34,6 +52,8 @@ export function NationalFleetDayChapter({
   const peakRpGw = slice.maxRPrimeMw / 1000;
   const peakRGw = slice.maxRMw / 1000;
   const peakReductionDayGw = peakRGw - peakRpGw;
+  const { x1, x5, x10 } = saturationSlices(dayKey);
+  const showSaturation = shouldShowFleetSaturationHint(x1, x5, x10);
 
   return (
     <section className="v4-chapter v4-chapter-fleet-day" aria-labelledby="fleet-day-title">
@@ -89,8 +109,9 @@ export function NationalFleetDayChapter({
       </div>
 
       <p className="v4-content v4-fleet-energy-context num">
-        Referenzflotte ×1: {formatQuantity(monthStats.fleetPowerGw, "de", 2)} GW / 8,27 GWh (Battery Charts, gemessen).
+        Referenzflotte ×1: {formatQuantity(monthStats.fleetPowerGw, "de", 2)} GW · 8,27 GWh nutzbare Energie
       </p>
+
       <NationalFleetTimeSeriesChart
         monthKey={NATIONAL_FLEET_MONTH_KEY}
         factor={factor}
@@ -100,14 +121,15 @@ export function NationalFleetDayChapter({
         peakReductionPct={monthStats.peakReductionPct}
         peakReductionDayGw={peakReductionDayGw}
         peakObservedDayGw={peakRGw}
-        scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden am ${formatBerlinDayLabel(dayKey)}`}
+        scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
+        tagesvorlageDay
       />
-      <p className="v4-content v4-fleet-graph-meta num">
-        Modell · national ·{" "}
-        <Link href="/kompromiss" className="v4-text-link">
-          Szenarien rechnen
-        </Link>
-      </p>
+      <div className="v4-content">
+        <GraphScopeMeta />
+      </div>
+      {showSaturation ? (
+        <p className="v4-content v4-fleet-saturation-hint">{FLEET_SATURATION_HINT_DE}</p>
+      ) : null}
     </section>
   );
 }

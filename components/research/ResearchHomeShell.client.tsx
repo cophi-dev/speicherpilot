@@ -138,14 +138,14 @@ export function ResearchHomeShell({
       </div>
 
       <section className={styles.simTeaser} aria-labelledby="simulator-teaser-title">
-        <p className={styles.eyebrow}>SIMULATOR · FAHRWEISEN · OKTOBER</p>
+        <p className={styles.eyebrow}>KOMPROMISS · FAHRWEISEN · OKTOBER</p>
         <h2 id="simulator-teaser-title" className={styles.h2}>
           {simulatorTeaser.headlineDe}
         </h2>
         <p className={styles.meta}>{simulatorTeaser.sublineDe}</p>
         <p style={{ marginTop: 12 }}>
           <Link href="/kompromiss" className={styles.link}>
-            Im Simulator selbst ausprobieren →
+            Kompromiss selbst ausprobieren →
           </Link>
         </p>
       </section>

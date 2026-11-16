@@ -12,7 +12,7 @@ const outDir = join(process.cwd(), "review-artifacts/p1");
 mkdirSync(outDir, { recursive: true });
 
 const paths = ["/", "/tag/2026-10-29", "/jahr", "/kompromiss"];
-const widths = [1280, 390];
+const widths = [1280, 1024, 768, 390];
 
 const browser = await chromium.launch();
 const results = [];
