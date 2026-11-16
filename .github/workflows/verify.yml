@@ -1,0 +1,125 @@
+name: verify
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: verify-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build production (Preview-Fallback)
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3099
+
+      - name: Wait for Vercel Preview
+        id: vercel
+        continue-on-error: true
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 420
+
+      - name: Start local server
+        run: |
+          pnpm start -p 3099 &
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3099/ >/dev/null; then
+              echo "Server ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Resolve verify base URL
+        id: base
+        run: |
+          LOCAL=http://127.0.0.1:3099
+          PREVIEW="${{ steps.vercel.outputs.url }}"
+          if [ -n "$PREVIEW" ]; then
+            if curl -sfL "https://${PREVIEW}/" >/dev/null 2>&1; then
+              echo "url=https://${PREVIEW}" >> "$GITHUB_OUTPUT"
+              echo "source=vercel-preview" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "url=${LOCAL}" >> "$GITHUB_OUTPUT"
+          echo "source=local-production" >> "$GITHUB_OUTPUT"
+
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+
+      - name: Run verify suite
+        env:
+          VERIFY_BASE_URL: ${{ steps.base.outputs.url }}
+          VERIFY_ARTIFACT_DIR: ${{ github.workspace }}/.verify-artifacts
+          VERIFY_BASE_REF: origin/${{ github.event.pull_request.base.ref }}
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          npx playwright install chromium --with-deps
+          node scripts/verify/run-verify.mjs
+
+      - name: PR comment
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/verify/post-pr-comment.mjs > .verify-artifacts/pr-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file .verify-artifacts/pr-comment.md || true
+
+      - name: Upload verify artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-artifacts
+          path: |
+            .verify-artifacts/**/*
+          retention-days: 14
+
+      - name: Upload PR screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-screenshots
+          path: .verify-artifacts/screenshots/*.png
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Job summary
+        if: always()
+        run: |
+          if [ -f .verify-artifacts/GITHUB_STEP_SUMMARY.md ]; then
+            cat .verify-artifacts/GITHUB_STEP_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verify-Basis: **${{ steps.base.outputs.url }}** (${{ steps.base.outputs.source }})" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail job if verify failed
+        if: always()
+        run: |
+          test -f .verify-artifacts/verify-summary.json
+          node -e "const s=require('./.verify-artifacts/verify-summary.json'); if(!s.ok) process.exit(1)"
