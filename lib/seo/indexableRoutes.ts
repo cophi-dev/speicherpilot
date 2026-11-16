@@ -29,6 +29,7 @@ export function collectIndexableRoutes(now = new Date()): IndexableRoute[] {
     { path: "/", lastModified: new Date(dataStandModified) },
     { path: "/vision", lastModified: buildModified },
     { path: "/methodik", lastModified: buildModified },
+    { path: "/daten", lastModified: buildModified },
     { path: "/simulator", lastModified: buildModified },
     { path: "/beitraege", lastModified: buildModified },
     { path: "/impressum", lastModified: buildModified },

@@ -1,0 +1,49 @@
+.liste {
+  display: grid;
+  gap: 16px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eintrag {
+  border-top: 1px solid rgb(20 24 28 / 16%);
+  padding-top: 12px;
+}
+
+:global(.dark) .eintrag {
+  border-top-color: rgb(233 238 242 / 20%);
+}
+
+.eintragTitel {
+  margin: 0;
+  font-size: var(--type-18, 1.125rem);
+  font-weight: 500;
+}
+
+.format {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: var(--type-14);
+  opacity: 0.8;
+}
+
+.zitat {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-left: 3px solid currentColor;
+  font-size: var(--type-14);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.punkte {
+  margin: 8px 0;
+  padding-left: 1.25rem;
+  font-size: var(--type-16);
+  line-height: 1.5;
+}
+
+.punkte li {
+  margin: 4px 0;
+}

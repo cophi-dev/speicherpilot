@@ -357,6 +357,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
               <Link href="/impressum">Impressum</Link>
               <Link href="/datenschutz">Datenschutz</Link>
               <Link href="/methodik">Methodik</Link>
+              <Link href="/daten">Daten (CC BY 4.0)</Link>
               <Link href="/methodik#so-pruefen-wir">So prüfen wir Meldungen</Link>
             </nav>
             <p className="mt-6 max-w-[52rem] leading-relaxed">
