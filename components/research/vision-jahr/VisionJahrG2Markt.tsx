@@ -6,6 +6,7 @@ import { yAxisTickLabelDy, yAxisUnitLabelY } from "@/components/research/chartY"
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
 import { formatVisionGwOne, formatVisionGwPlain } from "@/lib/research/visionJahrFormat";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
+import { layoutG2StressCapLabel } from "@/lib/research/visionG2CapLabel";
 import { G2_Y_AXIS_MAX_GW } from "@/lib/research/visionJahrG2Stress";
 import type { VisionJahrModel, VisionJahrStufeKey } from "@/lib/research/visionJahrTypes";
 
@@ -84,6 +85,16 @@ export function VisionJahrG2Markt({ model, width, height }: { model: VisionJahrM
   const stressMax = Math.max(...SERIES_KEYS.map((k) => model.marktStressTestGw[k]));
   const yTicks = [50, 60, 70, 80, 90, 100];
   const lastClipped = [...points].reverse().find((p) => p.stressClipped);
+  const capLabel = lastClipped
+    ? layoutG2StressCapLabel({
+        width,
+        height,
+        padBottom,
+        capMarkerX: lastClipped.x,
+        stressMaxGw: stressMax,
+        fontSize: axisFs,
+      })
+    : null;
 
   return (
     <div className={styles.chartClip}>
@@ -125,9 +136,9 @@ export function VisionJahrG2Markt({ model, width, height }: { model: VisionJahrM
               </text>
             </g>
           ))}
-        {lastClipped ? (
-          <text x={Math.min(lastClipped.x + 6, width - PAD_RIGHT)} y={PAD_TOP + 12} textAnchor="start" fontSize={axisFs} fill="var(--research-dim)" fontFamily="var(--font-jetbrains-mono)">
-            bis {formatVisionGwOne(stressMax)} GW
+        {capLabel ? (
+          <text x={capLabel.x} y={capLabel.y} textAnchor="end" fontSize={axisFs} fill="var(--research-dim)" fontFamily="var(--font-jetbrains-mono)">
+            {capLabel.text}
           </text>
         ) : null}
         <text x={width / 2} y={height - 10} textAnchor="middle" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
