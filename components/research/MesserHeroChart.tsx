@@ -6,21 +6,19 @@ import { useCallback, useMemo, useRef } from "react";
 import type { ResearchDayModel, ResearchFactor } from "@/lib/research/researchTypes";
 import { labelBox, placePeakPointLabel } from "@/lib/chartLabelLayout";
 import { formatResearchPeakPointLabel } from "@/lib/research/researchFormat";
+import {
+  messerHeroAxis,
+  messerHeroPlotBounds,
+  messerHeroYMap,
+} from "@/lib/research/messerHeroAxis";
 
 import styles from "@/components/research/research.module.css";
 
 const FACTORS: ResearchFactor[] = [2, 5, 10];
-const Y_MIN = 45;
-const Y_MAX = 70;
 const PAD_X = 40;
 const PAD_RIGHT = 44;
 const MARGIN_COL_W = 48;
 const HIT = 44;
-
-function yMap(value: number, height: number) {
-  const inner = height - 66;
-  return 26 + ((Y_MAX - value) / (Y_MAX - Y_MIN)) * inner;
-}
 
 function xMap(index: number, n: number, width: number) {
   const inner = width - PAD_X - 36;
@@ -49,6 +47,15 @@ export function MesserHeroChart({
   const reduced = useReducedMotion();
   const svgRef = useRef<SVGSVGElement>(null);
 
+  const yAxis = useMemo(() => messerHeroAxis(model, factor), [model, factor]);
+  const yMin = yAxis.min;
+  const yMax = yAxis.max;
+
+  const yMap = useCallback(
+    (value: number) => messerHeroYMap(value, yMin, yMax, height),
+    [height, yMax, yMin],
+  );
+
   const stages = useMemo(() => FACTORS.map((f) => model.stages.find((s) => s.factor === f)!), [model.stages]);
   const active = model.stages.find((s) => s.factor === factor)!;
 
@@ -67,7 +74,7 @@ export function MesserHeroChart({
   const n = model.series.length;
 
   const line = model.series
-    .map((p, i) => `${i === 0 ? "M" : "L"}${xMap(i, n, width).toFixed(1)},${yMap(p.residualGw, height).toFixed(1)}`)
+    .map((p, i) => `${i === 0 ? "M" : "L"}${xMap(i, n, width).toFixed(1)},${yMap(p.residualGw).toFixed(1)}`)
     .join(" ");
 
   const cappedPaths = useMemo(() => {
@@ -79,7 +86,7 @@ export function MesserHeroChart({
         run = [];
         return;
       }
-      const capY = yMap(cap, height);
+      const capY = yMap(cap);
       const top = run.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" L");
       const bot = [...run].reverse().map((p) => `${p.x.toFixed(1)},${capY.toFixed(1)}`).join(" L");
       paths.push(`M${top} L${bot} Z`);
@@ -87,20 +94,20 @@ export function MesserHeroChart({
     };
     model.series.forEach((p, i) => {
       const x = xMap(i, n, width);
-      const y = yMap(p.residualGw, height);
+      const y = yMap(p.residualGw);
       if (p.residualGw > cap) run.push({ x, y });
       else flush();
     });
     flush();
     return paths;
-  }, [active.capGw, height, model.series, n, width]);
+  }, [active.capGw, model.series, n, width, yMap]);
 
   const peak = model.series[peakIdx]!;
   const px = xMap(peakIdx, n, width);
-  const py = yMap(peak.residualGw, height);
-  const capY = yMap(active.capGw, height);
+  const py = yMap(peak.residualGw);
+  const capY = yMap(active.capGw);
   const ghost4hGw = model.peakGw - active.reduction4hGw;
-  const ghost4hY = yMap(ghost4hGw, height);
+  const ghost4hY = yMap(ghost4hGw);
 
   const peakLabelText = formatResearchPeakPointLabel(model.peakGw, model.peakTime);
   const peakLabel = placePeakPointLabel({
@@ -109,8 +116,8 @@ export function MesserHeroChart({
     text: peakLabelText,
     plotLeft: PAD_X,
     plotRight: width - MARGIN_COL_W,
-    plotTop: 26,
-    topTickLabelBaselineY: yMap(Y_MAX, height) + 4,
+    plotTop: messerHeroPlotBounds(height).top,
+    topTickLabelBaselineY: yMap(yMax) + 4,
   });
   const peakLabelBox = labelBox(peakLabel.x, peakLabel.y, peakLabel.anchor, peakLabelText);
 
@@ -124,7 +131,8 @@ export function MesserHeroChart({
       const ctm = svg.getScreenCTM();
       if (!ctm) return;
       const local = pt.matrixTransform(ctm.inverse());
-      const gw = Y_MAX - ((local.y - 26) / (height - 66)) * (Y_MAX - Y_MIN);
+      const inner = height - 66;
+      const gw = yMax - ((local.y - 26) / inner) * (yMax - yMin);
       const caps = stages.map((s) => s.capGw);
       let best = FACTORS[1]!;
       let bestDist = Infinity;
@@ -137,12 +145,12 @@ export function MesserHeroChart({
       });
       onFactor(best);
     },
-    [height, onFactor, stages, width]
+    [height, onFactor, stages, width, yMax, yMin],
   );
 
   const labelRows = FACTORS.map((f) => {
     const cap = model.stages.find((s) => s.factor === f)!.capGw;
-    return { f, y: yMap(cap, height), active: f === factor };
+    return { f, y: yMap(cap), active: f === factor };
   });
 
   const gripTop = 20;
@@ -159,11 +167,11 @@ export function MesserHeroChart({
       role="img"
       aria-label="Restlast national mit Kappung"
     >
-      {[45, 50, 55, 60, 65, 70].map((tick) => (
+      {yAxis.ticks.map((tick) => (
         <g key={tick}>
-          <line x1={PAD_X} x2={width - PAD_RIGHT} y1={yMap(tick, height)} y2={yMap(tick, height)} stroke="var(--research-line)" />
-          <text x={32} y={yMap(tick, height) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {tick}
+          <line x1={PAD_X} x2={width - PAD_RIGHT} y1={yMap(tick)} y2={yMap(tick)} stroke="var(--research-line)" />
+          <text x={32} y={yMap(tick) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            {Number.isInteger(tick) ? tick : tick.toFixed(1)}
           </text>
         </g>
       ))}

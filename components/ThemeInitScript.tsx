@@ -26,5 +26,5 @@ const SCRIPT = `
 })();`;
 
 export function ThemeInitScript() {
-  return <Script id="speicherpilot-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: SCRIPT }} />;
+  return <Script id="speicherpilot-theme-init" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: SCRIPT }} />;
 }
