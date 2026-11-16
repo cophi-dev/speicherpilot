@@ -25,12 +25,18 @@ async function main() {
       });
       const page = await context.newPage();
       await page.addInitScript((t) => {
-        localStorage.setItem("speicherpilot-vision-guess-skip", "1");
+        localStorage.removeItem("speicherpilot-vision-guess-skip");
         localStorage.setItem("speicherpilot-theme", t);
       }, theme);
       await page.goto(`${base}/vision`, { waitUntil: "networkidle" });
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(500);
       await snap(page, `vision-${suffix}-${theme}.png`);
+      if (w === 390) {
+        const g2 = page.locator("#vision-g2").locator("xpath=ancestor::section[1]");
+        await g2.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(200);
+        await g2.screenshot({ path: path.join(outScreens, `vision-g2-${suffix}-${theme}.png`) });
+      }
       await context.close();
     }
   }

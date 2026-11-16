@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import Link from "next/link";
+import { useCallback, useMemo, useRef, useState, type PointerEvent } from "react";
 
 import { yAxisTickLabelDy, yAxisUnitLabelY } from "@/components/research/chartY";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
-import { formatVisionGwOne } from "@/lib/research/visionJahrFormat";
+import { formatVisionGermanDate, formatVisionGwWithUnit } from "@/lib/research/visionJahrFormat";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
-import { layoutG4KappeLabels } from "@/lib/research/visionG4Labels";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 
 import styles from "@/components/research/research.module.css";
@@ -14,7 +14,7 @@ import styles from "@/components/research/research.module.css";
 const Y_MIN = 40;
 const Y_MAX = 75;
 const PAD_LEFT = 40;
-const PAD_RIGHT = 12;
+const PAD_RIGHT = 8;
 const PAD_TOP = 32;
 const PAD_BOTTOM = 52;
 
@@ -26,16 +26,18 @@ function yPos(gw: number, height: number) {
 
 export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrModel; width: number; height: number }) {
   const axisFs = visionAxisFontSize(width);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number } | null>(null);
+
   const innerW = width - PAD_LEFT - PAD_RIGHT;
   const barW = innerW / model.tagesspitzen.length;
   const kappeC = model.kappeNepCGw;
-  const kappeA = model.kappeNepAGw;
+  const kappeAVal = model.kappeNepAGw;
   const annotIndex = model.tagesspitzen.findIndex((d) => d.tag === model.leerTagNepC);
-  const kappeLabels = layoutG4KappeLabels(kappeC, kappeA, height);
-  const labelX = PAD_LEFT + 6;
 
-  const monthTicks = useMemo(() => {
-    return [
+  const monthTicks = useMemo(
+    () => [
       { x: PAD_LEFT + 15 * barW, label: "Dez" },
       { x: PAD_LEFT + 45 * barW, label: "Feb" },
       { x: PAD_LEFT + 105 * barW, label: "Apr" },
@@ -43,14 +45,43 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
       { x: PAD_LEFT + 225 * barW, label: "Aug" },
       { x: PAD_LEFT + 285 * barW, label: "Okt" },
       { x: PAD_LEFT + 345 * barW, label: "Dez" },
-    ];
-  }, [barW]);
+    ],
+    [barW]
+  );
 
   const yTicks = [40, 45, 50, 55, 60, 65, 70, 75];
   const annot = annotIndex >= 0 ? model.tagesspitzen[annotIndex]! : null;
+  const activeDay = activeIndex != null ? model.tagesspitzen[activeIndex]! : null;
+
+  const pickIndex = useCallback(
+    (clientX: number) => {
+      const wrap = wrapRef.current;
+      if (!wrap) return;
+      const rect = wrap.getBoundingClientRect();
+      const xInSvg = ((clientX - rect.left) / rect.width) * width;
+      const i = Math.max(0, Math.min(model.tagesspitzen.length - 1, Math.floor((xInSvg - PAD_LEFT) / barW)));
+      setActiveIndex(i);
+      const cx = ((PAD_LEFT + i * barW + barW / 2) / width) * rect.width;
+      setTooltip({ x: cx, y: yPos(model.tagesspitzen[i]!.spitzeGw, height) * (rect.height / height) });
+    },
+    [barW, height, model.tagesspitzen, width]
+  );
+
+  const onPointer = (e: PointerEvent<SVGRectElement>) => {
+    pickIndex(e.clientX);
+  };
+
+  const onPointerLeave = () => {
+    setActiveIndex(null);
+    setTooltip(null);
+  };
 
   return (
-    <div className={styles.chartClip}>
+    <div className={styles.g4ChartWrap} ref={wrapRef}>
+      <div className={styles.g4KappeRow} aria-hidden={false}>
+        <span className={styles.g4KappePill}>NEP C hält {formatVisionGwWithUnit(kappeC)}</span>
+        <span className={styles.g4KappePill}>NEP A {formatVisionGwWithUnit(kappeAVal)}</span>
+      </div>
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={styles.chartFixed} role="img" aria-label="Tageshöchstwerte über das Jahr">
         <text x={PAD_LEFT - 8} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
           GW
@@ -64,38 +95,24 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
           </g>
         ))}
         <line x1={PAD_LEFT} x2={width - PAD_RIGHT} y1={yPos(kappeC, height)} y2={yPos(kappeC, height)} stroke="var(--research-fg)" strokeWidth={1.25} />
-        <line x1={PAD_LEFT} x2={width - PAD_RIGHT} y1={yPos(kappeA, height)} y2={yPos(kappeA, height)} stroke="var(--research-muted)" strokeDasharray="4 3" />
-        {kappeLabels.map((lab) => {
-          const lineY = lab.key === "nepC" ? yPos(kappeC, height) : yPos(kappeA, height);
-          return (
-            <g key={lab.key}>
-              <line x1={labelX} y1={lab.y} x2={labelX + 28} y2={lineY} stroke={lab.key === "nepC" ? "var(--research-fg)" : "var(--research-muted)"} strokeWidth={0.75} opacity={0.6} />
-              <text x={labelX + 32} y={lab.y + 4} textAnchor="start" fontSize={axisFs} fill={lab.key === "nepC" ? "var(--research-fg)" : "var(--research-muted)"} fontFamily="var(--font-jetbrains-mono)">
-                {lab.text}
-              </text>
-            </g>
-          );
-        })}
+        <line x1={PAD_LEFT} x2={width - PAD_RIGHT} y1={yPos(kappeAVal, height)} y2={yPos(kappeAVal, height)} stroke="var(--research-muted)" strokeDasharray="4 3" />
         {model.tagesspitzen.map((day, i) => {
           const x = PAD_LEFT + i * barW;
           const yTop = yPos(day.spitzeGw, height);
           const yBase = yPos(Y_MIN, height);
           const over = day.spitzeGw > kappeC;
+          const w = Math.max(0.5, barW - 0.15);
+          const isActive = i === activeIndex;
           return (
-            <a key={day.tag} href={`/tag/${day.tag}`} aria-label={`Tag ${day.tag}`}>
-              <rect
-                x={x}
-                y={yTop}
-                width={Math.max(1, barW - 0.2)}
-                height={yBase - yTop}
-                fill={over ? "var(--research-accent-light)" : "var(--research-dim)"}
-                opacity={over ? 0.95 : 0.5}
-              >
-                <title>
-                  {day.tag}: {formatVisionGwOne(day.spitzeGw)} GW
-                </title>
-              </rect>
-            </a>
+            <rect
+              key={day.tag}
+              x={x}
+              y={yTop}
+              width={w}
+              height={Math.max(0, yBase - yTop)}
+              fill={over ? "var(--research-accent)" : "var(--research-dim)"}
+              opacity={isActive ? 1 : over ? 0.9 : 0.45}
+            />
           );
         })}
         {annot ? (
@@ -109,21 +126,38 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
               strokeWidth={1}
             />
             <text x={PAD_LEFT + annotIndex * barW + barW / 2 + 6} y={PAD_TOP + 18} fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-              {annot.tag.slice(8, 10)}.{annot.tag.slice(5, 7)}.: Speicher leer
+              {formatVisionGermanDate(annot.tag).slice(0, 5)}.: Speicher leer
             </text>
           </g>
         ) : null}
         {monthTicks.map((tick) => (
-          <text key={tick.label + tick.x} x={tick.x} y={height - 16} fontSize={width < 420 ? 11 : 12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text key={tick.label + tick.x} x={tick.x} y={height - 16} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {tick.label}
           </text>
         ))}
+        <rect
+          x={PAD_LEFT}
+          y={PAD_TOP}
+          width={innerW}
+          height={height - PAD_TOP - PAD_BOTTOM}
+          fill="transparent"
+          onPointerDown={onPointer}
+          onPointerMove={onPointer}
+          onPointerLeave={onPointerLeave}
+          style={{ cursor: "crosshair", touchAction: "none" }}
+        />
         <text x={width / 2} y={height - 2} textAnchor="middle" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
           höchste Restlast des Tages [GW]
         </text>
       </svg>
+      {activeDay && tooltip ? (
+        <div className={styles.g4Tooltip} style={{ left: tooltip.x, top: tooltip.y - 8 }} role="status">
+          {formatVisionGermanDate(activeDay.tag)} · {formatVisionGwWithUnit(activeDay.spitzeGw)} ·{" "}
+          <Link href={`/tag/${activeDay.tag}`}>Tag öffnen</Link>
+        </div>
+      ) : null}
       <VisionJahrChartFoot />
-      <p className={styles.meta}>Tippen auf einen Tag öffnet /tag — {model.tageNepCCount} Tage über NEP-C-Kappe, fast nur Okt–März</p>
+      <p className={styles.meta}>Ziehen oder tippen auf die Fläche — nächster Tag · {model.tageNepCCount} Tage über NEP-C-Kappe, fast nur Okt–März</p>
     </div>
   );
 }

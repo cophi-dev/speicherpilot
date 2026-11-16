@@ -22,3 +22,14 @@ export function formatVisionGwhThousands(gwh: number): string {
   const rounded = Math.round(gwh);
   return rounded.toLocaleString("de-DE");
 }
+
+/** ISO-Datum → 03.12.2025 */
+export function formatVisionGermanDate(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  if (!y || !m || !d) return iso;
+  return `${d}.${m}.${y}`;
+}
+
+export function formatVisionGwWithUnit(gw: number): string {
+  return `${formatVisionGwOne(gw)}\u00A0GW`;
+}

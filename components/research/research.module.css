@@ -2,7 +2,7 @@
   --research-bg: #0b0d0f;
   --research-fg: #ecedee;
   --research-accent: var(--v4-warm);
-  --research-accent-light: var(--v4-warm);
+  --research-accent-light: color-mix(in srgb, var(--v4-warm) 82%, white);
   --research-muted: #9ea3a9;
   --research-dim: #6b7178;
   --research-line: #1e2226;
@@ -25,7 +25,7 @@
   --research-bg: transparent;
   --research-fg: #14161a;
   --research-accent: var(--v4-warm);
-  --research-accent-light: var(--v4-warm);
+  --research-accent-light: color-mix(in srgb, var(--v4-warm) 82%, white);
   --research-muted: #5a6068;
   --research-dim: #80868e;
   --research-line: #e3e5e8;
@@ -297,10 +297,107 @@
 .chartScope {
   font-family: var(--font-jetbrains-mono), monospace;
   font-size: var(--type-12);
-  color: var(--research-dim);
+  color: #9ea3a9;
   margin: 6px 0 0;
   max-width: 100%;
   line-height: 1.35;
+}
+
+:global(html:not(.dark)) .chartScope {
+  color: #5f656c;
+}
+
+.legendSwatch {
+  display: inline-block;
+  width: 16px;
+  height: 0;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.legendSwatchSpitze {
+  border-top: 3px solid var(--research-accent);
+}
+
+.legendSwatchBand {
+  height: 10px;
+  background: color-mix(in srgb, var(--research-muted) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--research-muted) 35%, transparent);
+}
+
+.legendSwatchRueckLow {
+  border-top: 2px solid color-mix(in srgb, var(--research-muted) 70%, transparent);
+}
+
+.legendSwatchRueckHigh {
+  border-top: 2px solid var(--research-muted);
+}
+
+.legendSwatchStress {
+  border-top: 2px dashed var(--research-dim);
+}
+
+.g4ChartWrap {
+  position: relative;
+}
+
+.g4KappeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 8px;
+}
+
+.g4KappePill {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: var(--type-12);
+  color: var(--research-fg);
+  border: 1px solid var(--research-line);
+  border-radius: 4px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--research-card) 80%, transparent);
+}
+
+.g4Tooltip {
+  position: absolute;
+  z-index: 2;
+  pointer-events: auto;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: var(--type-12);
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--research-line);
+  background: var(--research-card);
+  color: var(--research-fg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+}
+
+.g4Tooltip a {
+  color: var(--research-fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.guessBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin: 8px 0 4px;
+}
+
+.guessStart {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: var(--type-12);
+  color: var(--research-fg);
+  background: color-mix(in srgb, var(--research-line) 40%, transparent);
+  border: 1px solid var(--research-line);
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .skipWrap {

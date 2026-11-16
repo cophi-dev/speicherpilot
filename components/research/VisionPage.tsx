@@ -12,7 +12,7 @@ import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJah
 import { VisionJahrG2Markt } from "@/components/research/vision-jahr/VisionJahrG2Markt";
 import { VisionJahrG3Ueberschuss } from "@/components/research/vision-jahr/VisionJahrG3Ueberschuss";
 import { VisionJahrG4Tage } from "@/components/research/vision-jahr/VisionJahrG4Tage";
-import { formatVisionGwMinus, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
+import { formatVisionGermanDate, formatVisionGwMinus, formatVisionGwOne, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
@@ -32,15 +32,9 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
   const chartWidth = useMeasuredChartWidth(pageRef, layout.vision.width);
   const [duration, setDuration] = useState<"2" | "4">("2");
   const [stageId, setStageId] = useState<VisionStageId>(model.defaultStage);
-  const [guessMode, setGuessMode] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return window.localStorage.getItem(VISION_SKIP_KEY) !== "1";
-  });
+  const [guessMode, setGuessMode] = useState(false);
   const [gapLabel, setGapLabel] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(VISION_SKIP_KEY) === "1";
-  });
+  const [revealed, setRevealed] = useState(true);
 
   const stage = model.curve.find((s) => s.id === stageId)!;
   const durationKey = duration === "2" ? "2" : "4";
@@ -72,8 +66,8 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
           Ab NEP A bringt jedes GW wenig
         </h2>
         <p className={styles.meta}>
-          Jahresspitze {model.peakGwDisplay} GW ({model.peakTag.replace(/-/g, ".").slice(0, 10)}, {model.peakTime}) · Vorjahr NEP C:{" "}
-          {formatVisionGwMinus(model.vorjahr2hSenkung["NEP C"] ?? 0).replace(" GW", "")} bis {formatVisionGwMinus(nepC.senkung2hGw).replace(" GW", "")} GW
+          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}) · Vorjahr NEP C:{" "}
+          {formatVisionGwMinus(model.vorjahr2hSenkung["NEP C"] ?? 0).replace(" GW", "")} bis {formatVisionGwMinus(nepC.senkung2hGw).replace(" GW", "")}
         </p>
 
         {showTruth ? (
@@ -98,7 +92,7 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
             <div className={styles.heroNum} aria-hidden>
               ?
             </div>
-            <p className={styles.meta}>Wie viel senkt NEP C die Jahresspitze? Erst schätzen — dann die Kurven.</p>
+            <p className={styles.meta}>Wie viel senkt NEP C die Jahresspitze? Ziehe im Graph.</p>
           </>
         )}
 
@@ -110,11 +104,22 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
           ))}
         </div>
 
-        {inGuess ? (
-          <div style={{ marginTop: 8 }}>
-            <p className={styles.meta}>Ziehe bei NEP C vertikal — Ziel: {formatVisionGwMinus(nepC.senkung2hGw)}.</p>
-          </div>
-        ) : null}
+        <div className={styles.guessBar}>
+          {!inGuess ? (
+            <button type="button" className={styles.guessStart} onClick={startGuess}>
+              Schätzen (NEP C)
+            </button>
+          ) : (
+            <>
+              <p className={styles.meta} style={{ margin: 0 }}>
+                Ziehe bei NEP C vertikal.
+              </p>
+              <button type="button" className={styles.skip} onClick={onSkip}>
+                Überspringen
+              </button>
+            </>
+          )}
+        </div>
 
         {gapLabel ? (
           <p className={styles.meta} style={{ marginTop: 4 }}>
@@ -144,17 +149,10 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
                 : `Abstand zur Schätzung: ${formatGwSenkung(diff).replace(GW_MINUS, "")}`
             );
             setRevealed(true);
+            setGuessMode(false);
           }}
         />
         <VisionJahrChartFoot />
-
-        {inGuess ? (
-          <div className={styles.skipWrap}>
-            <button type="button" className={styles.skip} onClick={onSkip}>
-              Überspringen
-            </button>
-          </div>
-        ) : null}
       </section>
 
       <section className={styles.section} aria-labelledby="vision-g2">
@@ -172,7 +170,7 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
           An {model.tageNepCCount} Tagen fährt selbst NEP C am Limit
         </h2>
         <p className={styles.prose}>
-          Fast alle Engpass-Tage liegen zwischen Oktober und März. Am {model.leerTagNepC.replace(/-/g, ".").slice(8, 10)}.{model.leerTagNepC.slice(5, 7)}. ist selbst NEP C leer.
+          Fast alle Engpass-Tage liegen zwischen Oktober und März. Am {formatVisionGermanDate(model.leerTagNepC)} ist selbst NEP C leer.
         </p>
         <VisionJahrG4Tage model={model} width={chartWidth} height={g4Height} />
       </section>
@@ -183,14 +181,14 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
         </h2>
         <p className={styles.prose}>
           Auf Überschuss fahren und Jahresspitze senken ziehen ab NEP A auseinander: NEP A nimmt {formatVisionPercentWhole(visionJahrUeberschussPct("NEP A"))} des Pools, die Spitze sinkt um{" "}
-          {formatVisionGwMinus(nepA.senkung2hGw).replace(" GW", "")}.
+          {formatVisionGwOne(nepA.senkung2hGw)}{"\u00A0"}GW.
         </p>
         <VisionJahrG3Ueberschuss model={model} width={chartWidth} />
       </section>
 
       <footer className={styles.footer}>
         <p>
-          National: keine lokalen Engpässe, kein (n-1), kein vermiedener Redispatch, keine vermiedene Abregelung (Überschuss ≠ Abregelung). Wind/PV/Last bis 2037 nicht mitgewachsen — NEP-Speicher im System von heute. Kein Business-Case-Werkzeug.
+          National: keine lokalen Engpässe, kein (n{"\u2212"}1), kein vermiedener Redispatch, keine vermiedene Abregelung (Überschuss ≠ Abregelung). Wind/PV/Last bis 2037 nicht mitgewachsen — NEP-Speicher im System von heute. Kein Business-Case-Werkzeug.
         </p>
         <p style={{ marginTop: 8 }}>
           <Link href="/methodik#annahmen">Annahmen &amp; Grenzen ↗</Link>
@@ -200,6 +198,12 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
       </footer>
     </div>
   );
+
+  function startGuess() {
+    setGuessMode(true);
+    setRevealed(false);
+    setGapLabel(null);
+  }
 
   function onSkip() {
     window.localStorage.setItem(VISION_SKIP_KEY, "1");
