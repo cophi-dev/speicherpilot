@@ -9,6 +9,7 @@ import { formatResearchPeakPointLabel } from "@/lib/research/researchFormat";
 import {
   collidesWithPolyline,
   gutterReserveWidth,
+  labelBoxesTooClose,
   labelBoxPx,
   linesWithinPx,
   placeLineEndLabel,
@@ -161,20 +162,6 @@ export function MesserHeroChart({
   const plotRight = width - PAD_RIGHT;
   const gutterX = viewBoxW - 8;
 
-  useLayoutEffect(() => {
-    const el = svgRef.current;
-    if (!el || viewBoxW <= 0) return;
-    const measure = () => {
-      const w = el.getBoundingClientRect().width;
-      const vbW = el.viewBox.baseVal.width || viewBoxW;
-      if (w > 0) setTypoScale(w / vbW);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [viewBoxW]);
-
   const peakLabelText = formatResearchPeakPointLabel(model.peakGw, model.peakTime);
   const peakLabelBase = placePeakPointLabel({
     pointX: px,
@@ -186,19 +173,42 @@ export function MesserHeroChart({
     topTickLabelBaselineY: yMap(yMax) + 4,
   });
 
+  const minTypoGapUser = 4 / Math.max(typoScale, 0.01);
+
   const peakLabel = useMemo(() => {
-    const ySteps = [0, -16, 16, -32, 32];
+    const ySteps = [0, -16, 16, -32, 32, -48, 48];
+    const xSteps = [0, 20, 40, 60, -12, 80];
+    const collidesYTick = (box: ReturnType<typeof labelBoxPx>) =>
+      yAxis.ticks.some((tick) => {
+        const label = Number.isInteger(tick) ? String(tick) : tick.toFixed(1);
+        const tBox = labelBoxPx(32, yMap(tick) + 4, "end", label, fs);
+        return labelBoxesTooClose(box, tBox, minTypoGapUser);
+      });
     for (const dy of ySteps) {
-      const y = peakLabelBase.y + dy;
-      const box = labelBoxPx(peakLabelBase.x, y, peakLabelBase.anchor, peakLabelText, fs);
-      if (!collidesWithPolyline(box, pathPoints, 2)) {
-        return { ...peakLabelBase, y };
+      for (const dx of xSteps) {
+        const x = peakLabelBase.x + dx;
+        const y = peakLabelBase.y + dy;
+        const box = labelBoxPx(x, y, peakLabelBase.anchor, peakLabelText, fs);
+        if (!collidesWithPolyline(box, pathPoints, 2) && !collidesYTick(box)) {
+          return { ...peakLabelBase, x, y };
+        }
       }
     }
     return { ...peakLabelBase, y: peakLabelBase.y - 24 };
-  }, [fs, pathPoints, peakLabelBase, peakLabelText]);
+  }, [fs, minTypoGapUser, pathPoints, peakLabelBase, peakLabelText, yAxis.ticks, yMap]);
 
   const peakLabelBox = labelBox(peakLabel.x, peakLabel.y, peakLabel.anchor, peakLabelText);
+
+  const hiddenYTickLabels = useMemo(() => {
+    const peakBox = labelBoxPx(peakLabel.x, peakLabel.y, peakLabel.anchor, peakLabelText, fs);
+    const hidden = new Set<number>();
+    for (const tick of yAxis.ticks) {
+      const label = Number.isInteger(tick) ? String(tick) : tick.toFixed(1);
+      const tBox = labelBoxPx(32, yMap(tick) + 4, "end", label, fs);
+      if (labelBoxesTooClose(peakBox, tBox, minTypoGapUser)) hidden.add(tick);
+    }
+    return hidden;
+  }, [fs, minTypoGapUser, peakLabel, peakLabelText, yAxis.ticks, yMap]);
 
   const snapFromClientY = useCallback(
     (clientY: number) => {
@@ -316,7 +326,7 @@ export function MesserHeroChart({
 
   const [gutterDy, setGutterDy] = useState<Record<string, number>>({});
 
-  useLayoutEffect(() => {
+  const stackGutterDom = useCallback(() => {
     const svg = svgRef.current;
     if (!svg || typoScale <= 0) return;
     const entries = gutterLabelsBase
@@ -326,22 +336,27 @@ export function MesserHeroChart({
       })
       .filter((x): x is { lab: (typeof gutterLabelsBase)[0]; el: SVGTextElement } => !!x);
     if (entries.length === 0) return;
-    for (const { lab, el } of entries) {
-      el.setAttribute("y", String(lab.y));
-    }
-    const sorted = [...entries].sort((a, b) => a.lab.y - b.lab.y);
     const minGapPx = 4;
     const dy: Record<string, number> = {};
-    let lastBottom = -Infinity;
-    for (const { lab, el } of sorted) {
-      const bb = el.getBoundingClientRect();
-      if (bb.top < lastBottom + minGapPx) {
-        const shiftUser = (lastBottom + minGapPx - bb.top) / typoScale;
-        dy[lab.key] = shiftUser;
-        el.setAttribute("y", String(lab.y + shiftUser));
-        lastBottom = el.getBoundingClientRect().bottom;
-      } else {
-        lastBottom = bb.bottom;
+    for (const { lab, el } of entries) {
+      dy[lab.key] = 0;
+      el.setAttribute("y", String(lab.y));
+    }
+    for (let pass = 0; pass < 2; pass += 1) {
+      const sorted = [...entries].sort(
+        (a, b) => a.el.getBoundingClientRect().top - b.el.getBoundingClientRect().top,
+      );
+      let lastBottom = -Infinity;
+      for (const { lab, el } of sorted) {
+        const bb = el.getBoundingClientRect();
+        if (bb.top < lastBottom + minGapPx) {
+          const shiftUser = (lastBottom + minGapPx - bb.top) / typoScale;
+          dy[lab.key] = (dy[lab.key] ?? 0) + shiftUser;
+          el.setAttribute("y", String(lab.y + dy[lab.key]!));
+          lastBottom = el.getBoundingClientRect().bottom;
+        } else {
+          lastBottom = bb.bottom;
+        }
       }
     }
     setGutterDy((prev) => {
@@ -349,7 +364,43 @@ export function MesserHeroChart({
         Object.keys(dy).length === Object.keys(prev).length && Object.keys(dy).every((k) => prev[k] === dy[k]);
       return same ? prev : dy;
     });
-  }, [gutterLabelsBase, typoScale, viewBoxW, fs]);
+  }, [gutterLabelsBase, typoScale]);
+
+  useLayoutEffect(() => {
+    setGutterDy({});
+  }, [factor, gutterLabelsBase]);
+
+  useLayoutEffect(() => {
+    let cancelled = false;
+    let outer = 0;
+    let inner = 0;
+    const run = () => {
+      inner = requestAnimationFrame(() => {
+        if (!cancelled) stackGutterDom();
+      });
+    };
+    outer = requestAnimationFrame(run);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [stackGutterDom, fs, viewBoxW]);
+
+  useLayoutEffect(() => {
+    const el = svgRef.current;
+    if (!el || viewBoxW <= 0) return;
+    const measure = () => {
+      const w = el.getBoundingClientRect().width;
+      const vbW = el.viewBox.baseVal.width || viewBoxW;
+      if (w > 0) setTypoScale(w / vbW);
+      requestAnimationFrame(() => requestAnimationFrame(stackGutterDom));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [stackGutterDom, viewBoxW]);
 
   const gutterLabels = useMemo(
     () => gutterLabelsBase.map((lab) => ({ ...lab, y: lab.y + (gutterDy[lab.key] ?? 0) })),
@@ -374,16 +425,18 @@ export function MesserHeroChart({
       {yAxis.ticks.map((tick) => (
         <g key={tick}>
           <line x1={PAD_X} x2={width - PAD_RIGHT} y1={yMap(tick)} y2={yMap(tick)} stroke="var(--research-line)" />
-          <text
-            x={32}
-            y={yMap(tick) + 4}
-            textAnchor="end"
-            fontSize={fs}
-            fill="var(--research-muted)"
-            fontFamily="var(--font-jetbrains-mono)"
-          >
-            {Number.isInteger(tick) ? tick : tick.toFixed(1)}
-          </text>
+          {hiddenYTickLabels.has(tick) ? null : (
+            <text
+              x={32}
+              y={yMap(tick) + 4}
+              textAnchor="end"
+              fontSize={fs}
+              fill="var(--research-muted)"
+              fontFamily="var(--font-jetbrains-mono)"
+            >
+              {Number.isInteger(tick) ? tick : tick.toFixed(1)}
+            </text>
+          )}
         </g>
       ))}
       {cappedPaths.map((d, i) => (

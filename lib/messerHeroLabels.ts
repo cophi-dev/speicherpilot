@@ -17,6 +17,23 @@ export function estimateTextWidth(text: string, fontSize: number): number {
   return Math.max(text.length, 1) * fontSize * 0.61;
 }
 
+export function labelBoxesTooClose(
+  a: { left: number; right: number; top: number; bottom: number },
+  b: { left: number; right: number; top: number; bottom: number },
+  minGapUser: number,
+): boolean {
+  const hOverlap = a.left < b.right && a.right > b.left;
+  const vOverlap = a.top < b.bottom && a.bottom > b.top;
+  if (hOverlap && vOverlap) return true;
+  const hSep =
+    a.right <= b.left ? b.left - a.right : b.right <= a.left ? a.left - b.right : Math.min(b.left - a.right, a.left - b.right);
+  const vSep =
+    a.bottom <= b.top ? b.top - a.bottom : b.bottom <= a.top ? a.top - b.bottom : Math.min(b.top - a.bottom, a.top - b.bottom);
+  if (hOverlap) return vSep < minGapUser;
+  if (vOverlap) return hSep < minGapUser;
+  return hSep < minGapUser && vSep < minGapUser;
+}
+
 export function labelBoxPx(
   x: number,
   y: number,

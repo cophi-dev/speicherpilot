@@ -51,11 +51,34 @@ const HERO_MEASURE = () => {
     const overflow = Math.max(0, bb.right - sr.right, sr.left - bb.left);
     if (overflow > 0.5) clipFails += 1;
   }
+  const peakEl = [...root.querySelectorAll("text")].find((t) => /GW ·/.test((t.textContent ?? "").trim()));
+  let minPeakTickGap = 999;
+  if (peakEl) {
+    const pb = peakEl.getBoundingClientRect();
+    const ticks = [...root.querySelectorAll("text")].filter((t) => {
+      const tx = (t.textContent ?? "").trim();
+      return /^\d+(\.\d+)?$/.test(tx) && parseFloat(t.getAttribute("x") ?? "0") < 40;
+    });
+    for (const yt of ticks) {
+      const yb = yt.getBoundingClientRect();
+      const hSep =
+        pb.right <= yb.left ? yb.left - pb.right : yb.right <= pb.left ? pb.left - yb.right : -1;
+      const vSep =
+        pb.bottom <= yb.top ? yb.top - pb.bottom : yb.bottom <= pb.top ? pb.top - yb.bottom : -1;
+      let gap;
+      if (hSep < 0 && vSep < 0) gap = 0;
+      else if (hSep >= 0 && vSep >= 0) gap = Math.min(hSep, vSep);
+      else gap = Math.max(hSep, vSep);
+      if (Number.isFinite(gap)) minPeakTickGap = Math.min(minPeakTickGap, gap);
+    }
+  }
   return {
     minTypo: minTypo === 999 ? null : minTypo,
     typoPass: minTypo >= 11.99,
     minGutterGapPx: minGutterGap === 999 ? null : minGutterGap,
     gutterGapPass: minGutterGap >= 4,
+    minPeakTickGapPx: minPeakTickGap === 999 ? null : minPeakTickGap,
+    peakTickPass: minPeakTickGap >= 4,
     clipFails,
     clipPass: clipFails === 0,
     gutterCount: gutterTexts.length,
@@ -77,10 +100,11 @@ try {
     await page.setViewportSize({ width: w, height: 1400 });
     await setTheme(page, false);
     await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(500);
     const heroGroup = page.locator('[class*="heroAside"]').getByRole("group", { name: "Flottenstufe" });
     for (const f of factors) {
-      await heroGroup.getByRole("button", { name: `×${f}` }).click();
-      await page.waitForTimeout(180);
+      if (f !== 5) await heroGroup.getByRole("button", { name: `×${f}` }).click();
+      await page.waitForTimeout(350);
       const stats = await page.evaluate(HERO_MEASURE);
       out.hero.push({ width: w, factor: f, ...stats });
     }
@@ -122,7 +146,7 @@ try {
       tickGapPass: w > 420 || (kw.minHourTickSepPx ?? 0) >= 4,
     });
   }
-  const heroOk = out.hero.every((h) => h.typoPass && h.gutterGapPass && h.clipPass);
+  const heroOk = out.hero.every((h) => h.typoPass && h.gutterGapPass && h.peakTickPass && h.clipPass);
   const kw390 = out.kw46.find((k) => k.width === 390);
   const kwOk = kw390?.has24Uhr && kw390?.tickGapPass;
   out.summary = { heroOk, kwOk, pass: heroOk && kwOk };
