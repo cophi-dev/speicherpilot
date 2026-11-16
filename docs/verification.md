@@ -63,7 +63,7 @@ Stichproben je Seitentyp: Start, Tag, Monat (inkl. `/monat/2026-11`), Beiträge,
 pnpm build
 pnpm start -p 3099 &
 export VERIFY_BASE_URL=http://127.0.0.1:3099
-export VERIFY_ARTIFACT_DIR=.verify-artifacts
+export VERIFY_ARTIFACT_DIR=verify-ci-artifacts
 pnpm verify
 ```
 
@@ -71,7 +71,7 @@ Einzelchecks: `pnpm verify:links`, `verify:sitemap`, `verify:perf`, `verify:shot
 
 ## Artefakte
 
-Unter `.verify-artifacts/` (CI: hochgeladen als `verify-artifacts` und `verify-screenshots`):
+Unter `verify-ci-artifacts/` (CI: hochgeladen als `verify-artifacts` und `verify-screenshots`):
 
 - `links-report.json`, `sitemap-report.json`, `performance-report.json`
 - `lighthouse/*.json`

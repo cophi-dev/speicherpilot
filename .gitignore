@@ -46,8 +46,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-# ci verification outputs
-/.verify-artifacts/
 
 # typescript
 *.tsbuildinfo

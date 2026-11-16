@@ -65,8 +65,8 @@ function main() {
   }
 
   const body = lines.join("\n");
-  const outPath = join(REPO_ROOT, ".verify-artifacts", "pr-comment.md");
-  mkdirSync(join(REPO_ROOT, ".verify-artifacts"), { recursive: true });
+  const outPath = join(ARTIFACT_DIR, "pr-comment.md");
+  mkdirSync(ARTIFACT_DIR, { recursive: true });
   writeFileSync(outPath, body);
   console.log(body);
 }

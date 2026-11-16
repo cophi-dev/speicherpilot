@@ -13,11 +13,10 @@ function run(cmd, args, opts = {}) {
 function main() {
   const steps = [];
   steps.push(run("pnpm", ["exec", "tsx", "--tsconfig", "tsconfig.json", "scripts/verify/enumerate-indexable-routes.ts"]));
-  const cont = { VERIFY_CONTINUE: "1" };
-  steps.push(run("node", ["scripts/verify/crawl-links.mjs"], { env: cont }));
-  steps.push(run("node", ["scripts/verify/check-sitemap.mjs"], { env: cont }));
-  steps.push(run("node", ["scripts/verify/check-performance.mjs"], { env: cont }));
-  steps.push(run("node", ["scripts/verify/pr-screenshots.mjs"], { env: cont }));
+  steps.push(run("node", ["scripts/verify/crawl-links.mjs"]));
+  steps.push(run("node", ["scripts/verify/check-sitemap.mjs"]));
+  steps.push(run("node", ["scripts/verify/check-performance.mjs"]));
+  steps.push(run("node", ["scripts/verify/pr-screenshots.mjs"]));
 
   const summary = {
     at: new Date().toISOString(),

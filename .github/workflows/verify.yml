@@ -76,11 +76,11 @@ jobs:
       - name: Run verify suite
         env:
           VERIFY_BASE_URL: ${{ steps.base.outputs.url }}
-          VERIFY_ARTIFACT_DIR: ${{ github.workspace }}/.verify-artifacts
+          VERIFY_ARTIFACT_DIR: ${{ github.workspace }}/verify-ci-artifacts
           VERIFY_BASE_REF: origin/${{ github.event.pull_request.base.ref }}
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: |
-          npx playwright install chromium --with-deps
+          npx playwright install chromium
           node scripts/verify/run-verify.mjs
 
       - name: PR comment
@@ -88,8 +88,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          node scripts/verify/post-pr-comment.mjs > .verify-artifacts/pr-comment.md
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file .verify-artifacts/pr-comment.md || true
+          node scripts/verify/post-pr-comment.mjs > verify-ci-artifacts/pr-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file verify-ci-artifacts/pr-comment.md || true
 
       - name: Upload verify artifacts
         if: always()
@@ -97,7 +97,7 @@ jobs:
         with:
           name: verify-artifacts
           path: |
-            .verify-artifacts/**/*
+            verify-ci-artifacts/**/*
           retention-days: 14
 
       - name: Upload PR screenshots
@@ -105,15 +105,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: verify-screenshots
-          path: .verify-artifacts/screenshots/*.png
+          path: verify-ci-artifacts/screenshots/*.png
           retention-days: 14
           if-no-files-found: ignore
 
       - name: Job summary
         if: always()
         run: |
-          if [ -f .verify-artifacts/GITHUB_STEP_SUMMARY.md ]; then
-            cat .verify-artifacts/GITHUB_STEP_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+          if [ -f verify-ci-artifacts/GITHUB_STEP_SUMMARY.md ]; then
+            cat verify-ci-artifacts/GITHUB_STEP_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
           fi
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Verify-Basis: **${{ steps.base.outputs.url }}** (${{ steps.base.outputs.source }})" >> "$GITHUB_STEP_SUMMARY"
@@ -121,5 +121,5 @@ jobs:
       - name: Fail job if verify failed
         if: always()
         run: |
-          test -f .verify-artifacts/verify-summary.json
-          node -e "const s=require('./.verify-artifacts/verify-summary.json'); if(!s.ok) process.exit(1)"
+          test -f verify-ci-artifacts/verify-summary.json
+          node -e "const s=require('./verify-ci-artifacts/verify-summary.json'); if(!s.ok) process.exit(1)"

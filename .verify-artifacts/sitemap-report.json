@@ -1,0 +1,271 @@
+{
+  "ok": false,
+  "base": "http://127.0.0.1:3099",
+  "sitemapUrlCount": 8,
+  "indexableCount": 44,
+  "errors": [
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/tag",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/monat",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/simulator",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/methodik",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/beitraege",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/impressum",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "sitemap-host",
+      "loc": "http://127.0.0.1:3000/datenschutz",
+      "expected": [
+        "https://www.speicherpilot.app",
+        "http://127.0.0.1:3099",
+        "http://localhost:3099",
+        "http://127.0.0.1:3099"
+      ]
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/beitraege/wann-der-speicher-laden-will"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/beitraege/warum-grossspeicher-das-netz-flexibler-machen"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/monat/2026-09"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/monat/2026-10"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/monat/2026-11"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-17"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-18"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-19"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-20"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-21"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-22"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-23"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-24"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-25"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-26"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-27"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-28"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-29"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-30"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-10-31"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-01"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-02"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-03"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-04"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-05"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-06"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-07"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-08"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-09"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-10"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-11"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-12"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-13"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-14"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-15"
+    },
+    {
+      "kind": "missing-in-sitemap",
+      "path": "/tag/2026-11-16"
+    }
+  ],
+  "missingInSitemap": [
+    "/beitraege/wann-der-speicher-laden-will",
+    "/beitraege/warum-grossspeicher-das-netz-flexibler-machen",
+    "/monat/2026-09",
+    "/monat/2026-10",
+    "/monat/2026-11",
+    "/tag/2026-10-17",
+    "/tag/2026-10-18",
+    "/tag/2026-10-19",
+    "/tag/2026-10-20",
+    "/tag/2026-10-21",
+    "/tag/2026-10-22",
+    "/tag/2026-10-23",
+    "/tag/2026-10-24",
+    "/tag/2026-10-25",
+    "/tag/2026-10-26",
+    "/tag/2026-10-27",
+    "/tag/2026-10-28",
+    "/tag/2026-10-29",
+    "/tag/2026-10-30",
+    "/tag/2026-10-31",
+    "/tag/2026-11-01",
+    "/tag/2026-11-02",
+    "/tag/2026-11-03",
+    "/tag/2026-11-04",
+    "/tag/2026-11-05",
+    "/tag/2026-11-06",
+    "/tag/2026-11-07",
+    "/tag/2026-11-08",
+    "/tag/2026-11-09",
+    "/tag/2026-11-10",
+    "/tag/2026-11-11",
+    "/tag/2026-11-12",
+    "/tag/2026-11-13",
+    "/tag/2026-11-14",
+    "/tag/2026-11-15",
+    "/tag/2026-11-16"
+  ],
+  "summary": "FAIL — 44 Abweichungen (36 fehlen in Sitemap)"
+}

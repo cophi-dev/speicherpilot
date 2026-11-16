@@ -31,10 +31,10 @@ jobs:
       - name: Production smoke
         env:
           VERIFY_BASE_URL: https://www.speicherpilot.app
-          VERIFY_ARTIFACT_DIR: ${{ github.workspace }}/.verify-artifacts
+          VERIFY_ARTIFACT_DIR: ${{ github.workspace }}/verify-ci-artifacts
           SMOKE_MAX_ROUTES: 120
         run: |
-          npx playwright install chromium --with-deps
+          npx playwright install chromium
           node scripts/verify/smoke-production.mjs
 
       - name: Upload smoke report
@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: smoke-report
-          path: .verify-artifacts/smoke/**
+          path: verify-ci-artifacts/smoke/**
           retention-days: 30
           if-no-files-found: ignore
 
