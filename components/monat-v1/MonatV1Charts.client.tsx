@@ -10,6 +10,7 @@ import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
+import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
 const FACTOR_PLOT = [1, 2, 5, 10] as const;
@@ -22,7 +23,7 @@ function yGw(gw: number, yMin: number, yMax: number, plotH: number, padT: number
   return padT + plotH - ((gw - yMin) / (yMax - yMin)) * plotH;
 }
 
-function useLayout(minWidth = 720) {
+function useLayout(minWidth = MONAT_WIDE_VIEWBOX_W) {
   const ref = useRef<HTMLDivElement>(null);
   const [wide, setWide] = useState(false);
   useEffect(() => {
@@ -149,7 +150,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   return (
     <div
       ref={ref}
-      className={`${styles.chartWrap}${wide ? ` ${styles.chartWrapWide}` : ""} v4-chart-probe`}
+      className={`${styles.chartWrap} v4-chart-probe`}
       data-testid="monat-v1-hero"
       tabIndex={0}
       role="application"
@@ -165,12 +166,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         rows={tooltipRows}
         testId="monat-v1-hero-tooltip"
       />
-      <svg
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
-        className={`${styles.svg}${wide ? ` ${styles.svgWide}` : ` ${styles.svgNarrow}`}`}
-        role="img"
-        aria-labelledby="g1-title g1-desc"
-      >
+      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g1-title g1-desc">
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
           Spitzenorientiert sinkt die Monatsspitze mit wachsender Flotte; Marktorientiert ohne Preisrückwirkung steigt
@@ -401,7 +397,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
   return (
     <div
       ref={ref}
-      className={`${styles.chartWrap}${wide ? ` ${styles.chartWrapWide}` : ""} v4-chart-probe`}
+      className={`${styles.chartWrap} v4-chart-probe`}
       data-testid="monat-v1-stunden"
       tabIndex={0}
       role="application"
@@ -428,12 +424,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
           <span className={styles.dotRust} /> 4 h
         </span>
       </div>
-      <svg
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
-        className={`${styles.svg}${wide ? ` ${styles.svgWide}` : ` ${styles.svgNarrow}`}`}
-        role="img"
-        aria-labelledby="g3-title g3-desc"
-      >
+      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g3-title g3-desc">
         <title id="g3-title">Spitzensenkung je Dauer und Flottenstufe</title>
         <desc id="g3-desc">
           {MONAT_V1_KERN3}. Längere Speicherdauer senkt die Spitze stärker; bei gleicher Leistung begrenzt Energie die Wirkung.
@@ -525,7 +516,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
 }
 
 function UeberschussChart({ model }: { model: MonatV1Model }) {
-  const { ref, wide } = useLayout(1100);
+  const { ref, wide } = useLayout();
   const vb = wide ? { w: 1152, h: 384, poolW: 520 } : { w: 350, h: 404, poolW: 200 };
   const rowH = wide ? 56 : 52;
   const barH = 18;
@@ -548,7 +539,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
   return (
     <div
       ref={ref}
-      className={`${styles.chartWrap}${wide ? ` ${styles.chartWrapWide}` : ""} v4-chart-probe`}
+      className={`${styles.chartWrap} v4-chart-probe`}
       data-testid="monat-v1-ueberschuss"
       tabIndex={0}
       role="application"
@@ -564,12 +555,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
         rows={tooltipRows}
         testId="monat-v1-ueberschuss-tooltip"
       />
-      <svg
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
-        className={`${styles.svg}${wide ? ` ${styles.svgWide}` : ` ${styles.svgNarrow}`}`}
-        role="img"
-        aria-labelledby="g4-title g4-desc"
-      >
+      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g4-title g4-desc">
         <title id="g4-title">Überschuss-Pool und Spitzensenkung</title>
         <desc id="g4-desc">
           Die Überschuss-Strategie füllt den Monats-Pool, senkt die Spitze aber weniger als spitzenorientiertes Fahren.
