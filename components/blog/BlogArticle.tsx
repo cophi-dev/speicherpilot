@@ -7,6 +7,7 @@ import { NetzUpdatesDurationChart } from "@/components/blog/netz-updates/NetzUpd
 import { NetzUpdatesFahrweiseChart } from "@/components/blog/netz-updates/NetzUpdatesFahrweiseChart";
 import { BLOG_FIGURES, isResponsiveBlogFigure } from "@/content/blog/figures";
 import type { Inline, SourceRow } from "@/content/blog/parseArticle";
+import { formatArticleFootnote } from "@/content/blog/articleFootnote";
 import { heroFigure, readingLabel, type BlogPost } from "@/content/blog/posts";
 
 function sourceMap(post: BlogPost): Map<string, SourceRow> {
@@ -164,8 +165,15 @@ export function BlogArticle({
       return;
     }
     flush();
+    const footnoteEl = post.footnote ? (
+      <p key={`footnote-${index}`} className="blog-article-footnote blog-measure">
+        {formatArticleFootnote(post.footnote)}
+      </p>
+    ) : null;
     sheet.push(
-      <section key={index} className="blog-breakout blog-source-section" aria-labelledby={headingId || undefined}>
+      <div key={`sources-wrap-${index}`} className="blog-sources-wrap">
+        {footnoteEl}
+        <section className="blog-breakout blog-source-section" aria-labelledby={headingId || undefined}>
         <p className="blog-measure" id={`${headingId}-einleitung`}>{block.intro}</p>
         <table className="blog-sources">
           <thead>
@@ -192,7 +200,8 @@ export function BlogArticle({
           </tbody>
         </table>
         {block.note ? <p className="blog-measure">{block.note}</p> : null}
-      </section>
+        </section>
+      </div>
     );
   });
   flush();
@@ -211,7 +220,7 @@ export function BlogArticle({
             <span className="blog-meta-sep" aria-hidden="true"> · </span>
             <span>{readingLabel(post.readingMinutes)}</span>
           </p>
-          <p className="blog-stand">{post.standLine}</p>
+          {post.footnote ? null : post.standLine ? <p className="blog-stand">{post.standLine}</p> : null}
           <BlogFigure figure={hero} />
         </div>
       </header>

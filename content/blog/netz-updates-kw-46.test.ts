@@ -11,6 +11,12 @@ describe("netz-updates-kw-46", () => {
     }
     expect(post.kind).toBe("netz-updates");
     expect(post.author).toBe("Phillipp Zarindast");
+    expect(post.standLine).toBe("");
+    expect(post.footnote).toEqual({
+      stand: "16.11.2026",
+      citeHint: "Quellen in eckigen Klammern",
+      scope: "Gemeint sind Batterie-Großspeicher",
+    });
     expect(post.published).toBe("2026-11-16");
     expect(post.sources.map((row) => row.id)).toEqual(["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7"]);
     expect(post.blocks.some((block) => block.type === "keyFacts")).toBe(true);

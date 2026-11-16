@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { BLOG_FIGURES, type BlogFigureId } from "@/content/blog/figures";
+import { formatArticleFootnote, type ArticleFootnote } from "@/content/blog/articleFootnote";
 import {
   insertFigures,
   parseArticleMarkdown,
@@ -25,6 +26,7 @@ export type BlogPost = ParsedArticle & {
   author?: string;
   ogImagePath?: string;
   calendarWeek?: number;
+  footnote?: ArticleFootnote;
 };
 
 type PostFile = {
@@ -38,6 +40,7 @@ type PostFile = {
   author?: string;
   ogImagePath?: string;
   calendarWeek?: number;
+  footnote?: ArticleFootnote;
   /** Entwurf: nicht in getBlogPosts(), nicht gerendert. */
   draft?: boolean;
 };
@@ -58,6 +61,11 @@ const POST_FILES: readonly PostFile[] = [
     author: "Phillipp Zarindast",
     calendarWeek: 46,
     ogImagePath: "/blog/netz-updates/kw-46/deckblatt.png",
+    footnote: {
+      stand: "16.11.2026",
+      citeHint: "Quellen in eckigen Klammern",
+      scope: "Gemeint sind Batterie-Großspeicher",
+    },
   },
   {
     slug: "wann-der-speicher-laden-will",
@@ -111,8 +119,13 @@ function loadPost(entry: PostFile): BlogPost {
     author: entry.author,
     ogImagePath: entry.ogImagePath,
     calendarWeek: entry.calendarWeek,
+    footnote: entry.footnote,
     readingMinutes: readingMinutesFromText(
-      readingText({ ...article, blocks: article.blocks.filter((block) => block.type !== "sources") })
+      readingText({
+        ...article,
+        standLine: entry.footnote ? formatArticleFootnote(entry.footnote) : article.standLine,
+        blocks: article.blocks.filter((block) => block.type !== "sources"),
+      })
     ),
     sources,
   };

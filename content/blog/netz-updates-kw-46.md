@@ -2,8 +2,6 @@
 
 *Drei Großspeicher-Meldungen der Woche vom 09. bis 15.11.2026, mit Key Facts, fachlicher Einordnung und einer Beobachtung aus SpeicherPilot. Alle drei setzen auf vier Stunden Dauer. Nur bei einem gibt der Netzbetreiber die Fahrweise vor.*
 
-*Stand: 16.11.2026. Quellen stehen in eckigen Klammern, die Liste folgt am Ende. Gemeint sind Batterie-Großspeicher.*
-
 <!--ARTIKELTEXT_START-->
 
 ## 1. Speichersdorf: Speicher statt Verstärkung des Umspannwerks

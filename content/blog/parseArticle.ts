@@ -290,7 +290,11 @@ export function parseArticleMarkdown(markdown: string): ParsedArticle {
   };
   const description = italic("Untertitel");
   skipBlank();
-  const standLine = italic("Standzeile");
+  let standLine = "";
+  const standPeek = lines[index] ?? "";
+  if (standPeek.match(/^\*(.+)\*$/)) {
+    standLine = italic("Standzeile");
+  }
 
   const blocks: Block[] = [];
   while (index < lines.length) {

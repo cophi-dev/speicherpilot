@@ -6345,6 +6345,12 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   color: var(--blog-muted, #6b7280);
   max-width: 60ch;
 }
+.blog-article-footnote {
+  margin: 0 0 16px;
+  font-size: var(--type-13, 0.8125rem);
+  line-height: 1.45;
+  color: var(--blog-muted, #6b7280);
+}
 .blog-chart-breakout {
   margin: 24px 0;
 }
