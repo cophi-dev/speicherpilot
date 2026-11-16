@@ -1,0 +1,67 @@
+name: smoke
+
+on:
+  deployment_status:
+
+jobs:
+  smoke:
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      (github.event.deployment_status.environment == 'Production' ||
+        github.event.deployment_status.environment == 'production')
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Production smoke
+        env:
+          VERIFY_BASE_URL: https://www.speicherpilot.app
+          VERIFY_ARTIFACT_DIR: ${{ github.workspace }}/verify-ci-artifacts
+          SMOKE_MAX_ROUTES: 120
+        run: |
+          npx playwright install chromium
+          node scripts/verify/smoke-production.mjs
+
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report
+          path: verify-ci-artifacts/smoke/**
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Open GitHub issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(cat <<'EOF'
+          Production-Smoke nach Deploy fehlgeschlagen.
+
+          Siehe Workflow **smoke** und Artefakt `smoke-report`.
+
+          Kein Auto-Fix / kein Auto-Merge — manuell triagieren.
+          EOF
+          )
+          gh issue create \
+            --title "smoke: Production-Check $(date -u +%Y-%m-%dT%H:%MZ)" \
+            --body "$BODY" \
+            --label "ci" || gh issue create \
+            --title "smoke: Production-Check $(date -u +%Y-%m-%dT%H:%MZ)" \
+            --body "$BODY"

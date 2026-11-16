@@ -1,0 +1,27 @@
+{
+  "$schema": "./sitemap.exceptions.schema.json",
+  "comment": "Ausnahmen für die bidirektionale Sitemap-Prüfung. Keine Einträge = strikt.",
+  "indexableOmittedFromSitemap": [],
+  "notIndexablePathPatterns": [
+    "^/api/",
+    "^/_next/",
+    "^/apple-icon",
+    "^/favicon",
+    "^/icon"
+  ],
+  "redirectOnlyPaths": [
+    "/blog",
+    "/news",
+    "/ort",
+    "/vision",
+    "/site",
+    "/netz",
+    "/szenarien",
+    "/live"
+  ],
+  "sitemapCanonicalHostAllowList": [
+    "https://www.speicherpilot.app",
+    "http://127.0.0.1:3099",
+    "http://localhost:3099"
+  ]
+}

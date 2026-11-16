@@ -1,0 +1,39 @@
+{
+  "$schema": "./performance-budgets.schema.json",
+  "mobile": {
+    "lcpMs": 2500,
+    "totalTransferBytes": 1572864
+  },
+  "pageTypes": [
+    {
+      "id": "home",
+      "label": "Startseite",
+      "paths": ["/"]
+    },
+    {
+      "id": "tag",
+      "label": "Tag",
+      "paths": ["/tag/2026-10-29"]
+    },
+    {
+      "id": "monat",
+      "label": "Monat",
+      "paths": ["/monat/2026-10", "/monat/2026-11"]
+    },
+    {
+      "id": "news",
+      "label": "Beiträge / News",
+      "paths": ["/beitraege"]
+    },
+    {
+      "id": "static",
+      "label": "Statische Seiten",
+      "paths": ["/simulator", "/methodik", "/impressum", "/datenschutz"]
+    }
+  ],
+  "lighthouse": {
+    "version": "12.6.1",
+    "formFactor": "mobile",
+    "categories": ["performance"]
+  }
+}
