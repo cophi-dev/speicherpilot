@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 
+import { JsonLd } from "@/components/seo/JsonLd";
+import { datasetJsonLd } from "@/lib/seo/jsonLd";
+import { monatDocumentTitle, monatPageDescription } from "@/lib/seo/pageTitles";
 import { socialMeta } from "@/lib/siteOg";
 
 import { MonatPageV4 } from "@/components/home/MonatPageV4";
@@ -9,7 +12,7 @@ import { MonatUnavailable } from "@/components/home/MonatUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   buildMonatGrid,
-  formatBerlinMonthLabel,
+  daysInBerlinMonth,
   isBerlinMonthKey,
   MONAT_SURPLUS_EXPLAIN_DE,
   monatPointe,
@@ -27,22 +30,13 @@ export const revalidate = 1800;
 
 export async function generateMetadata({ params }: { params: Promise<{ monat: string }> }) {
   const { monat } = await params;
-  const label = isBerlinMonthKey(monat) ? formatBerlinMonthLabel(monat) : monat;
-  if (nationalFleetMonthAvailable(monat)) {
-    const title = `Monat · ${label} · Speicher und Restlastspitze`;
-    const description =
-      "Höchste Restlast je Flottenstufe und Fahrweise, Stunden und Überschuss-Pool — national, Modellrechnung.";
-    return {
-      title,
-      description,
-      ...socialMeta({ title, description, url: `/monat/${monat}` }),
-    };
-  }
-  const title = `Monat · ${label}`;
-  const description = "Monatsverlauf in der geladenen Tagesreihe: Überschuss-Graph und Sprung zu einzelnen Tagen.";
+  const fleetMonth = nationalFleetMonthAvailable(monat);
+  const title = monatDocumentTitle(monat, fleetMonth);
+  const description = monatPageDescription(fleetMonth);
   return {
-    title,
+    title: { absolute: title },
     description,
+    alternates: { canonical: `/monat/${monat}` },
     ...socialMeta({ title, description, url: `/monat/${monat}` }),
   };
 }
@@ -98,8 +92,19 @@ export default async function MonatDetailPage({
     <MonatObservedOnlySlot monthKey={monat} />
   );
 
+  const fleetMonthOpen = nationalFleetMonthAvailable(monat);
+  const monthDays = daysInBerlinMonth(monat);
+  const monatDataset = datasetJsonLd({
+    path: `/monat/${monat}`,
+    name: monatDocumentTitle(monat, fleetMonthOpen),
+    description: monatPageDescription(fleetMonthOpen),
+    temporalCoverage: `${monthDays[0]}/${monthDays[monthDays.length - 1]}`,
+    includeNep: fleetMonthOpen,
+  });
+
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[720px] max-w-[1200px]" />}>
+      <JsonLd data={{ "@context": "https://schema.org", ...monatDataset }} />
       <MonatPageV4
         monthKey={monat}
         todayKey={pageData.todayKey}
