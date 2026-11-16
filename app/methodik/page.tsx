@@ -12,6 +12,7 @@ const methodikDescription =
 export const metadata = {
   title: "Methodik",
   description: methodikDescription,
+  alternates: { canonical: "/methodik" },
   ...socialMeta({ title: "Methodik", description: methodikDescription, url: "/methodik" }),
 };
 

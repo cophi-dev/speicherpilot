@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { socialMeta } from "@/lib/siteOg";
 import { notFound } from "next/navigation";
 
+import { JsonLd } from "@/components/seo/JsonLd";
+import { articleJsonLd } from "@/lib/seo/jsonLd";
 import { BlogArticle } from "@/components/blog/BlogArticle";
 import { getBlogPost, getBlogPosts } from "@/content/blog/posts";
 
@@ -38,5 +40,11 @@ export default async function BeitraegeArticlePage({ params }: { params: Promise
   if (!post) {
     notFound();
   }
-  return <BlogArticle post={post} backHref="/beitraege#artikel" backLabel="Beiträge" />;
+  const articleLd = articleJsonLd(post);
+  return (
+    <>
+      <JsonLd data={{ "@context": "https://schema.org", ...articleLd }} />
+      <BlogArticle post={post} backHref="/beitraege#artikel" backLabel="Beiträge" />
+    </>
+  );
 }
