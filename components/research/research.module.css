@@ -93,6 +93,14 @@
   color: var(--research-muted);
 }
 
+.kernsatz {
+  font-size: var(--type-14);
+  line-height: 1.55;
+  color: var(--research-fg);
+  margin: 12px 0 20px;
+  max-width: 52rem;
+}
+
 .prose {
   font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   font-size: var(--type-14);

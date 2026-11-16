@@ -112,7 +112,7 @@ describe("Technik-SEO-Paket", () => {
 
   it("setzt die Owner-Titel für Start, Tag (heute) und Flotten-Monat", () => {
     expect(HOME_DOCUMENT_TITLE).toBe(
-      "SpeicherPilot – Großspeicher und Restlastspitze in Deutschland, Szenarien gerechnet",
+      "Großspeicher und Restlast-Spitze in Deutschland, Szenarien täglich gerechnet | SpeicherPilot",
     );
     expect(TAG_TODAY_DOCUMENT_TITLE).toBe(
       "Restlast, Day-Ahead-Preis und Batteriespeicher heute | SpeicherPilot",
