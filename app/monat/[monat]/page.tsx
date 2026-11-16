@@ -50,6 +50,7 @@ export default async function MonatDetailPage({
 }) {
   const { monat } = await params;
   const query = await searchParams;
+  const fleetMonthOpen = nationalFleetMonthAvailable(monat);
   if (!isBerlinMonthKey(monat)) {
     const pageData = await loadMonatPageData(monat);
     return (
@@ -74,8 +75,14 @@ export default async function MonatDetailPage({
     );
   }
 
-  const fleetFactor = parseFleetFactor(query.faktor);
-  const fleetStrategy = parseFleetStrategy(query.fahrweise);
+  const fleetFactor =
+    query.faktor !== undefined ? parseFleetFactor(query.faktor) : fleetMonthOpen ? 10 : parseFleetFactor(undefined);
+  const fleetStrategy =
+    query.fahrweise !== undefined
+      ? parseFleetStrategy(query.fahrweise)
+      : fleetMonthOpen
+        ? "spitze"
+        : parseFleetStrategy(undefined);
   const grid = buildMonatGrid({
     monthKey: monat,
     records,
@@ -92,7 +99,6 @@ export default async function MonatDetailPage({
     <MonatObservedOnlySlot monthKey={monat} />
   );
 
-  const fleetMonthOpen = nationalFleetMonthAvailable(monat);
   const monthDays = daysInBerlinMonth(monat);
   const monatDataset = datasetJsonLd({
     path: `/monat/${monat}`,

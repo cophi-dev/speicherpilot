@@ -1,3 +1,4 @@
+import { MonatReglerSlot } from "@/components/monat-regler/MonatReglerSlot";
 import { MonatV1Page } from "@/components/monat-v1/MonatV1Page";
 import { NationalFleetMonthUnavailable } from "@/components/home/NationalFleetMonthUnavailable";
 import { buildMonatV1Model } from "@/lib/monatV1Model";
@@ -6,8 +7,8 @@ import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.serv
 
 export function NationalFleetMonatSlot({
   monthKey,
-  factor: _factor,
-  strategy: _strategy,
+  factor,
+  strategy,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
@@ -23,5 +24,10 @@ export function NationalFleetMonatSlot({
 
   const bundle = loadNationalFleetMonthBundle();
   const model = buildMonatV1Model(bundle);
-  return <MonatV1Page model={model} monthKey={monthKey} />;
+  return (
+    <>
+      <MonatReglerSlot monthKey={monthKey} factor={factor} strategy={strategy} />
+      <MonatV1Page model={model} monthKey={monthKey} />
+    </>
+  );
 }

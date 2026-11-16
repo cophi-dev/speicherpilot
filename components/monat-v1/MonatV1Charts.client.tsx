@@ -7,7 +7,8 @@ import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
-import { formatGwAbs, formatGwReduction, MONAT_V1_GRAPH_CAPTION, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
+import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
+import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
@@ -355,7 +356,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
         ) : null}
       </svg>
-      <p className={`${styles.figcaption} num`}>{MONAT_V1_GRAPH_CAPTION}</p>
+      <p className={`${styles.figcaption} num`}>{MONAT_REGELR_GRAPH_CAPTION}</p>
     </div>
   );
 }
@@ -501,7 +502,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
           <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
         ) : null}
       </svg>
-      <p className={`${styles.figcaption} num`}>{MONAT_V1_GRAPH_CAPTION}</p>
+      <p className={`${styles.figcaption} num`}>{MONAT_REGELR_GRAPH_CAPTION}</p>
     </div>
   );
 }
@@ -613,7 +614,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
           );
         })}
       </svg>
-      <p className={`${styles.figcaption} num`}>{MONAT_V1_GRAPH_CAPTION}</p>
+      <p className={`${styles.figcaption} num`}>{MONAT_REGELR_GRAPH_CAPTION}</p>
     </div>
   );
 }
