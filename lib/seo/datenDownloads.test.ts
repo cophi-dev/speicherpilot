@@ -21,6 +21,21 @@ function dataLines(csv: string): string[] {
   return csv.split("\n").filter((line) => line && !line.startsWith("#"));
 }
 
+
+function isIsoCalendarDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
 describe("/daten Downloads", () => {
   it("liefert vier Dateien mit eindeutigen Slugs", () => {
     expect(DATEN_DATEIEN).toHaveLength(4);
@@ -99,5 +114,31 @@ describe("/daten Downloads", () => {
     expect(collectIndexableRoutes().map((r) => r.path)).toContain("/daten");
     expect(llmsTxtBody()).toContain("/daten");
     expect(llmsFullTxtBody()).toContain("speicherpilot-jahr-stufen.csv");
+  });
+
+  it("jeder YYYY-MM-DD-Schlüssel in den vier Dateien ist ein gültiges ISO-Kalenderdatum", () => {
+    const isoDate = /\d{4}-\d{2}-\d{2}/g;
+    const keys: string[] = [];
+    for (const datei of DATEN_DATEIEN) {
+      const body = datei.build(ORIGIN);
+      keys.push(...(body.match(isoDate) ?? []));
+    }
+    expect(keys.length).toBeGreaterThan(0);
+    for (const key of keys) {
+      expect(isIsoCalendarDate(key)).toBe(true);
+    }
+  });
+
+  it("erklärt Monatssenkung, Flottenstände und Stand vor der Flach-Laden-Regel", () => {
+    const stufen = buildStufenCsv(ORIGIN);
+    expect(stufen).toContain(
+      "senkung_YYYY-MM_gw ist die Senkung der jeweiligen Monatsspitze, nicht ein Anteil an der Jahressenkung",
+    );
+    const oktober = buildOktoberFahrweisenCsv(ORIGIN);
+    expect(oktober).toContain("4,58 GW / 8 GWh");
+    expect(oktober).toContain("4,70 GW / 8,27 GWh");
+    const json = buildJahrJson(ORIGIN);
+    expect(json).toContain("flach wie möglich");
+    expect(json).not.toContain("2026-02-31");
   });
 });
