@@ -23,10 +23,10 @@ describe("GET /api/news", () => {
     const response = await GET({ url: "http://localhost:3000/api/news?limit=5" } as Request);
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body.items).toEqual(bundledNews);
+    expect(body.items).toHaveLength(5);
     expect(JSON.stringify(body)).not.toContain("news.google.com");
     expect(body.items[0].url).toBe(
-      "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27"
+      "https://www.bundestag.de/dokumente/textarchiv/2026/kw46-de-uebertragungsnetzkosten-1232592"
     );
   });
 

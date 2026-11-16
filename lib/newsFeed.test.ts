@@ -10,13 +10,23 @@ const baseItem = {
 };
 
 describe("news feed", () => {
-  it("ships the curated Bundesnetzagentur item with einordnung", () => {
+  it("ships the curated KW46 bundle with einordnung", () => {
     expect(parseNews([])).toEqual([]);
     const items = parseNews(news);
-    expect(items).toHaveLength(1);
-    expect(items[0].sourceShort).toBe("energate / Windindustrie in Deutschland");
-    expect(items[0].einordnung).toContain("Antragsverfahren");
-    expect(items[0].teaser).toContain("Missbrauchsverfahren");
+    expect(items).toHaveLength(6);
+    expect(items[0].headline).toContain("Übertragungsnetzkosten");
+    const archiv = items.find((item) => item.date === "2026-10-21");
+    expect(archiv?.einordnung).toContain("Antragsverfahren");
+    expect(archiv?.teaser).toContain("Missbrauchsverfahren");
+  });
+
+  it("omits the 21.10. archiv row from the home teaser", () => {
+    const items = parseNews(news);
+    const home = newsForHome(items);
+    expect(home).toHaveLength(3);
+    expect(home.some((item) => item.date === "2026-10-21")).toBe(false);
+    expect(home[0].date).toBe("2026-11-12");
+    expect(home[0].headline).toContain("Übertragungsnetzkosten");
   });
 
   it("rejects items without einordnung", () => {

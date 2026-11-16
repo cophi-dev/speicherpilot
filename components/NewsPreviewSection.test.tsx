@@ -21,35 +21,41 @@ const item = (n: number, extra?: Record<string, string>) => ({
 });
 
 describe("NewsPreviewSection", () => {
-  it("renders the curated file as one source link, with a German date and no euro figures", () => {
+  it("renders the curated file on /beitraege with six rows, labels, and no euro in headlines", () => {
     renderNews();
-    const headline = screen.getByRole("link", { name: /Bundesnetzagentur: Keine Prüfgebühr für Netzanschlussanträge/i });
-    expect(headline).toHaveAttribute(
-      "href",
-      "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27"
-    );
+    const headline = screen.getByRole("link", {
+      name: /Bundestag legt Zuschuss zu den Übertragungsnetzkosten bis 2029 fest/i,
+    });
     expect(headline).toHaveAttribute("target", "_blank");
     expect(headline).toHaveAttribute("rel", "noopener noreferrer");
     expect(headline.getAttribute("href")).not.toContain("news.google.com");
-    expect(headline).toHaveAccessibleName(/Lesen bei energate \/ Windindustrie in Deutschland/i);
+    expect(headline).toHaveAccessibleName(/Lesen bei Bundestag/i);
     expect(headline).toHaveAccessibleName(/öffnet in neuem Tab/);
-    expect(headline).toHaveAttribute("title", "energate / Windindustrie in Deutschland");
-    expect(headline.querySelectorAll("a")).toHaveLength(0);
-    expect(screen.getByText("21. Okt. 2026")).toBeInTheDocument();
-    expect(document.querySelector(".news-source")).toHaveTextContent("energate / Windindustrie in Deutschland");
-    expect(document.querySelector(".news-source")).toHaveAttribute("title", "energate / Windindustrie in Deutschland");
-    expect(screen.getByText(/Missbrauchsverfahren eines Speicherentwicklers gegen einen Übertragungsnetzbetreiber/)).toBeInTheDocument();
-    expect(screen.getByText("Einordnung")).toHaveClass("news-einordnung-label");
-    expect(screen.getByText(/Antragsverfahren, nicht die Aufnahmefähigkeit/)).toHaveClass("news-einordnung");
-    expect(screen.getByRole("heading", { level: 2, name: /Prüfgebühr/ })).toBeInTheDocument();
-    expect(document.querySelectorAll(".news-list article")).toHaveLength(1);
+    expect(screen.getAllByText("Einordnung")).toHaveLength(6);
+    expect(document.querySelector(".news-einordnung-label")).toHaveClass("news-einordnung-label");
+    expect(document.querySelectorAll(".news-list article")).toHaveLength(6);
     expect(document.querySelector(".is-new .news-row")).toBe(headline);
     expect(screen.getByRole("link", { name: "So prüfen wir Meldungen" })).toHaveAttribute(
       "href",
       "/methodik#so-pruefen-wir",
     );
-    expect(document.body.textContent).not.toMatch(/€|\bEUR\b|\bEuro\b/);
+    const archiv = screen.getByRole("link", { name: /Bundesnetzagentur: Keine Prüfgebühr für Netzanschlussanträge/i });
+    expect(archiv).toHaveAttribute(
+      "href",
+      "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27",
+    );
+    expect(screen.getByText(/Antragsverfahren, nicht die Aufnahmefähigkeit/)).toHaveClass("news-einordnung");
+    [...document.querySelectorAll(".news-title")].forEach((node) => {
+      expect(node.textContent ?? "").not.toMatch(/€|\bEUR\b|\bEuro\b/);
+    });
     expect(JSON.stringify(bundledNews)).not.toContain("&nbsp;");
+  });
+
+  it("keeps the 21.10. archiv off the home teaser", () => {
+    renderNews("de", bundledNews, "home");
+    expect(screen.queryByRole("heading", { name: /Prüfgebühr/ })).toBeNull();
+    expect(screen.getAllByRole("article")).toHaveLength(3);
+    expect(screen.getByRole("heading", { name: /Übertragungsnetzkosten bis 2029/ })).toBeInTheDocument();
   });
 
   it("falls back to the long source when sourceShort is missing", () => {

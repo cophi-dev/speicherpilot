@@ -1,5 +1,50 @@
 [
   {
+    "date": "2026-11-12",
+    "source": "Deutscher Bundestag, Textarchiv",
+    "sourceShort": "Bundestag",
+    "url": "https://www.bundestag.de/dokumente/textarchiv/2026/kw46-de-uebertragungsnetzkosten-1232592",
+    "headline": "Bundestag legt Zuschuss zu den Übertragungsnetzkosten bis 2029 fest",
+    "teaser": "Der Bundestag hat am 12. November den jährlichen Bundeszuschuss zu den Kosten der Übertragungsnetzbetreiber für 2027 bis 2029 beschlossen. Er liegt unter dem Wert für 2026 und wird aus dem Klima- und Transformationsfonds finanziert.",
+    "einordnung": "Reichweite: Netzentgelte, nicht Netzkapazität. Der Zuschuss dämpft die Übertragungsnetzentgelte, schafft aber keinen zusätzlichen Anschlusspunkt. Die Lücke, die Speicher schließen sollen, bleibt: Am 15.11. lag die Restlast-Abendspitze bei 23,7 GW um 17:00 Uhr (speicherpilot.app/tag)."
+  },
+  {
+    "date": "2026-11-12",
+    "source": "ZfK – Zeitung für kommunale Wirtschaft",
+    "sourceShort": "ZfK",
+    "url": "https://www.zfk.de/politik/deutschland/eeg-reform-cdu-csu-spd-einigung-netzpaket-suedquote",
+    "headline": "EEG-Reform geeinigt, Netzpaket weiter offen",
+    "teaser": "Die Koalition hat sich beim EEG geeinigt, will das Verfahren aber erst zusammen mit dem Netzpaket abschließen. Streitpunkt ist der Redispatchvorbehalt; der Bundesrat kann frühestens am 18. Dezember abstimmen.",
+    "einordnung": "Reichweite: Gesetzgebung, noch nicht in Kraft. Für Speicher entscheidet das Netzpaket über Reservierung und Priorisierung von Anschlüssen. Bis dahin bleibt der Wert eines Speichers in Daten sichtbar: Am 15.11. lag der Day-Ahead-Preis zwischen 98 und 180 €/MWh, und der Tag war der 21. in Folge ohne Überschuss (speicherpilot.app/tag)."
+  },
+  {
+    "date": "2026-11-10",
+    "source": "Photon",
+    "sourceShort": "Photon",
+    "url": "https://www.photon.info/news/statt-netzausbau-bayernwerk-netz-schreibt-weiteren-batteriespeicher-mit-netzdienlicher-fahrweise-aus/",
+    "headline": "Verteilnetzbetreiber schreibt netzdienlichen Speicher statt Netzausbau aus",
+    "teaser": "Ein bayerischer Verteilnetzbetreiber sucht einen Speicher mit 20 MW und mindestens 80 MWh direkt an einem Umspannwerk im Landkreis Bayreuth. Die Fahrweise gibt der Netzbetreiber vor (§ 11a EnWG); sie soll eine geplante Netzverstärkung ersetzen.",
+    "einordnung": "Reichweite: ein Umspannwerk, kein Marktsignal. Hier kauft der Netzbetreiber die Fahrweise, nicht der Markt. Wie stark die Fahrweise zählt, zeigt speicherpilot.app/monat national für Oktober: Marktorientiert ohne Preisrückwirkung hebt eine größere Flotte die Restlastspitze ab etwa dem 3,9-Fachen, spitzenorientiert senkt sie sie. Das ist ein Modell ohne Netzengpass, keine Aussage über den Ort."
+  },
+  {
+    "date": "2026-11-10",
+    "source": "Windkraft-Journal (Pressemitteilung des Projektierers)",
+    "sourceShort": "Windkraft-Journal",
+    "url": "https://www.windkraft-journal.de/2026/11/10/elements-green-und-tennet-unterzeichnen-netzanschlussvertrag-fuer-16-gwh-batteriespeicher-stadorf/229339",
+    "headline": "Netzanschlussvertrag für 1,6-GWh-Speicher in Niedersachsen unterzeichnet",
+    "teaser": "Für einen geplanten 4-Stunden-Speicher mit 400 MW bei Uelzen ist der Netzanschlussvertrag mit dem zuständigen Übertragungsnetzbetreiber unterschrieben, Anschluss an das Höchstspannungsnetz. Baustart und Inbetriebnahme sind noch nicht öffentlich.",
+    "einordnung": "Reichweite: Vertrag, noch kein Betrieb. Der Vertrag sichert den Anschluss, nicht den Einsatz. Die Dauer ist der Hebel: Auf speicherpilot.app/monat senkt im Oktober ×5 mit 4 h die Spitze so stark wie ×10 mit 1,76 h, also mit halber Leistung (national, Modell)."
+  },
+  {
+    "date": "2026-11-09",
+    "source": "ju:niz Energy, Pressemitteilung",
+    "sourceShort": "ju:niz Energy",
+    "url": "https://juniz.com/newsroom/presse/envision-energy-und-juniz-energy-bauen-partnerschaft-aus/",
+    "headline": "Netzbildender 4-Stunden-Speicher mit 442 MWh in Bayern angekündigt",
+    "teaser": "In Vöhringen soll neben einem laufenden Speicher ein zweiter mit 442 MWh, vierstündiger Dauer und netzbildender Regelung entstehen. Leistung und Inbetriebnahme wurden nicht genannt.",
+    "einordnung": "Reichweite: Ankündigung, kein Netzanschlussdatum. Netzbildend heißt, der Speicher kann Momentanreserve liefern, nicht nur Arbitrage. Die SpeicherPilot-Referenzflotte hat ≈1,76 h; auf speicherpilot.app/monat senkt im Oktober eine längere Dauer die Spitze stärker, weil die Abendspitze mehrere Stunden dauert und kurzen Speichern vorher die Energie ausgeht. Selbst rechnen: speicherpilot.app/simulator."
+  },
+  {
     "date": "2026-10-21",
     "source": "energate / Windindustrie in Deutschland",
     "sourceShort": "energate / Windindustrie in Deutschland",

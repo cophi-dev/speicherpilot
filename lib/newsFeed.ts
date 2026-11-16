@@ -15,6 +15,11 @@ const newsItemSchema = z.object({
 export type NewsItem = z.infer<typeof newsItemSchema>;
 
 export const NEWS_HOME_LIMIT = 3;
+
+/** Archiv: bleibt auf /beitraege, nicht im Startseiten-Teaser. */
+export const NEWS_HOME_EXCLUDED_URLS = new Set([
+  "https://www.windindustrie-in-deutschland.de/energate/bundesnetzagentur-keine-pruefgebuehr-fuer-netzanschluesse-667e27",
+]);
 /** Rollierendes Fenster auf /beitraege: 8–12 Wochen (Default 10). */
 export const NEWS_EXTERN_WEEKS_DEFAULT = 10;
 export const NEWS_EXTERN_WEEKS_MIN = 8;
@@ -66,7 +71,10 @@ export function filterNewsByWeeks(items: NewsItem[], weeks: number, now = new Da
 }
 
 export function newsForHome(items: NewsItem[]): NewsItem[] {
-  return [...items].sort((a, b) => b.date.localeCompare(a.date)).slice(0, NEWS_HOME_LIMIT);
+  return [...items]
+    .filter((item) => !NEWS_HOME_EXCLUDED_URLS.has(item.url))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, NEWS_HOME_LIMIT);
 }
 
 export function newsForExternPage(items: NewsItem[], weeks = NEWS_EXTERN_WEEKS_DEFAULT, now = new Date()): NewsItem[] {
