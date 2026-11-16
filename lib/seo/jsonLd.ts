@@ -95,7 +95,8 @@ export function articleJsonLd(post: BlogPost) {
   const origin = getPublicSiteOrigin();
   const path = `/beitraege/${post.slug}`;
   const published = post.published;
-  return {
+  const authorName = post.author ?? "Phillipp Zarindast";
+  const article: Record<string, unknown> = {
     "@type": "Article",
     "@id": `${origin}${path}#article`,
     headline: post.title,
@@ -107,7 +108,7 @@ export function articleJsonLd(post: BlogPost) {
     author: {
       "@type": "Person",
       "@id": `${origin}${PERSON_ID}`,
-      name: "Phillipp Zarindast",
+      name: authorName,
     },
     publisher: {
       "@type": "Organization",
@@ -115,6 +116,13 @@ export function articleJsonLd(post: BlogPost) {
     },
     mainEntityOfPage: `${origin}${path}`,
   };
+  if (post.ogImagePath) {
+    article.image = `${origin}${post.ogImagePath}`;
+  }
+  if (post.kind === "netz-updates") {
+    article.articleSection = "Netz-Updates";
+  }
+  return article;
 }
 
 export function siteGraphJsonLd(extra: Record<string, unknown>[] = []) {

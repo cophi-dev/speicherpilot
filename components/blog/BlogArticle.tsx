@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { BlogFigure } from "@/components/blog/BlogFigure";
+import { BlogMediaFigure } from "@/components/blog/BlogMediaFigure";
+import { NetzUpdatesDurationChart } from "@/components/blog/netz-updates/NetzUpdatesDurationChart";
+import { NetzUpdatesFahrweiseChart } from "@/components/blog/netz-updates/NetzUpdatesFahrweiseChart";
 import { BLOG_FIGURES, isResponsiveBlogFigure } from "@/content/blog/figures";
 import type { Inline, SourceRow } from "@/content/blog/parseArticle";
 import { heroFigure, readingLabel, type BlogPost } from "@/content/blog/posts";
@@ -24,6 +27,14 @@ function Inlines({ items, sources }: { items: Inline[]; sources: Map<string, Sou
   return items.map((item, index) => {
     if (item.kind === "text") {
       return item.strong ? <strong key={index}>{item.text}</strong> : <span key={index}>{item.text}</span>;
+    }
+    if (item.kind === "link") {
+      const inner = item.strong ? <strong>{item.text}</strong> : item.text;
+      return (
+        <a key={index} href={item.href} className="v4-text-link">
+          {inner}
+        </a>
+      );
     }
     return (
       <span key={index}>
@@ -66,6 +77,34 @@ export function BlogArticle({
   };
 
   post.blocks.forEach((block, index) => {
+    if (block.type === "chart") {
+      flush();
+      sheet.push(
+        <div key={`chart-${block.chart}`} className="blog-chart-breakout">
+          {block.chart === "netz-updates-duration" ? <NetzUpdatesDurationChart /> : null}
+          {block.chart === "netz-updates-fahrweise" ? <NetzUpdatesFahrweiseChart /> : null}
+        </div>
+      );
+      return;
+    }
+    if (block.type === "media") {
+      flush();
+      sheet.push(<BlogMediaFigure key={`media-${block.src}`} src={block.src} alt={block.alt} caption={block.caption} />);
+      return;
+    }
+    if (block.type === "keyFacts") {
+      prose.push(
+        <dl key={`keyfacts-${index}`} className="blog-key-facts">
+          {block.rows.map((row) => (
+            <div key={row.label} className="blog-key-facts-row">
+              <dt>{row.label}</dt>
+              <dd>{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+      );
+      return;
+    }
     if (block.type === "figure") {
       flush();
       const asset = BLOG_FIGURES[block.figure];
@@ -158,11 +197,13 @@ export function BlogArticle({
   });
   flush();
 
+  const kicker = post.kind === "netz-updates" ? "Netz-Updates" : "Beiträge";
+
   return (
     <article className="blog v4-subpage" lang="de">
       <header className="v4-subpage-hero">
         <div className="v4-content">
-          <p className="v4-kicker num">Beiträge</p>
+          <p className="v4-kicker num">{kicker}</p>
           <h1 className="v4-h1">{post.title}</h1>
           <p className="blog-hero-lead v4-subline">{post.description}</p>
           <p className="blog-meta num">

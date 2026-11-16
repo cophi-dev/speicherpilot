@@ -1,0 +1,26 @@
+{
+  "netz-land-markt-timeseries.json": {
+    "ok": true,
+    "violations": []
+  },
+  "netz-land-vertrag-timeseries.json": {
+    "ok": true,
+    "violations": []
+  },
+  "netz-land-netz-timeseries.json": {
+    "ok": true,
+    "violations": []
+  },
+  "netz-stadt-markt-timeseries.json": {
+    "ok": true,
+    "violations": []
+  },
+  "netz-stadt-vertrag-timeseries.json": {
+    "ok": true,
+    "violations": []
+  },
+  "netz-stadt-netz-timeseries.json": {
+    "ok": true,
+    "violations": []
+  }
+}

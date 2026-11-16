@@ -12,13 +12,19 @@ import {
   type SourceRow,
 } from "@/content/blog/parseArticle";
 
+export type BlogPostKind = "article" | "netz-updates";
+
 export type BlogPost = ParsedArticle & {
   slug: string;
+  kind: BlogPostKind;
   published: string;
   publishedLabel: string;
   readingMinutes: number;
   blocks: Block[];
   sources: SourceRow[];
+  author?: string;
+  ogImagePath?: string;
+  calendarWeek?: number;
 };
 
 type PostFile = {
@@ -28,6 +34,10 @@ type PostFile = {
   publishedLabel: string;
   hero: BlogFigureId;
   inserts: Parameters<typeof insertFigures>[1];
+  kind?: BlogPostKind;
+  author?: string;
+  ogImagePath?: string;
+  calendarWeek?: number;
   /** Entwurf: nicht in getBlogPosts(), nicht gerendert. */
   draft?: boolean;
 };
@@ -37,6 +47,18 @@ type PostFile = {
  * The markdown is the wording. Publication date and figures are the only extra fields.
  */
 const POST_FILES: readonly PostFile[] = [
+  {
+    slug: "netz-updates-kw-46",
+    file: "netz-updates-kw-46.md",
+    published: "2026-11-16",
+    publishedLabel: "16.11.2026",
+    hero: "kw46Deckblatt",
+    inserts: [],
+    kind: "netz-updates",
+    author: "Phillipp Zarindast",
+    calendarWeek: 46,
+    ogImagePath: "/blog/netz-updates/kw-46/deckblatt.png",
+  },
   {
     slug: "wann-der-speicher-laden-will",
     file: "wann-der-speicher-laden-will.md",
@@ -83,8 +105,12 @@ function loadPost(entry: PostFile): BlogPost {
   return {
     ...article,
     slug: entry.slug,
+    kind: entry.kind ?? "article",
     published: entry.published,
     publishedLabel: entry.publishedLabel,
+    author: entry.author,
+    ogImagePath: entry.ogImagePath,
+    calendarWeek: entry.calendarWeek,
     readingMinutes: readingMinutesFromText(
       readingText({ ...article, blocks: article.blocks.filter((block) => block.type !== "sources") })
     ),
@@ -96,7 +122,9 @@ let cache: BlogPost[] | null = null;
 
 export function getBlogPosts(): BlogPost[] {
   if (!cache) {
-    cache = POST_FILES.filter((entry) => !entry.draft).map(loadPost);
+    cache = POST_FILES.filter((entry) => !entry.draft)
+      .map(loadPost)
+      .sort((a, b) => b.published.localeCompare(a.published));
   }
   return cache;
 }
