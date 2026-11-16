@@ -24,13 +24,14 @@ export function NationalFleetTagSlot({
   if (!nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
     return null;
   }
-  const bundle = nationalFleetContext(factor, strategy);
-  const run = preloadedRun ?? loadNationalFleetRunSeries(factor, strategy);
+  const monthKey = dayKey.slice(0, 7);
+  const bundle = nationalFleetContext(factor, strategy, { monthKey, dayKey });
+  const run = preloadedRun ?? loadNationalFleetRunSeries(factor, strategy, { monthKey, dayKey });
   const slice = sliceFleetDay(run, dayKey);
   if (!slice) {
     return null;
   }
-  const monthStats = monthStatsForRun(bundle, factor, strategy);
+  const monthStats = monthStatsForRun(bundle, factor, strategy, run);
 
   return (
     <NationalFleetDayChapter

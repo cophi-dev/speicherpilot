@@ -11,10 +11,10 @@ import {
 
 describe("siteNav", () => {
   it("marks active routes consistently", () => {
-    expect(isSiteMainNavActive("/", "/")).toBe(true);
-    expect(isSiteMainNavActive("/simulator", "/")).toBe(false);
-    expect(isSiteMainNavActive("/simulator", "/simulator")).toBe(true);
+    expect(isSiteMainNavActive("/", "/tag")).toBe(true);
     expect(isSiteMainNavActive("/tag/2026-11-10", "/tag")).toBe(true);
+    expect(isSiteMainNavActive("/jahr", "/jahr")).toBe(true);
+    expect(isSiteMainNavActive("/kompromiss", "/jahr")).toBe(false);
     expect(isSiteMainNavActive("/monat/2026-10", "/monat")).toBe(true);
     expect(isSiteMainNavActive("/methodik", "/methodik")).toBe(true);
     expect(isSiteMainNavActive("/beitraege/foo", "/beitraege")).toBe(true);
@@ -23,13 +23,13 @@ describe("siteNav", () => {
   it("marks Woche extra link active only on home hash", () => {
     expect(isSiteMobileExtraNavActive("/", "/#woche", "#woche")).toBe(true);
     expect(isSiteMobileExtraNavActive("/", "/#woche", "")).toBe(false);
-    expect(isSiteMobileExtraNavActive("/simulator", "/#woche", "#woche")).toBe(false);
+    expect(isSiteMobileExtraNavActive("/kompromiss", "/#woche", "#woche")).toBe(false);
   });
 
   it("maps every main nav href to an app route segment", () => {
     const appRoot = path.join(process.cwd(), "app");
     for (const item of SITE_MAIN_NAV) {
-      const segment = item.href === "/" ? "" : item.href.replace(/^\//, "");
+      const segment = item.href.replace(/^\//, "");
       const pageFile = path.join(appRoot, segment, "page.tsx");
       expect(existsSync(pageFile)).toBe(true);
     }
@@ -40,18 +40,21 @@ describe("siteNav", () => {
     }
   });
 
-  it("replaces Ort and Vision with Simulator", () => {
+  it("P1: Jahr in der Nav, Kompromiss und Vision nicht in der Hauptnav", () => {
     const labels = SITE_MAIN_NAV.map((item) => item.label);
     const hrefs = SITE_MAIN_NAV.map((item) => item.href);
-    expect(labels).toContain("Simulator");
-    expect(hrefs).toContain("/simulator");
-    expect(labels).not.toContain("Ort");
+    expect(labels).toContain("Jahr");
+    expect(hrefs).toContain("/jahr");
+    expect(labels).not.toContain("Simulator");
     expect(labels).not.toContain("Vision");
-    expect(hrefs).not.toContain("/ort");
+    expect(labels).not.toContain("Gestern");
+    expect(hrefs).not.toContain("/kompromiss");
     expect(hrefs).not.toContain("/vision");
-    expect(SITE_MAIN_NAV_STATIC_ROUTES).toContain("/simulator");
-    expect(SITE_MAIN_NAV_STATIC_ROUTES).not.toContain("/ort");
+    expect(hrefs).not.toContain("/simulator");
+    expect(SITE_MAIN_NAV_STATIC_ROUTES).toContain("/jahr");
+    expect(SITE_MAIN_NAV_STATIC_ROUTES).toContain("/kompromiss");
     expect(SITE_MAIN_NAV_STATIC_ROUTES).not.toContain("/vision");
+    expect(SITE_MAIN_NAV_STATIC_ROUTES).not.toContain("/simulator");
   });
 
   it("keeps mobile extra anchors on documented home sections", () => {

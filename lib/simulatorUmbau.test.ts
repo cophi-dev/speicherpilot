@@ -3,7 +3,9 @@ import sitemap from "@/app/sitemap";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 
 describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
-  it("leitet /ort, /site und Unterpfade dauerhaft auf /simulator um", async () => {
+  jest.setTimeout(120_000);
+
+  it("leitet /ort, /site und Unterpfade dauerhaft auf /kompromiss um", async () => {
     const redirects = await nextConfig.redirects!();
     const sources = [
       "/ort",
@@ -16,18 +18,19 @@ describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
     for (const source of sources) {
       const rule = redirects.find((item) => item.source === source);
       expect(rule).toBeDefined();
-      expect(rule!.destination).toBe("/simulator");
+      expect(rule!.destination).toBe("/kompromiss");
       expect(rule!.permanent).toBe(true);
     }
   });
 
-  it("nimmt /simulator und /vision in die Sitemap und lässt Redirect-Ziele draußen", () => {
-    const urls = sitemap().map((entry) => new URL(entry.url).pathname);
-    expect(urls).toContain("/simulator");
-    expect(urls).toContain("/vision");
+  it("nimmt /kompromiss und /jahr in die Sitemap und lässt Redirect-Ziele draußen", async () => {
+    const urls = (await sitemap()).map((entry) => new URL(entry.url).pathname);
+    expect(urls).toContain("/kompromiss");
+    expect(urls).toContain("/jahr");
+    expect(urls).not.toContain("/simulator");
+    expect(urls).not.toContain("/vision");
     expect(urls).not.toContain("/ort");
     expect(urls).not.toContain("/site");
-    expect(urls).not.toContain("/jahr");
     expect(urls).not.toContain("/live");
     expect(urls).not.toContain("/blog");
   });

@@ -12,7 +12,11 @@ export type MarginalCaptureRow = {
   note?: string;
 };
 
+/** Legacy default; Tag-/Monatsseiten leiten den Key aus dem Datum ab. */
 export const NATIONAL_FLEET_MONTH_KEY = "2026-10";
+
+/** Abgeschlossene Modellmonate unter data/national-fleet/ (manifest.json). */
+export const NATIONAL_FLEET_MONTH_KEYS = ["2026-10", "2026-11"] as const;
 export const NATIONAL_FLEET_FACTORS = [1, 2, 5, 10] as const;
 export type NationalFleetFactor = (typeof NATIONAL_FLEET_FACTORS)[number];
 
@@ -39,8 +43,8 @@ export const NATIONAL_FLEET_STRATEGY_UI = {
 
 export type NationalFleetStrategyUi = keyof typeof NATIONAL_FLEET_STRATEGY_UI;
 
-export const NATIONAL_FLEET_DEFAULT_STRATEGY: NationalFleetStrategyUi = "ueberschuss";
-export const NATIONAL_FLEET_DEFAULT_FACTOR: NationalFleetFactor = 1;
+export const NATIONAL_FLEET_DEFAULT_STRATEGY: NationalFleetStrategyUi = "spitze";
+export const NATIONAL_FLEET_DEFAULT_FACTOR: NationalFleetFactor = 2;
 
 const DT_H = 0.25;
 const ETA = Math.sqrt(ROUND_TRIP_EFFICIENCY);
@@ -72,7 +76,11 @@ export type NationalFleetMonthBundle = {
 };
 
 export function nationalFleetMonthAvailable(monthKey: string): boolean {
-  return monthKey === NATIONAL_FLEET_MONTH_KEY;
+  return (NATIONAL_FLEET_MONTH_KEYS as readonly string[]).includes(monthKey);
+}
+
+export function nationalFleetMonthKeyForDay(dayKey: string): string {
+  return dayKey.slice(0, 7);
 }
 
 export function parseFleetMarginal(bundle: NationalFleetMonthBundle): MarginalCaptureRow[] {
@@ -220,15 +228,48 @@ export function marketPeakWithExactFleet(
   return { afterMw, reductionMw, reductionPct };
 }
 
+export function monthStatsFromRunSeries(
+  run: NationalFleetRunSeries,
+  factor: NationalFleetFactor,
+): NationalFleetMonthStats {
+  const baselinePeakMw = Math.max(...run.r_mw);
+  const afterPeakMw = Math.max(...run.r_prime_mw);
+  let chargeMwh = 0;
+  let dischargeMwh = 0;
+  for (let t = 0; t < run.intervalCount; t += 1) {
+    chargeMwh += run.c_mw[t] * DT_H;
+    dischargeMwh += run.d_mw[t] * DT_H;
+  }
+  const lossMwh = chargeMwh * (1 - ETA * ETA);
+  return {
+    chargeGwh: chargeMwh / 1000,
+    dischargeGwh: dischargeMwh / 1000,
+    lossGwh: lossMwh / 1000,
+    peakAfterGw: afterPeakMw / 1000,
+    peakReductionGw: (baselinePeakMw - afterPeakMw) / 1000,
+    peakReductionPct: baselinePeakMw !== 0 ? ((baselinePeakMw - afterPeakMw) / baselinePeakMw) * 100 : 0,
+    surplusCaptureGwh: null,
+    surplusCaptureSharePct: null,
+    socStartGwh: run.e_start_mwh[0] / 1000,
+    socEndGwh: run.e_end_mwh[run.intervalCount - 1] / 1000,
+    fleetPowerGw: (NATIONAL_BASE_FLEET.powerMw * Math.max(0, factor - 1)) / 1000,
+    fleetEnergyGwh: (NATIONAL_BASE_FLEET.energyMwh * Math.max(0, factor - 1)) / 1000,
+  };
+}
+
 export function monthStatsForRun(
   bundle: NationalFleetMonthBundle,
   factor: NationalFleetFactor,
   strategy: NationalFleetStrategyUi,
+  fallbackRun?: NationalFleetRunSeries,
 ): NationalFleetMonthStats {
   const stats = bundle.summary[String(factor)]?.[NATIONAL_FLEET_STRATEGY_UI[strategy].fileKey] as
     | Record<string, number>
     | undefined;
   if (!stats) {
+    if (fallbackRun) {
+      return monthStatsFromRunSeries(fallbackRun, factor);
+    }
     throw new Error("fehlende Summary");
   }
   const charge =

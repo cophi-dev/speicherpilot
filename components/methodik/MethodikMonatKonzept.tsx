@@ -50,16 +50,16 @@ export async function MethodikMonatKonzept() {
           Modell) ≈ {eurLabel}&nbsp;Mio&nbsp;€ Modellschätzung (Day-Ahead, ohne Entgelte/Degradation).
         </li>
         <li>Quelle: Energy-Charts / Bundesnetzagentur | SMARD.de, CC BY 4.0. Oktober-Läufe: Bundle im Repo.</li>
-        <li id="simulator-kipppunkt">
-          <strong>Simulator · Kipppunkt:</strong> analytisch 64&nbsp;428&nbsp;MW (21.10. 14:00, Restlast 50,96&nbsp;GW
+        <li id="kompromiss-kipppunkt">
+          <strong>Kompromiss · Kipppunkt:</strong> analytisch 64&nbsp;428&nbsp;MW (21.10. 14:00, Restlast 50,96&nbsp;GW
           plus Voll-Laden bei k≈3,9). Abweichung zu interpolierten MIP-Werten (z. B. 64&nbsp;416&nbsp;MW) =
           Rundung/Interpolation, kein Modellbruch.
         </li>
       </ul>
     </section>
-    <section className="v4-content methodik-section" id="simulator-annahmen" aria-labelledby="methodik-simulator-title">
-      <h2 id="methodik-simulator-title" className="v4-chapter-h2">
-        Simulator: Annahmen und Rechtsrahmen
+    <section className="v4-content methodik-section" id="kompromiss-annahmen" aria-labelledby="methodik-kompromiss-title">
+      <h2 id="methodik-kompromiss-title" className="v4-chapter-h2">
+        Kompromiss: Annahmen und Rechtsrahmen
       </h2>
       <ul className="methodik-insights-footnotes">
         <li>
@@ -72,7 +72,7 @@ export async function MethodikMonatKonzept() {
         <li>
           Kipppunkt nur als Hinweislinie, nicht als Steuergröße. Herleitung: 21.10. 14:00, beobachtete Restlast 50,96&nbsp;GW
           plus Voll-Laden der Flotte bei k≈3,9 ergibt analytisch 64&nbsp;428&nbsp;MW (siehe{" "}
-          <a href="#simulator-kipppunkt" className="v4-text-link">
+          <a href="#kompromiss-kipppunkt" className="v4-text-link">
             oben
           </a>
           ).

@@ -529,7 +529,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "kipppunkt-monat",
     term: { de: "Kipppunkt", en: "Tipping point" },
     text: {
-      de: "Flottengröße, ab der reines Preisfahren eine neue Monatsspitze erzeugt. Im Oktober-Simulator liegt sie bei etwa ×3,9.",
+      de: "Flottengröße, ab der reines Preisfahren eine neue Monatsspitze erzeugt. Im Oktober-Kompromiss liegt sie bei etwa ×3,9.",
       en: "Fleet size from which price-only operation creates a new monthly peak. In the October simulator it is around ×3.9.",
     },
   },
@@ -545,8 +545,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "nep-abc",
     term: { de: "NEP A / B / C", en: "NEP A / B / C" },
     text: {
-      de: "Drei Speicherszenarien aus dem Netzentwicklungsplan Strom mit etwa 41, 68 und 94 GW installierter Leistung. Auf /vision werden sie mit einem Jahresrückblick verglichen.",
-      en: "Three storage scenarios from the electricity grid development plan at about 41, 68 and 94 GW installed power. On /vision they are compared with a one-year lookback.",
+      de: "Drei Speicherszenarien aus dem Netzentwicklungsplan Strom mit etwa 41, 68 und 94 GW installierter Leistung. Auf /jahr werden sie mit einem Jahresrückblick verglichen.",
+      en: "Three storage scenarios from the electricity grid development plan at about 41, 68 and 94 GW installed power. On /jahr they are compared with a one-year lookback.",
     },
   },
   {

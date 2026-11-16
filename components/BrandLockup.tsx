@@ -35,13 +35,16 @@ type BrandLockupProps = {
  * on light, paper signet on dark). Which one is visible is decided in CSS: `.dark`
  * shows the dark-background file, including while the header sits on a dark hero.
  */
-export function BrandLockup({ height = HEADER_LOCKUP_HEIGHT }: BrandLockupProps) {
+export function BrandLockup({
+  height = HEADER_LOCKUP_HEIGHT,
+  homeHref = "/",
+}: BrandLockupProps & { homeHref?: string }) {
   const asset = lockupAsset(height);
   const clearSpace = asset.height / 2;
 
   return (
     <Link
-      href="/"
+      href={homeHref}
       aria-label={BRAND_HOME_LABEL}
       className="brand-lockup inline-flex shrink-0 items-center"
       style={{

@@ -7,7 +7,7 @@ import { VISION_CHART_SCOPE } from "@/lib/research/visionJahrScope";
 import { visionJahrCoreDisplayFromJson } from "@/lib/research/visionJahrData";
 import nextConfig from "../../next.config";
 
-describe("/vision Jahresansicht", () => {
+describe("/jahr Jahresansicht", () => {
   it("zeigt Kernzahlen formatiert aus daten_jahr_v1.json", () => {
     const core = visionJahrCoreDisplayFromJson();
     const model = buildResearchVision();
@@ -30,10 +30,10 @@ describe("/vision Jahresansicht", () => {
     expect(html.split(VISION_CHART_SCOPE).length).toBeGreaterThan(4);
   });
 
-  it("leitet /jahr per 308 auf /vision", async () => {
+  it("leitet /vision per 308 auf /jahr", async () => {
     const redirects = await nextConfig.redirects!();
-    const jahr = redirects.find((r) => r.source === "/jahr");
-    expect(jahr).toEqual({ source: "/jahr", destination: "/vision", permanent: true });
-    expect(redirects.find((r) => r.source === "/vision")).toBeUndefined();
+    const vision = redirects.find((r) => r.source === "/vision");
+    expect(vision).toEqual({ source: "/vision", destination: "/jahr", permanent: true });
+    expect(redirects.find((r) => r.source === "/jahr" && r.destination === "/vision")).toBeUndefined();
   });
 });

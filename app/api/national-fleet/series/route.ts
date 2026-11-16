@@ -29,8 +29,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Kein Modellmonat" }, { status: 404 });
   }
 
-  const run = loadNationalFleetRunSeries(factor, strategy);
-  const compareRun = factor !== 1 ? loadNationalFleetRunSeries(1, strategy) : null;
+  const run = loadNationalFleetRunSeries(factor, strategy, { monthKey, dayKey: dateKey ?? undefined });
+  const compareRun =
+    factor !== 1
+      ? loadNationalFleetRunSeries(1, strategy, { monthKey, dayKey: dateKey ?? undefined })
+      : null;
 
   if (dateKey) {
     const slice = sliceFleetDay(run, dateKey);

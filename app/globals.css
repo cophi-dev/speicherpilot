@@ -10221,6 +10221,27 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   border-color: hsl(var(--primary));
   background: hsl(var(--primary) / 0.08);
 }
+.v4-fleet-pill.is-measured:not(.is-active) {
+  color: var(--foreground);
+  border-color: var(--foreground);
+  font-weight: var(--weight-semibold);
+}
+.v4-fleet-strategy-copy {
+  margin: 8px 0 0;
+  max-width: 42rem;
+  font-size: var(--type-14);
+  line-height: var(--lh-body);
+  color: var(--muted-foreground);
+}
+.v4-fleet-graph-meta {
+  margin-top: 12px;
+  font-size: var(--type-14);
+  color: var(--muted-foreground);
+}
+.v4-leitfrage {
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
 .v4-fleet-kpis {
   width: 100%;
   box-sizing: border-box;
@@ -10475,7 +10496,7 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   align-items: baseline;
   gap: 12px;
   font-size: var(--type-14);
-  margin-bottom: 2px;
+  margin-bottom: 6px;
 }
 .v4-fleet-ts-panel-title {
   font-weight: 600;
@@ -10486,6 +10507,52 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 }
 .v4-fleet-ts-svg {
   display: block;
+}
+.v4-fleet-line-r-measured {
+  stroke: hsl(var(--foreground));
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.v4-fleet-line-r-thin {
+  stroke: var(--muted-foreground);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+.v4-fleet-line-rp-main {
+  stroke: hsl(var(--primary));
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.v4-fleet-band-charge {
+  fill: hsl(var(--primary) / 0.22);
+  stroke: none;
+}
+.v4-fleet-band-discharge {
+  fill: hsl(142 55% 38% / 0.28);
+  stroke: none;
+}
+.v4-fleet-tageshorizont {
+  margin: 0 0 8px;
+  font-size: var(--type-14);
+  color: var(--muted-foreground);
+}
+.v4-fleet-energy-context {
+  margin: 12px 0 8px;
+  font-size: var(--type-14);
+  color: var(--muted-foreground);
+}
+.v4-tagesvorlage-modelbox {
+  margin: 32px auto 48px;
+  max-width: 42rem;
+  padding-top: 24px;
+  border-top: 1px solid var(--linie);
+  font-size: var(--type-14);
+  line-height: var(--lh-body);
+  color: var(--muted-foreground);
 }
 .v4-fleet-line-r {
   stroke: hsl(var(--foreground) / 0.55);
@@ -10499,6 +10566,16 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 .v4-fleet-ts-ytick {
   font-size: var(--type-12);
   fill: hsl(var(--muted-foreground));
+}
+.v4-fleet-ts-ytick-halo {
+  paint-order: stroke fill;
+  stroke: hsl(var(--background));
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  fill: hsl(var(--foreground) / 0.72);
+}
+html.dark .v4-fleet-ts-ytick-halo {
+  stroke: hsl(var(--card));
 }
 .v4-fleet-beleg-detail {
   margin: 8px 0 0;

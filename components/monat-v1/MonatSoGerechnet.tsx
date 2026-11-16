@@ -18,8 +18,8 @@ export function MonatSoGerechnet({ model }: { model: MonatV1Model }) {
           Methodik → Monatsmodell
         </Link>
         {" · "}
-        <Link href="/methodik#simulator-annahmen" className="v4-text-link">
-          Simulator-Annahmen
+        <Link href="/methodik#kompromiss-annahmen" className="v4-text-link">
+          Kompromiss-Annahmen
         </Link>
         .
       </p>

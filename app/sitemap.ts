@@ -2,6 +2,6 @@ import type { MetadataRoute } from "next";
 
 import { indexableSitemapEntries } from "@/lib/seo/indexableRoutes";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return indexableSitemapEntries();
 }

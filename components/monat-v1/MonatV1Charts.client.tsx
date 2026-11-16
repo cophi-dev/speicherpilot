@@ -10,6 +10,7 @@ import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
+import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
 const FACTOR_PLOT = [1, 2, 5, 10] as const;
@@ -22,7 +23,7 @@ function yGw(gw: number, yMin: number, yMax: number, plotH: number, padT: number
   return padT + plotH - ((gw - yMin) / (yMax - yMin)) * plotH;
 }
 
-function useLayout(minWidth = 720) {
+function useLayout(minWidth = MONAT_WIDE_VIEWBOX_W) {
   const ref = useRef<HTMLDivElement>(null);
   const [wide, setWide] = useState(false);
   useEffect(() => {
@@ -181,7 +182,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           return (
             <g key={tick}>
               <line x1={vb.L} x2={vb.L + plotW} y1={y} y2={y} stroke="var(--mv-gridline, #e4e4dc)" strokeWidth="1" />
-              <text x={vb.L - 4} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)">
+              <text x={vb.L - 4} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
                 {tick}
               </text>
             </g>
@@ -198,12 +199,12 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               strokeWidth="1"
               strokeDasharray={wide ? "0" : "3 3"}
             />
-            <text x={vb.L - 4} y={refY + 4} textAnchor="end" fill="var(--mv-muted, #43474c)">
+            <text x={vb.L - 4} y={refY + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
               {refPeakGw.toFixed(1).replace(".", ",")}
             </text>
           </g>
         ) : null}
-        <text x={vb.L - 4} y={vb.T - 8} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="12">
+        <text x={vb.L - 4} y={vb.T - 8} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
           GW
         </text>
         {FACTOR_TICKS.map((f) => {
@@ -218,10 +219,17 @@ function HeroChart({ model }: { model: MonatV1Model }) {
                 textAnchor="middle"
                 fill="var(--mv-ink)"
                 fontWeight={400}
+                fontSize="14"
               >
                 ×{f}
               </text>
-              <text x={x} y={vb.T + plotH + 36} textAnchor="middle" fill="var(--mv-muted, #43474c)">
+              <text
+                x={x}
+                y={vb.T + plotH + 36}
+                textAnchor="middle"
+                fill="var(--mv-muted, #43474c)"
+                fontSize="14"
+              >
                 {gw}
               </text>
             </g>
@@ -305,7 +313,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
             stroke="var(--mv-flaeche, #fff)"
             strokeWidth="3"
             paintOrder="stroke"
-            fontSize="10"
+            fontSize="14"
           >
             Kipppunkt ≈×{String(kipF).replace(".", ",")}
           </text>
@@ -508,7 +516,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
 }
 
 function UeberschussChart({ model }: { model: MonatV1Model }) {
-  const { ref, wide } = useLayout(1100);
+  const { ref, wide } = useLayout();
   const vb = wide ? { w: 1152, h: 384, poolW: 520 } : { w: 350, h: 404, poolW: 200 };
   const rowH = wide ? 56 : 52;
   const barH = 18;
@@ -639,8 +647,8 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         </p>
         <HeroChart model={model} />
         <p className={styles.simulatorTry}>
-          <Link href="/simulator" className="v4-text-link">
-            im Simulator selbst ausprobieren
+          <Link href="/kompromiss" className="v4-text-link">
+            Kompromiss selbst ausprobieren
           </Link>
         </p>
       </section>

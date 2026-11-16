@@ -220,7 +220,7 @@ function ExampleHero({
             </div>
             {view === "projekt" ? (
               <p className="site-quiet">
-                <Link href="/simulator">{tx("Zum Simulator →", "To the simulator →")}</Link>
+                <Link href="/kompromiss">{tx("Zum Kompromiss →", "To the compromise →")}</Link>
               </p>
             ) : null}
           </div>
@@ -333,7 +333,7 @@ function ReferenceParkSourceLinks({ facts, language }: { facts: typeof REFERENCE
     <p className="site-quiet">
       <a href={reg.href}>{reg.publisher}</a>
       {" · "}
-      <Link href="/simulator">{tx("Im Simulator ausprobieren", "Try in the simulator")}</Link>
+      <Link href="/kompromiss">{tx("Im Kompromiss ausprobieren", "Try in the compromise")}</Link>
     </p>
   );
 }
@@ -509,7 +509,7 @@ function ReferenceParkGridHero({
                   )}
                 </p>
                 <p>
-                  <Link href="/simulator">{tx("Im Simulator ausprobieren", "Try in the simulator")}</Link>
+                  <Link href="/kompromiss">{tx("Im Kompromiss ausprobieren", "Try in the compromise")}</Link>
                 </p>
               </div>
             </aside>

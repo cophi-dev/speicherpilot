@@ -14,8 +14,8 @@ SpeicherPilot macht Großspeicher, Überschuss und Residuallast in Deutschland m
 - ${origin}/ — Start mit Tagesüberblick und Kennzahlen
 - ${origin}/tag — Archiv einzelner Tage (Restlast, Day-Ahead, Flottenmodell)
 - ${origin}/monat — Monatsbilanz mit Restlastspitze je Fahrweise
-- ${origin}/vision — Jahresansicht NEP-Speicher und Restlastspitze (Netto-Wirkung übers Jahr)
-- ${origin}/simulator — Fahrweisen-Simulator (national, Modellschätzung)
+- ${origin}/jahr — Jahresansicht NEP-Speicher und Restlastspitze (Netto-Wirkung übers Jahr)
+- ${origin}/kompromiss — Kompromiss · Fahrweisen (national; Euro nur in der ×1-Modellschätzung)
 - ${origin}/methodik — Formeln, Annahmen, Grenzen und Quellen
 - ${origin}/beitraege — Fachartikel und Einordnung
 
