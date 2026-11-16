@@ -102,7 +102,7 @@ export function SiteSimulator({
   return (
     <section className="day-paper ort-sim-section" aria-label={finding}>
       <div className="day-hero-inner">
-        <p className="day-kicker">{view === "netz" ? tx("Simulator · derselbe Tag als Linie", "Simulator · the same day as a line") : tx("Simulator · Speichersicht", "Simulator · storage view")}</p>
+        <p className="day-kicker">{view === "netz" ? tx("Kompromiss · derselbe Tag als Linie", "Compromise · the same day as a line") : tx("Kompromiss · Speichersicht", "Compromise · storage view")}</p>
         {view === "netz" ? (
           <div className="sim-field-row">
             <label htmlFor="site-sim-limit-kw" className="sim-kicker">

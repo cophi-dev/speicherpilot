@@ -181,7 +181,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           return (
             <g key={tick}>
               <line x1={vb.L} x2={vb.L + plotW} y1={y} y2={y} stroke="var(--mv-gridline, #e4e4dc)" strokeWidth="1" />
-              <text x={vb.L - 4} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)">
+              <text x={vb.L - 4} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
                 {tick}
               </text>
             </g>
@@ -198,12 +198,12 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               strokeWidth="1"
               strokeDasharray={wide ? "0" : "3 3"}
             />
-            <text x={vb.L - 4} y={refY + 4} textAnchor="end" fill="var(--mv-muted, #43474c)">
+            <text x={vb.L - 4} y={refY + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
               {refPeakGw.toFixed(1).replace(".", ",")}
             </text>
           </g>
         ) : null}
-        <text x={vb.L - 4} y={vb.T - 8} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="12">
+        <text x={vb.L - 4} y={vb.T - 8} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
           GW
         </text>
         {FACTOR_TICKS.map((f) => {
@@ -218,10 +218,17 @@ function HeroChart({ model }: { model: MonatV1Model }) {
                 textAnchor="middle"
                 fill="var(--mv-ink)"
                 fontWeight={400}
+                fontSize="14"
               >
                 ×{f}
               </text>
-              <text x={x} y={vb.T + plotH + 36} textAnchor="middle" fill="var(--mv-muted, #43474c)">
+              <text
+                x={x}
+                y={vb.T + plotH + 36}
+                textAnchor="middle"
+                fill="var(--mv-muted, #43474c)"
+                fontSize="14"
+              >
                 {gw}
               </text>
             </g>
@@ -305,7 +312,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
             stroke="var(--mv-flaeche, #fff)"
             strokeWidth="3"
             paintOrder="stroke"
-            fontSize="10"
+            fontSize="14"
           >
             Kipppunkt ≈×{String(kipF).replace(".", ",")}
           </text>

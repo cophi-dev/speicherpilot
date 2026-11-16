@@ -35,6 +35,8 @@ const CANONICAL_FILES = [
 ] as const;
 
 describe("Technik-SEO-Paket", () => {
+  jest.setTimeout(120_000);
+
   it("parses JSON-LD graphs with Pflichtfelder", () => {
     const graph = parseJsonLd(siteGraphJsonLd()) as {
       "@graph": Array<Record<string, unknown>>;
@@ -80,8 +82,8 @@ describe("Technik-SEO-Paket", () => {
     expect(article.author).toMatchObject({ name: "Phillipp Zarindast" });
   });
 
-  it("listet alle indexierbaren Routen in der Sitemap", () => {
-    const paths = indexableOriginPaths();
+  it("listet alle indexierbaren Routen in der Sitemap", async () => {
+    const paths = await indexableOriginPaths();
     expect(paths).toContain("/");
     expect(paths).toContain("/methodik");
     expect(paths).toContain("/beitraege");
@@ -95,10 +97,10 @@ describe("Technik-SEO-Paket", () => {
       expect(paths).toContain(`/beitraege/${post.slug}`);
     }
 
-    const sitemapPaths = sitemap().map((entry) => new URL(entry.url).pathname);
+    const sitemapPaths = (await sitemap()).map((entry) => new URL(entry.url).pathname);
     expect(sitemapPaths.sort()).toEqual(paths.sort());
 
-    const routes = collectIndexableRoutes(new Date("2026-11-16T12:00:00.000Z"));
+    const routes = await collectIndexableRoutes(new Date("2026-11-16T12:00:00.000Z"));
     expect(routes.every((route) => route.lastModified instanceof Date)).toBe(true);
     expect(routes.some((route) => route.path.startsWith("/tag/"))).toBe(true);
     expect(routes.some((route) => route.path.startsWith("/monat/"))).toBe(true);

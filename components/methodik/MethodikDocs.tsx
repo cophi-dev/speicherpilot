@@ -469,8 +469,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             <MethodikSection id="ort-archetypen" title={methodikSectionLabel("ort-archetypen", language)}>
               <p>
                 {tx(
-                  "Archiv: Die Ort-Seiten sind durch den Simulator ersetzt. Die folgende Dokumentation bleibt als Referenz, ohne Live-Link.",
-                  "Archive: The Ort pages have been replaced by the Simulator. The documentation below remains as a reference, without a live link.",
+                  "Archiv: Die Ort-Seiten sind durch den Kompromiss ersetzt. Die folgende Dokumentation bleibt als Referenz, ohne Live-Link.",
+                  "Archive: The Ort pages have been replaced by the compromise page. The documentation below remains as a reference, without a live link.",
                 )}
               </p>
               <p>
@@ -568,7 +568,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 ))}
               </dl>
               </MethodikSection>
-              <p><Link href="/kompromiss">{tx("Zum Simulator", "To the simulator")}</Link></p>
+              <p><Link href="/kompromiss">{tx("Zum Kompromiss", "To the compromise")}</Link></p>
             </section>
           </article>
           </div>

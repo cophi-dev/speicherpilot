@@ -10567,6 +10567,16 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   font-size: var(--type-12);
   fill: hsl(var(--muted-foreground));
 }
+.v4-fleet-ts-ytick-halo {
+  paint-order: stroke fill;
+  stroke: hsl(var(--background));
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  fill: hsl(var(--foreground) / 0.72);
+}
+html.dark .v4-fleet-ts-ytick-halo {
+  stroke: hsl(var(--card));
+}
 .v4-fleet-beleg-detail {
   margin: 8px 0 0;
   font-size: var(--type-14);

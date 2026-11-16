@@ -529,7 +529,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "kipppunkt-monat",
     term: { de: "Kipppunkt", en: "Tipping point" },
     text: {
-      de: "Flottengröße, ab der reines Preisfahren eine neue Monatsspitze erzeugt. Im Oktober-Simulator liegt sie bei etwa ×3,9.",
+      de: "Flottengröße, ab der reines Preisfahren eine neue Monatsspitze erzeugt. Im Oktober-Kompromiss liegt sie bei etwa ×3,9.",
       en: "Fleet size from which price-only operation creates a new monthly peak. In the October simulator it is around ×3.9.",
     },
   },

@@ -3,10 +3,9 @@ import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { berlinMonthKeyFromDateKey, monthsWithData } from "@/lib/monatCalendar";
 import { BUILD_PROVENANCE } from "@/lib/buildProvenance.generated";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
-import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
+import { loadGermanyView } from "@/lib/germanyView";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
-
-const VORLAUF_INDEX_EXCLUSIVE = 30;
+import { indexableTagPathsFromRecords } from "@/lib/seo/indexableTagRoutes";
 
 export type IndexableRoute = {
   path: string;
@@ -17,12 +16,10 @@ function dateFromIsoDay(dayKey: string): Date {
   return new Date(`${dayKey}T12:00:00.000Z`);
 }
 
-export function collectIndexableRoutes(now = new Date()): IndexableRoute[] {
+function staticIndexableRoutes(now: Date): IndexableRoute[] {
   const snap = loadTagRollSnapshot();
   const buildModified = new Date(BUILD_PROVENANCE.builtAt);
   const snapshotModified = snap.builtAt ? new Date(snap.builtAt) : buildModified;
-  const todayKey = formatBerlinDateKeyFromUtcDate(now);
-  const lastCompleteDayKey = pickLastCompleteDayKey(snap.days, todayKey);
   const dataStandModified = Math.max(snapshotModified.getTime(), buildModified.getTime());
 
   const routes: IndexableRoute[] = [
@@ -42,19 +39,25 @@ export function collectIndexableRoutes(now = new Date()): IndexableRoute[] {
     });
   }
 
-  const records = snap.records;
-  for (let index = VORLAUF_INDEX_EXCLUSIVE; index < records.length; index += 1) {
-    const dayKey = records[index]!.dateKey;
-    if (dayKey > lastCompleteDayKey || dayKey >= todayKey) {
-      continue;
-    }
+  return routes;
+}
+
+export async function collectIndexableRoutes(now = new Date()): Promise<IndexableRoute[]> {
+  const buildModified = new Date(BUILD_PROVENANCE.builtAt);
+  const routes = staticIndexableRoutes(now);
+  const view = await loadGermanyView(now, "/", {});
+  const records = view.auffaelligkeitRecords ?? [];
+  const lastComplete = view.lastCompleteDayKey;
+  const todayKey = view.todayKey;
+
+  for (const path of indexableTagPathsFromRecords(records, lastComplete, todayKey)) {
+    const dayKey = path.slice("/tag/".length);
     routes.push({
-      path: `/tag/${dayKey}`,
+      path,
       lastModified: dateFromIsoDay(dayKey),
     });
   }
 
-  const lastComplete = records[records.length - 1]?.dateKey ?? lastCompleteDayKey;
   for (const monthKey of monthsWithData(records)) {
     routes.push({
       path: `/monat/${monthKey}`,
@@ -68,13 +71,14 @@ export function collectIndexableRoutes(now = new Date()): IndexableRoute[] {
   return routes;
 }
 
-export function indexableOriginPaths(): string[] {
-  return collectIndexableRoutes().map((route) => route.path);
+export async function indexableOriginPaths(): Promise<string[]> {
+  return (await collectIndexableRoutes()).map((route) => route.path);
 }
 
-export function indexableSitemapEntries(now = new Date()) {
+export async function indexableSitemapEntries(now = new Date()) {
   const origin = getPublicSiteOrigin();
-  return collectIndexableRoutes(now).map((route) => ({
+  const routes = await collectIndexableRoutes(now);
+  return routes.map((route) => ({
     url: `${origin}${route.path}`,
     lastModified: route.lastModified,
     changeFrequency: route.path === "/" ? ("hourly" as const) : ("weekly" as const),

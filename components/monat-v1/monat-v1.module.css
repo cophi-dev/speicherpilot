@@ -124,7 +124,7 @@
   width: 100%;
   height: auto;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 12px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
 

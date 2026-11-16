@@ -76,6 +76,7 @@ function SinglePanel({
   yMin,
   yMax,
   yTickValues,
+  plotGutter = 0,
 }: {
   title: string;
   unit: string;
@@ -85,12 +86,14 @@ function SinglePanel({
   yMin: number;
   yMax: number;
   yTickValues?: number[];
+  plotGutter?: number;
 }) {
   const ySpan = yMax - yMin || 1;
   const padTop = 14;
   const padBottom = 6;
   const yAt = (v: number, h: number) => padTop + ((yMax - v) / ySpan) * (h - padTop - padBottom);
   const ticks = yTickValues ?? [];
+  const plotW = Math.max(1, width - plotGutter);
   return (
     <div className="v4-fleet-ts-panel">
       <div className="v4-fleet-ts-panel-head">
@@ -103,18 +106,18 @@ function SinglePanel({
         {ticks.length > 0
           ? ticks.map((v) => {
               const y = yAt(v, height);
-              const labelY = Math.max(padTop - 4, y - 4);
+              const labelY = Math.max(padTop, y - 2);
               return (
                 <g key={v}>
-                  <line x1={0} y1={y} x2={width} y2={y} className="v4-fleet-ts-grid" />
-                  <text x={4} y={labelY} className="v4-fleet-ts-ytick num">
+                  <line x1={plotGutter} y1={y} x2={width} y2={y} className="v4-fleet-ts-grid" />
+                  <text x={6} y={labelY} className="v4-fleet-ts-ytick v4-fleet-ts-ytick-halo num">
                     {formatQuantity(v, "de", 1)}
                   </text>
                 </g>
               );
             })
           : null}
-        {children}
+        <g transform={plotGutter > 0 ? `translate(${plotGutter}, 0)` : undefined}>{children}</g>
       </svg>
     </div>
   );
@@ -298,13 +301,15 @@ export function NationalFleetTimeSeriesChart({
 
   const peakI = isDay ? peakLocal : peakIndexRp(runLike);
   const n = points.length;
+  const plotGutter = tagesvorlageDay && isDay ? 42 : 0;
   const width = scrollWidth > 0 ? scrollWidth : isDay ? Math.max(320, n * 4) : 320;
-  const pxPerQh = width / n;
+  const plotWidth = Math.max(1, width - plotGutter);
+  const pxPerQh = plotWidth / n;
   const panelH =
     tagesvorlageDay && isDay ? 140 : prominentMonth && !isDay ? (monthNarrow ? 194 : 124) : isDay ? 104 : 92;
   const auxPanelH = prominentMonth && !isDay ? (monthNarrow ? 116 : 88) : panelH;
   const auxScaleH = prominentMonth && !isDay ? 124 : panelH;
-  const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
+  const xs = points.map((_, j) => plotGutter + j * pxPerQh + pxPerQh / 2);
   const pad = isDay && tagesvorlageDay ? 14 : 6;
   const rScale = isDay
     ? dayResidualLoadScale(points, compareRp, panelH, pad)
@@ -440,6 +445,7 @@ export function NationalFleetTimeSeriesChart({
             yMin={rScale.min}
             yMax={rScale.max}
             yTickValues={rYTicks}
+            plotGutter={plotGutter}
           >
             {tagesvorlageDay && isDay && factor !== 1 && bands ? (
               <>

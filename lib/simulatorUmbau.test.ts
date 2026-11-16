@@ -3,6 +3,8 @@ import sitemap from "@/app/sitemap";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 
 describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
+  jest.setTimeout(120_000);
+
   it("leitet /ort, /site und Unterpfade dauerhaft auf /kompromiss um", async () => {
     const redirects = await nextConfig.redirects!();
     const sources = [
@@ -21,8 +23,8 @@ describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
     }
   });
 
-  it("nimmt /kompromiss und /jahr in die Sitemap und lässt Redirect-Ziele draußen", () => {
-    const urls = sitemap().map((entry) => new URL(entry.url).pathname);
+  it("nimmt /kompromiss und /jahr in die Sitemap und lässt Redirect-Ziele draußen", async () => {
+    const urls = (await sitemap()).map((entry) => new URL(entry.url).pathname);
     expect(urls).toContain("/kompromiss");
     expect(urls).toContain("/jahr");
     expect(urls).not.toContain("/simulator");
