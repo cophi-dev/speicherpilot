@@ -35,6 +35,7 @@ describe("blog posts", () => {
 
   it("publishes the first article from the markdown, with every citation pointing at a source", () => {
     expect(posts.map((entry) => entry.slug)).toEqual([
+      "netz-updates-kw-46",
       "wann-der-speicher-laden-will",
       SLUG,
     ]);

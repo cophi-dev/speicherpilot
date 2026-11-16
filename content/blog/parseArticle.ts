@@ -2,7 +2,8 @@ import type { BlogFigureId } from "@/content/blog/figures";
 
 export type Inline =
   | { kind: "text"; text: string; strong: boolean }
-  | { kind: "cite"; ids: string[]; strong: boolean };
+  | { kind: "cite"; ids: string[]; strong: boolean }
+  | { kind: "link"; text: string; href: string; strong: boolean };
 
 export type SourceLink = { href: string; text: string };
 
@@ -13,6 +14,8 @@ export type SourceRow = {
   links: SourceLink[];
 };
 
+export type NetzUpdatesChartId = "netz-updates-duration" | "netz-updates-fahrweise";
+
 export type Block =
   | { type: "h2"; id: string; text: string }
   | { type: "p"; inlines: Inline[] }
@@ -20,6 +23,9 @@ export type Block =
   | { type: "ol"; items: Inline[][] }
   | { type: "callout"; title: string; items: Inline[][]; question: Inline[] | null }
   | { type: "figure"; figure: BlogFigureId }
+  | { type: "keyFacts"; rows: { label: string; value: string }[] }
+  | { type: "media"; src: string; alt: string; caption: Inline[] }
+  | { type: "chart"; chart: NetzUpdatesChartId }
   | { type: "sources"; intro: string; headers: string[]; rows: SourceRow[]; note: string };
 
 export type ParsedArticle = {
@@ -33,8 +39,38 @@ const CITE = /\[(Q\d+(?:\s*,\s*Q\d+)*)\]/g;
 
 export function inlineText(items: Inline[]): string {
   return items
-    .map((item) => (item.kind === "text" ? item.text : `[${item.ids.join(", ")}]`))
+    .map((item) => {
+      if (item.kind === "text") {
+        return item.text;
+      }
+      if (item.kind === "link") {
+        return item.text;
+      }
+      return `[${item.ids.join(", ")}]`;
+    })
     .join("");
+}
+
+const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+
+function parseSegment(input: string, strong: boolean): Inline[] {
+  const out: Inline[] = [];
+  let last = 0;
+  const pattern = new RegExp(MARKDOWN_LINK.source, "g");
+  for (const match of input.matchAll(pattern)) {
+    const index = match.index ?? 0;
+    if (index > last) {
+      out.push(...parseCites(input.slice(last, index), strong));
+    }
+    out.push({ kind: "link", text: match[1], href: match[2], strong });
+    last = index + match[0].length;
+  }
+  if (last < input.length) {
+    out.push(...parseCites(input.slice(last), strong));
+  }
+  return out.filter(
+    (item) => item.kind === "cite" || item.kind === "link" || (item.kind === "text" && item.text.length > 0)
+  );
 }
 
 function parseCites(input: string, strong: boolean): Inline[] {
@@ -64,16 +100,39 @@ export function parseInlines(input: string): Inline[] {
   for (const match of source.matchAll(bold)) {
     const index = match.index ?? 0;
     if (index > last) {
-      out.push(...parseCites(source.slice(last, index), false));
+      out.push(...parseSegment(source.slice(last, index), false));
     }
-    out.push(...parseCites(match[1], true));
+    out.push(...parseSegment(match[1], true));
     last = index + match[0].length;
   }
   if (last < source.length) {
-    out.push(...parseCites(source.slice(last), false));
+    out.push(...parseSegment(source.slice(last), false));
   }
   return out;
 }
+
+function isKeyFactsTable(lines: string[]): boolean {
+  const content = lines.filter((line) => line.trim() && !isSeparator(line));
+  if (content.length < 2) {
+    return false;
+  }
+  const headers = splitRow(content[0] ?? "");
+  return headers.join("|") === "Key Fact|Wert";
+}
+
+function parseKeyFacts(lines: string[]): { label: string; value: string }[] {
+  const content = lines.filter((line) => line.trim() && !isSeparator(line));
+  return content.slice(1).map((line) => {
+    const cells = splitRow(line);
+    if (cells.length !== 2) {
+      throw new Error(`Key-Facts-Zeile hat ${cells.length} Spalten: ${line}`);
+    }
+    return { label: cells[0], value: cells[1] };
+  });
+}
+
+const CHART_MARKER = /^<!--\s*chart:(netz-updates-[a-z-]+)\s*-->$/;
+const IMAGE_LINE = /^!\[([^\]]*)\]\(([^)]+)\)$/;
 
 function headingId(text: string): string {
   return text
@@ -200,7 +259,12 @@ export function parseArticleMarkdown(markdown: string): ParsedArticle {
   const lines = markdown
     .replace(/\r\n/g, "\n")
     .split("\n")
-    .map((line) => line.replace(/<!--[\s\S]*?-->/g, ""));
+    .map((line) => {
+      if (CHART_MARKER.test(line.trim())) {
+        return line.trim();
+      }
+      return line.replace(/<!--[\s\S]*?-->/g, "");
+    });
 
   let index = 0;
   const skipBlank = () => {
@@ -226,7 +290,11 @@ export function parseArticleMarkdown(markdown: string): ParsedArticle {
   };
   const description = italic("Untertitel");
   skipBlank();
-  const standLine = italic("Standzeile");
+  let standLine = "";
+  const standPeek = lines[index] ?? "";
+  if (standPeek.match(/^\*(.+)\*$/)) {
+    standLine = italic("Standzeile");
+  }
 
   const blocks: Block[] = [];
   while (index < lines.length) {
@@ -271,11 +339,41 @@ export function parseArticleMarkdown(markdown: string): ParsedArticle {
       blocks.push({ type: "ol", items });
       continue;
     }
+    const chartMatch = line.trim().match(CHART_MARKER);
+    if (chartMatch) {
+      const chart = chartMatch[1] as NetzUpdatesChartId;
+      if (chart !== "netz-updates-duration" && chart !== "netz-updates-fahrweise") {
+        throw new Error(`Unbekannter Chart: ${chart}`);
+      }
+      blocks.push({ type: "chart", chart });
+      index += 1;
+      continue;
+    }
+    const imageMatch = line.trim().match(IMAGE_LINE);
+    if (imageMatch) {
+      const alt = imageMatch[1];
+      const src = imageMatch[2];
+      index += 1;
+      skipBlank();
+      let caption: Inline[] = [];
+      const captionLine = lines[index] ?? "";
+      const captionMatch = captionLine.match(/^\*(.+)\*$/);
+      if (captionMatch) {
+        caption = parseInlines(captionMatch[1]);
+        index += 1;
+      }
+      blocks.push({ type: "media", src, alt, caption });
+      continue;
+    }
     if (line.trim().startsWith("|")) {
       const tableLines: string[] = [];
       while (index < lines.length && lines[index].trim().startsWith("|")) {
         tableLines.push(lines[index]);
         index += 1;
+      }
+      if (isKeyFactsTable(tableLines)) {
+        blocks.push({ type: "keyFacts", rows: parseKeyFacts(tableLines) });
+        continue;
       }
       const table = parseTable(tableLines);
       const previous = blocks[blocks.length - 1];
@@ -300,7 +398,12 @@ export function parseArticleMarkdown(markdown: string): ParsedArticle {
       continue;
     }
     const paragraph = takeParagraph(lines, index);
-    blocks.push({ type: "p", inlines: parseInlines(paragraph.text) });
+    const paragraphText = paragraph.text;
+    const emOnly = paragraphText.match(/^\*(.+)\*$/);
+    blocks.push({
+      type: "p",
+      inlines: parseInlines(emOnly ? emOnly[1] : paragraphText),
+    });
     index = paragraph.next;
   }
 
@@ -360,6 +463,14 @@ function pushBlockText(parts: string[], block: Block, linkMode: "all" | "extra")
     if (block.question) {
       parts.push(inlineText(block.question));
     }
+  } else if (block.type === "keyFacts") {
+    for (const row of block.rows) {
+      parts.push(`${row.label} ${row.value}`);
+    }
+  } else if (block.type === "media") {
+    parts.push(block.alt, inlineText(block.caption));
+  } else if (block.type === "chart") {
+    parts.push(block.chart);
   } else if (block.type === "sources") {
     parts.push(block.intro, ...block.headers);
     for (const row of block.rows) {

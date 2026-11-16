@@ -1,13 +1,28 @@
 {
-  "commit": "14ec15a4f0027aed179c6b33f42e4faac4c308f4",
-  "buildId": "20261116T1020Z",
-  "builtAt": "2026-11-16T10:20:50.141Z",
+  "commit": "ec830cf83ef8cd1e9e174dc27eb5c5b4be77d523",
+  "buildId": "20261116T1259Z",
+  "builtAt": "2026-11-16T12:59:12.246Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/home/LiveTagPreisPanel.tsx",
-    "?? lib/liveTagPreisPanelGeometry.test.ts",
-    "?? lib/liveTagPreisPanelGeometry.ts"
+    "M app/beitraege/[slug]/page.tsx",
+    " M app/globals.css",
+    " M app/sitemap.ts",
+    " M components/beitraege/BeitraegePage.tsx",
+    " M components/blog/BlogArticle.tsx",
+    " M components/blog/BlogPages.test.tsx",
+    " M content/blog/figures.ts",
+    " M content/blog/parseArticle.ts",
+    " M content/blog/posts.test.ts",
+    " M content/blog/posts.ts",
+    " M lib/netzbetreiberNamen.test.ts",
+    "?? components/blog/BlogMediaFigure.tsx",
+    "?? components/blog/netz-updates/",
+    "?? content/blog/netz-updates-kw-46.md",
+    "?? content/blog/netz-updates-kw-46.test.ts",
+    "?? lib/articleJsonLd.ts",
+    "?? lib/netzUpdatesChartData.server.ts",
+    "?? public/blog/netz-updates/"
   ],
   "ci": false
 }

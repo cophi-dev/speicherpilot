@@ -68,6 +68,12 @@ export const BLOG_FIGURES = {
     height: 700,
     alt: "Diagramm: Die mittlere Tagesspanne des Day-Ahead-Preises beträgt 130 Euro pro Megawattstunde ohne zusätzliche Speicher, 78 mit 5 Gigawatt und 53 mit 20 Gigawatt zusätzlicher Batterieleistung (Modellrechnung, Fraunhofer ISE, Gebote 2025).",
   },
+  kw46Deckblatt: {
+    src: "/blog/netz-updates/kw-46/deckblatt.png",
+    width: 1080,
+    height: 1350,
+    alt: "Netz-Updates KW 46: drei Großspeicher, alle mit 4 h, nur bei einem ist die Fahrweise vorgegeben. Vorschau Speichersdorf, Stadorf, Vöhringen.",
+  },
 } as const satisfies Record<string, BlogFigure>;
 
 export type BlogFigureId = keyof typeof BLOG_FIGURES;

@@ -26,11 +26,31 @@ export async function generateMetadata({
     return {};
   }
   const canonical = `/beitraege/${post.slug}`;
+  const ogImage = post.ogImagePath
+    ? {
+        url: post.ogImagePath,
+        width: 1080,
+        height: 1350,
+        alt: post.title,
+      }
+    : undefined;
+  const social = socialMeta({ title: post.title, description: post.description, url: canonical });
   return {
     title: post.title,
     description: post.description,
     alternates: { canonical },
-    ...socialMeta({ title: post.title, description: post.description, url: canonical }),
+    ...social,
+    openGraph: {
+      ...social.openGraph,
+      type: "article",
+      publishedTime: post.published,
+      authors: post.author ? [post.author] : undefined,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+    twitter: {
+      ...social.twitter,
+      ...(ogImage ? { images: [ogImage.url] } : {}),
+    },
   };
 }
 
