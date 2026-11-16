@@ -77,7 +77,7 @@ Wie stark die Fahrweise zählt, zeigt ein einzelner Tag. Am Mittwoch, 21.10.2026
 <!-- chart:netz-updates-duration -->
 <!-- chart:netz-updates-fahrweise -->
 
-*Grafiken: Karte 5 (karten/05_beobachtung.png, Senkung je Flottenstufe für 1,76 h und 4 h) und Karte 6 (karten/06_fahrweise.png, Tagesprofil 21.10. mit Lade- und Entladefenstern beider Fahrweisen). Interaktiv auf [speicherpilot.app/simulator](https://www.speicherpilot.app/simulator) und [speicherpilot.app/monat/2026-10](https://www.speicherpilot.app/monat/2026-10).*
+*Interaktiv: [speicherpilot.app/monat/2026-10](https://www.speicherpilot.app/monat/2026-10) und [speicherpilot.app/simulator](https://www.speicherpilot.app/simulator).*
 
 Meine These: Speichersdorf zeigt, wie ein Netzbetreiber Fahrweise einkauft. Bei Stadorf und Vöhringen ist sie öffentlich offen.
 
