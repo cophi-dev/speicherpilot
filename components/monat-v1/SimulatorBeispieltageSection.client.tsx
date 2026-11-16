@@ -345,7 +345,7 @@ function DayChart({
         strokeWidth={1.25}
       />
       <line x1={vb.L} y1={priceT} x2={vb.L} y2={priceT + vb.priceH} stroke={colors.ink} strokeWidth={1.25} />
-      <SvgText x={vb.L} y={yP(topPriceTick) - 6} fill={colors.muted}>
+      <SvgText x={vb.L + 2} y={priceT - 6} fill={colors.muted}>
         €/MWh
       </SvgText>
       {[0, 6, 12, 18, 24].map((h) => {

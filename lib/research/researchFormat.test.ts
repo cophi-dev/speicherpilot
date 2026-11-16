@@ -91,8 +91,8 @@ describe("Gestern vs. letzter voller Tag", () => {
       "LETZTER VOLLSTÄNDIGER TAG · MO, 09.11.2026 · NATIONAL · TAGESHORIZONT"
     );
     expect(saturationSectionH2(dayStub, "yesterday")).toMatch(/^Gestern brachte/);
-    expect(saturationSectionH2(dayStub, "latestComplete")).toBe(
-      "Am 09.11. brachte ab ×5 jedes weitere GW kaum noch etwas."
+    expect(saturationSectionH2(dayStub, "latestComplete")).toMatch(
+      /Am 09\.11\. brachte ab ×5 jedes weitere GW kaum noch etwas[;,.]/,
     );
   });
 

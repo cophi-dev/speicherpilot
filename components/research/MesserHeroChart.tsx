@@ -7,10 +7,18 @@ import type { ResearchDayModel, ResearchFactor } from "@/lib/research/researchTy
 import { labelBox, placePeakPointLabel } from "@/lib/chartLabelLayout";
 import { formatResearchPeakPointLabel } from "@/lib/research/researchFormat";
 import {
+  collidesWithPath,
+  labelBoxPx,
+  linesWithinPx,
+  placeLineEndLabel,
+  type PlotPoint,
+} from "@/lib/messerHeroLabels";
+import {
   messerHeroAxis,
   messerHeroPlotBounds,
   messerHeroYMap,
 } from "@/lib/research/messerHeroAxis";
+import { useTypographicSvgFontSize } from "@/lib/svgTypographicFont";
 
 import styles from "@/components/research/research.module.css";
 
@@ -19,6 +27,7 @@ const PAD_X = 40;
 const PAD_RIGHT = 44;
 const MARGIN_COL_W = 48;
 const HIT = 44;
+const EQUIV_GW = 0.12;
 
 function xMap(index: number, n: number, width: number) {
   const inner = width - PAD_X - 36;
@@ -46,6 +55,7 @@ export function MesserHeroChart({
 }) {
   const reduced = useReducedMotion();
   const svgRef = useRef<SVGSVGElement>(null);
+  const fs = useTypographicSvgFontSize(svgRef, width, 12);
 
   const yAxis = useMemo(() => messerHeroAxis(model, factor), [model, factor]);
   const yMin = yAxis.min;
@@ -58,6 +68,8 @@ export function MesserHeroChart({
 
   const stages = useMemo(() => FACTORS.map((f) => model.stages.find((s) => s.factor === f)!), [model.stages]);
   const active = model.stages.find((s) => s.factor === factor)!;
+  const stage5 = model.stages.find((s) => s.factor === 5)!;
+  const stage10 = model.stages.find((s) => s.factor === 10)!;
 
   const peakIdx = useMemo(() => {
     let idx = 0;
@@ -72,10 +84,18 @@ export function MesserHeroChart({
   }, [model.series]);
 
   const n = model.series.length;
+  const plotTop = messerHeroPlotBounds(height).top;
+  const plotBottom = messerHeroPlotBounds(height).bottom;
+  const labelX = width - PAD_RIGHT - 4;
 
-  const line = model.series
-    .map((p, i) => `${i === 0 ? "M" : "L"}${xMap(i, n, width).toFixed(1)},${yMap(p.residualGw).toFixed(1)}`)
-    .join(" ");
+  const pathPoints = useMemo((): PlotPoint[] => {
+    return model.series.map((p, i) => ({
+      x: xMap(i, n, width),
+      y: yMap(p.residualGw),
+    }));
+  }, [model.series, n, width, yMap]);
+
+  const line = pathPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
 
   const cappedPaths = useMemo(() => {
     const cap = active.capGw;
@@ -106,22 +126,41 @@ export function MesserHeroChart({
   const px = xMap(peakIdx, n, width);
   const py = yMap(peak.residualGw);
   const capY = yMap(active.capGw);
-  const stage5 = model.stages.find((s) => s.factor === 5)!;
-  const x5mit4hCapGw = model.peakGw - stage5.reduction4hGw;
-  const unifiedEquiv = factor === 10 && Math.abs(active.capGw - x5mit4hCapGw) < 0.2;
-  const ghost4hGw = unifiedEquiv ? active.capGw : model.peakGw - active.reduction4hGw;
-  const ghost4hY = yMap(ghost4hGw);
+
+  const five4hCapGw = model.peakGw - stage5.reduction4hGw;
+  const x10eqX5_4h = Math.abs(stage10.capGw - five4hCapGw) < EQUIV_GW;
+  const equivY = yMap(stage10.capGw);
+
+  const ghostGw = model.peakGw - active.reduction4hGw;
+  const ghostY = yMap(ghostGw);
+
+  const showGhostLine =
+    !linesWithinPx(ghostY, capY, 3) &&
+    !(x10eqX5_4h && linesWithinPx(ghostY, equivY, 3));
 
   const peakLabelText = formatResearchPeakPointLabel(model.peakGw, model.peakTime);
-  const peakLabel = placePeakPointLabel({
+  const peakLabelBase = placePeakPointLabel({
     pointX: px,
     pointY: py,
     text: peakLabelText,
     plotLeft: PAD_X,
     plotRight: width - MARGIN_COL_W,
-    plotTop: messerHeroPlotBounds(height).top,
+    plotTop,
     topTickLabelBaselineY: yMap(yMax) + 4,
   });
+
+  const peakLabel = useMemo(() => {
+    const ySteps = [0, -16, 16, -32, 32];
+    for (const dy of ySteps) {
+      const y = peakLabelBase.y + dy;
+      const box = labelBoxPx(peakLabelBase.x, y, peakLabelBase.anchor, peakLabelText, fs);
+      if (!collidesWithPath(box, pathPoints, 6)) {
+        return { ...peakLabelBase, y };
+      }
+    }
+    return { ...peakLabelBase, y: peakLabelBase.y - 24 };
+  }, [fs, pathPoints, peakLabelBase, peakLabelText]);
+
   const peakLabelBox = labelBox(peakLabel.x, peakLabel.y, peakLabel.anchor, peakLabelText);
 
   const snapFromClientY = useCallback(
@@ -151,10 +190,40 @@ export function MesserHeroChart({
     [height, onFactor, stages, width, yMax, yMin],
   );
 
-  const labelRows = FACTORS.map((f) => {
-    const cap = model.stages.find((s) => s.factor === f)!.capGw;
-    return { f, y: yMap(cap), active: f === factor };
+  const inactiveCaps = FACTORS.filter((f) => f !== factor).filter((f) => {
+    if (x10eqX5_4h && f === 10) return false;
+    const y = yMap(model.stages.find((s) => s.factor === f)!.capGw);
+    if (linesWithinPx(y, capY, 3)) return false;
+    if (x10eqX5_4h && linesWithinPx(y, equivY, 3)) return false;
+    if (linesWithinPx(y, ghostY, 3)) return false;
+    return true;
   });
+
+  const endLabels = useMemo(() => {
+    const items: Array<{ text: string; lineY: number; fill: string }> = [];
+    if (x10eqX5_4h) {
+      items.push({ text: "×10 = ×5 mit 4 h", lineY: equivY, fill: "var(--research-fg)" });
+    }
+    if (showGhostLine) {
+      items.push({
+        text: `×${factor} · 4 h`,
+        lineY: ghostY,
+        fill: "var(--research-muted)",
+      });
+    }
+    return items.map((item) => {
+      const placed = placeLineEndLabel({
+        text: item.text,
+        lineY: item.lineY,
+        x: labelX,
+        path: pathPoints,
+        plotTop,
+        plotBottom,
+        fontSize: fs,
+      });
+      return { ...item, ...placed };
+    });
+  }, [equivY, factor, fs, ghostY, labelX, pathPoints, plotBottom, plotTop, showGhostLine, x10eqX5_4h]);
 
   const gripTop = 20;
   const gripH = height - 60;
@@ -173,48 +242,18 @@ export function MesserHeroChart({
       {yAxis.ticks.map((tick) => (
         <g key={tick}>
           <line x1={PAD_X} x2={width - PAD_RIGHT} y1={yMap(tick)} y2={yMap(tick)} stroke="var(--research-line)" />
-          <text x={32} y={yMap(tick) + 4} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text
+            x={32}
+            y={yMap(tick) + 4}
+            textAnchor="end"
+            fontSize={fs}
+            fill="var(--research-muted)"
+            fontFamily="var(--font-jetbrains-mono)"
+          >
             {Number.isInteger(tick) ? tick : tick.toFixed(1)}
           </text>
         </g>
       ))}
-      {!unifiedEquiv ? (
-        <line
-          x1={PAD_X}
-          x2={width - PAD_RIGHT}
-          y1={ghost4hY}
-          y2={ghost4hY}
-          stroke="var(--research-muted)"
-          strokeWidth={1.5}
-          strokeDasharray="4 4"
-          opacity={0.7}
-        />
-      ) : null}
-      {unifiedEquiv ? (
-        <text
-          x={width - PAD_RIGHT - 4}
-          y={capY + 4}
-          textAnchor="end"
-          fontSize={12}
-          fill="var(--research-fg)"
-          fontFamily="var(--font-jetbrains-mono)"
-          className={styles.peakPointLabelText}
-        >
-          ×10 = ×5 mit 4 h
-        </text>
-      ) : (
-        <text
-          x={width - PAD_RIGHT - 4}
-          y={ghost4hY - 8}
-          textAnchor="end"
-          fontSize={12}
-          fill="var(--research-muted)"
-          fontFamily="var(--font-jetbrains-mono)"
-          className={styles.peakPointLabelText}
-        >
-          ×{factor} · 4 h
-        </text>
-      )}
       {cappedPaths.map((d, i) => (
         <motion.path
           key={`${factor}-${i}`}
@@ -225,20 +264,43 @@ export function MesserHeroChart({
           transition={reduced ? { duration: 0 } : { duration: 0.25 }}
         />
       ))}
-      {labelRows.map(({ f, y, active: isOn }) => (
-        <g key={f}>
+      <path d={line} fill="none" stroke="var(--research-fg)" strokeWidth={1.5} />
+      {inactiveCaps.map((f) => {
+        const y = yMap(model.stages.find((s) => s.factor === f)!.capGw);
+        return (
           <line
+            key={f}
             x1={PAD_X}
             x2={width - PAD_RIGHT}
             y1={y}
             y2={y}
-            stroke={isOn ? "var(--research-accent)" : "var(--research-dim)"}
-            strokeWidth={isOn ? 2 : 1}
-            strokeDasharray={isOn ? undefined : "1 3"}
+            stroke="var(--research-dim)"
+            strokeWidth={1}
+            strokeDasharray="1 3"
           />
-        </g>
-      ))}
-      <path d={line} fill="none" stroke="var(--research-fg)" strokeWidth={1.5} />
+        );
+      })}
+      {showGhostLine ? (
+        <line
+          x1={PAD_X}
+          x2={width - PAD_RIGHT}
+          y1={ghostY}
+          y2={ghostY}
+          stroke="var(--research-muted)"
+          strokeWidth={1.5}
+          strokeDasharray="4 4"
+          opacity={0.7}
+        />
+      ) : null}
+      <motion.line
+        x1={PAD_X}
+        x2={width - PAD_RIGHT}
+        initial={false}
+        animate={{ y1: capY, y2: capY }}
+        transition={reduced ? { duration: 0 } : { duration: 0.25 }}
+        stroke="var(--research-accent)"
+        strokeWidth={2}
+      />
       <circle cx={px} cy={py} r={3.5} fill="var(--research-fg)" />
       <motion.line
         x1={px}
@@ -249,15 +311,20 @@ export function MesserHeroChart({
         stroke="var(--research-accent)"
         strokeWidth={2}
       />
-      <motion.line
-        x1={PAD_X}
-        x2={width - PAD_RIGHT}
-        initial={false}
-        animate={{ y1: capY, y2: capY }}
-        transition={reduced ? { duration: 0 } : { duration: 0.25 }}
-        stroke="var(--research-accent)"
-        strokeWidth={2}
-      />
+      {endLabels.map((lab) => (
+        <text
+          key={lab.text}
+          x={lab.x}
+          y={lab.y}
+          textAnchor={lab.anchor}
+          fontSize={fs}
+          fill={lab.fill}
+          fontFamily="var(--font-jetbrains-mono)"
+          className={styles.peakPointLabelText}
+        >
+          {lab.text}
+        </text>
+      ))}
       <g aria-hidden="true">
         <rect
           className={styles.peakPointLabelBackdrop}
@@ -271,7 +338,7 @@ export function MesserHeroChart({
           x={peakLabel.x}
           y={peakLabel.y}
           textAnchor={peakLabel.anchor}
-          fontSize={12}
+          fontSize={fs}
           fill="var(--research-fg)"
           fontFamily="var(--font-jetbrains-mono)"
           className={styles.peakPointLabelText}
@@ -312,14 +379,17 @@ export function MesserHeroChart({
             }}
           />
         ))}
-        {labelRows.map(({ f, y, active: isOn }) =>
-          unifiedEquiv && f === 10 ? null : (
+        {FACTORS.map((f) => {
+          if (x10eqX5_4h && f === 10) return null;
+          const y = yMap(model.stages.find((s) => s.factor === f)!.capGw);
+          const isOn = f === factor;
+          return (
             <text
               key={f}
               x={width - 8}
               y={y + 4}
               textAnchor="end"
-              fontSize={isOn ? 14 : 12}
+              fontSize={isOn ? fs + 2 : fs}
               fontWeight={isOn ? 600 : 500}
               fill={isOn ? "var(--research-fg)" : "var(--research-muted)"}
               fontFamily="var(--font-jetbrains-mono)"
@@ -328,8 +398,8 @@ export function MesserHeroChart({
             >
               ×{f}
             </text>
-          ),
-        )}
+          );
+        })}
       </g>
       {[0, 6, 12, 18, 24].map((h) => {
         const idx = hourIndex(model, h);
@@ -341,7 +411,7 @@ export function MesserHeroChart({
             x={x}
             y={height - 6}
             textAnchor={h === 0 ? "start" : h === 24 ? "end" : "middle"}
-            fontSize={12}
+            fontSize={fs}
             fill="var(--research-muted)"
             fontFamily="var(--font-jetbrains-mono)"
           >

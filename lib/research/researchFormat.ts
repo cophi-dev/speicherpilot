@@ -59,9 +59,32 @@ export function researchEyebrowGestern(day: ResearchDayModel): string {
   return researchDayEyebrow(day, "yesterday");
 }
 
+/** Stunden mit Überschuss (Restlast &lt; 0) vor 17:00, in GWh (Modell). */
+function chargeOpportunityGwh(series: ResearchDayModel["series"]): number {
+  return series.reduce(
+    (sum, p) => (p.hour < 17 && p.residualGw < 0 ? sum + (-p.residualGw) * 0.25 : sum),
+    0,
+  );
+}
+
+/** Ab ×5 Sättigung: optional Begründung nur wenn Daten beide Kriterien tragen. */
 export function saturationSectionH2(day: ResearchDayModel, perspective: ResearchDayPerspective): string {
-  if (perspective === "yesterday") return "Gestern brachte ab ×5 jedes weitere GW kaum noch etwas.";
-  return `Am ${day.shortLabel} brachte ab ×5 jedes weitere GW kaum noch etwas.`;
+  const lead =
+    perspective === "yesterday"
+      ? "Gestern brachte ab ×5 jedes weitere GW kaum noch etwas"
+      : `Am ${day.shortLabel} brachte ab ×5 jedes weitere GW kaum noch etwas`;
+  const s5 = day.stages.find((s) => s.factor === 5);
+  const s10 = day.stages.find((s) => s.factor === 10);
+  if (!s5 || !s10 || day.series.length === 0) {
+    return `${lead}.`;
+  }
+  const marginalDay = s10.reductionGw - s5.reductionGw;
+  const flatEvening = marginalDay < 0.45;
+  const lowSurplus = chargeOpportunityGwh(day.series) < 6;
+  if (flatEvening && lowSurplus) {
+    return `${lead}, weil die Abendspitze schon flach ist und tagsüber nicht genug Überschuss zum Nachladen da ist.`;
+  }
+  return `${lead}; ab ×5 senkt die Spitze kaum weiter.`;
 }
 
 export function saturationChartAriaLabel(day: ResearchDayModel, perspective: ResearchDayPerspective): string {

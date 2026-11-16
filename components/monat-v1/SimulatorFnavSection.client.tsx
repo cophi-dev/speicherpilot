@@ -45,7 +45,7 @@ export function SimulatorFnavSection({ data }: { data: SimulatorFahrweisenData }
             {pctOfMarket(endpoints.cap62Gw.revenueMioEur, mkt.revenueMioEur)} vom Max.-Erlös · Senkung{" "}
             {formatGw(endpoints.cap62Gw.reductionGw)}
           </p>
-          <p>Der ε-Schnitt — Vertragsform.</p>
+          <p>Der Kompromiss-Schnitt — Vertragsform.</p>
         </article>
         <article className={simStyles.fnavCard}>
           <h3>Deckel 64,41{"\u00A0"}GW</h3>

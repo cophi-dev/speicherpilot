@@ -26,7 +26,7 @@ export function paretoTooltipTime(point: SimulatorFrontPoint, frontCount: number
     return "Spitze zuerst";
   }
   if (point.isEps70) {
-    return "Kompromiss ε-70";
+    return "Kompromiss (70 % der Senkung)";
   }
   return `Front-Punkt ${point.index + 1} von ${frontCount}`;
 }

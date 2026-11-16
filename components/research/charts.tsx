@@ -114,8 +114,7 @@ export function WeekDotsChart({
     const cx = 52 + col * colW;
     const yTip = y(value);
     const barH = Math.max(value > 0.05 ? 3 : 0, yTip - yZero);
-    const labelY = yZero + Math.min(15, Math.max(11, barH * 0.28));
-    return { day, col, cx, value, yTip, barH, labelY };
+    return { day, col, cx, value, yTip, barH };
   });
 
   const yTicks =
@@ -151,7 +150,7 @@ export function WeekDotsChart({
           </text>
         </g>
       ))}
-      {barMeta.map(({ day, cx, value, yTip, barH, labelY }) => {
+      {barMeta.map(({ day, cx, value, yTip, barH }) => {
         const accentSeries = factor === 2;
         const fill = accentSeries
           ? day.isFocus
@@ -160,7 +159,7 @@ export function WeekDotsChart({
           : day.isFocus
             ? "var(--research-accent)"
             : "var(--research-fg)";
-        const labelInside = accentSeries || day.isFocus;
+        const valueText = weekBarValueLabel(value);
         return (
           <g key={day.dateKey}>
             {day.isFocus ? (
@@ -184,18 +183,16 @@ export function WeekDotsChart({
                 opacity={accentSeries ? (day.isFocus ? 1 : 0.85) : useFourHour ? 0.9 : 1}
               />
             ) : null}
-            {value > 0.08 ? (
-              <text
-                x={cx}
-                y={labelY}
-                textAnchor="middle"
-                fontSize={12}
-                fill={labelInside ? "var(--research-bg)" : "var(--research-fg)"}
-                fontFamily="var(--font-jetbrains-mono)"
-              >
-                {weekBarValueLabel(value)}
-              </text>
-            ) : null}
+            {value > 0.08
+              ? chartHaloLabel({
+                  x: cx,
+                  y: Math.max(padTop + 14, yTip - 6),
+                  text: valueText,
+                  textAnchor: "middle",
+                  fill: "var(--research-fg)",
+                  fontSize: 12,
+                })
+              : null}
             <text
               x={cx}
               y={height - padBottom + 14}

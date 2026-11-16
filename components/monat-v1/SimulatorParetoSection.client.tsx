@@ -151,7 +151,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
               <td>{formatGw(mkt.peakGw)}</td>
             </tr>
             <tr className={idx === data.namedIndices.kompromiss ? simStyles.rowActive : undefined}>
-              <th scope="row">Kompromiss (ε-70)</th>
+              <th scope="row">Kompromiss (70 % der Senkung)</th>
               <td>{pctOfMarket(e70.revenueMioEur, mkt.revenueMioEur)}</td>
               <td>{formatGw(e70.reductionGw)}</td>
               <td>{formatGw(e70.peakGw)}</td>

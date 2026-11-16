@@ -31,16 +31,18 @@ function yAtValue(value: number, yMin: number, yMax: number, vb: { T: number; pl
   return vb.T + vb.plotH - ((value - yMin) / (yMax - yMin)) * vb.plotH;
 }
 
+const RENDER_MIN_W = 350;
+
 export function NetzUpdatesFahrweiseChart() {
   const data = loadNetzUpdatesFahrweiseDay();
   const yMin = 20;
   const yMax = 58;
-  const vb = { w: 720, h: 380, L: 48, R: 16, T: 28, B: 52, plotW: 0, plotH: 0 };
+  const vb = { w: 720, h: 400, L: 48, R: 16, T: 28, B: 44, plotW: 0, plotH: 0 };
   vb.plotW = vb.w - vb.L - vb.R;
   vb.plotH = vb.h - vb.T - vb.B;
 
-  /** Mindestens 12 px Schrift bei 390 px Breite (viewBox 720). */
-  const fs = Math.max(12, (12 * vb.w) / 390);
+  /** ≥12 px typografisch bei 350 px Anzeigebreite (13/12 × Sicherheitsmarge). */
+  const fs = (13 * vb.w) / RENDER_MIN_W;
   const fsAxis = fs;
 
   const observed = data.slots.map((s) => s.observedGw);
@@ -48,12 +50,31 @@ export function NetzUpdatesFahrweiseChart() {
   const peak = data.slots.map((s) => s.peakGw);
   const n = data.slots.length;
   const last = n - 1;
+  const endX = xAtIndex(last, vb, n) - 4;
 
   const lineStyles = [
-    { key: "observed", series: observed, stroke: "var(--blog-ink, #1c2429)", width: 1.5, fill: true, label: "beobachtet" },
-    { key: "price", series: price, stroke: "var(--blog-ink, #1c2429)", width: 2, fill: false, label: "Markt" },
-    { key: "peak", series: peak, stroke: "#4ecdc4", width: 2, fill: false, label: "gegen die Spitze" },
+    { key: "observed", series: observed, stroke: "var(--blog-ink, #1c2429)", width: 1.5, label: "beobachtet" },
+    { key: "price", series: price, stroke: "var(--blog-ink, #1c2429)", width: 2, label: "Markt" },
+    { key: "peak", series: peak, stroke: "#4ecdc4", width: 2, label: "gegen die Spitze" },
   ] as const;
+
+  const rawLabels = lineStyles.map((line) => ({
+    label: line.label,
+    lineY: yAtValue(line.series[last]!, yMin, yMax, vb),
+  }));
+  rawLabels.sort((a, b) => a.lineY - b.lineY);
+  const labelStep = fs + 4;
+  const placedLabels: Array<{ label: string; y: number }> = [];
+  let lastBottom = -Infinity;
+  for (const item of rawLabels) {
+    let y = item.lineY - 10;
+    const top = y - fs;
+    if (top < lastBottom + 4) {
+      y += lastBottom + 4 - top;
+    }
+    placedLabels.push({ label: item.label, y });
+    lastBottom = y + 4;
+  }
 
   const title =
     "Tagesprofil 21.10.2026: beobachtete Restlast, Markt fährt nach Preis (Spitze 55,6 GW um 14:00), gegen die Spitze gedeckelt bei 51,7 GW. Zusatzflotte 4,6 GW, Modell Oktober 2026.";
@@ -102,47 +123,39 @@ export function NetzUpdatesFahrweiseChart() {
             />
           ),
         )}
-        {lineStyles.map((line, i) => {
-          const val = line.series[last]!;
-          const x = xAtIndex(last, vb, n);
-          const y = yAtValue(val, yMin, yMax, vb);
-          const labelY = y - 10 - i * 16;
-          return (
-            <text
-              key={`${line.key}-label`}
-              x={x - 4}
-              y={labelY}
-              textAnchor="end"
-              fill="var(--blog-ink, #1c2429)"
-              fontSize={fs}
-              style={{ paintOrder: "stroke fill", stroke: "var(--blog-bg, #fff)", strokeWidth: 3 }}
-            >
-              {line.label}
-            </text>
-          );
-        })}
+        {placedLabels.map((item) => (
+          <text
+            key={item.label}
+            x={endX}
+            y={item.y}
+            textAnchor="end"
+            fill="var(--blog-ink, #1c2429)"
+            fontSize={fs}
+            style={{ paintOrder: "stroke fill", stroke: "var(--blog-bg, #fff)", strokeWidth: 3 }}
+          >
+            {item.label}
+          </text>
+        ))}
         {[0, 6, 12, 18, 24].map((h) => {
           const idx = h === 24 ? last : slotIndexForHour(data.slots, h);
-          const x = h === 24 ? vb.L + vb.plotW : xAtIndex(idx, vb, n);
+          const xTick = h === 24 ? vb.L + vb.plotW : xAtIndex(idx, vb, n);
+          const xLabel = h === 24 ? vb.L + vb.plotW + 4 : xTick;
           const label = `${String(h).padStart(2, "0")}`;
           return (
             <g key={`x-${h}`}>
-              <line x1={x} x2={x} y1={vb.T + vb.plotH} y2={vb.T + vb.plotH + 5} stroke="var(--blog-ink, #1c2429)" strokeWidth="1" />
+              <line x1={xTick} x2={xTick} y1={vb.T + vb.plotH} y2={vb.T + vb.plotH + 5} stroke="var(--blog-ink, #1c2429)" strokeWidth="1" />
               <text
-                x={x}
-                y={vb.h - 10}
-                textAnchor={h === 0 ? "start" : h === 24 ? "end" : "middle"}
+                x={xLabel}
+                y={vb.T + vb.plotH + 20}
+                textAnchor={h === 0 ? "start" : h === 24 ? "start" : "middle"}
                 fill="var(--blog-muted, #6b7280)"
                 fontSize={fsAxis}
               >
-                {label}
+                {h === 24 ? `${label} Uhr` : label}
               </text>
             </g>
           );
         })}
-        <text x={vb.L + vb.plotW / 2} y={vb.h - 24} textAnchor="middle" fill="var(--blog-muted, #6b7280)" fontSize={fsAxis}>
-          Uhr (Europe/Berlin)
-        </text>
       </svg>
       <figcaption className="blog-media-caption">
         Mi 21.10.2026: beobachtet {data.observedPeakGw.toFixed(1).replace(".", ",")} GW um {data.observedPeakLabel}; Markt{" "}
