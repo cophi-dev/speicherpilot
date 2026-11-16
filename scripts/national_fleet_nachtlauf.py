@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta
@@ -22,6 +23,14 @@ from mip_month import DT_H, MonthStorageMip  # noqa: E402
 
 BASE_POWER_MW = 4_644.09022
 BASE_ENERGY_MWH = 8_152.4588
+MODEL_FLEET = {
+    "basePowerMw": BASE_POWER_MW,
+    "baseEnergyMwh": BASE_ENERGY_MWH,
+    "asOfBerlin": "2026-10-31",
+    "source": "battery-charts Großspeicher",
+    "labelDe": "4,64 GW / 8,15 GWh",
+    "convention": "Zusatzflotte ×k = (k−1)× Basis",
+}
 
 BERLIN = ZoneInfo("Europe/Berlin")
 FACTORS = (1, 2, 5, 10)
@@ -55,13 +64,27 @@ def _series(production_types: list, pattern: str) -> list:
     return []
 
 
+def _urlopen_json(url: str, attempts: int = 5) -> dict:
+    last: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(url, timeout=120) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception as exc:  # urllib.HTTPError etc.
+            last = exc
+            if attempt + 1 < attempts:
+                time.sleep(2.0 * (attempt + 1))
+            else:
+                raise
+    raise last  # pragma: no cover
+
+
 def fetch_day_slots(day: str) -> list[dict]:
     start = f"{day}T00:00:00"
     end = f"{day}T23:59:59"
     q = urllib.parse.urlencode({"country": "de", "start": start, "end": end})
     url = f"https://api.energy-charts.info/total_power?{q}"
-    with urllib.request.urlopen(url, timeout=120) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
+    data = _urlopen_json(url)
     unixes = data.get("unix_seconds") or []
     pts = data.get("production_types") or []
     load = _series(pts, r"load \(incl\. self-consumption\)")
@@ -94,12 +117,50 @@ def fetch_day_slots(day: str) -> list[dict]:
                 "wind_solar_mw": ws,
                 "residual_mw": residual,
                 "surplus_mw": max(0.0, ws - lm),
-                "day_ahead_eur_mwh": 0.0,
+                "day_ahead_eur_mwh": float("nan"),
             }
         )
     if len(slots) < 90:
         raise RuntimeError(f"{day}: nur {len(slots)} Viertelstunden (unvollständig)")
     return slots
+
+
+def fetch_day_ahead_prices(day: str) -> dict[str, float]:
+    q = urllib.parse.urlencode({"bzn": "DE-LU", "start": day, "end": day})
+    url = f"https://api.energy-charts.info/v2/price?{q}"
+    envelope = _urlopen_json(url)
+    by_ts: dict[str, float] = {}
+    for row in envelope.get("data") or []:
+        ts = row.get("timestamp")
+        values = row.get("values") or {}
+        price = values.get("day_ahead_price")
+        if ts and price is not None and np.isfinite(float(price)):
+            by_ts[str(ts)] = float(price)
+    return by_ts
+
+
+def attach_prices(slots: list[dict], by_ts: dict[str, float]) -> tuple[int, int]:
+    """Returns (matched, total). Unmatched stay NaN."""
+    matched = 0
+    for slot in slots:
+        p = by_ts.get(slot["timestamp_berlin"])
+        if p is None:
+            # ISO offsets may differ — match on HH:MM within day
+            hm = slot["timestamp_berlin"][11:16]
+            for k, v in by_ts.items():
+                if k[11:16] == hm and k[:10] == slot["timestamp_berlin"][:10]:
+                    p = v
+                    break
+        if p is not None:
+            slot["day_ahead_eur_mwh"] = p
+            matched += 1
+    return matched, len(slots)
+
+
+def market_prices_ok(slots: list[dict], min_coverage: float = 0.9) -> bool:
+    prices = [s["day_ahead_eur_mwh"] for s in slots]
+    ok = [p for p in prices if np.isfinite(p)]
+    return len(ok) >= min_coverage * len(prices) and max(ok, default=0) > 0.01
 
 
 def additional_fleet(factor: int) -> tuple[float, float]:
@@ -147,7 +208,10 @@ def run_json(slots: list[dict], factor: int, strategy: str, horizon: str, day: s
         "r_mw": [float(x) for x in r],
         "r_prime_mw": [float(x) for x in rp],
         "day_ahead_eur_mwh": [s["day_ahead_eur_mwh"] for s in slots],
+        "modelFleet": MODEL_FLEET,
         "provenance": {
+            "horizonLabel": "TAGESHORIZONT",
+            "socStartEndFraction": 0.5,
             "lexPeakFlat": strategy == "min_peak_perfect_foresight",
             "solver": "MonthStorageMip",
             "generatedAt": datetime.now(tz=BERLIN).isoformat(),
@@ -174,16 +238,51 @@ def write_idempotent(path: Path, doc: dict) -> None:
 
 def run_day(day: str) -> dict:
     slots = fetch_day_slots(day)
+    prices_by_ts = fetch_day_ahead_prices(day)
+    matched, total = attach_prices(slots, prices_by_ts)
+    market_ok = market_prices_ok(slots)
+    if not market_ok:
+        print(
+            f"WARN {day}: Day-Ahead unvollständig ({matched}/{total} Viertelstunden) — "
+            "Markt-Fahrweise wird nicht geschrieben",
+            file=sys.stderr,
+        )
+
     month = day[:7]
     out_root = ROOT / "data/national-fleet" / month / "days" / day
-    manifest: dict = {"horizon": "day", "dateBerlin": day, "runs": {}, "generatedAt": datetime.now(tz=BERLIN).isoformat()}
+    out_root.mkdir(parents=True, exist_ok=True)
+    manifest: dict = {
+        "horizon": "day",
+        "dateBerlin": day,
+        "modelFleet": MODEL_FLEET,
+        "dayAhead": {"matchedQuarters": matched, "totalQuarters": total, "marketOk": market_ok},
+        "runs": {},
+        "skipped": [],
+        "generatedAt": datetime.now(tz=BERLIN).isoformat(),
+    }
+    strategies = list(STRATEGIES) if market_ok else [s for s in STRATEGIES if s != "price_oriented_da_arbitrage"]
+    if not market_ok:
+        manifest["skipped"].append(
+            {
+                "strategy": "price_oriented_da_arbitrage",
+                "reason": "day_ahead_eur_mwh nicht verfügbar oder unvollständig",
+            }
+        )
+        for factor in FACTORS:
+            stale = out_root / f"x{factor}_price_oriented_da_arbitrage.json"
+            if stale.exists():
+                stale.unlink()
+
     for factor in FACTORS:
-        for strategy in STRATEGIES:
+        for strategy in strategies:
             doc = run_json(slots, factor, strategy, "day", day)
             name = f"x{factor}_{strategy}.json"
             path = out_root / name
             write_idempotent(path, doc)
-            manifest["runs"][name] = {"path": str(path.relative_to(ROOT)), "sha256": sha256_bytes(json.dumps(doc, sort_keys=True).encode())}
+            manifest["runs"][name] = {
+                "path": str(path.relative_to(ROOT)),
+                "sha256": sha256_bytes(json.dumps(doc, sort_keys=True).encode()),
+            }
     manifest_path = out_root.parent / f"manifest-{day}.json"
     write_idempotent(manifest_path, manifest)
     return manifest
@@ -211,8 +310,10 @@ def main() -> int:
     if not days:
         days.append(berlin_yesterday())
     results = []
-    for day in sorted(set(days)):
+    for i, day in enumerate(sorted(set(days))):
         print(f"day {day} …", flush=True)
+        if i > 0:
+            time.sleep(1.25)
         results.append(run_day(day))
     json.dump({"ok": True, "days": results}, sys.stdout, indent=2)
     print()

@@ -5,6 +5,9 @@ on:
     - cron: "30 4 * * *"
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   nachtlauf:
     runs-on: ubuntu-latest
@@ -25,14 +28,29 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Nachtlauf Vortag
         run: node scripts/national-fleet-nachtlauf.mjs --yesterday
-      - name: Commit fleet data
+      - name: Commit fleet data auf Branch data/nachtlauf
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           if git diff --quiet data/national-fleet; then
-            echo "Keine Änderungen"
+            echo "Keine Änderungen an data/national-fleet"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BRANCH="data/nachtlauf"
+          git fetch origin "$BRANCH" 2>/dev/null || true
+          git checkout -B "$BRANCH"
           git add data/national-fleet
-          git commit -m "chore(national-fleet): nightly batch"
-          git push
+          git commit -m "chore(national-fleet): nightly batch $(date -u +%Y-%m-%d)"
+          git push -u origin "$BRANCH"
+          if gh pr view "$BRANCH" --json number 2>/dev/null | grep -q number; then
+            echo "PR für $BRANCH existiert bereits"
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "data: National-Fleet Nachtlauf" \
+              --body "Automatischer Nachtlauf (Vortag, TAGESHORIZONT). Bitte CI abwarten und mergen."
+          fi

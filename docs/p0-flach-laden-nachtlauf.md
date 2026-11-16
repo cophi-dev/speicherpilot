@@ -17,3 +17,16 @@ Implementierung: `mip_month.solve_min_peak_flat` (Stufe 1 MIP, Stufe 2 LP), TS-F
 - **Idempotenz:** SHA-gleicher Payload wird nicht überschrieben; Schreiben mit `intervalCount < 90` oder leerer Payload wirft einen Fehler.
 
 Monats-Horizont rollierend: gleicher Solver-Pfad wie Oktober (`run_fleet_factor_month.py`); in diesem P0 nur Tagespfad automatisiert — Monats-Backfill weiterhin manuell / separater Batch.
+
+## GitHub Action
+
+- `permissions: contents: write` (nur `GITHUB_TOKEN`, keine zusätzlichen Secrets)
+- Commit auf Branch **`data/nachtlauf`**, automatisches `gh pr create` nach `main` (kein direkter Push auf `main`)
+- Fehler im Nachtlauf → Job rot (`set -euo pipefail`, Python-Exception bricht ab)
+
+## Nachbesserung 1 (Beleg 29.10.)
+
+- **Alt:** `solve_min_peak` (MIP Stufe 1) — **nicht** Greedy-unter-Kappe (klemmte R′ fälschlich flach auf 55,6 GW).
+- **Neu:** `solve_min_peak_flat` bei gleicher Spitze (±0,05 MW).
+- Energiebilanz Tageshorizont SoC 50/50: \(\sum c\eta\Delta t - \sum d\Delta t/\eta \approx 0\) (alt/neu jeweils `ok: true` in `oct29-x5-metrics.json`).
+- Grafik: `scripts/generate_p0_oct29_comparison.py` → `review-artifacts/p0-flach-laden/`.

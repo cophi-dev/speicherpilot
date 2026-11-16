@@ -16,10 +16,15 @@ const runSchema = z.object({
   d_mw: z.array(z.number()),
   r_mw: z.array(z.number()),
   r_prime_mw: z.array(z.number()),
-  provenance: z.object({
-    lexPeakFlat: z.boolean().optional(),
-    generatedAt: z.string(),
-  }),
+    modelFleet: z.object({
+      basePowerMw: z.number(),
+      baseEnergyMwh: z.number(),
+      asOfBerlin: z.string(),
+    }),
+    provenance: z.object({
+      lexPeakFlat: z.boolean().optional(),
+      generatedAt: z.string(),
+    }),
 });
 
 describe("national fleet nachtlauf", () => {
@@ -42,6 +47,11 @@ describe("national fleet nachtlauf", () => {
       d_mw: Array(96).fill(0),
       r_mw: Array(96).fill(40000),
       r_prime_mw: Array(96).fill(39000),
+      modelFleet: {
+        basePowerMw: 4644.09022,
+        baseEnergyMwh: 8152.4588,
+        asOfBerlin: "2026-10-31",
+      },
       provenance: { lexPeakFlat: true, generatedAt: new Date().toISOString() },
     };
     expect(runSchema.parse(sample).horizon).toBe("day");
@@ -65,6 +75,11 @@ describe("national fleet nachtlauf", () => {
       r_mw: Array(96).fill(50000),
       r_prime_mw: Array(96).fill(49000),
       day_ahead_eur_mwh: Array(96).fill(80),
+      modelFleet: {
+        basePowerMw: 4644.09022,
+        baseEnergyMwh: 8152.4588,
+        asOfBerlin: "2026-10-31",
+      },
       provenance: { lexPeakFlat: true, generatedAt: "2026-11-16T12:00:00+01:00" },
     };
     const payload = JSON.stringify(doc);
