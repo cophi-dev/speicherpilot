@@ -12,7 +12,8 @@
     "data:fca": "python3 scripts/build-fca-table.py",
     "data:netz": "python3 scripts/netz/build_netz_demo.py data/netz/netz-demo.json && python3 scripts/netz/pruefe_netz_demo.py data/netz/netz-demo.json",
     "data:ort": "python3 scripts/ort/build_ort_archetypes.py",
-    "morning:x": "tsx --tsconfig tsconfig.json scripts/post-morning-briefing-x.ts"
+    "morning:x": "tsx --tsconfig tsconfig.json scripts/post-morning-briefing-x.ts",
+    "data:fleet-compact": "node scripts/build-fleet-month-compact.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

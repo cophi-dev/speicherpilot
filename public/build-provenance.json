@@ -1,13 +1,22 @@
 {
-  "commit": "14ec15a4f0027aed179c6b33f42e4faac4c308f4",
-  "buildId": "20261116T1020Z",
-  "builtAt": "2026-11-16T10:20:50.141Z",
+  "commit": "6e1edc989adc78c865a6424fc764b94f98cf8b1e",
+  "buildId": "20261116T1301Z",
+  "builtAt": "2026-11-16T13:01:19.379Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/home/LiveTagPreisPanel.tsx",
-    "?? lib/liveTagPreisPanelGeometry.test.ts",
-    "?? lib/liveTagPreisPanelGeometry.ts"
+    "M components/home/NationalFleetMonatSlot.tsx",
+    " M components/monat-v1/MonatV1Charts.client.tsx",
+    "?? app/api/national-fleet/compact/",
+    "?? components/monat-regler/",
+    "?? data/national-fleet/2026-10/fleet-month-compact.json",
+    "?? lib/monatReglerAsset.test.ts",
+    "?? lib/monatReglerAsset.ts",
+    "?? lib/monatReglerKpis.test.ts",
+    "?? lib/monatReglerKpis.ts",
+    "?? lib/monatReglerPflichtzeile.test.ts",
+    "?? lib/monatReglerPflichtzeile.ts",
+    "?? scripts/build-fleet-month-compact.mjs"
   ],
   "ci": false
 }
