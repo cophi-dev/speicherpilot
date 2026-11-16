@@ -4,13 +4,13 @@ import { socialMeta } from "@/lib/siteOg";
 
 import { BeitraegePage } from "@/components/beitraege/BeitraegePage";
 import { getBlogPosts } from "@/content/blog/posts";
-import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
-import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
+import { loadBeitraegeMarktInsights } from "@/lib/beitraegeKontext.server";
 
 const description =
   "Artikel zu Großspeichern und kuratierte externe Meldungen mit Einordnung — geprüft an der Primärquelle.";
 
-export const dynamic = "force-static";
+/** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
+export const revalidate = 1800;
 
 export const metadata: Metadata = {
   title: "Beiträge",
@@ -20,13 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BeitraegeIndexPage() {
-  const snap = loadTagRollSnapshot();
-  const marktInsights = marktInsightsForRoute({
-    route: "beitraege",
-    records: snap.records,
-    fleetPowerGw: snap.fleet.powerGw,
-    fleetEnergyGwh: snap.fleet.energyGwh,
-  });
+  const { marktInsights } = await loadBeitraegeMarktInsights();
 
   return <BeitraegePage posts={getBlogPosts()} marktInsights={marktInsights} />;
 }

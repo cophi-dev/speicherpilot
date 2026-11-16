@@ -1,0 +1,253 @@
+.hero {
+  --mr-bg: var(--surface, #f6f6f3);
+  --mr-ink: #101214;
+  --mr-muted: #43474c;
+  --mr-linie: #dadad3;
+  --mr-flaeche: var(--card, #fff);
+  --mr-grid: #e4e4dc;
+  --mr-rust: #b4532a;
+  --mr-blue: #2f6f8f;
+  --mr-gray: #9aa5ad;
+  --mr-observed: #6b7580;
+  --mr-markt-line: #b4532a;
+  color: var(--mr-ink);
+  margin: 0 auto 1.25rem;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+:global(.dark) .hero {
+  --mr-bg: #0b0d0f;
+  --mr-ink: #e9eef2;
+  --mr-muted: #9ea3a9;
+  --mr-linie: #262b31;
+  --mr-flaeche: #121417;
+  --mr-grid: #1f2529;
+  --mr-rust: #e07a48;
+  --mr-blue: #5a9ec4;
+  --mr-gray: #6b7580;
+  --mr-observed: #6b7580;
+  --mr-markt-line: #ff8a5b;
+}
+
+.h1 {
+  font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.12;
+  margin: 0.5rem 0 0.75rem;
+  text-wrap: balance;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.sliderDesktopOnly {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sliderDesktopOnly {
+    display: block;
+  }
+  .sliderDesktopOnly :global(.frontTrack) {
+    padding-inline: 22px;
+  }
+}
+
+.hero .sliderDesktopOnly :global(.sliderLabel),
+.hero .sliderDesktopOnly :global(.sliderHint) {
+  color: #9ea3a9;
+}
+
+.chipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  min-height: 50px;
+  min-width: 68px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--mr-linie);
+  border-radius: 6px;
+  background: var(--mr-flaeche);
+  color: var(--mr-ink);
+  text-decoration: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.chipSub {
+  font-size: 12px;
+  color: var(--mr-muted);
+  margin-top: 0.1rem;
+}
+
+.chipActive {
+  border-color: var(--mr-ink);
+  box-shadow: inset 0 0 0 1px var(--mr-ink);
+}
+
+.durationRow {
+  font-size: 0.75rem;
+  color: var(--mr-muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  margin: 0;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 0.75rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767px) {
+  .kpiGridDense {
+    gap: 8px 10px;
+    margin: 0.45rem 0 0.55rem;
+  }
+  .kpiGridDense .kpi dt {
+    font-size: 10px;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+  .kpiGridDense .kpi dd {
+    font-size: clamp(20px, 5.5vw, 24px);
+    line-height: 1.05;
+  }
+  .heroMarktKpi .controls {
+    margin-bottom: 0.45rem;
+  }
+  .heroMarktKpi .durationRow {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .kpiGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.kpi dt {
+  font-size: 0.75rem;
+  color: var(--mr-muted);
+  margin: 0 0 4px;
+}
+
+.kpi dd {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.1;
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+@media (min-width: 768px) {
+  .kpi dd {
+    font-size: 32px;
+  }
+}
+
+.chartWrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+  margin: 0.35rem 0 0.5rem;
+  border: 1px solid var(--mr-linie);
+  border-radius: 8px;
+  background: var(--mr-flaeche);
+}
+
+.chartSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ytick,
+.xtick,
+.yUnit,
+.lineLabel {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.ytick,
+.yUnit {
+  fill: var(--mr-ink);
+}
+
+.xtick {
+  fill: var(--mr-muted);
+}
+
+.lineLabel {
+  font-size: 12px;
+}
+
+.caption {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--mr-muted);
+  margin: 0.35rem 0 1rem;
+}
+
+.placeholder {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mr-muted);
+  font-size: 0.875rem;
+}
+
+.brushHint {
+  font-size: 0.75rem;
+  color: var(--mr-muted);
+  margin: 0.35rem 0.65rem 0.5rem;
+  padding: 0 0.25rem;
+}
+
+.tapTooltip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0.5rem 0.35rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--mr-linie);
+  border-radius: 6px;
+  background: var(--mr-flaeche);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.tapTooltipLink {
+  color: var(--mr-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tapTooltipDismiss {
+  font-size: 12px;
+  color: var(--mr-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: auto;
+}

@@ -1,24 +1,7 @@
 import type { MetadataRoute } from "next";
 
-import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
+import { indexableSitemapEntries } from "@/lib/seo/indexableRoutes";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const origin = getPublicSiteOrigin();
-  const lastModified = new Date();
-  return [
-    "/",
-    "/tag",
-    "/monat",
-    "/simulator",
-    "/vision",
-    "/methodik",
-    "/beitraege",
-    "/impressum",
-    "/datenschutz",
-  ].map((path) => ({
-    url: `${origin}${path}`,
-    lastModified,
-    changeFrequency: path === "/" ? "hourly" : "weekly",
-    priority: path === "/" ? 1 : 0.7,
-  }));
+  return indexableSitemapEntries();
 }

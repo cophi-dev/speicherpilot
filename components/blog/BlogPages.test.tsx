@@ -17,8 +17,10 @@ describe("blog pages", () => {
     render(<BlogIndex posts={getBlogPosts()} />);
     expect(screen.getByRole("heading", { level: 1, name: "Blog" })).toBeInTheDocument();
     const links = screen.getAllByRole("link").filter((link) => link.getAttribute("href")?.startsWith("/blog/"));
-    expect(links[0]).toHaveAttribute("href", "/blog/wann-der-speicher-laden-will");
-    expect(links[1]).toHaveAttribute("href", `/blog/${article.slug}`);
+    expect(links[0]).toHaveAttribute("href", "/blog/netz-updates-kw-46");
+    expect(links[1]).toHaveAttribute("href", "/blog/wann-der-speicher-laden-will");
+    expect(links[2]).toHaveAttribute("href", `/blog/${article.slug}`);
+    expect(screen.getByText("16.11.2026")).toBeInTheDocument();
     expect(screen.getByText("04.11.2026")).toBeInTheDocument();
     expect(screen.getByText("28.10.2026")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: BLOG_FIGURES.a2.alt })).toBeInTheDocument();

@@ -1,0 +1,49 @@
+{
+  "measuredAt": "2026-11-16T13:30:28.087Z",
+  "baseUrl": "http://127.0.0.1:3010",
+  "headSha": "3f3a8b5eef8fd9be4c577e5d03a548cb0ed04f1e",
+  "views": {
+    "mobile390Spitze": {
+      "chartTop": 432.9375,
+      "svgViewBox": {
+        "w": 356,
+        "h": 298
+      },
+      "svgClient": {
+        "w": 356,
+        "h": 298
+      },
+      "yLabelFontPx": 12,
+      "heroTop": 64,
+      "sliderRowDisplay": "none"
+    },
+    "tablet768": {
+      "chartTop": 559.828125,
+      "svgViewBox": {
+        "w": 734,
+        "h": 378
+      },
+      "svgClient": {
+        "w": 734,
+        "h": 378
+      },
+      "yLabelFontPx": 12,
+      "heroTop": 111.1875,
+      "sliderRowDisplay": "block"
+    },
+    "mobile390Markt": {
+      "chartTop": 429.28125,
+      "svgViewBox": {
+        "w": 356,
+        "h": 298
+      },
+      "svgClient": {
+        "w": 356,
+        "h": 298
+      },
+      "yLabelFontPx": 12,
+      "heroTop": 64,
+      "sliderRowDisplay": "none"
+    }
+  }
+}

@@ -23,8 +23,8 @@ export function BeitraegePage({
             Beiträge
           </h1>
           <PageLead
-            de="Artikel von SpeicherPilot und kuratierte externe Meldungen — zum Lesen. Veröffentlichen machen Sie selbst."
-            en="Articles from SpeicherPilot and curated external reports — to read. You publish on your own channels."
+            de="Artikel von SpeicherPilot und ausgewählte Meldungen mit Einordnung."
+            en="Articles from SpeicherPilot and selected reports with context."
           />
         </div>
       </header>
@@ -46,6 +46,15 @@ export function BeitraegePage({
                     </h3>
                     <p className="blog-subtitle">{post.description}</p>
                     <p className="blog-meta num">
+                      {post.kind === "netz-updates" ? (
+                        <>
+                          <span>Netz-Updates</span>
+                          <span className="blog-meta-sep" aria-hidden="true">
+                            {" "}
+                            ·{" "}
+                          </span>
+                        </>
+                      ) : null}
                       <time dateTime={post.published}>{post.publishedLabel}</time>
                       <span className="blog-meta-sep" aria-hidden="true">
                         {" "}

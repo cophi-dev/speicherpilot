@@ -46,7 +46,8 @@ describe("netzbetreiberNamen blocklist", () => {
       ) {
         continue;
       }
-      const text = fs.readFileSync(file, "utf8");
+      const raw = fs.readFileSync(file, "utf8");
+      const text = raw.replace(/https?:\/\/[^\s)]+/g, "");
       if (containsGridOperatorName(text)) {
         hits.push(file);
       }

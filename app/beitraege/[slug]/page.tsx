@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { socialMeta } from "@/lib/siteOg";
 import { notFound } from "next/navigation";
 
+import { JsonLd } from "@/components/seo/JsonLd";
+import { articleJsonLd } from "@/lib/seo/jsonLd";
 import { BlogArticle } from "@/components/blog/BlogArticle";
 import { getBlogPost, getBlogPosts } from "@/content/blog/posts";
 
@@ -24,11 +26,31 @@ export async function generateMetadata({
     return {};
   }
   const canonical = `/beitraege/${post.slug}`;
+  const ogImage = post.ogImagePath
+    ? {
+        url: post.ogImagePath,
+        width: 1080,
+        height: 1350,
+        alt: post.title,
+      }
+    : undefined;
+  const social = socialMeta({ title: post.title, description: post.description, url: canonical });
   return {
     title: post.title,
     description: post.description,
     alternates: { canonical },
-    ...socialMeta({ title: post.title, description: post.description, url: canonical }),
+    ...social,
+    openGraph: {
+      ...social.openGraph,
+      type: "article",
+      publishedTime: post.published,
+      authors: post.author ? [post.author] : undefined,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+    twitter: {
+      ...social.twitter,
+      ...(ogImage ? { images: [ogImage.url] } : {}),
+    },
   };
 }
 
@@ -38,5 +60,11 @@ export default async function BeitraegeArticlePage({ params }: { params: Promise
   if (!post) {
     notFound();
   }
-  return <BlogArticle post={post} backHref="/beitraege#artikel" backLabel="Beiträge" />;
+  const articleLd = articleJsonLd(post);
+  return (
+    <>
+      <JsonLd data={{ "@context": "https://schema.org", ...articleLd }} />
+      <BlogArticle post={post} backHref="/beitraege#artikel" backLabel="Beiträge" />
+    </>
+  );
 }
