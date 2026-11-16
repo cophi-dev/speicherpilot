@@ -1,21 +1,17 @@
 {
-  "generatedAt": "2026-11-16T18:49:44.543Z",
+  "generatedAt": "2026-11-16T19:10:00.000Z",
   "metricsFile": "oct29-x5-metrics.json",
-  "pngSha256": "177aa3a2be54009cf6f05096732a7f239a6781ffbde239eca8d0ba14732531bd",
+  "pngLandscape": "oct29-x5-spitze-vorher-nachher.png",
+  "pngPortrait": "oct29-x5-spitze-vorher-nachher-portrait.png",
   "metrics": {
     "day": "2026-10-29",
     "factor": 5,
     "strategy": "bundesweite Restlast-Spitze (min_peak_perfect_foresight)",
     "peakBeforeMw": 64405.9,
-    "peakAfterOldMw": 55608.371657919575,
+    "peakAfterOldMw": 55608.371670253415,
     "peakAfterNewMw": 55608.42167025342,
-    "peakIdenticalMw": 55608.42167025342,
-    "maxChargeOldMw": 18576.36088,
+    "maxChargeOldMw": 17737.171670253418,
     "maxChargeNewMw": 7117.521670253416,
-    "sumChargeOldMwh": 195241.12197911277,
-    "sumChargeNewMwh": 30832.23576005036,
-    "stdChargeOutsideEveningOldMw": 6428.4422840979605,
-    "stdChargeOutsideEveningNewMw": 981.9243985704721,
-    "lexToleranceMw": 0.05
+    "note": "maxCharge ≠ additionalPowerMw (18,576 MW); Lade-Maximum alt = 17,7 GW"
   }
 }

@@ -14,9 +14,22 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# SpeicherPilot design tokens (app/globals.css, light)
+SP_BG = "#f6f6f3"
+SP_FLAECHE = "#ffffff"
+SP_INK = "#101214"
+SP_MUTED = "#5c646c"
+SP_LINIE = "#dadad3"
+SP_MINT = "#147b66"
+SP_CORAL = "#9e2b1a"
+SP_WARM = "#b4532a"
+SP_GRID = "#4a63b8"
 sys.path.insert(0, str(ROOT / "artifacts/october-storage-counterfactual-20261107"))
 from mip_month import (  # noqa: E402
     CHARGE_SMOOTH_MWH_PER_MW_RAMP,
@@ -125,8 +138,11 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "oct29-x5-metrics.json").write_text(json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    _plot(times, r, rp_old, rp_new, c_old, c_new, metrics)
-    print("wrote", OUT / "oct29-x5-spitze-vorher-nachher.png", file=sys.stderr)
+    landscape = OUT / "oct29-x5-spitze-vorher-nachher.png"
+    portrait = OUT / "oct29-x5-spitze-vorher-nachher-portrait.png"
+    _plot(times, r, rp_old, rp_new, c_old, c_new, metrics, landscape, portrait=False)
+    _plot(times, r, rp_old, rp_new, c_old, c_new, metrics, portrait, portrait=True)
+    print("wrote", landscape, "and", portrait, file=sys.stderr)
     print(json.dumps(metrics, indent=2, ensure_ascii=False))
     return 0
 
@@ -139,6 +155,62 @@ def _std_charge_before_17(c: np.ndarray, ts: list[str]) -> float:
     return math.sqrt(sum((x - m) ** 2 for x in xs) / len(xs))
 
 
+def _setup_fonts() -> tuple[str, str]:
+    for path in (
+        ROOT / "public/fonts/SpaceGrotesk-Regular.ttf",
+        ROOT / "public/fonts/SpaceGrotesk-Medium.ttf",
+        ROOT / "public/fonts/JetBrainsMono-Regular.ttf",
+    ):
+        if path.exists():
+            font_manager.fontManager.addfont(str(path))
+    body = "Space Grotesk" if (ROOT / "public/fonts/SpaceGrotesk-Regular.ttf").exists() else "sans-serif"
+    mono = "JetBrains Mono" if (ROOT / "public/fonts/JetBrainsMono-Regular.ttf").exists() else "monospace"
+    return body, mono
+
+
+def _gw_de(x: float, _pos: int) -> str:
+    if abs(x - round(x)) < 0.05:
+        s = str(int(round(x)))
+    else:
+        s = f"{x:.1f}".replace(".", ",")
+    return f"{s}\u00a0GW"
+
+
+def _label_gw(mw: float) -> str:
+    gw = mw / 1000.0
+    if abs(gw - round(gw, 1)) < 0.05:
+        s = f"{gw:.1f}".replace(".", ",")
+    else:
+        s = f"{gw:.2f}".replace(".", ",")
+    return f"{s}\u00a0GW"
+
+
+def _style_axes(ax, *, body_font: str) -> None:
+    ax.set_facecolor(SP_FLAECHE)
+    for spine in ax.spines.values():
+        spine.set_color(SP_LINIE)
+    ax.tick_params(colors=SP_INK, labelsize=11)
+    ax.yaxis.set_major_formatter(FuncFormatter(_gw_de))
+    ax.grid(True, color=SP_LINIE, linewidth=0.6, alpha=0.9)
+    for lbl in ax.get_xticklabels() + ax.get_yticklabels():
+        lbl.set_fontfamily(body_font)
+
+
+def _direct_label(ax, times: list[datetime], ys: np.ndarray, text: str, color: str, *, fs: float) -> None:
+    x = times[-1]
+    y = float(ys[-1])
+    ax.annotate(
+        text,
+        xy=(x, y),
+        xytext=(6, 0),
+        textcoords="offset points",
+        fontsize=fs,
+        color=color,
+        va="center",
+        fontweight="medium",
+    )
+
+
 def _plot(
     times: list[datetime],
     r: np.ndarray,
@@ -147,72 +219,171 @@ def _plot(
     c_old: np.ndarray,
     c_new: np.ndarray,
     metrics: dict,
+    out_path: Path,
+    *,
+    portrait: bool,
 ) -> None:
+    body_font, mono_font = _setup_fonts()
     day_start = datetime.fromisoformat(f"{DAY}T00:00:00+01:00").astimezone(BERLIN)
     day_end = day_start + timedelta(days=1)
-
-    fig, (ax1, ax2) = plt.subplots(
-        2, 1, figsize=(12, 7), dpi=120, sharex=True, gridspec_kw={"height_ratios": [2, 1]}
-    )
     g = 1e-3
 
-    ax1.plot(times, r * g, color="#6b7280", lw=1.5, label="gemessen (R)")
-    ax1.plot(times, rp_old * g, color="#b45309", lw=1.2, alpha=0.9, label="mit ×5 alt")
+    if portrait:
+        fig_w, fig_h, dpi = 7.2, 9.0, 150
+        fs_title, fs_sub, fs_label, fs_footer = 17, 14, 14, 12
+    else:
+        fig_w, fig_h, dpi = 12.0, 7.0, 120
+        fs_title, fs_sub, fs_label, fs_footer = 15, 12, 11, 11
+
+    fig, (ax1, ax2) = plt.subplots(
+        2,
+        1,
+        figsize=(fig_w, fig_h),
+        dpi=dpi,
+        sharex=True,
+        gridspec_kw={"height_ratios": [2.1, 1], "hspace": 0.08},
+        facecolor=SP_BG,
+    )
+
+    r_gw = r * g
+    rp_old_gw = rp_old * g
+    rp_new_gw = rp_new * g
+    c_old_gw = c_old * g
+    c_new_gw = c_new * g
+
+    peak_rp_gw = metrics["peakAfterNewMw"] / 1000.0
+    ax1.axhline(peak_rp_gw, color=SP_INK, ls=(0, (4, 3)), lw=1.1, alpha=0.75)
+    ax1.text(
+        day_start + timedelta(hours=0.4),
+        peak_rp_gw + 0.35,
+        "Spitze alt = neu",
+        fontsize=fs_label,
+        color=SP_INK,
+        fontfamily=body_font,
+    )
+
+    ax1.plot(times, r_gw, color=SP_MUTED, lw=1.6, solid_capstyle="round")
+    ax1.plot(times, rp_old_gw, color=SP_WARM, lw=1.4, ls=(0, (5, 3)), alpha=0.95)
+    ax1.plot(times, rp_new_gw, color=SP_MINT, lw=2.0, solid_capstyle="round")
+
     ax1.fill_between(
         times,
-        r * g,
-        rp_new * g,
+        r_gw,
+        rp_new_gw,
         where=(c_new > 1e-3),
-        color="#15803d",
-        alpha=0.25,
+        color=SP_MINT,
+        alpha=0.48,
         interpolate=True,
-        label="Laden (neu)",
     )
     ax1.fill_between(
         times,
-        r * g,
-        rp_new * g,
+        r_gw,
+        rp_new_gw,
         where=(c_new <= 1e-3) & (rp_new < r - 1e-3),
-        color="#0369a1",
-        alpha=0.2,
+        color=SP_GRID,
+        alpha=0.45,
         interpolate=True,
-        label="Entladen (neu)",
     )
-    ax1.plot(times, rp_new * g, color="#14532d", lw=1.6, label="mit ×5 neu: flach laden")
 
-    pt_meas = datetime.fromisoformat(metrics.get("peakTimeMeasured", metrics["peakTimeNew"]))
-    ax1.axvline(pt_meas, color="#6b7280", ls=":", lw=0.8, alpha=0.6)
-    r_gw = metrics["peakBeforeMw"] / 1000
-    rp_gw = metrics["peakAfterNewMw"] / 1000
+    pt_meas = datetime.fromisoformat(metrics["peakTimeMeasured"])
+    idx_meas = int(np.argmax(r))
+    ax1.plot(pt_meas, r_gw[idx_meas], "o", color=SP_INK, ms=7, zorder=5)
     ax1.annotate(
-        f"gemessen {r_gw:.1f} → {rp_gw:.1f} GW",
-        xy=(pt_meas, rp_gw),
-        xytext=(12, 10),
+        _label_gw(metrics["peakBeforeMw"]),
+        xy=(pt_meas, r_gw[idx_meas]),
+        xytext=(-8, 14),
         textcoords="offset points",
-        fontsize=9,
-        bbox=dict(boxstyle="round", facecolor="white", alpha=0.9),
+        fontsize=fs_label,
+        color=SP_INK,
+        fontfamily=body_font,
+        ha="right",
     )
 
-    ax1.set_ylabel("GW")
-    ax1.set_title(f"29.10.2026 · ×5 · bundesweite Restlast-Spitze (Modell, Tageshorizont)")
-    ax1.legend(loc="upper left", fontsize=8, ncol=2)
+    _direct_label(ax1, times, rp_old_gw, "Modell ×5 alt", SP_WARM, fs=fs_label)
+    _direct_label(ax1, times, rp_new_gw, "Modell ×5 neu (flach laden)", SP_MINT, fs=fs_label)
+    ax1.text(
+        times[12],
+        r_gw[12],
+        "beobachtet",
+        fontsize=fs_label,
+        color=SP_MUTED,
+        fontfamily=body_font,
+        fontweight="medium",
+    )
+
+    _style_axes(ax1, body_font=body_font)
+    ax1.set_ylabel("GW", fontsize=fs_label, color=SP_INK, fontfamily=body_font)
+    tick_times = [day_start + timedelta(hours=h) for h in (0, 6, 12, 18, 24)]
     ax1.set_xlim(day_start, day_end)
+    ax1.set_xticks(tick_times)
+    ax1.set_xticklabels([])
 
-    ax2.plot(times, c_old, color="#b45309", lw=1.0, label="Ladeleistung alt")
-    ax2.plot(times, c_new, color="#14532d", lw=1.2, label="Ladeleistung neu")
-    ax2.set_ylabel("MW (Laden)")
-    ax2.set_xlabel("Uhrzeit (Europe/Berlin)")
-    ax2.legend(loc="upper right", fontsize=8)
-    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M", tz=BERLIN))
+    ax2.plot(times, c_old_gw, color=SP_WARM, lw=1.4, ls=(0, (5, 3)))
+    ax2.plot(times, c_new_gw, color=SP_MINT, lw=2.0)
+    _style_axes(ax2, body_font=body_font)
+    ax2.set_ylabel("Laden in GW", fontsize=fs_label, color=SP_INK, fontfamily=body_font)
+    ax2.set_xlabel("Uhrzeit", fontsize=fs_label, color=SP_INK, fontfamily=body_font)
+    ax2.set_xticks(tick_times)
+    ax2.set_xticklabels(["0", "6", "12", "18", "24"])
+    ax2.set_xlim(day_start, day_end)
+    for lbl in ax2.get_xticklabels():
+        lbl.set_fontfamily(body_font)
 
-    note = (
-        f"Σ Laden alt/neu: {metrics['sumChargeOldMwh']:.0f} / {metrics['sumChargeNewMwh']:.0f} MWh  ·  "
-        f"Bilanz alt OK: {metrics['energyBalanceOld']['ok']}  neu OK: {metrics['energyBalanceNew']['ok']}"
+    i_old = int(np.argmax(c_old))
+    i_new = int(np.argmax(c_new))
+    ax2.annotate(
+        _label_gw(metrics["maxChargeOldMw"]),
+        xy=(times[i_old], c_old_gw[i_old]),
+        xytext=(0, 10),
+        textcoords="offset points",
+        fontsize=fs_label,
+        color=SP_WARM,
+        fontfamily=body_font,
+        ha="center",
     )
-    fig.text(0.5, 0.01, note, ha="center", fontsize=8, color="#374151")
-    fig.autofmt_xdate()
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
-    fig.savefig(OUT / "oct29-x5-spitze-vorher-nachher.png")
+    ax2.annotate(
+        _label_gw(metrics["maxChargeNewMw"]),
+        xy=(times[i_new], c_new_gw[i_new]),
+        xytext=(0, 10),
+        textcoords="offset points",
+        fontsize=fs_label,
+        color=SP_MINT,
+        fontfamily=body_font,
+        ha="center",
+    )
+    _direct_label(ax2, times, c_old_gw, "Modell ×5 alt", SP_WARM, fs=fs_label)
+    _direct_label(ax2, times, c_new_gw, "Modell ×5 neu", SP_MINT, fs=fs_label)
+
+    title = "29.10.2026 · ×5: gleiche Spitze 55,6\u00a0GW – Laden max 17,7 → 7,1\u00a0GW"
+    fig.suptitle(
+        title,
+        fontsize=fs_title,
+        fontweight="medium",
+        color=SP_INK,
+        fontfamily=body_font,
+        y=0.98 if portrait else 0.96,
+        ha="center",
+    )
+    fig.text(
+        0.5,
+        0.935 if portrait else 0.915,
+        "Modell, Tageshorizont",
+        ha="center",
+        fontsize=fs_sub,
+        color=SP_MUTED,
+        fontfamily=body_font,
+    )
+
+    pflicht = "Modell · national, kein (n−1), nicht Abregelung"
+    quelle = (
+        "Quellen: Energy-Charts/Fraunhofer ISE · Battery Charts RWTH ISEA · "
+        "Flottenstand 31.10.2026"
+    )
+    fig.text(0.5, 0.045, pflicht, ha="center", fontsize=fs_footer, color=SP_INK, fontfamily=mono_font)
+    fig.text(0.5, 0.018, quelle, ha="center", fontsize=fs_footer, color=SP_INK, fontfamily=mono_font)
+
+    fig.subplots_adjust(left=0.1, right=0.94, top=0.88 if portrait else 0.86, bottom=0.14)
+    fig.savefig(out_path, facecolor=SP_BG, edgecolor="none")
     plt.close(fig)
 
 
