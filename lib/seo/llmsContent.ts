@@ -1,3 +1,4 @@
+import { DATEN_DATEIEN } from "@/lib/seo/datenDownloads";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 import { SITE_DESCRIPTION } from "@/lib/siteOg";
 
@@ -17,6 +18,7 @@ SpeicherPilot macht Großspeicher, Überschuss und Residuallast in Deutschland m
 - ${origin}/vision — Jahresansicht NEP-Speicher und Restlastspitze (Netto-Wirkung übers Jahr)
 - ${origin}/simulator — Fahrweisen-Simulator (national, Modellschätzung)
 - ${origin}/methodik — Formeln, Annahmen, Grenzen und Quellen
+- ${origin}/daten — Daten zum Download (CSV/JSON, Lizenz CC BY 4.0, Zitiervorschlag)
 - ${origin}/beitraege — Fachartikel und Einordnung
 
 ## Methodik
@@ -43,5 +45,9 @@ export function llmsFullTxtBody(): string {
 - battery-charts.de (RWTH)
 
 Lizenzdetails je Quelle: ${getPublicSiteOrigin()}/methodik
+
+## Daten zum Download (CC BY 4.0)
+
+${DATEN_DATEIEN.map((datei) => `- ${getPublicSiteOrigin()}/daten/${datei.slug} — ${datei.titel}`).join("\n")}
 `;
 }
