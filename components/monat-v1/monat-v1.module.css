@@ -194,6 +194,24 @@
   background: var(--mv-rust);
 }
 
+.lineDashRust {
+  width: 1.25rem;
+  height: 0;
+  border-top: 2px dashed var(--mv-rust);
+}
+
+.lineRef {
+  width: 1.25rem;
+  height: 0;
+  border-top: 1.25px solid var(--mv-ink);
+}
+
+.lineDashMuted {
+  width: 1.25rem;
+  height: 0;
+  border-top: 1px dashed var(--mv-muted);
+}
+
 .highlightCell {
   background: var(--mv-rust-tint);
 }

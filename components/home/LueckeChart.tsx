@@ -25,6 +25,7 @@ import {
   plotXFromSlotIndex,
   slotIndexForPeakAt,
 } from "@/lib/lueckeChartGeometry";
+import { TAG_WIDE_VIEWBOX_W } from "@/lib/tagSvgTypography";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
 
 const DESKTOP = LUECKE_DESKTOP;
@@ -155,16 +156,29 @@ export function LueckeChart({
     return () => ro.disconnect();
   }, []);
 
-  const frame = compact
-    ? { w: shellWidth, h: MOBILE_H, pad: MOBILE_PAD }
-    : { w: DESKTOP.w, h: DESKTOP.h, pad: DESKTOP.pad };
+  const wideFrame = shellWidth >= TAG_WIDE_VIEWBOX_W;
+  const frame = useMemo(() => {
+    const narrowScale = wideFrame ? 1 : Math.max(280, shellWidth) / DESKTOP.w;
+    return wideFrame
+      ? { w: DESKTOP.w, h: DESKTOP.h, pad: DESKTOP.pad }
+      : compact
+        ? { w: shellWidth, h: MOBILE_H, pad: MOBILE_PAD }
+        : {
+            w: Math.max(280, shellWidth),
+            h: DESKTOP.h,
+            pad: {
+              top: DESKTOP.pad.top,
+              bottom: DESKTOP.pad.bottom,
+              left: Math.round(DESKTOP.pad.left * narrowScale),
+              right: Math.round(DESKTOP.pad.right * narrowScale),
+            },
+          };
+  }, [compact, shellWidth, wideFrame]);
+  const useOverlayLabels = compact || !wideFrame;
 
   const dayKind = useMemo(() => lueckeDayKind(slots.length), [slots.length]);
 
-  const geometry = useMemo(
-    () => buildGeometry(slots, peakAt, frame),
-    [frame.h, frame.pad.bottom, frame.pad.left, frame.pad.right, frame.pad.top, frame.w, peakAt, slots]
-  );
+  const geometry = useMemo(() => buildGeometry(slots, peakAt, frame), [frame, peakAt, slots]);
 
   const peakLabel =
     peakGw !== null ? `${formatQuantity(peakGw, "de", 1).replace(/\s/g, "")} GW` : "—";
@@ -173,7 +187,7 @@ export function LueckeChart({
 
   const peakLabelY =
     peakGw !== null ? Math.max(frame.pad.top + 16, geometry.peakYLoad - 20) : frame.pad.top + 28;
-  const labelInsideSvg = !compact && peakGw !== null && peakLabelY > frame.pad.top + 12;
+  const labelInsideSvg = wideFrame && !compact && peakGw !== null && peakLabelY > frame.pad.top + 12;
   const hours = [0, 6, 12, 18, 24];
   const plotW = frame.w - frame.pad.left - frame.pad.right;
   const plotH = frame.h - frame.pad.top - frame.pad.bottom;
@@ -221,7 +235,7 @@ export function LueckeChart({
         onTouchMove={onTouch}
         onKeyDown={onKeyDown}
       >
-        {compact ? (
+        {useOverlayLabels ? (
           <div className="v4-luecke-overlay" aria-hidden="true">
             <span
               className="v4-luecke-overlay-label"
@@ -301,7 +315,7 @@ export function LueckeChart({
               vectorEffect="non-scaling-stroke"
             />
           ) : null}
-          {!compact ? (
+          {wideFrame && !compact ? (
             <>
               <text x={frame.pad.left + plotW * 0.34} y={frame.pad.top + 18} className="v4-luecke-label">
                 Verbrauch
@@ -352,7 +366,7 @@ export function LueckeChart({
           02:00–02:45 ist entfallen.
         </p>
       ) : null}
-      {compact ? (
+      {compact || !wideFrame ? (
         <div className="v4-luecke-compact-foot">
           {peakGw !== null ? (
             <figcaption className="v4-luecke-peak-banner num">
@@ -361,7 +375,7 @@ export function LueckeChart({
             </figcaption>
           ) : null}
         </div>
-      ) : peakGw !== null ? (
+      ) : wideFrame && peakGw !== null ? (
         <figcaption className="v4-luecke-peak-banner num">
           <span className="v4-luecke-peak-banner-value">{peakTimeLabel}</span>
           <span className="v4-luecke-peak-banner-caption">{peakCaption}</span>

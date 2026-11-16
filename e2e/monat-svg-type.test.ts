@@ -45,13 +45,23 @@ describe("/monat SVG label size", () => {
 
   (runBrowser ? it : it.skip)("Typo ≥12 px, kein Chart-Wrapper-Overflow", async () => {
     let browser: Browser | null = null;
+    let context: Awaited<ReturnType<Browser["newContext"]>> | null = null;
     const report: Record<string, unknown> = {};
     try {
       browser = await chromium.launch();
+      context = await browser.newContext({ colorScheme: "light" });
+      await context.addInitScript(() => {
+        document.documentElement.classList.remove("dark");
+        try {
+          window.localStorage.setItem("speicherpilot-theme", "light");
+        } catch {
+          /* noop */
+        }
+      });
       for (const route of ROUTES) {
         const routeReport: Record<string, unknown> = {};
         for (const width of WIDTHS) {
-          const page = await browser.newPage({ viewport: { width, height: 900 } });
+          const page = await context.newPage({ viewport: { width, height: 900 } });
           await page.goto(`${BASE}${route}`, { waitUntil: "networkidle", timeout: 120_000 });
           await page.waitForSelector('[data-testid="monat-v1-hero"] svg text', { timeout: 60_000 });
           const minPx = await minSvgTextPx(page);
@@ -67,6 +77,7 @@ describe("/monat SVG label size", () => {
         report[route] = routeReport;
       }
     } finally {
+      await context?.close();
       await browser?.close();
     }
     // eslint-disable-next-line no-console
