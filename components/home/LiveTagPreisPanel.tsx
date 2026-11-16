@@ -6,9 +6,15 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { hmToHourFraction, plotXFromBerlinHour, quarterWidthPx } from "@/lib/liveTagChartGeometry";
+import {
+  axisTickLabelX,
+  gwAxisValues,
+  liveTagPreisPanelLayout,
+  preisPanelUnitLabelPositions,
+  priceAxisValues,
+} from "@/lib/liveTagPreisPanelGeometry";
 import type { ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
 import type { PreisTick } from "@/lib/preisFenster";
-import { LUECKE_DESKTOP, LUECKE_MOBILE_PAD } from "@/lib/lueckeChartGeometry";
 
 function subscribeCompact(onStoreChange: () => void) {
   const mq = window.matchMedia("(max-width: 639px)");
@@ -58,15 +64,11 @@ export function LiveTagPreisPanel({
     return () => observer.disconnect();
   }, []);
 
-  const frame = compact
-    ? { w: Math.max(320, shellWidth), h: 220, pad: LUECKE_MOBILE_PAD }
-    : { w: LUECKE_DESKTOP.w, h: 220, pad: { ...LUECKE_DESKTOP.pad, right: 52 } };
-  const padL = frame.pad.left;
-  const padR = frame.pad.right;
-  const padT = compact ? 36 : 40;
-  const padB = compact ? 28 : 32;
-  const plotW = frame.w - padL - padR;
-  const plotH = frame.h - padT - padB;
+  const { frame, padL, padR, padT, padB, plotW, plotH } = liveTagPreisPanelLayout(compact, shellWidth);
+  const unitLabels = preisPanelUnitLabelPositions(frame.w, padL, padR);
+  const tickFontSize = compact ? 9 : 10;
+  const priceTickX = axisTickLabelX("price", frame.w, padL, padR, compact);
+  const gwTickX = axisTickLabelX("gw", frame.w, padL, padR, compact);
 
   if (prices.length < 2) {
     return null;
@@ -113,11 +115,11 @@ export function LiveTagPreisPanel({
             Day-Ahead (€/MWh)
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-pv))]" aria-hidden />
+            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-pv)/0.65)]" aria-hidden />
             Laden (GW)
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-bess))]" aria-hidden />
+            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-bess)/0.65)]" aria-hidden />
             Entladen (GW)
           </span>
         </div>
@@ -141,12 +143,66 @@ export function LiveTagPreisPanel({
               {String(hour).padStart(2, "0")}
             </text>
           ))}
-          <text x={padL - 8} y={padT - 8} textAnchor="end" className="fill-muted-foreground" fontSize="10">
+          <text
+            x={unitLabels.eurPerMwh.x}
+            y={padT - 8}
+            textAnchor={unitLabels.eurPerMwh.textAnchor}
+            className="fill-muted-foreground"
+            fontSize="10"
+          >
             €/MWh
           </text>
-          <text x={frame.w - padR + 8} y={padT - 8} textAnchor="start" className="fill-muted-foreground" fontSize="10">
+          <text
+            x={unitLabels.gw.x}
+            y={padT - 8}
+            textAnchor={unitLabels.gw.textAnchor}
+            className="fill-muted-foreground"
+            fontSize="10"
+          >
             GW
           </text>
+          {priceAxisValues(priceMin, priceMax).map((tick) => {
+            const y = yPrice(tick);
+            return (
+              <g key={`p-${tick}`}>
+                <line
+                  x1={padL}
+                  x2={frame.w - padR}
+                  y1={y}
+                  y2={y}
+                  className="stroke-gridline"
+                  strokeWidth={0.5}
+                  opacity={0.45}
+                />
+                <text
+                  x={priceTickX.x}
+                  y={y}
+                  textAnchor={priceTickX.textAnchor}
+                  dominantBaseline="middle"
+                  className="fill-muted-foreground num"
+                  fontSize={tickFontSize}
+                >
+                  {formatQuantity(tick, "de", 0)}
+                </text>
+              </g>
+            );
+          })}
+          {gwAxisValues(maxGw).map((tick) => {
+            const y = yGw(tick);
+            return (
+              <text
+                key={`g-${tick}`}
+                x={gwTickX.x}
+                y={y}
+                textAnchor={gwTickX.textAnchor}
+                dominantBaseline="middle"
+                className="fill-muted-foreground num"
+                fontSize={tickFontSize}
+              >
+                {tick === 0 ? "0" : `${tick > 0 ? "+" : ""}${formatQuantity(tick, "de", 1)}`}
+              </text>
+            );
+          })}
           <line x1={padL} x2={frame.w - padR} y1={zeroY} y2={zeroY} className="stroke-gridline" strokeWidth={0.8} />
           {fahrplan.map((point, index) => {
             if (!Number.isFinite(point.netGw) || Math.abs(point.netGw) < 0.02) {
