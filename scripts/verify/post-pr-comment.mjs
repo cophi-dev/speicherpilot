@@ -27,8 +27,9 @@ function main() {
   if (summary?.steps) {
     lines.push("### Jobs");
     for (const s of summary.steps) {
-      lines.push(`- ${s.ok ? "✅" : "❌"} \`${s.cmd.split(" ").slice(-1)[0]}\``);
+      lines.push(`- ${s.ok ? "✅" : "❌"} \`${s.cmd.split(" ").slice(-1)[0]}\` (exit ${s.status ?? "?"})`);
     }
+    lines.push(`- Gesamt: ${summary.ok ? "✅" : "❌"}`);
     lines.push("");
   }
 
