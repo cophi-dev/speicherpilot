@@ -32,6 +32,24 @@ async function main() {
       await context.close();
     }
   }
+  {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+    });
+    await context.addInitScript(() => {
+      localStorage.setItem("speicherpilot-theme", "dark");
+    });
+    const page = await context.newPage();
+    await page.goto(`${base}/`, { waitUntil: "commit" });
+    await page.waitForTimeout(100);
+    const darkOnHtml = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+    if (!darkOnHtml) {
+      throw new Error("Expected .dark on <html> on first paint with stored theme");
+    }
+    await snap(page, "home-390-dark-stored-localStorage.png");
+    await context.close();
+  }
+
   await browser.close();
 }
 

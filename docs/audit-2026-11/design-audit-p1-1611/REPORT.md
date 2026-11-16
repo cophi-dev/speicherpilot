@@ -6,7 +6,7 @@ Stand: 2026-11-16, Production-Build lokal (`pnpm build` + `pnpm start`), Lightho
 
 | Route | Audit 16.11 (vorher) | Nach PR (lab) |
 |-------|----------------------|---------------|
-| `/` | 4,9–5,3 s | **2,6 s** (Performance 93) |
+| `/` | 4,9–5,3 s | **2,3 s** (Performance 94, nach Head-Theme-Fix) |
 | `/monat` (2026-10) | 3,7 s | **2,7 s** (Performance 68) |
 
 Rohdaten: `lighthouse-home-mobile-after.json`, `lighthouse-monat-mobile-after.json`.
@@ -21,6 +21,6 @@ Rohdaten: `lighthouse-home-mobile-after.json`, `lighthouse-monat-mobile-after.js
 ## Änderungen (Kurz)
 
 1. **Hero-Graph `/`:** y-Achse aus Daten (`messerHeroAxis` + `niceAxis`), Test `messerHeroAxis.test.ts`.
-2. **LCP `/` + `/monat`:** H1 serverseitig, Shell ohne `beforeInteractive` für Theme, weniger blockierende Hero-Animation.
+2. **LCP `/` + `/monat`:** H1 serverseitig; Theme-Init als synchrones Inline-`<script>` in `<head>` (`lib/themeInitInline.ts`), Test `rootLayoutThemeScript.test.ts`. Screenshot `home-390-dark-stored-localStorage.png` (dark in localStorage, erster Paint).
 3. **Raster `/`:** `--page-max` / `--page-gutter` wie übrige Seiten.
 4. **`ENTWURF` auf `/methodik`:** Dark-Mode-Kontrast für `chipEntwurf` (Simulator-Legal-Box).
