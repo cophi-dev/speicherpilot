@@ -23,7 +23,7 @@ Erzeugung: `pnpm data:fleet-compact` · Lazy-Load: `GET /api/national-fleet/comp
 
 ## Design-Nachbesserung (Urteil 16.11.2026, 14:40)
 
-**Head-SHA (Messlauf lokal):** siehe `measures-nachbesserung.json` → `headSha` (nach Push aktuellster Commit).
+**Head-SHA:** `7a13e1121ee500a9794809fc92b1925003f44f30`
 
 | Muss | Kriterium | Messung (Playwright, `scripts/measure-monat-regler-design.mjs`) |
 |---|---|---|
