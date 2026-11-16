@@ -7,7 +7,8 @@ import { getBlogPosts } from "@/content/blog/posts";
 import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
 
-const description = "Artikel zu Großspeichern und kuratierte externe Meldungen.";
+const description =
+  "Artikel zu Großspeichern und kuratierte externe Meldungen mit Einordnung — geprüft an der Primärquelle.";
 
 export const dynamic = "force-static";
 

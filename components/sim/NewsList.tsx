@@ -3,7 +3,7 @@
 import bundled from "@/data/news.json";
 
 import { useLanguage } from "@/components/language-context";
-import { parseNews, type NewsItem } from "@/lib/newsFeed";
+import { newsForHome, parseNews, type NewsItem } from "@/lib/newsFeed";
 
 function formatNewsDate(iso: string) {
   const [year, month, day] = iso.split("-");
@@ -17,7 +17,7 @@ function formatNewsDate(iso: string) {
 export function NewsList({ items }: { items?: unknown }) {
   const { language } = useLanguage();
   const tx = (de: string, en: string) => (language === "de" ? de : en);
-  const news = parseNews(items ?? bundled);
+  const news = newsForHome(parseNews(items ?? bundled));
   if (news.length === 0) {
     return null;
   }

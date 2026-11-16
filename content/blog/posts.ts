@@ -28,6 +28,8 @@ type PostFile = {
   publishedLabel: string;
   hero: BlogFigureId;
   inserts: Parameters<typeof insertFigures>[1];
+  /** Entwurf: nicht in getBlogPosts(), nicht gerendert. */
+  draft?: boolean;
 };
 
 /**
@@ -57,6 +59,15 @@ const POST_FILES: readonly PostFile[] = [
       { kind: "after-paragraph", startsWith: "Zur Einordnung:", figure: "c" },
     ],
   },
+  {
+    slug: "november-resume-2026",
+    file: "entwurf-november-resume-2026.md",
+    published: "2026-12-05",
+    publishedLabel: "05.12.2026 (geplant)",
+    hero: "a1",
+    inserts: [],
+    draft: true,
+  },
 ];
 
 function loadPost(entry: PostFile): BlogPost {
@@ -85,9 +96,14 @@ let cache: BlogPost[] | null = null;
 
 export function getBlogPosts(): BlogPost[] {
   if (!cache) {
-    cache = POST_FILES.map(loadPost);
+    cache = POST_FILES.filter((entry) => !entry.draft).map(loadPost);
   }
   return cache;
+}
+
+/** Entwürfe (draft: true) — nicht öffentlich gerendert. */
+export function getBlogDrafts(): PostFile[] {
+  return POST_FILES.filter((entry) => entry.draft);
 }
 
 export function getBlogPost(slug: string): BlogPost | undefined {
