@@ -289,6 +289,15 @@
   color: var(--research-muted);
 }
 
+.chartScope {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: var(--type-12);
+  color: var(--research-dim);
+  margin: 6px 0 0;
+  max-width: 100%;
+  line-height: 1.35;
+}
+
 .skipWrap {
   margin-top: 4px;
 }

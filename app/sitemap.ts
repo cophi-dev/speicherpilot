@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/tag",
     "/monat",
     "/simulator",
+    "/vision",
     "/methodik",
     "/beitraege",
     "/impressum",
