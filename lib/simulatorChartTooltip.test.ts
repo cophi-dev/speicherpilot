@@ -1,6 +1,6 @@
 import { loadSimulatorFahrweisen } from "@/lib/simulatorFahrweisen.server";
 import { deriveExampleDay } from "@/lib/simulatorFahrweisenDerived";
-import { formatGw, formatMioEur } from "@/lib/simulatorFahrweisenTypes";
+import { formatGw, pctOfMarket } from "@/lib/simulatorFahrweisenTypes";
 import {
   beispieltagTooltipRows,
   beispieltagTooltipTime,
@@ -15,15 +15,16 @@ import {
 describe("simulatorChartTooltip", () => {
   const data = loadSimulatorFahrweisen();
 
-  it("Pareto: Werte aus den Front-Daten, 2 Dezimalstellen wie die Zoom-Achse", () => {
+  it("Pareto: Werte aus den Front-Daten, Anteil am Max.-Erlös", () => {
     const komp = data.front.find((p) => p.isEps70)!;
-    const rows = paretoTooltipRows(komp);
-    expect(rows[0]?.value).toBe(formatMioEur(komp.revenueMioEur, 2));
+    const mkt = data.endpoints.marketLex.revenueMioEur;
+    const rows = paretoTooltipRows(komp, mkt);
+    expect(rows[0]?.label).toBe("vom Max.-Erlös");
+    expect(rows[0]?.value).toBe(pctOfMarket(komp.revenueMioEur, mkt));
     expect(rows[1]?.value).toBe(formatGw(komp.reductionGw));
     expect(rows[2]?.value).toBe(formatGw(komp.peakGw));
-    expect(paretoTooltipTime(komp, data.front.length)).toBe("Kompromiss ε-70");
-    // nicht genauer als 2 Stellen
-    expect(rows[0]?.value).toMatch(/^\d+,\d{2} Mio/);
+    expect(paretoTooltipTime(komp, data.front.length)).toBe("Kompromiss (70 % der Senkung)");
+    expect(rows[0]?.value).toMatch(/^\d+,\d{2}\u00A0%$/);
     expect(rows[1]?.value).toMatch(/^\d+,\d{2}\u00A0GW$/);
   });
 
@@ -31,7 +32,7 @@ describe("simulatorChartTooltip", () => {
     const day = data.tagesklassen.find((d) => d.date === "2026-10-06")!;
     const rows = tagesTooltipRows(day);
     expect(tagesTooltipTime(day)).toBe("06.10.");
-    expect(rows[0]?.label).toBe("Regel T");
+    expect(rows[0]?.label).toBe("Anteil max. Senkung");
     expect(rows[0]?.value).toBe(`${Math.round(day.shareOfNetzReduction * 100)}\u00A0%`);
     expect(rows[1]?.value).toBeTruthy();
     expect(rows[2]?.value).toBe(formatGw(day.marketReductionGw));
@@ -47,7 +48,7 @@ describe("simulatorChartTooltip", () => {
     const netz = day.modes.peak[idx]!;
     const komp = day.modes.eps70[idx]!;
     const rows = beispieltagTooltipRows(market, netz, komp);
-    expect(rows.map((r) => r.label)).toEqual(["Beobachtet", "Max. Erlös", "Netzdienlich", "Kompromiss", "Preis"]);
+    expect(rows.map((r) => r.label)).toEqual(["Beobachtet", "Nur Preis", "Spitze zuerst", "Kompromiss", "Preis"]);
     expect(rows[0]?.value).toBe(formatGw(market.residualMw / 1000));
     expect(rows[1]?.value).toBe(formatGw(market.residualPrimeMw / 1000));
     expect(rows[2]?.value).toBe(formatGw(netz.residualPrimeMw / 1000));
@@ -70,9 +71,9 @@ describe("simulatorChartTooltip", () => {
   it("Pareto-Zeitlabel: lesbare Namen, nie ein interner Bezeichner", () => {
     const n = data.front.length;
     const labels = data.front.map((p) => paretoTooltipTime(p, n));
-    expect(labels[0]).toBe("Max. Erlös");
-    expect(labels[data.namedIndices.kompromiss]).toBe("Kompromiss ε-70");
-    expect(labels[data.namedIndices.netzdienlich]).toBe("Netzdienlich");
+    expect(labels[0]).toBe("Nur Preis");
+    expect(labels[data.namedIndices.kompromiss]).toBe("Kompromiss (70 % der Senkung)");
+    expect(labels[data.namedIndices.netzdienlich]).toBe("Spitze zuerst");
     expect(labels[2]).toBe(`Front-Punkt 3 von ${n}`);
     const intern = /x2_|_lam|lexpeak|grid_lam|dichotomy|market_lex|peak_lex|eps\d|lam\d/i;
     for (const [i, label] of labels.entries()) {
@@ -86,7 +87,7 @@ describe("simulatorChartTooltip", () => {
     const intern = /x2_|_lam|lexpeak|grid_lam|dichotomy|market_lex|peak_lex|eps\d|lam\d/i;
     for (const p of data.front) {
       const time = paretoTooltipTime(p, data.front.length);
-      const rows = paretoTooltipRows(p);
+      const rows = paretoTooltipRows(p, data.endpoints.marketLex.revenueMioEur);
       expect(time).not.toMatch(intern);
       for (const row of rows) {
         expect(`${row.label} ${row.value}`).not.toMatch(intern);

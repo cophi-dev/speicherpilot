@@ -165,7 +165,7 @@ export function VisionJahrG2Markt({ model, width, height }: { model: VisionJahrM
       </div>
       <VisionJahrChartFoot />
       <p className={styles.meta}>
-        Rückwirkung: OLS-Band b … 2b, nicht Prognose · Kein Business-Case-Werkzeug, Intraday/Regelenergie nicht abgebildet · Tagesvoraussicht NEP A:{" "}
+        Preisrückwirkung grob aus historischen Preisen geschätzt (Band: einfache bis doppelte Wirkung), keine Prognose · nur Day-Ahead, kein Intraday oder Regelenergie · Tagesvoraussicht NEP A:{" "}
         {formatVisionGwPlain(model.tageshorizontNepASenkungGw)} Senkung
       </p>
     </div>

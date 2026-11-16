@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
+import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
@@ -75,7 +76,7 @@ export function MonatPageV4({
   surplusBars?: import("@/lib/monatSurplusBars").MonatSurplusBar[];
   children?: React.ReactNode;
 }) {
-  const { h1, subline, footnote } = monatPointe(monthKey, records);
+  const { h1, subline, footnote } = monatPointe(monthKey, records, todayKey);
   const heroFootnote = footnote.replace(MONAT_SURPLUS_EXPLAIN_DE, "").trim();
   const fleetOnPage = nationalFleetMonthAvailable(monthKey);
   const standDay = formatDataStandDayDe(dataStand);
@@ -119,13 +120,13 @@ export function MonatPageV4({
           </p>
         </div>
         <details className="v4-content v4-monat-obs-disclosure">
-          <summary>Klarstellung Beobachtungsgraph</summary>
+          <summary>Warum hier keine Balken stehen</summary>
           <p className="v4-subline">
             Nur die beobachtete Überschuss-Kennzahl je Tag — kein Maß für Peak-Senkung, Preisarbitrage oder Abregelung.{" "}
             {nationalFleetMonthAvailable(monthKey)
               ? observationLive
                 ? "Energy-Charts-Viertelstunden; die Modellflotte oben rechnet Spitzen- und Preisfahrweisen."
-                : "Eingefrorener Beobachtungsstand. Modellflotte aus Oktober-Bundle."
+                : `Daten bis ${formatBerlinDayLabel(lastCompleteDayKey)}. Für ${formatBerlinMonthLabel(monthKey)} gibt es noch keine Modellrechnung.`
               : observationLive
                 ? "Für diesen Monat keine vorberechnete Modellflotte."
                 : "Beobachtung ohne Monatsmodell."}

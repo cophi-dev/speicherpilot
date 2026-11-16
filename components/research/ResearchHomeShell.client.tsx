@@ -12,20 +12,24 @@ import type { ResearchFactor, ResearchHomeModel } from "@/lib/research/researchT
 import {
   fourHourSensitivityLine,
   heroReductionDisplay,
+  heroSpikeDurationLine,
   saturationChartAriaLabel,
   saturationSectionH2,
   weekDurationFootnote,
   weekSectionEyebrow,
 } from "@/lib/research/researchFormat";
+import type { Eps70TeaserUi } from "@/lib/simulatorTeaser.types";
 
 const FACTORS: ResearchFactor[] = [2, 5, 10];
 
 export function ResearchHomeShell({
   model,
-  simulatorCostPct,
+  simulatorTeaser,
+  liveFleetLabel,
 }: {
   model: ResearchHomeModel;
-  simulatorCostPct: string;
+  simulatorTeaser: Eps70TeaserUi;
+  liveFleetLabel?: string | null;
 }) {
   const layout = useResearchLayout();
   const [factor, setFactor] = useState<ResearchFactor>(model.day.heroFactor);
@@ -34,6 +38,10 @@ export function ResearchHomeShell({
   const stage = model.day.stages.find((s) => s.factor === factor)!;
 
   const heroText = useMemo(() => heroReductionDisplay(stage.reductionGw), [stage.reductionGw]);
+  const spikeDurationLine = useMemo(
+    () => heroSpikeDurationLine(stage.hoursAboveCap, factor),
+    [factor, stage.hoursAboveCap],
+  );
   const fourh = stage.reduction4hGw;
   const ten = model.day.stages.find((s) => s.factor === 10)!.reductionGw;
 
@@ -42,7 +50,10 @@ export function ResearchHomeShell({
       <div className={styles.heroNum} key={`hero-${factor}-${heroText}`} aria-live="polite">
         {heroText}
       </div>
-      <p className={styles.meta}>Spitze bei ×{factor} · Modell · national</p>
+      <p className={styles.meta}>
+        Senkung der Tagesspitze mit ×{factor} (das {factor}-fache der heutigen Flotte) · Modell · national
+      </p>
+      <p className={styles.prose}>{spikeDurationLine}</p>
       <p className={styles.prose}>{fourHourSensitivityLine(fourh, ten, factor)}</p>
       <div className={styles.seg} role="group" aria-label="Flottenstufe">
         {FACTORS.map((f) => (
@@ -64,7 +75,8 @@ export function ResearchHomeShell({
       </div>
 
       <p className={styles.prose} style={{ marginTop: 6 }}>
-        Restlast national · Fläche: gekappt (Modell) · 4-h-Geist: gestrichelt
+        Restlast national · Fläche: was die Flotte abschneidet (Modell) · Linien: Spitze nach ×2 / ×5 / ×10 · grau
+        gestrichelt: ×{factor} mit 4 h
       </p>
 
       <div className={styles.lowerSplit}>
@@ -114,7 +126,10 @@ export function ResearchHomeShell({
             <span>--- Median</span>
             <span>▌ P10–P90</span>
           </p>
-          <p className={styles.meta}>Wolke: 365 Tage bis {model.day.shortLabel ?? model.day.dateKey} · heutige Flotte · Tageshorizont</p>
+          <p className={styles.meta}>
+            Graue Punkte: jeder Tag der letzten 365 Tage bis {model.day.shortLabel ?? model.day.dateKey} · rot: gestern ·
+            ×1 = heutige Flotte = 0
+          </p>
         </section>
       </div>
 
@@ -124,11 +139,10 @@ export function ResearchHomeShell({
 
       <section className={styles.simTeaser} aria-labelledby="simulator-teaser-title">
         <p className={styles.eyebrow}>SIMULATOR · FAHRWEISEN · OKTOBER</p>
-        <p className={styles.simTeaserNum}>{simulatorCostPct}</p>
         <h2 id="simulator-teaser-title" className={styles.h2}>
-          70 Prozent der Monatssenkung kosten {simulatorCostPct} des Erlöses (ε-70)
+          {simulatorTeaser.headlineDe}
         </h2>
-        <p className={styles.meta}>Flotte ×2, Modellschätzung, national, kein Netzengpass.</p>
+        <p className={styles.meta}>{simulatorTeaser.sublineDe}</p>
         <p style={{ marginTop: 12 }}>
           <Link href="/simulator" className={styles.link}>
             Im Simulator selbst ausprobieren →
@@ -136,20 +150,29 @@ export function ResearchHomeShell({
         </p>
       </section>
 
-      <ResearchFoot fleetLabel={model.fleetLabel} />
+      <ResearchFoot fleetLabel={model.fleetLabel} liveFleetLabel={liveFleetLabel} />
       </div>
     </>
   );
 }
 
-function ResearchFoot({ fleetLabel }: { fleetLabel: string }) {
+function ResearchFoot({
+  fleetLabel,
+  liveFleetLabel,
+}: {
+  fleetLabel: string;
+  liveFleetLabel?: string | null;
+}) {
+  const fleetLine = liveFleetLabel
+    ? `Oktober-Rechnung mit Flotte ${fleetLabel} (Battery Charts). Heute: ${liveFleetLabel}.`
+    : `Oktober-Rechnung mit Flotte ${fleetLabel} (Battery Charts).`;
   return (
     <footer className={styles.footer}>
       <p>
         <Link href="/methodik#annahmen">Annahmen &amp; Grenzen ↗</Link>
       </p>
       <p style={{ marginTop: 8 }}>
-        Flotte {fleetLabel} · battery-charts.de. Überschuss national, nicht Abregelung. Kein Geschäftsfall, keine Euro auf dieser Ansicht.
+        {fleetLine} Überschuss national, nicht Abregelung. Kein Geschäftsfall, keine Euro auf dieser Ansicht.
       </p>
     </footer>
   );

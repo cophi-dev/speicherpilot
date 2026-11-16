@@ -1,12 +1,14 @@
-import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
+import { MONAT_REGELR_GRAPH_CAPTION, MONAT_REGELR_MODEL_FOOTNOTE } from "@/lib/monatReglerPflichtzeile";
 
 describe("monatReglerPflichtzeile", () => {
-  it("enthält Pflichtbestandteile ohne Euro und ohne netzdienlich", () => {
-    expect(MONAT_REGELR_GRAPH_CAPTION).toContain("national");
-    expect(MONAT_REGELR_GRAPH_CAPTION).toContain("(n\u22121)");
-    expect(MONAT_REGELR_GRAPH_CAPTION).not.toContain("(n\u2212\u22121)");
-    expect(MONAT_REGELR_GRAPH_CAPTION).toContain("nicht Abregelung");
-    expect(MONAT_REGELR_GRAPH_CAPTION).toContain("Stresstest ohne Preisrückwirkung");
-    expect(MONAT_REGELR_GRAPH_CAPTION).not.toMatch(/€|netzdienlich/i);
+  it("Kurzzeile unter Graphen", () => {
+    expect(MONAT_REGELR_GRAPH_CAPTION).toBe("Modell \u00b7 Annahmen unten");
+  });
+
+  it("Fußnote am Seitenende ohne Euro und ohne netzdienlich", () => {
+    expect(MONAT_REGELR_MODEL_FOOTNOTE).toContain("Netzknoten");
+    expect(MONAT_REGELR_MODEL_FOOTNOTE).toContain("Day-Ahead");
+    expect(MONAT_REGELR_MODEL_FOOTNOTE).toContain("Stresstest");
+    expect(MONAT_REGELR_MODEL_FOOTNOTE).not.toMatch(/€|netzdienlich/i);
   });
 });

@@ -231,7 +231,7 @@ export default async function TagDetailPage({
         fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplusFlag}
         preisTag={view.preisTag}
         marktInsights={marktInsights}
-        simulatorCostPct={loadEps70Teaser().costPctText}
+        simulatorTeaser={loadEps70Teaser()}
         fleetSoGerechnet={fleetSoGerechnet}
       >
         {fleetSlot}

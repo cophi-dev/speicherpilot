@@ -352,6 +352,16 @@ export function VisionPlot({
                 </text>
               );
             })}
+          <text
+            x={(40 + width - 16) / 2}
+            y={trackY - 36}
+            textAnchor="middle"
+            fontSize={axisFs}
+            fill="var(--research-muted)"
+            fontFamily="var(--font-jetbrains-mono)"
+          >
+            Speicherleistung, GW
+          </text>
         </svg>
       </motion.div>
     </div>

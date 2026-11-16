@@ -110,7 +110,7 @@ export function SiteProposalDocument({
               </Text>
             </View>
             <View style={styles.line}>
-              <Text>{tx("Einschätzung netzdienlich", "Grid-support estimate")}</Text>
+              <Text>{tx("Einschätzung Netzwirkung (Archiv)", "Site grid effect (archive)")}</Text>
               <Text>
                 {plan.gridSupport.status} · {qty(plan.gridSupport.dischargeShareInPeaks * 100, 0)} %
               </Text>

@@ -10,6 +10,7 @@ import {
   tagRollSnapshotMonthEligible,
   tagRollSnapshotMonthFrozenRecords,
 } from "@/lib/tagRollSnapshotPolicy";
+import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { monthHasAnyRecord } from "@/lib/monatCalendar";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 import {
@@ -71,7 +72,7 @@ export async function loadMonatPageData(monthKey: string, now = new Date()): Pro
         todayKey: todayKeyDirect,
         lastCompleteDayKey,
         records: partialRecords,
-        dataStand: `${tagRollSnapshotDataStandLabel(snap)} · eingefrorene Tage`,
+        dataStand: `Daten bis ${formatBerlinDayLabel(lastCompleteDayKey)}`,
         observationLive: monthHasAnyRecord(monthKey, partialRecords),
         observationFallback,
       };

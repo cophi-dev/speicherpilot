@@ -13,7 +13,7 @@ import { Knockout, SvgText } from "@/components/monat-v1/simulatorSvg";
 import { useLayoutWide, useSimulatorTheme } from "@/components/monat-v1/useSimulatorTheme";
 import { deriveExampleDay } from "@/lib/simulatorFahrweisenDerived";
 import type { SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
-import { formatGw, formatMioEur } from "@/lib/simulatorFahrweisenTypes";
+import { formatGw } from "@/lib/simulatorFahrweisenTypes";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
 function klasseColor(klasse: string, colors: SimulatorPalette) {
@@ -40,40 +40,40 @@ export function SimulatorTagesSection({ data }: { data: SimulatorFahrweisenData 
   const maxPct = Math.round(sum.maxShare * 100);
   const day29 = data.tagesklassen.find((d) => d.date === "2026-10-29");
   const share29 = day29 ? Math.round(day29.shareOfNetzReduction * 100) : 10;
-  const rev29 = day29 ? day29.marketRevenueEur / 1_000_000 : 2.11;
-
   return (
     <section className={styles.section} aria-labelledby="sim-g2-title" data-testid="simulator-tagesstreifen">
-      <p className={styles.eyebrow}>Tageshorizont · Regel T · nicht die Monatsscheibe</p>
+      <p className={styles.eyebrow}>Jeder Tag einzeln gerechnet</p>
       <h2 id="sim-g2-title" className={styles.h2}>
         An keinem Tag erreicht der Markt 70 Prozent.
       </h2>
       <p className={styles.lead}>
-        {sum.winWin} Win-win-Tage · Maximum {maxPct}{"\u00A0"}% am {maxDayLabel} · Der 29.10. (Monatsspitze) erreicht{" "}
-        {share29}{"\u00A0"}% bei höchstem Tageserlös ({formatMioEur(rev29)}, Modellschätzung).
+        {sum.winWin} Tage mit beiden Zielen zugleich · Maximum {maxPct}{"\u00A0"}% am {maxDayLabel} · Der 29.10.
+        (Monatsspitze) erreicht {share29}
+        {"\u00A0"}% trotz höchstem relativen Tageserlösanteil.
       </p>
       <div className={styles.legend} aria-hidden="true">
         <span className={styles.legendItem}>
-          <span className={styles.dotFilled} style={{ background: colors.winWin }} /> Win-win ({sum.winWin})
+          <span className={styles.dotFilled} style={{ background: colors.winWin }} /> beide Ziele zugleich ({sum.winWin})
         </span>
         <span className={styles.legendItem}>
           <span className={styles.dotHollow} style={{ borderColor: colors.neutral, background: colors.neutral }} />{" "}
-          Neutral ({sum.neutral})
+          kein Zielkonflikt ({sum.neutral})
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.dotRust} style={{ background: colors.konfliktSchwach }} /> Konflikt-schwach (
+          <span className={styles.dotRust} style={{ background: colors.konfliktSchwach }} /> kleiner Zielkonflikt (
           {sum.konfliktSchwach})
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.dotRust} style={{ background: colors.konfliktHebung }} /> Konflikt-Hebung (
-          {sum.konfliktHebung})
+          <span className={styles.dotRust} style={{ background: colors.konfliktHebung }} /> Preisfahren hebt die
+          Tagesspitze ({sum.konfliktHebung})
         </span>
       </div>
       <div className={simStyles.stripeWrap}>
         <StripeChart data={data} wide={wide} colors={colors} maxPct={maxPct} share29={share29} />
       </div>
       <p className={styles.figcaption}>
-        {MONAT_V1_GRAPH_CAPTION} · Tageshorizont, Regel T, SoC Start = Ende = 50{"\u00A0"}%, Zeitzone Europe/Berlin.
+        {MONAT_V1_GRAPH_CAPTION} · Tageshorizont, Speicher beginnt und endet jeden Tag halb voll, Zeitzone
+        Europe/Berlin.
       </p>
       <div className={simStyles.dayLinks}>
         <Link href="/tag/2026-10-21" className={simStyles.dayLink}>

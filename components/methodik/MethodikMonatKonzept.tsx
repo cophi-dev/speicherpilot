@@ -78,9 +78,9 @@ export async function MethodikMonatKonzept() {
           ).
         </li>
         <li id="simulator-endpunkte">
-          Die Endpunkte der Front (Max. Erlös, Netzdienlich) sind lexikographisch: erst das eine Ziel, dann das andere.
+          Die Endpunkte der Front (Nur Preis, Spitze zuerst) sind lexikographisch: erst das eine Ziel, dann das andere.
           Ohne das zweite Ziel lieferte der Spitzen-Löser bei ×2 einen „Erlös“ von −3,08 Mio.&nbsp;€ — ein
-          Löser-Artefakt, nicht der Preis der Netzdienlichkeit.
+          Löser-Artefakt, kein echter Preis für die Spitzensenkung.
         </li>
         <li>
           Euro ausschließlich als Modellschätzung (Day-Ahead, ohne Entgelte, Degradation, Intraday).

@@ -3,6 +3,7 @@ import { MonatSoGerechnet } from "@/components/monat-v1/MonatSoGerechnet";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { formatBerlinMonthShort } from "@/lib/monatCalendar";
+import { MONAT_REGELR_MODEL_FOOTNOTE } from "@/lib/monatReglerPflichtzeile";
 
 export function MonatV1Page({
   model,
@@ -19,6 +20,12 @@ export function MonatV1Page({
       </div>
       <MonatV1Charts model={model} />
       <MonatSoGerechnet model={model} />
+      <p className={`${styles.figcaption} num`} style={{ marginTop: 24 }}>
+        {MONAT_REGELR_MODEL_FOOTNOTE}{" "}
+        <a href="/methodik#annahmen" className="v4-text-link">
+          Methodik
+        </a>
+      </p>
     </div>
   );
 }

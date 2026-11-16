@@ -58,7 +58,7 @@ function weekStub(reductions: number[]): ResearchWeekDay[] {
 describe("weekHeadline", () => {
   it("nutzt ×2-Min/Max der Woche", () => {
     expect(weekHeadline(weekStub([2.52, 3.1, 5.8, 4.0, 3.3, 2.9, 4.5]))).toBe(
-      "Letzte Woche hätte doppelt so viel Speicher die Tagesspitze jeden Tag um 2,5 bis 5,8 GW gesenkt."
+      "Mit doppelter Flotte (×2) wäre die Tagesspitze letzte Woche jeden Tag um 2,5 bis 5,8 GW gesunken."
     );
   });
 });
@@ -90,15 +90,13 @@ describe("Gestern vs. letzter voller Tag", () => {
     expect(researchDayEyebrow(dayStub, "latestComplete")).toBe(
       "LETZTER VOLLSTÄNDIGER TAG · MO, 09.11.2026 · NATIONAL · TAGESHORIZONT"
     );
-    expect(saturationSectionH2(dayStub, "yesterday")).toMatch(/^Gestern brachte/);
-    expect(saturationSectionH2(dayStub, "latestComplete")).toBe(
-      "Am 09.11. brachte ab ×5 jedes weitere GW kaum noch etwas."
-    );
+    expect(saturationSectionH2(dayStub, "yesterday")).toMatch(/^Gestern senkte ab ×5/);
+    expect(saturationSectionH2(dayStub, "latestComplete")).toMatch(/Am 09\.11\. senkte ab ×5 jedes weitere GW die Spitze kaum noch\./);
   });
 
   it("Wochen-Eyebrow bei Fallback", () => {
     const week = weekStub([1, 2, 3, 4, 5, 6, 7]);
-    expect(weekSectionEyebrow(week, "yesterday")).toMatch(/^DIESE WOCHE ·/);
+    expect(weekSectionEyebrow(week, "yesterday")).toMatch(/^LETZTE 7 TAGE ·/);
     expect(weekSectionEyebrow(week, "latestComplete")).toMatch(/^7 VOLLE TAGE ·/);
   });
 });

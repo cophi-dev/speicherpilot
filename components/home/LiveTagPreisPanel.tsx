@@ -228,12 +228,19 @@ export function LiveTagPreisPanel({
       {tomorrowPrices.length >= 4 ? (
         <div className="v4-content mt-4">
           <p className="text-sm text-muted-foreground">
-            Preisvorschau morgen ({formatBerlinDayLabel(tomorrowKey)}): {formatQuantity(tomorrowPrices[0]!.eurPerMwh, "de", 0)}{" "}
-            bis {formatQuantity(tomorrowPrices[tomorrowPrices.length - 1]!.eurPerMwh, "de", 0)} €/MWh.{" "}
-            <Link href={`/tag/${tomorrowKey}`} className="v4-text-link">
-              Nur als Preisvorschau
-            </Link>
-            , keine eigene Tagesseite.
+            Preise morgen ({formatBerlinDayLabel(tomorrowKey)}):{" "}
+            {formatQuantity(
+              Math.min(...tomorrowPrices.map((p) => p.eurPerMwh)),
+              "de",
+              0,
+            )}{" "}
+            bis{" "}
+            {formatQuantity(
+              Math.max(...tomorrowPrices.map((p) => p.eurPerMwh)),
+              "de",
+              0,
+            )}{" "}
+            €/MWh (Day-Ahead).
           </p>
         </div>
       ) : null}

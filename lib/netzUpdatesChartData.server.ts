@@ -67,14 +67,13 @@ export function loadNetzUpdatesFahrweiseDay(): {
   let pricePeakLabel = "";
   let peakCap = 0;
 
-  for (let i = 0; i < day.modes.price.length; i += 4) {
+  for (let i = 0; i < day.modes.price.length; i += 1) {
     const p = day.modes.price[i]!;
     const peak = day.modes.peak[i]!;
     const hour = p.ts.slice(11, 16);
     const observedGw = p.residualMw / 1000;
     const priceGw = (p.residualPrimeMw ?? p.residualMw) / 1000;
     const peakGw = (peak.residualPrimeMw ?? peak.residualMw) / 1000;
-    slots.push({ hourLabel: hour, observedGw, priceGw, peakGw });
     if (observedGw > observedPeak) {
       observedPeak = observedGw;
       observedPeakLabel = hour;
@@ -84,6 +83,16 @@ export function loadNetzUpdatesFahrweiseDay(): {
       pricePeakLabel = hour;
     }
     peakCap = Math.max(peakCap, peakGw);
+  }
+
+  for (let i = 0; i < day.modes.price.length; i += 4) {
+    const p = day.modes.price[i]!;
+    const peak = day.modes.peak[i]!;
+    const hour = p.ts.slice(11, 16);
+    const observedGw = p.residualMw / 1000;
+    const priceGw = (p.residualPrimeMw ?? p.residualMw) / 1000;
+    const peakGw = (peak.residualPrimeMw ?? peak.residualMw) / 1000;
+    slots.push({ hourLabel: hour, observedGw, priceGw, peakGw });
   }
 
   return {

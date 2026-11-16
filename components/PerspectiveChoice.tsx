@@ -16,7 +16,7 @@ const CHOICES: { view: Perspective; titleDe: string; titleEn: string; bodyDe: st
     view: "netz",
     titleDe: "Ich betreibe ein Netz",
     titleEn: "I operate a grid",
-    bodyDe: "Du siehst zulässige Anschlussleistung, Badge netzdienlich und flexible Anschlussvereinbarung.",
+    bodyDe: "Du siehst zulässige Anschlussleistung, Netzwirkung am Standort und flexible Anschlussvereinbarung.",
     bodyEn: "You see permitted connection capacity, the grid-support badge and flexible connection agreements.",
   },
 ];

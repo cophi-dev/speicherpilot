@@ -9,7 +9,7 @@ function renderSlider(value = 8, onChange = jest.fn()) {
       count={18}
       namedIndices={[0, 8, 17]}
       onChange={onChange}
-      ariaValueText="Kompromiss: 33,97 Millionen Euro Modellschätzung, Senkung 2,51 GW"
+      ariaValueText="Kompromiss: 99,64 %, Senkung 2,51 GW"
       id="sim-front-range"
     />,
   );
@@ -26,7 +26,7 @@ describe("FrontSlider", () => {
     expect(el).toHaveAttribute("aria-valuenow", "8");
     expect(el).toHaveAttribute(
       "aria-valuetext",
-      "Kompromiss: 33,97 Millionen Euro Modellschätzung, Senkung 2,51 GW",
+      "Kompromiss: 99,64 %, Senkung 2,51 GW",
     );
     expect(el).toHaveAttribute("tabIndex", "0");
   });

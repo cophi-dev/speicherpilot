@@ -21,6 +21,19 @@
   padding-right: max(var(--page-gutter), calc((100% - var(--page-max)) / 2 + var(--page-gutter)));
 }
 
+.weekBarValueText {
+  font-family: var(--font-jetbrains-mono), monospace;
+  fill: var(--research-fg);
+  paint-order: stroke fill;
+  stroke: hsl(var(--background));
+  stroke-width: 0.38em;
+  stroke-linejoin: round;
+}
+
+:global(html.dark) .weekBarValueText {
+  stroke: var(--research-bg);
+}
+
 :global(html:not(.dark)) .page {
   --research-bg: transparent;
   --research-fg: #14161a;
@@ -150,7 +163,7 @@
 .peakPointLabelText {
   paint-order: stroke fill;
   stroke: hsl(var(--background));
-  stroke-width: 4px;
+  stroke-width: 3px;
   stroke-linejoin: round;
 }
 
@@ -241,6 +254,7 @@
 }
 
 .legendInline {
+  max-width: 52ch;
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;

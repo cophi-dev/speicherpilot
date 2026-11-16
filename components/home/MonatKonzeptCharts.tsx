@@ -790,6 +790,7 @@ export function MonatDauerlinieChart({
   peakAfterGw,
   wirkungGw,
   fixedMorph,
+  letzterTagLabel,
 }: {
   model: DauerlinieModel;
   monthKey: string;
@@ -799,6 +800,7 @@ export function MonatDauerlinieChart({
   peakAfterGw: number;
   wirkungGw: number;
   fixedMorph?: number | null;
+  letzterTagLabel?: string;
 }) {
   const { trackRef, morphT, sorted } = useMorphScroll(fixedMorph ?? null);
   const desktopShellRef = useRef<HTMLDivElement>(null);
@@ -831,6 +833,7 @@ export function MonatDauerlinieChart({
     activeFactor,
     peakAfterGw,
     wirkungGw,
+    { fleetAvailable, letzterTagLabel },
   );
 
   return (

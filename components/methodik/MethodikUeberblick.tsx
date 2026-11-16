@@ -381,8 +381,8 @@ export function MethodikAnnahmenSection({
     <>
       <p className="methodik-kurzfassung">
         {tx(
-          `Kurzfassung: Round-Trip ${rte} % (Spanne 80–90 %), nutzbarer Ladezustand ${soc} %, Preisnehmer ohne Preiswirkung, nur Day-Ahead, Laden vor 17 Uhr und Abgabe ab 17 Uhr, Flotte ×1 = ${power} GW / ${energy} GWh (${steps}). Testnetz SimBench, kein reales Netz.`,
-          `Summary: round-trip ${rte}% (range 80–90%), usable state of charge ${soc}%, price taker with no price effect, day-ahead only, charge before 17:00 and discharge from 17:00, fleet ×1 = ${power} GW / ${energy} GWh (${steps}). SimBench test grid, not a real grid.`
+          `Kurzfassung: Round-Trip ${rte} % (Spanne 80–90 %), nutzbarer Ladezustand ${soc} %, Preisnehmer (Speicher ändern den Preis nicht), nur Day-Ahead, Deutschland als ein Netzknoten. Tagesseite: Überschuss-Modell (lädt nur, wenn Wind und Sonne über dem Verbrauch liegen). Monat und Simulator: drei Fahrweisen (gegen die Spitze, Überschuss, nach Preis) mit voller Vorausschau. Flotte ×1 = heutige Großspeicher (Battery Charts). Oktober-Rechnung: 4,64 GW / 8,15 GWh, Stand 31.10. Tagesseiten: aktueller Stand.`,
+          `Summary: round-trip ${rte}% (range 80–90%), usable state of charge ${soc}%, price taker (storage does not change the price), day-ahead only, Germany as a single grid node. Day page: surplus model (charges only when wind and solar exceed load). Month and simulator: three operation modes (peak-oriented, surplus, price) with full foresight. Fleet ×1 = today’s large storage (Battery Charts). October run: 4.64 GW / 8.15 GWh, as of 31 Oct. Day pages: current fleet.`
         )}
       </p>
       <details className="methodik-nested-table">

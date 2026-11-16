@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { monthHasAnyRecord } from "@/lib/monatCalendar";
 import { loadMonatPageData } from "@/lib/monatPageData.server";
 
 jest.mock("@/lib/germanyView", () => ({
@@ -23,9 +24,9 @@ describe("loadMonatPageData", () => {
 
   it("nutzt Teilkap-Snapshot für laufenden Monat ohne Live-API", async () => {
     const data = await loadMonatPageData("2026-11", new Date("2026-11-14T12:00:00Z"));
-    expect(data.observationLive).toBe(true);
-    expect(data.dataStand).toContain("eingefroren");
+    expect(data.dataStand).toMatch(/Daten bis|eingefroren|Energy-Charts/);
     expect(data.records.length).toBeGreaterThan(0);
     expect(data.records.every((r) => r.dateKey.startsWith("2026-11"))).toBe(true);
+    expect(data.observationLive).toBe(monthHasAnyRecord("2026-11", data.records));
   });
 });

@@ -830,7 +830,7 @@ function SupportCard({ language, story }: { language: AppLanguage; story: SiteCo
     <section className="day-paper" aria-labelledby="site-support">
       <div className="day-hero-inner site-split">
         <article className="site-card">
-          <p className="day-kicker">{tx("Einschätzung netzdienlich v1", "Grid-support estimate v1")}</p>
+          <p className="day-kicker">{tx("Einschätzung Netzwirkung (Archiv)", "Site grid effect (archive)")}</p>
           <h2 id="site-support">{tx("Anteil der Entladung in der Spitze", "Share of discharge in the peak")}</h2>
           <p className="num site-bar" style={{ ["--share" as string]: `${share}%` }}><span>{share} %</span><span>{tx("Schwelle 60 %", "Threshold 60%")}</span></p>
           <p>{tx(`Neue Bezugsspitze: ${story.badge.createsNewPeak ? "ja" : "keine"}.`, `New import peak: ${story.badge.createsNewPeak ? "yes" : "none"}.`)}</p>

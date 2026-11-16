@@ -623,16 +623,19 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
   return (
     <>
       <section className={styles.section} id="graph-1" aria-labelledby="monat-v1-a1">
-        <h1 id="monat-v1-a1" className={styles.h1}>
+        <h2 id="monat-v1-a1" className={styles.h1}>
           Dieselbe Flotte senkt
           <br />
           die{"\u00A0"}Spitze
           <br />
           oder hebt sie.
-        </h1>
-        <p className={styles.kern}>{formatGwAbs(model.hero.insightSpitzeX10Gw, 1)}</p>
+        </h2>
+        <p className={styles.kern}>ab ×{model.hero.kipppunktFactor.toFixed(1).replace(".", ",")}</p>
         <p className={styles.lead}>
-          Spitze bei ×10 und Kipppunkt {model.hero.kipppunktLabel} — drei Fahrweisen auf derselben Restlast.
+          Ab etwa der {model.hero.kipppunktFactor.toFixed(1).replace(".", ",")}-fachen Flotte erzeugt Laden nach Preis
+          eine neue Monatsspitze (×10: {model.heroTable.marktX10.toFixed(1).replace(".", ",")} statt{" "}
+          {model.refPeakGw.toFixed(1).replace(".", ",")} GW gemessen). Gegen die Spitze gefahren sinkt sie auf{" "}
+          {model.heroTable.spitzeX10.toFixed(1).replace(".", ",")} GW.
         </p>
         <HeroChart model={model} />
         <p className={styles.simulatorTry}>
@@ -653,9 +656,11 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <h2 id="monat-v1-a4" className={styles.h2}>
           Überschuss allein trägt nicht.
         </h2>
-        <p className={styles.kern}>{model.surplusPoolGwh.toFixed(1).replace(".", ",")} GWh</p>
+        <p className={styles.kern}>{model.surplusPoolGwh.toFixed(1).replace(".", ",")} GWh Überschuss im Oktober</p>
         <p className={styles.lead}>
-          Der Aufnahme-Pool ist bei ×10 voll, die Spitzensenkung bleibt deutlich unter spitzenorientiertem Fahren.
+          So viel Wind- und Sonnenstrom lag im Oktober über dem Verbrauch. ×10 nimmt fast alles auf, senkt die Spitze
+          damit aber nur um {model.compareX10.ueberschussGw.toFixed(1).replace(".", ",")} GW. Gegen die Spitze gefahren
+          sind es {model.compareX10.spitzeGw.toFixed(1).replace(".", ",")} GW.
         </p>
         <UeberschussChart model={model} />
       </section>

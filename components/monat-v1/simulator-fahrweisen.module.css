@@ -264,6 +264,14 @@
   border-top: none;
   padding-top: 0;
   margin-top: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .insight3 {

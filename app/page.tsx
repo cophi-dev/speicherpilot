@@ -8,6 +8,7 @@ import { HOME_DOCUMENT_TITLE } from "@/lib/seo/pageTitles";
 import { buildResearchHome } from "@/lib/research/loadResearchHome.server";
 import { loadResearchDays } from "@/lib/research/loadResearchDays.server";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
+import { formatQuantity } from "@/lib/formatQuantity";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 import { SITE_DESCRIPTION, socialMeta } from "@/lib/siteOg";
 
@@ -35,6 +36,9 @@ export default async function Home() {
   }
   const snap = loadTagRollSnapshot();
   const teaser = loadEps70Teaser();
+  const liveFleetLabel = snap?.fleet
+    ? `${formatQuantity(snap.fleet.powerGw, "de", 2)} GW / ${formatQuantity(snap.fleet.energyGwh, "de", 2)} GWh`
+    : null;
   const homeDataset = datasetJsonLd({
     path: "/",
     name: HOME_DOCUMENT_TITLE,
@@ -45,7 +49,7 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={{ "@context": "https://schema.org", ...homeDataset }} />
-      <ResearchHomePage model={model} simulatorCostPct={teaser.costPctText} />
+      <ResearchHomePage model={model} simulatorTeaser={teaser} liveFleetLabel={liveFleetLabel} />
     </>
   );
 }

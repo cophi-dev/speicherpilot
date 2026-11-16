@@ -7,6 +7,8 @@ export type ResearchStageResult = {
   reductionGw: number;
   capGw: number;
   reduction4hGw: number;
+  /** Viertelstunden über der Kappungslinie × Stunden. */
+  hoursAboveCap: number;
 };
 
 export type ResearchDaySeriesPoint = {

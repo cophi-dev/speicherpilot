@@ -47,7 +47,14 @@ export function fullReduction(marketMio: number, netzMio: number) {
     vonLabel: `${formatDec(exactMio, 2)} von ${formatDec(marketMio, 2)}`,
     /** „volle Senkung kostet 0,30 Mio. € (0,89 %)“ — Prozent aus ungerundetem Quotienten */
     fullCostSentence: `volle Senkung kostet ${formatMioEur(exactMio, 2)} (${formatPct(exactPct, 2)})`,
+    /** Nur Prozent (Simulator ×2, keine Euro-Anzeige). */
+    fullCostSentencePct: `volle Senkung kostet ${formatPct(exactPct, 2)}`,
   };
+}
+
+/** Day-Ahead-Erlös als Anteil am Markt-Ende (×2: 100 % = Nur Preis). */
+export function revenuePctOfMarket(revenueMio: number, marketMio: number): number {
+  return (revenueMio / marketMio) * 100;
 }
 
 export function compromisePct(marketMio: number, eps70Mio: number) {
