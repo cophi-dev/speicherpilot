@@ -23,6 +23,7 @@ import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
 export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweisenData }) {
   const wide = useLayoutWide(1100);
+  const bandWide = useLayoutWide(768);
   const { colors } = useSimulatorTheme();
   const d21 = deriveExampleDay(data, "2026-10-21");
   const d29 = deriveExampleDay(data, "2026-10-29");
@@ -61,6 +62,7 @@ export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweis
           data={data}
           metrics={d21}
           wide={wide}
+          bandWide={bandWide}
           colors={colors}
           baselineGw={baseline}
           title="21.10."
@@ -71,6 +73,7 @@ export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweis
           data={data}
           metrics={d29}
           wide={wide}
+          bandWide={bandWide}
           colors={colors}
           baselineGw={baseline}
           title="29.10."
@@ -91,6 +94,7 @@ function DayChart({
   data,
   metrics,
   wide,
+  bandWide,
   colors,
   baselineGw,
   title,
@@ -100,6 +104,7 @@ function DayChart({
   data: SimulatorFahrweisenData;
   metrics: ExampleDayMetrics;
   wide: boolean;
+  bandWide: boolean;
   colors: SimulatorPalette;
   baselineGw: number;
   title: string;
@@ -128,6 +133,7 @@ function DayChart({
   const pmin = 0;
   const yP = (pv: number) => priceT + ((pmax - pv) / (pmax - pmin)) * vb.priceH;
   const priceTicks = is21 ? [0, 200] : [0, 300];
+  const topPriceTick = priceTicks[priceTicks.length - 1]!;
   const yTicks = wide ? [20, 30, 40, 50, 60, 70] : [20, 40, 60, 70];
   const stepW = (plotW / 24) * 0.25 + 0.3;
   const poly = (rows: SimulatorDispatchRow[], getter: (r: SimulatorDispatchRow) => number) =>
@@ -304,9 +310,17 @@ function DayChart({
         <Day29Labels metrics={metrics} xH={xH} yR={yR} colors={colors} wide={wide} />
       )}
 
-      <SvgText x={x23 - 6} y={priceT + vb.priceH - 6} fill={colors.muted} anchor="end">
-        23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)
-      </SvgText>
+      {is21 ? (
+        <SvgText
+          x={x24 - 4}
+          y={residualT + vb.topH / 2 + 4}
+          fill={colors.muted}
+          anchor="end"
+          size={bandWide ? 11 : 10}
+        >
+          {bandWide ? "23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)" : "23–24 Uhr: Modelleffekt"}
+        </SvgText>
+      ) : null}
 
       {priceTicks.map((t) => (
         <g key={`pt${t}`}>
@@ -331,7 +345,7 @@ function DayChart({
         strokeWidth={1.25}
       />
       <line x1={vb.L} y1={priceT} x2={vb.L} y2={priceT + vb.priceH} stroke={colors.ink} strokeWidth={1.25} />
-      <SvgText x={vb.L} y={priceT - 2} fill={colors.muted}>
+      <SvgText x={vb.L} y={yP(topPriceTick) - 6} fill={colors.muted}>
         €/MWh
       </SvgText>
       {[0, 6, 12, 18, 24].map((h) => {

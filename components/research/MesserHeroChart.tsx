@@ -106,7 +106,10 @@ export function MesserHeroChart({
   const px = xMap(peakIdx, n, width);
   const py = yMap(peak.residualGw);
   const capY = yMap(active.capGw);
-  const ghost4hGw = model.peakGw - active.reduction4hGw;
+  const stage5 = model.stages.find((s) => s.factor === 5)!;
+  const x5mit4hCapGw = model.peakGw - stage5.reduction4hGw;
+  const unifiedEquiv = factor === 10 && Math.abs(active.capGw - x5mit4hCapGw) < 0.2;
+  const ghost4hGw = unifiedEquiv ? active.capGw : model.peakGw - active.reduction4hGw;
   const ghost4hY = yMap(ghost4hGw);
 
   const peakLabelText = formatResearchPeakPointLabel(model.peakGw, model.peakTime);
@@ -175,26 +178,43 @@ export function MesserHeroChart({
           </text>
         </g>
       ))}
-      <line
-        x1={PAD_X}
-        x2={width - PAD_RIGHT}
-        y1={ghost4hY}
-        y2={ghost4hY}
-        stroke="var(--research-muted)"
-        strokeWidth={1.5}
-        strokeDasharray="4 4"
-        opacity={0.7}
-      />
-      <text
-        x={width - PAD_RIGHT - 4}
-        y={ghost4hY - 6}
-        textAnchor="end"
-        fontSize={11}
-        fill="var(--research-muted)"
-        fontFamily="var(--font-jetbrains-mono)"
-      >
-        ×{factor} · 4 h
-      </text>
+      {!unifiedEquiv ? (
+        <line
+          x1={PAD_X}
+          x2={width - PAD_RIGHT}
+          y1={ghost4hY}
+          y2={ghost4hY}
+          stroke="var(--research-muted)"
+          strokeWidth={1.5}
+          strokeDasharray="4 4"
+          opacity={0.7}
+        />
+      ) : null}
+      {unifiedEquiv ? (
+        <text
+          x={width - PAD_RIGHT - 4}
+          y={capY + 4}
+          textAnchor="end"
+          fontSize={12}
+          fill="var(--research-fg)"
+          fontFamily="var(--font-jetbrains-mono)"
+          className={styles.peakPointLabelText}
+        >
+          ×10 = ×5 mit 4 h
+        </text>
+      ) : (
+        <text
+          x={width - PAD_RIGHT - 4}
+          y={ghost4hY - 8}
+          textAnchor="end"
+          fontSize={12}
+          fill="var(--research-muted)"
+          fontFamily="var(--font-jetbrains-mono)"
+          className={styles.peakPointLabelText}
+        >
+          ×{factor} · 4 h
+        </text>
+      )}
       {cappedPaths.map((d, i) => (
         <motion.path
           key={`${factor}-${i}`}
@@ -292,21 +312,24 @@ export function MesserHeroChart({
             }}
           />
         ))}
-        {labelRows.map(({ f, y, active: isOn }) => (
-          <text
-            key={f}
-            x={width - 8}
-            y={y + 4}
-            textAnchor="end"
-            fontSize={isOn ? 14 : 12}
-            fontWeight={isOn ? 600 : 500}
-            fill={isOn ? "var(--research-fg)" : "var(--research-muted)"}
-            fontFamily="var(--font-jetbrains-mono)"
-            style={{ pointerEvents: "none" }}
-          >
-            ×{f}
-          </text>
-        ))}
+        {labelRows.map(({ f, y, active: isOn }) =>
+          unifiedEquiv && f === 10 ? null : (
+            <text
+              key={f}
+              x={width - 8}
+              y={y + 4}
+              textAnchor="end"
+              fontSize={isOn ? 14 : 12}
+              fontWeight={isOn ? 600 : 500}
+              fill={isOn ? "var(--research-fg)" : "var(--research-muted)"}
+              fontFamily="var(--font-jetbrains-mono)"
+              className={isOn ? styles.peakPointLabelText : undefined}
+              style={{ pointerEvents: "none" }}
+            >
+              ×{f}
+            </text>
+          ),
+        )}
       </g>
       {[0, 6, 12, 18, 24].map((h) => {
         const idx = hourIndex(model, h);
