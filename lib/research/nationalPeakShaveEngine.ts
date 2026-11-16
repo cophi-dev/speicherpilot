@@ -6,6 +6,13 @@ import {
   additionalFleetMw,
   type ResearchFactor,
 } from "@/lib/research/fleetBasis";
+import {
+  PEAK_LEX_TOLERANCE_MW,
+  solveMinPeakFlatLex,
+  storageLpCliAvailable,
+} from "@/lib/research/nationalStorageLp";
+
+export { PEAK_LEX_TOLERANCE_MW, storageLpCliAvailable };
 
 const SOC_START = 0.5;
 const SOC_MIN = 0.1;
@@ -31,6 +38,7 @@ function feasible(residualMw: number[], capMw: number, powerMw: number, energyMw
   return socMwh >= endMin - 1e-4;
 }
 
+/** Stufe-1-Spitze (min M): Binärsuche + Greedy-SoC-Prüfer (Referenzwerte nachrechnung v3). */
 export function minPeakMw(
   residualMw: number[],
   powerMw: number,
@@ -51,6 +59,58 @@ export function minPeakMw(
     }
   }
   return hi;
+}
+
+export type PeakShaveDispatch = {
+  rMw: number[];
+  rPrimeMw: number[];
+  cMw: number[];
+  dMw: number[];
+  capMw: number;
+  peakBeforeMw: number;
+  peakAfterMw: number;
+  peakStage1Mw: number;
+  peakToleranceMw: number;
+};
+
+export function solvePeakShaveDispatch(
+  residualMw: number[],
+  powerMw: number,
+  energyMwh: number
+): PeakShaveDispatch {
+  const peakBeforeMw = residualMw.length ? Math.max(...residualMw) : 0;
+  const capMw = minPeakMw(residualMw, powerMw, energyMwh);
+
+  if (!storageLpCliAvailable()) {
+    const { cMw, dMw } = legacyGreedyDispatchMw(residualMw, capMw, powerMw, energyMwh);
+    const rPrimeMw = residualMw.map((r, t) => r + cMw[t]! - dMw[t]!);
+    const peakAfterMw = Math.max(...rPrimeMw, 0);
+    return {
+      rMw: residualMw.slice(),
+      rPrimeMw,
+      cMw,
+      dMw,
+      capMw: peakAfterMw,
+      peakBeforeMw,
+      peakAfterMw,
+      peakStage1Mw: capMw,
+      peakToleranceMw: PEAK_LEX_TOLERANCE_MW,
+    };
+  }
+
+  const solved = solveMinPeakFlatLex(residualMw, powerMw, energyMwh);
+  const rPrimeMw = residualMw.map((r, t) => r + solved.cMw[t]! - solved.dMw[t]!);
+  return {
+    rMw: residualMw.slice(),
+    rPrimeMw,
+    cMw: solved.cMw,
+    dMw: solved.dMw,
+    capMw: solved.peakMw,
+    peakBeforeMw,
+    peakAfterMw: solved.peakMw,
+    peakStage1Mw: solved.peakStage1Mw,
+    peakToleranceMw: solved.peakToleranceMw,
+  };
 }
 
 export function peakReductionGw(
@@ -82,6 +142,10 @@ export function cappedResidualSeriesGw(residualMw: number[], capMw: number): num
   return residualMw.map((r) => Math.min(r, capMw) / 1000);
 }
 
+export function residualPrimeSeriesGw(residualMw: number[], powerMw: number, energyMwh: number): number[] {
+  return solvePeakShaveDispatch(residualMw, powerMw, energyMwh).rPrimeMw.map((v) => v / 1000);
+}
+
 export function saturationCurveGw(
   residualMw: number[],
   maxFactor = 10,
@@ -101,4 +165,37 @@ export function saturationCurveGw(
     prev = { factor: k, reductionGw, fleetGw };
   }
   return points;
+}
+
+/** Alter Greedy-Fahrplan bei fixer Kappe (Artefakt hoher Ladespitzen, z. B. 29.10. ×5). */
+export function legacyGreedyDispatchMw(
+  residualMw: number[],
+  capMw: number,
+  powerMw: number,
+  energyMwh: number
+): { cMw: number[]; dMw: number[] } {
+  let socMwh = SOC_START * energyMwh;
+  const lo = SOC_MIN * energyMwh;
+  const hi = SOC_MAX * energyMwh;
+  const cMw: number[] = [];
+  const dMw: number[] = [];
+  for (const r of residualMw) {
+    if (r > capMw) {
+      const discharge = Math.min(powerMw, r - capMw);
+      dMw.push(discharge);
+      cMw.push(0);
+      socMwh -= (discharge * RESEARCH_QUARTER_H) / RESEARCH_DISPATCH_ETA;
+      socMwh = Math.max(lo, socMwh);
+    } else {
+      const chargeMw = Math.min(powerMw, capMw - r);
+      cMw.push(chargeMw);
+      dMw.push(0);
+      socMwh = Math.min(hi, socMwh + chargeMw * RESEARCH_QUARTER_H * RESEARCH_DISPATCH_ETA);
+    }
+  }
+  return { cMw, dMw };
+}
+
+export function feasibleAtCap(residualMw: number[], capMw: number, powerMw: number, energyMwh: number): boolean {
+  return feasible(residualMw, capMw, powerMw, energyMwh);
 }

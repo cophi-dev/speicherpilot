@@ -244,8 +244,8 @@ def solve(rows: list[Row], factor: int, strategy: str) -> tuple[np.ndarray, np.n
         rep = {"phase1": r1.__dict__, "phase2_tiebreak": r2.__dict__}
     elif strategy == "min_peak_perfect_foresight":
         m = MonthStorageMip(n, p, e_nom)
-        c, d, e, r = m.solve_min_peak(residual)
-        rep = {"solve": r.__dict__}
+        c, d, e, r = m.solve_min_peak_flat(residual)
+        rep = r
     else:
         m = MonthStorageMip(n, p, e_nom)
         c, d, e, r = m.solve_price(prices)

@@ -1,0 +1,38 @@
+name: National fleet nachtlauf
+
+on:
+  schedule:
+    - cron: "30 4 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  nachtlauf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r scripts/requirements-fleet-solver.txt
+      - run: pnpm install --frozen-lockfile
+      - name: Nachtlauf Vortag
+        run: node scripts/national-fleet-nachtlauf.mjs --yesterday
+      - name: Commit fleet data
+        run: |
+          if git diff --quiet data/national-fleet; then
+            echo "Keine Änderungen"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/national-fleet
+          git commit -m "chore(national-fleet): nightly batch"
+          git push
