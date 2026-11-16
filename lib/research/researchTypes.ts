@@ -92,11 +92,12 @@ export type VisionCurvePoint = {
   senkungGw: Record<"1.76" | "2" | "4", number>;
 };
 
+/** Kompatibilität: Vision-Graph 1 liest Kurve, Peak und Zusagen-Band. */
 export type VisionPageModel = {
-  monthLabel: string;
   peakGw: number;
   commitmentsGw: number;
   curve: VisionCurvePoint[];
-  defaultDuration: "2";
-  defaultStage: VisionStageId;
+  defaultDuration?: "2";
+  defaultStage?: VisionStageId;
+  monthLabel?: string;
 };
