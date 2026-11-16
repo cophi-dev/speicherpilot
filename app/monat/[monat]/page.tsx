@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { socialMeta } from "@/lib/siteOg";
@@ -56,6 +57,13 @@ export default async function MonatDetailPage({
 }) {
   const { monat } = await params;
   const query = await searchParams;
+  if (
+    nationalFleetMonthAvailable(monat) &&
+    query.faktor === undefined &&
+    query.fahrweise === undefined
+  ) {
+    redirect(`/monat/${monat}?faktor=10&fahrweise=spitze`);
+  }
   if (!isBerlinMonthKey(monat)) {
     const pageData = await loadMonatPageData(monat);
     return (

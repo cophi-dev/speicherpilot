@@ -13,6 +13,7 @@ export function FrontSlider({
   ariaValueText,
   label = "Fahrweise",
   id,
+  showHint = true,
 }: {
   value: number;
   count: number;
@@ -21,6 +22,7 @@ export function FrontSlider({
   ariaValueText: string;
   label?: string;
   id?: string;
+  showHint?: boolean;
 }) {
   const genId = useId();
   const labelId = `${id ?? genId}-label`;
@@ -101,9 +103,11 @@ export function FrontSlider({
         </span>
         <span className={simStyles.frontThumb} style={{ left: `${pct}%` }} aria-hidden="true" />
       </div>
-      <p className={simStyles.sliderHint}>
-        Rastet auf {count} vorgerechneten Front-Punkten{"\u00A0"}·{"\u00A0"}Pfeiltasten
-      </p>
+      {showHint ? (
+        <p className={simStyles.sliderHint}>
+          Rastet auf {count} vorgerechneten Front-Punkten{"\u00A0"}·{"\u00A0"}Pfeiltasten
+        </p>
+      ) : null}
     </div>
   );
 }

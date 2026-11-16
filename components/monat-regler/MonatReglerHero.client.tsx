@@ -8,7 +8,10 @@ import { FrontSlider } from "@/components/monat-v1/FrontSlider";
 import { MonatReglerChart } from "@/components/monat-regler/MonatReglerChart.client";
 import styles from "@/components/monat-regler/monat-regler.module.css";
 import { totalFleetAtFactor } from "@/lib/fleetXkConvention";
-import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
+import {
+  MONAT_REGELR_GRAPH_CAPTION,
+  MONAT_REGELR_MARKT_HERO_SUFFIX,
+} from "@/lib/monatReglerPflichtzeile";
 import { parseMonatReglerCompact, type MonatReglerCompact } from "@/lib/monatReglerAsset";
 import { reglerKpisFromBundle } from "@/lib/monatReglerKpis";
 import { formatGwAbs } from "@/lib/monatV1Format";
@@ -20,13 +23,21 @@ import {
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
 import type { ReglerKpiSource } from "@/lib/monatReglerKpis";
+import { formatQuantity } from "@/lib/formatQuantity";
 
+const NBSP = "\u00a0";
 const STRATEGY_ORDER: NationalFleetStrategyUi[] = ["spitze", "ueberschuss", "markt"];
 const STRATEGY_LABEL: Record<NationalFleetStrategyUi, string> = {
   spitze: "Spitze",
   ueberschuss: "Überschuss",
   markt: "Markt",
 };
+
+function formatPoolLine(gwh: number, sharePct: number | null): string {
+  const g = `${formatQuantity(gwh, "de", 1)}${NBSP}GWh`;
+  if (sharePct == null) return g;
+  return `${g} (${formatQuantity(sharePct, "de", 0)}${NBSP}%)`;
+}
 
 export function MonatReglerHero({
   monthKey,
@@ -42,7 +53,6 @@ export function MonatReglerHero({
   const router = useRouter();
   const [compact, setCompact] = useState<MonatReglerCompact | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [zoom, setZoom] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,8 +63,7 @@ export function MonatReglerHero({
       })
       .then((raw) => {
         if (cancelled) return;
-        const parsed = parseMonatReglerCompact(raw);
-        setCompact(parsed);
+        setCompact(parseMonatReglerCompact(raw));
       })
       .catch((e: Error) => {
         if (!cancelled) setError(e.message);
@@ -62,7 +71,7 @@ export function MonatReglerHero({
     return () => {
       cancelled = true;
     };
-  }, [factor, kpiSource, strategy]);
+  }, []);
 
   const kpis = useMemo(
     () => (compact ? reglerKpisFromBundle(kpiSource, factor, strategy, compact) : null),
@@ -73,7 +82,6 @@ export function MonatReglerHero({
   const onFactorSlider = useCallback(
     (idx: number) => {
       const f = NATIONAL_FLEET_FACTORS[idx] ?? factor;
-      setZoom(null);
       router.replace(fleetMonatHref(monthKey, f, strategy));
     },
     [factor, monthKey, router, strategy],
@@ -89,14 +97,17 @@ export function MonatReglerHero({
       </h1>
 
       <div className={styles.controls}>
-        <FrontSlider
-          value={factorIndex >= 0 ? factorIndex : 0}
-          count={NATIONAL_FLEET_FACTORS.length}
-          namedIndices={[0, 1, 2, 3]}
-          onChange={onFactorSlider}
-          label="Flottengröße (×1 Ist · ×2 · ×5 · ×10)"
-          ariaValueText={`×${factor}`}
-        />
+        <div className={styles.sliderDesktopOnly} data-testid="monat-regler-slider">
+          <FrontSlider
+            value={factorIndex >= 0 ? factorIndex : 0}
+            count={NATIONAL_FLEET_FACTORS.length}
+            namedIndices={[0, 1, 2, 3]}
+            onChange={onFactorSlider}
+            label="Flottengröße (×1 Ist · ×2 · ×5 · ×10)"
+            ariaValueText={`×${factor}`}
+            showHint={false}
+          />
+        </div>
         <div className={styles.chipGroup} role="group" aria-label="Flottenstufe">
           {NATIONAL_FLEET_FACTORS.map((f) => {
             const total = totalFleetAtFactor(f);
@@ -127,8 +138,7 @@ export function MonatReglerHero({
           ))}
         </div>
         <p className={styles.durationRow}>
-          Dauer:{" "}
-          <strong>1,76 h</strong> aktiv · 2 h und 4 h ohne Zeitreihe — siehe Graph darunter (Paket B).
+          Dauer: <strong>1,76 h</strong> aktiv · 2 h und 4 h ohne Zeitreihe — siehe Graph darunter.
         </p>
       </div>
 
@@ -145,19 +155,22 @@ export function MonatReglerHero({
           {strategy === "ueberschuss" && kpis.surplusCaptureGwh != null ? (
             <div className={styles.kpi}>
               <dt>Überschuss-Pool</dt>
-              <dd>
-                {kpis.surplusCaptureGwh.toFixed(1).replace(".", ",")} GWh
-                {kpis.surplusSharePct != null ? ` (${kpis.surplusSharePct.toFixed(0)} %)` : ""}
-              </dd>
+              <dd>{formatPoolLine(kpis.surplusCaptureGwh, kpis.surplusSharePct)}</dd>
             </div>
           ) : null}
           {strategy === "markt" && factor > 1 && kpis.marktQhAboveRef != null ? (
-            <div className={styles.kpi}>
-              <dt>Über {formatGwAbs(64.4)}</dt>
-              <dd>
-                {kpis.marktQhAboveRef} QH · {kpis.marktDaysAboveRef} Tage · Kipppunkt ≈ ×{kpis.kipppunktFactor}
-              </dd>
-            </div>
+            <>
+              <div className={styles.kpi}>
+                <dt>Über {formatGwAbs(64.4)}</dt>
+                <dd>{kpis.marktQhAboveRef} QH</dd>
+              </div>
+              <div className={styles.kpi}>
+                <dt>Kipppunkt</dt>
+                <dd>
+                  ≈{NBSP}×{formatQuantity(kpis.kipppunktFactor, "de", 1)} · {kpis.marktDaysAboveRef} Tage
+                </dd>
+              </div>
+            </>
           ) : null}
         </dl>
       ) : null}
@@ -168,19 +181,11 @@ export function MonatReglerHero({
           Zeitreihe wird geladen …
         </p>
       ) : null}
-      {compact ? (
-        <MonatReglerChart
-          compact={compact}
-          factor={factor}
-          strategy={strategy}
-          zoom={zoom}
-          onZoomChange={setZoom}
-        />
-      ) : null}
+      {compact ? <MonatReglerChart compact={compact} factor={factor} strategy={strategy} /> : null}
 
       <p className={styles.caption} data-testid="monat-regler-pflichtzeile">
         {MONAT_REGELR_GRAPH_CAPTION}
-        {strategy === "markt" && factor > 1 ? " · Schraffur = über beobachteter Monatsspitze" : ""}
+        {strategy === "markt" && factor > 1 ? MONAT_REGELR_MARKT_HERO_SUFFIX : ""}
       </p>
     </section>
   );
