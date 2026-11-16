@@ -152,24 +152,28 @@ export function MesserHeroChart({
     [factor, showGhostLine, x10eqX5_4h],
   );
 
-  const bootReserve = useMemo(() => gutterReserveWidth(gutterTexts, 12, MARGIN_COL_W, 12), [gutterTexts]);
-  const fs = useTypographicSvgFontSize(svgRef, width + bootReserve, 12);
-  const layoutW = width + gutterReserveWidth(gutterTexts, fs, MARGIN_COL_W, 12);
+  const [viewBoxW, setViewBoxW] = useState(() => width + gutterReserveWidth(gutterTexts, 12, MARGIN_COL_W, 12));
+  const fs = useTypographicSvgFontSize(svgRef, viewBoxW, 12);
+  useLayoutEffect(() => {
+    const next = width + gutterReserveWidth(gutterTexts, fs, MARGIN_COL_W, 12);
+    if (Math.abs(next - viewBoxW) > 0.01) setViewBoxW(next);
+  }, [fs, gutterTexts, viewBoxW, width]);
   const plotRight = width - PAD_RIGHT;
-  const gutterX = layoutW - 8;
+  const gutterX = viewBoxW - 8;
 
   useLayoutEffect(() => {
     const el = svgRef.current;
-    if (!el || layoutW <= 0) return;
+    if (!el || viewBoxW <= 0) return;
     const measure = () => {
       const w = el.getBoundingClientRect().width;
-      if (w > 0) setTypoScale(w / layoutW);
+      const vbW = el.viewBox.baseVal.width || viewBoxW;
+      if (w > 0) setTypoScale(w / vbW);
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [layoutW]);
+  }, [viewBoxW]);
 
   const peakLabelText = formatResearchPeakPointLabel(model.peakGw, model.peakTime);
   const peakLabelBase = placePeakPointLabel({
@@ -201,7 +205,7 @@ export function MesserHeroChart({
       const svg = svgRef.current;
       if (!svg) return;
       const pt = svg.createSVGPoint();
-      pt.x = layoutW - MARGIN_COL_W / 2;
+      pt.x = viewBoxW - MARGIN_COL_W / 2;
       pt.y = clientY;
       const ctm = svg.getScreenCTM();
       if (!ctm) return;
@@ -220,7 +224,7 @@ export function MesserHeroChart({
       });
       onFactor(best);
     },
-    [height, layoutW, onFactor, stages, yMax, yMin],
+    [height, viewBoxW, onFactor, stages, yMax, yMin],
   );
 
   const inactiveCaps = FACTORS.filter((f) => f !== factor).filter((f) => {
@@ -232,7 +236,7 @@ export function MesserHeroChart({
     return true;
   });
 
-  const gutterLabels = useMemo(() => {
+  const gutterLabelsBase = useMemo(() => {
     const candidates: GutterLabelCandidate[] = [];
     if (x10eqX5_4h) {
       const placed = placeLineEndLabel({
@@ -291,7 +295,7 @@ export function MesserHeroChart({
         isBold: f === factor,
       });
     });
-    return stackGutterLabels(candidates, gutterX, 4, typoScale, plotRight, plotBottom);
+    return stackGutterLabels(candidates, gutterX, 4, typoScale, plotRight);
   }, [
     equivY,
     factor,
@@ -310,6 +314,48 @@ export function MesserHeroChart({
     yMap,
   ]);
 
+  const [gutterDy, setGutterDy] = useState<Record<string, number>>({});
+
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || typoScale <= 0) return;
+    const entries = gutterLabelsBase
+      .map((lab) => {
+        const el = svg.querySelector(`[data-gutter-key="${lab.key}"]`);
+        return el ? { lab, el: el as SVGTextElement } : null;
+      })
+      .filter((x): x is { lab: (typeof gutterLabelsBase)[0]; el: SVGTextElement } => !!x);
+    if (entries.length === 0) return;
+    for (const { lab, el } of entries) {
+      el.setAttribute("y", String(lab.y));
+    }
+    const sorted = [...entries].sort((a, b) => a.lab.y - b.lab.y);
+    const minGapPx = 4;
+    const dy: Record<string, number> = {};
+    let lastBottom = -Infinity;
+    for (const { lab, el } of sorted) {
+      const bb = el.getBoundingClientRect();
+      if (bb.top < lastBottom + minGapPx) {
+        const shiftUser = (lastBottom + minGapPx - bb.top) / typoScale;
+        dy[lab.key] = shiftUser;
+        el.setAttribute("y", String(lab.y + shiftUser));
+        lastBottom = el.getBoundingClientRect().bottom;
+      } else {
+        lastBottom = bb.bottom;
+      }
+    }
+    setGutterDy((prev) => {
+      const same =
+        Object.keys(dy).length === Object.keys(prev).length && Object.keys(dy).every((k) => prev[k] === dy[k]);
+      return same ? prev : dy;
+    });
+  }, [gutterLabelsBase, typoScale, viewBoxW, fs]);
+
+  const gutterLabels = useMemo(
+    () => gutterLabelsBase.map((lab) => ({ ...lab, y: lab.y + (gutterDy[lab.key] ?? 0) })),
+    [gutterDy, gutterLabelsBase],
+  );
+
   const gripTop = 20;
   const gripH = height - 60;
   const zoneH = gripH / 3;
@@ -319,7 +365,7 @@ export function MesserHeroChart({
       ref={svgRef}
       width={width}
       height={height}
-      viewBox={`0 0 ${layoutW} ${height}`}
+      viewBox={`0 0 ${viewBoxW} ${height}`}
       className={styles.chartFixed}
       style={{ overflow: "visible" }}
       role="img"
@@ -411,6 +457,7 @@ export function MesserHeroChart({
             />
           ) : null}
           <text
+            data-gutter-key={lab.key}
             x={lab.x}
             y={lab.y}
             textAnchor={lab.anchor}
@@ -466,7 +513,7 @@ export function MesserHeroChart({
         {FACTORS.map((f, i) => (
           <rect
             key={f}
-            x={layoutW - MARGIN_COL_W}
+            x={viewBoxW - MARGIN_COL_W}
             y={gripTop + i * zoneH}
             width={MARGIN_COL_W}
             height={Math.max(zoneH, HIT)}

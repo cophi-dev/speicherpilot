@@ -15,8 +15,10 @@ export function useTypographicSvgFontSize(
     const measure = () => {
       const w = el.getBoundingClientRect().width;
       if (w <= 0) return;
-      const scale = w / viewBoxWidth;
-      setFontSize(targetPx / Math.max(scale, 0.01));
+      const vbW = Math.max(el.viewBox.baseVal.width || 0, viewBoxWidth);
+      let fsUnits = Math.ceil((targetPx * vbW) / w);
+      while (fsUnits * (w / vbW) < targetPx - 1e-4) fsUnits += 1;
+      setFontSize(fsUnits);
     };
     measure();
     const ro = new ResizeObserver(measure);

@@ -89,9 +89,8 @@ export function NetzUpdatesFahrweiseChartSvg({ data }: { data: FahrweiseDay }) {
   }, [data.slots, fs, last, peak, price, observed, scale]);
 
   const narrow = clientW <= 420;
-  const hourTicks = (narrow ? [0, 6, 12, 18] : [0, 6, 12, 18, 24]) as readonly number[];
-
-  const xAxisY = vb.T + vb.plotH + 26;
+  const hourTicks = [0, 6, 12, 18, 24] as const;
+  const xAxisY = vb.T + vb.plotH + (narrow ? 34 : 26);
 
   const title =
     "Tagesprofil 21.10.2026: beobachtete Restlast, Markt fährt nach Preis (Spitze 55,6 GW um 14:00), gegen die Spitze gedeckelt bei 51,7 GW. Zusatzflotte 4,6 GW, Modell Oktober 2026.";
@@ -102,12 +101,15 @@ export function NetzUpdatesFahrweiseChartSvg({ data }: { data: FahrweiseDay }) {
         <title>{title}</title>
         {[20, 30, 40, 50].map((tick) => {
           const y = yAtValue(tick, yMin, yMax, vb);
+          const hideYLbl = narrow && tick === 20;
           return (
             <g key={tick}>
               <line x1={vb.L} x2={vb.L + vb.plotW} y1={y} y2={y} stroke="var(--blog-grid, #e4e4dc)" strokeWidth="1" />
-              <text x={vb.L - 6} y={y + 4} textAnchor="end" fill="var(--blog-muted, #6b7280)" fontSize={fsAxis}>
-                {tick}
-              </text>
+              {hideYLbl ? null : (
+                <text x={vb.L - 6} y={y + 4} textAnchor="end" fill="var(--blog-muted, #6b7280)" fontSize={fsAxis}>
+                  {tick}
+                </text>
+              )}
             </g>
           );
         })}
