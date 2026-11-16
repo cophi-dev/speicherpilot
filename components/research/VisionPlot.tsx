@@ -5,11 +5,12 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import { reductionFromY, yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import { formatGwSenkung, formatReductionTickGw } from "@/lib/research/fleetBasis";
+import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
 import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
 import styles from "@/components/research/research.module.css";
 
-const Y_MAX = 20;
+const DEFAULT_Y_MAX = 20;
 const X_MAX = 100;
 const PAD_TOP = 36;
 const PAD_BOTTOM = 92;
@@ -34,6 +35,10 @@ export function VisionPlot({
   onGuessEnd,
   width,
   height,
+  yMax = DEFAULT_Y_MAX,
+  ariaLabel = "Vision Sättigung",
+  guessStageId = "nep-b",
+  vorjahr2h,
 }: {
   model: VisionPageModel;
   duration: "1.76" | "2" | "4";
@@ -43,7 +48,12 @@ export function VisionPlot({
   onGuessEnd: (guessSenkung: number, truth: number) => void;
   width: number;
   height: number;
+  yMax?: number;
+  ariaLabel?: string;
+  guessStageId?: VisionStageId;
+  vorjahr2h?: Array<{ powerGw: number; senkungGw: number }>;
 }) {
+  const axisFs = visionAxisFontSize(width);
   const reduced = useReducedMotion();
   const svgRef = useRef<SVGSVGElement>(null);
   const [pathsReady, setPathsReady] = useState(!guessMode);
@@ -51,8 +61,8 @@ export function VisionPlot({
 
   const trackY = height - 48;
   const yPos = useCallback(
-    (reductionGw: number) => yFromReduction(reductionGw, Y_MAX, height, PAD_TOP, PAD_BOTTOM),
-    [height]
+    (reductionGw: number) => yFromReduction(reductionGw, yMax, height, PAD_TOP, PAD_BOTTOM),
+    [height, yMax]
   );
 
   const points = useMemo(
@@ -68,12 +78,22 @@ export function VisionPlot({
 
   const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
   const path4 = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y4.toFixed(1)}`).join(" ");
+  const pathVorjahr =
+    vorjahr2h && vorjahr2h.length > 0
+      ? vorjahr2h
+          .map((p, i) => {
+            const x = xPos(p.powerGw, width);
+            const y = yPos(p.senkungGw);
+            return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+          })
+          .join(" ")
+      : null;
 
   const stageIdx = points.findIndex((p) => p.id === stageId);
   const active = points[stageIdx]!;
   const stageChoices = useMemo(() => points.filter((p) => p.id !== "x1"), [points]);
   const stageChoiceIdx = Math.max(0, stageChoices.findIndex((p) => p.id === stageId));
-  const nepB = points.find((p) => p.id === "nep-b")!;
+  const guessStage = points.find((p) => p.id === guessStageId) ?? points.find((p) => p.id === "nep-b")!;
   const x1 = points.find((p) => p.id === "x1")!;
 
   const snapStage = useCallback(
@@ -101,11 +121,11 @@ export function VisionPlot({
     [onStage, points]
   );
 
-  const guessTruth = nepB.senkungGw[duration];
+  const guessTruth = guessStage.senkungGw[duration];
   const showCurves = pathsReady || !guessMode;
   const dragY = guessY ?? yPos(12);
 
-  const plotLo = yPos(Y_MAX);
+  const plotLo = yPos(yMax);
   const plotHi = yPos(0);
   const rightEnd = points[points.length - 1]!;
   const stackNepALabel = width < 420;
@@ -123,12 +143,12 @@ export function VisionPlot({
           viewBox={`0 0 ${width} ${height}`}
           className={styles.chartFixed}
           role="img"
-          aria-label="Vision Sättigung Oktober"
+          aria-label={ariaLabel}
         >
-          <text x={32} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={32} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             GW
           </text>
-          {[0, 5, 10, 15, 20].map((tick) => (
+          {[0, 5, 10, 15, yMax].filter((v, i, a) => a.indexOf(v) === i).map((tick) => (
             <g key={tick}>
               <line
                 x1={40}
@@ -138,7 +158,7 @@ export function VisionPlot({
                 stroke="var(--research-line)"
                 opacity={guessMode && !showCurves ? 0.45 : 1}
               />
-              <text x={32} y={yPos(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+              <text x={32} y={yPos(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
                 {formatReductionTickGw(tick)}
               </text>
             </g>
@@ -155,12 +175,15 @@ export function VisionPlot({
             strokeDasharray="4 3"
             strokeWidth={1}
           />
-          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {width < 420 ? `≥${model.commitmentsGw} GW*` : `≥ ${model.commitmentsGw} GW Zusagen*`}
           </text>
           {showCurves ? (
             <>
               <path d={path4} fill="none" stroke="var(--research-muted)" strokeWidth={1.5} strokeDasharray="2 3" />
+              {pathVorjahr ? (
+                <path d={pathVorjahr} fill="none" stroke="var(--research-dim)" strokeWidth={1.5} strokeDasharray="1 4" />
+              ) : null}
               <motion.path
                 d={path}
                 fill="none"
@@ -199,7 +222,7 @@ export function VisionPlot({
                       x={lx}
                       y={Math.min(rightEnd.y4 + 14, plotLo - 6)}
                       textAnchor={anchorEnd ? "end" : "start"}
-                      fontSize={12}
+                      fontSize={axisFs}
                       fill="var(--research-muted)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
@@ -209,7 +232,7 @@ export function VisionPlot({
                       x={lx}
                       y={Math.max(rightEnd.y - 6, plotHi + 12)}
                       textAnchor={anchorEnd ? "end" : "start"}
-                      fontSize={12}
+                      fontSize={axisFs}
                       fill="var(--research-accent)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
@@ -222,7 +245,7 @@ export function VisionPlot({
           ) : (
             <>
               <circle cx={x1.x} cy={x1.y} r={4} fill="var(--research-fg)" opacity={0.65} />
-              <text x={Math.min(x1.x + 10, width - 96)} y={Math.max(x1.y + 16, plotHi + 12)} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+              <text x={Math.min(x1.x + 10, width - 96)} y={Math.max(x1.y + 16, plotHi + 12)} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
                 ×1 = 0
               </text>
             </>
@@ -233,7 +256,7 @@ export function VisionPlot({
           {guessMode && !showCurves ? (
             <>
               <rect
-                x={nepB.x - HIT / 2}
+                x={guessStage.x - HIT / 2}
                 y={dragY - HIT / 2}
                 width={HIT}
                 height={HIT}
@@ -247,33 +270,33 @@ export function VisionPlot({
                   const svg = svgRef.current;
                   if (!svg) return;
                   const pt = svg.createSVGPoint();
-                  pt.x = nepB.x;
+                  pt.x = guessStage.x;
                   pt.y = e.clientY;
                   const ctm = svg.getScreenCTM();
                   if (!ctm) return;
                   const local = pt.matrixTransform(ctm.inverse());
-                  setGuessY(Math.max(yPos(Y_MAX), Math.min(yPos(0), local.y)));
+                  setGuessY(Math.max(yPos(yMax), Math.min(yPos(0), local.y)));
                 }}
                 onPointerUp={(e) => {
                   if (!(e.target as Element).hasPointerCapture(e.pointerId)) return;
                   const y = guessY ?? yPos(12);
                   setPathsReady(true);
-                  onGuessEnd(reductionFromY(y, Y_MAX, height, PAD_TOP, PAD_BOTTOM), guessTruth);
+                  onGuessEnd(reductionFromY(y, yMax, height, PAD_TOP, PAD_BOTTOM), guessTruth);
                 }}
               />
-              <circle cx={nepB.x} cy={dragY} r={8} fill="var(--research-accent)" stroke="var(--research-bg)" strokeWidth={2} style={{ pointerEvents: "none" }} />
-              <text x={Math.min(nepB.x + 14, width - 8)} y={Math.max(dragY - 10, plotHi + 8)} fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+              <circle cx={guessStage.x} cy={dragY} r={8} fill="var(--research-accent)" stroke="var(--research-bg)" strokeWidth={2} style={{ pointerEvents: "none" }} />
+              <text x={Math.min(guessStage.x + 14, width - 8)} y={Math.max(dragY - 10, plotHi + 8)} fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
                 zieh mich
               </text>
             </>
           ) : null}
           {guessY != null && guessMode && !showCurves ? (
-            <text x={nepB.x} y={Math.min(dragY + 22, plotLo - 4)} textAnchor="middle" fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-              Schätzung {formatGwSenkung(reductionFromY(dragY, Y_MAX, height, PAD_TOP, PAD_BOTTOM))}
+            <text x={guessStage.x} y={Math.min(dragY + 22, plotLo - 4)} textAnchor="middle" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+              Schätzung {formatGwSenkung(reductionFromY(dragY, yMax, height, PAD_TOP, PAD_BOTTOM))}
             </text>
           ) : null}
           {[0, 25, 50, 75, 100].map((gw) => (
-            <text key={gw} x={xPos(gw, width)} y={trackY - 20} textAnchor="middle" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            <text key={gw} x={xPos(gw, width)} y={trackY - 20} textAnchor="middle" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
               {gw}
             </text>
           ))}
@@ -321,7 +344,7 @@ export function VisionPlot({
                   x={p.x}
                   y={yLabel}
                   textAnchor="middle"
-                  fontSize={12}
+                  fontSize={axisFs}
                   fill={p.id === stageId ? "var(--research-fg)" : "var(--research-muted)"}
                   fontFamily="var(--font-jetbrains-mono)"
                 >

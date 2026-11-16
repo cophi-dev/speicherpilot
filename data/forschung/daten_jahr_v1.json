@@ -1,0 +1,2695 @@
+{
+ "stand": "16.11.2026",
+ "zeitraum": "2025-11-16 00:00 bis 2026-11-15 23:45 Europe/Berlin",
+ "quelle": "Energy-Charts total_power/price (BNetzA|SMARD CC BY 4.0), battery-charts Grossspeicher 16.11.2026",
+ "annahmen": {
+  "rte": 0.85,
+  "soc": "10-90 %",
+  "start_ende": "50 %",
+  "voraussicht": "Vollvoraussicht 12 Monate (Obergrenze)",
+  "konvention": "Stufe = Gesamtflotte, Zusatz = Stufe - Bestand"
+ },
+ "basis": {
+  "n_qh": 35040,
+  "tage": 365,
+  "zeitraum": "2025-11-16 00:00 bis 2026-11-15 23:45 Europe/Berlin",
+  "P0_MW": 4696.186019999999,
+  "E0_MWh": 8268.6378,
+  "H0": 1.7607134310237569,
+  "spitze_GW": 72.9879,
+  "spitze_tag": "2025-12-03",
+  "spitze_uhr": "17:00",
+  "minimum_GW": -23.431899999999995,
+  "ueberschuss_GWh": 5817.540125,
+  "ueberschuss_qh": 3254,
+  "ueberschuss_tage": 150,
+  "ueberschuss_max_GW": 23.431899999999995,
+  "segmente": [
+   [
+    "2025-11-16",
+    "2025-11-30"
+   ],
+   [
+    "2025-12-01",
+    "2025-12-31"
+   ],
+   [
+    "2026-01-01",
+    "2026-01-31"
+   ],
+   [
+    "2026-02-01",
+    "2026-02-31"
+   ],
+   [
+    "2026-03-01",
+    "2026-03-31"
+   ],
+   [
+    "2026-04-01",
+    "2026-04-31"
+   ],
+   [
+    "2026-05-01",
+    "2026-05-31"
+   ],
+   [
+    "2026-06-01",
+    "2026-06-31"
+   ],
+   [
+    "2026-07-01",
+    "2026-07-31"
+   ],
+   [
+    "2026-08-01",
+    "2026-08-31"
+   ],
+   [
+    "2026-09-01",
+    "2026-09-31"
+   ],
+   [
+    "2026-10-01",
+    "2026-10-31"
+   ],
+   [
+    "2026-11-01",
+    "2026-11-15"
+   ]
+  ]
+ },
+ "stufen": [
+  {
+   "stufe": "x2",
+   "P_ges_GW": 9.392372039999998,
+   "E_ges_GWh": 16.5372756,
+   "dauer_h": 1.7607134310237569,
+   "senkung_GW": 2.8060202585094665,
+   "spitze_nach_GW": 70.18187974149053,
+   "monat_senkung_GW": [
+    2.8718189079439473,
+    2.8060202585114165,
+    2.6993189079420117,
+    3.3196583619141746,
+    3.728038361914674,
+    4.494147952393155,
+    3.5064483619150124,
+    3.4606985108322696,
+    3.4391894199223536,
+    3.321758361914668,
+    3.533918361914737,
+    3.6246383619141924,
+    2.6457774013683375
+   ],
+   "tage_kappe": 4
+  },
+  {
+   "stufe": "x5",
+   "P_ges_GW": 23.4809301,
+   "E_ges_GWh": 41.343189,
+   "dauer_h": 1.760713431023757,
+   "senkung_GW": 6.748631933283497,
+   "spitze_nach_GW": 66.23926806671649,
+   "monat_senkung_GW": [
+    6.580597150676585,
+    6.74863193328536,
+    5.751128056035538,
+    8.703607909739345,
+    9.308190262679352,
+    10.180754968561596,
+    8.650268581419674,
+    8.557324136975017,
+    8.530740803642649,
+    8.674458404097654,
+    8.812354968561543,
+    9.485571558356096,
+    6.519301436065361
+   ],
+   "tage_kappe": 12
+  },
+  {
+   "stufe": "x10",
+   "P_ges_GW": 46.9618602,
+   "E_ges_GWh": 82.686378,
+   "dauer_h": 1.760713431023757,
+   "senkung_GW": 9.858992437371242,
+   "spitze_nach_GW": 63.128907562628754,
+   "monat_senkung_GW": [
+    9.019678827097435,
+    9.85899243737066,
+    8.35238882740571,
+    12.068950994451631,
+    15.091878943957287,
+    14.591926806609488,
+    13.553278776111211,
+    12.895995167211629,
+    13.095394502685595,
+    13.679969029035368,
+    13.224564500779088,
+    14.082831073464419,
+    9.59746700969388
+   ],
+   "tage_kappe": 29
+  },
+  {
+   "stufe": "NEP A",
+   "P_ges_GW": 41.1,
+   "E_ges_GWh": 82.2,
+   "dauer_h": 2.0,
+   "senkung_GW": 9.832997170157629,
+   "spitze_nach_GW": 63.154902829842364,
+   "monat_senkung_GW": [
+    8.99273162052132,
+    9.832997170158428,
+    8.323104363117935,
+    12.042901541724998,
+    15.036688992032198,
+    14.571601895134481,
+    13.526852648118263,
+    12.866162760764244,
+    13.068421969789851,
+    13.656731154539303,
+    13.19847470532349,
+    14.034759423544092,
+    9.571843103442312
+   ],
+   "tage_kappe": 29
+  },
+  {
+   "stufe": "NEP B",
+   "P_ges_GW": 67.6,
+   "E_ges_GWh": 135.2,
+   "dauer_h": 2.0,
+   "senkung_GW": 12.529159480458256,
+   "spitze_nach_GW": 60.458740519541735,
+   "monat_senkung_GW": [
+    11.311212082342514,
+    12.52915948045945,
+    11.359535618651586,
+    14.72445717686016,
+    18.165645701451147,
+    16.774875789510414,
+    16.30225475665253,
+    15.976892072855065,
+    15.210066510156,
+    16.003497819878472,
+    15.96320148793971,
+    16.877863648515326,
+    12.326923521838209
+   ],
+   "tage_kappe": 44
+  },
+  {
+   "stufe": "NEP C",
+   "P_ges_GW": 94.1,
+   "E_ges_GWh": 188.2,
+   "dauer_h": 2.0,
+   "senkung_GW": 13.373429380478294,
+   "spitze_nach_GW": 59.6144706195217,
+   "monat_senkung_GW": [
+    12.346696321476928,
+    13.373429380477937,
+    14.180830908493313,
+    16.267383857952133,
+    20.674205209344464,
+    18.85342577234767,
+    18.07652824669753,
+    18.95691248649439,
+    17.20461827234702,
+    16.913721087337393,
+    18.58071602973703,
+    18.171301861174726,
+    13.494564911673777
+   ],
+   "tage_kappe": 51
+  },
+  {
+   "stufe": "x2",
+   "P_ges_GW": 9.392372039999998,
+   "E_ges_GWh": 37.56948815999999,
+   "dauer_h": 4.0,
+   "senkung_GW": 4.696186020998983,
+   "spitze_nach_GW": 68.29171397900102,
+   "monat_senkung_GW": [
+    4.6961860209991135,
+    4.696186020998211,
+    4.696186020998284,
+    4.696186020998794,
+    4.6961860209983275,
+    4.696186020999383,
+    4.696186020998983,
+    4.69618602099875,
+    4.696186020998088,
+    4.696186020998088,
+    4.6961860209992885,
+    4.696186020999463,
+    4.696186020998633
+   ],
+   "tage_kappe": 7
+  },
+  {
+   "stufe": "x5",
+   "P_ges_GW": 23.4809301,
+   "E_ges_GWh": 93.9237204,
+   "dauer_h": 4.0,
+   "senkung_GW": 10.45715991826202,
+   "spitze_nach_GW": 62.530740081737974,
+   "monat_senkung_GW": [
+    9.619094097343325,
+    10.457159918261677,
+    9.020707389025977,
+    12.656838737003957,
+    16.15893517594709,
+    15.061516281230878,
+    14.163393745660942,
+    13.563309389026028,
+    13.61530617703782,
+    14.214825151948803,
+    13.827205611083336,
+    15.161839404909594,
+    10.189485168772881
+   ],
+   "tage_kappe": 32
+  },
+  {
+   "stufe": "x10",
+   "P_ges_GW": 46.9618602,
+   "E_ges_GWh": 187.8474408,
+   "dauer_h": 4.0,
+   "senkung_GW": 13.368991926254312,
+   "spitze_nach_GW": 59.61890807374568,
+   "monat_senkung_GW": [
+    12.339842026452818,
+    13.368991926254967,
+    14.162582851128537,
+    16.260350321477357,
+    20.65811643486962,
+    18.840424031474708,
+    18.073343984430313,
+    18.937287217251694,
+    17.191616531475688,
+    16.908598510289934,
+    18.56338037523972,
+    18.162765634092633,
+    13.490234606636426
+   ],
+   "tage_kappe": 51
+  },
+  {
+   "stufe": "NEP A",
+   "P_ges_GW": 41.1,
+   "E_ges_GWh": 164.4,
+   "dauer_h": 4.0,
+   "senkung_GW": 13.073679885505655,
+   "spitze_nach_GW": 59.91422011449434,
+   "monat_senkung_GW": [
+    11.883278660008072,
+    13.073679885506383,
+    12.937160203588792,
+    15.652759398112249,
+    19.569325668788945,
+    17.941339082680475,
+    17.6211710091359,
+    17.632081343348524,
+    16.31452065642373,
+    16.56754989493204,
+    17.410448519956176,
+    17.59386759635401,
+    13.202093705304899
+   ],
+   "tage_kappe": 49
+  },
+  {
+   "stufe": "NEP B",
+   "P_ges_GW": 67.6,
+   "E_ges_GWh": 270.4,
+   "dauer_h": 4.0,
+   "senkung_GW": 14.400854212429461,
+   "spitze_nach_GW": 58.58704578757053,
+   "monat_senkung_GW": [
+    13.934594125737421,
+    14.400854212430888,
+    18.275389494899255,
+    17.88621360280519,
+    24.309914105716853,
+    20.57197655748757,
+    18.817601584340153,
+    22.959541159824322,
+    20.201462916980933,
+    18.098694837900606,
+    22.547678374012683,
+    18.770979139945265,
+    14.499209364582406
+   ],
+   "tage_kappe": 57
+  },
+  {
+   "stufe": "NEP C",
+   "P_ges_GW": 94.1,
+   "E_ges_GWh": 376.4,
+   "dauer_h": 4.0,
+   "senkung_GW": 15.70774476126671,
+   "spitze_nach_GW": 57.280155238733286,
+   "monat_senkung_GW": [
+    15.949246570025963,
+    15.707744761266476,
+    19.599339490013453,
+    19.913923181516306,
+    27.769867290216222,
+    21.799722537975505,
+    19.767505566368666,
+    24.22438829854048,
+    21.598336556367176,
+    19.460079921485836,
+    26.145826330043143,
+    19.297878557129735,
+    15.775373209729544
+   ],
+   "tage_kappe": 70
+  }
+ ],
+ "markt": {
+  "price_taker_15min": {
+   "x2": 73.46888602,
+   "x5": 87.55744408000001,
+   "x10": 111.03837418000002,
+   "NEP A": 105.17651398000002,
+   "NEP B": 131.67651398,
+   "NEP C": 158.17651398
+  },
+  "price_taker_stunde": {
+   "x2": 72.84609999999999,
+   "x5": 82.20654407999999,
+   "x10": 105.68747418,
+   "NEP A": 99.82561398,
+   "NEP B": 126.32561398,
+   "NEP C": 152.82561397999999
+  },
+  "rueckwirkung": {
+   "b=2.86": {
+    "x2": 73.46888602,
+    "x5": 78.17822396689614,
+    "x10": 76.22959107840327,
+    "NEP A": 76.26908188216427,
+    "NEP B": 80.85288585691801,
+    "NEP C": 86.29522616720718
+   },
+   "b=5.73": {
+    "x2": 72.84609999999999,
+    "x5": 72.56819999999999,
+    "x10": 71.07700000000001,
+    "NEP A": 71.07700000000001,
+    "NEP B": 72.87391202513287,
+    "NEP C": 72.12673885601758
+   }
+  }
+ },
+ "ueberschuss": {
+  "x2": {
+   "max_aufnahme": 979.0709497544249,
+   "markt_15min": 893.0400828532102,
+   "markt_stunde": 1022.9966058545324,
+   "rueckwirkung_b2.86": 979.5694963010455,
+   "rueckwirkung_b5.73": 976.1112950277256
+  },
+  "x5": {
+   "max_aufnahme": 3185.0115461621454,
+   "markt_15min": 585.6035181871339,
+   "markt_stunde": 2010.5429212396803,
+   "rueckwirkung_b2.86": 2999.188969640219,
+   "rueckwirkung_b5.73": 2971.367427189961
+  },
+  "x10": {
+   "max_aufnahme": 5026.620561364235,
+   "markt_15min": -6336.340665183904,
+   "markt_stunde": -552.8490966007139,
+   "rueckwirkung_b2.86": 4616.1740343209385,
+   "rueckwirkung_b5.73": 4633.54537201351
+  },
+  "NEP A": {
+   "max_aufnahme": 5014.381377907535,
+   "markt_15min": -3726.935254503637,
+   "markt_stunde": 661.6570938334617,
+   "rueckwirkung_b2.86": 4598.5781751293825,
+   "rueckwirkung_b5.73": 4617.6342959488775
+  },
+  "NEP B": {
+   "max_aufnahme": 5737.276534326201,
+   "markt_15min": -24394.472536285517,
+   "markt_stunde": -13347.519068236608,
+   "rueckwirkung_b2.86": 5297.604762562582,
+   "rueckwirkung_b5.73": 5335.212101251084
+  },
+  "NEP C": {
+   "max_aufnahme": 5817.540125,
+   "markt_15min": -54249.76705671056,
+   "markt_stunde": -35572.34931000766,
+   "rueckwirkung_b2.86": 5259.748851405122,
+   "rueckwirkung_b5.73": 5470.971683350725
+  }
+ },
+ "tage": {
+  "x10": {
+   "kappe_GW": 63.128907562628754,
+   "n_tage": 29,
+   "monate": {
+    "2025-11": 5,
+    "2025-12": 4,
+    "2026-01": 7,
+    "2026-02": 3,
+    "2026-03": 3,
+    "2026-04": 1,
+    "2026-10": 2,
+    "2026-11": 4
+   },
+   "top": [
+    {
+     "tag": "2025-12-03",
+     "spitze_GW": 72.99,
+     "uhr": "17:00",
+     "qh_ueber_kappe": 45,
+     "energie_ueber_kappe_GWh": 57.91,
+     "anteil_flottenenergie": 1.055,
+     "soc_min_pct": 10.0,
+     "ws_anteil_last_pct": 10.5,
+     "wind_mittel_GW": 4.8
+    },
+    {
+     "tag": "2025-12-05",
+     "spitze_GW": 72.49,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 52,
+     "energie_ueber_kappe_GWh": 54.04,
+     "anteil_flottenenergie": 0.985,
+     "soc_min_pct": 11.2,
+     "ws_anteil_last_pct": 10.2,
+     "wind_mittel_GW": 5.1
+    },
+    {
+     "tag": "2026-11-11",
+     "spitze_GW": 71.9,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 45,
+     "energie_ueber_kappe_GWh": 44.27,
+     "anteil_flottenenergie": 0.807,
+     "soc_min_pct": 26.3,
+     "ws_anteil_last_pct": 11.6,
+     "wind_mittel_GW": 6.1
+    },
+    {
+     "tag": "2025-11-26",
+     "spitze_GW": 70.44,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 37,
+     "energie_ueber_kappe_GWh": 36.28,
+     "anteil_flottenenergie": 0.661,
+     "soc_min_pct": 42.5,
+     "ws_anteil_last_pct": 12.3,
+     "wind_mittel_GW": 6.3
+    },
+    {
+     "tag": "2025-11-25",
+     "spitze_GW": 68.75,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 37,
+     "energie_ueber_kappe_GWh": 32.02,
+     "anteil_flottenenergie": 0.583,
+     "soc_min_pct": 55.8,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 5.4
+    },
+    {
+     "tag": "2026-11-10",
+     "spitze_GW": 68.23,
+     "uhr": "07:45",
+     "qh_ueber_kappe": 33,
+     "energie_ueber_kappe_GWh": 25.96,
+     "anteil_flottenenergie": 0.473,
+     "soc_min_pct": 67.6,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 4.2
+    },
+    {
+     "tag": "2026-11-09",
+     "spitze_GW": 68.44,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 32,
+     "energie_ueber_kappe_GWh": 23.88,
+     "anteil_flottenenergie": 0.435,
+     "soc_min_pct": 59.1,
+     "ws_anteil_last_pct": 10.6,
+     "wind_mittel_GW": 3.2
+    },
+    {
+     "tag": "2026-01-08",
+     "spitze_GW": 68.77,
+     "uhr": "17:45",
+     "qh_ueber_kappe": 44,
+     "energie_ueber_kappe_GWh": 23.21,
+     "anteil_flottenenergie": 0.423,
+     "soc_min_pct": 56.2,
+     "ws_anteil_last_pct": 23.8,
+     "wind_mittel_GW": 15.9
+    },
+    {
+     "tag": "2025-12-04",
+     "spitze_GW": 68.07,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 31,
+     "energie_ueber_kappe_GWh": 15.7,
+     "anteil_flottenenergie": 0.286,
+     "soc_min_pct": 37.8,
+     "ws_anteil_last_pct": 14.7,
+     "wind_mittel_GW": 7.8
+    },
+    {
+     "tag": "2026-02-24",
+     "spitze_GW": 68.24,
+     "uhr": "18:15",
+     "qh_ueber_kappe": 13,
+     "energie_ueber_kappe_GWh": 11.3,
+     "anteil_flottenenergie": 0.206,
+     "soc_min_pct": 73.5,
+     "ws_anteil_last_pct": 21.5,
+     "wind_mittel_GW": 8.0
+    },
+    {
+     "tag": "2026-02-18",
+     "spitze_GW": 68.19,
+     "uhr": "08:00",
+     "qh_ueber_kappe": 11,
+     "energie_ueber_kappe_GWh": 8.93,
+     "anteil_flottenenergie": 0.163,
+     "soc_min_pct": 77.0,
+     "ws_anteil_last_pct": 26.1,
+     "wind_mittel_GW": 11.7
+    },
+    {
+     "tag": "2025-11-21",
+     "spitze_GW": 66.04,
+     "uhr": "17:00",
+     "qh_ueber_kappe": 18,
+     "energie_ueber_kappe_GWh": 7.46,
+     "anteil_flottenenergie": 0.136,
+     "soc_min_pct": 82.1,
+     "ws_anteil_last_pct": 19.1,
+     "wind_mittel_GW": 7.0
+    }
+   ],
+   "leer": [
+    "2025-12-03"
+   ]
+  },
+  "NEP A": {
+   "kappe_GW": 63.154902829842364,
+   "n_tage": 29,
+   "monate": {
+    "2025-11": 5,
+    "2025-12": 4,
+    "2026-01": 7,
+    "2026-02": 3,
+    "2026-03": 3,
+    "2026-04": 1,
+    "2026-10": 2,
+    "2026-11": 4
+   },
+   "top": [
+    {
+     "tag": "2025-12-03",
+     "spitze_GW": 72.99,
+     "uhr": "17:00",
+     "qh_ueber_kappe": 45,
+     "energie_ueber_kappe_GWh": 57.62,
+     "anteil_flottenenergie": 1.057,
+     "soc_min_pct": 10.0,
+     "ws_anteil_last_pct": 10.5,
+     "wind_mittel_GW": 4.8
+    },
+    {
+     "tag": "2025-12-05",
+     "spitze_GW": 72.49,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 52,
+     "energie_ueber_kappe_GWh": 53.7,
+     "anteil_flottenenergie": 0.985,
+     "soc_min_pct": 11.2,
+     "ws_anteil_last_pct": 10.2,
+     "wind_mittel_GW": 5.1
+    },
+    {
+     "tag": "2026-11-11",
+     "spitze_GW": 71.9,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 45,
+     "energie_ueber_kappe_GWh": 43.98,
+     "anteil_flottenenergie": 0.807,
+     "soc_min_pct": 26.4,
+     "ws_anteil_last_pct": 11.6,
+     "wind_mittel_GW": 6.1
+    },
+    {
+     "tag": "2025-11-26",
+     "spitze_GW": 70.44,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 37,
+     "energie_ueber_kappe_GWh": 36.04,
+     "anteil_flottenenergie": 0.661,
+     "soc_min_pct": 42.6,
+     "ws_anteil_last_pct": 12.3,
+     "wind_mittel_GW": 6.3
+    },
+    {
+     "tag": "2025-11-25",
+     "spitze_GW": 68.75,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 37,
+     "energie_ueber_kappe_GWh": 31.78,
+     "anteil_flottenenergie": 0.583,
+     "soc_min_pct": 56.0,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 5.4
+    },
+    {
+     "tag": "2026-11-10",
+     "spitze_GW": 68.23,
+     "uhr": "07:45",
+     "qh_ueber_kappe": 33,
+     "energie_ueber_kappe_GWh": 25.75,
+     "anteil_flottenenergie": 0.472,
+     "soc_min_pct": 67.7,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 4.2
+    },
+    {
+     "tag": "2026-11-09",
+     "spitze_GW": 68.44,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 32,
+     "energie_ueber_kappe_GWh": 23.67,
+     "anteil_flottenenergie": 0.434,
+     "soc_min_pct": 59.1,
+     "ws_anteil_last_pct": 10.6,
+     "wind_mittel_GW": 3.2
+    },
+    {
+     "tag": "2026-01-08",
+     "spitze_GW": 68.77,
+     "uhr": "17:45",
+     "qh_ueber_kappe": 44,
+     "energie_ueber_kappe_GWh": 22.93,
+     "anteil_flottenenergie": 0.42,
+     "soc_min_pct": 56.4,
+     "ws_anteil_last_pct": 23.8,
+     "wind_mittel_GW": 15.9
+    },
+    {
+     "tag": "2025-12-04",
+     "spitze_GW": 68.07,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 29,
+     "energie_ueber_kappe_GWh": 15.5,
+     "anteil_flottenenergie": 0.284,
+     "soc_min_pct": 38.0,
+     "ws_anteil_last_pct": 14.7,
+     "wind_mittel_GW": 7.8
+    },
+    {
+     "tag": "2026-02-24",
+     "spitze_GW": 68.24,
+     "uhr": "18:15",
+     "qh_ueber_kappe": 13,
+     "energie_ueber_kappe_GWh": 11.22,
+     "anteil_flottenenergie": 0.206,
+     "soc_min_pct": 73.5,
+     "ws_anteil_last_pct": 21.5,
+     "wind_mittel_GW": 8.0
+    },
+    {
+     "tag": "2026-02-18",
+     "spitze_GW": 68.19,
+     "uhr": "08:00",
+     "qh_ueber_kappe": 11,
+     "energie_ueber_kappe_GWh": 8.86,
+     "anteil_flottenenergie": 0.162,
+     "soc_min_pct": 77.0,
+     "ws_anteil_last_pct": 26.1,
+     "wind_mittel_GW": 11.7
+    },
+    {
+     "tag": "2026-01-20",
+     "spitze_GW": 67.39,
+     "uhr": "08:00",
+     "qh_ueber_kappe": 14,
+     "energie_ueber_kappe_GWh": 7.36,
+     "anteil_flottenenergie": 0.135,
+     "soc_min_pct": 83.1,
+     "ws_anteil_last_pct": 28.3,
+     "wind_mittel_GW": 10.0
+    }
+   ],
+   "leer": [
+    "2025-12-03"
+   ]
+  },
+  "NEP B": {
+   "kappe_GW": 60.458740519541735,
+   "n_tage": 44,
+   "monate": {
+    "2025-11": 5,
+    "2025-12": 6,
+    "2026-01": 11,
+    "2026-02": 6,
+    "2026-03": 7,
+    "2026-04": 1,
+    "2026-10": 4,
+    "2026-11": 4
+   },
+   "top": [
+    {
+     "tag": "2025-12-03",
+     "spitze_GW": 72.99,
+     "uhr": "17:00",
+     "qh_ueber_kappe": 62,
+     "energie_ueber_kappe_GWh": 93.62,
+     "anteil_flottenenergie": 1.0,
+     "soc_min_pct": 10.0,
+     "ws_anteil_last_pct": 10.5,
+     "wind_mittel_GW": 4.8
+    },
+    {
+     "tag": "2025-12-05",
+     "spitze_GW": 72.49,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 55,
+     "energie_ueber_kappe_GWh": 89.72,
+     "anteil_flottenenergie": 0.958,
+     "soc_min_pct": 13.3,
+     "ws_anteil_last_pct": 10.2,
+     "wind_mittel_GW": 5.1
+    },
+    {
+     "tag": "2026-11-11",
+     "spitze_GW": 71.9,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 57,
+     "energie_ueber_kappe_GWh": 80.74,
+     "anteil_flottenenergie": 0.862,
+     "soc_min_pct": 21.0,
+     "ws_anteil_last_pct": 11.6,
+     "wind_mittel_GW": 6.1
+    },
+    {
+     "tag": "2025-11-26",
+     "spitze_GW": 70.44,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 56,
+     "energie_ueber_kappe_GWh": 68.22,
+     "anteil_flottenenergie": 0.729,
+     "soc_min_pct": 31.7,
+     "ws_anteil_last_pct": 12.3,
+     "wind_mittel_GW": 6.3
+    },
+    {
+     "tag": "2025-11-25",
+     "spitze_GW": 68.75,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 50,
+     "energie_ueber_kappe_GWh": 60.42,
+     "anteil_flottenenergie": 0.645,
+     "soc_min_pct": 39.4,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 5.4
+    },
+    {
+     "tag": "2026-01-08",
+     "spitze_GW": 68.77,
+     "uhr": "17:45",
+     "qh_ueber_kappe": 49,
+     "energie_ueber_kappe_GWh": 54.42,
+     "anteil_flottenenergie": 0.581,
+     "soc_min_pct": 43.5,
+     "ws_anteil_last_pct": 23.8,
+     "wind_mittel_GW": 15.9
+    },
+    {
+     "tag": "2026-11-10",
+     "spitze_GW": 68.23,
+     "uhr": "07:45",
+     "qh_ueber_kappe": 42,
+     "energie_ueber_kappe_GWh": 50.23,
+     "anteil_flottenenergie": 0.537,
+     "soc_min_pct": 53.6,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 4.2
+    },
+    {
+     "tag": "2026-11-09",
+     "spitze_GW": 68.44,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 41,
+     "energie_ueber_kappe_GWh": 48.12,
+     "anteil_flottenenergie": 0.514,
+     "soc_min_pct": 56.4,
+     "ws_anteil_last_pct": 10.6,
+     "wind_mittel_GW": 3.2
+    },
+    {
+     "tag": "2025-12-04",
+     "spitze_GW": 68.07,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 40,
+     "energie_ueber_kappe_GWh": 39.51,
+     "anteil_flottenenergie": 0.422,
+     "soc_min_pct": 20.5,
+     "ws_anteil_last_pct": 14.7,
+     "wind_mittel_GW": 7.8
+    },
+    {
+     "tag": "2026-02-24",
+     "spitze_GW": 68.24,
+     "uhr": "18:15",
+     "qh_ueber_kappe": 23,
+     "energie_ueber_kappe_GWh": 23.52,
+     "anteil_flottenenergie": 0.251,
+     "soc_min_pct": 72.4,
+     "ws_anteil_last_pct": 21.5,
+     "wind_mittel_GW": 8.0
+    },
+    {
+     "tag": "2025-11-21",
+     "spitze_GW": 66.04,
+     "uhr": "17:00",
+     "qh_ueber_kappe": 26,
+     "energie_ueber_kappe_GWh": 22.04,
+     "anteil_flottenenergie": 0.235,
+     "soc_min_pct": 77.1,
+     "ws_anteil_last_pct": 19.1,
+     "wind_mittel_GW": 7.0
+    },
+    {
+     "tag": "2026-01-20",
+     "spitze_GW": 67.39,
+     "uhr": "08:00",
+     "qh_ueber_kappe": 23,
+     "energie_ueber_kappe_GWh": 19.76,
+     "anteil_flottenenergie": 0.211,
+     "soc_min_pct": 81.1,
+     "ws_anteil_last_pct": 28.3,
+     "wind_mittel_GW": 10.0
+    }
+   ],
+   "leer": [
+    "2025-12-03"
+   ]
+  },
+  "NEP C": {
+   "kappe_GW": 59.6144706195217,
+   "n_tage": 51,
+   "monate": {
+    "2025-11": 5,
+    "2025-12": 7,
+    "2026-01": 11,
+    "2026-02": 8,
+    "2026-03": 8,
+    "2026-04": 2,
+    "2026-09": 1,
+    "2026-10": 5,
+    "2026-11": 4
+   },
+   "top": [
+    {
+     "tag": "2025-12-03",
+     "spitze_GW": 72.99,
+     "uhr": "17:00",
+     "qh_ueber_kappe": 62,
+     "energie_ueber_kappe_GWh": 106.71,
+     "anteil_flottenenergie": 0.804,
+     "soc_min_pct": 25.7,
+     "ws_anteil_last_pct": 10.5,
+     "wind_mittel_GW": 4.8
+    },
+    {
+     "tag": "2025-12-05",
+     "spitze_GW": 72.49,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 56,
+     "energie_ueber_kappe_GWh": 101.39,
+     "anteil_flottenenergie": 0.764,
+     "soc_min_pct": 10.0,
+     "ws_anteil_last_pct": 10.2,
+     "wind_mittel_GW": 5.1
+    },
+    {
+     "tag": "2026-11-11",
+     "spitze_GW": 71.9,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 59,
+     "energie_ueber_kappe_GWh": 92.99,
+     "anteil_flottenenergie": 0.701,
+     "soc_min_pct": 33.9,
+     "ws_anteil_last_pct": 11.6,
+     "wind_mittel_GW": 6.1
+    },
+    {
+     "tag": "2025-11-26",
+     "spitze_GW": 70.44,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 57,
+     "energie_ueber_kappe_GWh": 80.21,
+     "anteil_flottenenergie": 0.604,
+     "soc_min_pct": 41.6,
+     "ws_anteil_last_pct": 12.3,
+     "wind_mittel_GW": 6.3
+    },
+    {
+     "tag": "2025-11-25",
+     "spitze_GW": 68.75,
+     "uhr": "17:30",
+     "qh_ueber_kappe": 55,
+     "energie_ueber_kappe_GWh": 71.55,
+     "anteil_flottenenergie": 0.539,
+     "soc_min_pct": 47.0,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 5.4
+    },
+    {
+     "tag": "2026-01-08",
+     "spitze_GW": 68.77,
+     "uhr": "17:45",
+     "qh_ueber_kappe": 51,
+     "energie_ueber_kappe_GWh": 64.93,
+     "anteil_flottenenergie": 0.489,
+     "soc_min_pct": 50.9,
+     "ws_anteil_last_pct": 23.8,
+     "wind_mittel_GW": 15.9
+    },
+    {
+     "tag": "2026-11-10",
+     "spitze_GW": 68.23,
+     "uhr": "07:45",
+     "qh_ueber_kappe": 45,
+     "energie_ueber_kappe_GWh": 59.44,
+     "anteil_flottenenergie": 0.448,
+     "soc_min_pct": 53.7,
+     "ws_anteil_last_pct": 11.1,
+     "wind_mittel_GW": 4.2
+    },
+    {
+     "tag": "2026-11-09",
+     "spitze_GW": 68.44,
+     "uhr": "17:15",
+     "qh_ueber_kappe": 45,
+     "energie_ueber_kappe_GWh": 57.22,
+     "anteil_flottenenergie": 0.431,
+     "soc_min_pct": 62.4,
+     "ws_anteil_last_pct": 10.6,
+     "wind_mittel_GW": 3.2
+    },
+    {
+     "tag": "2025-12-04",
+     "spitze_GW": 68.07,
+     "uhr": "08:15",
+     "qh_ueber_kappe": 45,
+     "energie_ueber_kappe_GWh": 48.56,
+     "anteil_flottenenergie": 0.366,
+     "soc_min_pct": 32.0,
+     "ws_anteil_last_pct": 14.7,
+     "wind_mittel_GW": 7.8
+    },
+    {
+     "tag": "2026-02-24",
+     "spitze_GW": 68.24,
+     "uhr": "18:15",
+     "qh_ueber_kappe": 25,
+     "energie_ueber_kappe_GWh": 28.45,
+     "anteil_flottenenergie": 0.214,
+     "soc_min_pct": 75.5,
+     "ws_anteil_last_pct": 21.5,
+     "wind_mittel_GW": 8.0
+    },
+    {
+     "tag": "2025-11-21",
+     "spitze_GW": 66.04,
+     "uhr": "17:00",
+     "qh_ueber_kappe": 29,
+     "energie_ueber_kappe_GWh": 27.73,
+     "anteil_flottenenergie": 0.209,
+     "soc_min_pct": 78.7,
+     "ws_anteil_last_pct": 19.1,
+     "wind_mittel_GW": 7.0
+    },
+    {
+     "tag": "2026-01-20",
+     "spitze_GW": 67.39,
+     "uhr": "08:00",
+     "qh_ueber_kappe": 25,
+     "energie_ueber_kappe_GWh": 24.7,
+     "anteil_flottenenergie": 0.186,
+     "soc_min_pct": 82.5,
+     "ws_anteil_last_pct": 28.3,
+     "wind_mittel_GW": 10.0
+    }
+   ],
+   "leer": [
+    "2025-12-05"
+   ]
+  }
+ },
+ "tagesspitzen": [
+  {
+   "tag": "2025-11-16",
+   "spitze_GW": 51.158
+  },
+  {
+   "tag": "2025-11-17",
+   "spitze_GW": 54.015
+  },
+  {
+   "tag": "2025-11-18",
+   "spitze_GW": 55.404
+  },
+  {
+   "tag": "2025-11-19",
+   "spitze_GW": 56.676
+  },
+  {
+   "tag": "2025-11-20",
+   "spitze_GW": 65.458
+  },
+  {
+   "tag": "2025-11-21",
+   "spitze_GW": 66.038
+  },
+  {
+   "tag": "2025-11-22",
+   "spitze_GW": 44.772
+  },
+  {
+   "tag": "2025-11-23",
+   "spitze_GW": 32.236
+  },
+  {
+   "tag": "2025-11-24",
+   "spitze_GW": 63.571
+  },
+  {
+   "tag": "2025-11-25",
+   "spitze_GW": 68.747
+  },
+  {
+   "tag": "2025-11-26",
+   "spitze_GW": 70.438
+  },
+  {
+   "tag": "2025-11-27",
+   "spitze_GW": 50.356
+  },
+  {
+   "tag": "2025-11-28",
+   "spitze_GW": 51.469
+  },
+  {
+   "tag": "2025-11-29",
+   "spitze_GW": 43.114
+  },
+  {
+   "tag": "2025-11-30",
+   "spitze_GW": 37.904
+  },
+  {
+   "tag": "2025-12-01",
+   "spitze_GW": 49.985
+  },
+  {
+   "tag": "2025-12-02",
+   "spitze_GW": 61.811
+  },
+  {
+   "tag": "2025-12-03",
+   "spitze_GW": 72.988
+  },
+  {
+   "tag": "2025-12-04",
+   "spitze_GW": 68.069
+  },
+  {
+   "tag": "2025-12-05",
+   "spitze_GW": 72.49
+  },
+  {
+   "tag": "2025-12-06",
+   "spitze_GW": 36.897
+  },
+  {
+   "tag": "2025-12-07",
+   "spitze_GW": 41.361
+  },
+  {
+   "tag": "2025-12-08",
+   "spitze_GW": 42.063
+  },
+  {
+   "tag": "2025-12-09",
+   "spitze_GW": 52.782
+  },
+  {
+   "tag": "2025-12-10",
+   "spitze_GW": 49.993
+  },
+  {
+   "tag": "2025-12-11",
+   "spitze_GW": 53.402
+  },
+  {
+   "tag": "2025-12-12",
+   "spitze_GW": 64.271
+  },
+  {
+   "tag": "2025-12-13",
+   "spitze_GW": 52.247
+  },
+  {
+   "tag": "2025-12-14",
+   "spitze_GW": 40.479
+  },
+  {
+   "tag": "2025-12-15",
+   "spitze_GW": 51.599
+  },
+  {
+   "tag": "2025-12-16",
+   "spitze_GW": 61.488
+  },
+  {
+   "tag": "2025-12-17",
+   "spitze_GW": 60.083
+  },
+  {
+   "tag": "2025-12-18",
+   "spitze_GW": 38.345
+  },
+  {
+   "tag": "2025-12-19",
+   "spitze_GW": 46.759
+  },
+  {
+   "tag": "2025-12-20",
+   "spitze_GW": 54.808
+  },
+  {
+   "tag": "2025-12-21",
+   "spitze_GW": 34.404
+  },
+  {
+   "tag": "2025-12-22",
+   "spitze_GW": 40.427
+  },
+  {
+   "tag": "2025-12-23",
+   "spitze_GW": 29.54
+  },
+  {
+   "tag": "2025-12-24",
+   "spitze_GW": 23.761
+  },
+  {
+   "tag": "2025-12-25",
+   "spitze_GW": 37.167
+  },
+  {
+   "tag": "2025-12-26",
+   "spitze_GW": 46.672
+  },
+  {
+   "tag": "2025-12-27",
+   "spitze_GW": 41.063
+  },
+  {
+   "tag": "2025-12-28",
+   "spitze_GW": 45.578
+  },
+  {
+   "tag": "2025-12-29",
+   "spitze_GW": 39.452
+  },
+  {
+   "tag": "2025-12-30",
+   "spitze_GW": 44.843
+  },
+  {
+   "tag": "2025-12-31",
+   "spitze_GW": 31.15
+  },
+  {
+   "tag": "2026-01-01",
+   "spitze_GW": 15.008
+  },
+  {
+   "tag": "2026-01-02",
+   "spitze_GW": 26.623
+  },
+  {
+   "tag": "2026-01-03",
+   "spitze_GW": 31.526
+  },
+  {
+   "tag": "2026-01-04",
+   "spitze_GW": 45.415
+  },
+  {
+   "tag": "2026-01-05",
+   "spitze_GW": 62.147
+  },
+  {
+   "tag": "2026-01-06",
+   "spitze_GW": 63.384
+  },
+  {
+   "tag": "2026-01-07",
+   "spitze_GW": 48.944
+  },
+  {
+   "tag": "2026-01-08",
+   "spitze_GW": 68.773
+  },
+  {
+   "tag": "2026-01-09",
+   "spitze_GW": 37.475
+  },
+  {
+   "tag": "2026-01-10",
+   "spitze_GW": 55.705
+  },
+  {
+   "tag": "2026-01-11",
+   "spitze_GW": 52.278
+  },
+  {
+   "tag": "2026-01-12",
+   "spitze_GW": 57.842
+  },
+  {
+   "tag": "2026-01-13",
+   "spitze_GW": 57.593
+  },
+  {
+   "tag": "2026-01-14",
+   "spitze_GW": 65.394
+  },
+  {
+   "tag": "2026-01-15",
+   "spitze_GW": 55.64
+  },
+  {
+   "tag": "2026-01-16",
+   "spitze_GW": 62.683
+  },
+  {
+   "tag": "2026-01-17",
+   "spitze_GW": 52.467
+  },
+  {
+   "tag": "2026-01-18",
+   "spitze_GW": 46.552
+  },
+  {
+   "tag": "2026-01-19",
+   "spitze_GW": 61.211
+  },
+  {
+   "tag": "2026-01-20",
+   "spitze_GW": 67.389
+  },
+  {
+   "tag": "2026-01-21",
+   "spitze_GW": 61.012
+  },
+  {
+   "tag": "2026-01-22",
+   "spitze_GW": 57.684
+  },
+  {
+   "tag": "2026-01-23",
+   "spitze_GW": 54.544
+  },
+  {
+   "tag": "2026-01-24",
+   "spitze_GW": 51.685
+  },
+  {
+   "tag": "2026-01-25",
+   "spitze_GW": 49.962
+  },
+  {
+   "tag": "2026-01-26",
+   "spitze_GW": 64.087
+  },
+  {
+   "tag": "2026-01-27",
+   "spitze_GW": 65.551
+  },
+  {
+   "tag": "2026-01-28",
+   "spitze_GW": 57.351
+  },
+  {
+   "tag": "2026-01-29",
+   "spitze_GW": 63.445
+  },
+  {
+   "tag": "2026-01-30",
+   "spitze_GW": 58.515
+  },
+  {
+   "tag": "2026-01-31",
+   "spitze_GW": 46.506
+  },
+  {
+   "tag": "2026-02-01",
+   "spitze_GW": 43.245
+  },
+  {
+   "tag": "2026-02-02",
+   "spitze_GW": 47.31
+  },
+  {
+   "tag": "2026-02-03",
+   "spitze_GW": 44.676
+  },
+  {
+   "tag": "2026-02-04",
+   "spitze_GW": 54.967
+  },
+  {
+   "tag": "2026-02-05",
+   "spitze_GW": 62.262
+  },
+  {
+   "tag": "2026-02-06",
+   "spitze_GW": 66.147
+  },
+  {
+   "tag": "2026-02-07",
+   "spitze_GW": 56.936
+  },
+  {
+   "tag": "2026-02-08",
+   "spitze_GW": 51.802
+  },
+  {
+   "tag": "2026-02-09",
+   "spitze_GW": 62.805
+  },
+  {
+   "tag": "2026-02-10",
+   "spitze_GW": 57.946
+  },
+  {
+   "tag": "2026-02-11",
+   "spitze_GW": 54.47
+  },
+  {
+   "tag": "2026-02-12",
+   "spitze_GW": 48.179
+  },
+  {
+   "tag": "2026-02-13",
+   "spitze_GW": 62.661
+  },
+  {
+   "tag": "2026-02-14",
+   "spitze_GW": 59.855
+  },
+  {
+   "tag": "2026-02-15",
+   "spitze_GW": 47.145
+  },
+  {
+   "tag": "2026-02-16",
+   "spitze_GW": 58.501
+  },
+  {
+   "tag": "2026-02-17",
+   "spitze_GW": 56.776
+  },
+  {
+   "tag": "2026-02-18",
+   "spitze_GW": 68.185
+  },
+  {
+   "tag": "2026-02-19",
+   "spitze_GW": 47.204
+  },
+  {
+   "tag": "2026-02-20",
+   "spitze_GW": 49.28
+  },
+  {
+   "tag": "2026-02-21",
+   "spitze_GW": 36.78
+  },
+  {
+   "tag": "2026-02-22",
+   "spitze_GW": 19.484
+  },
+  {
+   "tag": "2026-02-23",
+   "spitze_GW": 31.21
+  },
+  {
+   "tag": "2026-02-24",
+   "spitze_GW": 68.236
+  },
+  {
+   "tag": "2026-02-25",
+   "spitze_GW": 60.21
+  },
+  {
+   "tag": "2026-02-26",
+   "spitze_GW": 47.326
+  },
+  {
+   "tag": "2026-02-27",
+   "spitze_GW": 46.606
+  },
+  {
+   "tag": "2026-02-28",
+   "spitze_GW": 27.929
+  },
+  {
+   "tag": "2026-03-01",
+   "spitze_GW": 42.535
+  },
+  {
+   "tag": "2026-03-02",
+   "spitze_GW": 58.859
+  },
+  {
+   "tag": "2026-03-03",
+   "spitze_GW": 61.452
+  },
+  {
+   "tag": "2026-03-04",
+   "spitze_GW": 63.747
+  },
+  {
+   "tag": "2026-03-05",
+   "spitze_GW": 52.136
+  },
+  {
+   "tag": "2026-03-06",
+   "spitze_GW": 62.476
+  },
+  {
+   "tag": "2026-03-07",
+   "spitze_GW": 53.123
+  },
+  {
+   "tag": "2026-03-08",
+   "spitze_GW": 45.456
+  },
+  {
+   "tag": "2026-03-09",
+   "spitze_GW": 65.706
+  },
+  {
+   "tag": "2026-03-10",
+   "spitze_GW": 60.002
+  },
+  {
+   "tag": "2026-03-11",
+   "spitze_GW": 41.785
+  },
+  {
+   "tag": "2026-03-12",
+   "spitze_GW": 41.888
+  },
+  {
+   "tag": "2026-03-13",
+   "spitze_GW": 44.645
+  },
+  {
+   "tag": "2026-03-14",
+   "spitze_GW": 57.057
+  },
+  {
+   "tag": "2026-03-15",
+   "spitze_GW": 45.87
+  },
+  {
+   "tag": "2026-03-16",
+   "spitze_GW": 55.533
+  },
+  {
+   "tag": "2026-03-17",
+   "spitze_GW": 60.579
+  },
+  {
+   "tag": "2026-03-18",
+   "spitze_GW": 53.743
+  },
+  {
+   "tag": "2026-03-19",
+   "spitze_GW": 60.993
+  },
+  {
+   "tag": "2026-03-20",
+   "spitze_GW": 59.175
+  },
+  {
+   "tag": "2026-03-21",
+   "spitze_GW": 46.321
+  },
+  {
+   "tag": "2026-03-22",
+   "spitze_GW": 47.882
+  },
+  {
+   "tag": "2026-03-23",
+   "spitze_GW": 65.073
+  },
+  {
+   "tag": "2026-03-24",
+   "spitze_GW": 44.616
+  },
+  {
+   "tag": "2026-03-25",
+   "spitze_GW": 41.806
+  },
+  {
+   "tag": "2026-03-26",
+   "spitze_GW": 49.288
+  },
+  {
+   "tag": "2026-03-27",
+   "spitze_GW": 53.224
+  },
+  {
+   "tag": "2026-03-28",
+   "spitze_GW": 49.377
+  },
+  {
+   "tag": "2026-03-29",
+   "spitze_GW": 34.008
+  },
+  {
+   "tag": "2026-03-30",
+   "spitze_GW": 41.781
+  },
+  {
+   "tag": "2026-03-31",
+   "spitze_GW": 52.308
+  },
+  {
+   "tag": "2026-04-01",
+   "spitze_GW": 63.487
+  },
+  {
+   "tag": "2026-04-02",
+   "spitze_GW": 57.573
+  },
+  {
+   "tag": "2026-04-03",
+   "spitze_GW": 38.836
+  },
+  {
+   "tag": "2026-04-04",
+   "spitze_GW": 40.036
+  },
+  {
+   "tag": "2026-04-05",
+   "spitze_GW": 13.326
+  },
+  {
+   "tag": "2026-04-06",
+   "spitze_GW": 36.955
+  },
+  {
+   "tag": "2026-04-07",
+   "spitze_GW": 55.381
+  },
+  {
+   "tag": "2026-04-08",
+   "spitze_GW": 50.987
+  },
+  {
+   "tag": "2026-04-09",
+   "spitze_GW": 42.152
+  },
+  {
+   "tag": "2026-04-10",
+   "spitze_GW": 57.276
+  },
+  {
+   "tag": "2026-04-11",
+   "spitze_GW": 42.69
+  },
+  {
+   "tag": "2026-04-12",
+   "spitze_GW": 50.273
+  },
+  {
+   "tag": "2026-04-13",
+   "spitze_GW": 55.623
+  },
+  {
+   "tag": "2026-04-14",
+   "spitze_GW": 59.923
+  },
+  {
+   "tag": "2026-04-15",
+   "spitze_GW": 57.461
+  },
+  {
+   "tag": "2026-04-16",
+   "spitze_GW": 58.883
+  },
+  {
+   "tag": "2026-04-17",
+   "spitze_GW": 53.743
+  },
+  {
+   "tag": "2026-04-18",
+   "spitze_GW": 46.053
+  },
+  {
+   "tag": "2026-04-19",
+   "spitze_GW": 37.332
+  },
+  {
+   "tag": "2026-04-20",
+   "spitze_GW": 44.102
+  },
+  {
+   "tag": "2026-04-21",
+   "spitze_GW": 49.546
+  },
+  {
+   "tag": "2026-04-22",
+   "spitze_GW": 50.122
+  },
+  {
+   "tag": "2026-04-23",
+   "spitze_GW": 41.922
+  },
+  {
+   "tag": "2026-04-24",
+   "spitze_GW": 39.836
+  },
+  {
+   "tag": "2026-04-25",
+   "spitze_GW": 28.2
+  },
+  {
+   "tag": "2026-04-26",
+   "spitze_GW": 45.979
+  },
+  {
+   "tag": "2026-04-27",
+   "spitze_GW": 52.389
+  },
+  {
+   "tag": "2026-04-28",
+   "spitze_GW": 37.211
+  },
+  {
+   "tag": "2026-04-29",
+   "spitze_GW": 42.306
+  },
+  {
+   "tag": "2026-04-30",
+   "spitze_GW": 43.502
+  },
+  {
+   "tag": "2026-05-01",
+   "spitze_GW": 36.186
+  },
+  {
+   "tag": "2026-05-02",
+   "spitze_GW": 42.087
+  },
+  {
+   "tag": "2026-05-03",
+   "spitze_GW": 33.333
+  },
+  {
+   "tag": "2026-05-04",
+   "spitze_GW": 54.793
+  },
+  {
+   "tag": "2026-05-05",
+   "spitze_GW": 51.901
+  },
+  {
+   "tag": "2026-05-06",
+   "spitze_GW": 47.095
+  },
+  {
+   "tag": "2026-05-07",
+   "spitze_GW": 57.268
+  },
+  {
+   "tag": "2026-05-08",
+   "spitze_GW": 50.117
+  },
+  {
+   "tag": "2026-05-09",
+   "spitze_GW": 43.586
+  },
+  {
+   "tag": "2026-05-10",
+   "spitze_GW": 36.996
+  },
+  {
+   "tag": "2026-05-11",
+   "spitze_GW": 42.858
+  },
+  {
+   "tag": "2026-05-12",
+   "spitze_GW": 41.945
+  },
+  {
+   "tag": "2026-05-13",
+   "spitze_GW": 45.703
+  },
+  {
+   "tag": "2026-05-14",
+   "spitze_GW": 43.718
+  },
+  {
+   "tag": "2026-05-15",
+   "spitze_GW": 38.46
+  },
+  {
+   "tag": "2026-05-16",
+   "spitze_GW": 39.045
+  },
+  {
+   "tag": "2026-05-17",
+   "spitze_GW": 46.32
+  },
+  {
+   "tag": "2026-05-18",
+   "spitze_GW": 50.204
+  },
+  {
+   "tag": "2026-05-19",
+   "spitze_GW": 49.13
+  },
+  {
+   "tag": "2026-05-20",
+   "spitze_GW": 48.977
+  },
+  {
+   "tag": "2026-05-21",
+   "spitze_GW": 53.293
+  },
+  {
+   "tag": "2026-05-22",
+   "spitze_GW": 52.665
+  },
+  {
+   "tag": "2026-05-23",
+   "spitze_GW": 45.268
+  },
+  {
+   "tag": "2026-05-24",
+   "spitze_GW": 39.394
+  },
+  {
+   "tag": "2026-05-25",
+   "spitze_GW": 43.324
+  },
+  {
+   "tag": "2026-05-26",
+   "spitze_GW": 47.358
+  },
+  {
+   "tag": "2026-05-27",
+   "spitze_GW": 43.791
+  },
+  {
+   "tag": "2026-05-28",
+   "spitze_GW": 54.031
+  },
+  {
+   "tag": "2026-05-29",
+   "spitze_GW": 45.377
+  },
+  {
+   "tag": "2026-05-30",
+   "spitze_GW": 44.262
+  },
+  {
+   "tag": "2026-05-31",
+   "spitze_GW": 40.817
+  },
+  {
+   "tag": "2026-06-01",
+   "spitze_GW": 54.372
+  },
+  {
+   "tag": "2026-06-02",
+   "spitze_GW": 45.113
+  },
+  {
+   "tag": "2026-06-03",
+   "spitze_GW": 38.747
+  },
+  {
+   "tag": "2026-06-04",
+   "spitze_GW": 25.896
+  },
+  {
+   "tag": "2026-06-05",
+   "spitze_GW": 48.536
+  },
+  {
+   "tag": "2026-06-06",
+   "spitze_GW": 42.156
+  },
+  {
+   "tag": "2026-06-07",
+   "spitze_GW": 40.599
+  },
+  {
+   "tag": "2026-06-08",
+   "spitze_GW": 47.805
+  },
+  {
+   "tag": "2026-06-09",
+   "spitze_GW": 43.734
+  },
+  {
+   "tag": "2026-06-10",
+   "spitze_GW": 51.046
+  },
+  {
+   "tag": "2026-06-11",
+   "spitze_GW": 49.733
+  },
+  {
+   "tag": "2026-06-12",
+   "spitze_GW": 38.673
+  },
+  {
+   "tag": "2026-06-13",
+   "spitze_GW": 24.312
+  },
+  {
+   "tag": "2026-06-14",
+   "spitze_GW": 21.187
+  },
+  {
+   "tag": "2026-06-15",
+   "spitze_GW": 42.279
+  },
+  {
+   "tag": "2026-06-16",
+   "spitze_GW": 51.104
+  },
+  {
+   "tag": "2026-06-17",
+   "spitze_GW": 50.298
+  },
+  {
+   "tag": "2026-06-18",
+   "spitze_GW": 56.819
+  },
+  {
+   "tag": "2026-06-19",
+   "spitze_GW": 48.96
+  },
+  {
+   "tag": "2026-06-20",
+   "spitze_GW": 45.853
+  },
+  {
+   "tag": "2026-06-21",
+   "spitze_GW": 43.815
+  },
+  {
+   "tag": "2026-06-22",
+   "spitze_GW": 50.971
+  },
+  {
+   "tag": "2026-06-23",
+   "spitze_GW": 56.076
+  },
+  {
+   "tag": "2026-06-24",
+   "spitze_GW": 58.135
+  },
+  {
+   "tag": "2026-06-25",
+   "spitze_GW": 53.161
+  },
+  {
+   "tag": "2026-06-26",
+   "spitze_GW": 51.619
+  },
+  {
+   "tag": "2026-06-27",
+   "spitze_GW": 44.405
+  },
+  {
+   "tag": "2026-06-28",
+   "spitze_GW": 45.108
+  },
+  {
+   "tag": "2026-06-29",
+   "spitze_GW": 54.184
+  },
+  {
+   "tag": "2026-06-30",
+   "spitze_GW": 52.489
+  },
+  {
+   "tag": "2026-07-01",
+   "spitze_GW": 51.625
+  },
+  {
+   "tag": "2026-07-02",
+   "spitze_GW": 45.987
+  },
+  {
+   "tag": "2026-07-03",
+   "spitze_GW": 34.628
+  },
+  {
+   "tag": "2026-07-04",
+   "spitze_GW": 31.451
+  },
+  {
+   "tag": "2026-07-05",
+   "spitze_GW": 36.191
+  },
+  {
+   "tag": "2026-07-06",
+   "spitze_GW": 32.892
+  },
+  {
+   "tag": "2026-07-07",
+   "spitze_GW": 23.818
+  },
+  {
+   "tag": "2026-07-08",
+   "spitze_GW": 41.597
+  },
+  {
+   "tag": "2026-07-09",
+   "spitze_GW": 51.898
+  },
+  {
+   "tag": "2026-07-10",
+   "spitze_GW": 48.345
+  },
+  {
+   "tag": "2026-07-11",
+   "spitze_GW": 39.004
+  },
+  {
+   "tag": "2026-07-12",
+   "spitze_GW": 39.242
+  },
+  {
+   "tag": "2026-07-13",
+   "spitze_GW": 46.49
+  },
+  {
+   "tag": "2026-07-14",
+   "spitze_GW": 47.597
+  },
+  {
+   "tag": "2026-07-15",
+   "spitze_GW": 49.865
+  },
+  {
+   "tag": "2026-07-16",
+   "spitze_GW": 55.259
+  },
+  {
+   "tag": "2026-07-17",
+   "spitze_GW": 45.938
+  },
+  {
+   "tag": "2026-07-18",
+   "spitze_GW": 33.737
+  },
+  {
+   "tag": "2026-07-19",
+   "spitze_GW": 32.436
+  },
+  {
+   "tag": "2026-07-20",
+   "spitze_GW": 43.445
+  },
+  {
+   "tag": "2026-07-21",
+   "spitze_GW": 45.232
+  },
+  {
+   "tag": "2026-07-22",
+   "spitze_GW": 37.15
+  },
+  {
+   "tag": "2026-07-23",
+   "spitze_GW": 46.002
+  },
+  {
+   "tag": "2026-07-24",
+   "spitze_GW": 51.214
+  },
+  {
+   "tag": "2026-07-25",
+   "spitze_GW": 42.726
+  },
+  {
+   "tag": "2026-07-26",
+   "spitze_GW": 35.251
+  },
+  {
+   "tag": "2026-07-27",
+   "spitze_GW": 41.697
+  },
+  {
+   "tag": "2026-07-28",
+   "spitze_GW": 53.16
+  },
+  {
+   "tag": "2026-07-29",
+   "spitze_GW": 54.984
+  },
+  {
+   "tag": "2026-07-30",
+   "spitze_GW": 48.179
+  },
+  {
+   "tag": "2026-07-31",
+   "spitze_GW": 49.986
+  },
+  {
+   "tag": "2026-08-01",
+   "spitze_GW": 43.688
+  },
+  {
+   "tag": "2026-08-02",
+   "spitze_GW": 38.167
+  },
+  {
+   "tag": "2026-08-03",
+   "spitze_GW": 42.16
+  },
+  {
+   "tag": "2026-08-04",
+   "spitze_GW": 50.38
+  },
+  {
+   "tag": "2026-08-05",
+   "spitze_GW": 46.077
+  },
+  {
+   "tag": "2026-08-06",
+   "spitze_GW": 37.667
+  },
+  {
+   "tag": "2026-08-07",
+   "spitze_GW": 44.505
+  },
+  {
+   "tag": "2026-08-08",
+   "spitze_GW": 42.631
+  },
+  {
+   "tag": "2026-08-09",
+   "spitze_GW": 40.479
+  },
+  {
+   "tag": "2026-08-10",
+   "spitze_GW": 38.574
+  },
+  {
+   "tag": "2026-08-11",
+   "spitze_GW": 46.579
+  },
+  {
+   "tag": "2026-08-12",
+   "spitze_GW": 50.033
+  },
+  {
+   "tag": "2026-08-13",
+   "spitze_GW": 45.93
+  },
+  {
+   "tag": "2026-08-14",
+   "spitze_GW": 48.761
+  },
+  {
+   "tag": "2026-08-15",
+   "spitze_GW": 39.959
+  },
+  {
+   "tag": "2026-08-16",
+   "spitze_GW": 43.022
+  },
+  {
+   "tag": "2026-08-17",
+   "spitze_GW": 43.868
+  },
+  {
+   "tag": "2026-08-18",
+   "spitze_GW": 47.743
+  },
+  {
+   "tag": "2026-08-19",
+   "spitze_GW": 44.517
+  },
+  {
+   "tag": "2026-08-20",
+   "spitze_GW": 43.736
+  },
+  {
+   "tag": "2026-08-21",
+   "spitze_GW": 42.587
+  },
+  {
+   "tag": "2026-08-22",
+   "spitze_GW": 32.245
+  },
+  {
+   "tag": "2026-08-23",
+   "spitze_GW": 32.73
+  },
+  {
+   "tag": "2026-08-24",
+   "spitze_GW": 49.725
+  },
+  {
+   "tag": "2026-08-25",
+   "spitze_GW": 42.59
+  },
+  {
+   "tag": "2026-08-26",
+   "spitze_GW": 39.799
+  },
+  {
+   "tag": "2026-08-27",
+   "spitze_GW": 34.91
+  },
+  {
+   "tag": "2026-08-28",
+   "spitze_GW": 35.877
+  },
+  {
+   "tag": "2026-08-29",
+   "spitze_GW": 31.744
+  },
+  {
+   "tag": "2026-08-30",
+   "spitze_GW": 42.283
+  },
+  {
+   "tag": "2026-08-31",
+   "spitze_GW": 35.502
+  },
+  {
+   "tag": "2026-09-01",
+   "spitze_GW": 43.686
+  },
+  {
+   "tag": "2026-09-02",
+   "spitze_GW": 51.396
+  },
+  {
+   "tag": "2026-09-03",
+   "spitze_GW": 36.376
+  },
+  {
+   "tag": "2026-09-04",
+   "spitze_GW": 26.371
+  },
+  {
+   "tag": "2026-09-05",
+   "spitze_GW": 20.356
+  },
+  {
+   "tag": "2026-09-06",
+   "spitze_GW": 45.782
+  },
+  {
+   "tag": "2026-09-07",
+   "spitze_GW": 45.659
+  },
+  {
+   "tag": "2026-09-08",
+   "spitze_GW": 51.298
+  },
+  {
+   "tag": "2026-09-09",
+   "spitze_GW": 41.307
+  },
+  {
+   "tag": "2026-09-10",
+   "spitze_GW": 57.742
+  },
+  {
+   "tag": "2026-09-11",
+   "spitze_GW": 54.063
+  },
+  {
+   "tag": "2026-09-12",
+   "spitze_GW": 42.571
+  },
+  {
+   "tag": "2026-09-13",
+   "spitze_GW": 43.826
+  },
+  {
+   "tag": "2026-09-14",
+   "spitze_GW": 59.994
+  },
+  {
+   "tag": "2026-09-15",
+   "spitze_GW": 54.964
+  },
+  {
+   "tag": "2026-09-16",
+   "spitze_GW": 51.802
+  },
+  {
+   "tag": "2026-09-17",
+   "spitze_GW": 41.738
+  },
+  {
+   "tag": "2026-09-18",
+   "spitze_GW": 41.801
+  },
+  {
+   "tag": "2026-09-19",
+   "spitze_GW": 21.267
+  },
+  {
+   "tag": "2026-09-20",
+   "spitze_GW": 16.861
+  },
+  {
+   "tag": "2026-09-21",
+   "spitze_GW": 39.062
+  },
+  {
+   "tag": "2026-09-22",
+   "spitze_GW": 59.118
+  },
+  {
+   "tag": "2026-09-23",
+   "spitze_GW": 57.485
+  },
+  {
+   "tag": "2026-09-24",
+   "spitze_GW": 53.394
+  },
+  {
+   "tag": "2026-09-25",
+   "spitze_GW": 57.056
+  },
+  {
+   "tag": "2026-09-26",
+   "spitze_GW": 51.933
+  },
+  {
+   "tag": "2026-09-27",
+   "spitze_GW": 36.531
+  },
+  {
+   "tag": "2026-09-28",
+   "spitze_GW": 59.467
+  },
+  {
+   "tag": "2026-09-29",
+   "spitze_GW": 48.515
+  },
+  {
+   "tag": "2026-09-30",
+   "spitze_GW": 47.522
+  },
+  {
+   "tag": "2026-10-01",
+   "spitze_GW": 55.087
+  },
+  {
+   "tag": "2026-10-02",
+   "spitze_GW": 61.106
+  },
+  {
+   "tag": "2026-10-03",
+   "spitze_GW": 52.077
+  },
+  {
+   "tag": "2026-10-04",
+   "spitze_GW": 52.659
+  },
+  {
+   "tag": "2026-10-05",
+   "spitze_GW": 50.718
+  },
+  {
+   "tag": "2026-10-06",
+   "spitze_GW": 63.911
+  },
+  {
+   "tag": "2026-10-07",
+   "spitze_GW": 59.702
+  },
+  {
+   "tag": "2026-10-08",
+   "spitze_GW": 42.478
+  },
+  {
+   "tag": "2026-10-09",
+   "spitze_GW": 27.46
+  },
+  {
+   "tag": "2026-10-10",
+   "spitze_GW": 24.059
+  },
+  {
+   "tag": "2026-10-11",
+   "spitze_GW": 38.052
+  },
+  {
+   "tag": "2026-10-12",
+   "spitze_GW": 62.092
+  },
+  {
+   "tag": "2026-10-13",
+   "spitze_GW": 46.475
+  },
+  {
+   "tag": "2026-10-14",
+   "spitze_GW": 56.753
+  },
+  {
+   "tag": "2026-10-15",
+   "spitze_GW": 52.932
+  },
+  {
+   "tag": "2026-10-16",
+   "spitze_GW": 53.886
+  },
+  {
+   "tag": "2026-10-17",
+   "spitze_GW": 34.201
+  },
+  {
+   "tag": "2026-10-18",
+   "spitze_GW": 32.748
+  },
+  {
+   "tag": "2026-10-19",
+   "spitze_GW": 42.984
+  },
+  {
+   "tag": "2026-10-20",
+   "spitze_GW": 47.714
+  },
+  {
+   "tag": "2026-10-21",
+   "spitze_GW": 54.295
+  },
+  {
+   "tag": "2026-10-22",
+   "spitze_GW": 37.996
+  },
+  {
+   "tag": "2026-10-23",
+   "spitze_GW": 39.572
+  },
+  {
+   "tag": "2026-10-24",
+   "spitze_GW": 17.836
+  },
+  {
+   "tag": "2026-10-25",
+   "spitze_GW": 8.266
+  },
+  {
+   "tag": "2026-10-26",
+   "spitze_GW": 41.354
+  },
+  {
+   "tag": "2026-10-27",
+   "spitze_GW": 41.217
+  },
+  {
+   "tag": "2026-10-28",
+   "spitze_GW": 56.009
+  },
+  {
+   "tag": "2026-10-29",
+   "spitze_GW": 64.406
+  },
+  {
+   "tag": "2026-10-30",
+   "spitze_GW": 59.506
+  },
+  {
+   "tag": "2026-10-31",
+   "spitze_GW": 52.446
+  },
+  {
+   "tag": "2026-11-01",
+   "spitze_GW": 55.478
+  },
+  {
+   "tag": "2026-11-02",
+   "spitze_GW": 64.32
+  },
+  {
+   "tag": "2026-11-03",
+   "spitze_GW": 53.735
+  },
+  {
+   "tag": "2026-11-04",
+   "spitze_GW": 50.099
+  },
+  {
+   "tag": "2026-11-05",
+   "spitze_GW": 51.559
+  },
+  {
+   "tag": "2026-11-06",
+   "spitze_GW": 54.788
+  },
+  {
+   "tag": "2026-11-07",
+   "spitze_GW": 57.205
+  },
+  {
+   "tag": "2026-11-08",
+   "spitze_GW": 58.52
+  },
+  {
+   "tag": "2026-11-09",
+   "spitze_GW": 68.438
+  },
+  {
+   "tag": "2026-11-10",
+   "spitze_GW": 68.227
+  },
+  {
+   "tag": "2026-11-11",
+   "spitze_GW": 71.899
+  },
+  {
+   "tag": "2026-11-12",
+   "spitze_GW": 56.91
+  },
+  {
+   "tag": "2026-11-13",
+   "spitze_GW": 37.39
+  },
+  {
+   "tag": "2026-11-14",
+   "spitze_GW": 40.803
+  },
+  {
+   "tag": "2026-11-15",
+   "spitze_GW": 23.692
+  }
+ ],
+ "gegen": {
+  "vorjahr": {
+   "n": 35040,
+   "spitze_GW": 72.60449999999999,
+   "spitze_zeit": "2025-01-15 17:45",
+   "ueberschuss_GWh": 1569.752175,
+   "stufen": [
+    {
+     "stufe": "x2",
+     "dauer": 1.7607134310237569,
+     "senkung_GW": 2.8642935343969875,
+     "spitze_nach_GW": 69.740206465603,
+     "tage_kappe": 7,
+     "leer": [
+      "2024-12-11"
+     ]
+    },
+    {
+     "stufe": "x5",
+     "dauer": 1.760713431023757,
+     "senkung_GW": 4.537962677342919,
+     "spitze_nach_GW": 68.06653732265707,
+     "tage_kappe": 12,
+     "leer": [
+      "2024-12-11"
+     ]
+    },
+    {
+     "stufe": "x10",
+     "dauer": 1.760713431023757,
+     "senkung_GW": 6.850600973015113,
+     "spitze_nach_GW": 65.75389902698487,
+     "tage_kappe": 21,
+     "leer": [
+      "2024-12-11"
+     ]
+    },
+    {
+     "stufe": "NEP A",
+     "dauer": 2.0,
+     "senkung_GW": 6.824028033199356,
+     "spitze_nach_GW": 65.78047196680063,
+     "tage_kappe": 20,
+     "leer": [
+      "2024-12-11"
+     ]
+    },
+    {
+     "stufe": "NEP B",
+     "dauer": 2.0,
+     "senkung_GW": 9.472385689739728,
+     "spitze_nach_GW": 63.132114310260256,
+     "tage_kappe": 31,
+     "leer": [
+      "2024-12-12"
+     ]
+    },
+    {
+     "stufe": "NEP C",
+     "dauer": 2.0,
+     "senkung_GW": 10.522542959785612,
+     "spitze_nach_GW": 62.08195704021437,
+     "tage_kappe": 41,
+     "leer": [
+      "2024-12-12"
+     ]
+    },
+    {
+     "stufe": "x2",
+     "dauer": 4.0,
+     "senkung_GW": 4.312483047116403,
+     "spitze_nach_GW": 68.29201695288359,
+     "tage_kappe": 12,
+     "leer": [
+      "2024-12-11"
+     ]
+    },
+    {
+     "stufe": "x5",
+     "dauer": 4.0,
+     "senkung_GW": 7.457559444566985,
+     "spitze_nach_GW": 65.146940555433,
+     "tage_kappe": 22,
+     "leer": [
+      "2024-12-11"
+     ]
+    },
+    {
+     "stufe": "x10",
+     "dauer": 4.0,
+     "senkung_GW": 10.515590157179831,
+     "spitze_nach_GW": 62.08890984282015,
+     "tage_kappe": 41,
+     "leer": [
+      "2024-12-12"
+     ]
+    },
+    {
+     "stufe": "NEP A",
+     "dauer": 4.0,
+     "senkung_GW": 10.052880402793045,
+     "spitze_nach_GW": 62.55161959720694,
+     "tage_kappe": 38,
+     "leer": [
+      "2024-12-12"
+     ]
+    },
+    {
+     "stufe": "NEP B",
+     "dauer": 4.0,
+     "senkung_GW": 12.123931913763169,
+     "spitze_nach_GW": 60.480568086236815,
+     "tage_kappe": 52,
+     "leer": [
+      "2024-12-12"
+     ]
+    },
+    {
+     "stufe": "NEP C",
+     "dauer": 4.0,
+     "senkung_GW": 14.141511664092016,
+     "spitze_nach_GW": 58.462988335907966,
+     "tage_kappe": 63,
+     "leer": [
+      "2024-12-12"
+     ]
+    }
+   ]
+  },
+  "tageshorizont": [
+   {
+    "stufe": "x2",
+    "dauer": 1.7607134310237569,
+    "spitze_nach_GW": 70.18187974148921,
+    "senkung_GW": 2.8060202585107765,
+    "tag": "2025-12-03"
+   },
+   {
+    "stufe": "x5",
+    "dauer": 1.760713431023757,
+    "spitze_nach_GW": 66.23926806671429,
+    "senkung_GW": 6.74863193328571,
+    "tag": "2025-12-03"
+   },
+   {
+    "stufe": "x10",
+    "dauer": 1.760713431023757,
+    "spitze_nach_GW": 63.805355150103374,
+    "senkung_GW": 9.182544849896622,
+    "tag": "2025-12-03"
+   },
+   {
+    "stufe": "NEP A",
+    "dauer": 2.0,
+    "spitze_nach_GW": 63.816427208360544,
+    "senkung_GW": 9.171472791639447,
+    "tag": "2025-12-03"
+   },
+   {
+    "stufe": "NEP B",
+    "dauer": 2.0,
+    "spitze_nach_GW": 62.6194347927699,
+    "senkung_GW": 10.368465207230097,
+    "tag": "2025-12-03"
+   },
+   {
+    "stufe": "NEP C",
+    "dauer": 2.0,
+    "spitze_nach_GW": 61.45458094621514,
+    "senkung_GW": 11.533319053784856,
+    "tag": "2025-12-03"
+   }
+  ]
+ }
+}

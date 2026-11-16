@@ -8,14 +8,14 @@ const OUT = join(process.cwd(), "docs/audit-2026-11/monat-paket-a/screenshots");
 mkdirSync(OUT, { recursive: true });
 
 const shots = [
-  { name: "erstaufruf-1280-light", url: "/monat/2026-10?faktor=10&fahrweise=spitze", w: 1280, dark: false },
-  { name: "erstaufruf-390-light", url: "/monat/2026-10?faktor=10&fahrweise=spitze", w: 390, dark: false },
+  { name: "erstaufruf-1280-light", url: "/monat/2026-10", w: 1280, dark: false },
+  { name: "erstaufruf-390-light", url: "/monat/2026-10", w: 390, dark: false },
   { name: "x5-spitze-1280-light", url: "/monat/2026-10?faktor=5&fahrweise=spitze", w: 1280, dark: false },
   { name: "x5-spitze-390-light", url: "/monat/2026-10?faktor=5&fahrweise=spitze", w: 390, dark: false },
   { name: "x10-markt-1280-light", url: "/monat/2026-10?faktor=10&fahrweise=markt", w: 1280, dark: false },
   { name: "x10-markt-390-light", url: "/monat/2026-10?faktor=10&fahrweise=markt", w: 390, dark: false },
-  { name: "erstaufruf-1280-dark", url: "/monat/2026-10?faktor=10&fahrweise=spitze", w: 1280, dark: true },
-  { name: "erstaufruf-390-dark", url: "/monat/2026-10?faktor=10&fahrweise=spitze", w: 390, dark: true },
+  { name: "erstaufruf-1280-dark", url: "/monat/2026-10", w: 1280, dark: true },
+  { name: "erstaufruf-390-dark", url: "/monat/2026-10", w: 390, dark: true },
   { name: "x5-spitze-1280-dark", url: "/monat/2026-10?faktor=5&fahrweise=spitze", w: 1280, dark: true },
   { name: "x5-spitze-390-dark", url: "/monat/2026-10?faktor=5&fahrweise=spitze", w: 390, dark: true },
   { name: "x10-markt-1280-dark", url: "/monat/2026-10?faktor=10&fahrweise=markt", w: 1280, dark: true },

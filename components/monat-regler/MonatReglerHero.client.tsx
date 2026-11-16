@@ -88,7 +88,11 @@ export function MonatReglerHero({
   );
 
   return (
-    <section className={styles.hero} aria-labelledby="monat-regler-h1" data-testid="monat-regler-hero">
+    <section
+      className={`${styles.hero}${strategy === "markt" && factor > 1 ? ` ${styles.heroMarktKpi}` : ""}`}
+      aria-labelledby="monat-regler-h1"
+      data-testid="monat-regler-hero"
+    >
       <p className="num" style={{ fontSize: "0.75rem", color: "var(--mr-muted)" }}>
         MONATSHORIZONT · OKTOBER 2026 · MODELL
       </p>
@@ -143,7 +147,11 @@ export function MonatReglerHero({
       </div>
 
       {kpis ? (
-        <dl className={styles.kpiGrid}>
+        <dl
+          className={`${styles.kpiGrid}${
+            strategy === "markt" && factor > 1 ? ` ${styles.kpiGridDense}` : ""
+          }`}
+        >
           <div className={styles.kpi}>
             <dt>Monatsspitze</dt>
             <dd>{formatGwAbs(kpis.peakAfterGw)}</dd>

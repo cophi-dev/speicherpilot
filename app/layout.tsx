@@ -7,6 +7,9 @@ import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
 import { THEME_INIT_SCRIPT, THEME_INIT_SCRIPT_ID } from "@/lib/themeInitInline";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 import { BUILD_PROVENANCE } from "@/lib/buildProvenance.generated";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { siteGraphJsonLd } from "@/lib/seo/jsonLd";
+import { resolveSiteVerification } from "@/lib/seo/siteVerification";
 import { SITE_DESCRIPTION, SITE_TITLE, socialMeta } from "@/lib/siteOg";
 
 const siteOrigin = getPublicSiteOrigin();
@@ -17,6 +20,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const verification = resolveSiteVerification();
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: {
@@ -24,6 +29,7 @@ export const metadata: Metadata = {
     template: "%s | SpeicherPilot",
   },
   description: SITE_DESCRIPTION,
+  ...(verification ? { verification } : {}),
   ...socialMeta({
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
@@ -50,6 +56,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full bg-background text-foreground">
+        <JsonLd data={siteGraphJsonLd()} />
         {/* speicherpilot-build:commit=${BUILD_PROVENANCE.commit}:build=${BUILD_PROVENANCE.buildId} */}
         <span
           id="speicherpilot-build-provenance"

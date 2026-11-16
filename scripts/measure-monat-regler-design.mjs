@@ -51,7 +51,7 @@ const results = {
   baseUrl: BASE,
   headSha: (await import("node:child_process")).execSync("git rev-parse HEAD", { encoding: "utf8" }).trim(),
   views: {
-    mobile390: await measure({ width: 390, height: 844 }, false, "/monat/2026-10"),
+    mobile390Spitze: await measure({ width: 390, height: 844 }, false, "/monat/2026-10"),
     tablet768: await measure({ width: 768, height: 900 }, false, "/monat/2026-10"),
     mobile390Markt: await measure(
       { width: 390, height: 844 },

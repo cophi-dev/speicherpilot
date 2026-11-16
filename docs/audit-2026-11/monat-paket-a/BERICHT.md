@@ -6,7 +6,7 @@ Branch: `cursor/monat-regler-paket-a-9e95` (gegen `main`).
 
 ## Preview
 
-`/monat/2026-10` leitet ohne Query auf `?faktor=10&fahrweise=spitze` (Erstaufruf mit Wirkung).
+`/monat/2026-10` ohne Query: serverseitig **×10 · Spitze** (kein Redirect — canonical bleibt `/monat/2026-10`).
 
 Weitere Zustände:
 
@@ -23,7 +23,7 @@ Erzeugung: `pnpm data:fleet-compact` · Lazy-Load: `GET /api/national-fleet/comp
 
 ## Design-Nachbesserung (Urteil 16.11.2026, 14:40)
 
-**Head-SHA:** `7a13e1121ee500a9794809fc92b1925003f44f30`
+**Head-SHA:** (siehe `measures-nachbesserung.json` nach Push)
 
 | Muss | Kriterium | Messung (Playwright, `scripts/measure-monat-regler-design.mjs`) |
 |---|---|---|
@@ -32,7 +32,7 @@ Erzeugung: `pnpm data:fleet-compact` · Lazy-Load: `GET /api/national-fleet/comp
 | 2 Erstaufruf | Default ×10 Spitze, y 0–100 GW | Redirect ohne Query; Ticks 0/20/…/100, Achsentitel „GW“ |
 | 3 Linien | Direktlabels, Markt gestrichelt, Striche opaz 1 | `beobachtet` **#6B7580**; Markt **#B4532A / #FF8A5B** `6 3`; Caption „Striche = …“ |
 | 4 Steuerblock | Slider aus <768 px, Chips 68×50, KPI 28/32 px | Slider `display:none` @390; KPI `font-size` 28 px; Slider-Hint aus; Chip-Sub **12 px** |
-| 4 Graph-Oberkante | ≤520 px @390×844 (Spitze-Erstzustand) | **chartTop ≈433 px** (×10 Spitze); ×10 Markt mit 4 KPIs **≈533 px** (2 Extra-Kacheln) |
+| 4 Graph-Oberkante | ≤520 px @390×844 | **chartTop ≈433 px** (Erstaufruf ×10 Spitze); **×10 Markt ≈429 px** (`kpiGridDense`, Dauer-Zeile mobil aus) |
 
 Kontrast Slider-Label im Hero: **#9EA3A9** (7,66:1 auf dunkel).
 

@@ -46,6 +46,15 @@ export function BeitraegePage({
                     </h3>
                     <p className="blog-subtitle">{post.description}</p>
                     <p className="blog-meta num">
+                      {post.kind === "netz-updates" ? (
+                        <>
+                          <span>Netz-Updates</span>
+                          <span className="blog-meta-sep" aria-hidden="true">
+                            {" "}
+                            ·{" "}
+                          </span>
+                        </>
+                      ) : null}
                       <time dateTime={post.published}>{post.publishedLabel}</time>
                       <span className="blog-meta-sep" aria-hidden="true">
                         {" "}

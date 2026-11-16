@@ -364,8 +364,10 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
               <Link href="/methodik#quellen" className="text-primary underline underline-offset-[3px]">
                 Methodik
               </Link>
-              . Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung. Wo Euro stehen, ist
-              das als Modellschätzung gekennzeichnet.
+              . Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung.
+              {pathname === "/vision"
+                ? null
+                : " Wo Euro stehen, ist das als Modellschätzung gekennzeichnet."}
             </p>
             <p className="mt-4 flex flex-wrap gap-x-5">
               <a

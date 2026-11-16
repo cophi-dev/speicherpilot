@@ -3,13 +3,11 @@ import sitemap from "@/app/sitemap";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 
 describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
-  it("leitet /ort, /vision, /site und Unterpfade dauerhaft auf /simulator um", async () => {
+  it("leitet /ort, /site und Unterpfade dauerhaft auf /simulator um", async () => {
     const redirects = await nextConfig.redirects!();
     const sources = [
       "/ort",
       "/ort/:path*",
-      "/vision",
-      "/vision/:path*",
       "/site",
       "/site/:path*",
       "/netz",
@@ -23,12 +21,13 @@ describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
     }
   });
 
-  it("nimmt /simulator in die Sitemap und lässt Redirect-Ziele draußen", () => {
+  it("nimmt /simulator und /vision in die Sitemap und lässt Redirect-Ziele draußen", () => {
     const urls = sitemap().map((entry) => new URL(entry.url).pathname);
     expect(urls).toContain("/simulator");
+    expect(urls).toContain("/vision");
     expect(urls).not.toContain("/ort");
     expect(urls).not.toContain("/site");
-    expect(urls).not.toContain("/vision");
+    expect(urls).not.toContain("/jahr");
     expect(urls).not.toContain("/live");
     expect(urls).not.toContain("/blog");
   });

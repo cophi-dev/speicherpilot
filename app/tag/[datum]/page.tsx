@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 
+import { JsonLd } from "@/components/seo/JsonLd";
+import { datasetJsonLd } from "@/lib/seo/jsonLd";
+import { tagDocumentTitle, tagPageDescription } from "@/lib/seo/pageTitles";
 import { socialMeta } from "@/lib/siteOg";
 import { redirect } from "next/navigation";
 
@@ -32,20 +35,14 @@ export const revalidate = 1800;
 export async function generateMetadata({ params }: { params: Promise<{ datum: string }> }) {
   const { datum } = await params;
   const todayKey = formatBerlinDateKeyFromUtcDate(new Date());
-  const description =
-    datum === todayKey
-      ? "Laufender Tag in Deutschland: vorläufige Restlast, Day-Ahead und Markt-Fahrplan."
-      : "Ein Tag in Deutschland: Lücke, Residuallast und Kennzahlen mit Rang.";
-  const title = `Tag · ${datum}`;
+  const isToday = datum === todayKey;
+  const description = tagPageDescription(datum, isToday);
+  const title = tagDocumentTitle(datum, isToday);
   return {
-    title,
+    title: { absolute: title },
     description,
-    ...(datum === todayKey
-      ? {
-          robots: { index: false, follow: true },
-          alternates: { canonical: `/tag/${datum}` },
-        }
-      : {}),
+    alternates: { canonical: `/tag/${datum}` },
+    ...(isToday ? { robots: { index: false, follow: true } } : {}),
     ...socialMeta({ title, description, url: `/tag/${datum}` }),
   };
 }
@@ -66,8 +63,15 @@ export default async function TagDetailPage({
   if (datum === todayKey) {
     const live = await loadLiveTagView(datum, now);
     if (live) {
+      const liveDataset = datasetJsonLd({
+        path: `/tag/${datum}`,
+        name: tagDocumentTitle(datum, true),
+        description: tagPageDescription(datum, true),
+        temporalCoverage: datum,
+      });
       return (
         <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
+          <JsonLd data={{ "@context": "https://schema.org", ...liveDataset }} />
           <TagPageLaufend view={live} />
         </Suspense>
       );
@@ -200,8 +204,16 @@ export default async function TagDetailPage({
     overview30: view.dayOverview,
   });
 
+  const tagDataset = datasetJsonLd({
+    path: `/tag/${dayKey}`,
+    name: tagDocumentTitle(dayKey, dayKey === todayKey),
+    description: tagPageDescription(dayKey, dayKey === todayKey),
+    temporalCoverage: dayKey,
+  });
+
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
+      <JsonLd data={{ "@context": "https://schema.org", ...tagDataset }} />
       <TagPageV4
         dayKey={dayKey}
         todayKey={view.todayKey}

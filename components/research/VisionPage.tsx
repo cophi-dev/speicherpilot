@@ -2,135 +2,208 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import styles from "@/components/research/research.module.css";
+import { useMeasuredChartWidth } from "@/components/research/useMeasuredChartWidth";
 import { useResearchLayout } from "@/components/research/useResearchLayout";
 import { VisionPlot } from "@/components/research/VisionPlot";
+import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
+import { VisionJahrG2Markt } from "@/components/research/vision-jahr/VisionJahrG2Markt";
+import { VisionJahrG3Ueberschuss } from "@/components/research/vision-jahr/VisionJahrG3Ueberschuss";
+import { VisionJahrG4Tage } from "@/components/research/vision-jahr/VisionJahrG4Tage";
+import { formatVisionGermanDate, formatVisionGwMinus, formatVisionGwOne, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
+import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
+import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
+import type { VisionStageId } from "@/lib/research/researchTypes";
 import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
-import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
 const DURATIONS = [
-  { key: "1.76" as const, label: "1,76 h" },
   { key: "2" as const, label: "2 h" },
-  { key: "4" as const, label: "4 h" },
+  { key: "4" as const, label: "4 h (Sensitivität)" },
 ];
 
 const VISION_SKIP_KEY = "speicherpilot-vision-guess-skip";
 
-export function VisionPage({ model }: { model: VisionPageModel }) {
+export function VisionPage({ model }: { model: VisionJahrModel }) {
   const reduced = useReducedMotion();
   const layout = useResearchLayout();
-  const [duration, setDuration] = useState<"1.76" | "2" | "4">(model.defaultDuration);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const chartWidth = useMeasuredChartWidth(pageRef, layout.vision.width);
+  const [duration, setDuration] = useState<"2" | "4">("2");
   const [stageId, setStageId] = useState<VisionStageId>(model.defaultStage);
-  const [guessMode, setGuessMode] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return window.localStorage.getItem(VISION_SKIP_KEY) !== "1";
-  });
+  const [guessMode, setGuessMode] = useState(false);
   const [gapLabel, setGapLabel] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(VISION_SKIP_KEY) === "1";
-  });
+  const [revealed, setRevealed] = useState(true);
 
   const stage = model.curve.find((s) => s.id === stageId)!;
-  const truth = stage.senkungGw[duration];
+  const durationKey = duration === "2" ? "2" : "4";
+  const truth = stage.senkungGw[durationKey];
   const hero = formatGwSenkung(truth);
-  const nepLabel = stage.label.length === 1 ? stage.label : null;
+  const nepC = model.stages2h.find((s) => s.key === "NEP C")!;
+  const nepA = model.stages2h.find((s) => s.key === "NEP A")!;
   const inGuess = guessMode && !revealed;
   const showTruth = !inGuess;
 
+  const g2Height = layout.isDesktop ? 420 : 360;
+  const g4Height = layout.isDesktop ? 360 : 320;
+
   return (
-    <div className={styles.page}>
-      <p className={styles.eyebrow}>VISION · {model.monthLabel.toUpperCase()} · MONATSHORIZONT</p>
-      <h1 className={styles.h1}>Mehr Gigawatt helfen. Mehr Stunden helfen mehr.</h1>
-
-      {showTruth ? (
-        <>
-          <motion.div
-            className={styles.heroNum}
-            key={`${stageId}-${duration}-${truth.toFixed(3)}`}
-            initial={reduced ? false : { opacity: 0.5, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reduced ? { duration: 0 } : { duration: 0.4 }}
-            aria-live="polite"
-          >
-            {hero}
-          </motion.div>
-          <p className={styles.meta}>
-            {nepLabel ? `NEP ${nepLabel} · ` : null}
-            {stage.powerGw.toFixed(1).replace(".", ",")} GW · {DURATIONS.find((d) => d.key === duration)?.label} · Modell · national
-          </p>
-          <p className={styles.meta}>mit 4 h: {formatGwSenkung(stage.senkungGw["4"])}</p>
-        </>
-      ) : (
-        <>
-          <div className={styles.heroNum} aria-hidden>
-            ?
-          </div>
-          <p className={styles.meta}>Erst deine Schätzung — dann die Kurven.</p>
-        </>
-      )}
-
-      <div className={styles.seg} role="group" aria-label="Dauer">
-        {DURATIONS.map((d) => (
-          <button key={d.key} type="button" aria-pressed={duration === d.key} onClick={() => setDuration(d.key)}>
-            {d.label}
-          </button>
-        ))}
-      </div>
-
-      {inGuess ? (
-        <div style={{ marginTop: 8 }}>
-          <p className={styles.h2}>Erst schätzen, dann sehen</p>
-          <p className={styles.meta}>Ziehe den Punkt bei NEP B vertikal — dann erscheinen die Kurven.</p>
-        </div>
-      ) : null}
-
-      {gapLabel ? (
-        <p className={styles.meta} style={{ marginTop: 4 }}>
-          {gapLabel}
-        </p>
-      ) : null}
-
-      <VisionPlot
-        model={model}
-        duration={duration}
-        stageId={stageId}
-        onStage={setStageId}
-        guessMode={inGuess}
-        width={layout.vision.width}
-        height={layout.vision.height}
-        onGuessEnd={(guess, truthGw) => {
-          const diff = Math.abs(guess - truthGw);
-          setGapLabel(
-            diff < 0.15
-              ? "Fast getroffen."
-              : `Abstand zur Schätzung: ${formatGwSenkung(diff).replace(GW_MINUS, "")}`
-          );
-          setRevealed(true);
-        }}
-      />
-
-      {inGuess ? (
-        <div className={styles.skipWrap}>
-          <button type="button" className={styles.skip} onClick={onSkip}>
-            Überspringen
-          </button>
-        </div>
-      ) : null}
-
-      <p className={styles.meta} style={{ marginTop: 8 }}>
-        Ziehen = Stufe · A/B/C = NEP · Spitze {model.peakGw.toFixed(1).replace(".", ",")} GW · Monatshorizont
+    <div ref={pageRef} className={`${styles.page} ${styles.visionJahrPage}`}>
+      <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
+      <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
+      <p className={styles.prose}>
+        Nationale Kupferplatte, Vollvoraussicht über zwölf Monate (Obergrenze). Spitzenorientiert heißt: die Flotte senkt die{" "}
+        <strong> nationale</strong> Jahresspitze der Restlast. Der Oktober-Ausschnitt steht auf{" "}
+        <Link href="/monat/2026-10" className={styles.link}>
+          /monat/2026-10
+        </Link>
+        .
       </p>
-      <p className={styles.meta}>* BDEW, Momentaufnahme 11/2025, laut BDEW ≥ 50 % nicht realisiert</p>
+
+      <section className={styles.section} aria-labelledby="vision-g1">
+        <h2 id="vision-g1" className={styles.h2}>
+          Ab NEP A bringt jedes GW wenig
+        </h2>
+        <p className={styles.meta}>
+          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}) · Vorjahr NEP C:{" "}
+          {formatVisionGwMinus(model.vorjahr2hSenkung["NEP C"] ?? 0).replace(" GW", "")} bis {formatVisionGwMinus(nepC.senkung2hGw).replace(" GW", "")}
+        </p>
+
+        {showTruth ? (
+          <>
+            <motion.div
+              className={styles.heroNum}
+              key={`${stageId}-${duration}-${truth.toFixed(3)}`}
+              initial={reduced ? false : { opacity: 0.5, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduced ? { duration: 0 } : { duration: 0.4 }}
+              aria-live="polite"
+            >
+              {hero}
+            </motion.div>
+            <p className={styles.meta}>
+              {stageId.startsWith("nep") ? `NEP ${stage.label} · ` : `${stage.label} · `}
+              {stage.powerGw.toFixed(1).replace(".", ",")} GW · {duration === "2" ? "2 h" : "4 h Sensitivität"} · spitzenorientiert (national)
+            </p>
+          </>
+        ) : (
+          <>
+            <div className={styles.heroNum} aria-hidden>
+              ?
+            </div>
+            <p className={styles.meta}>Wie viel senkt NEP C die Jahresspitze? Ziehe im Graph.</p>
+          </>
+        )}
+
+        <div className={styles.seg} role="group" aria-label="Dauer">
+          {DURATIONS.map((d) => (
+            <button key={d.key} type="button" aria-pressed={duration === d.key} onClick={() => setDuration(d.key)}>
+              {d.label}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.guessBar}>
+          {!inGuess ? (
+            <button type="button" className={styles.guessStart} onClick={startGuess}>
+              Schätzen (NEP C)
+            </button>
+          ) : (
+            <>
+              <p className={styles.meta} style={{ margin: 0 }}>
+                Ziehe bei NEP C vertikal.
+              </p>
+              <button type="button" className={styles.skip} onClick={onSkip}>
+                Überspringen
+              </button>
+            </>
+          )}
+        </div>
+
+        {gapLabel ? (
+          <p className={styles.meta} style={{ marginTop: 4 }}>
+            {gapLabel}
+          </p>
+        ) : null}
+
+        <VisionPlot
+          model={model}
+          duration={duration}
+          stageId={stageId}
+          onStage={setStageId}
+          guessMode={inGuess}
+          width={chartWidth}
+          height={layout.vision.height}
+          yMax={16}
+          ariaLabel="Sättigung Jahressenkung"
+          guessStageId="nep-c"
+          vorjahr2h={model.stages2h
+            .filter((s) => model.vorjahr2hSenkung[s.key] != null)
+            .map((s) => ({ powerGw: s.powerGw, senkungGw: model.vorjahr2hSenkung[s.key]! }))}
+          onGuessEnd={(guess, truthGw) => {
+            const diff = Math.abs(guess - truthGw);
+            setGapLabel(
+              diff < 0.15
+                ? "Fast getroffen."
+                : `Abstand zur Schätzung: ${formatGwSenkung(diff).replace(GW_MINUS, "")}`
+            );
+            setRevealed(true);
+            setGuessMode(false);
+          }}
+        />
+        <VisionJahrChartFoot />
+      </section>
+
+      <section className={styles.section} aria-labelledby="vision-g2">
+        <h2 id="vision-g2" className={styles.h2}>
+          Nach Preis bleibt die Jahresspitze stehen
+        </h2>
+        <p className={styles.prose}>
+          Selbst mit grober Preisrückwirkung holt der Markt höchstens einen Bruchteil der möglichen Senkung — die graue Linie ohne Rückwirkung ist nur ein gekappter Stresstest.
+        </p>
+        <VisionJahrG2Markt model={model} width={chartWidth} height={g2Height} />
+      </section>
+
+      <section className={styles.section} aria-labelledby="vision-g4">
+        <h2 id="vision-g4" className={styles.h2}>
+          An {model.tageNepCCount} Tagen fährt selbst NEP C am Limit
+        </h2>
+        <p className={styles.prose}>
+          Fast alle Engpass-Tage liegen zwischen Oktober und März. Am {formatVisionGermanDate(model.leerTagNepC)} ist selbst NEP C leer.
+        </p>
+        <VisionJahrG4Tage model={model} width={chartWidth} height={g4Height} />
+      </section>
+
+      <section className={styles.section} aria-labelledby="vision-g3">
+        <h2 id="vision-g3" className={styles.h2}>
+          Ab NEP B ist der Überschuss voll
+        </h2>
+        <p className={styles.prose}>
+          Auf Überschuss fahren und Jahresspitze senken ziehen ab NEP A auseinander: NEP A nimmt {formatVisionPercentWhole(visionJahrUeberschussPct("NEP A"))} des Pools, die Spitze sinkt um{" "}
+          {formatVisionGwOne(nepA.senkung2hGw)}{"\u00A0"}GW.
+        </p>
+        <VisionJahrG3Ueberschuss model={model} width={chartWidth} />
+      </section>
 
       <footer className={styles.footer}>
-        <Link href="/methodik#annahmen">Annahmen &amp; Grenzen ↗</Link>
-        <p style={{ marginTop: 8 }}>Flotte 4,64 GW / 8,15 GWh, Stand 31.10. · battery-charts.de</p>
+        <p>
+          National: keine lokalen Engpässe, kein (n{"\u2212"}1), kein vermiedener Redispatch, keine vermiedene Abregelung (Überschuss ≠ Abregelung). Wind/PV/Last bis 2037 nicht mitgewachsen — NEP-Speicher im System von heute. Kein Business-Case-Werkzeug.
+        </p>
+        <p style={{ marginTop: 8 }}>
+          <Link href="/methodik#annahmen">Annahmen &amp; Grenzen ↗</Link>
+        </p>
+        <p style={{ marginTop: 8 }}>Flotte {model.fleetLabel}</p>
+        <p style={{ marginTop: 4 }}>Stand {model.stand} · statische Jahresrechnung</p>
       </footer>
     </div>
   );
+
+  function startGuess() {
+    setGuessMode(true);
+    setRevealed(false);
+    setGapLabel(null);
+  }
 
   function onSkip() {
     window.localStorage.setItem(VISION_SKIP_KEY, "1");

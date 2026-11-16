@@ -113,6 +113,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+@media (max-width: 767px) {
+  .kpiGridDense {
+    gap: 8px 10px;
+    margin: 0.45rem 0 0.55rem;
+  }
+  .kpiGridDense .kpi dt {
+    font-size: 10px;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+  .kpiGridDense .kpi dd {
+    font-size: clamp(20px, 5.5vw, 24px);
+    line-height: 1.05;
+  }
+  .heroMarktKpi .controls {
+    margin-bottom: 0.45rem;
+  }
+  .heroMarktKpi .durationRow {
+    display: none;
+  }
+}
+
 @media (min-width: 768px) {
   .kpiGrid {
     grid-template-columns: repeat(4, 1fr);
