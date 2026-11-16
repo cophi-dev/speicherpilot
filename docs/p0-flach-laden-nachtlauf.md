@@ -14,15 +14,15 @@ Implementierung: `mip_month.solve_min_peak_flat` (Stufe 1 MIP, Stufe 2 LP), TS-F
 - **Orchestrierung:** `node scripts/national-fleet-nachtlauf.mjs` (`pnpm data:national-fleet-nachtlauf`)
 - **Zeitplan:** `.github/workflows/national-fleet-nachtlauf.yml` (täglich 04:30 UTC)
 - **Vortag · TAGESHORIZONT:** 3 Fahrweisen × 4 Stufen → `data/national-fleet/<yyyy-mm>/days/<yyyy-mm-dd>/x{N}_*.json`
+- **Rollierend · MONATSHORIZONT:** gleicher Batch wie Vortag: `01.` bis Vortag, `horizon: month`, `asOfBerlin` = Vortag → `data/national-fleet/<yyyy-mm>/runs/` + `manifest.json` (`monthFinal: true` am Monatsletzten)
 - **Idempotenz:** SHA-gleicher Payload wird nicht überschrieben; Schreiben mit `intervalCount < 90` oder leerer Payload wirft einen Fehler.
-
-Monats-Horizont rollierend: gleicher Solver-Pfad wie Oktober (`run_fleet_factor_month.py`); in diesem P0 nur Tagespfad automatisiert — Monats-Backfill weiterhin manuell / separater Batch.
 
 ## GitHub Action
 
-- `permissions: contents: write` (nur `GITHUB_TOKEN`, keine zusätzlichen Secrets)
-- Commit auf Branch **`data/nachtlauf`**, automatisches `gh pr create` nach `main` (kein direkter Push auf `main`)
-- Fehler im Nachtlauf → Job rot (`set -euo pipefail`, Python-Exception bricht ab)
+- `permissions: contents: write` (`GITHUB_TOKEN`), `concurrency: national-fleet-nachtlauf`
+- Nach Lauf: `pnpm test lib/nationalFleetNachtlauf.test.ts` + `national_fleet_nachtlauf.py --validate-staged` (Schema + Energiebilanz)
+- Bei Grün: `git rebase origin/main`, Commit **`data: nachtlauf <datum>`**, Push **direkt auf `main`** — nur Pfade unter `data/national-fleet/**` (sonst Job rot)
+- Kein `data/nachtlauf`-Branch / tägliches Merge-PR mehr
 
 ## Nachbesserung 1 (Beleg 29.10.)
 

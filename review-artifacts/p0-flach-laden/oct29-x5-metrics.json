@@ -17,6 +17,8 @@
   "peakAfterNewMw": 55608.42167025342,
   "peakDeltaMw": 0.05000000000291038,
   "peakTimeNew": "2026-10-29T06:15:00+01:00",
+  "peakTimeMeasured": "2026-10-29T18:15:00+01:00",
+  "peakNewAtMeasuredMw": 55608.42167025342,
   "maxChargeOldMw": 17737.171670253418,
   "maxChargeNewMw": 7117.521670253416,
   "sumChargeOldMwh": 43005.60502152048,

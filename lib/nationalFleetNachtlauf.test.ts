@@ -7,6 +7,7 @@ import { z } from "zod";
 const runSchema = z.object({
   horizon: z.enum(["day", "month"]),
   dateBerlin: z.string(),
+  asOfBerlin: z.string().optional(),
   factor: z.number().int(),
   strategySlug: z.string(),
   strategyUi: z.string(),

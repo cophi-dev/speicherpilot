@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import math
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -74,8 +74,10 @@ def main() -> int:
     bal_new = energy_balance(c_new, d_new)
 
     times = [datetime.fromisoformat(t) for t in ts]
-    peak_idx = int(np.argmax(rp_new))
+    peak_idx = int(np.argmax(r))
     peak_time = ts[peak_idx]
+    peak_measured_mw = float(r[peak_idx])
+    peak_new_at_measured_mw = float(rp_new[peak_idx])
 
     metrics = {
         "day": DAY,
@@ -99,7 +101,9 @@ def main() -> int:
         "peakAfterOldMw": float(np.max(rp_old)),
         "peakAfterNewMw": float(np.max(rp_new)),
         "peakDeltaMw": float(np.max(rp_new) - np.max(rp_old)),
-        "peakTimeNew": peak_time,
+        "peakTimeNew": ts[int(np.argmax(rp_new))],
+        "peakTimeMeasured": peak_time,
+        "peakNewAtMeasuredMw": peak_new_at_measured_mw,
         "maxChargeOldMw": float(np.max(c_old)),
         "maxChargeNewMw": float(np.max(c_new)),
         "sumChargeOldMwh": bal_old["sumChargeGridMwh"],
@@ -144,7 +148,12 @@ def _plot(
     c_new: np.ndarray,
     metrics: dict,
 ) -> None:
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 7), dpi=120, gridspec_kw={"height_ratios": [2, 1]})
+    day_start = datetime.fromisoformat(f"{DAY}T00:00:00+01:00").astimezone(BERLIN)
+    day_end = day_start + timedelta(days=1)
+
+    fig, (ax1, ax2) = plt.subplots(
+        2, 1, figsize=(12, 7), dpi=120, sharex=True, gridspec_kw={"height_ratios": [2, 1]}
+    )
     g = 1e-3
 
     ax1.plot(times, r * g, color="#6b7280", lw=1.5, label="gemessen (R)")
@@ -171,22 +180,23 @@ def _plot(
     )
     ax1.plot(times, rp_new * g, color="#14532d", lw=1.6, label="mit ×5 neu: flach laden")
 
-    pt = datetime.fromisoformat(metrics["peakTimeNew"])
-    ax1.axvline(pt, color="#14532d", ls=":", lw=0.8, alpha=0.6)
+    pt_meas = datetime.fromisoformat(metrics.get("peakTimeMeasured", metrics["peakTimeNew"]))
+    ax1.axvline(pt_meas, color="#6b7280", ls=":", lw=0.8, alpha=0.6)
+    r_gw = metrics["peakBeforeMw"] / 1000
+    rp_gw = metrics["peakAfterNewMw"] / 1000
     ax1.annotate(
-        f"Spitze {metrics['peakAfterNewMw'] / 1000:.3f} GW",
-        xy=(pt, metrics["peakAfterNewMw"] * g),
-        xytext=(12, 12),
+        f"gemessen {r_gw:.1f} → {rp_gw:.1f} GW",
+        xy=(pt_meas, rp_gw),
+        xytext=(12, 10),
         textcoords="offset points",
-        fontsize=8,
-        bbox=dict(boxstyle="round", facecolor="white", alpha=0.85),
+        fontsize=9,
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.9),
     )
 
     ax1.set_ylabel("GW")
     ax1.set_title(f"29.10.2026 · ×5 · bundesweite Restlast-Spitze (Modell, Tageshorizont)")
     ax1.legend(loc="upper left", fontsize=8, ncol=2)
-    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M", tz=BERLIN))
-    ax1.set_xlim(times[0], times[-1])
+    ax1.set_xlim(day_start, day_end)
 
     ax2.plot(times, c_old, color="#b45309", lw=1.0, label="Ladeleistung alt")
     ax2.plot(times, c_new, color="#14532d", lw=1.2, label="Ladeleistung neu")

@@ -5,15 +5,22 @@ on:
     - cron: "30 4 * * *"
   workflow_dispatch: {}
 
+concurrency:
+  group: national-fleet-nachtlauf
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
 jobs:
   nachtlauf:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -26,31 +33,37 @@ jobs:
           python-version: "3.11"
       - run: pip install -r scripts/requirements-fleet-solver.txt
       - run: pnpm install --frozen-lockfile
-      - name: Nachtlauf Vortag
+      - name: Nachtlauf Vortag (Tag + Monat)
         run: node scripts/national-fleet-nachtlauf.mjs --yesterday
-      - name: Commit fleet data auf Branch data/nachtlauf
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Schema- und Plausibilitätstests
         run: |
           set -euo pipefail
-          if git diff --quiet data/national-fleet; then
-            echo "Keine Änderungen an data/national-fleet"
+          pnpm test lib/nationalFleetNachtlauf.test.ts
+          git add data/national-fleet
+          python3 scripts/national_fleet_nachtlauf.py --validate-staged
+      - name: Commit und Push auf main (nur data/national-fleet)
+        run: |
+          set -euo pipefail
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "Keine Änderungen"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          BRANCH="data/nachtlauf"
-          git fetch origin "$BRANCH" 2>/dev/null || true
-          git checkout -B "$BRANCH"
-          git add data/national-fleet
-          git commit -m "chore(national-fleet): nightly batch $(date -u +%Y-%m-%d)"
-          git push -u origin "$BRANCH"
-          if gh pr view "$BRANCH" --json number 2>/dev/null | grep -q number; then
-            echo "PR für $BRANCH existiert bereits"
-          else
-            gh pr create \
-              --base main \
-              --head "$BRANCH" \
-              --title "data: National-Fleet Nachtlauf" \
-              --body "Automatischer Nachtlauf (Vortag, TAGESHORIZONT). Bitte CI abwarten und mergen."
+          git fetch origin main
+          git rebase origin/main
+          CHANGED="$(git diff --cached --name-only)"
+          if [ -z "$CHANGED" ]; then
+            CHANGED="$(git diff --name-only data/national-fleet)"
+            git add data/national-fleet
+            CHANGED="$(git diff --cached --name-only)"
           fi
+          for f in $CHANGED; do
+            case "$f" in
+              data/national-fleet/*) ;;
+              *) echo "Abbruch: Änderung außerhalb data/national-fleet/: $f"; exit 1 ;;
+            esac
+          done
+          DATE_TAG="$(python3 -c 'from zoneinfo import ZoneInfo; from datetime import datetime,timedelta; print((datetime.now(ZoneInfo("Europe/Berlin"))-timedelta(days=1)).date().isoformat())')"
+          git commit -m "data: nachtlauf ${DATE_TAG}"
+          git push origin HEAD:main
