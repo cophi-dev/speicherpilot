@@ -49,3 +49,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Testlauf-Artefakte nicht committen
+artifacts/launch-r4-2026-*T*/
