@@ -2,15 +2,6 @@ import type { LabelAnchor } from "@/lib/chartLabelLayout";
 
 export type PlotPoint = { x: number; y: number };
 
-export type LineEndLabel = {
-  text: string;
-  lineY: number;
-  anchor: LabelAnchor;
-  x: number;
-  fill: string;
-  hideSliderFactor?: number;
-};
-
 export type PlacedLineLabel = {
   x: number;
   y: number;
@@ -22,6 +13,10 @@ export function linesWithinPx(yA: number, yB: number, px = 3): boolean {
   return Math.abs(yA - yB) < px;
 }
 
+export function estimateTextWidth(text: string, fontSize: number): number {
+  return Math.max(text.length, 1) * fontSize * 0.61;
+}
+
 export function labelBoxPx(
   x: number,
   y: number,
@@ -29,8 +24,7 @@ export function labelBoxPx(
   text: string,
   fontSize = 12,
 ): { left: number; right: number; top: number; bottom: number } {
-  const charW = fontSize * 0.61;
-  const width = Math.max(text.length, 1) * charW;
+  const width = estimateTextWidth(text, fontSize);
   const left = anchor === "end" ? x - width : anchor === "middle" ? x - width / 2 : x;
   return { left, right: left + width, top: y - fontSize, bottom: y + 4 };
 }
@@ -105,6 +99,11 @@ function freePlacement(
   return !collidesWithPolyline(box, path, 2);
 }
 
+export function gutterReserveWidth(texts: string[], fontSize: number, sliderCol = 48, pad = 14): number {
+  const maxText = texts.reduce((m, t) => Math.max(m, estimateTextWidth(t, fontSize)), 0);
+  return Math.ceil(maxText + pad + sliderCol);
+}
+
 export function placeLineEndLabel(args: {
   text: string;
   lineY: number;
@@ -115,29 +114,38 @@ export function placeLineEndLabel(args: {
   plotTop: number;
   plotBottom: number;
   fontSize: number;
+  gutterX?: number;
 }): PlacedLineLabel {
+  const gutterX = args.gutterX ?? args.plotRight + 22;
   const ySteps = [-12, -24, 12, 24, -36, 36, -48, 48];
-  const gutterX = args.plotRight + 22;
-  const anchorMid: LabelAnchor = "middle";
+  const useEnd = args.gutterX !== undefined;
+  const anchorPrimary: LabelAnchor = useEnd ? "end" : "middle";
   for (const dy of ySteps) {
     const y = Math.min(args.plotBottom - 6, Math.max(args.plotTop + args.fontSize, args.lineY + dy));
-    const box = labelBoxPx(gutterX, y, anchorMid, args.text, args.fontSize);
+    const box = labelBoxPx(gutterX, y, anchorPrimary, args.text, args.fontSize);
     if (freePlacement(box, args.path)) {
       return {
         x: gutterX,
         y,
-        anchor: anchorMid,
-        leader: { x1: args.plotRight - 2, y1: args.lineY, x2: gutterX - 6, y2: y - args.fontSize / 3 },
+        anchor: anchorPrimary,
+        leader: {
+          x1: args.plotRight - 2,
+          y1: args.lineY,
+          x2: gutterX - 4,
+          y2: y - args.fontSize / 3,
+        },
       };
     }
   }
 
-  const anchorEnd: LabelAnchor = "end";
-  for (const dy of ySteps) {
-    const y = Math.min(args.plotBottom - 6, Math.max(args.plotTop + args.fontSize, args.lineY + dy));
-    const box = labelBoxPx(args.x, y, anchorEnd, args.text, args.fontSize);
-    if (freePlacement(box, args.path)) {
-      return { x: args.x, y, anchor: anchorEnd };
+  if (!useEnd) {
+    const anchorEnd: LabelAnchor = "end";
+    for (const dy of ySteps) {
+      const y = Math.min(args.plotBottom - 6, Math.max(args.plotTop + args.fontSize, args.lineY + dy));
+      const box = labelBoxPx(args.x, y, anchorEnd, args.text, args.fontSize);
+      if (freePlacement(box, args.path)) {
+        return { x: args.x, y, anchor: anchorEnd };
+      }
     }
   }
 
@@ -145,8 +153,13 @@ export function placeLineEndLabel(args: {
   return {
     x: gutterX,
     y,
-    anchor: anchorMid,
-    leader: { x1: args.plotRight - 2, y1: args.lineY, x2: gutterX - 6, y2: y - args.fontSize / 3 },
+    anchor: anchorPrimary,
+    leader: {
+      x1: args.plotRight - 2,
+      y1: args.lineY,
+      x2: gutterX - 4,
+      y2: y - args.fontSize / 3,
+    },
   };
 }
 
@@ -167,6 +180,65 @@ export function stackLineEndLabels(
     }
     out.push({ text: item.text, y });
     lastBottom = labelBoxPx(x, y, "end", item.text, fontSize).bottom;
+  }
+  return out;
+}
+
+export type GutterLabelCandidate = {
+  key: string;
+  text: string;
+  preferredY: number;
+  fontSize: number;
+  fill: string;
+  lineY?: number;
+  isBold?: boolean;
+};
+
+export type StackedGutterLabel = GutterLabelCandidate & {
+  x: number;
+  y: number;
+  anchor: LabelAnchor;
+  leader?: PlacedLineLabel["leader"];
+};
+
+/** Greedy vertical stack in the gutter column; minGap is typographic px converted to SVG units. */
+export function stackGutterLabels(
+  items: GutterLabelCandidate[],
+  gutterX: number,
+  minGapTypoPx: number,
+  typographicScale: number,
+  plotRight: number,
+  plotBottom?: number,
+): StackedGutterLabel[] {
+  const minGap = minGapTypoPx / Math.max(typographicScale, 0.01);
+  const sorted = [...items].sort((a, b) => a.preferredY - b.preferredY);
+  const out: StackedGutterLabel[] = [];
+  let lastBottom = -Infinity;
+  for (const item of sorted) {
+    let y = item.preferredY;
+    let box = labelBoxPx(gutterX, y, "end", item.text, item.fontSize);
+    if (box.top < lastBottom + minGap) {
+      y += lastBottom + minGap - box.top;
+      box = labelBoxPx(gutterX, y, "end", item.text, item.fontSize);
+    }
+    if (plotBottom !== undefined) {
+      const maxY = plotBottom - 4;
+      if (y > maxY) {
+        y = maxY;
+        box = labelBoxPx(gutterX, y, "end", item.text, item.fontSize);
+      }
+    }
+    out.push({
+      ...item,
+      x: gutterX,
+      y,
+      anchor: "end",
+      leader:
+        item.lineY !== undefined
+          ? { x1: plotRight - 2, y1: item.lineY, x2: gutterX - 4, y2: y - item.fontSize / 3 }
+          : undefined,
+    });
+    lastBottom = box.bottom;
   }
   return out;
 }

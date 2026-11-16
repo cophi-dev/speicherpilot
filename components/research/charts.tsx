@@ -166,6 +166,9 @@ export function WeekDotsChart({
             ? "var(--research-accent)"
             : "var(--research-fg)";
         const valueText = weekBarValueLabel(value);
+        const barTopY = Math.min(yZero, yTip);
+        const gapUser = Math.max((12 / Math.max(fs, 0.01)) * 10, fs * 0.4);
+        const valueLabelY = barTopY - fs - gapUser;
         return (
           <g key={day.dateKey}>
             {day.isFocus ? (
@@ -189,16 +192,17 @@ export function WeekDotsChart({
                 opacity={accentSeries ? (day.isFocus ? 1 : 0.85) : useFourHour ? 0.9 : 1}
               />
             ) : null}
-            {value > 0.08
-              ? chartHaloLabel({
-                  x: cx,
-                  y: Math.max(padTop + fs + 12, yTip - fs - 8),
-                  text: valueText,
-                  textAnchor: "middle",
-                  fill: "var(--research-fg)",
-                  fontSize: fs,
-                })
-              : null}
+            {value > 0.08 ? (
+              <text
+                x={cx}
+                y={valueLabelY}
+                textAnchor="middle"
+                fontSize={fs}
+                className={styles.weekBarValueText}
+              >
+                {valueText}
+              </text>
+            ) : null}
             <text
               x={cx}
               y={height - padBottom + 14}
