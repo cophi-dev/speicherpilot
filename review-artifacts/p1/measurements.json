@@ -1,0 +1,90 @@
+[
+  {
+    "path": "/",
+    "width": 1280,
+    "status": 200,
+    "file": "start-1280.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0
+  },
+  {
+    "path": "/",
+    "width": 390,
+    "status": 200,
+    "file": "start-390.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0
+  },
+  {
+    "path": "/tag/2026-10-29",
+    "width": 1280,
+    "status": 200,
+    "file": "tag_2026-10-29-1280.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": 12,
+    "minGapPass": true,
+    "horizontalClipRegions": 1
+  },
+  {
+    "path": "/tag/2026-10-29",
+    "width": 390,
+    "status": 200,
+    "file": "tag_2026-10-29-390.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": 12,
+    "minGapPass": true,
+    "horizontalClipRegions": 1
+  },
+  {
+    "path": "/jahr",
+    "width": 1280,
+    "status": 200,
+    "file": "jahr-1280.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0
+  },
+  {
+    "path": "/jahr",
+    "width": 390,
+    "status": 200,
+    "file": "jahr-390.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0
+  },
+  {
+    "path": "/kompromiss",
+    "width": 1280,
+    "status": 200,
+    "file": "kompromiss-1280.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0
+  },
+  {
+    "path": "/kompromiss",
+    "width": 390,
+    "status": 200,
+    "file": "kompromiss-390.png",
+    "minTypoPx": 12,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0
+  }
+]

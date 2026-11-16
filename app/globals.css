@@ -10221,6 +10221,27 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   border-color: hsl(var(--primary));
   background: hsl(var(--primary) / 0.08);
 }
+.v4-fleet-pill.is-measured:not(.is-active) {
+  color: var(--foreground);
+  border-color: var(--foreground);
+  font-weight: var(--weight-semibold);
+}
+.v4-fleet-strategy-copy {
+  margin: 8px 0 0;
+  max-width: 42rem;
+  font-size: var(--type-14);
+  line-height: var(--lh-body);
+  color: var(--muted-foreground);
+}
+.v4-fleet-graph-meta {
+  margin-top: 12px;
+  font-size: var(--type-14);
+  color: var(--muted-foreground);
+}
+.v4-leitfrage {
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
 .v4-fleet-kpis {
   width: 100%;
   box-sizing: border-box;

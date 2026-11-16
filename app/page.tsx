@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
-import { ResearchHomePage } from "@/components/research/ResearchHomePage";
+import { Tagesvorlage } from "@/components/home/Tagesvorlage";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { datasetJsonLd } from "@/lib/seo/jsonLd";
 import { HOME_DOCUMENT_TITLE } from "@/lib/seo/pageTitles";
-import { buildResearchHome } from "@/lib/research/loadResearchHome.server";
-import { loadResearchDays } from "@/lib/research/loadResearchDays.server";
+import { tagDocumentTitle, tagPageDescription } from "@/lib/seo/pageTitles";
+import { loadCompleteTagPageModel } from "@/lib/tagPageProps.server";
+import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
-import { formatQuantity } from "@/lib/formatQuantity";
-import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 import { SITE_DESCRIPTION, socialMeta } from "@/lib/siteOg";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
@@ -26,19 +27,31 @@ export const metadata: Metadata = {
   }),
 };
 
-export default async function Home() {
-  const now = new Date();
-  const todayKey = formatBerlinDateKeyFromUtcDate(now);
-  const days = await loadResearchDays(now);
-  const model = buildResearchHome(days, todayKey);
-  if (!model) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ faktor?: string | string[]; fahrweise?: string }>;
+}) {
+  const query = await searchParams;
+  const { lastCompleteDayKey } = await resolveNavShortcuts();
+  const faktor = typeof query.faktor === "string" ? query.faktor : undefined;
+  const fahrweise = typeof query.fahrweise === "string" ? query.fahrweise : undefined;
+
+  const model = await loadCompleteTagPageModel(
+    lastCompleteDayKey,
+    { faktor, fahrweise },
+    { isStartSurface: true },
+  );
+
+  if (model === "redirect") {
+    redirect(`/tag/${lastCompleteDayKey}`);
+  }
+
+  if (model === "unavailable") {
     return null;
   }
+
   const snap = loadTagRollSnapshot();
-  const teaser = loadEps70Teaser();
-  const liveFleetLabel = snap?.fleet
-    ? `${formatQuantity(snap.fleet.powerGw, "de", 2)} GW / ${formatQuantity(snap.fleet.energyGwh, "de", 2)} GWh`
-    : null;
   const homeDataset = datasetJsonLd({
     path: "/",
     name: HOME_DOCUMENT_TITLE,
@@ -46,10 +59,24 @@ export default async function Home() {
     temporalCoverage: `${snap.coverageStart}/${snap.coverageEnd}`,
     includeNep: true,
   });
+  const dayTitle = tagDocumentTitle(model.dayKey, false);
+  const dayDescription = tagPageDescription(model.dayKey, false);
+
   return (
-    <>
+    <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
       <JsonLd data={{ "@context": "https://schema.org", ...homeDataset }} />
-      <ResearchHomePage model={model} simulatorTeaser={teaser} liveFleetLabel={liveFleetLabel} />
-    </>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          ...datasetJsonLd({
+            path: `/tag/${model.dayKey}`,
+            name: dayTitle,
+            description: dayDescription,
+            temporalCoverage: model.dayKey,
+          }),
+        }}
+      />
+      <Tagesvorlage model={model} />
+    </Suspense>
   );
 }

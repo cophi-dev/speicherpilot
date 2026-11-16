@@ -240,6 +240,8 @@ export function TagPageV4({
   marktInsights = [],
   simulatorTeaser,
   fleetSoGerechnet = null,
+  leitfrage,
+  isStartSurface = false,
   children,
 }: {
   dayKey: string;
@@ -260,6 +262,8 @@ export function TagPageV4({
   marktInsights?: MarktInsight[];
   simulatorTeaser: import("@/lib/simulatorTeaser.types").Eps70TeaserUi;
   fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
+  leitfrage?: string;
+  isStartSurface?: boolean;
   children?: React.ReactNode;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
@@ -268,20 +272,29 @@ export function TagPageV4({
   }
   return (
     <div className="v4-start">
-      <TagDayNav
-        dayKey={dayKey}
-        lastCompleteDayKey={lastCompleteDayKey}
-        fleetFactor={fleetFactor}
-        fleetStrategy={fleetStrategy}
-      />
+      {isStartSurface ? null : (
+        <TagDayNav
+          dayKey={dayKey}
+          lastCompleteDayKey={lastCompleteDayKey}
+          fleetFactor={fleetFactor}
+          fleetStrategy={fleetStrategy}
+        />
+      )}
+      {leitfrage ? (
+        <section className="v4-kopf v4-leitfrage v4-content" aria-labelledby="tages-leitfrage">
+          <h1 id="tages-leitfrage" className="v4-h1">
+            {leitfrage}
+          </h1>
+        </section>
+      ) : null}
       <AuffaelligkeitKopf
         dayKey={dayKey}
         todayKey={todayKey}
         dataStand={dataStand}
         result={result}
         records={records}
-        kickerPrefix="Tag"
-        hideTagLink
+        kickerPrefix={isStartSurface ? "Gestern" : "Tag"}
+        hideTagLink={!isStartSurface}
       />
       <TagChapter
         day={day}

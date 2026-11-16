@@ -180,8 +180,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
               </p>
               <p>
                 {tx(
-                  "/vision (Stand 16.11.2026): Zwölf Monate 16.11.2025–15.11.2026, 35 040 Viertelstunden Energy-Charts (Last, Wind, Solar) und Day-Ahead DE-LU 15 min (CC BY 4.0). Referenzflotte 4,70 GW / 8,27 GWh Großspeicher (battery-charts, 16.11.2026). NEP-Stufen 41,1 / 67,6 / 94,1 GW bei 2 h; 4 h nur Sensitivitätslinie. Spitzenorientiert = minimale nationale Jahresspitze der Restlast (Vollvoraussicht, Obergrenze); zusätzlich Tagesvoraussicht als Text. Nach Preis: Day-Ahead-LP; Preisrückwirkung als grobes OLS-Band (b … 2b), nicht Prognose. Price Taker ohne Rückwirkung nur als gekappter Stresstest. Überschuss = Σ max(0, −Restlast) nach Fahrt minus vorher. National, kein (n-1), nicht Abregelung — keine Euro auf der Seite. Rohdaten: data/forschung/daten_jahr_v1.json.",
-                  "/vision (as of 16 Nov 2026): twelve months 16 Nov 2025–15 Nov 2026, 35,040 quarter-hours Energy-Charts (load, wind, solar) and DE-LU day-ahead 15 min (CC BY 4.0). Reference fleet 4.70 GW / 8.27 GWh utility storage (battery-charts, 16 Nov 2026). NEP levels 41.1 / 67.6 / 94.1 GW at 2 h; 4 h sensitivity line only. Peak-oriented = minimum national annual residual peak (perfect foresight, upper bound); day-ahead foresight noted in text. By price: day-ahead LP; price feedback as coarse OLS band (b … 2b), not a forecast. Price taker without feedback only as a capped stress test. Surplus = Σ max(0, −residual) after operation minus before. National, not (n-1), not curtailment — no euro on the page. Raw data: data/forschung/daten_jahr_v1.json."
+                  "/jahr (Stand 16.11.2026): Zwölf Monate 16.11.2025–15.11.2026, 35 040 Viertelstunden Energy-Charts (Last, Wind, Solar) und Day-Ahead DE-LU 15 min (CC BY 4.0). Referenzflotte 4,70 GW / 8,27 GWh Großspeicher (battery-charts, 16.11.2026). NEP-Stufen 41,1 / 67,6 / 94,1 GW bei 2 h; 4 h nur Sensitivitätslinie. Spitzenorientiert = minimale nationale Jahresspitze der Restlast (Vollvoraussicht, Obergrenze); zusätzlich Tagesvoraussicht als Text. Nach Preis: Day-Ahead-LP; Preisrückwirkung als grobes OLS-Band (b … 2b), nicht Prognose. Price Taker ohne Rückwirkung nur als gekappter Stresstest. Überschuss = Σ max(0, −Restlast) nach Fahrt minus vorher. National, kein (n-1), nicht Abregelung — keine Euro auf der Seite. Rohdaten: data/forschung/daten_jahr_v1.json.",
+                  "/jahr (as of 16 Nov 2026): twelve months 16 Nov 2025–15 Nov 2026, 35,040 quarter-hours Energy-Charts (load, wind, solar) and DE-LU day-ahead 15 min (CC BY 4.0). Reference fleet 4.70 GW / 8.27 GWh utility storage (battery-charts, 16 Nov 2026). NEP levels 41.1 / 67.6 / 94.1 GW at 2 h; 4 h sensitivity line only. Peak-oriented = minimum national annual residual peak (perfect foresight, upper bound); day-ahead foresight noted in text. By price: day-ahead LP; price feedback as coarse OLS band (b … 2b), not a forecast. Price taker without feedback only as a capped stress test. Surplus = Σ max(0, −residual) after operation minus before. National, not (n-1), not curtailment — no euro on the page. Raw data: data/forschung/daten_jahr_v1.json."
                 )}
               </p>
               <p>
@@ -568,7 +568,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                 ))}
               </dl>
               </MethodikSection>
-              <p><Link href="/simulator">{tx("Zum Simulator", "To the simulator")}</Link></p>
+              <p><Link href="/kompromiss">{tx("Zum Simulator", "To the simulator")}</Link></p>
             </section>
           </article>
           </div>

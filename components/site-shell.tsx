@@ -272,7 +272,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
           className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
         >
           <div className="mx-auto flex h-16 w-full items-center justify-between gap-3">
-            <BrandLockup />
+            <BrandLockup homeHref={navShortcuts.tagHref} />
             {isLgNav ? (
             <nav
               id="site-desktop-nav"
@@ -365,7 +365,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
                 Methodik
               </Link>
               . Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung.
-              {pathname === "/vision"
+              {pathname === "/jahr"
                 ? null
                 : " Wo Euro stehen, ist das als Modellschätzung gekennzeichnet."}
             </p>

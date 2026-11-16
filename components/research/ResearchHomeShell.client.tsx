@@ -144,7 +144,7 @@ export function ResearchHomeShell({
         </h2>
         <p className={styles.meta}>{simulatorTeaser.sublineDe}</p>
         <p style={{ marginTop: 12 }}>
-          <Link href="/simulator" className={styles.link}>
+          <Link href="/kompromiss" className={styles.link}>
             Im Simulator selbst ausprobieren →
           </Link>
         </p>

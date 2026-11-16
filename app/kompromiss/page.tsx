@@ -9,26 +9,26 @@ import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 
 export const dynamic = "force-static";
 
-function simulatorMeta(): Metadata {
+function kompromissMeta(): Metadata {
   const teaser = loadEps70Teaser();
-  const title = "Simulator · Fahrweisen · Oktober 2026";
+  const title = "Kompromiss · Fahrweisen · Oktober 2026";
   const description = `${teaser.headlineDe} ${teaser.sublineDe}`;
   return {
     title,
     description,
-    alternates: { canonical: "/simulator" },
-    ...socialMeta({ title, description, url: "/simulator" }),
+    alternates: { canonical: "/kompromiss" },
+    ...socialMeta({ title, description, url: "/kompromiss" }),
   };
 }
 
 export function generateMetadata(): Metadata {
-  return simulatorMeta();
+  return kompromissMeta();
 }
 
-export default function SimulatorPage() {
+export default function KompromissPage() {
   const data = loadSimulatorFahrweisen();
   return (
-    <div className={`${styles.root} v4-content`} data-testid="simulator-page">
+    <div className={`${styles.root} v4-content`} data-testid="kompromiss-page">
       <SimulatorFahrweisenWorkbench data={data} />
       <footer className={styles.pageFooter}>
         <p>

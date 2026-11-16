@@ -39,8 +39,8 @@ export const NATIONAL_FLEET_STRATEGY_UI = {
 
 export type NationalFleetStrategyUi = keyof typeof NATIONAL_FLEET_STRATEGY_UI;
 
-export const NATIONAL_FLEET_DEFAULT_STRATEGY: NationalFleetStrategyUi = "ueberschuss";
-export const NATIONAL_FLEET_DEFAULT_FACTOR: NationalFleetFactor = 1;
+export const NATIONAL_FLEET_DEFAULT_STRATEGY: NationalFleetStrategyUi = "spitze";
+export const NATIONAL_FLEET_DEFAULT_FACTOR: NationalFleetFactor = 2;
 
 const DT_H = 0.25;
 const ETA = Math.sqrt(ROUND_TRIP_EFFICIENCY);

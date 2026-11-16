@@ -545,8 +545,8 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     id: "nep-abc",
     term: { de: "NEP A / B / C", en: "NEP A / B / C" },
     text: {
-      de: "Drei Speicherszenarien aus dem Netzentwicklungsplan Strom mit etwa 41, 68 und 94 GW installierter Leistung. Auf /vision werden sie mit einem Jahresrückblick verglichen.",
-      en: "Three storage scenarios from the electricity grid development plan at about 41, 68 and 94 GW installed power. On /vision they are compared with a one-year lookback.",
+      de: "Drei Speicherszenarien aus dem Netzentwicklungsplan Strom mit etwa 41, 68 und 94 GW installierter Leistung. Auf /jahr werden sie mit einem Jahresrückblick verglichen.",
+      en: "Three storage scenarios from the electricity grid development plan at about 41, 68 and 94 GW installed power. On /jahr they are compared with a one-year lookback.",
     },
   },
   {

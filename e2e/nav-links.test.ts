@@ -186,15 +186,15 @@ describe("navigation links e2e", () => {
 
   (runBrowser ? it : it.skip)("marks current page in desktop and mobile nav", async () => {
     await withPage({ width: 1280, height: 900 }, async (page) => {
-      await gotoOk(page, "/simulator");
-      const desktopSim = page.locator("#site-desktop-nav").getByRole("link", { name: "Simulator", exact: true });
-      expect(await desktopSim.getAttribute("aria-current")).toBe("page");
+      await gotoOk(page, "/jahr");
+      const desktopJahr = page.locator("#site-desktop-nav").getByRole("link", { name: "Jahr", exact: true });
+      expect(await desktopJahr.getAttribute("aria-current")).toBe("page");
     });
     await withPage({ width: 390, height: 844 }, async (page) => {
-      await gotoOk(page, "/simulator");
+      await gotoOk(page, "/jahr");
       await openMobileMenu(page);
-      const mobileSim = page.locator("#site-mobile-nav").getByRole("link", { name: "Simulator", exact: true });
-      expect(await mobileSim.getAttribute("aria-current")).toBe("page");
+      const mobileJahr = page.locator("#site-mobile-nav").getByRole("link", { name: "Jahr", exact: true });
+      expect(await mobileJahr.getAttribute("aria-current")).toBe("page");
     });
   });
 });

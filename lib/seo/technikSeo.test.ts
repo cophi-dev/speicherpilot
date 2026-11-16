@@ -28,7 +28,7 @@ const CANONICAL_FILES = [
   "app/page.tsx",
   "app/methodik/page.tsx",
   "app/beitraege/page.tsx",
-  "app/simulator/page.tsx",
+  "app/kompromiss/page.tsx",
   "app/tag/[datum]/page.tsx",
   "app/monat/[monat]/page.tsx",
   "app/beitraege/[slug]/page.tsx",
@@ -85,10 +85,11 @@ describe("Technik-SEO-Paket", () => {
     expect(paths).toContain("/");
     expect(paths).toContain("/methodik");
     expect(paths).toContain("/beitraege");
-    expect(paths).toContain("/simulator");
-    expect(paths).toContain("/vision");
+    expect(paths).toContain("/kompromiss");
+    expect(paths).toContain("/jahr");
     expect(paths).not.toContain("/tag");
-    expect(paths).not.toContain("/jahr");
+    expect(paths).not.toContain("/simulator");
+    expect(paths).not.toContain("/vision");
 
     for (const post of getBlogPosts()) {
       expect(paths).toContain(`/beitraege/${post.slug}`);

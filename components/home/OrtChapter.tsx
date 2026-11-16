@@ -110,11 +110,11 @@ export function OrtChapter() {
         </svg>
       </div>
       <div className="v4-ort-doors v4-content">
-        <Link href="/simulator" className="v4-door">
+        <Link href="/kompromiss" className="v4-door">
           <span className="v4-door-title">Ich entwickle Speicherprojekte</span>
           <span className="v4-door-label num">→</span>
         </Link>
-        <Link href="/simulator" className="v4-door">
+        <Link href="/kompromiss" className="v4-door">
           <span className="v4-door-title">Netzwirkung am Ort</span>
           <span className="v4-door-label num">Netz</span>
         </Link>

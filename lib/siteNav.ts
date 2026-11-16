@@ -1,11 +1,10 @@
 /** Shared main-site navigation targets (header + mobile drawer). */
 export const SITE_MAIN_NAV = [
-  { href: "/", label: "Gestern" },
   { href: "/tag", label: "Tag" },
   { href: "/monat", label: "Monat" },
-  { href: "/simulator", label: "Simulator" },
-  { href: "/methodik", label: "Methodik" },
+  { href: "/jahr", label: "Jahr" },
   { href: "/beitraege", label: "Beiträge" },
+  { href: "/methodik", label: "Methodik" },
 ] as const;
 
 /** Extra mobile-only jump links (no desktop nav duplicate). */
@@ -14,14 +13,14 @@ export const SITE_MOBILE_EXTRA_NAV = [{ href: "/#woche", label: "Woche", fragmen
 export type SiteMainNavHref = (typeof SITE_MAIN_NAV)[number]["href"];
 
 export function isSiteMainNavActive(pathname: string, itemHref: SiteMainNavHref): boolean {
-  if (itemHref === "/") {
-    return pathname === "/";
-  }
   if (itemHref === "/tag") {
-    return pathname.startsWith("/tag");
+    return pathname === "/" || pathname.startsWith("/tag");
   }
   if (itemHref === "/monat") {
     return pathname.startsWith("/monat");
+  }
+  if (itemHref === "/jahr") {
+    return pathname.startsWith("/jahr");
   }
   return pathname.startsWith(itemHref);
 }
@@ -38,7 +37,8 @@ export const SITE_MAIN_NAV_STATIC_ROUTES: readonly string[] = [
   "/",
   "/tag",
   "/monat",
-  "/simulator",
+  "/jahr",
+  "/kompromiss",
   "/methodik",
   "/beitraege",
   "/impressum",

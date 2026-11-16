@@ -15,7 +15,7 @@ export function StartSimulatorTeaser({ teaser }: { teaser: Eps70TeaserUi }) {
         <p className="v4-subline v4-ort-teaser-subline">{teaser.sublineDe}</p>
       </div>
       <div className="v4-ort-doors v4-content">
-        <Link href="/simulator" className="v4-door">
+        <Link href="/kompromiss" className="v4-door">
           <span className="v4-door-title">Im Simulator selbst ausprobieren</span>
           <span className="v4-door-label num">→</span>
         </Link>
@@ -35,7 +35,7 @@ export function TagSimulatorTeaser({ teaser }: { teaser: Eps70TeaserUi }) {
         <p className="v4-subline v4-ort-teaser-subline">{teaser.sublineDe}</p>
       </div>
       <p className="v4-chapter-foot v4-content num">
-        <Link href="/simulator" className="v4-text-link">
+        <Link href="/kompromiss" className="v4-text-link">
           im Simulator selbst ausprobieren →
         </Link>
       </p>

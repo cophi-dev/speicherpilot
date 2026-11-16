@@ -55,37 +55,42 @@ export function NationalFleetDayChapter({
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
         <fieldset className="v4-fleet-fieldset">
-          <legend className="v4-fleet-legend">Größe</legend>
+          <legend className="v4-fleet-legend">Stufe</legend>
           <div className="v4-fleet-factor-row">
             {NATIONAL_FLEET_FACTORS.map((f) => (
               <Link
                 key={f}
                 href={fleetTagHref(dayKey, f, strategy)}
-                className={`v4-fleet-pill${f === factor ? " is-active" : ""}`}
+                className={`v4-fleet-pill${f === factor ? " is-active" : ""}${f === 1 ? " is-measured" : ""}`}
                 aria-current={f === factor ? "true" : undefined}
               >
-                ×{f}
+                {f === 1 ? "×1 heute" : `×${f}`}
               </Link>
             ))}
           </div>
         </fieldset>
         <fieldset className="v4-fleet-fieldset">
-          <legend className="v4-fleet-legend">Ziel / Fahrweise</legend>
+          <legend className="v4-fleet-legend">Fahrweise</legend>
           <div className="v4-fleet-strategy-row">
-            {(Object.keys(NATIONAL_FLEET_STRATEGY_UI) as NationalFleetStrategyUi[]).map((id) => (
-              <Link
-                key={id}
-                href={fleetTagHref(dayKey, factor, id)}
-                className={`v4-fleet-pill v4-fleet-pill-wide${id === strategy ? " is-active" : ""}`}
-                aria-current={id === strategy ? "true" : undefined}
-              >
-                {NATIONAL_FLEET_STRATEGY_UI[id].shortDe}
-              </Link>
-            ))}
+            <Link
+              href={fleetTagHref(dayKey, factor, "spitze")}
+              className={`v4-fleet-pill v4-fleet-pill-wide${strategy === "spitze" ? " is-active" : ""}`}
+              aria-current={strategy === "spitze" ? "true" : undefined}
+              title="senkt die bundesweite Restlast-Spitze"
+            >
+              Spitze
+            </Link>
           </div>
+          <p className="v4-fleet-strategy-copy">
+            lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig
+            wird (volle Voraussicht).
+          </p>
         </fieldset>
       </div>
 
+      <p className="v4-content v4-fleet-energy-context num">
+        Referenzflotte ×1: {formatQuantity(monthStats.fleetPowerGw, "de", 2)} GW / 8,27 GWh (Battery Charts, gemessen).
+      </p>
       <NationalFleetTimeSeriesChart
         monthKey={NATIONAL_FLEET_MONTH_KEY}
         factor={factor}
@@ -95,8 +100,14 @@ export function NationalFleetDayChapter({
         peakReductionPct={monthStats.peakReductionPct}
         peakReductionDayGw={peakReductionDayGw}
         peakObservedDayGw={peakRGw}
-        scrollHint={`${slice.indices.length} Viertelstunden am ${formatBerlinDayLabel(dayKey)}`}
+        scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden am ${formatBerlinDayLabel(dayKey)}`}
       />
+      <p className="v4-content v4-fleet-graph-meta num">
+        Modell · national ·{" "}
+        <Link href="/kompromiss" className="v4-text-link">
+          Szenarien rechnen
+        </Link>
+      </p>
     </section>
   );
 }

@@ -6,7 +6,8 @@ import { tagDocumentTitle, tagPageDescription } from "@/lib/seo/pageTitles";
 import { socialMeta } from "@/lib/siteOg";
 import { redirect } from "next/navigation";
 
-import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
+import { Tagesvorlage } from "@/components/home/Tagesvorlage";
+import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { TagPageLaufend } from "@/components/home/TagPageLaufend";
 import { TagUnavailable } from "@/components/home/TagUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,11 +22,10 @@ import {
   nationalFleetMonthAvailable,
   monthStatsForRun,
   parseFleetFactor,
-  parseFleetStrategy,
   sliceFleetDay,
 } from "@/lib/nationalMonthFleetModel";
 import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
-import { NationalFleetTagSlot, fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
+import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 
@@ -165,9 +165,7 @@ export default async function TagDetailPage({
   }
 
   const fleetFactor = parseFleetFactor(typeof query.faktor === "string" ? query.faktor : undefined);
-  const fleetStrategy = parseFleetStrategy(
-    typeof query.fahrweise === "string" ? query.fahrweise : undefined,
-  );
+  const fleetStrategy = "spitze" as const;
   const fleetMonth = nationalFleetMonthAvailable(dayKey.slice(0, 7));
   const fleetRun = fleetMonth ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy) : null;
   const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, dayKey) : null;
@@ -185,16 +183,6 @@ export default async function TagDetailPage({
             fleetStrategy === "spitze" && fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
         }
       : null;
-  const fleetSlot =
-    fleetRun && fleetSlice ? (
-      <NationalFleetTagSlot
-        dayKey={dayKey}
-        factor={fleetFactor}
-        strategy={fleetStrategy}
-        preloadedRun={fleetRun}
-      />
-    ) : null;
-
   const marktInsights = marktInsightsForRoute({
     route: "tag",
     records,
@@ -214,28 +202,32 @@ export default async function TagDetailPage({
   return (
     <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
       <JsonLd data={{ "@context": "https://schema.org", ...tagDataset }} />
-      <TagPageV4
-        dayKey={dayKey}
-        todayKey={view.todayKey}
-        lastCompleteDayKey={lastComplete}
-        dataStand={view.stand}
-        result={result}
-        records={records}
-        day={day}
-        lastSurplusKey={lastSurplus}
-        dayOverview={view.dayOverview}
-        fleetPowerGw={fleet.powerGw}
-        fleetEnergyGwh={fleet.energyGwh}
-        fleetFactor={fleetFactor}
-        fleetStrategy={fleetStrategy}
-        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplusFlag}
-        preisTag={view.preisTag}
-        marktInsights={marktInsights}
-        simulatorTeaser={loadEps70Teaser()}
-        fleetSoGerechnet={fleetSoGerechnet}
-      >
-        {fleetSlot}
-      </TagPageV4>
+      <Tagesvorlage
+        model={{
+          dayKey,
+          todayKey: view.todayKey,
+          lastCompleteDayKey: lastComplete,
+          dataStand: view.stand,
+          result,
+          records,
+          day,
+          lastSurplusKey: lastSurplus,
+          dayOverview: view.dayOverview,
+          fleetPowerGw: fleet.powerGw,
+          fleetEnergyGwh: fleet.energyGwh,
+          fleetFactor,
+          fleetStrategy,
+          fleetDayNoWindSolarSurplus: fleetDayNoWindSolarSurplusFlag,
+          preisTag: view.preisTag,
+          marktInsights,
+          simulatorTeaser: loadEps70Teaser(),
+          fleetSoGerechnet,
+          fleetRun,
+          fleetSlice,
+          leitfrage: `Was hätte mehr Speicher am ${formatBerlinDayLabel(dayKey)} geändert?`,
+          isStartSurface: false,
+        }}
+      />
     </Suspense>
   );
 }
