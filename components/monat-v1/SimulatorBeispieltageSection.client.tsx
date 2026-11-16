@@ -18,7 +18,7 @@ import {
   type ExampleDayMetrics,
 } from "@/lib/simulatorFahrweisenDerived";
 import type { SimulatorDispatchRow, SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
-import { formatGw, formatMioEur } from "@/lib/simulatorFahrweisenTypes";
+import { formatGw } from "@/lib/simulatorFahrweisenTypes";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
 export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweisenData }) {
@@ -37,8 +37,8 @@ export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweis
       </h2>
       <p className={styles.lead}>
         Drei Fahrpläne auf derselben Restlast. Am 21.10. kostet der 70-Prozent-Kompromiss {costPct}
-        {"\u00A0"}% des Tageserlöses ({formatMioEur(d21.kompDayRevMio)} statt {formatMioEur(d21.marketDayRevMio)}) —
-        deutlich mehr als im Monatsmaßstab. Graues Band 23–24 Uhr: SoC-Rückkehr, Modellartefakt, kein Netzeffekt.
+        {"\u00A0"}% des Tageserlöses — deutlich mehr als im Monatsmaßstab. Graues Band 23–24 Uhr: Modell füllt auf 50
+        {"\u00A0"}% zurück (kein echter Effekt).
       </p>
       <div className={styles.legend} aria-hidden="true">
         <span className={styles.legendItem}>
@@ -305,7 +305,7 @@ function DayChart({
       )}
 
       <SvgText x={x23 - 6} y={priceT + vb.priceH - 6} fill={colors.muted} anchor="end">
-        SoC-Rückkehr · Modellartefakt
+        23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)
       </SvgText>
 
       {priceTicks.map((t) => (

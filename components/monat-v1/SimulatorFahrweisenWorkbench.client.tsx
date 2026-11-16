@@ -17,7 +17,7 @@ export function SimulatorFahrweisenWorkbench({ data }: { data: SimulatorFahrweis
         <span className={styles.chip}>MODELL</span>
       </div>
       <p className={styles.lead} data-testid="simulator-vision-satz">
-        Mehr Gigawatt helfen. Mehr Stunden helfen mehr.
+        Fahrweise schlägt Größe.
       </p>
       <SimulatorParetoSection data={data} />
       <SimulatorTagesSection data={data} />

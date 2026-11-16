@@ -1,11 +1,18 @@
 import type { ChartTooltipRow } from "@/components/charts/ChartTooltipPanel";
 import { berlinHour, formatDec } from "@/lib/simulatorFahrweisenDerived";
-import { formatGw, formatMioEur, formatPct, type SimulatorDispatchRow, type SimulatorFrontPoint, type SimulatorTagesklasse } from "@/lib/simulatorFahrweisenTypes";
+import {
+  formatGw,
+  formatPct,
+  pctOfMarket,
+  type SimulatorDispatchRow,
+  type SimulatorFrontPoint,
+  type SimulatorTagesklasse,
+} from "@/lib/simulatorFahrweisenTypes";
 
-/** Pareto: Erlös 2 Dezimalstellen (Zoom-Achse 33,70–34,18), Senkung 2 Dezimalstellen wie die y-Achse. */
-export function paretoTooltipRows(point: SimulatorFrontPoint): ChartTooltipRow[] {
+/** Pareto: Anteil am Max.-Erlös (keine Euro in ×2-Simulator). */
+export function paretoTooltipRows(point: SimulatorFrontPoint, marketMioEur: number): ChartTooltipRow[] {
   return [
-    { label: "Erlös", value: formatMioEur(point.revenueMioEur, 2) },
+    { label: "vom Max.-Erlös", value: pctOfMarket(point.revenueMioEur, marketMioEur) },
     { label: "Senkung", value: formatGw(point.reductionGw) },
     { label: "Spitze", value: formatGw(point.peakGw) },
   ];
@@ -25,20 +32,20 @@ export function paretoTooltipTime(point: SimulatorFrontPoint, frontCount: number
 }
 
 const KLASSE_DE: Record<string, string> = {
-  winWin: "Win-win",
-  win_win: "Win-win",
-  neutral: "Neutral",
-  konfliktSchwach: "Konflikt-schwach",
-  konflikt_schwach: "Konflikt-schwach",
-  konfliktHebung: "Konflikt-Hebung",
-  konflikt_hebung: "Konflikt-Hebung",
+  winWin: "beide Ziele zugleich",
+  win_win: "beide Ziele zugleich",
+  neutral: "kein Zielkonflikt",
+  konfliktSchwach: "kleiner Zielkonflikt",
+  konflikt_schwach: "kleiner Zielkonflikt",
+  konfliktHebung: "Preisfahren hebt die Tagesspitze",
+  konflikt_hebung: "Preisfahren hebt die Tagesspitze",
 };
 
 /** Tagesstreifen: Anteil wie die Achsenmarken in ganzen Prozent. */
 export function tagesTooltipRows(day: SimulatorTagesklasse): ChartTooltipRow[] {
   const sharePct = Math.round(day.shareOfNetzReduction * 100);
   const rows: ChartTooltipRow[] = [
-    { label: "Regel T", value: formatPct(sharePct, 0) },
+    { label: "Anteil max. Senkung", value: formatPct(sharePct, 0) },
     { label: "Klasse", value: KLASSE_DE[day.klasse] ?? day.klasse },
     { label: "Markt-Senkung", value: formatGw(day.marketReductionGw) },
     { label: "Netz-Senkung", value: formatGw(day.netzReductionGw) },

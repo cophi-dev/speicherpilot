@@ -10,7 +10,7 @@ import { HatchDefs, SvgText } from "@/components/monat-v1/simulatorSvg";
 import { useLayoutWide, useSimulatorTheme } from "@/components/monat-v1/useSimulatorTheme";
 import { formatDec, mapX, mapY } from "@/lib/simulatorFahrweisenDerived";
 import type { SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
-import { formatGw, formatMioEur, pctOfMarket } from "@/lib/simulatorFahrweisenTypes";
+import { formatGw, pctOfMarket } from "@/lib/simulatorFahrweisenTypes";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
 export function SimulatorFnavSection({ data }: { data: SimulatorFahrweisenData }) {
@@ -26,22 +26,24 @@ export function SimulatorFnavSection({ data }: { data: SimulatorFahrweisenData }
         Was wirkt, ist ein Leistungsdeckel — nicht das Abendfenster.
       </h2>
       <p className={styles.lead}>
-        fNAV-Zeitfenster 16–21 Uhr landet am Markt-Ende ({formatGw(endpoints.fnavTimeWindow.reductionGw)}). Der
-        Leistungsdeckel 62{"\u00A0"}GW entspricht dem ε-Schnitt ({formatGw(endpoints.cap62Gw.reductionGw)} Senkung).
+        Eine flexible Anschlussvereinbarung, die nur das Zeitfenster 16–21 Uhr regelt, ändert nichts:{" "}
+        {formatGw(endpoints.fnavTimeWindow.reductionGw)}, wie bei reinem Preisfahren. Ein Deckel, der die Restlast bei 62
+        {"\u00A0"}GW hält, schafft {formatGw(endpoints.cap62Gw.reductionGw)}, fast so viel wie der Kompromiss.
       </p>
       <div className={simStyles.fnavGrid}>
         <article className={simStyles.fnavCard}>
           <h3>Zeitfenster 16–21 Uhr</h3>
           <p>
-            {formatMioEur(endpoints.fnavTimeWindow.revenueMioEur)} · Senkung {formatGw(endpoints.fnavTimeWindow.reductionGw)}
+            {pctOfMarket(endpoints.fnavTimeWindow.revenueMioEur, mkt.revenueMioEur)} vom Max.-Erlös · Senkung{" "}
+            {formatGw(endpoints.fnavTimeWindow.reductionGw)}
           </p>
           <p>Identisch mit Nur Preis — wirkt nicht gegen Mittagsladen.</p>
         </article>
         <article className={simStyles.fnavCard}>
           <h3>Leistungsdeckel 62{"\u00A0"}GW</h3>
           <p>
-            {formatMioEur(endpoints.cap62Gw.revenueMioEur)} · {pctOfMarket(endpoints.cap62Gw.revenueMioEur, mkt.revenueMioEur)}{" "}
-            · Senkung {formatGw(endpoints.cap62Gw.reductionGw)}
+            {pctOfMarket(endpoints.cap62Gw.revenueMioEur, mkt.revenueMioEur)} vom Max.-Erlös · Senkung{" "}
+            {formatGw(endpoints.cap62Gw.reductionGw)}
           </p>
           <p>Der ε-Schnitt — Vertragsform.</p>
         </article>
@@ -237,7 +239,7 @@ function KipppunktChart({
         </>
       )}
       <SvgText x={(vb.L + vb.L + plotW) / 2} y={vb.h - 8} anchor="middle" fill={colors.muted}>
-        Zusatzflotte, Konvention{"\u00A0"}(a)
+        ×k = k-fache heutige Flotte
       </SvgText>
       {activeIndex != null ? (
         <line

@@ -105,7 +105,7 @@ export function FrontSlider({
       </div>
       {showHint ? (
         <p className={simStyles.sliderHint}>
-          Rastet auf {count} vorgerechneten Front-Punkten{"\u00A0"}·{"\u00A0"}Pfeiltasten
+          {count} vorberechnete Fahrweisen zwischen „Nur Preis“ und „Spitze zuerst“{"\u00A0"}·{"\u00A0"}Pfeiltasten
         </p>
       ) : null}
     </div>
