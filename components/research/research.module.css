@@ -223,6 +223,11 @@
     gap: 40px;
     align-items: start;
   }
+
+  /* /vision Jahres-NEP: eine Spalte, Charts volle Inhaltsbreite */
+  .visionJahrPage {
+    display: block;
+  }
 }
 
 .legend {

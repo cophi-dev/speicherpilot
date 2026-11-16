@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import styles from "@/components/research/research.module.css";
+import { useMeasuredChartWidth } from "@/components/research/useMeasuredChartWidth";
 import { useResearchLayout } from "@/components/research/useResearchLayout";
 import { VisionPlot } from "@/components/research/VisionPlot";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
 import { VisionJahrG2Markt } from "@/components/research/vision-jahr/VisionJahrG2Markt";
 import { VisionJahrG3Ueberschuss } from "@/components/research/vision-jahr/VisionJahrG3Ueberschuss";
 import { VisionJahrG4Tage } from "@/components/research/vision-jahr/VisionJahrG4Tage";
-import { formatVisionGwMinus, formatVisionGwOne, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
+import { formatVisionGwMinus, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
@@ -27,6 +28,8 @@ const VISION_SKIP_KEY = "speicherpilot-vision-guess-skip";
 export function VisionPage({ model }: { model: VisionJahrModel }) {
   const reduced = useReducedMotion();
   const layout = useResearchLayout();
+  const pageRef = useRef<HTMLDivElement>(null);
+  const chartWidth = useMeasuredChartWidth(pageRef, layout.vision.width);
   const [duration, setDuration] = useState<"2" | "4">("2");
   const [stageId, setStageId] = useState<VisionStageId>(model.defaultStage);
   const [guessMode, setGuessMode] = useState(() => {
@@ -50,10 +53,9 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
 
   const g2Height = layout.isDesktop ? 420 : 360;
   const g4Height = layout.isDesktop ? 360 : 320;
-  const chartWidth = layout.vision.width;
 
   return (
-    <div className={styles.page}>
+    <div ref={pageRef} className={`${styles.page} ${styles.visionJahrPage}`}>
       <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
       <p className={styles.prose}>

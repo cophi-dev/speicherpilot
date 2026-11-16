@@ -5,6 +5,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import { reductionFromY, yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import { formatGwSenkung, formatReductionTickGw } from "@/lib/research/fleetBasis";
+import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
 import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
 import styles from "@/components/research/research.module.css";
@@ -52,6 +53,7 @@ export function VisionPlot({
   guessStageId?: VisionStageId;
   vorjahr2h?: Array<{ powerGw: number; senkungGw: number }>;
 }) {
+  const axisFs = visionAxisFontSize(width);
   const reduced = useReducedMotion();
   const svgRef = useRef<SVGSVGElement>(null);
   const [pathsReady, setPathsReady] = useState(!guessMode);
@@ -143,7 +145,7 @@ export function VisionPlot({
           role="img"
           aria-label={ariaLabel}
         >
-          <text x={32} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={32} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             GW
           </text>
           {[0, 5, 10, 15, yMax].filter((v, i, a) => a.indexOf(v) === i).map((tick) => (
@@ -156,7 +158,7 @@ export function VisionPlot({
                 stroke="var(--research-line)"
                 opacity={guessMode && !showCurves ? 0.45 : 1}
               />
-              <text x={32} y={yPos(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+              <text x={32} y={yPos(tick) + yAxisTickLabelDy(tick)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
                 {formatReductionTickGw(tick)}
               </text>
             </g>
@@ -173,7 +175,7 @@ export function VisionPlot({
             strokeDasharray="4 3"
             strokeWidth={1}
           />
-          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {width < 420 ? `≥${model.commitmentsGw} GW*` : `≥ ${model.commitmentsGw} GW Zusagen*`}
           </text>
           {showCurves ? (
@@ -220,7 +222,7 @@ export function VisionPlot({
                       x={lx}
                       y={Math.min(rightEnd.y4 + 14, plotLo - 6)}
                       textAnchor={anchorEnd ? "end" : "start"}
-                      fontSize={12}
+                      fontSize={axisFs}
                       fill="var(--research-muted)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
@@ -230,7 +232,7 @@ export function VisionPlot({
                       x={lx}
                       y={Math.max(rightEnd.y - 6, plotHi + 12)}
                       textAnchor={anchorEnd ? "end" : "start"}
-                      fontSize={12}
+                      fontSize={axisFs}
                       fill="var(--research-accent)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
@@ -243,7 +245,7 @@ export function VisionPlot({
           ) : (
             <>
               <circle cx={x1.x} cy={x1.y} r={4} fill="var(--research-fg)" opacity={0.65} />
-              <text x={Math.min(x1.x + 10, width - 96)} y={Math.max(x1.y + 16, plotHi + 12)} fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+              <text x={Math.min(x1.x + 10, width - 96)} y={Math.max(x1.y + 16, plotHi + 12)} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
                 ×1 = 0
               </text>
             </>
@@ -283,18 +285,18 @@ export function VisionPlot({
                 }}
               />
               <circle cx={guessStage.x} cy={dragY} r={8} fill="var(--research-accent)" stroke="var(--research-bg)" strokeWidth={2} style={{ pointerEvents: "none" }} />
-              <text x={Math.min(guessStage.x + 14, width - 8)} y={Math.max(dragY - 10, plotHi + 8)} fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+              <text x={Math.min(guessStage.x + 14, width - 8)} y={Math.max(dragY - 10, plotHi + 8)} fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
                 zieh mich
               </text>
             </>
           ) : null}
           {guessY != null && guessMode && !showCurves ? (
-            <text x={guessStage.x} y={Math.min(dragY + 22, plotLo - 4)} textAnchor="middle" fontSize={12} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+            <text x={guessStage.x} y={Math.min(dragY + 22, plotLo - 4)} textAnchor="middle" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
               Schätzung {formatGwSenkung(reductionFromY(dragY, yMax, height, PAD_TOP, PAD_BOTTOM))}
             </text>
           ) : null}
           {[0, 25, 50, 75, 100].map((gw) => (
-            <text key={gw} x={xPos(gw, width)} y={trackY - 20} textAnchor="middle" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            <text key={gw} x={xPos(gw, width)} y={trackY - 20} textAnchor="middle" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
               {gw}
             </text>
           ))}
@@ -342,7 +344,7 @@ export function VisionPlot({
                   x={p.x}
                   y={yLabel}
                   textAnchor="middle"
-                  fontSize={12}
+                  fontSize={axisFs}
                   fill={p.id === stageId ? "var(--research-fg)" : "var(--research-muted)"}
                   fontFamily="var(--font-jetbrains-mono)"
                 >
