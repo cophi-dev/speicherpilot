@@ -71,8 +71,8 @@ function chargeOpportunityGwh(series: ResearchDayModel["series"]): number {
 export function saturationSectionH2(day: ResearchDayModel, perspective: ResearchDayPerspective): string {
   const lead =
     perspective === "yesterday"
-      ? "Gestern brachte ab ×5 jedes weitere GW kaum noch etwas"
-      : `Am ${day.shortLabel} brachte ab ×5 jedes weitere GW kaum noch etwas`;
+      ? "Gestern senkte ab ×5 jedes weitere GW die Spitze kaum noch"
+      : `Am ${day.shortLabel} senkte ab ×5 jedes weitere GW die Spitze kaum noch`;
   const s5 = day.stages.find((s) => s.factor === 5);
   const s10 = day.stages.find((s) => s.factor === 10);
   if (!s5 || !s10 || day.series.length === 0) {
@@ -84,7 +84,7 @@ export function saturationSectionH2(day: ResearchDayModel, perspective: Research
   if (flatEvening && lowSurplus) {
     return `${lead}, weil die Abendspitze schon flach ist und tagsüber nicht genug Überschuss zum Nachladen da ist.`;
   }
-  return `${lead}; ab ×5 senkt die Spitze kaum weiter.`;
+  return `${lead}.`;
 }
 
 export function saturationChartAriaLabel(day: ResearchDayModel, perspective: ResearchDayPerspective): string {

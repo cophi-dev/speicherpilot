@@ -31,17 +31,24 @@ function yAtValue(value: number, yMin: number, yMax: number, vb: { T: number; pl
   return vb.T + vb.plotH - ((value - yMin) / (yMax - yMin)) * vb.plotH;
 }
 
+function labelBox(x: number, y: number, text: string, fs: number, anchor: "end" | "middle" | "start") {
+  const charW = fs * 0.61;
+  const w = text.length * charW;
+  const left = anchor === "end" ? x - w : anchor === "middle" ? x - w / 2 : x;
+  return { left, right: left + w, top: y - fs, bottom: y + 4 };
+}
+
 const RENDER_MIN_W = 350;
 
 export function NetzUpdatesFahrweiseChart() {
   const data = loadNetzUpdatesFahrweiseDay();
   const yMin = 20;
   const yMax = 58;
-  const vb = { w: 720, h: 400, L: 48, R: 16, T: 28, B: 44, plotW: 0, plotH: 0 };
+  const vb = { w: 720, h: 416, L: 52, R: 24, T: 32, B: 52, plotW: 0, plotH: 0 };
   vb.plotW = vb.w - vb.L - vb.R;
   vb.plotH = vb.h - vb.T - vb.B;
 
-  /** ≥12 px typografisch bei 350 px Anzeigebreite (13/12 × Sicherheitsmarge). */
+  /** ≥12 px typografisch bei 350 px Anzeigebreite. */
   const fs = (13 * vb.w) / RENDER_MIN_W;
   const fsAxis = fs;
 
@@ -50,7 +57,7 @@ export function NetzUpdatesFahrweiseChart() {
   const peak = data.slots.map((s) => s.peakGw);
   const n = data.slots.length;
   const last = n - 1;
-  const endX = xAtIndex(last, vb, n) - 4;
+  const labelColX = vb.L + vb.plotW - 2;
 
   const lineStyles = [
     { key: "observed", series: observed, stroke: "var(--blog-ink, #1c2429)", width: 1.5, label: "beobachtet" },
@@ -63,49 +70,39 @@ export function NetzUpdatesFahrweiseChart() {
     lineY: yAtValue(line.series[last]!, yMin, yMax, vb),
   }));
   rawLabels.sort((a, b) => a.lineY - b.lineY);
-  const labelStep = fs + 4;
-  const placedLabels: Array<{ label: string; y: number }> = [];
-  let lastBottom = -Infinity;
-  for (const item of rawLabels) {
-    let y = item.lineY - 10;
-    const top = y - fs;
-    if (top < lastBottom + 4) {
-      y += lastBottom + 4 - top;
-    }
-    placedLabels.push({ label: item.label, y });
-    lastBottom = y + 4;
-  }
+  const stackStep = fs + 10;
+  const stackTop = vb.T + fs + 4;
+  const placedLabels = rawLabels.map((item, i) => ({ label: item.label, y: stackTop + i * stackStep, lineY: item.lineY }));
+
+  const xAxisY = vb.T + vb.plotH + 26;
+  const hourTicks = [0, 6, 12, 18, 24] as const;
+  const hourBoxes = hourTicks.map((h) => {
+    const idx = h === 24 ? last : slotIndexForHour(data.slots, h);
+    const x = h === 24 ? vb.L + vb.plotW - 2 : h === 0 ? vb.L : xAtIndex(idx, vb, n);
+    const text = h === 24 ? "24 Uhr" : `${String(h).padStart(2, "0")}`;
+    const anchor: "start" | "middle" | "end" = h === 0 ? "start" : h === 24 ? "end" : "middle";
+    return { h, x, text, anchor, box: labelBox(x, xAxisY, text, fsAxis, anchor) };
+  });
 
   const title =
     "Tagesprofil 21.10.2026: beobachtete Restlast, Markt fährt nach Preis (Spitze 55,6 GW um 14:00), gegen die Spitze gedeckelt bei 51,7 GW. Zusatzflotte 4,6 GW, Modell Oktober 2026.";
 
   return (
     <figure className="blog-figure blog-netz-chart">
-      <svg
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
-        className="blog-netz-chart-svg"
-        role="img"
-        aria-label={title}
-      >
+      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className="blog-netz-chart-svg" role="img" aria-label={title} overflow="visible">
         <title>{title}</title>
         {[20, 30, 40, 50].map((tick) => {
           const y = yAtValue(tick, yMin, yMax, vb);
           return (
             <g key={tick}>
               <line x1={vb.L} x2={vb.L + vb.plotW} y1={y} y2={y} stroke="var(--blog-grid, #e4e4dc)" strokeWidth="1" />
-              <text
-                x={vb.L - 8}
-                y={y + 4}
-                textAnchor="end"
-                fill="var(--blog-muted, #6b7280)"
-                fontSize={fsAxis}
-              >
+              <text x={vb.L - 6} y={y + 4} textAnchor="end" fill="var(--blog-muted, #6b7280)" fontSize={fsAxis}>
                 {tick}
               </text>
             </g>
           );
         })}
-        <text x={vb.L - 8} y={vb.T - 8} textAnchor="end" fill="var(--blog-muted, #6b7280)" fontSize={fsAxis}>
+        <text x={vb.L + 2} y={vb.T - 6} textAnchor="start" fill="var(--blog-muted, #6b7280)" fontSize={fsAxis}>
           GW
         </text>
         <polygon
@@ -124,34 +121,37 @@ export function NetzUpdatesFahrweiseChart() {
           ),
         )}
         {placedLabels.map((item) => (
-          <text
-            key={item.label}
-            x={endX}
-            y={item.y}
-            textAnchor="end"
-            fill="var(--blog-ink, #1c2429)"
-            fontSize={fs}
-            style={{ paintOrder: "stroke fill", stroke: "var(--blog-bg, #fff)", strokeWidth: 3 }}
-          >
-            {item.label}
-          </text>
+          <g key={item.label}>
+            <line
+              x1={labelColX - 14}
+              y1={item.lineY}
+              x2={labelColX - 4}
+              y2={item.y - fs / 3}
+              stroke="var(--blog-muted, #6b7280)"
+              strokeWidth={1}
+              opacity={0.7}
+            />
+            <text
+              x={labelColX}
+              y={item.y}
+              textAnchor="end"
+              fill="var(--blog-ink, #1c2429)"
+              fontSize={fs}
+              style={{ paintOrder: "stroke fill", stroke: "var(--blog-bg, #fff)", strokeWidth: 4 }}
+            >
+              {item.label}
+            </text>
+          </g>
         ))}
-        {[0, 6, 12, 18, 24].map((h) => {
-          const idx = h === 24 ? last : slotIndexForHour(data.slots, h);
-          const xTick = h === 24 ? vb.L + vb.plotW : xAtIndex(idx, vb, n);
-          const xLabel = h === 24 ? vb.L + vb.plotW + 4 : xTick;
-          const label = `${String(h).padStart(2, "0")}`;
+        {hourTicks.map((h) => {
+          const row = hourBoxes.find((b) => b.h === h)!;
+          const xTick =
+            h === 24 ? vb.L + vb.plotW : h === 0 ? vb.L : xAtIndex(slotIndexForHour(data.slots, h), vb, n);
           return (
             <g key={`x-${h}`}>
               <line x1={xTick} x2={xTick} y1={vb.T + vb.plotH} y2={vb.T + vb.plotH + 5} stroke="var(--blog-ink, #1c2429)" strokeWidth="1" />
-              <text
-                x={xLabel}
-                y={vb.T + vb.plotH + 20}
-                textAnchor={h === 0 ? "start" : h === 24 ? "start" : "middle"}
-                fill="var(--blog-muted, #6b7280)"
-                fontSize={fsAxis}
-              >
-                {h === 24 ? `${label} Uhr` : label}
+              <text x={row.x} y={xAxisY} textAnchor={row.anchor} fill="var(--blog-muted, #6b7280)" fontSize={fsAxis}>
+                {row.text}
               </text>
             </g>
           );

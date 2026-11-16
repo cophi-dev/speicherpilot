@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+
+import { useTypographicSvgFontSize } from "@/lib/svgTypographicFont";
 
 import { yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import type { ResearchCloudModel, ResearchDayModel, ResearchFactor, ResearchWeekDay } from "@/lib/research/researchTypes";
@@ -35,9 +37,9 @@ function chartHaloLabel({
   text,
   textAnchor,
   fontSize = 12,
-  fill = "var(--research-muted)",
-  padX = 5,
-  padY = 3,
+  fill = "var(--research-fg)",
+  padX = 6,
+  padY = 4,
 }: {
   x: number;
   y: number;
@@ -52,9 +54,10 @@ function chartHaloLabel({
   const w = text.length * charW + padX * 2;
   const h = fontSize + padY * 2;
   const rectX = textAnchor === "middle" ? x - w / 2 : textAnchor === "end" ? x - w : x;
+  const rectY = y - fontSize - padY + 1;
   return (
     <g>
-      <rect x={rectX} y={y - fontSize - padY + 1} width={w} height={h} fill="var(--research-bg)" rx={2} opacity={0.94} />
+      <rect x={rectX} y={rectY} width={w} height={h} fill="var(--research-bg)" rx={2} opacity={1} />
       <text x={x} y={y} textAnchor={textAnchor} fontSize={fontSize} fill={fill} fontFamily="var(--font-jetbrains-mono)">
         {text}
       </text>
@@ -107,6 +110,8 @@ export function WeekDotsChart({
   const yZero = y(0);
   const barW = Math.min(32, Math.max(16, colW * 0.68));
   const durationLabel = useFourHour ? "4 h" : "1,76 h";
+  const svgRef = useRef<SVGSVGElement>(null);
+  const fs = useTypographicSvgFontSize(svgRef, width, 12);
 
   const barMeta = week.map((day, col) => {
     const pt = day.points.find((p) => p.factor === factor)!;
@@ -124,6 +129,7 @@ export function WeekDotsChart({
 
   return (
     <svg
+      ref={svgRef}
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
@@ -131,7 +137,7 @@ export function WeekDotsChart({
       role="img"
       aria-label={`Spitzensenkung je Tag · ×${factor} · ${durationLabel} · national`}
     >
-      <text x={32} y={yAxisUnitLabelY(padTop)} textAnchor="end" fontSize={12} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+      <text x={32} y={yAxisUnitLabelY(padTop)} textAnchor="end" fontSize={fs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
         GW
       </text>
       <line x1={40} x2={width - 16} y1={yZero} y2={yZero} stroke="var(--research-dim)" strokeWidth={1} />
@@ -142,7 +148,7 @@ export function WeekDotsChart({
             x={32}
             y={y(tick) + yAxisTickLabelDy(tick)}
             textAnchor="end"
-            fontSize={12}
+            fontSize={fs}
             fill="var(--research-muted)"
             fontFamily="var(--font-jetbrains-mono)"
           >
@@ -186,18 +192,18 @@ export function WeekDotsChart({
             {value > 0.08
               ? chartHaloLabel({
                   x: cx,
-                  y: Math.max(padTop + 14, yTip - 6),
+                  y: Math.max(padTop + fs + 12, yTip - fs - 8),
                   text: valueText,
                   textAnchor: "middle",
                   fill: "var(--research-fg)",
-                  fontSize: 12,
+                  fontSize: fs,
                 })
               : null}
             <text
               x={cx}
               y={height - padBottom + 14}
               textAnchor="middle"
-              fontSize={12}
+              fontSize={fs}
               fill={day.isFocus ? "var(--research-fg)" : "var(--research-muted)"}
               fontFamily="var(--font-jetbrains-mono)"
             >
@@ -207,7 +213,7 @@ export function WeekDotsChart({
               x={cx}
               y={height - padBottom + 32}
               textAnchor="middle"
-              fontSize={12}
+              fontSize={fs}
               fill={day.isFocus ? "var(--research-fg)" : "var(--research-muted)"}
               fontFamily="var(--font-jetbrains-mono)"
             >

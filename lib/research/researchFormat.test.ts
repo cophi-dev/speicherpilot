@@ -90,10 +90,8 @@ describe("Gestern vs. letzter voller Tag", () => {
     expect(researchDayEyebrow(dayStub, "latestComplete")).toBe(
       "LETZTER VOLLSTÄNDIGER TAG · MO, 09.11.2026 · NATIONAL · TAGESHORIZONT"
     );
-    expect(saturationSectionH2(dayStub, "yesterday")).toMatch(/^Gestern brachte/);
-    expect(saturationSectionH2(dayStub, "latestComplete")).toMatch(
-      /Am 09\.11\. brachte ab ×5 jedes weitere GW kaum noch etwas[;,.]/,
-    );
+    expect(saturationSectionH2(dayStub, "yesterday")).toMatch(/^Gestern senkte ab ×5/);
+    expect(saturationSectionH2(dayStub, "latestComplete")).toMatch(/Am 09\.11\. senkte ab ×5 jedes weitere GW die Spitze kaum noch\./);
   });
 
   it("Wochen-Eyebrow bei Fallback", () => {

@@ -7,7 +7,7 @@ import type { ResearchDayModel, ResearchFactor } from "@/lib/research/researchTy
 import { labelBox, placePeakPointLabel } from "@/lib/chartLabelLayout";
 import { formatResearchPeakPointLabel } from "@/lib/research/researchFormat";
 import {
-  collidesWithPath,
+  collidesWithPolyline,
   labelBoxPx,
   linesWithinPx,
   placeLineEndLabel,
@@ -154,7 +154,7 @@ export function MesserHeroChart({
     for (const dy of ySteps) {
       const y = peakLabelBase.y + dy;
       const box = labelBoxPx(peakLabelBase.x, y, peakLabelBase.anchor, peakLabelText, fs);
-      if (!collidesWithPath(box, pathPoints, 6)) {
+      if (!collidesWithPolyline(box, pathPoints, 2)) {
         return { ...peakLabelBase, y };
       }
     }
@@ -217,13 +217,15 @@ export function MesserHeroChart({
         lineY: item.lineY,
         x: labelX,
         path: pathPoints,
+        plotLeft: PAD_X,
+        plotRight: width - PAD_RIGHT,
         plotTop,
         plotBottom,
         fontSize: fs,
       });
       return { ...item, ...placed };
     });
-  }, [equivY, factor, fs, ghostY, labelX, pathPoints, plotBottom, plotTop, showGhostLine, x10eqX5_4h]);
+  }, [equivY, factor, fs, ghostY, labelX, pathPoints, plotBottom, plotTop, showGhostLine, width, x10eqX5_4h]);
 
   const gripTop = 20;
   const gripH = height - 60;
@@ -236,6 +238,7 @@ export function MesserHeroChart({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       className={styles.chartFixed}
+      style={{ overflow: "visible" }}
       role="img"
       aria-label="Restlast national mit Kappung"
     >
@@ -312,18 +315,35 @@ export function MesserHeroChart({
         strokeWidth={2}
       />
       {endLabels.map((lab) => (
-        <text
-          key={lab.text}
-          x={lab.x}
-          y={lab.y}
-          textAnchor={lab.anchor}
-          fontSize={fs}
-          fill={lab.fill}
-          fontFamily="var(--font-jetbrains-mono)"
-          className={styles.peakPointLabelText}
-        >
-          {lab.text}
-        </text>
+        <g key={lab.text}>
+          {lab.leader ? (
+            <line
+              x1={lab.leader.x1}
+              y1={lab.leader.y1}
+              x2={lab.leader.x2}
+              y2={lab.leader.y2}
+              stroke={lab.fill}
+              strokeWidth={1}
+              opacity={0.55}
+            />
+          ) : null}
+          <text
+            x={lab.x}
+            y={lab.y}
+            textAnchor={lab.anchor}
+            fontSize={fs}
+            fill={lab.fill}
+            fontFamily="var(--font-jetbrains-mono)"
+            className={styles.peakPointLabelText}
+            style={
+              lab.leader
+                ? { paintOrder: "stroke fill", stroke: "var(--research-bg)", strokeWidth: 3 }
+                : undefined
+            }
+          >
+            {lab.text}
+          </text>
+        </g>
       ))}
       <g aria-hidden="true">
         <rect

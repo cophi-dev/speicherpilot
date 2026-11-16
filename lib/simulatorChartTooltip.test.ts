@@ -23,7 +23,7 @@ describe("simulatorChartTooltip", () => {
     expect(rows[0]?.value).toBe(pctOfMarket(komp.revenueMioEur, mkt));
     expect(rows[1]?.value).toBe(formatGw(komp.reductionGw));
     expect(rows[2]?.value).toBe(formatGw(komp.peakGw));
-    expect(paretoTooltipTime(komp, data.front.length)).toBe("Kompromiss ε-70");
+    expect(paretoTooltipTime(komp, data.front.length)).toBe("Kompromiss (70 % der Senkung)");
     expect(rows[0]?.value).toMatch(/^\d+,\d{2}\u00A0%$/);
     expect(rows[1]?.value).toMatch(/^\d+,\d{2}\u00A0GW$/);
   });
@@ -72,7 +72,7 @@ describe("simulatorChartTooltip", () => {
     const n = data.front.length;
     const labels = data.front.map((p) => paretoTooltipTime(p, n));
     expect(labels[0]).toBe("Nur Preis");
-    expect(labels[data.namedIndices.kompromiss]).toBe("Kompromiss ε-70");
+    expect(labels[data.namedIndices.kompromiss]).toBe("Kompromiss (70 % der Senkung)");
     expect(labels[data.namedIndices.netzdienlich]).toBe("Spitze zuerst");
     expect(labels[2]).toBe(`Front-Punkt 3 von ${n}`);
     const intern = /x2_|_lam|lexpeak|grid_lam|dichotomy|market_lex|peak_lex|eps\d|lam\d/i;

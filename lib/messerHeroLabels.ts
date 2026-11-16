@@ -1,8 +1,5 @@
 import type { LabelAnchor } from "@/lib/chartLabelLayout";
 
-const CHAR_W = 7.3;
-const LINE_H = 14;
-
 export type PlotPoint = { x: number; y: number };
 
 export type LineEndLabel = {
@@ -12,6 +9,13 @@ export type LineEndLabel = {
   x: number;
   fill: string;
   hideSliderFactor?: number;
+};
+
+export type PlacedLineLabel = {
+  x: number;
+  y: number;
+  anchor: LabelAnchor;
+  leader?: { x1: number; y1: number; x2: number; y2: number };
 };
 
 export function linesWithinPx(yA: number, yB: number, px = 3): boolean {
@@ -31,18 +35,74 @@ export function labelBoxPx(
   return { left, right: left + width, top: y - fontSize, bottom: y + 4 };
 }
 
+function pointInBox(
+  px: number,
+  py: number,
+  box: { left: number; right: number; top: number; bottom: number },
+  pad = 0,
+): boolean {
+  return px >= box.left - pad && px <= box.right + pad && py >= box.top - pad && py <= box.bottom + pad;
+}
+
+function segmentsIntersect(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): boolean {
+  const den = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
+  if (Math.abs(den) < 1e-9) return false;
+  const t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / den;
+  const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / den;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+}
+
+function segmentIntersectsBox(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  box: { left: number; right: number; top: number; bottom: number },
+  pad = 0,
+): boolean {
+  if (pointInBox(ax, ay, box, pad) || pointInBox(bx, by, box, pad)) return true;
+  const { left, right, top, bottom } = box;
+  const edges: Array<[number, number, number, number]> = [
+    [left - pad, top - pad, right + pad, top - pad],
+    [left - pad, bottom + pad, right + pad, bottom + pad],
+    [left - pad, top - pad, left - pad, bottom + pad],
+    [right + pad, top - pad, right + pad, bottom + pad],
+  ];
+  return edges.some(([x1, y1, x2, y2]) => segmentsIntersect(ax, ay, bx, by, x1, y1, x2, y2));
+}
+
+export function collidesWithPolyline(
+  box: { left: number; right: number; top: number; bottom: number },
+  path: PlotPoint[],
+  pad = 2,
+): boolean {
+  if (path.length === 0) return false;
+  for (let i = 0; i < path.length; i++) {
+    const p = path[i]!;
+    if (pointInBox(p.x, p.y, box, pad)) return true;
+  }
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1]!;
+    const b = path[i]!;
+    if (segmentIntersectsBox(a.x, a.y, b.x, b.y, box, pad)) return true;
+  }
+  return false;
+}
+
+/** @deprecated use collidesWithPolyline */
 export function collidesWithPath(
   box: { left: number; right: number; top: number; bottom: number },
   path: PlotPoint[],
   pad = 4,
 ): boolean {
-  return path.some(
-    (p) =>
-      p.x >= box.left - pad &&
-      p.x <= box.right + pad &&
-      p.y >= box.top - pad &&
-      p.y <= box.bottom + pad,
-  );
+  return collidesWithPolyline(box, path, pad);
+}
+
+function freePlacement(
+  box: { left: number; right: number; top: number; bottom: number },
+  path: PlotPoint[],
+): boolean {
+  return !collidesWithPolyline(box, path, 2);
 }
 
 export function placeLineEndLabel(args: {
@@ -50,20 +110,44 @@ export function placeLineEndLabel(args: {
   lineY: number;
   x: number;
   path: PlotPoint[];
+  plotLeft: number;
+  plotRight: number;
   plotTop: number;
   plotBottom: number;
   fontSize: number;
-}): { x: number; y: number; anchor: LabelAnchor } {
-  const anchor: LabelAnchor = "end";
-  const ySteps = [ -10, -22, 10, 22, -34, 34 ];
+}): PlacedLineLabel {
+  const ySteps = [-12, -24, 12, 24, -36, 36, -48, 48];
+  const gutterX = args.plotRight + 22;
+  const anchorMid: LabelAnchor = "middle";
   for (const dy of ySteps) {
-    const y = Math.min(args.plotBottom - 4, Math.max(args.plotTop + args.fontSize, args.lineY + dy));
-    const box = labelBoxPx(args.x, y, anchor, args.text, args.fontSize);
-    if (!collidesWithPath(box, args.path)) {
-      return { x: args.x, y, anchor };
+    const y = Math.min(args.plotBottom - 6, Math.max(args.plotTop + args.fontSize, args.lineY + dy));
+    const box = labelBoxPx(gutterX, y, anchorMid, args.text, args.fontSize);
+    if (freePlacement(box, args.path)) {
+      return {
+        x: gutterX,
+        y,
+        anchor: anchorMid,
+        leader: { x1: args.plotRight - 2, y1: args.lineY, x2: gutterX - 6, y2: y - args.fontSize / 3 },
+      };
     }
   }
-  return { x: args.x - 8, y: args.lineY - 22, anchor: "end" };
+
+  const anchorEnd: LabelAnchor = "end";
+  for (const dy of ySteps) {
+    const y = Math.min(args.plotBottom - 6, Math.max(args.plotTop + args.fontSize, args.lineY + dy));
+    const box = labelBoxPx(args.x, y, anchorEnd, args.text, args.fontSize);
+    if (freePlacement(box, args.path)) {
+      return { x: args.x, y, anchor: anchorEnd };
+    }
+  }
+
+  const y = Math.max(args.plotTop + args.fontSize, args.lineY - 36);
+  return {
+    x: gutterX,
+    y,
+    anchor: anchorMid,
+    leader: { x1: args.plotRight - 2, y1: args.lineY, x2: gutterX - 6, y2: y - args.fontSize / 3 },
+  };
 }
 
 export function stackLineEndLabels(
