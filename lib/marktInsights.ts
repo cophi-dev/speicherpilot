@@ -26,8 +26,17 @@ export type MarktInsightsRoute =
 const WINDOW_START = "2026-10-10";
 const WINDOW_END = "2026-11-08";
 
-function inHomeWindow(records: TagesKennzahlRecord[]): TagesKennzahlRecord[] {
-  return records.filter((r) => r.dateKey >= WINDOW_START && r.dateKey <= WINDOW_END);
+/** Erweitert das Analysefenster bis zum Tag-Fokus (/tag, /beitraege), sonst Legacy-Ende. */
+export function marktInsightWindowEnd(focusDayKey?: string): string {
+  if (focusDayKey && focusDayKey > WINDOW_END) {
+    return focusDayKey;
+  }
+  return WINDOW_END;
+}
+
+function inHomeWindow(records: TagesKennzahlRecord[], focusDayKey?: string): TagesKennzahlRecord[] {
+  const end = marktInsightWindowEnd(focusDayKey);
+  return records.filter((r) => r.dateKey >= WINDOW_START && r.dateKey <= end);
 }
 
 function fmtDate(dateKey: string): string {
@@ -40,16 +49,17 @@ function fmtEur(v: number, digits = 2): string {
 }
 
 function ruleTrockenstrecke(records: TagesKennzahlRecord[], focusDay?: string): MarktInsight | null {
-  const window = inHomeWindow(records);
+  const window = inHomeWindow(records, focusDay);
   const day = focusDay ? window.find((r) => r.dateKey === focusDay) : window[window.length - 1];
   if (!day || day.surplusGwh >= 0.05 || day.dryStreak < 3) {
     return null;
   }
+  const endKey = marktInsightWindowEnd(focusDay);
   return {
     id: "trockenstrecke",
     category: "tag",
     text: `${fmtDate(day.dateKey)} ist der ${day.dryStreak}. Tag in Folge ohne messbaren Überschuss (unter 0,05 GWh).`,
-    period: `${fmtDate(WINDOW_START)}–${fmtDate(WINDOW_END)}`,
+    period: `${fmtDate(WINDOW_START)}–${fmtDate(endKey)}`,
     source: "Energy-Charts Last/Erzeugung, Viertelstunde DE",
     methodikHref: "/methodik#insight-trockenstrecke",
   };
@@ -90,8 +100,9 @@ function rulePreisSpike(record: TagesKennzahlRecord | null): MarktInsight | null
   };
 }
 
-function ruleNegativpreis(records: TagesKennzahlRecord[]): MarktInsight | null {
-  const window = inHomeWindow(records);
+function ruleNegativpreis(records: TagesKennzahlRecord[], focusDayKey?: string): MarktInsight | null {
+  const window = inHomeWindow(records, focusDayKey);
+  const endKey = marktInsightWindowEnd(focusDayKey);
   const days = window.filter((r) => (r.negH ?? 0) > 0);
   const totalH = days.reduce((s, r) => s + (r.negH ?? 0), 0);
   if (totalH < 0.25) {
@@ -101,15 +112,16 @@ function ruleNegativpreis(records: TagesKennzahlRecord[]): MarktInsight | null {
   return {
     id: "negativpreis",
     category: "markt",
-    text: `Vom ${fmtDate(WINDOW_START)} bis ${fmtDate(WINDOW_END)} lag der Preis ${fmtEur(totalH, 2)} Stunden unter null — nur ${parts.join(" und ")}.`,
-    period: `${fmtDate(WINDOW_START)}–${fmtDate(WINDOW_END)}`,
+    text: `Vom ${fmtDate(WINDOW_START)} bis ${fmtDate(endKey)} lag der Preis ${fmtEur(totalH, 2)} Stunden unter null — nur ${parts.join(" und ")}.`,
+    period: `${fmtDate(WINDOW_START)}–${fmtDate(endKey)}`,
     source: "Bundesnetzagentur | SMARD.de, Day-Ahead DE-LU",
     methodikHref: "/methodik#insight-negativpreis",
   };
 }
 
-function ruleGleicheSpanne(records: TagesKennzahlRecord[]): MarktInsight | null {
-  const window = inHomeWindow(records).filter((r) => r.spread != null && r.pmin != null);
+function ruleGleicheSpanne(records: TagesKennzahlRecord[], focusDayKey?: string): MarktInsight | null {
+  const endKey = marktInsightWindowEnd(focusDayKey);
+  const window = inHomeWindow(records, focusDayKey).filter((r) => r.spread != null && r.pmin != null);
   for (let i = 0; i < window.length; i += 1) {
     for (let j = i + 1; j < window.length; j += 1) {
       const a = window[i];
@@ -119,7 +131,7 @@ function ruleGleicheSpanne(records: TagesKennzahlRecord[]): MarktInsight | null 
           id: "gleiche_spanne",
           category: "markt",
           text: `${fmtDate(a.dateKey)} und ${fmtDate(b.dateKey)} haben ähnliche Spannen (${fmtEur(a.spread!)} vs. ${fmtEur(b.spread!)} €/MWh), aber Minima ${fmtEur(a.pmin!)} vs. ${fmtEur(b.pmin!)} €/MWh.`,
-          period: `${fmtDate(WINDOW_START)}–${fmtDate(WINDOW_END)}`,
+          period: `${fmtDate(WINDOW_START)}–${fmtDate(endKey)}`,
           source: "Bundesnetzagentur | SMARD.de",
           methodikHref: "/methodik#insight-gleiche-spanne",
         };
@@ -154,8 +166,8 @@ function ruleFlotteSpitze(
   };
 }
 
-function rulePreisRegime(records: TagesKennzahlRecord[]): MarktInsight | null {
-  const window = inHomeWindow(records).filter((r) => r.pmin != null);
+function rulePreisRegime(records: TagesKennzahlRecord[], focusDayKey?: string): MarktInsight | null {
+  const window = inHomeWindow(records, focusDayKey).filter((r) => r.pmin != null);
   let bestStart = 0;
   let bestLen = 0;
   let curStart = 0;
@@ -242,10 +254,11 @@ export type BuildMarktInsightsInput = {
 };
 
 export function buildMarktInsights(input: BuildMarktInsightsInput): MarktInsight[] {
-  const window = inHomeWindow(input.records);
+  const focusKey = input.focusDayKey;
+  const window = inHomeWindow(input.records, focusKey);
   const focus =
-    input.focusDayKey != null
-      ? window.find((r) => r.dateKey === input.focusDayKey) ?? null
+    focusKey != null
+      ? window.find((r) => r.dateKey === focusKey) ?? null
       : window[window.length - 1] ?? null;
 
   const items: MarktInsight[] = [];
@@ -255,13 +268,13 @@ export function buildMarktInsights(input: BuildMarktInsightsInput): MarktInsight
     }
   };
 
-  push(ruleTrockenstrecke(input.records, input.focusDayKey ?? focus?.dateKey));
+  push(ruleTrockenstrecke(input.records, focusKey ?? focus?.dateKey));
   push(ruleHohesMinimum(focus));
   push(rulePreisSpike(focus));
-  push(ruleNegativpreis(input.records));
-  push(ruleGleicheSpanne(input.records));
+  push(ruleNegativpreis(input.records, focusKey));
+  push(ruleGleicheSpanne(input.records, focusKey));
   push(ruleFlotteSpitze(focus, input.fleetPowerGw, focus?.absorbedGwh ?? 0));
-  push(rulePreisRegime(input.records));
+  push(rulePreisRegime(input.records, focusKey));
   if (input.fleetBundle) {
     push(ruleDreiZiele(input.fleetBundle));
   }
