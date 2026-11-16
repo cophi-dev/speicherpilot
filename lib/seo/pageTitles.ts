@@ -2,7 +2,7 @@ import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatBerlinMonthLabel, isBerlinMonthKey } from "@/lib/monatCalendar";
 
 export const HOME_DOCUMENT_TITLE =
-  "SpeicherPilot – Großspeicher und Restlastspitze in Deutschland, Szenarien gerechnet";
+  "Großspeicher und Restlast-Spitze in Deutschland, Szenarien täglich gerechnet | SpeicherPilot";
 
 export const TAG_TODAY_DOCUMENT_TITLE =
   "Restlast, Day-Ahead-Preis und Batteriespeicher heute | SpeicherPilot";

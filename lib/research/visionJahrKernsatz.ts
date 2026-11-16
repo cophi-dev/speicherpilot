@@ -22,6 +22,21 @@ function stufe2h(stufe: string) {
   )!;
 }
 
+/** 2025-12-03 → 3.12.2025 (ohne führende Null, wie im Owner-Wortlaut). */
+function formatPeakDay(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  if (!year || !month || !day) return iso;
+  return `${Number(day)}.${Number(month)}.${year}`;
+}
+
+/** 17:00 → 17 Uhr */
+function formatPeakHour(hhmm: string): string {
+  const [hour, minute] = hhmm.split(":");
+  if (!hour) return hhmm;
+  if (!minute || minute === "00") return `${Number(hour)} Uhr`;
+  return `${Number(hour)}:${minute} Uhr`;
+}
+
 /** Kernsatz aus data/forschung/daten_jahr_v1.json (keine Hardcodierung der Zahlen). */
 export function buildVisionJahrKernsatz(): VisionJahrKernsatz {
   const peak = datenJahr.basis.spitze_GW;
@@ -39,23 +54,27 @@ export function buildVisionJahrKernsatz(): VisionJahrKernsatz {
     );
   }
 
-  const zeitraum = "16.11.2025–15.11.2026";
+  const stand = datenJahr.stand;
   const peakDisp = formatVisionGwOne(peak);
-  const nepAGw = String(Math.round(nepA.P_ges_GW));
-  const nepCGw = String(Math.round(nepC.P_ges_GW));
+  const nepAGw = formatVisionGwOne(nepA.P_ges_GW);
+  const nepCGw = formatVisionGwOne(nepC.P_ges_GW);
   const senkADisp = formatVisionGwOne(nepA.senkung_GW);
   const senkCDisp = formatVisionGwOne(nepC.senkung_GW);
+  const peakDay = formatPeakDay(datenJahr.basis.spitze_tag);
+  const peakHour = formatPeakHour(datenJahr.basis.spitze_uhr);
 
   const paragraph =
-    `Im Jahr ${zeitraum} lag die höchste Restlast in Deutschland bei ${peakDisp}\u00a0GW. ` +
-    `Batteriespeicher im Umfang von NEP-Szenario A (${nepAGw}\u00a0GW, 2\u00a0h) hätten sie um ${senkADisp}\u00a0GW gesenkt, ` +
-    `NEP C (${nepCGw}\u00a0GW) um ${senkCDisp}\u00a0GW – wenn sie gegen die Spitze fahren. ` +
-    `Nach Day-Ahead-Preis gefahren erreicht dieselbe Flotte höchstens ein Fünftel davon. ` +
-    `Modell: national, ohne Netzengpass und (n\u22121), Vollvoraussicht, Wirkungsgrad ${rtePct}\u00a0%.`;
+    `Kernaussage (Stand ${stand}): Von 16.11.2025 bis 15.11.2026 lag die höchste Restlast in Deutschland bei ${peakDisp}\u00a0GW (${peakDay}, ${peakHour}). ` +
+    `Eine Batteriespeicher-Flotte in Größe von NEP-Szenario A (${nepAGw}\u00a0GW, 2\u00a0h) hätte diese Spitze um ${senkADisp}\u00a0GW gesenkt, ` +
+    `Szenario C (${nepCGw}\u00a0GW, 2\u00a0h) um ${senkCDisp}\u00a0GW. ` +
+    `Das gilt nur, wenn die Speicher gegen die Spitze fahren, und ist eine Obergrenze. ` +
+    `Nach Day-Ahead-Preis gefahren erreicht dieselbe Flotte selbst im günstigen Fall mit grob modellierter Preisrückwirkung höchstens ein Fünftel davon; ` +
+    `ohne Rückwirkung kann Laden als neue Last die Spitze anheben. ` +
+    `Modellrechnung, national, ohne Netzengpässe und (n\u22121), volle Voraussicht, Wirkungsgrad ${rtePct}\u00a0%. ` +
+    `Daten: Energy-Charts, SMARD, battery-charts.`;
 
   const descriptionShort =
-    `Jahresrechnung ${zeitraum}: Restlast-Spitze ${peakDisp}\u00a0GW, NEP C senkt bis ${senkCDisp}\u00a0GW spitzenorientiert; ` +
-    `Day-Ahead höchstens ein Fünftel — national, Vollvoraussicht, Modell SpeicherPilot.`;
+    `NEP-Speicher 2 h senken die Restlast-Spitze von ${peakDisp} GW um ${senkADisp} bis ${senkCDisp} GW, nach Preis höchstens ein Fünftel davon. Jahresrechnung, Stand 11/2026.`;
 
   return {
     paragraph,
