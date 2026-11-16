@@ -73,8 +73,8 @@ export function AuffaelligkeitKopf({
     return {
       h1: `${record.dryStreak}. Tag in Folge ohne Überschuss`,
       subline: lastSurplus
-        ? `Zuletzt Überschuss am ${weekdayLabelDe(lastSurplus.dateKey)} — nur die Überschuss-Kennzahl.`
-        : "Unter der Überschuss-Schwelle.",
+        ? `Zuletzt lagen Wind und Sonne am ${weekdayLabelDe(lastSurplus.dateKey)} bundesweit über dem Verbrauch.`
+        : "Wind und Sonne blieben unter dem Verbrauch.",
       hero: {
         value: String(record.dryStreak),
         unit: "Tage",
@@ -238,7 +238,7 @@ export function TagPageV4({
   fleetDayNoWindSolarSurplus,
   preisTag = [],
   marktInsights = [],
-  simulatorCostPct,
+  simulatorTeaser,
   fleetSoGerechnet = null,
   children,
 }: {
@@ -258,7 +258,7 @@ export function TagPageV4({
   fleetDayNoWindSolarSurplus?: boolean;
   preisTag?: PreisTick[];
   marktInsights?: MarktInsight[];
-  simulatorCostPct: string;
+  simulatorTeaser: import("@/lib/simulatorTeaser.types").Eps70TeaserUi;
   fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
   children?: React.ReactNode;
 }) {
@@ -323,7 +323,7 @@ export function TagPageV4({
         surplusGwh={record.surplusGwh ?? 0}
         fleetExtra={fleetSoGerechnet}
       />
-      <TagSimulatorTeaser costPctText={simulatorCostPct} />
+      <TagSimulatorTeaser teaser={simulatorTeaser} />
     </div>
   );
 }

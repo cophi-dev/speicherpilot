@@ -90,7 +90,7 @@ describe("loadResearchHome · Gestern-Pipeline", () => {
     expect(model!.day.hero4hGw).toBeCloseTo(7.5, 2);
 
     expect(model!.weekHeadline).toMatch(
-      /^Letzte Woche hätte doppelt so viel Speicher die Tagesspitze jeden Tag um .+ bis .+ GW gesenkt\.$/
+      /^Mit doppelter Flotte \(×2\) wäre die Tagesspitze letzte Woche jeden Tag um .+ bis .+ GW gesunken\.$/
     );
     expect(model!.week[0]?.shortLabel).toBe("03.11.");
     expect(model!.week[model!.week.length - 1]?.shortLabel).toBe("09.11.");

@@ -142,7 +142,8 @@ export function MonatReglerHero({
           ))}
         </div>
         <p className={styles.durationRow}>
-          Dauer: <strong>1,76 h</strong> aktiv · 2 h und 4 h ohne Zeitreihe — siehe Graph darunter.
+          Speicherdauer heute: <strong>1,76 h</strong>. Was längere Speicher (2 h, 4 h) bringen, zeigt „Es fehlen Stunden“
+          weiter unten.
         </p>
       </div>
 
@@ -157,7 +158,9 @@ export function MonatReglerHero({
             <dd>{formatGwAbs(kpis.peakAfterGw)}</dd>
           </div>
           <div className={styles.kpi}>
-            <dt>Δ zur Beobachtung</dt>
+            <dt>
+              gegenüber gemessen ({compact ? formatGwAbs(compact.refPeakMw / 1000) : formatGwAbs(64.4)})
+            </dt>
             <dd>{kpis.deltaLabel}</dd>
           </div>
           {strategy === "ueberschuss" && kpis.surplusCaptureGwh != null ? (

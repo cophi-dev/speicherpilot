@@ -71,7 +71,7 @@ export function NetzUpdatesFahrweiseChart() {
         />
       </svg>
       <figcaption className="blog-media-caption">
-        Mi 21.10.2026: beobachtet {data.observedPeakGw.toFixed(1).replace(".", ",")} GW um {data.observedPeakLabel}; Markt
+        Mi 21.10.2026: beobachtet {data.observedPeakGw.toFixed(1).replace(".", ",")} GW um {data.observedPeakLabel}; Markt{" "}
         {data.pricePeakGw.toFixed(1).replace(".", ",")} GW um {data.pricePeakLabel}; gegen die Spitze maximal{" "}
         {data.peakCapGw.toFixed(1).replace(".", ",")} GW.
       </figcaption>

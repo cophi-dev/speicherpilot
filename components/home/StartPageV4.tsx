@@ -24,7 +24,7 @@ export function StartPageV4({
   kopfDay,
   preisTag,
   marktInsights = [],
-  simulatorCostPct,
+  simulatorTeaser,
 }: {
   overviews: OverviewsBundle | null;
   dispatch: LiveDispatchInput;
@@ -36,7 +36,7 @@ export function StartPageV4({
   kopfDay: ResidualDay | null;
   preisTag: PreisTick[];
   marktInsights?: MarktInsight[];
-  simulatorCostPct: string;
+  simulatorTeaser: import("@/lib/simulatorTeaser.types").Eps70TeaserUi;
 }) {
   const tagRecord = auffaelligkeitRecords.find((r) => r.dateKey === kopfDayKey);
   const systemModel = overviews?.byBlick["30tage"];
@@ -72,7 +72,7 @@ export function StartPageV4({
 
       {marktInsights && marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
 
-      <StartSimulatorTeaser costPctText={simulatorCostPct} />
+      <StartSimulatorTeaser teaser={simulatorTeaser} />
     </div>
   );
 }

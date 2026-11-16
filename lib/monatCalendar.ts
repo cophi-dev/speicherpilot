@@ -209,7 +209,8 @@ export const MONAT_SURPLUS_EXPLAIN_DE =
 
 export function monatPointe(
   monthKey: string,
-  records: TagesKennzahlRecord[]
+  records: TagesKennzahlRecord[],
+  todayKey?: string,
 ): { h1: string; subline: string; footnote: string } {
   const monthRecords = records.filter((r) => berlinMonthKeyFromDateKey(r.dateKey) === monthKey);
   const noSurplus = monthRecords.filter((r) => r.surplusGwh < 0.05).length;
@@ -220,13 +221,27 @@ export function monatPointe(
   );
   const label = formatBerlinMonthLabel(monthKey);
   const explain = MONAT_SURPLUS_EXPLAIN_DE;
-  const missing = daysInBerlinMonth(monthKey).filter((d) => !monthRecords.some((r) => r.dateKey === d));
+  const monthDays = daysInBerlinMonth(monthKey);
+  const have = new Set(monthRecords.map((r) => r.dateKey));
+  const missing = monthDays.filter((d) => !have.has(d));
+  const lastDayKey =
+    monthRecords.length > 0
+      ? monthRecords.reduce((max, r) => (r.dateKey > max ? r.dateKey : max), monthRecords[0]!.dateKey)
+      : null;
   const h1 = `${noSurplus} Tage unter der Überschuss-Schwelle im ${label}`;
   const subParts = [
     strongest
       ? `Stärkster Tages-Überschuss: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${formatBerlinDayLabel(strongest.dateKey)}.`
       : null,
-    missing.length > 0 ? `${missing.length} Kalendertage fehlen in den Daten.` : null,
+    missing.length > 0 && lastDayKey && todayKey
+      ? (() => {
+          const k = missing.filter((d) => d < todayKey).length;
+          const f = missing.filter((d) => d >= todayKey).length;
+          return `Daten bis ${formatBerlinDayLabel(lastDayKey)}. ${k} Tage folgen noch, ${f} liegen in der Zukunft.`;
+        })()
+      : missing.length > 0
+        ? `${missing.length} Kalendertage fehlen in den Daten.`
+        : null,
   ].filter(Boolean);
   const subline = subParts.join(" ") || `${monthRecords.length} Tage in der geladenen Reihe.`;
   const footnote = `${monthRecords.length} Tage mit Kennzahlen in der geladenen Reihe. ${explain}`;

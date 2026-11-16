@@ -47,7 +47,7 @@ describe("simulatorChartTooltip", () => {
     const netz = day.modes.peak[idx]!;
     const komp = day.modes.eps70[idx]!;
     const rows = beispieltagTooltipRows(market, netz, komp);
-    expect(rows.map((r) => r.label)).toEqual(["Beobachtet", "Max. Erlös", "Netzdienlich", "Kompromiss", "Preis"]);
+    expect(rows.map((r) => r.label)).toEqual(["Beobachtet", "Nur Preis", "Spitze zuerst", "Kompromiss", "Preis"]);
     expect(rows[0]?.value).toBe(formatGw(market.residualMw / 1000));
     expect(rows[1]?.value).toBe(formatGw(market.residualPrimeMw / 1000));
     expect(rows[2]?.value).toBe(formatGw(netz.residualPrimeMw / 1000));
@@ -70,9 +70,9 @@ describe("simulatorChartTooltip", () => {
   it("Pareto-Zeitlabel: lesbare Namen, nie ein interner Bezeichner", () => {
     const n = data.front.length;
     const labels = data.front.map((p) => paretoTooltipTime(p, n));
-    expect(labels[0]).toBe("Max. Erlös");
+    expect(labels[0]).toBe("Nur Preis");
     expect(labels[data.namedIndices.kompromiss]).toBe("Kompromiss ε-70");
-    expect(labels[data.namedIndices.netzdienlich]).toBe("Netzdienlich");
+    expect(labels[data.namedIndices.netzdienlich]).toBe("Spitze zuerst");
     expect(labels[2]).toBe(`Front-Punkt 3 von ${n}`);
     const intern = /x2_|_lam|lexpeak|grid_lam|dichotomy|market_lex|peak_lex|eps\d|lam\d/i;
     for (const [i, label] of labels.entries()) {

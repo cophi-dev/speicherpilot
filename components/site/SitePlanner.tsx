@@ -967,7 +967,7 @@ function SupportTile({ plan, language, tx }: { plan: SitePlan; language: "de" | 
   const status = plan.gridSupport.status;
   const label =
     status === "supportive"
-      ? tx("Einschätzung netzdienlich", "Estimate: grid-supportive")
+      ? tx("Einschätzung Netzwirkung (Archiv)", "Site grid effect (archive)")
       : status === "mixed"
         ? tx("Einschätzung gemischt", "Estimate: mixed")
         : status === "new-peak"

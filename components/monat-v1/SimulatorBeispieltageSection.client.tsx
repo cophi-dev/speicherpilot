@@ -45,10 +45,10 @@ export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweis
           <span className={styles.dotHollow} style={{ borderColor: colors.muted }} /> Beobachtet
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.dotRust} style={{ background: colors.rust }} /> Max. Erlös
+          <span className={styles.dotRust} style={{ background: colors.rust }} /> Nur Preis
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.dotFilled} style={{ background: colors.ink }} /> Netzdienlich
+          <span className={styles.dotFilled} style={{ background: colors.ink }} /> Spitze zuerst
         </span>
         <span className={styles.legendItem}>Kompromiss (gestrichelt)</span>
         <span className={styles.legendItem}>
@@ -422,11 +422,11 @@ function Day21Labels({
       </SvgText>
       {wide ? (
         <SvgText x={x23 - 8} y={y516 + 80} anchor="end" fill={colors.ink}>
-          Netzdienlich {formatDec(metrics.netzPeakGw)}
+          Spitze zuerst {formatDec(metrics.netzPeakGw)}
         </SvgText>
       ) : (
         <SvgText x={vb.L + plotW - 2} y={y516 + 80} anchor="end" fill={colors.ink}>
-          Netzdienlich {formatDec(metrics.netzPeakGw)}
+          Spitze zuerst {formatDec(metrics.netzPeakGw)}
         </SvgText>
       )}
     </g>
@@ -455,11 +455,11 @@ function Day29Labels({
       </SvgText>
       {wide ? (
         <SvgText x={xH(10)} y={y608 - 14} fill={colors.ink} weight={500}>
-          Netzdienlich {formatDec(metrics.netzPeakGw)} · 16:45–19:00
+          Spitze zuerst {formatDec(metrics.netzPeakGw)} · 16:45–19:00
         </SvgText>
       ) : (
         <SvgText x={xH(5)} y={y608 - 14} fill={colors.ink} weight={500}>
-          Netzdienlich {formatDec(metrics.netzPeakGw)}
+          Spitze zuerst {formatDec(metrics.netzPeakGw)}
         </SvgText>
       )}
     </g>

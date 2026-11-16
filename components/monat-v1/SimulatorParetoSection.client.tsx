@@ -89,7 +89,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
         voll={voll}
       />
       <p className={styles.lead}>
-        <strong>netzdienlich = senkt die Monatsspitze, nicht jeden Tag.</strong> Auf Tagesbasis gab es im Oktober keinen
+        <strong>„Spitze zuerst“ senkt die Monatsspitze so weit wie möglich, nicht jede Tagesspitze.</strong> Auf Tagesbasis gab es im Oktober keinen
         Tag, an dem beide Ziele gleichzeitig optimal waren.
       </p>
       <p className={simStyles.modelNote}>
@@ -104,9 +104,9 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
         ariaValueText={ariaFor(
           point,
           idx === data.namedIndices.markt
-            ? "Maximaler Erlös"
+            ? "Nur Preis"
             : idx === data.namedIndices.netzdienlich
-              ? "Netzdienlich"
+              ? "Spitze zuerst"
               : idx === data.namedIndices.kompromiss
                 ? "Kompromiss"
                 : "Frontpunkt",
@@ -115,9 +115,9 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
       <div className={simStyles.namedButtons} role="group" aria-label="Benannte Fahrweisen">
           {(
             [
-              ["markt", "Max. Erlös"],
+              ["markt", "Nur Preis"],
               ["kompromiss", "Kompromiss"],
-              ["netzdienlich", "Netzdienlich"],
+              ["netzdienlich", "Spitze zuerst"],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -142,7 +142,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
         </thead>
         <tbody>
           <tr className={idx === data.namedIndices.markt ? simStyles.rowActive : undefined}>
-            <th scope="row">Max. Erlös</th>
+            <th scope="row">Nur Preis</th>
             <td>{formatMioEur(mkt.revenueMioEur)}</td>
             <td>{formatGw(mkt.reductionGw)}</td>
             <td>{formatGw(mkt.peakGw)}</td>
@@ -156,7 +156,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
             <td>{formatGw(e70.peakGw)}</td>
           </tr>
           <tr className={idx === data.namedIndices.netzdienlich ? simStyles.rowActive : undefined}>
-            <th scope="row">Netzdienlich</th>
+            <th scope="row">Spitze zuerst</th>
             <td>{formatMioEur(net.revenueMioEur)}</td>
             <td>{formatGw(net.reductionGw)}</td>
             <td>{formatGw(net.peakGw)}</td>
@@ -550,7 +550,7 @@ function ZoomChart({
           <TwoLineLabel
             x={nx + 12}
             y1={ny - 4}
-            line1="Netzdienlich"
+            line1="Spitze zuerst"
             line2={valN}
             anchor="start"
             fill={colors.ink}
@@ -568,7 +568,7 @@ function ZoomChart({
           <TwoLineLabel
             x={mx - 12}
             y1={my - 8}
-            line1="Max. Erlös"
+            line1="Nur Preis"
             line2={valM}
             anchor="end"
             fill={colors.ink}
@@ -581,7 +581,7 @@ function ZoomChart({
           <TwoLineLabel
             x={nx + 10}
             y1={ny - 20}
-            line1="Netzdienlich"
+            line1="Spitze zuerst"
             line2={valN}
             anchor="start"
             fill={colors.ink}
@@ -599,7 +599,7 @@ function ZoomChart({
           <TwoLineLabel
             x={mx - 10}
             y1={my - 6}
-            line1="Max. Erlös"
+            line1="Nur Preis"
             line2={valM}
             anchor="end"
             fill={colors.ink}

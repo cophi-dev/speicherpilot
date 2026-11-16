@@ -2,8 +2,16 @@ import styles from "@/components/research/research.module.css";
 import { ResearchHomeShell } from "@/components/research/ResearchHomeShell.client";
 import type { ResearchHomeModel } from "@/lib/research/researchTypes";
 import { researchDayEyebrow, researchIncompleteFootnote } from "@/lib/research/researchFormat";
-
-export function ResearchHomePage({ model, simulatorCostPct }: { model: ResearchHomeModel; simulatorCostPct: string }) {
+import type { Eps70TeaserUi } from "@/lib/simulatorTeaser.types";
+export function ResearchHomePage({
+  model,
+  simulatorTeaser,
+  liveFleetLabel,
+}: {
+  model: ResearchHomeModel;
+  simulatorTeaser: Eps70TeaserUi;
+  liveFleetLabel?: string | null;
+}) {
   const headline = (
     <div>
       <p className={styles.eyebrow}>{researchDayEyebrow(model.day, model.dayPerspective)}</p>
@@ -19,7 +27,7 @@ export function ResearchHomePage({ model, simulatorCostPct }: { model: ResearchH
   return (
     <div className={styles.page}>
       <div className={styles.heroIntro}>{headline}</div>
-      <ResearchHomeShell model={model} simulatorCostPct={simulatorCostPct} />
+      <ResearchHomeShell model={model} simulatorTeaser={simulatorTeaser} liveFleetLabel={liveFleetLabel} />
     </div>
   );
 }

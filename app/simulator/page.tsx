@@ -12,7 +12,7 @@ export const dynamic = "force-static";
 function simulatorMeta(): Metadata {
   const teaser = loadEps70Teaser();
   const title = "Simulator · Fahrweisen · Oktober 2026";
-  const description = `70 Prozent der Monatssenkung kosten ${teaser.costPctText} des Erlöses (ε-70, Flotte ×2, Modellschätzung). Monatsfront, Tageshorizont Regel T, Kipppunkt — national, kein Netzengpass, Vollvoraussicht.`;
+  const description = `${teaser.headlineDe} ${teaser.sublineDe}`;
   return {
     title,
     description,

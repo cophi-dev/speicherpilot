@@ -122,7 +122,12 @@ export function konzeptCDauerHeadline(
   factor: number,
   peakAfterGw: number,
   wirkungGw: number,
+  opts?: { fleetAvailable?: boolean; letzterTagLabel?: string },
 ): string {
+  if (opts?.fleetAvailable === false && opts.letzterTagLabel) {
+    const gw = peakAfterGw.toFixed(2).replace(".", ",");
+    return `${opts.letzterTagLabel}: höchste gemessene Restlast ${gw} GW.`;
+  }
   const monthName = monthKey.match(/^\d{4}-(\d{2})$/)
     ? new Date(Date.UTC(Number(monthKey.slice(0, 4)), Number(monthKey.slice(5, 7)) - 1, 1)).toLocaleDateString(
         "de-DE",

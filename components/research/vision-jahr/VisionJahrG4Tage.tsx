@@ -79,7 +79,7 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
   return (
     <div className={styles.g4ChartWrap} ref={wrapRef}>
       <div className={styles.g4KappeRow} aria-hidden={false}>
-        <span className={styles.g4KappePill}>NEP C hält {formatVisionGwWithUnit(kappeC)}</span>
+        <span className={styles.g4KappePill}>NEP C drückt die Spitze bis {formatVisionGwWithUnit(kappeC)}</span>
         <span className={styles.g4KappePill}>NEP A {formatVisionGwWithUnit(kappeAVal)}</span>
       </div>
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={styles.chartFixed} role="img" aria-label="Tageshöchstwerte über das Jahr">

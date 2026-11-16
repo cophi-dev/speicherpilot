@@ -14,7 +14,7 @@ export function SimulatorLegalBox() {
           Rahmen für den Leistungsdeckel.
         </li>
         <li>
-          <strong>BGH EnVR 1/24</strong> — BKZ nach Leistungspreis zulässig, auch wenn der Speicher netzdienlich wirken
+          <strong>BGH EnVR 1/24</strong> — BKZ nach Leistungspreis zulässig, auch wenn der Speicher dem Netz nützen
           kann.
         </li>
         <li>

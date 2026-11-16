@@ -185,6 +185,16 @@ export function MesserHeroChart({
         strokeDasharray="4 4"
         opacity={0.7}
       />
+      <text
+        x={width - PAD_RIGHT - 4}
+        y={ghost4hY - 6}
+        textAnchor="end"
+        fontSize={11}
+        fill="var(--research-muted)"
+        fontFamily="var(--font-jetbrains-mono)"
+      >
+        ×{factor} · 4 h
+      </text>
       {cappedPaths.map((d, i) => (
         <motion.path
           key={`${factor}-${i}`}
@@ -204,7 +214,7 @@ export function MesserHeroChart({
             y2={y}
             stroke={isOn ? "var(--research-accent)" : "var(--research-dim)"}
             strokeWidth={isOn ? 2 : 1}
-            strokeDasharray={isOn ? undefined : "3 4"}
+            strokeDasharray={isOn ? undefined : "1 3"}
           />
         </g>
       ))}

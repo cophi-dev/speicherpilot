@@ -56,6 +56,13 @@ const REQUIRED = [
   "preisspanne",
   "intraday",
   "regelleistung",
+  "restlast",
+  "ueberschuss-national",
+  "kipppunkt-monat",
+  "kompromiss-70",
+  "nep-abc",
+  "preisrueckwirkung",
+  "fleet-factor",
 ] as const;
 
 describe("glossary", () => {

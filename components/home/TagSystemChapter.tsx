@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
@@ -28,21 +30,36 @@ export function TagSystemChapter({
   const sharePct =
     hasSurplus && surplus > 0 ? Math.round((absorbed / surplus) * 100) : Math.round((factor?.absorbedShare ?? 0) * 100);
 
-  const lead = hasSurplus
-    ? `Bei ×1 hätte die Referenzflotte (${formatQuantity(fleetPowerGw, "de", 2)} GW) einen großen Teil des Überschusses aufgenommen.`
-    : "Im Überschuss-Lademodell ist an diesem Tag nichts zu laden.";
+  const lead = hasSurplus ? (
+    <>
+      Die heutige Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW / {formatQuantity(fleetEnergyGwh, "de", 2)} GWh)
+      hätte {formatQuantity(sharePct, "de", 0)}&nbsp;% des Überschusses aus Wind und Sonne aufgenommen (Modell).
+    </>
+  ) : (
+    <>
+      Die deutschen Großspeicher ({formatQuantity(fleetPowerGw, "de", 2)} GW /{" "}
+      {formatQuantity(fleetEnergyGwh, "de", 2)} GWh Kapazität, Battery Charts) hatten nichts aufzunehmen: Wind und Sonne
+      lagen den ganzen Tag unter dem Verbrauch. Fahrweisen nach Preis oder gegen die Abendspitze rechnen wir bisher für
+      Oktober (
+      <Link href="/monat/2026-10" className="v4-text-link">
+        /monat/2026-10
+      </Link>
+      ).
+    </>
+  );
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag-system">
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">02 · Das System</p>
         <h2 id="kapitel-tag-system" className="v4-chapter-h2">
-          Speicher am {weekdayLabelDe(dayKey).replace(/\.$/, "")}
+          Speicher am {weekdayLabelDe(dayKey)}
+          {hasSurplus ? "" : ": nichts geladen"}
         </h2>
         {hasSurplus ? (
           <p className="v4-system-pct v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
         ) : (
-          <p className="v4-tag-kern">{formatQuantity(fleetEnergyGwh, "de", 2)} GWh</p>
+          <p className="v4-tag-kern">0 GWh geladen</p>
         )}
         <p className="v4-tag-side">{lead}</p>
       </div>

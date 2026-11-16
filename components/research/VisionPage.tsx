@@ -12,7 +12,7 @@ import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJah
 import { VisionJahrG2Markt } from "@/components/research/vision-jahr/VisionJahrG2Markt";
 import { VisionJahrG3Ueberschuss } from "@/components/research/vision-jahr/VisionJahrG3Ueberschuss";
 import { VisionJahrG4Tage } from "@/components/research/vision-jahr/VisionJahrG4Tage";
-import { formatVisionGermanDate, formatVisionGwMinus, formatVisionGwOne, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
+import { formatVisionGermanDate, formatVisionGwOne, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
@@ -53,8 +53,9 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
       <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
       <p className={styles.prose}>
-        Nationale Kupferplatte, Vollvoraussicht über zwölf Monate (Obergrenze). Spitzenorientiert heißt: die Flotte senkt die{" "}
-        <strong> nationale</strong> Jahresspitze der Restlast. Der Oktober-Ausschnitt steht auf{" "}
+        NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das
+        Stromsystem der letzten zwölf Monate: Deutschland als ein Netzknoten ohne Leitungsengpässe, mit perfekter Vorausschau. Das ist
+        eine Obergrenze. Der Oktober-Ausschnitt steht auf{" "}
         <Link href="/monat/2026-10" className={styles.link}>
           /monat/2026-10
         </Link>
@@ -63,11 +64,11 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
 
       <section className={styles.section} aria-labelledby="vision-g1">
         <h2 id="vision-g1" className={styles.h2}>
-          Ab NEP A bringt jedes GW wenig
+          Ab NEP A ({formatVisionGwOne(nepA.powerGw)} GW) bringt jedes weitere GW Speicher wenig
         </h2>
         <p className={styles.meta}>
-          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}) · Vorjahr NEP C:{" "}
-          {formatVisionGwMinus(model.vorjahr2hSenkung["NEP C"] ?? 0).replace(" GW", "")} bis {formatVisionGwMinus(nepC.senkung2hGw).replace(" GW", "")}
+          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}). NEP C senkt sie um{" "}
+          {formatVisionGwOne(nepC.senkung2hGw)} GW (Vorjahreszeitraum: {formatVisionGwOne(model.vorjahr2hSenkung["NEP C"] ?? 0)} GW)
         </p>
 
         {showTruth ? (
@@ -152,6 +153,13 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
             setGuessMode(false);
           }}
         />
+        <p className={styles.meta} style={{ marginTop: 4 }}>
+          * Zusagen: Summe öffentlich genannter Netzanschlusszusagen für Batteriespeicher (BNetzA, Stand in der{" "}
+          <Link href="/methodik#lizenzen" className={styles.link}>
+            Methodik
+          </Link>
+          ).
+        </p>
         <VisionJahrChartFoot />
       </section>
 

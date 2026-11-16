@@ -339,13 +339,13 @@ export function SaturationChart({
       {chartHaloLabel({
         x: calloutX,
         y: calloutBaseY + calloutLine,
-        text: `${margA} je GW`,
+        text: `${margA} GW weniger Spitze je GW Speicher (×2→×5)`,
         textAnchor: "end",
       })}
       {chartHaloLabel({
         x: calloutX,
         y: calloutBaseY + 2 * calloutLine,
-        text: `${margB} je GW`,
+        text: `${margB} GW je GW (×5→×10)`,
         textAnchor: "end",
       })}
       <line x1={40} x2={width - 16} y1={xAxisY} y2={xAxisY} stroke="var(--research-line)" />

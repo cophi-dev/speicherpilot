@@ -6,7 +6,7 @@
     "url": "https://www.bundestag.de/dokumente/textarchiv/2026/kw46-de-uebertragungsnetzkosten-1232592",
     "headline": "Bundestag legt Zuschuss zu den Übertragungsnetzkosten bis 2029 fest",
     "teaser": "Der Bundestag hat am 12. November den jährlichen Bundeszuschuss zu den Kosten der Übertragungsnetzbetreiber für 2027 bis 2029 beschlossen. Er liegt unter dem Wert für 2026 und wird aus dem Klima- und Transformationsfonds finanziert.",
-    "einordnung": "Reichweite: Netzentgelte, nicht Netzkapazität. Der Zuschuss dämpft die Übertragungsnetzentgelte, schafft aber keinen zusätzlichen Anschlusspunkt. Die Lücke, die Speicher schließen sollen, bleibt: Am 15.11. lag die Restlast-Abendspitze bei 23,7 GW um 17:00 Uhr (speicherpilot.app/tag)."
+    "einordnung": "Reichweite: Netzentgelte, nicht Netzkapazität. Der Zuschuss dämpft die Übertragungsnetzentgelte, schafft aber keinen zusätzlichen Anschlusspunkt. Die Lücke, die Speicher schließen sollen, bleibt: Am 15.11. lag die Restlast-Abendspitze bei 23,8 GW um 17:00 Uhr (speicherpilot.app/tag)."
   },
   {
     "date": "2026-11-12",
@@ -22,7 +22,7 @@
     "source": "Photon",
     "sourceShort": "Photon",
     "url": "https://www.photon.info/news/statt-netzausbau-bayernwerk-netz-schreibt-weiteren-batteriespeicher-mit-netzdienlicher-fahrweise-aus/",
-    "headline": "Verteilnetzbetreiber schreibt netzdienlichen Speicher statt Netzausbau aus",
+    "headline": "Verteilnetzbetreiber schreibt Speicher mit vorgegebener Fahrweise statt Netzausbau aus",
     "teaser": "Ein bayerischer Verteilnetzbetreiber sucht einen Speicher mit 20 MW und mindestens 80 MWh direkt an einem Umspannwerk im Landkreis Bayreuth. Die Fahrweise gibt der Netzbetreiber vor (§ 11a EnWG); sie soll eine geplante Netzverstärkung ersetzen.",
     "einordnung": "Reichweite: ein Umspannwerk, kein Marktsignal. Hier kauft der Netzbetreiber die Fahrweise, nicht der Markt. Wie stark die Fahrweise zählt, zeigt speicherpilot.app/monat national für Oktober: Marktorientiert ohne Preisrückwirkung hebt eine größere Flotte die Restlastspitze ab etwa dem 3,9-Fachen, spitzenorientiert senkt sie sie. Das ist ein Modell ohne Netzengpass, keine Aussage über den Ort."
   },

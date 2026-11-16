@@ -53,7 +53,14 @@ export type GlossaryId =
   | "preisnehmer"
   | "preisspanne"
   | "intraday"
-  | "regelleistung";
+  | "regelleistung"
+  | "restlast"
+  | "ueberschuss-national"
+  | "kipppunkt-monat"
+  | "kompromiss-70"
+  | "nep-abc"
+  | "preisrueckwirkung"
+  | "fleet-factor";
 
 export type GlossaryEntry = {
   id: GlossaryId;
@@ -500,6 +507,62 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     text: {
       de: "Leistung, die der Netzbetreiber kurzfristig abruft, um das Netz im Gleichgewicht zu halten. Speicher können sie anbieten. Das Modell rechnet sie nicht mit.",
       en: "Power the grid operator calls at short notice to keep the grid in balance. Batteries can offer it. The model does not include it.",
+    },
+  },
+  {
+    id: "restlast",
+    term: { de: "Restlast", en: "Residual load" },
+    text: {
+      de: "Verbrauch minus Wind minus Sonne — was übrig bleibt, wenn variable Erzeugung abgezogen ist. Auf den Tages- und Monatsseiten ist das die Grundlage für Spitzen und für die Überschuss-Kennzahl.",
+      en: "Load minus wind minus solar — what is left when variable generation is subtracted. On the day and month pages this underlies peaks and the surplus figure.",
+    },
+  },
+  {
+    id: "ueberschuss-national",
+    term: { de: "Überschuss (national)", en: "Surplus (national)" },
+    text: {
+      de: "Wind und Sonne liegen über dem bundesweiten Verbrauch. Das Überschuss-Modell auf der Tagesseite lädt nur in solchen Viertelstunden.",
+      en: "Wind and solar exceed nationwide consumption. The surplus model on the day page charges only in those quarter-hours.",
+    },
+  },
+  {
+    id: "kipppunkt-monat",
+    term: { de: "Kipppunkt", en: "Tipping point" },
+    text: {
+      de: "Flottengröße, ab der reines Preisfahren eine neue Monatsspitze erzeugt. Im Oktober-Simulator liegt sie bei etwa ×3,9.",
+      en: "Fleet size from which price-only operation creates a new monthly peak. In the October simulator it is around ×3.9.",
+    },
+  },
+  {
+    id: "kompromiss-70",
+    term: { de: "Kompromiss (70 %)", en: "Compromise (70%)" },
+    text: {
+      de: "Fahrweise auf der Pareto-Front, die mindestens 70 % der möglichen Monatsspitzen-Senkung liefert und dafür möglichst viel Day-Ahead-Erlös behält.",
+      en: "Operating mode on the Pareto front that delivers at least 70% of the possible monthly peak reduction while keeping as much day-ahead revenue as possible.",
+    },
+  },
+  {
+    id: "nep-abc",
+    term: { de: "NEP A / B / C", en: "NEP A / B / C" },
+    text: {
+      de: "Drei Speicherszenarien aus dem Netzentwicklungsplan Strom mit etwa 41, 68 und 94 GW installierter Leistung. Auf /vision werden sie mit einem Jahresrückblick verglichen.",
+      en: "Three storage scenarios from the electricity grid development plan at about 41, 68 and 94 GW installed power. On /vision they are compared with a one-year lookback.",
+    },
+  },
+  {
+    id: "preisrueckwirkung",
+    term: { de: "Preisrückwirkung", en: "Price feedback" },
+    text: {
+      de: "Wenn viele Speicher nach Preis fahren, verändern sie theoretisch die Preise selbst. Das Modell kann das ignorieren (Stresstest) oder grob aus historischen Mustern abschätzen.",
+      en: "When many batteries trade on price, they would in theory change the prices themselves. The model can ignore that (stress test) or roughly estimate it from historical patterns.",
+    },
+  },
+  {
+    id: "fleet-factor",
+    term: { de: "×k", en: "×k" },
+    text: {
+      de: "k-fache heutige Referenzflotte der Großspeicher. ×2 bedeutet doppelt so viel Leistung und Energie wie der Stand aus Battery Charts.",
+      en: "k times today’s large-storage reference fleet. ×2 means twice the power and energy of the Battery Charts stock.",
     },
   },
 ];

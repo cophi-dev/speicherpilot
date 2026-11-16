@@ -31,13 +31,15 @@ export function TagChapter({
     ? `Was am ${dayLabel} im Stromnetz passiert ist`
     : "Was gestern im Stromnetz passiert ist";
 
-  const kernSurplus =
-    surplusGwh >= 0.05
-      ? `${formatQuantity(surplusGwh, "de", 1)} GWh`
-      : "< 0,05 GWh";
+  const hasSurplus = surplusGwh >= 0.05;
+  const kernSurplus = hasSurplus
+    ? `Überschuss: ${formatQuantity(surplusGwh, "de", 1)} GWh`
+    : "Überschuss: unter 0,05 GWh";
   const lead =
     peakGw !== null && peakAt
-      ? `Abendspitze der Residuallast ${formatQuantity(peakGw, "de", 1)} GW um ${peakAt} Uhr.`
+      ? hasSurplus
+        ? `Die Restlast erreichte abends ${formatQuantity(peakGw, "de", 1)} GW um ${peakAt} Uhr.`
+        : `Wind und Sonne lagen den ganzen Tag unter dem Verbrauch. Die Restlast (Verbrauch minus Wind und Sonne) erreichte ${formatQuantity(peakGw, "de", 1)} GW um ${peakAt} Uhr.`
       : "Wind und Sonne decken den Verbrauch nicht durchgehend — die Lücke füllen andere Quellen.";
 
   return (

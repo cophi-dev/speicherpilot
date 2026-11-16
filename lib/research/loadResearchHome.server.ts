@@ -32,6 +32,11 @@ function residualMwFromSlots(slots: ResidualSlot[]): number[] {
   return slots.map((s) => s.loadMw - s.windMw - s.solarMw);
 }
 
+function hoursAboveCapMw(residualMw: number[], capMw: number): number {
+  const quarters = residualMw.filter((v) => v > capMw + 1e-6).length;
+  return Math.round(quarters * 0.25 * 10) / 10;
+}
+
 function peakMeta(slots: ResidualSlot[], residualMw: number[]): { peakGw: number; peakTime: string } {
   let idx = 0;
   let max = residualMw[0] ?? 0;
@@ -79,6 +84,7 @@ function buildDayModel(day: ResidualDay, perspective: ResearchDayPerspective): R
       reductionGw: red.reductionGw,
       capGw: red.capMw / 1000,
       reduction4hGw: red4.reductionGw,
+      hoursAboveCap: hoursAboveCapMw(residualMw, red.capMw),
     };
   });
 

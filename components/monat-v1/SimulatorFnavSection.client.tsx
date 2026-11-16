@@ -35,7 +35,7 @@ export function SimulatorFnavSection({ data }: { data: SimulatorFahrweisenData }
           <p>
             {formatMioEur(endpoints.fnavTimeWindow.revenueMioEur)} · Senkung {formatGw(endpoints.fnavTimeWindow.reductionGw)}
           </p>
-          <p>Identisch mit Max. Erlös — wirkt nicht gegen Mittagsladen.</p>
+          <p>Identisch mit Nur Preis — wirkt nicht gegen Mittagsladen.</p>
         </article>
         <article className={simStyles.fnavCard}>
           <h3>Leistungsdeckel 62{"\u00A0"}GW</h3>
@@ -187,10 +187,10 @@ function KipppunktChart({
       {wide ? (
         <>
           <SvgText x={fx(10) - 8} y={fy(m10) - 8} anchor="end" fill={colors.ink} weight={500}>
-            Max. Erlös {formatGw(m10)}
+            Nur Preis {formatGw(m10)}
           </SvgText>
           <SvgText x={fx(10) - 8} y={fy(n10) + 16} anchor="end" fill={colors.ink} weight={500}>
-            Netzdienlich {formatGw(n10)}
+            Spitze zuerst {formatGw(n10)}
           </SvgText>
           <SvgText x={fx(3.9) + 8} y={fy(m39) - 12} fill={colors.ink} weight={500}>
             neue Spitze ab{"\u00A0"}×3,9
@@ -211,13 +211,13 @@ function KipppunktChart({
       ) : (
         <>
           <SvgText x={fx(10) - 4} y={fy(m10) - 8} anchor="end" fill={colors.ink} weight={500}>
-            Max. Erlös
+            Nur Preis
           </SvgText>
           <SvgText x={fx(10) - 4} y={fy(m10) + 10} anchor="end" fill={colors.ink}>
             {formatGw(m10)}
           </SvgText>
           <SvgText x={fx(10) - 4} y={fy(n10) + 16} anchor="end" fill={colors.ink} weight={500}>
-            Netzdienlich
+            Spitze zuerst
           </SvgText>
           <SvgText x={fx(10) - 4} y={fy(n10) + 34} anchor="end" fill={colors.ink}>
             {formatGw(n10)}

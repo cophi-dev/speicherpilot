@@ -35,7 +35,7 @@ export function weekHeadline(week: ResearchWeekDay[]): string {
   const vals = week.map((d) => d.points.find((p) => p.factor === 2)!.reduction175Gw);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
-  return `Letzte Woche hätte doppelt so viel Speicher die Tagesspitze jeden Tag um ${formatReductionMagnitudeGw(min)} bis ${formatReductionMagnitudeGw(max)} GW gesenkt.`;
+  return `Mit doppelter Flotte (×2) wäre die Tagesspitze letzte Woche jeden Tag um ${formatReductionMagnitudeGw(min)} bis ${formatReductionMagnitudeGw(max)} GW gesunken.`;
 }
 
 export const weekDurationFootnote =
@@ -71,7 +71,7 @@ export function saturationChartAriaLabel(day: ResearchDayModel, perspective: Res
 
 export function weekSectionEyebrow(week: ResearchWeekDay[], perspective: ResearchDayPerspective): string {
   const range = weekRangeLabel(week);
-  if (perspective === "yesterday") return `DIESE WOCHE · ${range} · TAGESHORIZONT`;
+  if (perspective === "yesterday") return `LETZTE 7 TAGE · ${range} · TAGESHORIZONT`;
   return `7 VOLLE TAGE · ${range} · TAGESHORIZONT`;
 }
 
@@ -80,6 +80,12 @@ export function researchIncompleteFootnote(note: ResearchIncompleteDayNote): str
   const weekdayShort = new Intl.DateTimeFormat("de-DE", { weekday: "short", timeZone: "Europe/Berlin" }).format(noon);
   const [, m, d] = note.dateKey.split("-");
   return `Daten für ${weekdayShort}, ${d}.${m}. sind bei Energy-Charts noch unvollständig (${note.quarters}/${note.expected} Viertelstunden); die Seite springt automatisch um, sobald sie vollständig sind.`;
+}
+
+export function heroSpikeDurationLine(hoursAboveCap: number, factor: ResearchFactor): string {
+  const h =
+    hoursAboveCap >= 10 ? Math.round(hoursAboveCap) : (Math.round(hoursAboveCap * 10) / 10).toFixed(1).replace(".", ",");
+  return `Die Abendspitze lag rund ${h} Stunden über der ×${factor}-Linie. Die Flotte hält volle Leistung nur 1,76 h.`;
 }
 
 export function fourHourSensitivityLine(fourhGw: number, tenGw: number, factor?: ResearchFactor): string {

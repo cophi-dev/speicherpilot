@@ -13,10 +13,10 @@ export function paretoTooltipRows(point: SimulatorFrontPoint): ChartTooltipRow[]
 
 export function paretoTooltipTime(point: SimulatorFrontPoint, frontCount: number): string {
   if (point.isMarketLex) {
-    return "Max. Erlös";
+    return "Nur Preis";
   }
   if (point.isNetzLex) {
-    return "Netzdienlich";
+    return "Spitze zuerst";
   }
   if (point.isEps70) {
     return "Kompromiss ε-70";
@@ -63,8 +63,8 @@ export function beispieltagTooltipRows(
 ): ChartTooltipRow[] {
   return [
     { label: "Beobachtet", value: formatGw(market.residualMw / 1000) },
-    { label: "Max. Erlös", value: formatGw(market.residualPrimeMw / 1000) },
-    { label: "Netzdienlich", value: formatGw(netz.residualPrimeMw / 1000) },
+    { label: "Nur Preis", value: formatGw(market.residualPrimeMw / 1000) },
+    { label: "Spitze zuerst", value: formatGw(netz.residualPrimeMw / 1000) },
     { label: "Kompromiss", value: formatGw(komp.residualPrimeMw / 1000) },
     { label: "Preis", value: `${formatDec(market.priceEurMwh, 0)}\u00A0€/MWh` },
   ];
@@ -77,8 +77,8 @@ export function beispieltagTooltipTime(row: SimulatorDispatchRow): string {
 /** Graph 4 / Kipppunkt: Markt- und Netz-Spitze je Flottenfaktor, 2 Dezimalstellen wie formatGw. */
 export function fnavTooltipRows(point: { factor: number; marketPeakGw: number; netzPeakGw: number }): ChartTooltipRow[] {
   return [
-    { label: "Max. Erlös", value: formatGw(point.marketPeakGw) },
-    { label: "Netzdienlich", value: formatGw(point.netzPeakGw) },
+    { label: "Nur Preis", value: formatGw(point.marketPeakGw) },
+    { label: "Spitze zuerst", value: formatGw(point.netzPeakGw) },
   ];
 }
 

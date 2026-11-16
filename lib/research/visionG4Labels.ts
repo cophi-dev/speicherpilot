@@ -34,7 +34,7 @@ export function layoutG4KappeLabels(
     }
   }
   return [
-    { key: "nepC", y: yC, text: `NEP C hält ${formatVisionGwOne(kappeC)} GW` },
+    { key: "nepC", y: yC, text: `NEP C drückt die Spitze bis ${formatVisionGwOne(kappeC)} GW` },
     { key: "nepA", y: yA, text: `NEP A ${formatVisionGwOne(kappeA)}` },
   ];
 }

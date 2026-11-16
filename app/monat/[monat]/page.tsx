@@ -91,7 +91,7 @@ export default async function MonatDetailPage({
   });
   const bars = barsFromMonatGrid(grid);
 
-  const pointe = monatPointe(monat, records);
+  const pointe = monatPointe(monat, records, pageData.todayKey);
   const seriesLine = pointe.footnote.replace(MONAT_SURPLUS_EXPLAIN_DE, "").trim();
   const fleetSlot = nationalFleetMonthAvailable(monat) ? (
     <NationalFleetMonatSlot monthKey={monat} factor={fleetFactor} strategy={fleetStrategy} />

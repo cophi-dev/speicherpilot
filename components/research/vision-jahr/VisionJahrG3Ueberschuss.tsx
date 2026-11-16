@@ -72,7 +72,7 @@ export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrMod
           </text>
         ))}
       </svg>
-      <p className={styles.meta}>Balken: auf Überschuss gefahren · Strich: nach Preis (Rückw. 2,86)</p>
+      <p className={styles.meta}>Balken: auf Überschuss gefahren · Strich: nach Preis, mit grober Preisrückwirkung</p>
       <VisionJahrChartFoot />
     </div>
   );
