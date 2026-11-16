@@ -104,12 +104,14 @@ export default function DatenPage() {
 
         <h2>Lizenz</h2>
         <p>
-          Die Datensätze stehen unter{" "}
+          Die Modellrechnung und die hier angebotenen Aufbereitungsdateien stehen unter{" "}
           <a href={DATEN_LIZENZ.url} rel="license">
             Creative Commons Namensnennung 4.0 International (CC BY 4.0)
           </a>
           . Sie dürfen sie kopieren, verändern und auch kommerziell nutzen, wenn Sie SpeicherPilot als
-          Quelle nennen und auf diese Seite verlinken.
+          Quelle nennen und auf diese Seite verlinken. Die zugrunde liegenden Reihen von Energy-Charts
+          (Fraunhofer ISE), der Bundesnetzagentur (SMARD.de) und battery-charts (RWTH) bleiben unter
+          ihrer jeweiligen Lizenz; die Pflicht zur Namensnennung dieser Quellen gilt weiter.
         </p>
         <p>{DATEN_QUELLENZEILE}</p>
 
@@ -122,6 +124,20 @@ export default function DatenPage() {
           <li>
             Speicher sind gerechnet, nicht gemessen: Wirkungsgrad 85 %, Ladestand 10–90 %, Start und
             Ende bei 50 %.
+          </li>
+          <li>
+            Die Monatssenkung in der Stufen-Datei ist die Senkung der jeweiligen Monatsspitze, nicht
+            ein Anteil an der Jahressenkung. Die Summe der Monate ist nicht die Jahressenkung.
+          </li>
+          <li>
+            Der Jahresdatensatz rechnet mit 4,70&nbsp;GW / 8,27&nbsp;GWh (battery-charts, 16.11.2026).
+            Die Oktober-Datei nutzt eine ältere Modellreferenz von 4,58&nbsp;GW / 8&nbsp;GWh. Die
+            beiden Stände nicht mischen.
+          </li>
+          <li>
+            Der Jahresdatensatz (Stand 16.11.2026) ist vor der Regel „bei gleicher Spitze so flach
+            wie möglich laden“ gerechnet. Die Senkung der Jahresspitze ändert sich dadurch
+            typischerweise nicht, die Tagesform der Last schon.
           </li>
           <li>
             Laden ist neue Last. Fährt eine große Flotte nach Day-Ahead-Preis, kann sie die

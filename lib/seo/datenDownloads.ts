@@ -84,8 +84,9 @@ export function buildStufenCsv(origin: string): string {
     csvKopf(origin, [
       `Zeitraum ${DATEN_ZEITRAUM}, 35 040 Viertelstunden, national (Deutschland).`,
       "Restlast = Last minus Wind minus Solar. Fahrweise: minimale Jahresspitze der Restlast mit Vollvoraussicht (Obergrenze der Wirkung).",
-      "Stufe = Gesamtflotte (x2/x5/x10 = Vielfaches des Bestands 4,70 GW / 8,27 GWh; NEP A/B/C = 41,1/67,6/94,1 GW). Wirkungsgrad 85 %, SoC 10–90 %.",
-      "Erster und letzter Monat sind Teilmonate (16.–30.11.2025, 01.–15.11.2026). Modellrechnung, kein (n-1), keine Beratung.",
+      "Stufe = Gesamtflotte (x2/x5/x10 = Vielfaches des Bestands 4,70 GW / 8,27 GWh, battery-charts 16.11.2026; NEP A/B/C = 41,1/67,6/94,1 GW). Wirkungsgrad 85 %, SoC 10–90 %.",
+      "senkung_YYYY-MM_gw ist die Senkung der jeweiligen Monatsspitze, nicht ein Anteil an der Jahressenkung. Die Summe der Monate ist nicht die Jahressenkung.",
+      "Erster und letzter Monat sind Teilmonate (16.–30.11.2025, 01.–15.11.2026). Jahresdatensatz vor der Regel, bei gleicher Spitze so flach wie möglich zu laden. Modellrechnung, kein (n-1), keine Beratung.",
     ]),
     header.join(","),
     ...rows,
@@ -113,7 +114,8 @@ export function buildOktoberFahrweisenCsv(origin: string): string {
   ).trim();
   return [
     csvKopf(origin, [
-      "Oktober 2026, national: Restlastspitze vorher/nachher je Fahrweise und Flottenstufe (factor = Gesamtflotte als Vielfaches des Bestands, 1 = 4,58 GW / 8 GWh).",
+      "Oktober 2026, national: Restlastspitze vorher/nachher je Fahrweise und Flottenstufe (factor = Gesamtflotte als Vielfaches des Bestands, 1 = 4,58 GW / 8 GWh, ältere Modellreferenz).",
+      "Diese Oktober-Referenzflotte (4,58 GW / 8 GWh) nicht mit der Jahresflotte 4,70 GW / 8,27 GWh (battery-charts, 16.11.2026) mischen.",
       "strategy: min_peak_perfect_foresight = spitzenorientiert mit Vollvoraussicht; price_oriented_da_arbitrage = nach Day-Ahead-Preis; surplus_wind_solar_over_load = lädt nur Überschuss.",
       "Modellrechnung. Positive reduction_gw = Spitze sinkt; negative Werte = Spitze steigt durch Laden (neue Last).",
     ]),
@@ -131,7 +133,7 @@ export function buildJahrJson(origin: string): string {
       lizenz_url: DATEN_LIZENZ.schemaUrl,
       zitiervorschlag: zitiervorschlag(origin),
       hinweis:
-        "Modellrechnung, national aggregiert, kein (n-1), keine Abregelung. Spitzenorientierte Fahrweise mit Vollvoraussicht = Obergrenze.",
+        "Modellrechnung, national aggregiert, kein (n-1), keine Abregelung. Spitzenorientierte Fahrweise mit Vollvoraussicht = Obergrenze. Jahresflotte 4,70 GW / 8,27 GWh (battery-charts, 16.11.2026), nicht mit der Oktober-Referenz 4,58 GW / 8 GWh mischen. Monatssenkungen sind keine Zerlegung der Jahressenkung. Datensatz Stand 16.11.2026, gerechnet vor der Regel, bei gleicher Spitze so flach wie möglich zu laden.",
       daten: datenJahr,
     },
     null,
@@ -144,7 +146,7 @@ export const DATEN_DATEIEN: DatenDatei[] = [
     slug: "speicherpilot-jahr-stufen.csv",
     titel: "Jahreswirkung je Flottenstufe",
     beschreibung:
-      "Senkung der nationalen Restlastspitze je Flottenstufe (x2, x5, x10, NEP A/B/C) bei 1,76 h und 4 h Speicherdauer, Jahr und je Monat.",
+      "Senkung der nationalen Restlastspitze je Flottenstufe (x2, x5, x10, NEP A/B/C) bei 1,76 h und 4 h Speicherdauer, Jahr und je Monat. Die Monatssenkung ist nicht ein Anteil an der Jahressenkung.",
     format: "CSV",
     mime: "text/csv; charset=utf-8",
     build: buildStufenCsv,
@@ -161,7 +163,7 @@ export const DATEN_DATEIEN: DatenDatei[] = [
     slug: "speicherpilot-oktober-2026-fahrweisen.csv",
     titel: "Oktober 2026 je Fahrweise",
     beschreibung:
-      "Restlastspitze vorher/nachher, Lade- und Entlademengen je Fahrweise (spitzenorientiert, nach Preis, nur Überschuss) und Flottenstufe.",
+      "Restlastspitze vorher/nachher, Lade- und Entlademengen je Fahrweise (spitzenorientiert, nach Preis, nur Überschuss) und Flottenstufe. Referenzflotte 4,58 GW / 8 GWh, nicht mit der Jahresflotte 4,70 GW / 8,27 GWh mischen.",
     format: "CSV",
     mime: "text/csv; charset=utf-8",
     build: buildOktoberFahrweisenCsv,
