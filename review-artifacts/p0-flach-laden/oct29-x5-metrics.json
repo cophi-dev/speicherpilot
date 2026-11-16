@@ -1,0 +1,51 @@
+{
+  "day": "2026-10-29",
+  "factor": 5,
+  "horizon": "day",
+  "socStartEndFraction": 0.5,
+  "modelFleet": {
+    "basePowerMw": 4644.09022,
+    "baseEnergyMwh": 8152.4588,
+    "asOfBerlin": "2026-10-31",
+    "source": "battery-charts Großspeicher",
+    "additionalPowerMw": 18576.36088,
+    "additionalEnergyMwh": 32609.8352
+  },
+  "plausibilityNoteDe": "55,608 GW = Tageshorizont ×5, SoC 50/50, Flotte 4,64 GW / 8,15 GWh (31.10.). Konzept-Mock ~55,0 GW kann abweichen (4,70/8,27-Rundung, anderer Plot-Kontext). Oktober-Sharded-Monat 54,99 GW am 29.10. = Monatslauf mit durchgehendem SoC, nicht Tageshorizont.",
+  "peakBeforeMw": 64405.9,
+  "peakAfterOldMw": 55608.371670253415,
+  "peakAfterNewMw": 55608.42167025342,
+  "peakDeltaMw": 0.05000000000291038,
+  "peakTimeNew": "2026-10-29T06:15:00+01:00",
+  "peakTimeMeasured": "2026-10-29T18:15:00+01:00",
+  "peakNewAtMeasuredMw": 55608.42167025342,
+  "maxChargeOldMw": 17737.171670253418,
+  "maxChargeNewMw": 7117.521670253416,
+  "sumChargeOldMwh": 43005.60502152048,
+  "sumChargeNewMwh": 30832.23576005036,
+  "stdChargeOutsideEveningOldMw": 4462.541413028566,
+  "stdChargeOutsideEveningNewMw": 981.9243985704721,
+  "energyBalanceOld": {
+    "sumChargeGridMwh": 43005.60502152048,
+    "sumDischargeGridMwh": 36554.764268292354,
+    "sumChargeBatteryMwh": 39649.20874086863,
+    "sumDischargeBatteryMwh": 39649.20874086857,
+    "socDeltaMwh": 0.0,
+    "balanceResidueMwh": 5.820766091346741e-11,
+    "ok": true
+  },
+  "energyBalanceNew": {
+    "sumChargeGridMwh": 30832.23576005036,
+    "sumDischargeGridMwh": 26207.400396042845,
+    "sumChargeBatteryMwh": 28425.916830751987,
+    "sumDischargeBatteryMwh": 28425.916830752027,
+    "socDeltaMwh": 0.0,
+    "balanceResidueMwh": -4.001776687800884e-11,
+    "ok": true
+  },
+  "lexToleranceMw": 0.05,
+  "smoothMwhPerMwRamp": 0.05,
+  "oldEngine": "solve_min_peak (MIP Stufe 1, kein lex flach)",
+  "newEngine": "solve_min_peak_flat (MIP Stufe 1 + LP Stufe 2)",
+  "greedyArtifactNote": "Greedy unter Kappenwert klemmt R′ im Tagesverlauf auf die Kappe — kein Abbild des alten MIP; deshalb entfällt er als Vorher-Referenz."
+}
