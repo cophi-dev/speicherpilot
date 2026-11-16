@@ -1,7 +1,7 @@
-import Script from "next/script";
+/** Synchronous first-paint theme (localStorage / system). Keep tiny — runs in <head> before CSS paint. */
+export const THEME_INIT_SCRIPT_ID = "speicherpilot-theme-init";
 
-const SCRIPT = `
-(() => {
+export const THEME_INIT_SCRIPT = `(() => {
   try {
     const STORAGE = "speicherpilot-theme";
     const LEGACY = "bessforge-theme";
@@ -24,7 +24,3 @@ const SCRIPT = `
     /* ignore */
   }
 })();`;
-
-export function ThemeInitScript() {
-  return <Script id="speicherpilot-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: SCRIPT }} />;
-}

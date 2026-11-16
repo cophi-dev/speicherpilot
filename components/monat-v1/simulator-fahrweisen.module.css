@@ -254,6 +254,12 @@
   display: inline-block;
 }
 
+:global(html.dark) .chipEntwurf {
+  color: #e8eaed;
+  border-color: #b8bec5;
+  background: #1a1d21;
+}
+
 .simulatorRoot {
   border-top: none;
   padding-top: 0;

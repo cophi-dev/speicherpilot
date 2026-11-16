@@ -7,17 +7,18 @@
   --research-dim: #6b7178;
   --research-line: #1e2226;
   --research-card: #121518;
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 0 20px 48px;
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: 0 var(--page-gutter) 48px;
+  box-sizing: border-box;
 }
 
 :global(html.dark) .page {
   background: var(--research-bg);
-  /* Vollflächig ohne 100vw: vw zählt die Scrollleiste mit und verschob den Inhalt beim Umschalten. */
   max-width: none;
-  padding-left: max(20px, calc(50% - 660px));
-  padding-right: max(20px, calc(50% - 660px));
+  padding-left: max(var(--page-gutter), calc((100% - var(--page-max)) / 2 + var(--page-gutter)));
+  padding-right: max(var(--page-gutter), calc((100% - var(--page-max)) / 2 + var(--page-gutter)));
 }
 
 :global(html:not(.dark)) .page {
@@ -64,14 +65,17 @@
   max-width: 36em;
 }
 
-.heroRow {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.heroIntro {
+  min-width: 0;
+}
+
+.heroMain {
+  min-width: 0;
 }
 
 .heroAside {
   width: 100%;
+  margin-bottom: 8px;
 }
 
 .heroNum {
@@ -175,18 +179,31 @@
 }
 
 @media (min-width: 1024px) {
-  .heroRow {
+  .page {
     display: grid;
     grid-template-columns: 1fr minmax(280px, 420px);
-    gap: 48px;
+    column-gap: 48px;
     align-items: end;
   }
 
-  .heroAside {
-    text-align: right;
+  .heroIntro {
+    grid-column: 1;
+    grid-row: 1;
   }
 
-  .h1 {
+  .page > .heroAside {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+    margin-bottom: 0;
+  }
+
+  .page > .heroMain {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .heroIntro .h1 {
     font-size: var(--type-display);
     line-height: 1.08;
   }

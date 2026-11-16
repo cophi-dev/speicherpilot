@@ -4,7 +4,7 @@ import "./globals.css";
 import { jetbrainsMono, spaceGrotesk } from "@/app/fonts";
 import { SiteShell } from "@/components/site-shell";
 import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
-import { ThemeInitScript } from "@/components/ThemeInitScript";
+import { THEME_INIT_SCRIPT, THEME_INIT_SCRIPT_ID } from "@/lib/themeInitInline";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 import { BUILD_PROVENANCE } from "@/lib/buildProvenance.generated";
 import { SITE_DESCRIPTION, SITE_TITLE, socialMeta } from "@/lib/siteOg";
@@ -43,6 +43,12 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${jetbrainsMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          id={THEME_INIT_SCRIPT_ID}
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
+      </head>
       <body className="min-h-full bg-background text-foreground">
         {/* speicherpilot-build:commit=${BUILD_PROVENANCE.commit}:build=${BUILD_PROVENANCE.buildId} */}
         <span
@@ -52,7 +58,6 @@ export default async function RootLayout({
           data-source-sha={BUILD_PROVENANCE.commit}
           data-build-id={BUILD_PROVENANCE.buildId}
         />
-        <ThemeInitScript />
         <SiteShell navShortcuts={navShortcuts}>{children}</SiteShell>
         {/* Cloudflare Web Analytics: cookielos, nur zusammengefasste Seitenaufrufe */}
         <Script
