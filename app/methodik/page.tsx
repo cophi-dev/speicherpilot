@@ -7,7 +7,7 @@ import { MethodikPreisFenster } from "@/components/methodik/MethodikPreisFenster
 import { loadLargeBatteryFleet } from "@/lib/loadLargeBatteryFleet";
 
 const methodikDescription =
-  "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells, einschließlich Simulator (ε-70, Kipppunkt, Rechtsrahmen).";
+  "Annahmen, Formeln und Grenzen des SpeicherPilot-Modells, einschließlich Kompromiss (ε-70, Kipppunkt, Rechtsrahmen).";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;

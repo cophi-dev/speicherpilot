@@ -3,7 +3,7 @@ import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { berlinMonthKeyFromDateKey, monthsWithData } from "@/lib/monatCalendar";
 import { BUILD_PROVENANCE } from "@/lib/buildProvenance.generated";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
-import { tagRollSnapshotNewestFrozenDay } from "@/lib/tagRollSnapshotPolicy";
+import { pickLastCompleteDayKey } from "@/lib/completeBerlinDay";
 import { loadTagRollSnapshot } from "@/lib/tagRollSnapshot.server";
 
 const VORLAUF_INDEX_EXCLUSIVE = 30;
@@ -22,7 +22,7 @@ export function collectIndexableRoutes(now = new Date()): IndexableRoute[] {
   const buildModified = new Date(BUILD_PROVENANCE.builtAt);
   const snapshotModified = snap.builtAt ? new Date(snap.builtAt) : buildModified;
   const todayKey = formatBerlinDateKeyFromUtcDate(now);
-  const newestFrozen = tagRollSnapshotNewestFrozenDay(todayKey);
+  const lastCompleteDayKey = pickLastCompleteDayKey(snap.days, todayKey);
   const dataStandModified = Math.max(snapshotModified.getTime(), buildModified.getTime());
 
   const routes: IndexableRoute[] = [
@@ -45,7 +45,7 @@ export function collectIndexableRoutes(now = new Date()): IndexableRoute[] {
   const records = snap.records;
   for (let index = VORLAUF_INDEX_EXCLUSIVE; index < records.length; index += 1) {
     const dayKey = records[index]!.dateKey;
-    if (dayKey > newestFrozen || dayKey === todayKey) {
+    if (dayKey > lastCompleteDayKey || dayKey >= todayKey) {
       continue;
     }
     routes.push({
@@ -54,7 +54,7 @@ export function collectIndexableRoutes(now = new Date()): IndexableRoute[] {
     });
   }
 
-  const lastComplete = records[records.length - 1]?.dateKey ?? newestFrozen;
+  const lastComplete = records[records.length - 1]?.dateKey ?? lastCompleteDayKey;
   for (const monthKey of monthsWithData(records)) {
     routes.push({
       path: `/monat/${monthKey}`,

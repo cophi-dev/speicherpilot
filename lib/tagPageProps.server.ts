@@ -7,6 +7,7 @@ import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 import {
   monthStatsForRun,
   nationalFleetMonthAvailable,
+  nationalFleetMonthKeyForDay,
   parseFleetFactor,
   sliceFleetDay,
   type NationalFleetStrategyUi,
@@ -83,8 +84,11 @@ export async function loadCompleteTagPageModel(
 
   const fleetFactor = parseFleetFactor(query.faktor);
   const fleetStrategy: NationalFleetStrategyUi = "spitze";
-  const fleetMonth = nationalFleetMonthAvailable(datum.slice(0, 7));
-  const fleetRun = fleetMonth ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy) : null;
+  const fleetMonthKey = nationalFleetMonthKeyForDay(datum);
+  const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
+  const fleetRun = fleetMonth
+    ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey: datum })
+    : null;
   const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, datum) : null;
 
   const leitfrage = opts.isStartSurface
@@ -125,9 +129,10 @@ export async function loadCompleteTagPageModel(
             run: fleetRun,
             slice: fleetSlice,
             monthStats: monthStatsForRun(
-              nationalFleetContext(fleetFactor, fleetStrategy),
+              nationalFleetContext(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey: datum }),
               fleetFactor,
               fleetStrategy,
+              fleetRun,
             ),
             showPeakWithoutSurplus:
               fleetStrategy === "spitze" &&

@@ -87,7 +87,9 @@ function SinglePanel({
   yTickValues?: number[];
 }) {
   const ySpan = yMax - yMin || 1;
-  const yAt = (v: number, h: number, pad: number) => pad + ((yMax - v) / ySpan) * (h - 2 * pad);
+  const padTop = 14;
+  const padBottom = 6;
+  const yAt = (v: number, h: number) => padTop + ((yMax - v) / ySpan) * (h - padTop - padBottom);
   const ticks = yTickValues ?? [];
   return (
     <div className="v4-fleet-ts-panel">
@@ -97,14 +99,15 @@ function SinglePanel({
           {formatQuantity(yMin, "de", 1)}–{formatQuantity(yMax, "de", 1)} {unit}
         </span>
       </div>
-      <svg width={width} height={height} className="v4-fleet-ts-svg" aria-hidden="true">
+      <svg width={width} height={height} className="v4-fleet-ts-svg" aria-hidden="true" overflow="visible">
         {ticks.length > 0
           ? ticks.map((v) => {
-              const y = yAt(v, height, 6);
+              const y = yAt(v, height);
+              const labelY = Math.max(padTop - 4, y - 4);
               return (
                 <g key={v}>
                   <line x1={0} y1={y} x2={width} y2={y} className="v4-fleet-ts-grid" />
-                  <text x={4} y={y - 2} className="v4-fleet-ts-ytick num">
+                  <text x={4} y={labelY} className="v4-fleet-ts-ytick num">
                     {formatQuantity(v, "de", 1)}
                   </text>
                 </g>
@@ -301,8 +304,8 @@ export function NationalFleetTimeSeriesChart({
     tagesvorlageDay && isDay ? 140 : prominentMonth && !isDay ? (monthNarrow ? 194 : 124) : isDay ? 104 : 92;
   const auxPanelH = prominentMonth && !isDay ? (monthNarrow ? 116 : 88) : panelH;
   const auxScaleH = prominentMonth && !isDay ? 124 : panelH;
-  const pad = 6;
   const xs = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
+  const pad = isDay && tagesvorlageDay ? 14 : 6;
   const rScale = isDay
     ? dayResidualLoadScale(points, compareRp, panelH, pad)
     : scaleLinear(
@@ -343,7 +346,8 @@ export function NationalFleetTimeSeriesChart({
     points.length > 0
       ? Math.max(...points.map((p) => p.socGwh)) - Math.min(...points.map((p) => p.socGwh))
       : 0;
-  const hideAuxPanels = (tagesvorlageDay && isDay) || (isDay && showPowerNote && socSpanGwh < 0.12);
+  const hideAuxPanels = tagesvorlageDay && isDay;
+  const showEmptyScenarioNote = isDay && showPowerNote && socSpanGwh < 0.12;
   const bands =
     tagesvorlageDay && isDay && factor !== 1
       ? fleetBandPaths(points, xs, rScale.y, rScale.y, pxPerQh / 2)
@@ -388,7 +392,7 @@ export function NationalFleetTimeSeriesChart({
       {tagesvorlageDay && isDay && scrollHint ? (
         <p className="v4-fleet-tageshorizont num">{scrollHint}</p>
       ) : null}
-      {hideAuxPanels ? (
+      {showEmptyScenarioNote ? (
         <p className="v4-fleet-ts-power-note num">
           Keine nennenswerte Lade- oder Entladeleistung und kaum SoC-Bewegung in diesem Szenario — die Restlast oben zeigt
           trotzdem die Modellwirkung. Leistungs- und SoC-Diagramm ausgeblendet.

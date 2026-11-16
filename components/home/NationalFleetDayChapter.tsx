@@ -11,8 +11,8 @@ import {
 import {
   fleetTagHref,
   NATIONAL_FLEET_FACTORS,
-  NATIONAL_FLEET_MONTH_KEY,
   NATIONAL_FLEET_STRATEGY_UI,
+  nationalFleetMonthKeyForDay,
   sliceFleetDay,
   type NationalFleetDaySlice,
   type NationalFleetFactor,
@@ -20,6 +20,10 @@ import {
   type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
+import {
+  NATIONAL_REFERENCE_FLEET_ENERGY_GWH,
+  NATIONAL_REFERENCE_FLEET_POWER_GW,
+} from "@/lib/nationalFleetReference";
 import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
 import Link from "next/link";
 
@@ -29,9 +33,11 @@ function saturationSlices(dayKey: string): {
   x10: NationalFleetDaySlice | null;
 } {
   const strategy: NationalFleetStrategyUi = "spitze";
-  const x1 = sliceFleetDay(loadNationalFleetRunSeries(1, strategy), dayKey);
-  const x5 = sliceFleetDay(loadNationalFleetRunSeries(5, strategy), dayKey);
-  const x10 = sliceFleetDay(loadNationalFleetRunSeries(10, strategy), dayKey);
+  const monthKey = nationalFleetMonthKeyForDay(dayKey);
+  const loadOpts = { monthKey, dayKey };
+  const x1 = sliceFleetDay(loadNationalFleetRunSeries(1, strategy, loadOpts), dayKey);
+  const x5 = sliceFleetDay(loadNationalFleetRunSeries(5, strategy, loadOpts), dayKey);
+  const x10 = sliceFleetDay(loadNationalFleetRunSeries(10, strategy, loadOpts), dayKey);
   return { x1, x5, x10 };
 }
 
@@ -52,6 +58,7 @@ export function NationalFleetDayChapter({
   const peakRpGw = slice.maxRPrimeMw / 1000;
   const peakRGw = slice.maxRMw / 1000;
   const peakReductionDayGw = peakRGw - peakRpGw;
+  const monthKey = nationalFleetMonthKeyForDay(dayKey);
   const { x1, x5, x10 } = saturationSlices(dayKey);
   const showSaturation = shouldShowFleetSaturationHint(x1, x5, x10);
 
@@ -81,8 +88,9 @@ export function NationalFleetDayChapter({
               <Link
                 key={f}
                 href={fleetTagHref(dayKey, f, strategy)}
+                role="button"
+                aria-pressed={f === factor}
                 className={`v4-fleet-pill${f === factor ? " is-active" : ""}${f === 1 ? " is-measured" : ""}`}
-                aria-current={f === factor ? "true" : undefined}
               >
                 {f === 1 ? "×1 heute" : `×${f}`}
               </Link>
@@ -94,8 +102,9 @@ export function NationalFleetDayChapter({
           <div className="v4-fleet-strategy-row">
             <Link
               href={fleetTagHref(dayKey, factor, "spitze")}
+              role="button"
+              aria-pressed={strategy === "spitze"}
               className={`v4-fleet-pill v4-fleet-pill-wide${strategy === "spitze" ? " is-active" : ""}`}
-              aria-current={strategy === "spitze" ? "true" : undefined}
               title="senkt die bundesweite Restlast-Spitze"
             >
               Spitze
@@ -109,11 +118,12 @@ export function NationalFleetDayChapter({
       </div>
 
       <p className="v4-content v4-fleet-energy-context num">
-        Referenzflotte ×1: {formatQuantity(monthStats.fleetPowerGw, "de", 2)} GW · 8,27 GWh nutzbare Energie
+        Referenzflotte ×1: {formatQuantity(NATIONAL_REFERENCE_FLEET_POWER_GW, "de", 2)} GW ·{" "}
+        {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)} GWh nutzbare Energie
       </p>
 
       <NationalFleetTimeSeriesChart
-        monthKey={NATIONAL_FLEET_MONTH_KEY}
+        monthKey={monthKey}
         factor={factor}
         strategy={strategy}
         dateKey={dayKey}

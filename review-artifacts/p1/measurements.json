@@ -4,88 +4,48 @@
     "width": 1280,
     "status": 200,
     "file": "start-1280.png",
-    "minTypoPx": 12,
+    "minTypoPx": 13.3333,
     "minTypoPass": true,
     "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 0
-  },
-  {
-    "path": "/",
-    "width": 1024,
-    "status": 200,
-    "file": "start-1024.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": null,
-    "minGapPass": true,
-    "horizontalClipRegions": 0
-  },
-  {
-    "path": "/",
-    "width": 768,
-    "status": 200,
-    "file": "start-768.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": null,
-    "minGapPass": true,
-    "horizontalClipRegions": 0
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   },
   {
     "path": "/",
     "width": 390,
     "status": 200,
     "file": "start-390.png",
-    "minTypoPx": 12,
+    "minTypoPx": 13.3333,
     "minTypoPass": true,
     "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 0
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   },
   {
-    "path": "/tag/2026-10-29",
+    "path": "/tag/2026-11-15",
     "width": 1280,
     "status": 200,
-    "file": "tag_2026-10-29-1280.png",
-    "minTypoPx": 12,
+    "file": "tag_2026-11-15-1280.png",
+    "minTypoPx": 13.3333,
     "minTypoPass": true,
-    "minGapPx": 12,
+    "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 1
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   },
   {
-    "path": "/tag/2026-10-29",
-    "width": 1024,
-    "status": 200,
-    "file": "tag_2026-10-29-1024.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": 12,
-    "minGapPass": true,
-    "horizontalClipRegions": 1
-  },
-  {
-    "path": "/tag/2026-10-29",
-    "width": 768,
-    "status": 200,
-    "file": "tag_2026-10-29-768.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": 12,
-    "minGapPass": true,
-    "horizontalClipRegions": 1
-  },
-  {
-    "path": "/tag/2026-10-29",
+    "path": "/tag/2026-11-15",
     "width": 390,
     "status": 200,
-    "file": "tag_2026-10-29-390.png",
-    "minTypoPx": 12,
+    "file": "tag_2026-11-15-390.png",
+    "minTypoPx": 13.3333,
     "minTypoPass": true,
-    "minGapPx": 12,
+    "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 1
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   },
   {
     "path": "/jahr",
@@ -96,29 +56,8 @@
     "minTypoPass": true,
     "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 0
-  },
-  {
-    "path": "/jahr",
-    "width": 1024,
-    "status": 200,
-    "file": "jahr-1024.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": null,
-    "minGapPass": true,
-    "horizontalClipRegions": 0
-  },
-  {
-    "path": "/jahr",
-    "width": 768,
-    "status": 200,
-    "file": "jahr-768.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": null,
-    "minGapPass": true,
-    "horizontalClipRegions": 0
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   },
   {
     "path": "/jahr",
@@ -129,7 +68,8 @@
     "minTypoPass": true,
     "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 0
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   },
   {
     "path": "/kompromiss",
@@ -140,29 +80,8 @@
     "minTypoPass": true,
     "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 0
-  },
-  {
-    "path": "/kompromiss",
-    "width": 1024,
-    "status": 200,
-    "file": "kompromiss-1024.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": null,
-    "minGapPass": true,
-    "horizontalClipRegions": 0
-  },
-  {
-    "path": "/kompromiss",
-    "width": 768,
-    "status": 200,
-    "file": "kompromiss-768.png",
-    "minTypoPx": 12,
-    "minTypoPass": true,
-    "minGapPx": null,
-    "minGapPass": true,
-    "horizontalClipRegions": 0
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   },
   {
     "path": "/kompromiss",
@@ -173,6 +92,151 @@
     "minTypoPass": true,
     "minGapPx": null,
     "minGapPass": true,
-    "horizontalClipRegions": 0
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/?faktor=1",
+    "width": 1280,
+    "status": 200,
+    "file": "_faktor=1-1280.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/?faktor=1",
+    "width": 390,
+    "status": 200,
+    "file": "_faktor=1-390.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/?faktor=2",
+    "width": 1280,
+    "status": 200,
+    "file": "_faktor=2-1280.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/?faktor=2",
+    "width": 390,
+    "status": 200,
+    "file": "_faktor=2-390.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/?faktor=10",
+    "width": 1280,
+    "status": 200,
+    "file": "_faktor=10-1280.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/?faktor=10",
+    "width": 390,
+    "status": 200,
+    "file": "_faktor=10-390.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/tag/2026-11-15?faktor=1",
+    "width": 1280,
+    "status": 200,
+    "file": "tag_2026-11-15_faktor=1-1280.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/tag/2026-11-15?faktor=1",
+    "width": 390,
+    "status": 200,
+    "file": "tag_2026-11-15_faktor=1-390.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/tag/2026-11-15?faktor=2",
+    "width": 1280,
+    "status": 200,
+    "file": "tag_2026-11-15_faktor=2-1280.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/tag/2026-11-15?faktor=2",
+    "width": 390,
+    "status": 200,
+    "file": "tag_2026-11-15_faktor=2-390.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/tag/2026-11-15?faktor=10",
+    "width": 1280,
+    "status": 200,
+    "file": "tag_2026-11-15_faktor=10-1280.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
+  },
+  {
+    "path": "/tag/2026-11-15?faktor=10",
+    "width": 390,
+    "status": 200,
+    "file": "tag_2026-11-15_faktor=10-390.png",
+    "minTypoPx": 13.3333,
+    "minTypoPass": true,
+    "minGapPx": null,
+    "minGapPass": true,
+    "horizontalClipRegions": 0,
+    "measuredStroke": null
   }
 ]

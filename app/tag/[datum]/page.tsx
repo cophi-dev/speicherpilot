@@ -166,8 +166,11 @@ export default async function TagDetailPage({
 
   const fleetFactor = parseFleetFactor(typeof query.faktor === "string" ? query.faktor : undefined);
   const fleetStrategy = "spitze" as const;
-  const fleetMonth = nationalFleetMonthAvailable(dayKey.slice(0, 7));
-  const fleetRun = fleetMonth ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy) : null;
+  const fleetMonthKey = dayKey.slice(0, 7);
+  const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
+  const fleetRun = fleetMonth
+    ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey })
+    : null;
   const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, dayKey) : null;
   const fleetDayNoWindSolarSurplusFlag = fleetDayNoWindSolarSurplus(fleetSlice);
   const fleetSoGerechnet =
@@ -178,7 +181,12 @@ export default async function TagDetailPage({
           strategy: fleetStrategy,
           run: fleetRun,
           slice: fleetSlice,
-          monthStats: monthStatsForRun(nationalFleetContext(fleetFactor, fleetStrategy), fleetFactor, fleetStrategy),
+          monthStats: monthStatsForRun(
+            nationalFleetContext(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey }),
+            fleetFactor,
+            fleetStrategy,
+            fleetRun,
+          ),
           showPeakWithoutSurplus:
             fleetStrategy === "spitze" && fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
         }

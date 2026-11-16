@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  NATIONAL_FLEET_MONTH_KEY,
   runKey,
   type NationalFleetFactor,
   type NationalFleetMonthBundle,
@@ -10,58 +11,130 @@ import {
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
 
-const ROOT = join(process.cwd(), "data/national-fleet/2026-10");
-
 export type NationalFleetBundleMeta = Omit<NationalFleetMonthBundle, "runs">;
 
-let cachedMeta: NationalFleetBundleMeta | null = null;
-const runCache = new Map<string, NationalFleetRunSeries>();
-let cachedMonolith: NationalFleetMonthBundle | null = null;
+export type NationalFleetLoadOpts = {
+  monthKey?: string;
+  /** Bevorzugt TAGESHORIZONT unter days/{dayKey}/, sonst Monatslauf. */
+  dayKey?: string;
+};
 
-export function loadNationalFleetBundleMeta(): NationalFleetBundleMeta {
-  if (cachedMeta) {
-    return cachedMeta;
+const metaCache = new Map<string, NationalFleetBundleMeta>();
+const runCache = new Map<string, NationalFleetRunSeries>();
+const monolithCache = new Map<string, NationalFleetMonthBundle>();
+
+function fleetMonthRoot(monthKey: string): string {
+  return join(process.cwd(), "data/national-fleet", monthKey);
+}
+
+export function discoverNationalFleetMonthKeys(): string[] {
+  const base = join(process.cwd(), "data/national-fleet");
+  try {
+    return readdirSync(base, { withFileTypes: true })
+      .filter((d) => d.isDirectory() && existsSync(join(base, d.name, "manifest.json")))
+      .map((d) => d.name)
+      .sort();
+  } catch {
+    return [NATIONAL_FLEET_MONTH_KEY];
   }
-  const path = join(ROOT, "fleet-month-meta.json");
-  cachedMeta = JSON.parse(readFileSync(path, "utf8")) as NationalFleetBundleMeta;
-  return cachedMeta;
+}
+
+export function nationalFleetDataMonthAvailable(monthKey: string): boolean {
+  return existsSync(join(fleetMonthRoot(monthKey), "manifest.json"));
+}
+
+function normalizeFleetRun(raw: Record<string, unknown>): NationalFleetRunSeries {
+  const run = { ...raw } as NationalFleetRunSeries & Record<string, unknown>;
+  delete run.horizon;
+  delete run.dateBerlin;
+  delete run.modelFleet;
+  delete (run as { provenance?: unknown }).provenance;
+  if (typeof run.sourceSha256 !== "string") {
+    run.sourceSha256 = "";
+  }
+  return run;
+}
+
+export function loadNationalFleetBundleMeta(monthKey = NATIONAL_FLEET_MONTH_KEY): NationalFleetBundleMeta {
+  const hit = metaCache.get(monthKey);
+  if (hit) {
+    return hit;
+  }
+  const root = fleetMonthRoot(monthKey);
+  const metaPath = join(root, "fleet-month-meta.json");
+  if (existsSync(metaPath)) {
+    const meta = JSON.parse(readFileSync(metaPath, "utf8")) as NationalFleetBundleMeta;
+    metaCache.set(monthKey, meta);
+    return meta;
+  }
+  const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8")) as Record<string, unknown>;
+  const stub: NationalFleetBundleMeta = {
+    monthKey,
+    bundleId: String(manifest.bundleId ?? monthKey),
+    provenance: (manifest.provenance as Record<string, unknown>) ?? {},
+    summary: {},
+    marginal: [],
+    physics: (manifest.physics as Record<string, unknown>) ?? {},
+  };
+  metaCache.set(monthKey, stub);
+  return stub;
 }
 
 export function loadNationalFleetRunSeries(
   factor: NationalFleetFactor,
   strategy: NationalFleetStrategyUi,
+  opts: NationalFleetLoadOpts = {},
 ): NationalFleetRunSeries {
+  const monthKey = opts.monthKey ?? opts.dayKey?.slice(0, 7) ?? NATIONAL_FLEET_MONTH_KEY;
   const key = runKey(factor, strategy);
-  const hit = runCache.get(key);
+  const cacheId = `${monthKey}:${opts.dayKey ?? ""}:${key}`;
+  const hit = runCache.get(cacheId);
   if (hit) {
     return hit;
   }
-  const path = join(ROOT, "runs", `${key}.json`);
+
+  if (opts.dayKey) {
+    const dayPath = join(fleetMonthRoot(monthKey), "days", opts.dayKey, `${key}.json`);
+    if (existsSync(dayPath)) {
+      const run = normalizeFleetRun(JSON.parse(readFileSync(dayPath, "utf8")) as Record<string, unknown>);
+      runCache.set(cacheId, run);
+      return run;
+    }
+  }
+
+  const path = join(fleetMonthRoot(monthKey), "runs", `${key}.json`);
   const run = JSON.parse(readFileSync(path, "utf8")) as NationalFleetRunSeries;
-  runCache.set(key, run);
+  runCache.set(cacheId, run);
   return run;
 }
 
 /** Parity / tests: assemble all shards (cold ~12× single-run read). */
-export function loadNationalFleetMonthBundle(): NationalFleetMonthBundle {
-  if (cachedMonolith) {
-    return cachedMonolith;
+export function loadNationalFleetMonthBundle(monthKey = NATIONAL_FLEET_MONTH_KEY): NationalFleetMonthBundle {
+  const hit = monolithCache.get(monthKey);
+  if (hit) {
+    return hit;
   }
-  const meta = loadNationalFleetBundleMeta();
-  const manifest = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8")) as {
+  const root = fleetMonthRoot(monthKey);
+  const meta = loadNationalFleetBundleMeta(monthKey);
+  const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8")) as {
     runShards: Record<string, unknown>;
   };
   const runs = {} as NationalFleetMonthBundle["runs"];
   for (const rk of Object.keys(manifest.runShards ?? {})) {
-    runs[rk] = JSON.parse(readFileSync(join(ROOT, "runs", `${rk}.json`), "utf8")) as NationalFleetRunSeries;
+    runs[rk] = JSON.parse(readFileSync(join(root, "runs", `${rk}.json`), "utf8")) as NationalFleetRunSeries;
   }
-  cachedMonolith = { ...meta, runs };
-  return cachedMonolith;
+  const monolith = { ...meta, runs };
+  monolithCache.set(monthKey, monolith);
+  return monolith;
 }
 
-export function fleetRunShardSha256(factor: NationalFleetFactor, strategy: NationalFleetStrategyUi): string {
+export function fleetRunShardSha256(
+  factor: NationalFleetFactor,
+  strategy: NationalFleetStrategyUi,
+  monthKey = NATIONAL_FLEET_MONTH_KEY,
+): string {
   const key = runKey(factor, strategy);
-  const buf = readFileSync(join(ROOT, "runs", `${key}.json`));
+  const buf = readFileSync(join(fleetMonthRoot(monthKey), "runs", `${key}.json`));
   return createHash("sha256").update(buf).digest("hex");
 }
 
@@ -69,9 +142,11 @@ export function fleetRunShardSha256(factor: NationalFleetFactor, strategy: Natio
 export function nationalFleetContext(
   factor: NationalFleetFactor,
   strategy: NationalFleetStrategyUi,
+  opts: NationalFleetLoadOpts = {},
 ): NationalFleetMonthBundle {
-  const meta = loadNationalFleetBundleMeta();
-  const run = loadNationalFleetRunSeries(factor, strategy);
+  const monthKey = opts.monthKey ?? opts.dayKey?.slice(0, 7) ?? NATIONAL_FLEET_MONTH_KEY;
+  const meta = loadNationalFleetBundleMeta(monthKey);
+  const run = loadNationalFleetRunSeries(factor, strategy, { ...opts, monthKey });
   return {
     ...meta,
     runs: { [runKey(factor, strategy)]: run },

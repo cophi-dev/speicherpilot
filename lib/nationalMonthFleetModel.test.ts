@@ -56,7 +56,8 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
 
   it("october month flag", () => {
     expect(nationalFleetMonthAvailable("2026-10")).toBe(true);
-    expect(nationalFleetMonthAvailable("2026-11")).toBe(false);
+    expect(nationalFleetMonthAvailable("2026-11")).toBe(true);
+    expect(nationalFleetMonthAvailable("2026-12")).toBe(false);
   });
 
   it("day slice sums match daily csv order of magnitude", () => {
