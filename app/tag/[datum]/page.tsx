@@ -1,15 +1,19 @@
 import { Suspense } from "react";
 
 import { socialMeta } from "@/lib/siteOg";
-import { permanentRedirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
+import { TagPageLaufend } from "@/components/home/TagPageLaufend";
 import { TagUnavailable } from "@/components/home/TagUnavailable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
+import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
 import { isTagDateInSelectWindow } from "@/lib/germanyViewCachePolicy";
 import { loadGermanyViewForTag } from "@/lib/germanyViewTag.server";
 import { lastSurplusBefore } from "@/lib/kopfTagCopy";
+import { loadLiveTagView } from "@/lib/liveTagView.server";
+import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
 import {
   nationalFleetMonthAvailable,
   monthStatsForRun,
@@ -27,11 +31,21 @@ export const revalidate = 1800;
 
 export async function generateMetadata({ params }: { params: Promise<{ datum: string }> }) {
   const { datum } = await params;
-  const description = "Ein Tag in Deutschland: Lücke, Residuallast und Kennzahlen mit Rang.";
+  const todayKey = formatBerlinDateKeyFromUtcDate(new Date());
+  const description =
+    datum === todayKey
+      ? "Laufender Tag in Deutschland: vorläufige Restlast, Day-Ahead und Markt-Fahrplan."
+      : "Ein Tag in Deutschland: Lücke, Residuallast und Kennzahlen mit Rang.";
   const title = `Tag · ${datum}`;
   return {
     title,
     description,
+    ...(datum === todayKey
+      ? {
+          robots: { index: false, follow: true },
+          alternates: { canonical: `/tag/${datum}` },
+        }
+      : {}),
     ...socialMeta({ title, description, url: `/tag/${datum}` }),
   };
 }
@@ -45,6 +59,22 @@ export default async function TagDetailPage({
 }) {
   const { datum } = await params;
   const query = await searchParams;
+  const now = new Date();
+  const todayKey = formatBerlinDateKeyFromUtcDate(now);
+  const { lastCompleteDayKey: navLastComplete } = await resolveNavShortcuts();
+
+  if (datum === todayKey) {
+    const live = await loadLiveTagView(datum, now);
+    if (live) {
+      return (
+        <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
+          <TagPageLaufend view={live} />
+        </Suspense>
+      );
+    }
+    redirect(`/tag/${navLastComplete}`);
+  }
+
   const view = await loadGermanyViewForTag(datum);
 
   const records = view.auffaelligkeitRecords;
@@ -52,16 +82,19 @@ export default async function TagDetailPage({
   const lastComplete = view.lastCompleteDayKey;
 
   if (datum > view.todayKey) {
-    permanentRedirect(`/tag/${lastComplete}`);
+    redirect(`/tag/${lastComplete}`);
   }
 
   if (datum > lastComplete) {
-    permanentRedirect(`/tag/${lastComplete}`);
+    redirect(`/tag/${lastComplete}`);
   }
 
   const inWindow = isTagDateInSelectWindow(datum, view.todayKey);
 
   if (view.requestedTagStatus === "unvollstaendig") {
+    if (inWindow) {
+      redirect(`/tag/${lastComplete}`);
+    }
     return (
       <TagUnavailable
         requested={datum}
@@ -75,15 +108,7 @@ export default async function TagDetailPage({
 
   if (view.requestedTagStatus === "ausserhalb") {
     if (inWindow) {
-      return (
-        <TagUnavailable
-          requested={datum}
-          todayKey={view.todayKey}
-          status="unvollstaendig"
-          record={record}
-          lastCompleteDayKey={lastComplete}
-        />
-      );
+      redirect(`/tag/${lastComplete}`);
     }
     return (
       <TagUnavailable
@@ -101,15 +126,7 @@ export default async function TagDetailPage({
 
   if (!records || !day || day.dateBerlin !== datum) {
     if (inWindow) {
-      return (
-        <TagUnavailable
-          requested={datum}
-          todayKey={view.todayKey}
-          status="unvollstaendig"
-          record={record}
-          lastCompleteDayKey={lastComplete}
-        />
-      );
+      redirect(`/tag/${lastComplete}`);
     }
     return (
       <TagUnavailable

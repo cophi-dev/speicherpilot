@@ -1,5 +1,7 @@
-import { permanentRedirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
+import { formatBerlinDateKeyFromUtcDate } from "@/lib/berlinCalendar";
+import { tagIndexRedirectTarget } from "@/lib/liveTagConfig";
 import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
@@ -20,10 +22,12 @@ export default async function TagIndexPage({
   const suffix = params.toString() ? `?${params.toString()}` : "";
 
   const { lastCompleteDayKey } = await resolveNavShortcuts();
+  const todayKey = formatBerlinDateKeyFromUtcDate(new Date());
+  const targetDay = tagIndexRedirectTarget(todayKey, lastCompleteDayKey);
 
   if (tagRaw && /^\d{4}-\d{2}-\d{2}$/.test(tagRaw)) {
-    permanentRedirect(`/tag/${tagRaw}${suffix}`);
+    redirect(`/tag/${tagRaw}${suffix}`);
   }
 
-  permanentRedirect(`/tag/${lastCompleteDayKey}${suffix}`);
+  redirect(`/tag/${targetDay}${suffix}`);
 }

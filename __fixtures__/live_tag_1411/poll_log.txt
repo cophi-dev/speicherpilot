@@ -1,0 +1,5 @@
+16:28:26 {"tp": {"Wind onshore": "14:30", "Solar": "14:30", "Load (incl. self-consumption)": "14:45"}, "pp": {"Wind onshore": "14:30", "Solar": "14:30", "Load": "14:30"}, "smard_last": "15:30", "smard_solar": "15:30"}
+16:33:30 {"tp": {"Wind onshore": "14:30", "Solar": "14:30", "Load (incl. self-consumption)": "14:45"}, "pp": {"Wind onshore": "14:30", "Solar": "14:30", "Load": "14:30"}, "smard_last": "15:30", "smard_solar": "15:45"}
+16:38:36 {"tp": {"Wind onshore": "14:30", "Solar": "14:30", "Load (incl. self-consumption)": "14:45"}, "pp": {"Wind onshore": "14:30", "Solar": "14:30", "Load": "14:30"}, "smard_last": "15:30", "smard_solar": "15:45"}
+16:43:41 {"tp": {"Wind onshore": "15:15", "Solar": "15:15", "Load (incl. self-consumption)": "15:45"}, "pp": {"Wind onshore": "14:30", "Solar": "14:30", "Load": "14:30"}, "smard_last": "15:45", "smard_solar": "16:00"}
+16:48:46 {"tp": {"Wind onshore": "15:15", "Solar": "15:15", "Load (incl. self-consumption)": "15:45"}, "pp": {"Wind onshore": "15:15", "Solar": "15:15", "Load": "15:15"}, "smard_last": "15:45", "smard_solar": "16:00"}

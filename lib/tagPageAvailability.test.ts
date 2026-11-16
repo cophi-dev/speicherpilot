@@ -14,7 +14,7 @@ describe("tag detail availability copy", () => {
     expect(missingDayBlock).toBeDefined();
     const inWindowBranch = missingDayBlock!.match(/if \(inWindow\) \{([\s\S]*?)\n    \}/)?.[1];
     expect(inWindowBranch).toBeDefined();
-    expect(inWindowBranch).toMatch(/status="unvollstaendig"/);
+    expect(inWindowBranch).toMatch(/redirect\(`\/tag\/\$\{lastComplete\}`\)/);
     expect(inWindowBranch).not.toMatch(/status="ausserhalb"/);
   });
 });
