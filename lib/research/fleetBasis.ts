@@ -57,7 +57,7 @@ export const GW_MINUS = "\u2212";
 export function formatGwSenkung(gw: number): string {
   const rounded = Math.round(gw * 10) / 10;
   const text = rounded.toFixed(1).replace(".", ",");
-  return `${GW_MINUS}${text} GW`;
+  return `${GW_MINUS}${text}\u00a0GW`;
 }
 
 export function formatReductionTickGw(tick: number): string {

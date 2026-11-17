@@ -47,3 +47,32 @@ export function monatStundenChartBox(shellWidth: number): MonatChartBox {
 export function monatHeroUsesWideLayout(shellWidth: number): boolean {
   return shellWidth >= MONAT_WIDE_VIEWBOX_W;
 }
+
+const WIDE_UEBERSCHUSS = { w: 1152, h: 384, poolW: 520 };
+const NARROW_UEBERSCHUSS_POOL_W = 200;
+const UEBERSCHUSS_START_Y = 48;
+const UEBERSCHUSS_ROW_H_NARROW = 52;
+const UEBERSCHUSS_COMPARE_ROWS = 2;
+const UEBERSCHUSS_BOTTOM_PAD = 20;
+const UEBERSCHUSS_BAR_H = 18;
+
+/** Unterkante des SVG-Inhalts (Überschuss-Pool-Chart), ohne Leerfläche unten. */
+export function monatUeberschussChartContentBottom(rowCount: number, wide: boolean): number {
+  const rowH = wide ? 56 : UEBERSCHUSS_ROW_H_NARROW;
+  const lastCompareY =
+    UEBERSCHUSS_START_Y + rowCount * rowH + 44 + (UEBERSCHUSS_COMPARE_ROWS - 1) * (rowH - 8);
+  return lastCompareY + UEBERSCHUSS_BAR_H + UEBERSCHUSS_BOTTOM_PAD;
+}
+
+export function monatUeberschussChartBox(
+  shellWidth: number,
+  rowCount: number,
+): { w: number; h: number; poolW: number } {
+  if (shellWidth >= MONAT_WIDE_VIEWBOX_W) {
+    return { ...WIDE_UEBERSCHUSS };
+  }
+  const w = Math.max(280, shellWidth);
+  const scale = w / NARROW_HERO_BASE.w;
+  const h = monatUeberschussChartContentBottom(rowCount, false);
+  return { w, h, poolW: Math.round(NARROW_UEBERSCHUSS_POOL_W * scale) };
+}

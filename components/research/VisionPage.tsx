@@ -12,7 +12,13 @@ import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJah
 import { VisionJahrG2Markt } from "@/components/research/vision-jahr/VisionJahrG2Markt";
 import { VisionJahrG3Ueberschuss } from "@/components/research/vision-jahr/VisionJahrG3Ueberschuss";
 import { VisionJahrG4Tage } from "@/components/research/vision-jahr/VisionJahrG4Tage";
-import { formatVisionGermanDate, formatVisionGwOne, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
+import {
+  formatVisionDurationDe,
+  formatVisionGermanDate,
+  formatVisionGwOne,
+  formatVisionGwPlain,
+  formatVisionPercentWhole,
+} from "@/lib/research/visionJahrFormat";
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
@@ -64,11 +70,11 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
 
       <section className={styles.section} aria-labelledby="vision-g1">
         <h2 id="vision-g1" className={styles.h2}>
-          Ab NEP A ({formatVisionGwOne(nepA.powerGw)} GW) bringt jedes weitere GW Speicher wenig
+          Ab NEP A ({formatVisionGwPlain(nepA.powerGw)}) bringt jedes weitere GW Speicher wenig
         </h2>
         <p className={styles.meta}>
           Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}). NEP C senkt sie um{" "}
-          {formatVisionGwOne(nepC.senkung2hGw)} GW (Vorjahreszeitraum: {formatVisionGwOne(model.vorjahr2hSenkung["NEP C"] ?? 0)} GW)
+          {formatVisionGwPlain(nepC.senkung2hGw)} (Vorjahreszeitraum: {formatVisionGwPlain(model.vorjahr2hSenkung["NEP C"] ?? 0)})
         </p>
 
         {showTruth ? (
@@ -85,7 +91,8 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
             </motion.div>
             <p className={styles.meta}>
               {stageId.startsWith("nep") ? `NEP ${stage.label} · ` : `${stage.label} · `}
-              {stage.powerGw.toFixed(1).replace(".", ",")} GW · {duration === "2" ? "2 h" : "4 h Sensitivität"} · spitzenorientiert (national)
+              {formatVisionGwPlain(stage.powerGw)} ·{" "}
+              {duration === "2" ? formatVisionDurationDe("2") : "4 h Sensitivität"} · spitzenorientiert (national)
             </p>
           </>
         ) : (

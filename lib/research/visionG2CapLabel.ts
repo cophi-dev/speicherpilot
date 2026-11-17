@@ -1,4 +1,4 @@
-import { formatVisionGwOne } from "@/lib/research/visionJahrFormat";
+import { formatVisionBisGw } from "@/lib/research/visionJahrFormat";
 import { G2_Y_AXIS_MAX_GW } from "@/lib/research/visionJahrG2Stress";
 
 export const G2_LABEL_PAD_LEFT = 40;
@@ -38,7 +38,7 @@ export function layoutG2StressCapLabel(args: {
   fontSize: number;
 }): G2StressCapLabelLayout {
   const plotRight = args.width - G2_LABEL_PAD_RIGHT;
-  const text = `bis ${formatVisionGwOne(args.stressMaxGw)} GW`;
+  const text = formatVisionBisGw(args.stressMaxGw);
   const estW = estimateG2LabelWidth(text, args.fontSize);
   let x = Math.min(args.capMarkerX, plotRight - 4);
   if (x - estW < G2_LABEL_PAD_LEFT) {

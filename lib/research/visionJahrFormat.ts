@@ -1,17 +1,58 @@
 import { GW_MINUS } from "@/lib/research/fleetBasis";
 
+const NBSP = "\u00a0";
+
 /** Anzeige wie im Konzept: eine Nachkommastelle, deutsches Komma. */
 export function formatVisionGwOne(gw: number): string {
-  const rounded = Math.round(gw * 10) / 10;
-  return rounded.toFixed(1).replace(".", ",");
+  return formatVisionNumberFixed(gw, 1);
+}
+
+export function formatVisionNumberFixed(value: number, decimals: number): string {
+  const rounded = Math.round(value * 10 ** decimals) / 10 ** decimals;
+  return rounded.toFixed(decimals).replace(".", ",");
+}
+
+export function formatVisionGwhOne(gwh: number, decimals = 1): string {
+  return formatVisionNumberFixed(gwh, decimals);
 }
 
 export function formatVisionGwMinus(gw: number): string {
-  return `${GW_MINUS}${formatVisionGwOne(gw)}\u00a0GW`;
+  return `${GW_MINUS}${formatVisionGwOne(gw)}${NBSP}GW`;
 }
 
 export function formatVisionGwPlain(gw: number): string {
-  return `${formatVisionGwOne(gw)}\u00a0GW`;
+  return `${formatVisionGwOne(gw)}${NBSP}GW`;
+}
+
+export function formatVisionGwWithUnit(gw: number): string {
+  return formatVisionGwPlain(gw);
+}
+
+export function formatVisionGwhPlain(gwh: number, decimals = 1): string {
+  return `${formatVisionGwhOne(gwh, decimals)}${NBSP}GWh`;
+}
+
+export function formatVisionBisGw(gw: number): string {
+  return `bis ${formatVisionGwOne(gw)}${NBSP}GW`;
+}
+
+export function formatVisionPoolHeaderGwh(gwh: number): string {
+  return `Pool ${formatVisionGwhOne(gwh)}${NBSP}GWh`;
+}
+
+export function formatVisionFleetGwGwhLine(powerGw: number, energyGwh: number, tail?: string): string {
+  const head = `${formatVisionNumberFixed(powerGw, 2)}${NBSP}GW / ${formatVisionGwhOne(energyGwh, 2)}${NBSP}GWh`;
+  return tail ? `${head}, ${tail}` : head;
+}
+
+export function formatVisionDurationDe(label: "1,76" | "2" | "4" | string): string {
+  if (label === "1,76") return `1,76${NBSP}h`;
+  if (label === "2") return `2${NBSP}h`;
+  if (label === "4") return `4${NBSP}h`;
+  if (label.endsWith(" h")) {
+    return `${label.replace(/ h$/, "")}${NBSP}h`;
+  }
+  return label;
 }
 
 export function formatVisionPercentWhole(pct: number): string {
@@ -28,8 +69,4 @@ export function formatVisionGermanDate(iso: string): string {
   const [y, m, d] = iso.split("-");
   if (!y || !m || !d) return iso;
   return `${d}.${m}.${y}`;
-}
-
-export function formatVisionGwWithUnit(gw: number): string {
-  return `${formatVisionGwOne(gw)}\u00A0GW`;
 }
