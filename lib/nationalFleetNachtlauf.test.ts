@@ -113,4 +113,45 @@ describe("national fleet nachtlauf", () => {
     }
     expect(run.status).toBe(0);
   });
+
+  it("validate_paths: _inputs.json überspringen, echte Runs ohne horizon weiterhin Fehler", () => {
+    mkdirSync(fixtureDir, { recursive: true });
+    const inputsPath = join(fixtureDir, "_inputs.json");
+    writeFileSync(inputsPath, JSON.stringify({ dateBerlin: "2026-11-01", slots: 96 }));
+    const invalidRun = join(fixtureDir, "invalid_run.json");
+    writeFileSync(invalidRun, JSON.stringify({ intervalCount: 96, modelFleet: { x: 1 } }));
+
+    const probe = spawnSync("python3", ["-c", "import highspy"], { encoding: "utf8" });
+    if (probe.status !== 0) {
+      return;
+    }
+
+    const pyScript = join(process.cwd(), "scripts/national_fleet_nachtlauf.py");
+    const loadValidate = (paths: string[]) => {
+      const pathsLit = paths.map((p) => JSON.stringify(p)).join(", ");
+      return spawnSync(
+        "python3",
+        [
+          "-c",
+          `
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("nf", ${JSON.stringify(pyScript)})
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+paths = [Path(p) for p in [${pathsLit}]]
+raise SystemExit(mod.validate_paths(paths))
+`.trim(),
+        ],
+        { encoding: "utf8" },
+      );
+    };
+
+    const onlyAux = loadValidate([inputsPath]);
+    expect(onlyAux.status).toBe(0);
+
+    const withInvalid = loadValidate([inputsPath, invalidRun]);
+    expect(withInvalid.status).toBe(1);
+    expect(withInvalid.stderr).toMatch(/horizon fehlt/);
+  });
 });
