@@ -25,6 +25,7 @@ import {
   type NationalFleetFactor,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
+import { formatBerlinMonthLabel } from "@/lib/monatCalendar";
 import type { ReglerKpiSource } from "@/lib/monatReglerKpis";
 import { formatQuantity } from "@/lib/formatQuantity";
 
@@ -57,9 +58,11 @@ export function MonatReglerHero({
   const [compact, setCompact] = useState<MonatReglerCompact | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const monthLabel = formatBerlinMonthLabel(monthKey);
+
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/national-fleet/compact")
+    fetch(`/api/national-fleet/compact?month=${encodeURIComponent(monthKey)}`)
       .then((r) => {
         if (!r.ok) throw new Error("Asset fehlt");
         return r.json();
@@ -74,7 +77,7 @@ export function MonatReglerHero({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [monthKey]);
 
   const kpis = useMemo(
     () => (compact ? reglerKpisFromBundle(kpiSource, factor, strategy, compact) : null),
@@ -98,10 +101,10 @@ export function MonatReglerHero({
       data-testid="monat-regler-hero"
     >
       <p className="num" style={{ fontSize: "0.75rem", color: "var(--mr-muted)" }}>
-        MONATSHORIZONT · OKTOBER 2026 · MODELL
+        MONATSHORIZONT · {monthLabel.toUpperCase()} · MODELL
       </p>
       <h1 id="monat-regler-h1" className={styles.h1}>
-        Wie hätte eine größere Flotte den Oktober verändert?
+        Wie hätte eine größere Flotte den {monthLabel} verändert?
       </h1>
 
       <div className={styles.controls}>

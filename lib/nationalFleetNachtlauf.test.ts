@@ -29,6 +29,25 @@ const runSchema = z.object({
 });
 
 describe("national fleet nachtlauf", () => {
+  it("Python: erwartete Viertelstunden pro Berlin-Tag", () => {
+    const py = join(process.cwd(), "scripts/national_fleet_nachtlauf.py");
+    const probe = spawnSync("python3", ["-c", "import highspy"], { encoding: "utf8" });
+    if (probe.status !== 0) {
+      return;
+    }
+    const code = `
+import importlib.util
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("nf", Path("${py.replace(/\\/g, "/")}"))
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+assert mod.expected_quarters_for_berlin_day("2026-11-15") == 96
+assert mod.expected_quarters_for_berlin_day("2026-10-25") == 100
+print("ok")
+`;
+    const run = spawnSync("python3", ["-c", code], { encoding: "utf8" });
+    expect(run.status).toBe(0);
+  });
   const fixtureDir = join(process.cwd(), "data/national-fleet/_nachtlauf-fixture");
 
   afterAll(() => {

@@ -11,7 +11,7 @@ export function MonatReglerSlot({
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
 }) {
-  const meta = loadNationalFleetBundleMeta();
+  const meta = loadNationalFleetBundleMeta(monthKey);
   return (
     <MonatReglerGate
       monthKey={monthKey}

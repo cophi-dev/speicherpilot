@@ -9,7 +9,7 @@ import re
 import sys
 import time
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -65,10 +65,24 @@ def _series(production_types: list, pattern: str) -> list:
     return []
 
 
+def berlin_day_utc_window(day: str) -> tuple[str, str]:
+    """Energy-Charts: Berlin-Kalendertag als UTC-Fenster (00:00–23:45 Europe/Berlin)."""
+    day_start = datetime.fromisoformat(f"{day}T00:00:00").replace(tzinfo=BERLIN)
+    day_end = datetime.fromisoformat(f"{day}T23:45:00").replace(tzinfo=BERLIN)
+    start_utc = day_start.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_utc = day_end.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return start_utc, end_utc
+
+
+def expected_quarters_for_berlin_day(day: str) -> int:
+    day_start = datetime.fromisoformat(f"{day}T00:00:00").replace(tzinfo=BERLIN)
+    next_midnight = day_start + timedelta(days=1)
+    return int((next_midnight - day_start).total_seconds() // 900)
+
+
 def fetch_day_slots(day: str) -> list[dict]:
-    start = f"{day}T00:00:00"
-    end = f"{day}T23:59:59"
-    q = urllib.parse.urlencode({"country": "de", "start": start, "end": end})
+    start_utc, end_utc = berlin_day_utc_window(day)
+    q = urllib.parse.urlencode({"country": "de", "start": start_utc, "end": end_utc})
     url = f"https://api.energy-charts.info/total_power?{q}"
     data = _urlopen_json(url)
     unixes = data.get("unix_seconds") or []
@@ -106,6 +120,9 @@ def fetch_day_slots(day: str) -> list[dict]:
                 "day_ahead_eur_mwh": float("nan"),
             }
         )
+    expected = expected_quarters_for_berlin_day(day)
+    if len(slots) != expected:
+        raise RuntimeError(f"{day}: {len(slots)} Viertelstunden, erwartet {expected}")
     if len(slots) < 90:
         raise RuntimeError(f"{day}: nur {len(slots)} Viertelstunden (unvollständig)")
     return slots
