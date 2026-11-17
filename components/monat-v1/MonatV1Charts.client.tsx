@@ -8,7 +8,9 @@ import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
+import { formatDeDurationH, formatDeGwh, formatDeGw } from "@/lib/displayUnitFormat";
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
+import { ueberschussPoolBarLabelLayout } from "@/lib/monatUeberschussPoolBarLabel";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { layoutMonatHeroYAxis } from "@/lib/monatHeroYAxisLabels";
 import { topYTickBaselineY, yAxisGwUnitPosition } from "@/lib/monatV1HeroLayout";
@@ -325,9 +327,9 @@ function StundenChart({ model }: { model: MonatV1Model }) {
       return null;
     }
     return [
-      { label: "1,76 h", value: formatGwReduction(activeCat.h176, 2) },
-      { label: "2 h", value: formatGwReduction(activeCat.h2, 2) },
-      { label: "4 h", value: formatGwReduction(activeCat.h4, 2) },
+      { label: formatDeDurationH("1,76"), value: formatGwReduction(activeCat.h176, 2) },
+      { label: formatDeDurationH("2"), value: formatGwReduction(activeCat.h2, 2) },
+      { label: formatDeDurationH("4"), value: formatGwReduction(activeCat.h4, 2) },
     ];
   }, [activeCat]);
   const crossX =
@@ -354,17 +356,18 @@ function StundenChart({ model }: { model: MonatV1Model }) {
       />
       <div className={styles.legend}>
         <span className={styles.legendItem}>
-          <span className={styles.dotFilled} /> 1,76 h
+          <span className={styles.dotFilled} /> {formatDeDurationH("1,76")}
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.dotHollow} /> 2 h
+          <span className={styles.dotHollow} /> {formatDeDurationH("2")}
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.dotRust} /> 4 h
+          <span className={styles.dotRust} /> {formatDeDurationH("4")}
         </span>
         {model.showDauerVergleich && wide ? (
           <span className={styles.legendItem}>
-            <span className={styles.lineDashMuted} /> genauso stark (×5 · 4 h ≈ ×10 · 1,76 h)
+            <span className={styles.lineDashMuted} /> genauso stark (×5 · {formatDeDurationH("4")} ≈ ×10 ·{" "}
+            {formatDeDurationH("1,76")})
           </span>
         ) : null}
       </div>
@@ -516,15 +519,20 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
               </text>
               <rect x={poolX} y={y} width={vb.poolW} height={barH} fill="var(--mv-linie)" />
               <rect x={poolX} y={y} width={fillW} height={barH} fill="var(--mv-ink)" />
-              {fillW > 36 ? (
-                <text x={poolX + fillW / 2} y={y + barH - 4} textAnchor="middle" fill="var(--mv-bg, #f6f6f3)" fontSize="12">
-                  {row.poolLabel}
-                </text>
-              ) : (
-                <text x={poolX + fillW / 2} y={y + barH - 4} textAnchor="middle" fill="var(--mv-ink)" fontSize="12">
-                  {row.poolLabel}
-                </text>
-              )}
+              {(() => {
+                const label = ueberschussPoolBarLabelLayout(fillW, poolX);
+                return (
+                  <text
+                    x={label.x}
+                    y={y + barH - 4}
+                    textAnchor={label.textAnchor}
+                    fill={label.onDarkFill ? "var(--mv-bg, #f6f6f3)" : "var(--mv-ink)"}
+                    fontSize="12"
+                  >
+                    {row.poolLabel}
+                  </text>
+                );
+              })()}
               <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize="12">
                 {formatGwReduction(row.reductionGw, 2)}
               </text>
@@ -574,9 +582,9 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <p className={styles.kern}>ab ×{model.hero.kipppunktFactor.toFixed(1).replace(".", ",")}</p>
         <p className={styles.lead}>
           Ab etwa der {model.hero.kipppunktFactor.toFixed(1).replace(".", ",")}-fachen Flotte erzeugt Laden nach Preis
-          eine neue Monatsspitze (×10: {model.heroTable.marktX10.toFixed(1).replace(".", ",")} statt{" "}
-          {model.refPeakGw.toFixed(1).replace(".", ",")} GW gemessen). Gegen die Spitze gefahren sinkt sie auf{" "}
-          {model.heroTable.spitzeX10.toFixed(1).replace(".", ",")} GW.
+          eine neue Monatsspitze (×10: {formatDeGw(model.heroTable.marktX10, 1)} statt{" "}
+          {formatDeGw(model.refPeakGw, 1)} gemessen). Gegen die Spitze gefahren sinkt sie auf{" "}
+          {formatDeGw(model.heroTable.spitzeX10, 1)}.
         </p>
         <HeroChart model={model} />
         <p className={styles.simulatorTry}>
@@ -597,11 +605,11 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
         <h2 id="monat-v1-a4" className={styles.h2}>
           Überschuss allein trägt nicht.
         </h2>
-        <p className={styles.kern}>{model.surplusPoolGwh.toFixed(1).replace(".", ",")} GWh Überschuss im Oktober</p>
+        <p className={styles.kern}>{formatDeGwh(model.surplusPoolGwh, 1)} Überschuss im Oktober</p>
         <p className={styles.lead}>
           So viel Wind- und Sonnenstrom lag im Oktober über dem Verbrauch. ×10 nimmt fast alles auf, senkt die Spitze
-          damit aber nur um {model.compareX10.ueberschussGw.toFixed(1).replace(".", ",")} GW. Gegen die Spitze gefahren
-          sind es {model.compareX10.spitzeGw.toFixed(1).replace(".", ",")} GW.
+          damit aber nur um {formatDeGw(model.compareX10.ueberschussGw, 1)}. Gegen die Spitze gefahren sind es{" "}
+          {formatDeGw(model.compareX10.spitzeGw, 1)}.
         </p>
         <UeberschussChart model={model} />
       </section>

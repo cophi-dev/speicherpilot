@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { formatDeGwGwhLine, formatDePercentInt } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
@@ -32,13 +33,13 @@ export function TagSystemChapter({
 
   const lead = hasSurplus ? (
     <>
-      Die heutige Flotte ({formatQuantity(fleetPowerGw, "de", 2)} GW / {formatQuantity(fleetEnergyGwh, "de", 2)} GWh)
-      hätte {formatQuantity(sharePct, "de", 0)}&nbsp;% des Überschusses aus Wind und Sonne aufgenommen (Modell).
+      Die heutige Flotte ({formatDeGwGwhLine(fleetPowerGw, fleetEnergyGwh)}) hätte {formatDePercentInt(sharePct)} des
+      Überschusses aus Wind und Sonne aufgenommen (Modell).
     </>
   ) : (
     <>
-      Die deutschen Großspeicher ({formatQuantity(fleetPowerGw, "de", 2)} GW /{" "}
-      {formatQuantity(fleetEnergyGwh, "de", 2)} GWh Kapazität, Battery Charts) hatten nichts aufzunehmen: Wind und Sonne
+      Die deutschen Großspeicher ({formatDeGwGwhLine(fleetPowerGw, fleetEnergyGwh)} Kapazität, Battery Charts) hatten
+      nichts aufzunehmen: Wind und Sonne
       lagen den ganzen Tag unter dem Verbrauch. Fahrweisen nach Preis oder gegen die Abendspitze rechnen wir bisher für
       Oktober (
       <Link href="/monat/2026-10" className="v4-text-link">

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { SystemSurplusChart } from "@/components/home/SystemSurplusChart";
+import { formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 
@@ -46,8 +47,8 @@ export function SystemChapter({
           </p>
           <div className="v4-system-side">
             <p>
-              des Tages-Überschusses hätte die Referenzflotte ({formatQuantity(fleetPowerGw, "de", 2)} GW,{" "}
-              {formatQuantity(fleetEnergyGwh, "de", 2)} GWh) in diesem Modell aufgenommen.{" "}
+              des Tages-Überschusses hätte die Referenzflotte ({formatDeGwGwhLine(fleetPowerGw, fleetEnergyGwh)}) in
+              diesem Modell aufgenommen.{" "}
               <span className="v4-chip num">Modellschätzung · Überschuss-Laden</span>
             </p>
             <p className="v4-system-multi num">

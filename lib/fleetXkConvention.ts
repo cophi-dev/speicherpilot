@@ -1,4 +1,5 @@
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+import { formatDeGw } from "@/lib/displayUnitFormat";
 
 /** ×k Anzeige = k-mal die heutige Flotte; im Modell zusätzlich (k−1)× Basis, ×1 = Ist ohne Zusatz. */
 export const FLEET_XK_FOOTNOTE_DE =
@@ -22,4 +23,9 @@ export function additionalFleetAtFactor(factor: number): { powerMw: number; ener
 export function fleetPowerGwLabel(factor: number, decimals = 1): string {
   const gw = (NATIONAL_BASE_FLEET.powerMw * factor) / 1000;
   return gw.toFixed(decimals).replace(".", ",");
+}
+
+export function fleetPowerGwWithUnit(factor: number, decimals = 1): string {
+  const gw = (NATIONAL_BASE_FLEET.powerMw * factor) / 1000;
+  return formatDeGw(gw, decimals);
 }

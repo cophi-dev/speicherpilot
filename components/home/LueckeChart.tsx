@@ -14,6 +14,7 @@ import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import { formatBerlinChartTimeFromIso } from "@/lib/formatBerlinChartTime";
 import { lueckeTooltipRows } from "@/lib/lueckeChartTooltip";
+import { formatDeGw } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import polish from "@/components/home/dayBlockPolish.module.css";
 import {
@@ -180,8 +181,7 @@ export function LueckeChart({
 
   const geometry = useMemo(() => buildGeometry(slots, peakAt, frame), [frame, peakAt, slots]);
 
-  const peakLabel =
-    peakGw !== null ? `${formatQuantity(peakGw, "de", 1).replace(/\s/g, "")} GW` : "—";
+  const peakLabel = peakGw !== null ? formatDeGw(peakGw, 1) : "—";
   const peakTimeLabel = peakAt !== null ? `${peakLabel} · ${peakAt} Uhr` : peakLabel;
   const peakCaption = "Abendspitze der Residuallast";
 

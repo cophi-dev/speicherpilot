@@ -1,4 +1,4 @@
-import { formatGwAbs, formatGwReduction } from "@/lib/monatV1Format";
+import { formatGwAbs, formatGwReduction, formatPercentShare } from "@/lib/monatV1Format";
 
 const NBSP = "\u00a0";
 const MINUS = "\u2212";
@@ -23,5 +23,12 @@ describe("formatGwReduction", () => {
 describe("formatGwAbs", () => {
   it("formatiert ohne Vorzeichen", () => {
     expect(formatGwAbs(64.4, 1)).toBe(`64,4${NBSP}GW`);
+  });
+});
+
+describe("formatPercentShare", () => {
+  it("setzt NBSP vor %", () => {
+    expect(formatPercentShare(0)).toBe(`0${NBSP}%`);
+    expect(formatPercentShare(42)).toBe(`42${NBSP}%`);
   });
 });
