@@ -28,15 +28,15 @@ export function formatReferencePeakCaption(reference: PeakReference, language: A
     const dateLabel = formatBerlinDayLabel(reference.dateKey);
     const gw = formatQuantity(reference.refPeakGw, language, 2);
     return language === "de"
-      ? `Spitze am ${dateLabel}: ${gw} GW`
-      : `Peak on ${dateLabel}: ${gw} GW`;
+      ? `Höchste Restlast am ${dateLabel}: ${gw} GW (Verbrauch minus Wind und Sonne)`
+      : `Highest residual load on ${dateLabel}: ${gw} GW (consumption minus wind and solar)`;
   }
   const refGw = reference.refPeakGw ?? REF_RESIDUAL_PEAK_GW;
   const gw = formatQuantity(refGw, language, language === "de" ? 2 : 2);
   const month = language === "de" ? REFERENCE_PEAK_MONTH_DE : REFERENCE_PEAK_MONTH_EN;
   return language === "de"
-    ? `Referenzspitze ${month}: ${gw} GW`
-    : `Reference peak ${month}: ${gw} GW`;
+    ? `Höchste Restlast ${month}: ${gw} GW`
+    : `Highest residual load ${month}: ${gw} GW`;
 }
 
 type PeakCopyOptions = {
@@ -126,7 +126,7 @@ export function formatPeakKpiParts(
   if (reductionGw >= 0.0005) {
     const note =
       language === "de"
-        ? `(Senkung ${delta} GW, ${pct} % zur ${refCaption})`
+        ? `(Senkung ${delta} GW, ${pct} % bezogen auf ${refCaption})`
         : `(Reduction ${delta} GW, ${pct} % vs. ${refCaption})`;
     const noteEn = `(Reduction ${formatQuantity(Math.abs(reductionGw), "en", 2)} GW, ${formatQuantity(Math.abs(reductionPct), "en", 1)} % vs. ${refCaptionEn})`;
     return { value, note, noteEn };
@@ -134,7 +134,7 @@ export function formatPeakKpiParts(
   if (reductionGw <= -0.0005) {
     const note =
       language === "de"
-        ? `(${delta} GW höher als ohne dieses Szenario, ${pct} % zur ${refCaption})`
+        ? `(${delta} GW höher als ohne dieses Szenario, ${pct} % bezogen auf ${refCaption})`
         : `(${delta} GW above this scenario baseline, ${pct} % vs. ${refCaption})`;
     const noteEn = `(${formatQuantity(Math.abs(reductionGw), "en", 2)} GW above this scenario baseline, ${formatQuantity(Math.abs(reductionPct), "en", 1)} % vs. ${refCaptionEn})`;
     return { value, note, noteEn };

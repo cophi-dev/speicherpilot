@@ -26,17 +26,17 @@ describe("dayResidualLoadScale", () => {
 describe("nationalFleetCharts copy", () => {
   it("Referenzspitze nennt Oktober 2026", () => {
     expect(formatReferencePeakCaption(defaultMonthPeakReference(), "de")).toBe(
-      "Referenzspitze Oktober 2026: 64,41 GW",
+      "Höchste Restlast Oktober 2026: 64,41 GW",
     );
     expect(formatReferencePeakCaption(defaultMonthPeakReference(), "en")).toBe(
-      "Reference peak October 2026: 64.41 GW",
+      "Highest residual load October 2026: 64.41 GW",
     );
   });
 
   it("Tagesspitze statt Monats-Referenz bei Tagesdaten", () => {
     const slice = formatDayPeakKpiFromSlice(51.68, 54.3, "2026-11-16");
     expect(slice.reference.kind).toBe("day");
-    expect(formatReferencePeakCaption(slice.reference, "de")).toMatch(/Spitze am 16\.11\.2026: 54,30 GW/);
+    expect(formatReferencePeakCaption(slice.reference, "de")).toMatch(/Höchste Restlast am 16\.11\.2026: 54,30 GW \(Verbrauch minus Wind und Sonne\)/);
     const parts = formatPeakKpiParts(51.68, slice.reductionGw, slice.reductionPct, { reference: slice.reference });
     expect(parts.note).toMatch(/16\.11\.2026/);
     expect(parts.note).not.toMatch(/Oktober 2026/);
@@ -45,11 +45,11 @@ describe("nationalFleetCharts copy", () => {
   it("positive peak reduction", () => {
     expect(formatPeakKpi(59.5, 4.9, 7.6)).toMatch(/Senkung.*4,9/);
     expect(formatPeakKpi(59.5, 4.9, 7.6)).not.toMatch(/\(-/);
-    expect(formatPeakKpi(59.5, 4.9, 7.6)).toMatch(/Referenzspitze Oktober 2026: 64,41 GW/);
+    expect(formatPeakKpi(59.5, 4.9, 7.6)).toMatch(/Höchste Restlast Oktober 2026: 64,41 GW/);
     const parts = formatPeakKpiParts(62.16, 2.24, 3.478);
     expect(parts.value).toBe("62,16 GW");
     expect(parts.note).toBe(
-      "(Senkung 2,24 GW, 3,5 % zur Referenzspitze Oktober 2026: 64,41 GW)",
+      "(Senkung 2,24 GW, 3,5 % bezogen auf Höchste Restlast Oktober 2026: 64,41 GW)",
     );
     expect(formatPeakKpi(62.16, 2.24, 3.478)).toBe(`${parts.value} ${parts.note}`);
   });
