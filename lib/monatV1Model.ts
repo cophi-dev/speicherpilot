@@ -196,6 +196,11 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
   const ueber1 = monthStatsForRun(bundle, 1, "ueberschuss");
   const markt1 = monthStatsForRun(bundle, 1, "markt");
   const markt10 = monthStatsForRun(bundle, 10, "markt");
+  const kipppunktFactor = loadMarktKipppunktFactor(
+    monthKey,
+    markt10.peakAfterGw > refPeakGw ? 3.9 : 10,
+  );
+  const kipLabel = kipppunktFactor.toFixed(1).replace(".", ",");
 
   const graphFootnote =
     "national, kein Netzengpass, Vollvoraussicht · Modell";
@@ -211,8 +216,8 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
     hero: {
       points: heroPoints,
       insightSpitzeX10Gw: roundGw(spitze10.peakAfterGw, 1),
-      kipppunktLabel: "ab ≈×3,9",
-      kipppunktFactor: loadMarktKipppunktFactor(monthKey, markt10.peakAfterGw > refPeakGw ? 3.9 : 10),
+      kipppunktLabel: `ab ≈×${kipLabel}`,
+      kipppunktFactor,
     },
     heroTable: {
       spitzeX1: roundGw(spitze1.peakAfterGw, 1),

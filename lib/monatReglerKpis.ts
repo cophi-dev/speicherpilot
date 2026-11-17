@@ -78,9 +78,35 @@ export function reglerKpisFromBundle(
     runs: {} as NationalFleetMonthBundle["runs"],
   };
   const fromCompact = reglerStatsFromCompact(compact, factor, strategy);
-  const st =
+  let st =
     fromCompact ??
-    monthStatsForRun(bundle, factor, strategy);
+    (() => {
+      try {
+        return monthStatsForRun(bundle, factor, strategy);
+      } catch {
+        return null;
+      }
+    })();
+  if (!st && factor === 1) {
+    const baselinePeakMw = Math.max(...compact.r);
+    st = {
+      chargeGwh: 0,
+      dischargeGwh: 0,
+      lossGwh: 0,
+      peakAfterGw: baselinePeakMw / 1000,
+      peakReductionGw: 0,
+      peakReductionPct: 0,
+      surplusCaptureGwh: strategy === "ueberschuss" ? 0 : null,
+      surplusCaptureSharePct: null,
+      socStartGwh: 0,
+      socEndGwh: 0,
+      fleetPowerGw: 0,
+      fleetEnergyGwh: 0,
+    };
+  }
+  if (!st) {
+    throw new Error(`fehlende KPI-Daten ×${factor} ${strategy}`);
+  }
   const peakAfter = st.peakAfterGw;
   const reductionGw = st.peakReductionGw;
   let marktQh: number | null = null;

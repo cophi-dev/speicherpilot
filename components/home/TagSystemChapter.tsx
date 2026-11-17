@@ -13,6 +13,14 @@ import {
 } from "@/lib/nationalMonthFleetModel";
 import type { TagFleetSoGerechnetExtra } from "@/components/home/TagSoGerechnet";
 
+const NBSP = "\u00a0";
+
+const TAG_NO_SURPLUS_STRATEGY_HEADLINE: Record<NationalFleetStrategyUi, string> = {
+  ueberschuss: "Überschuss aufnehmen",
+  spitze: "Spitze senken",
+  markt: "Nach Preis gefahren",
+};
+
 export function TagSystemChapter({
   dayKey,
   record,
@@ -55,9 +63,10 @@ export function TagSystemChapter({
           Monatslauf (×{fleetFactor}, {NATIONAL_FLEET_STRATEGY_UI[fleetStrategy].shortDe}): Spitzensenkung{" "}
           {peakReductionDayGw >= 0
             ? formatGwReduction(peakReductionDayGw)
-            : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}\u00a0GW höher`}
-          , geladen {formatQuantity(slice.chargeMwh / 1000, "de", 1)}\u00a0GWh, entladen{" "}
-          {formatQuantity(slice.dischargeMwh / 1000, "de", 1)}\u00a0GWh (Modell, Tageshorizont).
+            : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}${NBSP}GW höher`}
+          , geladen {formatQuantity(slice.chargeMwh / 1000, "de", 1)}
+          {NBSP}GWh, entladen {formatQuantity(slice.dischargeMwh / 1000, "de", 1)}
+          {NBSP}GWh (Modell, Tageshorizont).
         </>
       ) : null}
     </>
@@ -76,8 +85,8 @@ export function TagSystemChapter({
     slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05
       ? formatGwReduction(peakReductionDayGw)
       : slice && slice.chargeMwh > 1
-        ? `${formatQuantity(slice.chargeMwh / 1000, "de", 1)}\u00a0GWh geladen`
-        : "0\u00a0GWh geladen";
+        ? `${formatQuantity(slice.chargeMwh / 1000, "de", 1)}${NBSP}GWh geladen`
+        : `0${NBSP}GWh geladen`;
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag-system">
@@ -85,7 +94,11 @@ export function TagSystemChapter({
         <p className="v4-chapter-num num">02 · Das System</p>
         <h2 id="kapitel-tag-system" className="v4-chapter-h2">
           Speicher am {weekdayLabelDe(dayKey)}
-          {hasSurplus ? "" : slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05 ? ": Spitze im Modell" : ": nichts aus Überschuss"}
+          {hasSurplus
+            ? ""
+            : slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05
+              ? `: ${TAG_NO_SURPLUS_STRATEGY_HEADLINE[fleetStrategy]}`
+              : ": nichts aus Überschuss"}
         </h2>
         {hasSurplus ? (
           <p className="v4-system-pct v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>

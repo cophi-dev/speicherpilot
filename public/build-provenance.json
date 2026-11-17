@@ -1,8 +1,23 @@
 {
-  "commit": "bd2c27c5fa8e8cec41191dd187952f2883615a79",
-  "buildId": "20261117T1119Z",
-  "builtAt": "2026-11-17T11:19:35.254Z",
+  "commit": "8a17ad6f4e5b77c3cfca0aa797c7a5800cf4c4f2",
+  "buildId": "20261117T1214Z",
+  "builtAt": "2026-11-17T12:14:22.516Z",
   "node": "v22.23.4",
-  "dirty": false,
+  "dirty": true,
+  "dirtyPaths": [
+    "M app/monat/[monat]/page.tsx",
+    " M components/home/TagSystemChapter.tsx",
+    " M components/monat-regler/MonatReglerChart.client.tsx",
+    " M components/monat-regler/MonatReglerHero.client.tsx",
+    " M components/monat-v1/MonatV1Charts.client.tsx",
+    " M data/national-fleet/2026-11/fleet-month-meta.json",
+    " M lib/monatReglerKpis.ts",
+    " M lib/monatV1Model.ts",
+    " M lib/nationalMonthFleetModel.ts",
+    " M package.json",
+    "?? data/national-fleet/2026-11/market-kipppunkt.json",
+    "?? lib/monatMonthFleetRoutes.test.ts",
+    "?? scripts/build-fleet-month-summary-from-runs.mjs"
+  ],
   "ci": false
 }

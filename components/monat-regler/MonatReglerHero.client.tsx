@@ -173,13 +173,20 @@ export function MonatReglerHero({
           {strategy === "ueberschuss" && kpis.surplusCaptureGwh != null ? (
             <div className={styles.kpi}>
               <dt>Überschuss-Pool</dt>
-              <dd>{formatPoolLine(kpis.surplusCaptureGwh, kpis.surplusSharePct)}</dd>
+              <dd>
+                {compact && compact.surplusPoolGwh < 0.05
+                  ? `Im ${monthLabel} gab es im Modell keinen Überschuss aus Wind+Solar über Last.`
+                  : formatPoolLine(kpis.surplusCaptureGwh, kpis.surplusSharePct)}
+              </dd>
             </div>
           ) : null}
           {strategy === "markt" && factor > 1 && kpis.marktQhAboveRef != null ? (
             <>
               <div className={styles.kpi}>
-                <dt>Über {formatGwAbs(64.4)}</dt>
+                <dt>
+                  Über {compact ? formatGwAbs(compact.refPeakMw / 1000) : formatGwAbs(64.4)} (
+                  {formatBerlinMonthLabel(monthKey)})
+                </dt>
                 <dd>{kpis.marktQhAboveRef} QH</dd>
               </div>
               <div className={styles.kpi}>

@@ -1,0 +1,6 @@
+{
+  "factor_approx": 4.9,
+  "reference_mw": 71898.5,
+  "computed_at": "2026-11-17",
+  "method": "erste Faktorstufe mit after_max_residual > Referenz (Preisnehmer, Monatslauf)"
+}

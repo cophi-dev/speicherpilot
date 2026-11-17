@@ -675,17 +675,29 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
       </section>
       <section className={styles.section} aria-labelledby="monat-v1-a4">
         <h2 id="monat-v1-a4" className={styles.h2}>
-          Überschuss allein trägt nicht.
+          {model.surplusPoolGwh < 0.05 ? "Kein Wind-Solar-Überschuss im Monat" : "Überschuss allein trägt nicht."}
         </h2>
         <p className={styles.kern}>
-          {formatDeGwh(model.surplusPoolGwh, 1)} Überschuss im {formatBerlinMonthLabel(model.monthKey)}
+          {model.surplusPoolGwh < 0.05
+            ? `Im ${formatBerlinMonthLabel(model.monthKey)} gab es im Modell keinen Überschuss aus Wind+Solar über Last.`
+            : `${formatDeGwh(model.surplusPoolGwh, 1)} Überschuss im ${formatBerlinMonthLabel(model.monthKey)}`}
         </p>
         <p className={styles.lead}>
-          So viel Wind- und Sonnenstrom lag im {formatBerlinMonthLabel(model.monthKey)} über dem Verbrauch. ×10 nimmt fast alles auf, senkt die Spitze
-          damit aber nur um {formatDeGw(model.compareX10.ueberschussGw, 1)}. Gegen die Spitze gefahren sind es{" "}
-          {formatDeGw(model.compareX10.spitzeGw, 1)}.
+          {model.surplusPoolGwh < 0.05 ? (
+            <>
+              Spitzenorientiert senkt ×10 die Restlast um {formatDeGw(model.compareX10.spitzeGw, 1)}; die
+              Überschuss-Fahrweise lädt 0 GWh. Markt orientiert sich an Preisen — ohne Überschuss bleibt der
+              Unterschied zur Spitzen-Fahrweise klein.
+            </>
+          ) : (
+            <>
+              So viel Wind- und Sonnenstrom lag im {formatBerlinMonthLabel(model.monthKey)} über dem Verbrauch. ×10 nimmt
+              fast alles auf, senkt die Spitze damit aber nur um {formatDeGw(model.compareX10.ueberschussGw, 1)}. Gegen
+              die Spitze gefahren sind es {formatDeGw(model.compareX10.spitzeGw, 1)}.
+            </>
+          )}
         </p>
-        <UeberschussChart model={model} />
+        {model.surplusPoolGwh >= 0.05 ? <UeberschussChart model={model} /> : null}
       </section>
     </>
   );
