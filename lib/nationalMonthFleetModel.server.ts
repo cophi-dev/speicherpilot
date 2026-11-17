@@ -121,7 +121,9 @@ export function loadNationalFleetMonthBundle(monthKey = NATIONAL_FLEET_MONTH_KEY
   };
   const runs = {} as NationalFleetMonthBundle["runs"];
   for (const rk of Object.keys(manifest.runShards ?? {})) {
-    runs[rk] = JSON.parse(readFileSync(join(root, "runs", `${rk}.json`), "utf8")) as NationalFleetRunSeries;
+    const fileName = rk.endsWith(".json") ? rk : `${rk}.json`;
+    const storeKey = rk.replace(/\.json$/, "");
+    runs[storeKey] = JSON.parse(readFileSync(join(root, "runs", fileName), "utf8")) as NationalFleetRunSeries;
   }
   const monolith = { ...meta, runs };
   monolithCache.set(monthKey, monolith);

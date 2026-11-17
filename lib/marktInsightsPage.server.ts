@@ -8,7 +8,10 @@ import {
   type MarktInsight,
   type MarktInsightsRoute,
 } from "@/lib/marktInsights";
-import { loadNationalFleetBundleMeta } from "@/lib/nationalMonthFleetModel.server";
+import {
+  loadNationalFleetBundleMeta,
+  loadNationalFleetMonthBundle,
+} from "@/lib/nationalMonthFleetModel.server";
 import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 
 export function marktInsightsForRoute(args: {
@@ -21,12 +24,18 @@ export function marktInsightsForRoute(args: {
   monthKey?: string;
   max?: number;
 }): MarktInsight[] {
-  const fleetBundle =
+  const metaMonth =
     args.monthKey && nationalFleetMonthAvailable(args.monthKey)
-      ? loadNationalFleetBundleMeta()
+      ? args.monthKey
       : args.route === "monat" || args.route === "ort"
-        ? loadNationalFleetBundleMeta()
-        : null;
+        ? args.monthKey
+        : args.focusDayKey?.slice(0, 7);
+  const fleetBundle =
+    metaMonth && nationalFleetMonthAvailable(metaMonth)
+      ? args.route === "monat" || args.route === "ort" || args.route === "tag" || args.route === "beitraege"
+        ? loadNationalFleetMonthBundle(metaMonth)
+        : loadNationalFleetBundleMeta(metaMonth)
+      : null;
 
   const all = buildMarktInsights({
     records: args.records,

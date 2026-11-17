@@ -180,6 +180,53 @@ export function placeLineEndLabel(args: {
   };
 }
 
+/** Minimal vertical gap between adjacent SVG line labels (typographic px): label height + `minGapExtra`. */
+export function lineLabelVerticalGapPx(fontSize: number, minGapExtra = 4): number {
+  return fontSize + minGapExtra;
+}
+
+export function stackLineLabelsAtX(
+  items: Array<{ text: string; preferredY: number }>,
+  x: number,
+  anchor: LabelAnchor,
+  fontSize: number,
+  plotTop?: number,
+  plotBottom?: number,
+  minGapExtra = 4,
+): Array<{ text: string; y: number }> {
+  const minGap = lineLabelVerticalGapPx(fontSize, minGapExtra);
+  const sorted = items
+    .map((item, index) => ({ ...item, index }))
+    .sort((a, b) => a.preferredY - b.preferredY);
+  const byIndex = new Array<{ text: string; y: number }>(items.length);
+  let lastBottom = -Infinity;
+  for (const item of sorted) {
+    let y = item.preferredY;
+    let box = labelBoxPx(x, y, anchor, item.text, fontSize);
+    if (box.top < lastBottom + minGap) {
+      y += lastBottom + minGap - box.top;
+      box = labelBoxPx(x, y, anchor, item.text, fontSize);
+    }
+    if (plotTop !== undefined) {
+      const minY = plotTop + fontSize;
+      if (y < minY) {
+        y = minY;
+        box = labelBoxPx(x, y, anchor, item.text, fontSize);
+      }
+    }
+    if (plotBottom !== undefined) {
+      const maxY = plotBottom - 4;
+      if (y > maxY) {
+        y = maxY;
+        box = labelBoxPx(x, y, anchor, item.text, fontSize);
+      }
+    }
+    byIndex[item.index] = { text: item.text, y };
+    lastBottom = box.bottom;
+  }
+  return byIndex as Array<{ text: string; y: number }>;
+}
+
 export function stackLineEndLabels(
   labels: Array<{ text: string; lineY: number }>,
   x: number,

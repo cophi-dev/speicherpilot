@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { NextResponse } from "next/server";
@@ -6,10 +6,19 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const revalidate = 86400;
 
-const COMPACT_PATH = join(process.cwd(), "data/national-fleet/2026-10/fleet-month-compact.json");
+import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
 
-export async function GET() {
-  const body = readFileSync(COMPACT_PATH);
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const monthKey = url.searchParams.get("month") ?? "2026-10";
+  if (!nationalFleetMonthAvailable(monthKey)) {
+    return new NextResponse("Monat nicht verfügbar", { status: 404 });
+  }
+  const compactPath = join(process.cwd(), "data/national-fleet", monthKey, "fleet-month-compact.json");
+  if (!existsSync(compactPath)) {
+    return new NextResponse("Kompakt-Asset fehlt", { status: 404 });
+  }
+  const body = readFileSync(compactPath);
   return new NextResponse(body, {
     headers: {
       "Content-Type": "application/json; charset=utf-8",

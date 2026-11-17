@@ -19,6 +19,6 @@ describe("national fleet month availability", () => {
     );
     const run = loadNationalFleetRunSeries(2, "spitze", { monthKey: "2026-11", dayKey: "2026-11-15" });
     const slice = sliceFleetDay(run, "2026-11-15");
-    expect(slice?.indices.length).toBeGreaterThan(80);
+    expect(slice?.indices.length).toBe(96);
   });
 });

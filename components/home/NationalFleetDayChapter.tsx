@@ -1,6 +1,10 @@
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
 import { GraphScopeMeta } from "@/components/home/GraphScopeMeta";
-import { formatPeakKpi } from "@/lib/nationalFleetCharts";
+import {
+  formatDayPeakKpiFromSlice,
+  formatPeakCaptionMonthContext,
+  formatPeakKpiBilingual,
+} from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatGwReduction } from "@/lib/monatV1Format";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
@@ -57,7 +61,14 @@ export function NationalFleetDayChapter({
 }) {
   const peakRpGw = slice.maxRPrimeMw / 1000;
   const peakRGw = slice.maxRMw / 1000;
-  const peakReductionDayGw = peakRGw - peakRpGw;
+  const dayPeakKpi = formatDayPeakKpiFromSlice(peakRpGw, peakRGw, dayKey);
+  const peakReductionDayGw = dayPeakKpi.reductionGw;
+  const dayPeakSummary = formatPeakKpiBilingual(
+    peakRpGw,
+    dayPeakKpi.reductionGw,
+    dayPeakKpi.reductionPct,
+    { reference: dayPeakKpi.reference },
+  );
   const monthKey = nationalFleetMonthKeyForDay(dayKey);
   const { x1, x5, x10 } = saturationSlices(dayKey);
   const showSaturation = shouldShowFleetSaturationHint(x1, x5, x10);
@@ -75,8 +86,12 @@ export function NationalFleetDayChapter({
             : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}\u00A0GW höher`}
         </p>
         <p className="v4-tag-side">
-          Tages-Spitze {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW. Monat:{" "}
-          {formatPeakKpi(monthStats.peakAfterGw, monthStats.peakReductionGw, monthStats.peakReductionPct)}.
+          Tages-Spitze {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW.{" "}
+          {dayPeakSummary.de}
+          <span className="sr-only" lang="en">
+            {" "}
+            {dayPeakSummary.en}
+          </span>
         </p>
       </div>
 
@@ -100,19 +115,23 @@ export function NationalFleetDayChapter({
         <fieldset className="v4-fleet-fieldset">
           <legend className="v4-fleet-legend">Fahrweise</legend>
           <div className="v4-fleet-strategy-row">
-            <FleetScenarioLink
-              href={fleetTagHref(dayKey, factor, "spitze")}
-              role="button"
-              aria-pressed={strategy === "spitze"}
-              className={`v4-fleet-pill v4-fleet-pill-wide${strategy === "spitze" ? " is-active" : ""}`}
-              title="senkt die bundesweite Restlast-Spitze"
-            >
-              Spitze
-            </FleetScenarioLink>
+            {(["spitze", "markt", "ueberschuss"] as const).map((id) => (
+              <FleetScenarioLink
+                key={id}
+                href={fleetTagHref(dayKey, factor, id)}
+                role="button"
+                aria-pressed={strategy === id}
+                className={`v4-fleet-pill v4-fleet-pill-wide${strategy === id ? " is-active" : ""}`}
+                title={NATIONAL_FLEET_STRATEGY_UI[id].labelDe}
+              >
+                {id === "spitze" ? "Spitze" : id === "markt" ? "Markt" : "Überschuss"}
+              </FleetScenarioLink>
+            ))}
           </div>
           <p className="v4-fleet-strategy-copy">
-            lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig
-            wird (volle Voraussicht).
+            {strategy === "spitze"
+              ? "lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht)."
+              : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
           </p>
           <p className="v4-fleet-energy-context">
             Referenzflotte ×1:{" "}
@@ -131,10 +150,15 @@ export function NationalFleetDayChapter({
         factor={factor}
         strategy={strategy}
         dateKey={dayKey}
-        peakReductionGw={monthStats.peakReductionGw}
-        peakReductionPct={monthStats.peakReductionPct}
+        peakReductionGw={dayPeakKpi.reductionGw}
+        peakReductionPct={dayPeakKpi.reductionPct}
         peakReductionDayGw={peakReductionDayGw}
         peakObservedDayGw={peakRGw}
+        dayPeakReference={dayPeakKpi.reference}
+        monthContextNote={formatPeakCaptionMonthContext(
+          monthStats.peakReductionGw,
+          monthStats.peakReductionPct,
+        )}
         scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
         tagesvorlageDay
       />

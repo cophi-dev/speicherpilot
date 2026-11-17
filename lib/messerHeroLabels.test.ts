@@ -1,4 +1,11 @@
-import { collidesWithPolyline, labelBoxPx, placeLineEndLabel } from "@/lib/messerHeroLabels";
+import {
+  collidesWithPolyline,
+  labelBoxPx,
+  labelBoxesTooClose,
+  lineLabelVerticalGapPx,
+  placeLineEndLabel,
+  stackLineLabelsAtX,
+} from "@/lib/messerHeroLabels";
 
 describe("messerHeroLabels polyline collision", () => {
   const path = [
@@ -11,6 +18,33 @@ describe("messerHeroLabels polyline collision", () => {
   it("finds segment intersections, not only vertex hits", () => {
     const box = labelBoxPx(150, 120, "end", "×10 = ×5 mit 4 h", 12);
     expect(collidesWithPolyline(box, path)).toBe(true);
+  });
+
+  it("stackLineLabelsAtX keeps ≥ fontSize+4 between line-end labels (Markt ×2 nah an Referenz)", () => {
+    const fontSize = 12;
+    const x = 280;
+    const plotH = 240;
+    const padT = 18;
+    const padB = 32;
+    const yAt = (gw: number) => padT + ((100 - gw) / 100) * (plotH - padT - padB);
+    const obsY = yAt(71.9) - 6;
+    const fleetY = yAt(71.39) + 14;
+    const stacked = stackLineLabelsAtX(
+      [
+        { text: "beobachtet", preferredY: obsY },
+        { text: "×2 · Markt", preferredY: fleetY },
+      ],
+      x,
+      "start",
+      fontSize,
+      padT,
+      plotH - padB,
+    );
+    const gap = lineLabelVerticalGapPx(fontSize);
+    const a = labelBoxPx(x, stacked[0]!.y, "start", stacked[0]!.text, fontSize);
+    const b = labelBoxPx(x, stacked[1]!.y, "start", stacked[1]!.text, fontSize);
+    expect(b.top - a.bottom).toBeGreaterThanOrEqual(gap - 0.01);
+    expect(labelBoxesTooClose(a, b, gap)).toBe(false);
   });
 
   it("places label outside plot when internal slots collide", () => {

@@ -123,7 +123,7 @@ export default async function MonatDetailPage({
         observationLive={pageData.observationLive}
         observationFallbackNote={pageData.observationFallback?.sourceNoteDe ?? null}
         surplusBars={bars}
-        kompromissTeaser={fleetMonthOpen ? loadEps70Teaser() : null}
+        kompromissTeaser={fleetMonthOpen && monat === "2026-10" ? loadEps70Teaser() : null}
       >
         {fleetSlot}
       </MonatPageV4>

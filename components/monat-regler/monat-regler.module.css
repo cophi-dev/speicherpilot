@@ -114,12 +114,15 @@
 }
 
 @media (max-width: 767px) {
+  .kpiGrid .kpi dt {
+    font-size: 12px;
+  }
   .kpiGridDense {
     gap: 8px 10px;
     margin: 0.45rem 0 0.55rem;
   }
   .kpiGridDense .kpi dt {
-    font-size: 10px;
+    font-size: 12px;
     margin-bottom: 2px;
     line-height: 1.2;
   }
@@ -153,6 +156,28 @@
   margin: 0;
   line-height: 1.1;
   font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.kpiNote {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--mr-muted);
+  font-weight: 400;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@media (max-width: 390px) {
+  .heroZeroSurplus .kpiGrid {
+    gap: 10px 12px;
+    margin-bottom: 0.35rem;
+  }
+  .heroZeroSurplus .controls {
+    margin-bottom: 0.35rem;
+  }
+  .heroZeroSurplus .chartWrap {
+    margin-top: 0.25rem;
+  }
 }
 
 @media (min-width: 768px) {

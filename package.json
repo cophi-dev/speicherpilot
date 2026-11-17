@@ -14,6 +14,7 @@
     "data:ort": "python3 scripts/ort/build_ort_archetypes.py",
     "morning:x": "tsx --tsconfig tsconfig.json scripts/post-morning-briefing-x.ts",
     "data:fleet-compact": "node scripts/build-fleet-month-compact.mjs",
+    "data:fleet-summary": "node scripts/build-fleet-month-summary-from-runs.mjs",
     "data:national-fleet-nachtlauf": "node scripts/national-fleet-nachtlauf.mjs"
   },
   "dependencies": {

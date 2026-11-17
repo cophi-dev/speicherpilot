@@ -9,7 +9,7 @@ import re
 import sys
 import time
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -65,10 +65,64 @@ def _series(production_types: list, pattern: str) -> list:
     return []
 
 
+def _berlin_date_key_from_unix_seconds(unix_sec: int) -> str:
+    return datetime.fromtimestamp(unix_sec, tz=BERLIN).date().isoformat()
+
+
+def find_first_unix_second_for_berlin_date_key(date_key: str) -> int:
+    """Kleinstes Unix-s für Mitternacht dieses Berlin-Kalendertags (wie lib/berlinCalendar.ts)."""
+    y, mo, da = (int(x) for x in date_key.split("-"))
+    base = date(y, mo, da)
+    lo = int(datetime.combine(base - timedelta(days=2), time.min, tzinfo=UTC).timestamp())
+    hi = int(datetime.combine(base + timedelta(days=2), time.min, tzinfo=UTC).timestamp())
+    result = hi
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if _berlin_date_key_from_unix_seconds(mid) >= date_key:
+            result = mid
+            hi = mid - 1
+        else:
+            lo = mid + 1
+    if _berlin_date_key_from_unix_seconds(result) != date_key:
+        raise RuntimeError(f"Berlin midnight not found for {date_key}")
+    return result
+
+
+def next_berlin_date_key(date_key: str) -> str:
+    s0 = find_first_unix_second_for_berlin_date_key(date_key)
+    lo = s0 + 1
+    hi = s0 + 3 * 86_400
+    result = _berlin_date_key_from_unix_seconds(hi)
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        key = _berlin_date_key_from_unix_seconds(mid)
+        if key > date_key:
+            result = key
+            hi = mid - 1
+        else:
+            lo = mid + 1
+    return result
+
+
+def expected_quarters_for_berlin_day(day: str) -> int:
+    """Viertelstunden im Berlin-Kalendertag (92/96/100), unabhängig von Prozess-TZ."""
+    start = find_first_unix_second_for_berlin_date_key(day)
+    end = find_first_unix_second_for_berlin_date_key(next_berlin_date_key(day))
+    return round((end - start) // 900)
+
+
+def berlin_day_utc_window(day: str) -> tuple[str, str]:
+    """Energy-Charts: Berlin-Kalendertag als UTC-Fenster (00:00–letzte Viertelstunde)."""
+    start_sec = find_first_unix_second_for_berlin_date_key(day)
+    end_sec = find_first_unix_second_for_berlin_date_key(next_berlin_date_key(day)) - 900
+    start_utc = datetime.fromtimestamp(start_sec, tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_utc = datetime.fromtimestamp(end_sec, tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return start_utc, end_utc
+
+
 def fetch_day_slots(day: str) -> list[dict]:
-    start = f"{day}T00:00:00"
-    end = f"{day}T23:59:59"
-    q = urllib.parse.urlencode({"country": "de", "start": start, "end": end})
+    start_utc, end_utc = berlin_day_utc_window(day)
+    q = urllib.parse.urlencode({"country": "de", "start": start_utc, "end": end_utc})
     url = f"https://api.energy-charts.info/total_power?{q}"
     data = _urlopen_json(url)
     unixes = data.get("unix_seconds") or []
@@ -106,6 +160,9 @@ def fetch_day_slots(day: str) -> list[dict]:
                 "day_ahead_eur_mwh": float("nan"),
             }
         )
+    expected = expected_quarters_for_berlin_day(day)
+    if len(slots) != expected:
+        raise RuntimeError(f"{day}: {len(slots)} Viertelstunden, erwartet {expected}")
     if len(slots) < 90:
         raise RuntimeError(f"{day}: nur {len(slots)} Viertelstunden (unvollständig)")
     return slots

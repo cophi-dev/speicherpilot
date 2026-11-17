@@ -11,6 +11,7 @@ import {
   type MonatReglerCompact,
   type ReglerDayPoint,
 } from "@/lib/monatReglerAsset";
+import { estimateTextWidth, stackLineLabelsAtX } from "@/lib/messerHeroLabels";
 import { fleetTagHref, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 const Y_MIN = 0;
@@ -18,12 +19,14 @@ const Y_MAX = 100;
 const Y_TICKS = [0, 20, 40, 60, 80, 100] as const;
 const MOBILE_X_DAYS = new Set(["01", "08", "15", "22", "29"]);
 const H_SOC = 48;
-const PAD = { l: 44, r: 92, t: 18, b: 32 };
+const PAD_BASE = { l: 44, r: 92, t: 18, b: 32 };
+const END_LABEL_GAP_PX = 16;
 const STRATEGY_LABEL: Record<NationalFleetStrategyUi, string> = {
   spitze: "Spitze",
   ueberschuss: "Überschuss",
   markt: "Markt",
 };
+const LINE_END_LABEL_FS = 12;
 
 function useViewportWide(): boolean {
   const [wide, setWide] = useState(false);
@@ -38,12 +41,12 @@ function useViewportWide(): boolean {
   return wide;
 }
 
-function yAt(gw: number, plotH: number): number {
-  return PAD.t + ((Y_MAX - gw) / (Y_MAX - Y_MIN)) * (plotH - PAD.t - PAD.b);
+function yAt(gw: number, plotH: number, padT: number, padB: number): number {
+  return padT + ((Y_MAX - gw) / (Y_MAX - Y_MIN)) * (plotH - padT - padB);
 }
 
-function xAt(i: number, n: number, w: number): number {
-  return PAD.l + (i / Math.max(1, n - 1)) * (w - PAD.l - PAD.r);
+function xAt(i: number, n: number, w: number, padL: number, padR: number): number {
+  return padL + (i / Math.max(1, n - 1)) * (w - padL - padR);
 }
 
 function polyline(points: { x: number; y: number }[]): string {
@@ -82,6 +85,18 @@ export function MonatReglerChart({
   const series = useMemo(() => activeSeries(compact, factor, strategy), [compact, factor, strategy]);
   const days = useMemo(() => dailyPeaks(compact, series), [compact, series]);
   const refGw = compact.refPeakMw / 1000;
+  const padR = useMemo(() => {
+    const labels = [
+      "beobachtet",
+      factor > 1 ? `×${factor} · ${STRATEGY_LABEL[strategy]}` : null,
+    ].filter(Boolean);
+    const maxTextW = Math.max(...labels.map((t) => estimateTextWidth(t!, LINE_END_LABEL_FS)));
+    return Math.max(PAD_BASE.r, maxTextW + END_LABEL_GAP_PX + 8);
+  }, [factor, strategy]);
+  const pad = useMemo(
+    () => ({ ...PAD_BASE, r: padR }),
+    [padR],
+  );
   const plotH = wideViewport ? 320 : 240;
   const socBand = factor > 1 ? H_SOC + 10 : 0;
   const totalH = plotH + socBand;
@@ -90,19 +105,19 @@ export function MonatReglerChart({
   const obsPts = useMemo(
     () =>
       days.map((d, j) => ({
-        x: xAt(j, nPlot, cssW),
-        y: yAt(d.maxObservedGw, plotH),
+        x: xAt(j, nPlot, cssW, pad.l, pad.r),
+        y: yAt(d.maxObservedGw, plotH, pad.t, pad.b),
       })),
-    [cssW, days, nPlot, plotH],
+    [cssW, days, nPlot, pad, plotH],
   );
 
   const fleetPts = useMemo(
     () =>
       days.map((d, j) => ({
-        x: xAt(j, nPlot, cssW),
-        y: yAt(d.maxFleetGw, plotH),
+        x: xAt(j, nPlot, cssW, pad.l, pad.r),
+        y: yAt(d.maxFleetGw, plotH, pad.t, pad.b),
       })),
-    [cssW, days, nPlot, plotH],
+    [cssW, days, nPlot, pad, plotH],
   );
 
   const fleetStroke =
@@ -110,7 +125,7 @@ export function MonatReglerChart({
   const fleetDash = strategy === "markt" ? "6 3" : undefined;
   const marketStress = strategy === "markt" && factor > 1;
 
-  const dayHitW = Math.max(44, (cssW - PAD.l - PAD.r) / Math.max(1, nPlot));
+  const dayHitW = Math.max(44, (cssW - pad.l - pad.r) / Math.max(1, nPlot));
 
   const pickDay = useCallback(
     (clientX: number) => {
@@ -118,12 +133,12 @@ export function MonatReglerChart({
       if (!el) return null;
       const rect = el.getBoundingClientRect();
       const x = clientX - rect.left;
-      const plotW = cssW - PAD.l - PAD.r;
-      const t = Math.min(1, Math.max(0, (x - PAD.l) / plotW));
+      const plotW = cssW - pad.l - pad.r;
+      const t = Math.min(1, Math.max(0, (x - pad.l) / plotW));
       const idx = Math.round(t * (nPlot - 1));
       return days[idx] ?? null;
     },
-    [cssW, days, nPlot],
+    [cssW, days, nPlot, pad.l, pad.r],
   );
 
   const onPlotPointerUp = (ev: React.PointerEvent) => {
@@ -139,6 +154,39 @@ export function MonatReglerChart({
   const obsEnd = obsPts[obsPts.length - 1];
   const fleetEnd = fleetPts[fleetPts.length - 1];
 
+  const endLineLabels = useMemo(() => {
+    if (!obsEnd) return [];
+    const labelX = obsEnd.x + 4;
+    const plotBottom = plotH - pad.b;
+    const candidates: Array<{ text: string; preferredY: number; fill: string }> = [
+      {
+        text: "beobachtet",
+        preferredY: obsEnd.y - 6,
+        fill: "var(--mr-observed)",
+      },
+    ];
+    if (fleetEnd && factor > 1) {
+      candidates.push({
+        text: `×${factor} · ${STRATEGY_LABEL[strategy]}`,
+        preferredY: fleetEnd.y + 14,
+        fill: fleetStroke,
+      });
+    }
+    const stacked = stackLineLabelsAtX(
+      candidates.map((c) => ({ text: c.text, preferredY: c.preferredY })),
+      labelX,
+      "start",
+      LINE_END_LABEL_FS,
+      pad.t,
+      plotBottom,
+    );
+    return candidates.map((c, i) => ({
+      ...c,
+      x: labelX,
+      y: stacked[i]!.y,
+    }));
+  }, [factor, fleetEnd, fleetStroke, obsEnd, pad.b, pad.t, plotH, strategy]);
+
   return (
     <div ref={wrapRef} className={styles.chartWrap} data-testid="monat-regler-chart">
       <svg
@@ -149,32 +197,32 @@ export function MonatReglerChart({
         role="img"
         aria-label="Restlast im Oktober"
       >
-        <text x={PAD.l + 6} y={PAD.t - 4} className={styles.yUnit} textAnchor="start">
+        <text x={pad.l + 6} y={pad.t - 4} className={styles.yUnit} textAnchor="start">
           GW
         </text>
         {Y_TICKS.map((yv) => {
-          const y = yAt(yv, plotH);
+          const y = yAt(yv, plotH, pad.t, pad.b);
           return (
             <g key={yv}>
-              <line x1={PAD.l} y1={y} x2={cssW - PAD.r} y2={y} stroke="var(--mr-grid)" strokeWidth={1} />
-              <text x={PAD.l - 8} y={y + 4} textAnchor="end" className={styles.ytick}>
+              <line x1={pad.l} y1={y} x2={cssW - pad.r} y2={y} stroke="var(--mr-grid)" strokeWidth={1} />
+              <text x={pad.l - 8} y={y + 4} textAnchor="end" className={styles.ytick}>
                 {formatQuantity(yv, "de", 0)}
               </text>
             </g>
           );
         })}
         <line
-          x1={PAD.l}
-          y1={yAt(refGw, plotH)}
-          x2={cssW - PAD.r}
-          y2={yAt(refGw, plotH)}
+          x1={pad.l}
+          y1={yAt(refGw, plotH, pad.t, pad.b)}
+          x2={cssW - pad.r}
+          y2={yAt(refGw, plotH, pad.t, pad.b)}
           stroke="var(--mr-muted)"
           strokeDasharray="4 3"
           strokeWidth={1}
         />
         <text
-          x={cssW - PAD.r}
-          y={yAt(refGw, plotH) - 4}
+          x={cssW - pad.r}
+          y={yAt(refGw, plotH, pad.t, pad.b) - 4}
           textAnchor="end"
           className={styles.ytick}
         >
@@ -186,7 +234,7 @@ export function MonatReglerChart({
                 <line
                   key={`s-${days[j]!.dateKey}`}
                   x1={p.x}
-                  y1={yAt(refGw, plotH)}
+                  y1={yAt(refGw, plotH, pad.t, pad.b)}
                   x2={p.x}
                   y2={p.y}
                   stroke="var(--mr-markt-line)"
@@ -209,26 +257,16 @@ export function MonatReglerChart({
           strokeDasharray={fleetDash}
           points={polyline(fleetPts)}
         />
-        {obsEnd ? (
-          <text
-            x={obsEnd.x + 4}
-            y={obsEnd.y - 6}
-            className={styles.lineLabel}
-            fill="var(--mr-observed)"
-          >
-            beobachtet
+        {endLineLabels.map((label, i) => (
+          <text key={`${label.text}-${i}`} x={label.x} y={label.y} className={styles.lineLabel} fill={label.fill}>
+            {label.text}
           </text>
-        ) : null}
-        {fleetEnd && factor > 1 ? (
-          <text x={fleetEnd.x + 4} y={fleetEnd.y + 14} className={styles.lineLabel} fill={fleetStroke}>
-            {`×${factor} · ${STRATEGY_LABEL[strategy]}`}
-          </text>
-        ) : null}
+        ))}
         <rect
-          x={PAD.l}
-          y={PAD.t}
-          width={cssW - PAD.l - PAD.r}
-          height={plotH - PAD.t - PAD.b}
+          x={pad.l}
+          y={pad.t}
+          width={cssW - pad.l - pad.r}
+          height={plotH - pad.t - pad.b}
           fill="transparent"
           onPointerUp={onPlotPointerUp}
           style={{ cursor: "pointer", touchAction: "manipulation" }}
@@ -236,10 +274,10 @@ export function MonatReglerChart({
         {days.map((d, j) => (
           <rect
             key={d.dateKey}
-            x={xAt(j, nPlot, cssW) - dayHitW / 2}
-            y={PAD.t}
+            x={xAt(j, nPlot, cssW, pad.l, pad.r) - dayHitW / 2}
+            y={pad.t}
             width={dayHitW}
-            height={plotH - PAD.t - PAD.b}
+            height={plotH - pad.t - pad.b}
             fill="transparent"
             pointerEvents="none"
           />
@@ -254,7 +292,7 @@ export function MonatReglerChart({
           return (
             <text
               key={`x-${d.dateKey}`}
-              x={xAt(j, nPlot, cssW)}
+              x={xAt(j, nPlot, cssW, pad.l, pad.r)}
               y={plotH - 8}
               textAnchor="middle"
               className={styles.xtick}
@@ -275,7 +313,7 @@ export function MonatReglerChart({
               return (
                 <rect
                   key={`soc-${d.dateKey}`}
-                  x={xAt(j, nPlot, cssW) - Math.max(2, dayHitW * 0.15)}
+                  x={xAt(j, nPlot, cssW, pad.l, pad.r) - Math.max(2, dayHitW * 0.15)}
                   y={H_SOC - h}
                   width={Math.max(4, dayHitW * 0.3)}
                   height={h}

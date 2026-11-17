@@ -22,8 +22,13 @@ import {
   nationalFleetMonthAvailable,
   monthStatsForRun,
   parseFleetFactor,
+  parseFleetStrategy,
   sliceFleetDay,
 } from "@/lib/nationalMonthFleetModel";
+import {
+  NATIONAL_FLEET_DISPLAY_ENERGY_GWH,
+  NATIONAL_FLEET_DISPLAY_POWER_GW,
+} from "@/lib/nationalFleetDisplay";
 import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
@@ -164,7 +169,7 @@ export default async function TagDetailPage({
   }
 
   const fleetFactor = parseFleetFactor(typeof query.faktor === "string" ? query.faktor : undefined);
-  const fleetStrategy = "spitze" as const;
+  const fleetStrategy = parseFleetStrategy(typeof query.fahrweise === "string" ? query.fahrweise : undefined);
   const fleetMonthKey = dayKey.slice(0, 7);
   const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
   const fleetRun = fleetMonth
@@ -187,16 +192,17 @@ export default async function TagDetailPage({
             fleetRun,
           ),
           showPeakWithoutSurplus:
-            fleetStrategy === "spitze" && fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
+            fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
         }
       : null;
   const marktInsights = marktInsightsForRoute({
     route: "tag",
     records,
-    fleetPowerGw: fleet.powerGw,
-    fleetEnergyGwh: fleet.energyGwh,
+    fleetPowerGw: fleetMonth ? NATIONAL_FLEET_DISPLAY_POWER_GW : fleet.powerGw,
+    fleetEnergyGwh: fleetMonth ? NATIONAL_FLEET_DISPLAY_ENERGY_GWH : fleet.energyGwh,
     focusDayKey: dayKey,
     overview30: view.dayOverview,
+    monthKey: fleetMonthKey,
   });
 
   const tagDataset = datasetJsonLd({
@@ -220,8 +226,8 @@ export default async function TagDetailPage({
           day,
           lastSurplusKey: lastSurplus,
           dayOverview: view.dayOverview,
-          fleetPowerGw: fleet.powerGw,
-          fleetEnergyGwh: fleet.energyGwh,
+          fleetPowerGw: fleetMonth ? NATIONAL_FLEET_DISPLAY_POWER_GW : fleet.powerGw,
+          fleetEnergyGwh: fleetMonth ? NATIONAL_FLEET_DISPLAY_ENERGY_GWH : fleet.energyGwh,
           fleetFactor,
           fleetStrategy,
           fleetDayNoWindSolarSurplus: fleetDayNoWindSolarSurplusFlag,

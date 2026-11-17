@@ -22,7 +22,7 @@ export function NationalFleetMonatSlot({
     return <NationalFleetMonthUnavailable monthKey={monthKey} />;
   }
 
-  const bundle = loadNationalFleetMonthBundle();
+  const bundle = loadNationalFleetMonthBundle(monthKey);
   const model = buildMonatV1Model(bundle);
   return (
     <>

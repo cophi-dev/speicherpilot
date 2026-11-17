@@ -13,6 +13,7 @@ import { formatDeDurationH, formatDeGwh, formatDeGw } from "@/lib/displayUnitFor
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import { ueberschussPoolBarLabelLayout } from "@/lib/monatUeberschussPoolBarLabel";
 import type { MonatV1Model } from "@/lib/monatV1Model";
+import { formatBerlinMonthLabel, formatBerlinMonthShort } from "@/lib/monatCalendar";
 import { layoutMonatHeroYAxis } from "@/lib/monatHeroYAxisLabels";
 import { topYTickBaselineY, yAxisGwUnitPosition } from "@/lib/monatV1HeroLayout";
 import { monatFactorAxisY } from "@/lib/monatFactorAxisLayout";
@@ -56,15 +57,17 @@ function HeroChartLegend({
   wide,
   kipF,
   marktX10,
+  monthShort,
 }: {
   wide: boolean;
   kipF: number;
   marktX10: number;
+  monthShort: string;
 }) {
   return (
     <div className={styles.legend} data-testid="monat-v1-hero-legend">
       <span className={styles.legendItem}>
-        <span className={styles.lineRef} /> Oktober, beobachtet
+        <span className={styles.lineRef} /> {monthShort}, beobachtet
       </span>
       <span className={styles.legendItem}>
         <span className={styles.dotFilled} /> Spitze
@@ -205,7 +208,12 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         rows={tooltipRows}
         testId="monat-v1-hero-tooltip"
       />
-      <HeroChartLegend wide={wide} kipF={kipF} marktX10={model.heroTable.marktX10} />
+      <HeroChartLegend
+        wide={wide}
+        kipF={kipF}
+        marktX10={model.heroTable.marktX10}
+        monthShort={formatBerlinMonthShort(model.monthKey)}
+      />
       <svg
         ref={heroSvgRef}
         viewBox={`0 0 ${vb.w} ${vb.h}`}
@@ -216,7 +224,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
           Spitzenorientiert sinkt die Monatsspitze mit wachsender Flotte; Marktorientiert ohne Preisrückwirkung steigt
-          ab etwa ×3,9 über die beobachtete Oktober-Spitze und liegt bei ×10 bei {formatGwAbs(model.heroTable.marktX10, 2)}.
+          ab etwa ×{String(model.hero.kipppunktFactor).replace(".", ",")} über die beobachtete {formatBerlinMonthShort(model.monthKey)}-Spitze und liegt bei ×10 bei {formatGwAbs(model.heroTable.marktX10, 2)}.
         </desc>
         <defs>
           <pattern id="hatch-markt" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -667,15 +675,29 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
       </section>
       <section className={styles.section} aria-labelledby="monat-v1-a4">
         <h2 id="monat-v1-a4" className={styles.h2}>
-          Überschuss allein trägt nicht.
+          {model.surplusPoolGwh < 0.05 ? "Kein Wind-Solar-Überschuss im Monat" : "Überschuss allein trägt nicht."}
         </h2>
-        <p className={styles.kern}>{formatDeGwh(model.surplusPoolGwh, 1)} Überschuss im Oktober</p>
-        <p className={styles.lead}>
-          So viel Wind- und Sonnenstrom lag im Oktober über dem Verbrauch. ×10 nimmt fast alles auf, senkt die Spitze
-          damit aber nur um {formatDeGw(model.compareX10.ueberschussGw, 1)}. Gegen die Spitze gefahren sind es{" "}
-          {formatDeGw(model.compareX10.spitzeGw, 1)}.
+        <p className={styles.kern}>
+          {model.surplusPoolGwh < 0.05
+            ? `Im ${formatBerlinMonthLabel(model.monthKey)} gab es im Modell keinen Überschuss aus Wind+Solar über Last.`
+            : `${formatDeGwh(model.surplusPoolGwh, 1)} Überschuss im ${formatBerlinMonthLabel(model.monthKey)}`}
         </p>
-        <UeberschussChart model={model} />
+        <p className={styles.lead}>
+          {model.surplusPoolGwh < 0.05 ? (
+            <>
+              Spitzenorientiert senkt ×10 die Restlast um {formatDeGw(model.compareX10.spitzeGw, 1)}; die
+              Überschuss-Fahrweise lädt 0 GWh. Markt orientiert sich an Preisen — ohne Überschuss bleibt der
+              Unterschied zur Spitzen-Fahrweise klein.
+            </>
+          ) : (
+            <>
+              So viel Wind- und Sonnenstrom lag im {formatBerlinMonthLabel(model.monthKey)} über dem Verbrauch. ×10 nimmt
+              fast alles auf, senkt die Spitze damit aber nur um {formatDeGw(model.compareX10.ueberschussGw, 1)}. Gegen
+              die Spitze gefahren sind es {formatDeGw(model.compareX10.spitzeGw, 1)}.
+            </>
+          )}
+        </p>
+        {model.surplusPoolGwh >= 0.05 ? <UeberschussChart model={model} /> : null}
       </section>
     </>
   );

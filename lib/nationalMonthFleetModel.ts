@@ -267,8 +267,10 @@ export function monthStatsForRun(
     | Record<string, number>
     | undefined;
   if (!stats) {
-    if (fallbackRun) {
-      return monthStatsFromRunSeries(fallbackRun, factor);
+    const bundledRun = bundle.runs?.[runKey(factor, strategy)];
+    const series = fallbackRun ?? bundledRun;
+    if (series) {
+      return monthStatsFromRunSeries(series, factor);
     }
     throw new Error("fehlende Summary");
   }
@@ -284,7 +286,9 @@ export function monthStatsForRun(
       : null;
   const share =
     strategy === "ueberschuss"
-      ? (stats.surplus_pool_capture_share_of_134_241975_gwh as number | undefined) ?? null
+      ? ((stats.surplus_pool_capture_share_of_134_241975_gwh as number | undefined) ??
+        (stats.model_capture_share_of_month_surplus_pool as number | undefined) ??
+        null)
       : null;
   const { afterMw, reductionMw, reductionPct } = marketPeakWithExactFleet(strategy, factor, stats);
   return {
