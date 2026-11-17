@@ -1,6 +1,6 @@
 # Wann der Speicher laden will und wann das Netz Luft hat
 
-*Marktdienlich und netzdienlich sind nicht dasselbe. Warum das so ist und wie Speicher- und Netzbetreiber trotzdem zusammenkommen.*
+*Was dem Markt hilft, entlastet nicht automatisch das Netz. Warum das so ist und wie Speicher- und Netzbetreiber trotzdem zusammenkommen.*
 
 *Stand der Zahlen und Rechtslage: 04.11.2026. Quellen stehen in eckigen Klammern, die Liste folgt am Ende. Gemeint sind Batterie-Großspeicher.*
 
