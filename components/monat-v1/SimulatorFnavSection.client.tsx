@@ -101,7 +101,7 @@ function KipppunktChart({
   ].join(" ");
 
   const xs = marktPts.map((p) => fx(p.factor));
-  const pick = (clientX: number, target: HTMLDivElement) =>
+  const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
   const ariaKipp =
     "Monatsspitze nach Flottengröße: neue Spitze ab mal 3,9 unter dem Markt-Fahrplan, Preisnehmer, keine Euro-Zahl";

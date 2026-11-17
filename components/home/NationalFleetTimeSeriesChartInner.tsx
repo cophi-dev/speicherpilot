@@ -25,7 +25,7 @@ import type { FleetChartSeriesPayload } from "@/lib/nationalFleetSeriesPayload";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { formatKonzeptWorkbenchCaption } from "@/lib/monatKonzeptA";
 import { fleetBandPaths } from "@/lib/fleetTagesvorlagePaths";
-import { nearestIndexFromClientXWithPlotPad } from "@/lib/chartNearestIndex";
+import { nearestIndexFromClientInSvg } from "@/lib/chartSvgPointer";
 
 type SeriesPayload = FleetChartSeriesPayload;
 
@@ -78,6 +78,7 @@ function SinglePanel({
   yMax,
   yTickValues,
   plotGutter = 0,
+  svgRef,
 }: {
   title: string;
   unit: string;
@@ -88,6 +89,7 @@ function SinglePanel({
   yMax: number;
   yTickValues?: number[];
   plotGutter?: number;
+  svgRef?: React.RefObject<SVGSVGElement | null>;
 }) {
   const ySpan = yMax - yMin || 1;
   const padTop = 14;
@@ -103,7 +105,14 @@ function SinglePanel({
           {formatQuantity(yMin, "de", 1)}–{formatQuantity(yMax, "de", 1)} {unit}
         </span>
       </div>
-      <svg width={width} height={height} className="v4-fleet-ts-svg" aria-hidden="true" overflow="visible">
+      <svg
+        ref={svgRef}
+        width={width}
+        height={height}
+        className="v4-fleet-ts-svg"
+        aria-hidden="true"
+        overflow="visible"
+      >
         {ticks.length > 0
           ? ticks.map((v) => {
               const y = yAt(v, height);
@@ -160,11 +169,12 @@ export function NationalFleetTimeSeriesChart({
   const [loadError, setLoadError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const primaryPlotSvgRef = useRef<SVGSVGElement>(null);
   const [scrollWidth, setScrollWidth] = useState(0);
 
   const isDay = Boolean(dateKey);
   const monthNarrow = useMaxWidth(767);
-  const plotGutterForPick = tagesvorlageDay && isDay ? 42 : 0;
+  const plotGutterLayout = tagesvorlageDay && isDay ? 42 : 0;
 
   useEffect(() => {
     const requestKey = `${monthKey}|${factor}|${strategy}|${dateKey ?? ""}`;
@@ -261,24 +271,31 @@ export function NationalFleetTimeSeriesChart({
     return best;
   }, [points]);
 
+  const plotXs = useMemo(() => {
+    const n = points.length;
+    if (n === 0) {
+      return { local: [] as number[], svg: [] as number[] };
+    }
+    const w = scrollWidth > 0 ? scrollWidth : isDay ? Math.max(320, n * 4) : 320;
+    const plotWidth = Math.max(1, w - plotGutterLayout);
+    const pxPerQh = plotWidth / n;
+    const local = points.map((_, j) => j * pxPerQh + pxPerQh / 2);
+    const svg = local.map((x) => x + plotGutterLayout);
+    return { local, svg };
+  }, [isDay, plotGutterLayout, points, scrollWidth]);
+  const seriesXs = plotXs.svg;
+
   const pickFleetIndex = useCallback(
-    (clientX: number, target: HTMLDivElement) => {
-      const n = points.length;
-      if (n <= 0) {
+    (clientX: number, clientY: number, target: HTMLDivElement) => {
+      if (seriesXs.length === 0) {
         return 0;
       }
-      const rect = target.getBoundingClientRect();
-      const width = target.scrollWidth || rect.width;
-      return nearestIndexFromClientXWithPlotPad(
-        clientX,
-        rect,
-        n,
-        plotGutterForPick,
-        target.scrollLeft,
-        width,
-      );
+      const svg =
+        primaryPlotSvgRef.current ??
+        (target.querySelector("svg.v4-fleet-ts-svg") as SVGSVGElement | null);
+      return nearestIndexFromClientInSvg(clientX, clientY, svg, seriesXs);
     },
-    [points.length, plotGutterForPick],
+    [seriesXs],
   );
   const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(
     points.length,
@@ -306,7 +323,7 @@ export function NationalFleetTimeSeriesChart({
 
   const peakI = isDay ? peakLocal : peakIndexRp(runLike);
   const n = points.length;
-  const plotGutter = tagesvorlageDay && isDay ? 42 : 0;
+  const plotGutter = plotGutterLayout;
   const width = scrollWidth > 0 ? scrollWidth : isDay ? Math.max(320, n * 4) : 320;
   const plotWidth = Math.max(1, width - plotGutter);
   const pxPerQh = plotWidth / n;
@@ -314,7 +331,14 @@ export function NationalFleetTimeSeriesChart({
     tagesvorlageDay && isDay ? 140 : prominentMonth && !isDay ? (monthNarrow ? 194 : 124) : isDay ? 104 : 92;
   const auxPanelH = prominentMonth && !isDay ? (monthNarrow ? 116 : 88) : panelH;
   const auxScaleH = prominentMonth && !isDay ? 124 : panelH;
-  const xs = points.map((_, j) => plotGutter + j * pxPerQh + pxPerQh / 2);
+  const xs =
+    plotXs.local.length === n
+      ? plotXs.local
+      : points.map((_, j) => j * pxPerQh + pxPerQh / 2);
+  const xsForTicks =
+    plotXs.svg.length === n
+      ? plotXs.svg
+      : points.map((_, j) => plotGutter + j * pxPerQh + pxPerQh / 2);
   const pad = isDay && tagesvorlageDay ? 14 : 6;
   const rScale = isDay
     ? dayResidualLoadScale(points, compareRp, panelH, pad)
@@ -451,6 +475,7 @@ export function NationalFleetTimeSeriesChart({
             yMax={rScale.max}
             yTickValues={rYTicks}
             plotGutter={plotGutter}
+            svgRef={primaryPlotSvgRef}
           >
             {tagesvorlageDay && isDay && factor !== 1 && bands ? (
               <>
@@ -587,7 +612,7 @@ export function NationalFleetTimeSeriesChart({
                   align === "end"
                     ? undefined
                     : {
-                        left: Math.min(Math.max(xs[index], 12), width - (ti === xTicks.length - 2 ? 44 : 24)),
+                        left: Math.min(Math.max(xsForTicks[index]!, 12), width - (ti === xTicks.length - 2 ? 44 : 24)),
                       }
                 }
               >

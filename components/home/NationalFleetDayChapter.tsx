@@ -114,18 +114,17 @@ export function NationalFleetDayChapter({
             lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig
             wird (volle Voraussicht).
           </p>
+          <p className="v4-fleet-energy-context">
+            Referenzflotte ×1:{" "}
+            <span className="num">
+              {formatQuantity(NATIONAL_REFERENCE_FLEET_POWER_GW, "de", 2)}
+              {"\u00a0"}GW · {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)}
+              {"\u00a0"}GWh
+            </span>{" "}
+            nutzbare Energie
+          </p>
         </fieldset>
       </div>
-
-      <p className="v4-content v4-fleet-energy-context">
-        Referenzflotte ×1:{" "}
-        <span className="num">
-          {formatQuantity(NATIONAL_REFERENCE_FLEET_POWER_GW, "de", 2)}
-          {"\u00a0"}GW · {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)}
-          {"\u00a0"}GWh
-        </span>{" "}
-        nutzbare Energie
-      </p>
 
       <NationalFleetTimeSeriesChart
         monthKey={monthKey}

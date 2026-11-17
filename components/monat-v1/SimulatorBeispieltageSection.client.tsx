@@ -142,7 +142,7 @@ function DayChart({
     ? `Restlast und Fahrpläne am 21.10., Europe/Berlin, 15 Minuten. Neue Tagesspitze ${formatGw(metrics.marketPeakGw)} um ${metrics.marketPeakLabel}, beobachtet ${formatGw(metrics.observedPeakGw)} um ${metrics.observedLabel}.`
     : `Restlast und Fahrpläne am 29.10., Europe/Berlin, 15 Minuten. Preismaximum ${formatDec(metrics.maxPrice, 0)} Euro je Megawattstunde um ${metrics.maxPriceLabel}, Restlastspitze ${formatGw(metrics.observedPeakGw)} um ${metrics.observedLabel}, Markt noch ${formatGw(metrics.marketDischargeAtObservedGw)} übrig.`;
   const xs = market.map((r) => xRow(r));
-  const pick = (clientX: number, target: HTMLDivElement) =>
+  const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (

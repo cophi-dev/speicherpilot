@@ -4790,14 +4790,14 @@ details[open] > .methodik-section-summary::before {
   margin-block: -8px;
 }
 .methodik-v4 #quellen ul li {
-  display: flex;
-  align-items: center;
   min-height: 44px;
 }
 .methodik-v4 #quellen ul a {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding-block: 6px;
+  min-height: 44px;
+  width: 100%;
+  padding-block: 0;
 }
 .methodik-v4 #d-recht > p a {
   display: inline-flex;
@@ -10567,8 +10567,7 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   color: var(--muted-foreground);
 }
 .v4-fleet-energy-context {
-  margin: 12px 0 8px;
-  max-width: 42rem;
+  margin: 12px 0 0;
   font-size: var(--type-14);
   line-height: var(--lh-body);
   color: var(--muted-foreground);

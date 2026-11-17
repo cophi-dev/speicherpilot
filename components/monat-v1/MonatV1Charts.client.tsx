@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
+import { nearestIndexFromClientInSvg } from "@/lib/chartSvgPointer";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
@@ -129,14 +130,46 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   const gwUnit = yAxisGwUnitPosition({ padL: vb.L, plotTop: vb.T, topTickBaselineY: topTickBaseline });
   const hatchPts = [{ x: kipX, y: refY }, ...marktPts.filter((pt) => pt.f > kipF + 0.01)];
 
-  const factorSteps = 10;
-  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(factorSteps);
-  const activeFactor = activeIndex != null ? activeIndex + 1 : null;
+  const heroSvgRef = useRef<SVGSVGElement>(null);
+  const factorSnaps = useMemo(() => {
+    const seen = new Set<number>();
+    const list: { factor: number; x: number }[] = [];
+    for (const f of [...FACTOR_PLOT, kipF].sort((a, b) => a - b)) {
+      if (seen.has(f)) {
+        continue;
+      }
+      seen.add(f);
+      list.push({ factor: f, x: factorX(f, plotW, vb.L) });
+    }
+    return list;
+  }, [kipF, plotW, vb.L]);
+
+  const pickHeroSnap = useCallback(
+    (clientX: number, clientY: number, target: HTMLDivElement) => {
+      const svg = heroSvgRef.current ?? target.querySelector("svg");
+      return nearestIndexFromClientInSvg(
+        clientX,
+        clientY,
+        svg instanceof SVGSVGElement ? svg : null,
+        factorSnaps.map((s) => s.x),
+      );
+    },
+    [factorSnaps],
+  );
+
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(
+    factorSnaps.length,
+    pickHeroSnap,
+  );
+  const activeSnap = activeIndex != null ? factorSnaps[activeIndex] : null;
+  const activeFactor = activeSnap?.factor ?? null;
   const tooltipRows = useMemo(() => {
     if (activeFactor == null) {
       return null;
     }
-    const p = model.hero.points.find((x) => x.factor === activeFactor);
+    const p =
+      model.hero.points.find((x) => x.factor === activeFactor) ??
+      model.hero.points.find((x) => Math.abs(x.factor - activeFactor) < 0.05);
     if (!p) {
       return null;
     }
@@ -149,7 +182,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
     }
     return rows;
   }, [activeFactor, model.hero.points]);
-  const crossX = activeFactor != null ? factorX(activeFactor, plotW, vb.L) : null;
+  const crossX = activeSnap?.x ?? null;
   const plotBottom = vb.T + plotH;
   const factorAxis = monatFactorAxisY(plotBottom);
 
@@ -173,7 +206,13 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         testId="monat-v1-hero-tooltip"
       />
       <HeroChartLegend wide={wide} kipF={kipF} marktX10={model.heroTable.marktX10} />
-      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g1-title g1-desc">
+      <svg
+        ref={heroSvgRef}
+        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        className={styles.svg}
+        role="img"
+        aria-labelledby="g1-title g1-desc"
+      >
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
           Spitzenorientiert sinkt die Monatsspitze mit wachsender Flotte; Marktorientiert ohne Preisrückwirkung steigt
@@ -320,7 +359,27 @@ function StundenChart({ model }: { model: MonatV1Model }) {
     topTickBaselineY: yRed(yMax) + 4,
   });
 
-  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(cats.length);
+  const stundenSvgRef = useRef<SVGSVGElement>(null);
+  const stundenXs = useMemo(
+    () => cats.map((_, i) => vb.L + ((i + 0.5) / Math.max(1, cats.length)) * plotW),
+    [cats, plotW, vb.L],
+  );
+  const pickStundenIndex = useCallback(
+    (clientX: number, clientY: number, target: HTMLDivElement) => {
+      const svg = stundenSvgRef.current ?? target.querySelector("svg");
+      return nearestIndexFromClientInSvg(
+        clientX,
+        clientY,
+        svg instanceof SVGSVGElement ? svg : null,
+        stundenXs,
+      );
+    },
+    [stundenXs],
+  );
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(
+    cats.length,
+    pickStundenIndex,
+  );
   const activeCat = activeIndex != null ? cats[activeIndex] : null;
   const tooltipRows = useMemo(() => {
     if (!activeCat) {
@@ -332,8 +391,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
       { label: formatDeDurationH("4"), value: formatGwReduction(activeCat.h4, 2) },
     ];
   }, [activeCat]);
-  const crossX =
-    activeIndex != null ? vb.L + ((activeIndex + 0.5) / cats.length) * plotW : null;
+  const crossX = activeIndex != null ? stundenXs[activeIndex] : null;
 
   return (
     <div
@@ -371,7 +429,13 @@ function StundenChart({ model }: { model: MonatV1Model }) {
           </span>
         ) : null}
       </div>
-      <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g3-title g3-desc">
+      <svg
+        ref={stundenSvgRef}
+        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        className={styles.svg}
+        role="img"
+        aria-labelledby="g3-title g3-desc"
+      >
         <title id="g3-title">Spitzensenkung je Dauer und Flottenstufe</title>
         <desc id="g3-desc">
           {MONAT_V1_KERN3}. Längere Speicherdauer senkt die Spitze stärker; bei gleicher Leistung begrenzt Energie die Wirkung.

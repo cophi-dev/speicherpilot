@@ -118,7 +118,7 @@ function StripeChart({
   const hebung = day21 ? Math.abs(day21.marketReductionGw) : 0;
   const aria = `31 Oktobertage nach Regel T: ${data.tagesklassenSummary.winWin} Win-win, ${data.tagesklassenSummary.neutral} neutral, ${data.tagesklassenSummary.konfliktSchwach} Konflikt-schwach, ${data.tagesklassenSummary.konfliktHebung} Konflikt-Hebung`;
   const xs = days.map((_, i) => vb.L + i * (bw + gap) + bw / 2);
-  const pick = (clientX: number, target: HTMLDivElement) =>
+  const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
