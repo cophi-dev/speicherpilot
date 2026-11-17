@@ -133,3 +133,7 @@ if (typeof g.Response === "undefined") {
 jest.mock("next/cache", () => ({
   unstable_cache: <T>(fn: () => Promise<T>) => fn,
 }));
+
+if (typeof window !== "undefined") {
+  window.scrollTo = jest.fn();
+}
