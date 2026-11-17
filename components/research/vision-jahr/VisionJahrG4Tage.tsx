@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useCallback, useMemo, useRef, useState, type PointerEvent } from "react";
 
-import { yAxisTickLabelDy, yAxisUnitLabelY } from "@/components/research/chartY";
+import { yAxisTickLabelDy } from "@/components/research/chartY";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
 import { formatVisionGermanDate, formatVisionGwWithUnit } from "@/lib/research/visionJahrFormat";
+import { layoutG4KappeLabels } from "@/lib/research/visionG4Labels";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 
@@ -16,7 +17,7 @@ const Y_MAX = 75;
 const PAD_LEFT = 40;
 const PAD_RIGHT = 8;
 const PAD_TOP = 32;
-const PAD_BOTTOM = 52;
+const PAD_BOTTOM = 62;
 
 function yPos(gw: number, height: number) {
   const inner = height - PAD_TOP - PAD_BOTTOM;
@@ -76,16 +77,18 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
     setTooltip(null);
   };
 
+  const kappeLabels = layoutG4KappeLabels(kappeC, kappeAVal, height);
+
   return (
     <div className={styles.g4ChartWrap} ref={wrapRef}>
       <div className={styles.g4KappeRow} aria-hidden={false}>
-        <span className={styles.g4KappePill}>NEP C drückt die Spitze bis {formatVisionGwWithUnit(kappeC)}</span>
-        <span className={styles.g4KappePill}>NEP A {formatVisionGwWithUnit(kappeAVal)}</span>
+        {kappeLabels.map((label) => (
+          <span key={label.key} className={styles.g4KappePill} style={{ marginTop: 0 }}>
+            {label.text}
+          </span>
+        ))}
       </div>
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={styles.chartFixed} role="img" aria-label="Tageshöchstwerte über das Jahr">
-        <text x={PAD_LEFT - 8} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-          GW
-        </text>
         {yTicks.map((tick) => (
           <g key={tick}>
             <line x1={PAD_LEFT} x2={width - PAD_RIGHT} y1={yPos(tick, height)} y2={yPos(tick, height)} stroke="var(--research-line)" />
@@ -131,7 +134,7 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
           </g>
         ) : null}
         {monthTicks.map((tick) => (
-          <text key={tick.label + tick.x} x={tick.x} y={height - 16} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text key={tick.label + tick.x} x={tick.x} y={height - 26} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {tick.label}
           </text>
         ))}
@@ -146,7 +149,7 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
           onPointerLeave={onPointerLeave}
           style={{ cursor: "crosshair", touchAction: "none" }}
         />
-        <text x={width / 2} y={height - 2} textAnchor="middle" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+        <text x={width / 2} y={height - 8} textAnchor="middle" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
           höchste Restlast des Tages [GW]
         </text>
       </svg>

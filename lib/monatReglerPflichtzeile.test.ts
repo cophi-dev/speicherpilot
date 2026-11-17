@@ -2,7 +2,7 @@ import { MONAT_REGELR_GRAPH_CAPTION, MONAT_REGELR_MODEL_FOOTNOTE } from "@/lib/m
 
 describe("monatReglerPflichtzeile", () => {
   it("Kurzzeile unter Graphen", () => {
-    expect(MONAT_REGELR_GRAPH_CAPTION).toBe("Modell \u00b7 Annahmen unten");
+    expect(MONAT_REGELR_GRAPH_CAPTION).toBe("national, kein (n\u22121), nicht Abregelung");
   });
 
   it("Fußnote am Seitenende ohne Euro und ohne netzdienlich", () => {

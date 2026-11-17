@@ -4356,6 +4356,7 @@ footer .site-fold a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  padding-block: 8px;
   color: #0f6e7c;
   font-family: var(--font-space-grotesk);
   text-decoration: underline;

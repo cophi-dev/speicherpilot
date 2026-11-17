@@ -11,6 +11,7 @@ import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { topYTickBaselineY, yAxisGwUnitPosition } from "@/lib/monatV1HeroLayout";
+import { monatHeroChartBox, monatHeroUsesWideLayout, monatStundenChartBox } from "@/lib/monatChartViewBox";
 import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
@@ -24,19 +25,19 @@ function yGw(gw: number, yMin: number, yMax: number, plotH: number, padT: number
   return padT + plotH - ((gw - yMin) / (yMax - yMin)) * plotH;
 }
 
-function useLayout(minWidth = MONAT_WIDE_VIEWBOX_W) {
+function useChartShellWidth(minWidth = 280) {
   const ref = useRef<HTMLDivElement>(null);
-  const [wide, setWide] = useState(false);
+  const [shellWidth, setShellWidth] = useState(MONAT_WIDE_VIEWBOX_W);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const apply = () => setWide(el.clientWidth >= minWidth);
+    const apply = () => setShellWidth(Math.max(minWidth, Math.round(el.clientWidth)));
     const ro = new ResizeObserver(apply);
     ro.observe(el);
     apply();
     return () => ro.disconnect();
   }, [minWidth]);
-  return { ref, wide };
+  return { ref, shellWidth, wide: monatHeroUsesWideLayout(shellWidth) };
 }
 
 
@@ -73,8 +74,8 @@ function HeroChartLegend({
 }
 
 function HeroChart({ model }: { model: MonatV1Model }) {
-  const { ref, wide } = useLayout();
-  const vb = wide ? { w: 1152, h: 460, L: 52, R: 188, T: 32, B: 62 } : { w: 350, h: 356, L: 38, R: 26, T: 24, B: 62 };
+  const { ref, shellWidth, wide } = useChartShellWidth();
+  const vb = monatHeroChartBox(shellWidth);
   const plotW = vb.w - vb.L - vb.R;
   const plotH = vb.h - vb.T - vb.B;
   const { yMinGw, yMaxGw, refPeakGw } = model;
@@ -291,8 +292,8 @@ function HeroChart({ model }: { model: MonatV1Model }) {
 }
 
 function StundenChart({ model }: { model: MonatV1Model }) {
-  const { ref, wide } = useLayout();
-  const vb = wide ? { w: 1152, h: 400, L: 52, R: 24, T: 36, B: 48 } : { w: 350, h: 334, L: 38, R: 10, T: 28, B: 58 };
+  const { ref, shellWidth, wide } = useChartShellWidth();
+  const vb = monatStundenChartBox(shellWidth);
   const plotW = vb.w - vb.L - vb.R;
   const plotH = vb.h - vb.T - vb.B;
   const yMax = 20;
@@ -436,8 +437,11 @@ function StundenChart({ model }: { model: MonatV1Model }) {
 }
 
 function UeberschussChart({ model }: { model: MonatV1Model }) {
-  const { ref, wide } = useLayout();
-  const vb = wide ? { w: 1152, h: 384, poolW: 520 } : { w: 350, h: 404, poolW: 200 };
+  const { ref, shellWidth, wide } = useChartShellWidth();
+  const scale = wide ? 1 : shellWidth / 350;
+  const vb = wide
+    ? { w: 1152, h: 384, poolW: 520 }
+    : { w: Math.max(280, shellWidth), h: Math.round(404 * scale), poolW: Math.round(200 * scale) };
   const rowH = wide ? 56 : 52;
   const barH = 18;
   const startY = 48;

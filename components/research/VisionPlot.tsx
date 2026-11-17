@@ -6,6 +6,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { reductionFromY, yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
 import { formatGwSenkung, formatReductionTickGw } from "@/lib/research/fleetBasis";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
+import { visionReductionYTicks } from "@/lib/research/visionReductionTicks";
 import type { VisionPageModel, VisionStageId } from "@/lib/research/researchTypes";
 
 import styles from "@/components/research/research.module.css";
@@ -145,10 +146,7 @@ export function VisionPlot({
           role="img"
           aria-label={ariaLabel}
         >
-          <text x={32} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            GW
-          </text>
-          {[0, 5, 10, 15, yMax].filter((v, i, a) => a.indexOf(v) === i).map((tick) => (
+          {visionReductionYTicks(yMax).map((tick) => (
             <g key={tick}>
               <line
                 x1={40}

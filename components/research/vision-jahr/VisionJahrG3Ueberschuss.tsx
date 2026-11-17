@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
 import { formatVisionGwhThousands, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
+import { visionG3MarktLineY } from "@/lib/research/visionG3MarktLine";
 import type { VisionJahrModel, VisionJahrStufeKey } from "@/lib/research/visionJahrTypes";
 
 import styles from "@/components/research/research.module.css";
@@ -59,9 +60,16 @@ export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrMod
               </text>
               <rect x={PAD_LEFT} y={y} width={innerW} height={ROW_H} fill="var(--research-line)" opacity={0.45} rx={2} />
               <rect x={PAD_LEFT} y={y} width={barW} height={ROW_H} fill="var(--research-accent-light)" rx={2} />
-              <line x1={marktX} x2={marktX} y1={y + 4} y2={y + ROW_H - 4} stroke="var(--research-fg)" strokeWidth={2} />
+              {(() => {
+                const seg = visionG3MarktLineY(y, ROW_H, axisFs);
+                return (
+                  <line x1={marktX} x2={marktX} y1={seg.y1} y2={seg.y2} stroke="var(--research-fg)" strokeWidth={2} />
+                );
+              })()}
               <text x={PAD_LEFT + Math.max(barW, 36) - 6} y={y + ROW_H / 2 + 4} textAnchor="end" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-                {formatVisionPercentWhole(row.maxPct)}
+                <tspan stroke="var(--research-bg, #fff)" strokeWidth={4} paintOrder="stroke">
+                  {formatVisionPercentWhole(row.maxPct)}
+                </tspan>
               </text>
             </g>
           );

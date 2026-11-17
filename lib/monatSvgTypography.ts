@@ -19,6 +19,6 @@ export function monatChartUsesWideLayout(containerWidth: number): boolean {
 export function monatRenderedFontPx(viewBoxFont: number, viewportPx: number): number {
   const container = monatPageContentWidth(viewportPx);
   const wide = monatChartUsesWideLayout(container);
-  const vbW = wide ? MONAT_WIDE_VIEWBOX_W : MONAT_NARROW_VIEWBOX_W;
+  const vbW = wide ? MONAT_WIDE_VIEWBOX_W : Math.max(MONAT_NARROW_VIEWBOX_W, container);
   return viewBoxFont * (container / vbW);
 }

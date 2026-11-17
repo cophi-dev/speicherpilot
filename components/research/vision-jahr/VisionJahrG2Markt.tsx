@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { yAxisTickLabelDy, yAxisUnitLabelY } from "@/components/research/chartY";
+import { yAxisTickLabelDy } from "@/components/research/chartY";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
 import { formatVisionGwOne, formatVisionGwPlain } from "@/lib/research/visionJahrFormat";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
@@ -99,9 +99,6 @@ export function VisionJahrG2Markt({ model, width, height }: { model: VisionJahrM
   return (
     <div className={styles.chartClip}>
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={styles.chartFixed} role="img" aria-label="Markt und spitzenorientiert über das Jahr">
-        <text x={PAD_LEFT - 8} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-          GW
-        </text>
         {yTicks.map((tick) => (
           <g key={tick}>
             <line x1={PAD_LEFT} x2={width - PAD_RIGHT} y1={yPos(tick, height, padBottom)} y2={yPos(tick, height, padBottom)} stroke="var(--research-line)" />

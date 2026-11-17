@@ -67,6 +67,7 @@ export function TagChapter({
             surplusGwh={surplusGwh}
             compactCopy
           />
+          <GraphScopeMeta />
         </div>
       ) : null}
     </section>

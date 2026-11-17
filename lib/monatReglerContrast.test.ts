@@ -8,5 +8,6 @@ describe("Monat-Regler Kontrast", () => {
     expect(css).toMatch(/--mr-observed:\s*#58606a/);
     expect(contrastRatio("#58606a", "#f6f6f3")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#43474c", "#f6f6f3")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#9ea3a9", "#121417")).toBeGreaterThanOrEqual(4.5);
   });
 });
