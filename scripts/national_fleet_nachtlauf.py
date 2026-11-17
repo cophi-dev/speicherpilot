@@ -528,7 +528,7 @@ def validate_paths(paths: list[Path]) -> int:
     for path in paths:
         if path.suffix != ".json" or "national-fleet" not in path.as_posix():
             continue
-        if path.name.startswith("manifest"):
+        if path.name.startswith("manifest") or path.name.startswith("_"):
             continue
         errors.extend(validate_fleet_json(path))
     if errors:
