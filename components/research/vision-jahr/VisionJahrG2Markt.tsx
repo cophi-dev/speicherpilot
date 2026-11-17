@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { yAxisTickLabelDy } from "@/components/research/chartY";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
-import { formatVisionGwOne, formatVisionGwPlain, formatVisionGwWithUnit } from "@/lib/research/visionJahrFormat";
+import { formatVisionBisGw, formatVisionGwOne, formatVisionGwPlain, formatVisionGwWithUnit } from "@/lib/research/visionJahrFormat";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
 import { layoutG2StressCapLabel } from "@/lib/research/visionG2CapLabel";
 import { G2_Y_AXIS_MAX_GW } from "@/lib/research/visionJahrG2Stress";
@@ -157,7 +157,7 @@ export function VisionJahrG2Markt({ model, width, height }: { model: VisionJahrM
         </span>
         <span role="listitem">
           <span className={`${styles.legendSwatch} ${styles.legendSwatchStress}`} aria-hidden />
-          Stresstest ohne Rückwirkung (bis {formatVisionGwOne(stressMax)} GW)
+          Stresstest ohne Rückwirkung ({formatVisionBisGw(stressMax)})
         </span>
       </div>
       <VisionJahrChartFoot />

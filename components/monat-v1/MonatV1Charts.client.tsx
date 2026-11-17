@@ -13,7 +13,13 @@ import type { MonatV1Model } from "@/lib/monatV1Model";
 import { layoutMonatHeroYAxis } from "@/lib/monatHeroYAxisLabels";
 import { topYTickBaselineY, yAxisGwUnitPosition } from "@/lib/monatV1HeroLayout";
 import { monatFactorAxisY } from "@/lib/monatFactorAxisLayout";
-import { monatHeroChartBox, monatHeroUsesWideLayout, monatStundenChartBox } from "@/lib/monatChartViewBox";
+import {
+  monatHeroChartBox,
+  monatHeroUsesWideLayout,
+  monatStundenChartBox,
+  monatUeberschussChartBox,
+} from "@/lib/monatChartViewBox";
+import { formatVisionPoolHeaderGwh } from "@/lib/research/visionJahrFormat";
 import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
@@ -444,10 +450,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
 
 function UeberschussChart({ model }: { model: MonatV1Model }) {
   const { ref, shellWidth, wide } = useChartShellWidth();
-  const scale = wide ? 1 : shellWidth / 350;
-  const vb = wide
-    ? { w: 1152, h: 384, poolW: 520 }
-    : { w: Math.max(280, shellWidth), h: Math.round(404 * scale), poolW: Math.round(200 * scale) };
+  const vb = monatUeberschussChartBox(shellWidth, model.pool.length);
   const rowH = wide ? 56 : 52;
   const barH = 18;
   const startY = 48;
@@ -491,7 +494,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
           Die Überschuss-Strategie füllt den Monats-Pool, senkt die Spitze aber weniger als spitzenorientiertes Fahren.
         </desc>
         <text x={poolX} y={28} fill="var(--mv-ink)">
-          Pool {model.surplusPoolGwh.toFixed(1).replace(".", ",")} GWh
+          {formatVisionPoolHeaderGwh(model.surplusPoolGwh)}
         </text>
         <text x={poolX + vb.poolW + 40} y={28} fill="var(--mv-muted)">
           sinkt um

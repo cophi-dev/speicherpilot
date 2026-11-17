@@ -1,4 +1,8 @@
-import { monatHeroChartBox, monatHeroUsesWideLayout } from "@/lib/monatChartViewBox";
+import {
+  monatHeroChartBox,
+  monatHeroUsesWideLayout,
+  monatUeberschussChartBox,
+} from "@/lib/monatChartViewBox";
 import { monatRenderedFontPx } from "@/lib/monatSvgTypography";
 
 describe("monatChartViewBox", () => {
@@ -20,5 +24,16 @@ describe("monatChartViewBox", () => {
     expect(box.w).toBe(928);
     expect(box.h).toBeGreaterThanOrEqual(300);
     expect(box.h).toBeLessThanOrEqual(400);
+  });
+
+  it("Überschuss-Pool narrow: Höhe folgt Inhalt (~0,4×Breite), nicht 404-Skalierung", () => {
+    const rows = 4;
+    for (const shellW of [672, 928]) {
+      const box = monatUeberschussChartBox(shellW, rows);
+      expect(box.w).toBe(shellW);
+      expect(box.h).toBeLessThan(Math.round(404 * (shellW / 350)));
+      expect(box.h / box.w).toBeGreaterThan(0.35);
+      expect(box.h / box.w).toBeLessThan(0.65);
+    }
   });
 });

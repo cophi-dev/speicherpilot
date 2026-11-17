@@ -1,7 +1,11 @@
 import "server-only";
 
 import datenJahr from "@/data/forschung/daten_jahr_v1.json";
-import { formatVisionGwMinus, formatVisionGwOne } from "@/lib/research/visionJahrFormat";
+import {
+  formatVisionFleetGwGwhLine,
+  formatVisionGwMinus,
+  formatVisionGwOne,
+} from "@/lib/research/visionJahrFormat";
 import type { VisionJahrModel, VisionJahrStage, VisionJahrStufeKey } from "@/lib/research/visionJahrTypes";
 import type { VisionCurvePoint, VisionStageId } from "@/lib/research/researchTypes";
 
@@ -117,7 +121,7 @@ export function buildResearchVision(): VisionJahrModel {
     peakTime: datenJahr.basis.spitze_uhr,
     ueberschussGWh: datenJahr.basis.ueberschuss_GWh,
     commitmentsGw: 78,
-    fleetLabel: "4,70 GW / 8,27 GWh, Stand 16.11. · battery-charts.de",
+    fleetLabel: formatVisionFleetGwGwhLine(4.7, 8.27, "Stand 16.11. · battery-charts.de"),
     stages2h,
     vorjahr2hSenkung,
     tageshorizontNepASenkungGw: tageshorizont?.senkung_GW ?? nepA.senkung2hGw,
