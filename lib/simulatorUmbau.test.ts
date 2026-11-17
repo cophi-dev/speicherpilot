@@ -42,5 +42,7 @@ describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
     expect(teaser.keepLabel).toBe("99,64");
     expect(teaser.sublineDe).toContain("0,89");
     expect(teaser.sublineDe).not.toMatch(/Mio/i);
+    expect(teaser.eyebrowDe).toContain("Oktober 2026");
+    expect(teaser.headlineDe).toContain("Oktober 2026");
   });
 });

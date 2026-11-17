@@ -1,6 +1,10 @@
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
 import { GraphScopeMeta } from "@/components/home/GraphScopeMeta";
-import { formatPeakKpi } from "@/lib/nationalFleetCharts";
+import {
+  formatDayPeakKpiFromSlice,
+  formatPeakCaptionMonthContext,
+  formatPeakKpiBilingual,
+} from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { formatGwReduction } from "@/lib/monatV1Format";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
@@ -57,7 +61,14 @@ export function NationalFleetDayChapter({
 }) {
   const peakRpGw = slice.maxRPrimeMw / 1000;
   const peakRGw = slice.maxRMw / 1000;
-  const peakReductionDayGw = peakRGw - peakRpGw;
+  const dayPeakKpi = formatDayPeakKpiFromSlice(peakRpGw, peakRGw, dayKey);
+  const peakReductionDayGw = dayPeakKpi.reductionGw;
+  const dayPeakSummary = formatPeakKpiBilingual(
+    peakRpGw,
+    dayPeakKpi.reductionGw,
+    dayPeakKpi.reductionPct,
+    { reference: dayPeakKpi.reference },
+  );
   const monthKey = nationalFleetMonthKeyForDay(dayKey);
   const { x1, x5, x10 } = saturationSlices(dayKey);
   const showSaturation = shouldShowFleetSaturationHint(x1, x5, x10);
@@ -75,8 +86,12 @@ export function NationalFleetDayChapter({
             : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}\u00A0GW höher`}
         </p>
         <p className="v4-tag-side">
-          Tages-Spitze {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW. Monat:{" "}
-          {formatPeakKpi(monthStats.peakAfterGw, monthStats.peakReductionGw, monthStats.peakReductionPct)}.
+          Tages-Spitze {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW.{" "}
+          {dayPeakSummary.de}
+          <span className="sr-only" lang="en">
+            {" "}
+            {dayPeakSummary.en}
+          </span>
         </p>
       </div>
 
@@ -135,10 +150,15 @@ export function NationalFleetDayChapter({
         factor={factor}
         strategy={strategy}
         dateKey={dayKey}
-        peakReductionGw={monthStats.peakReductionGw}
-        peakReductionPct={monthStats.peakReductionPct}
+        peakReductionGw={dayPeakKpi.reductionGw}
+        peakReductionPct={dayPeakKpi.reductionPct}
         peakReductionDayGw={peakReductionDayGw}
         peakObservedDayGw={peakRGw}
+        dayPeakReference={dayPeakKpi.reference}
+        monthContextNote={formatPeakCaptionMonthContext(
+          monthStats.peakReductionGw,
+          monthStats.peakReductionPct,
+        )}
         scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
         tagesvorlageDay
       />

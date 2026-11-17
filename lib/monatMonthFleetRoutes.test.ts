@@ -11,6 +11,8 @@ import { loadNationalFleetBundleMeta, loadNationalFleetMonthBundle } from "@/lib
 import { buildMarktInsights } from "@/lib/marktInsights";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseMonatReglerCompact } from "@/lib/monatReglerAsset";
+import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 
 const STRATEGIES: NationalFleetStrategyUi[] = ["ueberschuss", "spitze", "markt"];
 const MONTHS = ["2026-10", "2026-11"] as const;
@@ -42,6 +44,24 @@ describe("Monatsflotte — keine fehlende Summary auf Kernrouten", () => {
   it("2026-11: Überschuss-Pool 0 GWh in Meta", () => {
     const meta = loadNationalFleetBundleMeta("2026-11");
     expect(meta.provenance?.month_surplus_pool_gwh).toBe(0);
+  });
+
+  it("2026-11: Regler-Kompakt — Überschuss-Pool 0 für KPI-Anzeige", () => {
+    const raw = JSON.parse(
+      readFileSync(join(process.cwd(), "data/national-fleet/2026-11/fleet-month-compact.json"), "utf8"),
+    );
+    const compact = parseMonatReglerCompact(raw);
+    expect(compact.surplusPoolGwh).toBeLessThan(0.05);
+  });
+});
+
+describe("Simulator-Teaser Oktober 2026", () => {
+  it("Start-Kompromiss nennt Oktober 2026 in Eyebrow und Headline", () => {
+    const teaser = loadEps70Teaser();
+    expect(teaser.eyebrowDe).toContain("Oktober 2026");
+    expect(teaser.headlineDe).toContain("Oktober 2026");
+    expect(teaser.eyebrowEn).toContain("October 2026");
+    expect(teaser.headlineEn).toContain("October 2026");
   });
 });
 

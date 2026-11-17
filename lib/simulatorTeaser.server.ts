@@ -12,13 +12,22 @@ export function loadEps70Teaser(): Eps70TeaserUi {
   const voll = fullReduction(mkt.revenueMioEur, net.revenueMioEur);
   const priceGw = formatQuantity(data.endpoints.marketLex.reductionGw, "de", 2);
   const peakGw = formatQuantity(data.endpoints.netzLex.reductionGw, "de", 2);
+  const priceGwEn = formatQuantity(data.endpoints.marketLex.reductionGw, "en", 2);
+  const peakGwEn = formatQuantity(data.endpoints.netzLex.reductionGw, "en", 2);
+  const fullPeakEn = formatQuantity(net.reductionGw, "en", 2);
   return {
     costLabel: k.costLabel,
     keepLabel: k.keepLabel,
     costPctText: `${k.costLabel}\u00A0%`,
     priceReductionGw: priceGw,
     peakReductionGw: peakGw,
-    headlineDe: `Doppelte Flotte im Oktober: nach Preis ${priceGw} GW weniger Spitze, mit Rücksicht auf die Spitze ${peakGw} GW.`,
+    periodDe: "Oktober 2026",
+    periodEn: "October 2026",
+    eyebrowDe: "Kompromiss · Fahrweisen · Oktober 2026",
+    eyebrowEn: "Compromise · Strategies · October 2026",
+    headlineDe: `Doppelte Flotte im Oktober 2026: nach Preis ${priceGw} GW weniger Spitze, mit Rücksicht auf die Spitze ${peakGw} GW.`,
+    headlineEn: `Double the fleet in October 2026: by price ${priceGwEn} GW less peak, peak-aware ${peakGwEn} GW.`,
     sublineDe: `Dafür sinkt der Day-Ahead-Erlös um ${k.costLabel}\u00A0%. Die volle Senkung (${formatQuantity(net.reductionGw, "de", 2)} GW) kostet ${voll.pctLabel}\u00A0%.`,
+    sublineEn: `Day-ahead revenue falls by ${k.costLabel}\u00A0%. Full peak reduction (${fullPeakEn} GW) costs ${voll.pctLabel}\u00A0%.`,
   };
 }

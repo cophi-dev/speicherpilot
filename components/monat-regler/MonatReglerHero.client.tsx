@@ -94,9 +94,15 @@ export function MonatReglerHero({
     [factor, monthKey, router, strategy],
   );
 
+  const surplusPoolZero =
+    strategy === "ueberschuss" && compact != null && compact.surplusPoolGwh < 0.05;
+  const surplusZeroNote = `Im ${monthLabel} gab es im Modell keinen Überschuss aus Wind+Solar über Last.`;
+
   return (
     <section
-      className={`${styles.hero}${strategy === "markt" && factor > 1 ? ` ${styles.heroMarktKpi}` : ""}`}
+      className={`${styles.hero}${strategy === "markt" && factor > 1 ? ` ${styles.heroMarktKpi}` : ""}${
+        surplusPoolZero ? ` ${styles.heroZeroSurplus}` : ""
+      }`}
       aria-labelledby="monat-regler-h1"
       data-testid="monat-regler-hero"
     >
@@ -173,11 +179,8 @@ export function MonatReglerHero({
           {strategy === "ueberschuss" && kpis.surplusCaptureGwh != null ? (
             <div className={styles.kpi}>
               <dt>Überschuss-Pool</dt>
-              <dd>
-                {compact && compact.surplusPoolGwh < 0.05
-                  ? `Im ${monthLabel} gab es im Modell keinen Überschuss aus Wind+Solar über Last.`
-                  : formatPoolLine(kpis.surplusCaptureGwh, kpis.surplusSharePct)}
-              </dd>
+              <dd>{surplusPoolZero ? `0${NBSP}GWh` : formatPoolLine(kpis.surplusCaptureGwh, kpis.surplusSharePct)}</dd>
+              {surplusPoolZero ? <p className={styles.kpiNote}>{surplusZeroNote}</p> : null}
             </div>
           ) : null}
           {strategy === "markt" && factor > 1 && kpis.marktQhAboveRef != null ? (

@@ -1,23 +1,21 @@
 {
-  "commit": "8a17ad6f4e5b77c3cfca0aa797c7a5800cf4c4f2",
-  "buildId": "20261117T1214Z",
-  "builtAt": "2026-11-17T12:14:22.516Z",
+  "commit": "1afa56a506c028d531ed38a34e6a459bcfee8a1b",
+  "buildId": "20261117T1246Z",
+  "builtAt": "2026-11-17T12:46:32.294Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M app/monat/[monat]/page.tsx",
-    " M components/home/TagSystemChapter.tsx",
-    " M components/monat-regler/MonatReglerChart.client.tsx",
+    "M components/home/NationalFleetDayChapter.tsx",
+    " M components/home/NationalFleetTimeSeriesChartInner.tsx",
+    " M components/home/SimulatorTeasers.tsx",
     " M components/monat-regler/MonatReglerHero.client.tsx",
-    " M components/monat-v1/MonatV1Charts.client.tsx",
-    " M data/national-fleet/2026-11/fleet-month-meta.json",
-    " M lib/monatReglerKpis.ts",
-    " M lib/monatV1Model.ts",
-    " M lib/nationalMonthFleetModel.ts",
-    " M package.json",
-    "?? data/national-fleet/2026-11/market-kipppunkt.json",
-    "?? lib/monatMonthFleetRoutes.test.ts",
-    "?? scripts/build-fleet-month-summary-from-runs.mjs"
+    " M components/monat-regler/monat-regler.module.css",
+    " M lib/monatMonthFleetRoutes.test.ts",
+    " M lib/nationalFleetCharts.test.ts",
+    " M lib/nationalFleetCharts.ts",
+    " M lib/simulatorTeaser.server.ts",
+    " M lib/simulatorTeaser.types.ts",
+    " M lib/simulatorUmbau.test.ts"
   ],
   "ci": false
 }

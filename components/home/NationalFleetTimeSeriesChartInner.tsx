@@ -11,9 +11,12 @@ import {
   fleetChartPointsForIndices,
   dayResidualLoadScale,
   fleetChartTickIndices,
+  defaultMonthPeakReference,
   formatPeakCaptionDay,
   formatPeakCaptionMonthContext,
   formatPeakEffectLine,
+  formatDayPeakKpiFromSlice,
+  type PeakReference,
   peakIndexRp,
   polylinePoints,
   scaleLinear,
@@ -142,6 +145,7 @@ export type NationalFleetTimeSeriesChartProps = {
   peakReductionPct: number;
   peakReductionDayGw?: number;
   peakObservedDayGw?: number;
+  dayPeakReference?: PeakReference;
   monthContextNote?: string;
   scrollHint?: string;
   prominentMonth?: boolean;
@@ -159,6 +163,7 @@ export function NationalFleetTimeSeriesChart({
   peakReductionPct,
   peakReductionDayGw,
   peakObservedDayGw,
+  dayPeakReference,
   monthContextNote,
   scrollHint,
   prominentMonth = false,
@@ -361,18 +366,30 @@ export function NationalFleetTimeSeriesChart({
   const peakRpGw = points[peakI].rpGw;
   const dayReduction = frame.peakReductionDayGw ?? 0;
   const dayObserved = frame.peakObservedDayGw ?? points[peakI]?.rGw ?? peakRpGw;
+  const dayRef =
+    dayPeakReference ??
+    (dateKey && dayObserved > 0
+      ? formatDayPeakKpiFromSlice(peakRpGw, dayObserved, dateKey).reference
+      : defaultMonthPeakReference());
+  const peakCopyRef = isDay ? dayRef : defaultMonthPeakReference();
 
   const captionMain = isDay
-    ? formatPeakCaptionDay(peakRpGw, dayReduction, dayObserved)
+  ? dayRef.kind === "day" && dateKey
+      ? formatPeakEffectLine(peakRpGw, frame.peakReductionGw, frame.peakReductionPct, { reference: peakCopyRef })
+      : formatPeakCaptionDay(peakRpGw, dayReduction, dayObserved)
     : konzeptWorkbench
       ? formatKonzeptWorkbenchCaption(peakRpGw, frame.peakReductionGw)
-      : formatPeakEffectLine(peakRpGw, frame.peakReductionGw, frame.peakReductionPct);
+      : formatPeakEffectLine(peakRpGw, frame.peakReductionGw, frame.peakReductionPct, {
+          reference: peakCopyRef,
+        });
 
   const captionMonth =
     isDay && monthContextNote
       ? monthContextNote
       : isDay
-        ? formatPeakCaptionMonthContext(frame.peakReductionGw, frame.peakReductionPct)
+        ? formatPeakCaptionMonthContext(frame.peakReductionGw, frame.peakReductionPct, {
+            reference: defaultMonthPeakReference(),
+          })
         : null;
 
   const showPowerNote = powerMaxGw < 0.01;
