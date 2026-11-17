@@ -1,0 +1,86 @@
+[
+  {
+    "route": "/",
+    "width": 1280,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/start-1280.png"
+  },
+  {
+    "route": "/",
+    "width": 390,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/start-390.png"
+  },
+  {
+    "route": "/",
+    "width": 1024,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/start-1024.png"
+  },
+  {
+    "route": "/tag/2026-11-15",
+    "width": 1280,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/tag_2026-11-15-1280.png"
+  },
+  {
+    "route": "/tag/2026-11-15",
+    "width": 390,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/tag_2026-11-15-390.png"
+  },
+  {
+    "route": "/tag/2026-11-15",
+    "width": 1024,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/tag_2026-11-15-1024.png"
+  },
+  {
+    "route": "/monat",
+    "width": 1280,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/monat-1280.png"
+  },
+  {
+    "route": "/monat",
+    "width": 390,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/monat-390.png"
+  },
+  {
+    "route": "/monat",
+    "width": 1024,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/monat-1024.png"
+  },
+  {
+    "route": "/monat/2026-10",
+    "width": 1280,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/monat_2026-10-1280.png"
+  },
+  {
+    "route": "/monat/2026-10",
+    "width": 390,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/monat_2026-10-390.png"
+  },
+  {
+    "route": "/monat/2026-10",
+    "width": 1024,
+    "minTypoPx": 12,
+    "overflow": false,
+    "screenshot": "/agent/repos/speicherpilot/review-artifacts/restliste-124/monat_2026-10-1024.png"
+  }
+]

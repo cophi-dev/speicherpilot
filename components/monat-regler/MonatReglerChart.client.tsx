@@ -149,7 +149,7 @@ export function MonatReglerChart({
         role="img"
         aria-label="Restlast im Oktober"
       >
-        <text x={PAD.l - 8} y={PAD.t - 4} className={styles.yUnit} textAnchor="end">
+        <text x={PAD.l + 6} y={PAD.t - 4} className={styles.yUnit} textAnchor="start">
           GW
         </text>
         {Y_TICKS.map((yv) => {

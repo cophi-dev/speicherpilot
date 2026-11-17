@@ -8,6 +8,7 @@ import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/home/PreisFenster.module.css";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LUECKE_DESKTOP, LUECKE_MOBILE_PAD, plotXFromSlotIndex } from "@/lib/lueckeChartGeometry";
+import { TAG_WIDE_VIEWBOX_W } from "@/lib/tagSvgTypography";
 import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
 
 const DESKTOP_H = 180;
@@ -52,9 +53,6 @@ export function PreisFenster({
   const [shellWidth, setShellWidth] = useState(335);
 
   useEffect(() => {
-    if (!compact) {
-      return undefined;
-    }
     const node = shellRef.current;
     if (!node || typeof ResizeObserver === "undefined") {
       return undefined;
@@ -64,7 +62,16 @@ export function PreisFenster({
     const observer = new ResizeObserver(sync);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [compact]);
+  }, []);
+
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(Math.max(points.length, 2));
+  const tooltipRows = useMemo(() => {
+    if (activeIndex == null || points.length < 2 || !points[activeIndex]) {
+      return null;
+    }
+    const p = points[activeIndex]!;
+    return [{ label: "Day-Ahead", value: `${formatQuantity(p.eurPerMwh, "de", 2)} €/MWh` }];
+  }, [activeIndex, points]);
 
   if (points.length < 2) {
     return null;
@@ -76,11 +83,21 @@ export function PreisFenster({
     Math.min(...points.map((point) => point.eurPerMwh)),
     Math.max(...points.map((point) => point.eurPerMwh)),
   );
-  const padL = compact ? LUECKE_MOBILE_PAD.left : LUECKE_DESKTOP.pad.left;
-  const padR = compact ? LUECKE_MOBILE_PAD.right : LUECKE_DESKTOP.pad.right;
+  const wideFrame = shellWidth >= TAG_WIDE_VIEWBOX_W;
+  const narrowScale = wideFrame ? 1 : shellWidth / LUECKE_DESKTOP.w;
+  const padL = compact
+    ? LUECKE_MOBILE_PAD.left
+    : wideFrame
+      ? LUECKE_DESKTOP.pad.left
+      : Math.round(LUECKE_DESKTOP.pad.left * narrowScale);
+  const padR = compact
+    ? LUECKE_MOBILE_PAD.right
+    : wideFrame
+      ? LUECKE_DESKTOP.pad.right
+      : Math.round(LUECKE_DESKTOP.pad.right * narrowScale);
   const padT = compact ? 18 : 26;
   const padB = compact ? 20 : 28;
-  const width = compact ? shellWidth : LUECKE_DESKTOP.w;
+  const width = compact || wideFrame ? (wideFrame ? LUECKE_DESKTOP.w : shellWidth) : shellWidth;
   const height = compact ? MOBILE_H : DESKTOP_H;
   const plotW = width - padL - padR;
   const plotH = height - padT - padB;
@@ -107,14 +124,6 @@ export function PreisFenster({
   const modelLine = preisModellLine(surplusGwh);
   const spanLine = preisSpanneLine(dauer);
 
-  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(points.length);
-  const tooltipRows = useMemo(() => {
-    if (activeIndex == null || !points[activeIndex]) {
-      return null;
-    }
-    const p = points[activeIndex]!;
-    return [{ label: "Day-Ahead", value: `${formatQuantity(p.eurPerMwh, "de", 2)} €/MWh` }];
-  }, [activeIndex, points]);
   const tooltipTime = activeIndex != null && points[activeIndex] ? points[activeIndex]!.hm : null;
 
   return (

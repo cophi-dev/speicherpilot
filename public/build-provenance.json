@@ -1,15 +1,23 @@
 {
-  "commit": "bb14718b20fb357a94040325c91dee9103789b71",
-  "buildId": "20261116T2159Z",
-  "builtAt": "2026-11-16T21:59:06.070Z",
+  "commit": "c6220dcf1297cd5e4461da894bebe8f4022b1f07",
+  "buildId": "20261116T2303Z",
+  "builtAt": "2026-11-16T23:03:24.107Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/monat-v1/MonatV1Charts.client.tsx",
+    "M components/home/LueckeChart.tsx",
+    " M components/home/PreisFenster.tsx",
+    " M components/monat-regler/MonatReglerChart.client.tsx",
+    " M components/monat-regler/monat-regler.module.css",
+    " M components/monat-v1/MonatV1Charts.client.tsx",
     " M components/monat-v1/monat-v1.module.css",
-    "?? e2e/monat-svg-type.test.ts",
-    "?? lib/monatSvgTypography.test.ts",
-    "?? lib/monatSvgTypography.ts"
+    "?? e2e/restliste-124-chart-audit.test.ts",
+    "?? lib/monatReglerContrast.test.ts",
+    "?? lib/monatV1HeroLayout.test.ts",
+    "?? lib/monatV1HeroLayout.ts",
+    "?? lib/tagSvgTypography.test.ts",
+    "?? lib/tagSvgTypography.ts",
+    "?? scripts/restliste-124-artifacts.mjs"
   ],
   "ci": false
 }

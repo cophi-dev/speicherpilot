@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 
 import { PreisFenster } from "@/components/home/PreisFenster";
 
@@ -17,17 +17,63 @@ const points = [
   { hm: "00:00", eurPerMwh: 251.92 },
 ];
 
+const defaultProps = {
+  dateLabel: "08.11.2026",
+  points,
+  powerGw: 4.64,
+  energyGwh: 8.14,
+  surplusGwh: 0,
+};
+
+let mockClientWidth = 1152;
+
+class MockResizeObserver implements ResizeObserver {
+  constructor(private readonly callback: ResizeObserverCallback) {}
+
+  observe(target: Element) {
+    this.callback([{ target } as ResizeObserverEntry], this);
+  }
+
+  unobserve() {}
+
+  disconnect() {}
+}
+
+const clientWidthDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientWidth");
+
+beforeAll(() => {
+  Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+    configurable: true,
+    get() {
+      return mockClientWidth;
+    },
+  });
+  global.ResizeObserver = MockResizeObserver;
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList;
+});
+
+afterAll(() => {
+  if (clientWidthDescriptor) {
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", clientWidthDescriptor);
+  }
+  jest.restoreAllMocks();
+});
+
+function chartSvg() {
+  return screen.getByRole("img", { name: /Kein Erlös/ });
+}
+
 describe("PreisFenster", () => {
-  it("shows the duration gap as a definition list and keeps revenue out", () => {
-    render(
-      <PreisFenster
-        dateLabel="08.11.2026"
-        points={points}
-        powerGw={4.64}
-        energyGwh={8.14}
-        surplusGwh={0}
-      />,
-    );
+  it("shows the duration gap as a definition list and keeps revenue out", async () => {
+    mockClientWidth = 1152;
+    render(<PreisFenster {...defaultProps} />);
     const figure = screen.getByTestId("preis-fenster");
     expect(figure.textContent).toMatch(/Day-Ahead DE-LU, €\/MWh/);
     expect(figure.textContent).toMatch(/112,24 €\/MWh \(Ø 5 teuerste − Ø 5 günstigste ¼ h\)/);
@@ -35,11 +81,21 @@ describe("PreisFenster", () => {
     expect(figure.textContent).toMatch(/Energy-Charts \/ SMARD, CC BY 4.0/);
     expect(figure.textContent).toMatch(/Mittel günstig \/ teuer: 207,62 und 319,85/);
     expect(figure.textContent).not.toMatch(/Handrechnung/);
-    expect(screen.getByRole("img", { name: /Kein Erlös/ })).toHaveAttribute("viewBox", "0 0 1152 180");
+    await waitFor(() => {
+      expect(chartSvg()).toHaveAttribute("viewBox", "0 0 1152 180");
+    });
     expect(screen.getByText("€/MWh")).toBeInTheDocument();
     for (const hour of ["00", "06", "12", "18", "24"]) {
       expect(screen.getByText(hour)).toBeInTheDocument();
     }
     expect(screen.getByRole("link", { name: "Methodik" })).toHaveAttribute("href", "/methodik#preis-fenster");
+  });
+
+  it("uses container width for viewBox when shell is narrower than 1152 px", async () => {
+    mockClientWidth = 390;
+    render(<PreisFenster {...defaultProps} />);
+    await waitFor(() => {
+      expect(chartSvg()).toHaveAttribute("viewBox", "0 0 390 180");
+    });
   });
 });

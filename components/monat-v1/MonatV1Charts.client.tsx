@@ -10,6 +10,7 @@ import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
+import { topYTickBaselineY, yAxisGwUnitPosition } from "@/lib/monatV1HeroLayout";
 import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
@@ -39,46 +40,35 @@ function useLayout(minWidth = MONAT_WIDE_VIEWBOX_W) {
 }
 
 
-function MarktLabel390({
-  pts,
-  yGw: yOf,
-  yMinGw,
-  yMaxGw,
-  plotH,
-  padT,
+function HeroChartLegend({
+  wide,
+  kipF,
+  marktX10,
 }: {
-  pts: { f: number; gw: number; x: number; y: number }[];
-  yGw: (gw: number, yMin: number, yMax: number, plotH: number, padT: number) => number;
-  yMinGw: number;
-  yMaxGw: number;
-  plotH: number;
-  padT: number;
+  wide: boolean;
+  kipF: number;
+  marktX10: number;
 }) {
-  const a = pts.find((p) => p.f === 5) ?? pts[pts.length - 2];
-  const b = pts[pts.length - 1];
-  if (!a || !b || b.gw <= a.gw) {
-    return null;
-  }
-  const targetGw = 86;
-  const t = Math.min(1, Math.max(0, (targetGw - a.gw) / (b.gw - a.gw)));
-  const x = a.x + t * (b.x - a.x) - 10;
-  const y = yOf(targetGw, yMinGw, yMaxGw, plotH, padT) + 4;
   return (
-    <text
-      x={x}
-      y={y}
-      textAnchor="end"
-      fill="var(--mv-ink)"
-      stroke="var(--mv-flaeche, #fff)"
-      strokeWidth="3"
-      paintOrder="stroke"
-      fontSize="12"
-    >
-      <tspan x={x}>Markt · {formatGwAbs(b.gw, 2)}</tspan>
-      <tspan x={x} dy="14">
-        ohne Preisrückwirkung
-      </tspan>
-    </text>
+    <div className={styles.legend} data-testid="monat-v1-hero-legend">
+      <span className={styles.legendItem}>
+        <span className={styles.lineRef} /> Oktober, beobachtet
+      </span>
+      <span className={styles.legendItem}>
+        <span className={styles.dotFilled} /> Spitze
+      </span>
+      <span className={styles.legendItem}>
+        <span className={styles.dotHollow} /> Überschuss
+      </span>
+      <span className={styles.legendItem}>
+        <span className={styles.lineDashRust} /> Markt · {formatGwAbs(marktX10, 2)} ohne Preisrückwirkung
+      </span>
+      {wide ? (
+        <span className={styles.legendItem}>
+          Kipppunkt ≈×{String(kipF).replace(".", ",")}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -117,12 +107,13 @@ function HeroChart({ model }: { model: MonatV1Model }) {
     .map((pt) => ({ ...pt, y: yGw(pt.gw, yMinGw, yMaxGw, plotH, vb.T) }));
 
   const refY = yGw(refPeakGw, yMinGw, yMaxGw, plotH, vb.T);
-  const yTicks = wide
+  const yTicksRaw = wide
     ? model.yTicksGw
     : [40, 60, 80, 100].filter((t) => t >= yMinGw && t <= yMaxGw);
-  const lastSpitze = spitzePts[spitzePts.length - 1]!;
-  const lastUeber = ueberPts[ueberPts.length - 1]!;
-  const lastMarkt = marktPts[marktPts.length - 1]!;
+  const yTicks = yTicksRaw.filter((t) => yGw(t, yMinGw, yMaxGw, plotH, vb.T) < vb.T + plotH - 40);
+  const yMap = (gw: number) => yGw(gw, yMinGw, yMaxGw, plotH, vb.T);
+  const topTickBaseline = topYTickBaselineY(yTicks, yMinGw, yMaxGw, plotH, vb.T, yMap);
+  const gwUnit = yAxisGwUnitPosition({ padL: vb.L, plotTop: vb.T, topTickBaselineY: topTickBaseline });
   const hatchPts = [{ x: kipX, y: refY }, ...marktPts.filter((pt) => pt.f > kipF + 0.01)];
 
   const factorSteps = 10;
@@ -166,6 +157,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         rows={tooltipRows}
         testId="monat-v1-hero-tooltip"
       />
+      <HeroChartLegend wide={wide} kipF={kipF} marktX10={model.heroTable.marktX10} />
       <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g1-title g1-desc">
         <title id="g1-title">Höchste Restlast je Flottenstufe und Fahrweise</title>
         <desc id="g1-desc">
@@ -204,7 +196,13 @@ function HeroChart({ model }: { model: MonatV1Model }) {
             </text>
           </g>
         ) : null}
-        <text x={vb.L - 4} y={vb.T - 8} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
+        <text
+          x={gwUnit.x}
+          y={gwUnit.y}
+          textAnchor={gwUnit.anchor}
+          fill="var(--mv-muted, #43474c)"
+          fontSize="14"
+        >
           GW
         </text>
         {FACTOR_TICKS.map((f) => {
@@ -237,27 +235,6 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         })}
         <rect x={vb.L} y={vb.T} width={plotW} height={refY - vb.T} fill="rgba(180, 83, 42, 0.1)" />
         <line x1={vb.L} x2={vb.L + plotW} y1={refY} y2={refY} stroke="var(--mv-ink)" strokeWidth="1.25" />
-        <text
-          x={wide ? kipX - 14 : factorX(7, plotW, vb.L)}
-          y={wide ? refY - 8 : refY - 18}
-          textAnchor={wide ? "end" : "middle"}
-          fill="var(--mv-ink)"
-          stroke="var(--mv-flaeche, #fff)"
-          strokeWidth="3"
-          paintOrder="stroke"
-          fontSize="12"
-        >
-          {wide ? (
-            "Oktober, beobachtet"
-          ) : (
-            <>
-              <tspan x={factorX(7, plotW, vb.L)}>Oktober,</tspan>
-              <tspan x={factorX(7, plotW, vb.L)} dy="14">
-                beobachtet
-              </tspan>
-            </>
-          )}
-        </text>
         <polyline
           fill="none"
           stroke="var(--mv-ink)"
@@ -304,62 +281,6 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               strokeWidth="1.75"
             />
           ))}
-        {wide ? (
-          <text
-            x={kipX}
-            y={refY + 12}
-            textAnchor="middle"
-            fill="var(--mv-muted)"
-            stroke="var(--mv-flaeche, #fff)"
-            strokeWidth="3"
-            paintOrder="stroke"
-            fontSize="14"
-          >
-            Kipppunkt ≈×{String(kipF).replace(".", ",")}
-          </text>
-        ) : null}
-        <text
-          x={wide ? lastSpitze.x + 12 : lastSpitze.x - 8}
-          y={lastSpitze.y + 4}
-          textAnchor={wide ? "start" : "end"}
-          fill="var(--mv-ink)"
-          stroke="var(--mv-flaeche, #fff)"
-          strokeWidth="3"
-          paintOrder="stroke"
-          fontSize="12"
-        >
-          Spitze
-        </text>
-        <text
-          x={wide ? lastUeber.x + 12 : lastUeber.x - 8}
-          y={lastUeber.y + 4}
-          textAnchor={wide ? "start" : "end"}
-          fill="var(--mv-muted)"
-          stroke="var(--mv-flaeche, #fff)"
-          strokeWidth="3"
-          paintOrder="stroke"
-          fontSize="12"
-        >
-          Überschuss
-        </text>
-        {wide ? (
-          <text
-            x={lastMarkt.x + 12}
-            y={lastMarkt.y + 4}
-            fill="var(--mv-ink)"
-            stroke="var(--mv-flaeche, #fff)"
-            strokeWidth="3"
-            paintOrder="stroke"
-            fontSize="12"
-          >
-            <tspan x={lastMarkt.x + 12}>Markt · {formatGwAbs(lastMarkt.gw, 2)}</tspan>
-            <tspan x={lastMarkt.x + 12} dy="14">
-              ohne Preisrückwirkung
-            </tspan>
-          </text>
-        ) : (
-          <MarktLabel390 pts={marktPts} yGw={yGw} yMinGw={yMinGw} yMaxGw={yMaxGw} plotH={plotH} padT={vb.T} />
-        )}
         {crossX != null ? (
           <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
         ) : null}
@@ -378,6 +299,11 @@ function StundenChart({ model }: { model: MonatV1Model }) {
   const dodge = wide ? 12 : 10;
   const cats = model.duration;
   const yRed = (reductionGw: number) => vb.T + plotH - (reductionGw / yMax) * plotH;
+  const stundenGwUnit = yAxisGwUnitPosition({
+    padL: vb.L,
+    plotTop: vb.T,
+    topTickBaselineY: yRed(yMax) + 4,
+  });
 
   const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(cats.length);
   const activeCat = activeIndex != null ? cats[activeIndex] : null;
@@ -423,6 +349,11 @@ function StundenChart({ model }: { model: MonatV1Model }) {
         <span className={styles.legendItem}>
           <span className={styles.dotRust} /> 4 h
         </span>
+        {model.showDauerVergleich && wide ? (
+          <span className={styles.legendItem}>
+            <span className={styles.lineDashMuted} /> genauso stark (×5 · 4 h ≈ ×10 · 1,76 h)
+          </span>
+        ) : null}
       </div>
       <svg viewBox={`0 0 ${vb.w} ${vb.h}`} className={styles.svg} role="img" aria-labelledby="g3-title g3-desc">
         <title id="g3-title">Spitzensenkung je Dauer und Flottenstufe</title>
@@ -440,7 +371,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
             </g>
           );
         })}
-        <text x={vb.L - 4} y={vb.T - 8} textAnchor="end" fill="var(--mv-muted)">
+        <text x={stundenGwUnit.x} y={stundenGwUnit.y} textAnchor={stundenGwUnit.anchor} fill="var(--mv-muted)">
           GW
         </text>
         {cats.map((c, i) => {
@@ -474,12 +405,6 @@ function StundenChart({ model }: { model: MonatV1Model }) {
                     ) : (
                       <circle cx={x + p.off} cy={y} r={p.r} fill={p.fill} />
                     )}
-                    {/* ×1 ist der Referenzpunkt (Senkung 0): kein Punktlabel, sonst stapeln sich drei gleiche Werte. */}
-                    {wide && c.factor !== 1 && (p.series === "h4" || (c.factor === 10 && p.series === "h176")) ? (
-                      <text x={x + p.off} y={y - 8} textAnchor="middle" fontSize="12" fill="var(--mv-ink)">
-                        {formatGwReduction(p.val, 2)}
-                      </text>
-                    ) : null}
                   </g>
                 );
               })}
@@ -496,12 +421,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
               const y5 = yRed(cats[i5]!.h4);
               const y10 = yRed(cats[i10]!.h176);
               return (
-                <>
-                  <line x1={x5} y1={y5} x2={x10} y2={y10} stroke="var(--mv-muted)" strokeDasharray="4 4" />
-                  <text x={(x5 + x10) / 2} y={(y5 + y10) / 2 - 6} textAnchor="middle" fill="var(--mv-muted)" fontSize="12">
-                    genauso stark
-                  </text>
-                </>
+                <line x1={x5} y1={y5} x2={x10} y2={y10} stroke="var(--mv-muted)" strokeDasharray="4 4" />
               );
             })()}
           </g>
