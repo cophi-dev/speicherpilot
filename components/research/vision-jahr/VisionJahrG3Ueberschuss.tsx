@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
 import { formatVisionGwhThousands, formatVisionPercentWhole } from "@/lib/research/visionJahrFormat";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
+import { visionG3AxisTitleY, visionG3TitleLayout } from "@/lib/research/visionG3AxisTitle";
 import { visionG3MarktLineY } from "@/lib/research/visionG3MarktLine";
 import type { VisionJahrModel, VisionJahrStufeKey } from "@/lib/research/visionJahrTypes";
 
@@ -28,8 +29,11 @@ const GAP = 10;
 
 export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrModel; width: number }) {
   const axisFs = visionAxisFontSize(width);
-  const height = PAD_TOP + ROWS.length * (ROW_H + GAP) + 40;
+  const { compact, extraTopPad } = visionG3TitleLayout(width);
+  const padTop = PAD_TOP + extraTopPad;
+  const height = padTop + ROWS.length * (ROW_H + GAP) + 40;
   const innerW = width - PAD_LEFT - PAD_RIGHT;
+  const title = visionG3AxisTitleY(compact, formatVisionGwhThousands(model.ueberschussGWh));
 
   const rows = useMemo(
     () =>
@@ -46,11 +50,22 @@ export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrMod
   return (
     <div className={styles.chartClip}>
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={styles.chartFixed} role="img" aria-label="Überschuss-Aufnahme nach Stufe">
-        <text x={PAD_LEFT} y={PAD_TOP - 6} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-          Anteil am nationalen Überschuss {formatVisionGwhThousands(model.ueberschussGWh)} GWh [%]
-        </text>
+        {compact ? (
+          <text x={PAD_LEFT} y={title.y1} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            <tspan x={PAD_LEFT} dy="0">
+              {title.line1}
+            </tspan>
+            <tspan x={PAD_LEFT} dy="1.25em">
+              {title.line2}
+            </tspan>
+          </text>
+        ) : (
+          <text x={PAD_LEFT} y={title.y1} fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            {title.line1} {title.line2}
+          </text>
+        )}
         {rows.map((row, i) => {
-          const y = PAD_TOP + i * (ROW_H + GAP);
+          const y = padTop + i * (ROW_H + GAP);
           const barW = (Math.min(100, row.maxPct) / 100) * innerW;
           const marktX = PAD_LEFT + (Math.min(100, row.marktPct) / 100) * innerW;
           return (
