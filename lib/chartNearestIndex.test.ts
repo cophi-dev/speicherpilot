@@ -1,4 +1,10 @@
-import { nearestIndexFromClientX, nearestIndexFromFraction, nearestIndexFromXs } from "@/lib/chartNearestIndex";
+import {
+  nearestIndexFromClientX,
+  nearestIndexFromClientXWithPlotPad,
+  nearestIndexFromFraction,
+  nearestIndexFromXs,
+  viewBoxXFromClientX,
+} from "@/lib/chartNearestIndex";
 
 describe("chartNearestIndex", () => {
   it("mappt Pointer-X auf den nächstliegenden Datenindex", () => {
@@ -13,7 +19,6 @@ describe("chartNearestIndex", () => {
     expect(nearestIndexFromFraction(0.51, 10)).toBe(5);
     expect(nearestIndexFromFraction(1, 10)).toBe(9);
   });
-});
 
   it("findet den nächsten Punkt auf ungleichmäßiger X-Achse", () => {
     const xs = [40, 80, 200, 310];
@@ -22,3 +27,22 @@ describe("chartNearestIndex", () => {
     expect(nearestIndexFromXs(250, xs)).toBe(2);
     expect(nearestIndexFromXs(400, xs)).toBe(3);
   });
+
+  it("berücksichtigt linkes Plot-Padding und skalierte Containerbreite", () => {
+    const rect = { left: 0, width: 400 };
+    const plotPad = 42;
+    const count = 97;
+    // Mitte der Plot-Fläche (ohne Gutter) ≈ Index 48
+    const midClientX = plotPad + (400 - plotPad) / 2;
+    expect(nearestIndexFromClientXWithPlotPad(midClientX, rect, count, plotPad)).toBe(48);
+    // Pointer über dem Gutter → Index 0, nicht versetzt
+    expect(nearestIndexFromClientXWithPlotPad(plotPad, rect, count, plotPad)).toBe(0);
+  });
+
+  it("viewBoxXFromClientX skaliert clientX in ViewBox-Koordinaten", () => {
+    const rect = { left: 10, width: 390 };
+    expect(viewBoxXFromClientX(10, rect, 780)).toBe(0);
+    expect(viewBoxXFromClientX(205, rect, 780)).toBe(390);
+    expect(viewBoxXFromClientX(400, rect, 780)).toBeCloseTo(780, 0);
+  });
+});

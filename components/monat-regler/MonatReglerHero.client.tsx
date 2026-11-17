@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+
+import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -83,7 +85,8 @@ export function MonatReglerHero({
   const onFactorSlider = useCallback(
     (idx: number) => {
       const f = NATIONAL_FLEET_FACTORS[idx] ?? factor;
-      router.replace(fleetMonatHref(monthKey, f, strategy));
+      sessionStorage.setItem("speicherpilot-fleet-scroll", String(window.scrollY));
+      router.replace(fleetMonatHref(monthKey, f, strategy), { scroll: false });
     },
     [factor, monthKey, router, strategy],
   );
@@ -117,7 +120,7 @@ export function MonatReglerHero({
           {NATIONAL_FLEET_FACTORS.map((f) => {
             const total = totalFleetAtFactor(f);
             return (
-              <Link
+              <FleetScenarioLink
                 key={f}
                 href={fleetMonatHref(monthKey, f, strategy)}
                 className={`${styles.chip}${f === factor ? ` ${styles.chipActive}` : ""}`}
@@ -125,20 +128,20 @@ export function MonatReglerHero({
               >
                 ×{f}
                 <span className={styles.chipSub}>{formatDeGw(total.powerMw / 1000, 2)}</span>
-              </Link>
+              </FleetScenarioLink>
             );
           })}
         </div>
         <div className={styles.chipGroup} role="group" aria-label="Fahrweise">
           {STRATEGY_ORDER.map((id) => (
-            <Link
+            <FleetScenarioLink
               key={id}
               href={fleetMonatHref(monthKey, factor, id)}
               className={`${styles.chip}${id === strategy ? ` ${styles.chipActive}` : ""}`}
               title={NATIONAL_FLEET_STRATEGY_UI[id].labelDe}
             >
               {STRATEGY_LABEL[id]}
-            </Link>
+            </FleetScenarioLink>
           ))}
         </div>
         <p className={styles.durationRow}>

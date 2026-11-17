@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, type CSSProperties } from "react";
+import { Suspense, useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
-import { TagKompromissTeaser } from "@/components/home/SimulatorTeasers";
+import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
+import { StartKompromissTeaser } from "@/components/home/SimulatorTeasers";
 import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
@@ -239,7 +240,7 @@ export function TagPageV4({
   fleetDayNoWindSolarSurplus,
   preisTag = [],
   marktInsights = [],
-  simulatorTeaser,
+  simulatorTeaser = null,
   fleetSoGerechnet = null,
   leitfrage,
   isStartSurface = false,
@@ -261,7 +262,7 @@ export function TagPageV4({
   fleetDayNoWindSolarSurplus?: boolean;
   preisTag?: PreisTick[];
   marktInsights?: MarktInsight[];
-  simulatorTeaser: import("@/lib/simulatorTeaser.types").Eps70TeaserUi;
+  simulatorTeaser?: import("@/lib/simulatorTeaser.types").Eps70TeaserUi | null;
   fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
   leitfrage?: string;
   isStartSurface?: boolean;
@@ -273,6 +274,9 @@ export function TagPageV4({
   }
   return (
     <div className="v4-start">
+      <Suspense fallback={null}>
+        <FleetScrollRestore />
+      </Suspense>
       {isStartSurface ? null : (
         <TagDayNav
           dayKey={dayKey}
@@ -337,7 +341,7 @@ export function TagPageV4({
         surplusGwh={record.surplusGwh ?? 0}
         fleetExtra={fleetSoGerechnet}
       />
-      <TagKompromissTeaser teaser={simulatorTeaser} />
+      {isStartSurface && simulatorTeaser ? <StartKompromissTeaser teaser={simulatorTeaser} /> : null}
       <TagesvorlageModelBox />
     </div>
   );

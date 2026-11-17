@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
@@ -15,6 +16,9 @@ import {
 } from "@/lib/monatCalendar";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
+import { StartKompromissTeaser } from "@/components/home/SimulatorTeasers";
+import type { Eps70TeaserUi } from "@/lib/simulatorTeaser.types";
 
 export function MonatNav({
   monthKey,
@@ -61,6 +65,7 @@ export function MonatPageV4({
   observationLive,
   observationFallbackNote,
   surplusBars,
+  kompromissTeaser,
   children,
 }: {
   monthKey: string;
@@ -74,6 +79,7 @@ export function MonatPageV4({
   observationFallbackNote?: string | null;
   /** Vorgebaute Balken — vermeidet doppeltes buildMonatGrid. */
   surplusBars?: import("@/lib/monatSurplusBars").MonatSurplusBar[];
+  kompromissTeaser?: Eps70TeaserUi | null;
   children?: React.ReactNode;
 }) {
   const { h1, subline, footnote } = monatPointe(monthKey, records, todayKey);
@@ -87,6 +93,9 @@ export function MonatPageV4({
     );
   return (
     <div className={`v4-start monat-page${fleetOnPage ? " has-fleet-konzept monat-page-v1" : ""}`}>
+      <Suspense fallback={null}>
+        <FleetScrollRestore />
+      </Suspense>
       <MonatNav monthKey={monthKey} records={records} />
       {!fleetOnPage ? (
         <section className="v4-kopf" aria-labelledby="monat-h1">
@@ -107,6 +116,8 @@ export function MonatPageV4({
       ) : null}
 
       {children}
+
+      {fleetOnPage && kompromissTeaser ? <StartKompromissTeaser teaser={kompromissTeaser} /> : null}
 
       {fleetOnPage ? null : (
       <section className="v4-chapter" aria-labelledby="monat-graph-title">

@@ -6,6 +6,7 @@ import { chartIndexFromKey, nearestIndexFromClientX } from "@/lib/chartNearestIn
 
 export type SvgChartProbePick = (
   clientX: number,
+  clientY: number,
   target: HTMLDivElement,
 ) => number;
 
@@ -16,10 +17,10 @@ export function useSvgChartProbe(pointCount: number, pickIndex?: SvgChartProbePi
   const activeIndex = focusIndex ?? hoverIndex;
 
   const pickFromClientX = useCallback(
-    (clientX: number, target: HTMLDivElement) => {
+    (clientX: number, clientY: number, target: HTMLDivElement) => {
       const rect = target.getBoundingClientRect();
       const idx = pickIndex
-        ? pickIndex(clientX, target)
+        ? pickIndex(clientX, clientY, target)
         : nearestIndexFromClientX(clientX, rect, pointCount, target.scrollLeft);
       const clamped = Math.min(Math.max(0, idx), Math.max(0, pointCount - 1));
       setHoverIndex(clamped);
@@ -33,7 +34,7 @@ export function useSvgChartProbe(pointCount: number, pickIndex?: SvgChartProbePi
       if (pointCount <= 0) {
         return;
       }
-      pickFromClientX(ev.clientX, ev.currentTarget);
+      pickFromClientX(ev.clientX, ev.clientY, ev.currentTarget);
     },
     [pickFromClientX, pointCount],
   );
@@ -46,7 +47,7 @@ export function useSvgChartProbe(pointCount: number, pickIndex?: SvgChartProbePi
       if (!touch || pointCount <= 0) {
         return;
       }
-      pickFromClientX(touch.clientX, ev.currentTarget);
+      pickFromClientX(touch.clientX, touch.clientY, ev.currentTarget);
     },
     [pickFromClientX, pointCount],
   );

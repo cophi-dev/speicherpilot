@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -28,6 +29,7 @@ import {
 } from "@/lib/lueckeChartGeometry";
 import { TAG_WIDE_VIEWBOX_W } from "@/lib/tagSvgTypography";
 import type { ResidualSlot } from "@/lib/windSolarResidual";
+import { nearestIndexFromClientInSvg } from "@/lib/chartSvgPointer";
 
 const DESKTOP = LUECKE_DESKTOP;
 const MOBILE_H = LUECKE_MOBILE_H;
@@ -192,7 +194,26 @@ export function LueckeChart({
   const plotW = frame.w - frame.pad.left - frame.pad.right;
   const plotH = frame.h - frame.pad.top - frame.pad.bottom;
 
-  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(slots.length);
+  const lueckeXs = useMemo(
+    () => slots.map((_, index) => plotXFromSlotIndex(index, slots.length, frame.pad.left, plotW)),
+    [frame.pad.left, plotW, slots],
+  );
+  const pickLueckeIndex = useCallback(
+    (clientX: number, clientY: number, target: HTMLDivElement) => {
+      const svg = target.querySelector("svg");
+      return nearestIndexFromClientInSvg(
+        clientX,
+        clientY,
+        svg instanceof SVGSVGElement ? svg : null,
+        lueckeXs,
+      );
+    },
+    [lueckeXs],
+  );
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(
+    slots.length,
+    pickLueckeIndex,
+  );
 
   const xAtIndex = (index: number) => plotXFromSlotIndex(index, slots.length, frame.pad.left, plotW);
 

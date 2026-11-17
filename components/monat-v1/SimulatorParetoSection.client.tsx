@@ -277,7 +277,7 @@ function FullAxisChart({
   const zoomHi = formatDec(revenueAxisPct(ZOOM_X[1], marketMio), 2);
   const aria = `Volle Pareto-Achse, Erlös 0 bis ${formatDec(xmax, 0)} Prozent vom Max.-Erlös, Zoomfenster ${zoomLo}–${zoomHi} Prozent, volle Senkung kostet ${voll.pctLabel} Prozent`;
   const xs = frontPts.map((p) => fx(revenueAxisPct(p.xMio, marketMio)));
-  const pick = (clientX: number, target: HTMLDivElement) =>
+  const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
@@ -449,7 +449,7 @@ function ZoomChart({
   const zoomRange = `${formatDec(xmin, 2)}–${formatDec(xmax, 2)}`;
   const aria = `Zoom der Pareto-Front zwischen ${zoomRange} Prozent vom Max.-Erlös. ${voll.fullCostSentencePct}`;
   const xs = frontPts.map((p) => fx(revenueAxisPct(p.xMio, marketMio)));
-  const pick = (clientX: number, target: HTMLDivElement) =>
+  const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (

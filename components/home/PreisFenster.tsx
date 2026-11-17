@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/preisFensterChartLayout";
 import { TAG_WIDE_VIEWBOX_W } from "@/lib/tagSvgTypography";
 import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
+import { nearestIndexFromClientInSvg } from "@/lib/chartSvgPointer";
 
 const DESKTOP_H = 180;
 const MOBILE_H = 120;
@@ -69,7 +70,31 @@ export function PreisFenster({
     return () => observer.disconnect();
   }, []);
 
-  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(Math.max(points.length, 2));
+  const pickPreisIndex = useCallback(
+    (clientX: number, clientY: number, target: HTMLDivElement) => {
+      if (points.length < 2) {
+        return 0;
+      }
+      const wide = shellWidth >= TAG_WIDE_VIEWBOX_W;
+      const narrowScale = wide ? 1 : shellWidth / LUECKE_DESKTOP.w;
+      const padL = preisChartPadLeft({ shellWidth, wideFrame: wide, compact });
+      const padR = compact
+        ? LUECKE_MOBILE_PAD.right
+        : wide
+          ? LUECKE_DESKTOP.pad.right
+          : Math.round(LUECKE_DESKTOP.pad.right * narrowScale);
+      const width = compact || wide ? (wide ? LUECKE_DESKTOP.w : shellWidth) : shellWidth;
+      const plotW = width - padL - padR;
+      const xs = points.map((_, index) => plotXFromSlotIndex(index, points.length, padL, plotW));
+      const svg = target.querySelector("svg");
+      return nearestIndexFromClientInSvg(clientX, clientY, svg instanceof SVGSVGElement ? svg : null, xs);
+    },
+    [compact, points, shellWidth],
+  );
+  const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(
+    Math.max(points.length, 2),
+    pickPreisIndex,
+  );
   const tooltipRows = useMemo(() => {
     if (activeIndex == null || points.length < 2 || !points[activeIndex]) {
       return null;

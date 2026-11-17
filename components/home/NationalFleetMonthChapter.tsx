@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
+
 import { NationalFleetMarginalBenefit } from "@/components/home/NationalFleetMarginalBenefit";
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
 import { formatPeakKpiParts } from "@/lib/nationalFleetCharts";
@@ -160,14 +162,14 @@ export function NationalFleetMonthChapter({
           <legend className="v4-fleet-legend">{FLEET_SIZE_LEGEND}</legend>
           <div className="v4-fleet-factor-row">
             {NATIONAL_FLEET_FACTORS.map((f) => (
-              <Link
+              <FleetScenarioLink
                 key={f}
                 href={fleetMonatHref(monthKey, f, strategy)}
                 className={`v4-fleet-pill${f === factor ? " is-active" : ""}`}
                 aria-current={f === factor ? "true" : undefined}
               >
                 ×{f}
-              </Link>
+              </FleetScenarioLink>
             ))}
           </div>
         </fieldset>
@@ -175,14 +177,14 @@ export function NationalFleetMonthChapter({
           <legend className="v4-fleet-legend">{FLEET_GOAL_LEGEND}</legend>
           <div className="v4-fleet-strategy-row">
             {(Object.keys(NATIONAL_FLEET_STRATEGY_UI) as NationalFleetStrategyUi[]).map((id) => (
-              <Link
+              <FleetScenarioLink
                 key={id}
                 href={fleetMonatHref(monthKey, factor, id)}
                 className={`v4-fleet-pill v4-fleet-pill-wide${id === strategy ? " is-active" : ""}`}
                 aria-current={id === strategy ? "true" : undefined}
               >
                 {NATIONAL_FLEET_STRATEGY_UI[id].shortDe}
-              </Link>
+              </FleetScenarioLink>
             ))}
           </div>
         </fieldset>

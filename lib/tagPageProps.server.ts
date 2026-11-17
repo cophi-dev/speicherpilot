@@ -34,7 +34,7 @@ export type CompleteTagPageModel = {
   fleetDayNoWindSolarSurplus: boolean;
   preisTag: Awaited<ReturnType<typeof loadGermanyViewForTag>>["preisTag"];
   marktInsights: ReturnType<typeof marktInsightsForRoute>;
-  simulatorTeaser: ReturnType<typeof loadEps70Teaser>;
+  simulatorTeaser?: ReturnType<typeof loadEps70Teaser>;
   fleetSoGerechnet: {
     dayKey: string;
     factor: ReturnType<typeof parseFleetFactor>;
