@@ -1,5 +1,7 @@
-/** Kurzzeile unter Regler-Graphen (voller Satz: MONAT_REGELR_MODEL_FOOTNOTE). */
-export const MONAT_REGELR_GRAPH_CAPTION = "Modell \u00b7 Annahmen unten";
+import { CHART_SCOPE_LINE } from "@/lib/chartScopeLine";
+
+/** Kurzzeile unter Modell-Graphen auf /monat. */
+export const MONAT_REGELR_GRAPH_CAPTION = CHART_SCOPE_LINE;
 
 /** Einmal am Seitenende (Methodik-Verweis im Fließtext). */
 export const MONAT_REGELR_MODEL_FOOTNOTE =

@@ -8,6 +8,11 @@ import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/home/PreisFenster.module.css";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LUECKE_DESKTOP, LUECKE_MOBILE_PAD, plotXFromSlotIndex } from "@/lib/lueckeChartGeometry";
+import {
+  preisChartPadLeft,
+  preisHourLabelPlacement,
+  preisYAxisTicksVisible,
+} from "@/lib/preisFensterChartLayout";
 import { TAG_WIDE_VIEWBOX_W } from "@/lib/tagSvgTypography";
 import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
 
@@ -85,11 +90,7 @@ export function PreisFenster({
   );
   const wideFrame = shellWidth >= TAG_WIDE_VIEWBOX_W;
   const narrowScale = wideFrame ? 1 : shellWidth / LUECKE_DESKTOP.w;
-  const padL = compact
-    ? LUECKE_MOBILE_PAD.left
-    : wideFrame
-      ? LUECKE_DESKTOP.pad.left
-      : Math.round(LUECKE_DESKTOP.pad.left * narrowScale);
+  const padL = preisChartPadLeft({ shellWidth, wideFrame, compact });
   const padR = compact
     ? LUECKE_MOBILE_PAD.right
     : wideFrame
@@ -157,7 +158,7 @@ export function PreisFenster({
           role="img"
           aria-label={satz}
         >
-          {axis.ticks.map((tick) => (
+          {preisYAxisTicksVisible(axis.ticks).map((tick) => (
             <g key={tick}>
               <line className={styles.grid} x1={padL} x2={padL + plotW} y1={yOf(tick)} y2={yOf(tick)} />
               <text className={`num ${styles.axis}`} x={padL - 8} y={yOf(tick)} textAnchor="end" dominantBaseline="middle">
@@ -167,14 +168,15 @@ export function PreisFenster({
           ))}
           {(compact ? [0, 12, 24] : HOURS).map((hour) => {
             const x = xHour(hour);
+            const label = preisHourLabelPlacement(hour, x, padL);
             return (
               <g key={hour}>
                 <line className={styles.grid} x1={x} x2={x} y1={padT} y2={padT + plotH} />
                 <text
                   className={`num ${styles.axis}`}
-                  x={x}
+                  x={label.x}
                   y={height - (compact ? 4 : 8)}
-                  textAnchor="middle"
+                  textAnchor={label.textAnchor}
                 >
                   {hourKey(hour).slice(0, 2)}
                 </text>
