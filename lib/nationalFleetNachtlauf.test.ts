@@ -103,4 +103,14 @@ describe("national fleet nachtlauf", () => {
       writeFileSync(path, payload);
     }
   });
+
+  it("python: _urlopen_json Retry (429/503, User-Agent)", () => {
+    const py = join(process.cwd(), "scripts/test_national_fleet_urlopen_retry.py");
+    const run = spawnSync("python3", [py], { encoding: "utf8" });
+    if (run.status !== 0) {
+      // eslint-disable-next-line no-console -- Jest failure diagnostics
+      console.error(run.stderr || run.stdout);
+    }
+    expect(run.status).toBe(0);
+  });
 });

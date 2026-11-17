@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import random
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta
@@ -45,6 +47,9 @@ STRATEGY_UI = {
     "price_oriented_da_arbitrage": "markt",
 }
 
+USER_AGENT = "SpeicherPilot-NationalFleet/1.0 (+https://github.com/cophi-dev/speicherpilot)"
+_BACKOFF_S = (15.0, 30.0, 60.0, 120.0, 240.0)
+
 
 def sha256_bytes(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
@@ -64,16 +69,37 @@ def _series(production_types: list, pattern: str) -> list:
     return []
 
 
+def _parse_retry_after(exc: urllib.error.HTTPError) -> float | None:
+    raw = exc.headers.get("Retry-After")
+    if not raw:
+        return None
+    try:
+        return max(0.0, float(raw.strip()))
+    except ValueError:
+        return None
+
+
+def _backoff_sleep_s(attempt: int, exc: Exception | None) -> float:
+    """Wartezeit vor dem nächsten Versuch (mit Jitter)."""
+    if isinstance(exc, urllib.error.HTTPError) and exc.code in (429, 503):
+        from_header = _parse_retry_after(exc)
+        if from_header is not None:
+            return from_header + random.uniform(0.0, 2.0)
+    base = _BACKOFF_S[min(attempt, len(_BACKOFF_S) - 1)]
+    return base + random.uniform(0.0, min(base * 0.15, 8.0))
+
+
 def _urlopen_json(url: str, attempts: int = 5) -> dict:
     last: Exception | None = None
     for attempt in range(attempts):
         try:
-            with urllib.request.urlopen(url, timeout=120) as resp:
+            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(req, timeout=120) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except Exception as exc:  # urllib.HTTPError etc.
             last = exc
             if attempt + 1 < attempts:
-                time.sleep(2.0 * (attempt + 1))
+                time.sleep(_backoff_sleep_s(attempt, exc))
             else:
                 raise
     raise last  # pragma: no cover
@@ -235,6 +261,37 @@ def run_json(
     }
 
 
+def day_inputs_path(day: str) -> Path:
+    return ROOT / "data/national-fleet" / day[:7] / "days" / day / "_inputs.json"
+
+
+def write_day_inputs(day: str, slots: list[dict]) -> None:
+    write_idempotent(day_inputs_path(day), {"dateBerlin": day, "slots": slots})
+
+
+def read_day_inputs(day: str) -> list[dict] | None:
+    path = day_inputs_path(day)
+    if not path.exists():
+        return None
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        slots = doc.get("slots") or []
+    except (json.JSONDecodeError, OSError):
+        return None
+    if len(slots) < 90:
+        return None
+    return slots
+
+
+def day_stats_from_slots(slots: list[dict]) -> dict:
+    matched = sum(1 for s in slots if np.isfinite(s.get("day_ahead_eur_mwh", float("nan"))))
+    return {
+        "matchedQuarters": matched,
+        "totalQuarters": len(slots),
+        "marketOk": market_prices_ok(slots),
+    }
+
+
 def write_idempotent(path: Path, doc: dict) -> None:
     payload = json.dumps(doc, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     if path.exists():
@@ -252,10 +309,12 @@ def write_idempotent(path: Path, doc: dict) -> None:
     tmp.replace(path)
 
 
-def run_day(day: str) -> dict:
+def run_day(day: str) -> tuple[dict, list[dict]]:
     slots = fetch_day_slots(day)
+    time.sleep(1.5)
     prices_by_ts = fetch_day_ahead_prices(day)
     matched, total = attach_prices(slots, prices_by_ts)
+    write_day_inputs(day, slots)
     market_ok = market_prices_ok(slots)
     if not market_ok:
         print(
@@ -301,7 +360,7 @@ def run_day(day: str) -> dict:
             }
     manifest_path = out_root.parent / f"manifest-{day}.json"
     write_idempotent(manifest_path, manifest)
-    return manifest
+    return manifest, slots
 
 
 def last_day_of_month(month_key: str) -> str:
@@ -317,7 +376,13 @@ def is_month_final(as_of: str) -> bool:
     return as_of == last_day_of_month(as_of[:7])
 
 
-def collect_slots_range(date_from: str, date_to: str, *, sleep_s: float = 1.25) -> tuple[list[dict], dict]:
+def collect_slots_range(
+    date_from: str,
+    date_to: str,
+    *,
+    sleep_s: float = 1.5,
+    seed_slots: dict[str, list[dict]] | None = None,
+) -> tuple[list[dict], dict]:
     """Viertelstunden vom ersten bis letzten Berlin-Tag (inkl.), mit Day-Ahead."""
     start = datetime.fromisoformat(date_from).date()
     end = datetime.fromisoformat(date_to).date()
@@ -325,6 +390,7 @@ def collect_slots_range(date_from: str, date_to: str, *, sleep_s: float = 1.25) 
         raise ValueError(f"date_to {date_to} vor date_from {date_from}")
     all_slots: list[dict] = []
     day_stats: dict[str, dict] = {}
+    seeded = seed_slots or {}
     d = start
     first = True
     while d <= end:
@@ -332,14 +398,20 @@ def collect_slots_range(date_from: str, date_to: str, *, sleep_s: float = 1.25) 
         if not first:
             time.sleep(sleep_s)
         first = False
-        slots = fetch_day_slots(day)
-        prices_by_ts = fetch_day_ahead_prices(day)
-        matched, total = attach_prices(slots, prices_by_ts)
-        day_stats[day] = {
-            "matchedQuarters": matched,
-            "totalQuarters": total,
-            "marketOk": market_prices_ok(slots),
-        }
+        slots = seeded.get(day) or read_day_inputs(day)
+        if slots is not None:
+            day_stats[day] = day_stats_from_slots(slots)
+        else:
+            slots = fetch_day_slots(day)
+            time.sleep(sleep_s)
+            prices_by_ts = fetch_day_ahead_prices(day)
+            matched, total = attach_prices(slots, prices_by_ts)
+            write_day_inputs(day, slots)
+            day_stats[day] = {
+                "matchedQuarters": matched,
+                "totalQuarters": total,
+                "marketOk": market_prices_ok(slots),
+            }
         all_slots.extend(slots)
         d += timedelta(days=1)
     if len(all_slots) < 90:
@@ -422,11 +494,11 @@ def run_month(month_key: str, as_of: str, slots: list[dict], day_stats: dict) ->
 def run_night_batch(yesterday: str) -> dict:
     """Vortag · TAGESHORIZONT + rollierender / finaler MONATSHORIZONT."""
     t0 = time.perf_counter()
-    day_manifest = run_day(yesterday)
+    day_manifest, y_slots = run_day(yesterday)
     month_key = yesterday[:7]
     month_from = f"{month_key}-01"
     t1 = time.perf_counter()
-    slots, day_stats = collect_slots_range(month_from, yesterday)
+    slots, day_stats = collect_slots_range(month_from, yesterday, seed_slots={yesterday: y_slots})
     t2 = time.perf_counter()
     month_manifest = run_month(month_key, yesterday, slots, day_stats)
     t3 = time.perf_counter()
@@ -596,7 +668,8 @@ def main() -> int:
         print(f"day {day} …", flush=True)
         if i > 0:
             time.sleep(1.25)
-        results.append(run_day(day))
+        manifest, _slots = run_day(day)
+        results.append(manifest)
     if days and not args.month_only:
         as_of = sorted(set(days))[-1]
         month_key = as_of[:7]
