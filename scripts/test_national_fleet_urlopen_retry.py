@@ -1,4 +1,4 @@
-"""Unit-Tests für energy-charts-Retry in national_fleet_nachtlauf."""
+"""Unit-Tests für energy-charts-Retry (ohne highspy)."""
 from __future__ import annotations
 
 import importlib.util
@@ -10,11 +10,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts/national_fleet_nachtlauf.py"
+HTTP_MOD = ROOT / "scripts/national_fleet_http.py"
 
 
-def _load_module():
-    spec = importlib.util.spec_from_file_location("national_fleet_nachtlauf", SCRIPT)
+def _load_http():
+    spec = importlib.util.spec_from_file_location("national_fleet_http", HTTP_MOD)
     assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = mod
@@ -25,7 +25,7 @@ def _load_module():
 class UrlopenRetryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.mod = _load_module()
+        cls.mod = _load_http()
 
     def test_retry_after_on_429(self) -> None:
         payload = json.dumps({"ok": True}).encode()
@@ -48,7 +48,7 @@ class UrlopenRetryTests(unittest.TestCase):
 
         with patch.object(self.mod.urllib.request, "urlopen", side_effect=fake_urlopen):
             with patch.object(self.mod.time, "sleep") as sleep_mock:
-                out = self.mod._urlopen_json("https://example.test/x")
+                out = self.mod.urlopen_json("https://example.test/x")
         self.assertEqual(out, {"ok": True})
         sleep_mock.assert_called_once()
         slept = sleep_mock.call_args[0][0]
@@ -71,7 +71,7 @@ class UrlopenRetryTests(unittest.TestCase):
         ):
             with patch.object(self.mod.time, "sleep") as sleep_mock:
                 with self.assertRaises(self.mod.urllib.error.HTTPError):
-                    self.mod._urlopen_json("https://example.test/x", attempts=3)
+                    self.mod.urlopen_json("https://example.test/x", attempts=3)
         self.assertEqual(sleep_mock.call_count, 2)
         first = sleep_mock.call_args_list[0][0][0]
         second = sleep_mock.call_args_list[1][0][0]
@@ -88,7 +88,7 @@ class UrlopenRetryTests(unittest.TestCase):
             return BytesIO(b'{"a":1}')
 
         with patch.object(self.mod.urllib.request, "urlopen", side_effect=fake_urlopen):
-            self.mod._urlopen_json("https://example.test/y")
+            self.mod.urlopen_json("https://example.test/y")
         self.assertEqual(len(captured), 1)
         req = captured[0]
         ua = req.get_header("User-Agent") or req.get_header("User-agent")

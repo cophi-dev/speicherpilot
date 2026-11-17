@@ -5,13 +5,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import random
 import re
 import sys
 import time
-import urllib.error
 import urllib.parse
-import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -19,7 +16,10 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "artifacts/october-storage-counterfactual-20261107"))
+
+from national_fleet_http import urlopen_json as _urlopen_json  # noqa: E402
 
 from mip_month import DT_H, MonthStorageMip  # noqa: E402
 
@@ -47,10 +47,6 @@ STRATEGY_UI = {
     "price_oriented_da_arbitrage": "markt",
 }
 
-USER_AGENT = "SpeicherPilot-NationalFleet/1.0 (+https://github.com/cophi-dev/speicherpilot)"
-_BACKOFF_S = (15.0, 30.0, 60.0, 120.0, 240.0)
-
-
 def sha256_bytes(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
 
@@ -67,42 +63,6 @@ def _series(production_types: list, pattern: str) -> list:
         if rx.search(pt.get("name", "")):
             return pt.get("data") or []
     return []
-
-
-def _parse_retry_after(exc: urllib.error.HTTPError) -> float | None:
-    raw = exc.headers.get("Retry-After")
-    if not raw:
-        return None
-    try:
-        return max(0.0, float(raw.strip()))
-    except ValueError:
-        return None
-
-
-def _backoff_sleep_s(attempt: int, exc: Exception | None) -> float:
-    """Wartezeit vor dem nächsten Versuch (mit Jitter)."""
-    if isinstance(exc, urllib.error.HTTPError) and exc.code in (429, 503):
-        from_header = _parse_retry_after(exc)
-        if from_header is not None:
-            return from_header + random.uniform(0.0, 2.0)
-    base = _BACKOFF_S[min(attempt, len(_BACKOFF_S) - 1)]
-    return base + random.uniform(0.0, min(base * 0.15, 8.0))
-
-
-def _urlopen_json(url: str, attempts: int = 5) -> dict:
-    last: Exception | None = None
-    for attempt in range(attempts):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                return json.loads(resp.read().decode("utf-8"))
-        except Exception as exc:  # urllib.HTTPError etc.
-            last = exc
-            if attempt + 1 < attempts:
-                time.sleep(_backoff_sleep_s(attempt, exc))
-            else:
-                raise
-    raise last  # pragma: no cover
 
 
 def fetch_day_slots(day: str) -> list[dict]:
