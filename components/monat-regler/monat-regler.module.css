@@ -114,12 +114,15 @@
 }
 
 @media (max-width: 767px) {
+  .kpiGrid .kpi dt {
+    font-size: 12px;
+  }
   .kpiGridDense {
     gap: 8px 10px;
     margin: 0.45rem 0 0.55rem;
   }
   .kpiGridDense .kpi dt {
-    font-size: 10px;
+    font-size: 12px;
     margin-bottom: 2px;
     line-height: 1.2;
   }

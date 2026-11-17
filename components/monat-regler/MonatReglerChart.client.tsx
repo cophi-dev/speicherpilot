@@ -11,6 +11,7 @@ import {
   type MonatReglerCompact,
   type ReglerDayPoint,
 } from "@/lib/monatReglerAsset";
+import { stackLineLabelsAtX } from "@/lib/messerHeroLabels";
 import { fleetTagHref, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 const Y_MIN = 0;
@@ -24,6 +25,7 @@ const STRATEGY_LABEL: Record<NationalFleetStrategyUi, string> = {
   ueberschuss: "Überschuss",
   markt: "Markt",
 };
+const LINE_END_LABEL_FS = 12;
 
 function useViewportWide(): boolean {
   const [wide, setWide] = useState(false);
@@ -139,6 +141,39 @@ export function MonatReglerChart({
   const obsEnd = obsPts[obsPts.length - 1];
   const fleetEnd = fleetPts[fleetPts.length - 1];
 
+  const endLineLabels = useMemo(() => {
+    if (!obsEnd) return [];
+    const labelX = obsEnd.x + 4;
+    const plotBottom = plotH - PAD.b;
+    const candidates: Array<{ text: string; preferredY: number; fill: string }> = [
+      {
+        text: "beobachtet",
+        preferredY: obsEnd.y - 6,
+        fill: "var(--mr-observed)",
+      },
+    ];
+    if (fleetEnd && factor > 1) {
+      candidates.push({
+        text: `×${factor} · ${STRATEGY_LABEL[strategy]}`,
+        preferredY: fleetEnd.y + 14,
+        fill: fleetStroke,
+      });
+    }
+    const stacked = stackLineLabelsAtX(
+      candidates.map((c) => ({ text: c.text, preferredY: c.preferredY })),
+      labelX,
+      "start",
+      LINE_END_LABEL_FS,
+      PAD.t,
+      plotBottom,
+    );
+    return candidates.map((c, i) => ({
+      ...c,
+      x: labelX,
+      y: stacked[i]!.y,
+    }));
+  }, [factor, fleetEnd, fleetStroke, obsEnd, plotH, strategy]);
+
   return (
     <div ref={wrapRef} className={styles.chartWrap} data-testid="monat-regler-chart">
       <svg
@@ -209,21 +244,11 @@ export function MonatReglerChart({
           strokeDasharray={fleetDash}
           points={polyline(fleetPts)}
         />
-        {obsEnd ? (
-          <text
-            x={obsEnd.x + 4}
-            y={obsEnd.y - 6}
-            className={styles.lineLabel}
-            fill="var(--mr-observed)"
-          >
-            beobachtet
+        {endLineLabels.map((label, i) => (
+          <text key={`${label.text}-${i}`} x={label.x} y={label.y} className={styles.lineLabel} fill={label.fill}>
+            {label.text}
           </text>
-        ) : null}
-        {fleetEnd && factor > 1 ? (
-          <text x={fleetEnd.x + 4} y={fleetEnd.y + 14} className={styles.lineLabel} fill={fleetStroke}>
-            {`×${factor} · ${STRATEGY_LABEL[strategy]}`}
-          </text>
-        ) : null}
+        ))}
         <rect
           x={PAD.l}
           y={PAD.t}
