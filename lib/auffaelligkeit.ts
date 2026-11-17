@@ -365,7 +365,7 @@ export function auffaelligkeitForDay(
       }
       subline =
         (r.peakCutGw ?? 0) < 0.05
-          ? "Im Modell hätten Speicher hier nicht geholfen: Vorher gab es keinen Überschuss zum Laden."
+          ? "Im Überschuss-Modell (Laden nur bei Wind+Sonne über Verbrauch) war an diesem Tag nichts zu speichern. Spitze- und Markt-Fahrweisen rechnen weiter unten im Monatslauf."
           : `Die heutige Flotte hätte die Spitze um ${deNum(r.peakCutGw ?? 0)} GW gesenkt (Modell).`;
       kopfSubline = nearDay ? subline : withModellSubline(V, subline);
       break;

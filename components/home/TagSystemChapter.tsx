@@ -1,12 +1,17 @@
 "use client";
 
-import Link from "next/link";
-
 import { formatDeGwGwhLine, formatDePercentInt } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
+import { formatGwReduction } from "@/lib/monatV1Format";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import {
+  NATIONAL_FLEET_STRATEGY_UI,
+  type NationalFleetFactor,
+  type NationalFleetStrategyUi,
+} from "@/lib/nationalMonthFleetModel";
+import type { TagFleetSoGerechnetExtra } from "@/components/home/TagSoGerechnet";
 
 export function TagSystemChapter({
   dayKey,
@@ -15,6 +20,9 @@ export function TagSystemChapter({
   fleetPowerGw,
   fleetEnergyGwh,
   fleetDayNoWindSolarSurplus,
+  fleetFactor = 2,
+  fleetStrategy = "spitze",
+  fleetSoGerechnet = null,
 }: {
   dayKey: string;
   record: TagesKennzahlRecord;
@@ -22,6 +30,9 @@ export function TagSystemChapter({
   fleetPowerGw: number;
   fleetEnergyGwh: number;
   fleetDayNoWindSolarSurplus?: boolean;
+  fleetFactor?: NationalFleetFactor;
+  fleetStrategy?: NationalFleetStrategyUi;
+  fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
 }) {
   const factor = dayOverview?.factors[1];
   const dayRow = factor?.dayRows.find((row) => row.dateBerlin === dayKey);
@@ -31,23 +42,42 @@ export function TagSystemChapter({
   const sharePct =
     hasSurplus && surplus > 0 ? Math.round((absorbed / surplus) * 100) : Math.round((factor?.absorbedShare ?? 0) * 100);
 
+  const slice = fleetSoGerechnet?.slice;
+  const peakReductionDayGw =
+    slice != null ? (slice.maxRMw - slice.maxRPrimeMw) / 1000 : null;
+
+  const noSurplusLead = (
+    <>
+      <strong>Überschuss:</strong> kein Laden möglich, an diesem Tag gab es keine Viertelstunde mit Wind+Sonne über
+      Verbrauch.{" "}
+      {slice && peakReductionDayGw != null ? (
+        <>
+          Monatslauf (×{fleetFactor}, {NATIONAL_FLEET_STRATEGY_UI[fleetStrategy].shortDe}): Spitzensenkung{" "}
+          {peakReductionDayGw >= 0
+            ? formatGwReduction(peakReductionDayGw)
+            : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}\u00a0GW höher`}
+          , geladen {formatQuantity(slice.chargeMwh / 1000, "de", 1)}\u00a0GWh, entladen{" "}
+          {formatQuantity(slice.dischargeMwh / 1000, "de", 1)}\u00a0GWh (Modell, Tageshorizont).
+        </>
+      ) : null}
+    </>
+  );
+
   const lead = hasSurplus ? (
     <>
       Die heutige Flotte ({formatDeGwGwhLine(fleetPowerGw, fleetEnergyGwh)}) hätte {formatDePercentInt(sharePct)} des
       Überschusses aus Wind und Sonne aufgenommen (Modell).
     </>
   ) : (
-    <>
-      Die deutschen Großspeicher ({formatDeGwGwhLine(fleetPowerGw, fleetEnergyGwh)} Kapazität, Battery Charts) hatten
-      nichts aufzunehmen: Wind und Sonne
-      lagen den ganzen Tag unter dem Verbrauch. Fahrweisen nach Preis oder gegen die Abendspitze rechnen wir bisher für
-      Oktober (
-      <Link href="/monat/2026-10" className="v4-text-link">
-        /monat/2026-10
-      </Link>
-      ).
-    </>
+    noSurplusLead
   );
+
+  const kernNoSurplus =
+    slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05
+      ? formatGwReduction(peakReductionDayGw)
+      : slice && slice.chargeMwh > 1
+        ? `${formatQuantity(slice.chargeMwh / 1000, "de", 1)}\u00a0GWh geladen`
+        : "0\u00a0GWh geladen";
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag-system">
@@ -55,12 +85,12 @@ export function TagSystemChapter({
         <p className="v4-chapter-num num">02 · Das System</p>
         <h2 id="kapitel-tag-system" className="v4-chapter-h2">
           Speicher am {weekdayLabelDe(dayKey)}
-          {hasSurplus ? "" : ": nichts geladen"}
+          {hasSurplus ? "" : slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05 ? ": Spitze im Modell" : ": nichts aus Überschuss"}
         </h2>
         {hasSurplus ? (
           <p className="v4-system-pct v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
         ) : (
-          <p className="v4-tag-kern">0 GWh geladen</p>
+          <p className="v4-tag-kern">{kernNoSurplus}</p>
         )}
         <p className="v4-tag-side">{lead}</p>
       </div>

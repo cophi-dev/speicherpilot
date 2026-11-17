@@ -100,19 +100,23 @@ export function NationalFleetDayChapter({
         <fieldset className="v4-fleet-fieldset">
           <legend className="v4-fleet-legend">Fahrweise</legend>
           <div className="v4-fleet-strategy-row">
-            <FleetScenarioLink
-              href={fleetTagHref(dayKey, factor, "spitze")}
-              role="button"
-              aria-pressed={strategy === "spitze"}
-              className={`v4-fleet-pill v4-fleet-pill-wide${strategy === "spitze" ? " is-active" : ""}`}
-              title="senkt die bundesweite Restlast-Spitze"
-            >
-              Spitze
-            </FleetScenarioLink>
+            {(["spitze", "markt", "ueberschuss"] as const).map((id) => (
+              <FleetScenarioLink
+                key={id}
+                href={fleetTagHref(dayKey, factor, id)}
+                role="button"
+                aria-pressed={strategy === id}
+                className={`v4-fleet-pill v4-fleet-pill-wide${strategy === id ? " is-active" : ""}`}
+                title={NATIONAL_FLEET_STRATEGY_UI[id].labelDe}
+              >
+                {id === "spitze" ? "Spitze" : id === "markt" ? "Markt" : "Überschuss"}
+              </FleetScenarioLink>
+            ))}
           </div>
           <p className="v4-fleet-strategy-copy">
-            lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig
-            wird (volle Voraussicht).
+            {strategy === "spitze"
+              ? "lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht)."
+              : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
           </p>
           <p className="v4-fleet-energy-context">
             Referenzflotte ×1:{" "}

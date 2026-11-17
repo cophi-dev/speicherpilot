@@ -267,8 +267,10 @@ export function monthStatsForRun(
     | Record<string, number>
     | undefined;
   if (!stats) {
-    if (fallbackRun) {
-      return monthStatsFromRunSeries(fallbackRun, factor);
+    const bundledRun = bundle.runs?.[runKey(factor, strategy)];
+    const series = fallbackRun ?? bundledRun;
+    if (series) {
+      return monthStatsFromRunSeries(series, factor);
     }
     throw new Error("fehlende Summary");
   }

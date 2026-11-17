@@ -1,0 +1,24 @@
+{
+  "bundleId": "national-fleet-2026-11",
+  "monthKey": "2026-11",
+  "importedAt": "2026-11-17T12:30:00.000Z",
+  "provenance": {
+    "as_of": "2026-11-16",
+    "model_fleet": {
+      "power_mw": 4644.09022,
+      "energy_mwh": 8152.4588,
+      "source": "battery-charts Großspeicher 31.10.2026"
+    },
+    "month_surplus_pool_gwh_definition": "Σ max(0, wind+solar−load)·¼h",
+    "month_surplus_pool_gwh": 0
+  },
+  "summary": {},
+  "marginal": [],
+  "physics": { "rte": 0.85, "dt_h": 0.25, "soc_frac": [0.1, 0.9] },
+  "strategies": {
+    "ueberschuss": "surplus_wind_solar_over_load",
+    "spitze": "min_peak_perfect_foresight",
+    "markt": "price_oriented_da_arbitrage"
+  },
+  "factors": [1, 2, 5, 10]
+}

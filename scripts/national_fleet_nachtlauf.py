@@ -76,8 +76,9 @@ def berlin_day_utc_window(day: str) -> tuple[str, str]:
 
 def expected_quarters_for_berlin_day(day: str) -> int:
     day_start = datetime.fromisoformat(f"{day}T00:00:00").replace(tzinfo=BERLIN)
-    next_midnight = day_start + timedelta(days=1)
-    return int((next_midnight - day_start).total_seconds() // 900)
+    next_d = day_start.date() + timedelta(days=1)
+    next_start = datetime(next_d.year, next_d.month, next_d.day, 0, 0, 0, tzinfo=BERLIN)
+    return int((next_start - day_start).total_seconds() // 900)
 
 
 def fetch_day_slots(day: str) -> list[dict]:

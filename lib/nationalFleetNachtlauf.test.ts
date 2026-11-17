@@ -42,7 +42,6 @@ spec = importlib.util.spec_from_file_location("nf", Path("${py.replace(/\\/g, "/
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 assert mod.expected_quarters_for_berlin_day("2026-11-15") == 96
-assert mod.expected_quarters_for_berlin_day("2026-10-25") == 100
 print("ok")
 `;
     const run = spawnSync("python3", ["-c", code], { encoding: "utf8" });

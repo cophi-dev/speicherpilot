@@ -318,6 +318,9 @@ export function TagPageV4({
         fleetPowerGw={fleetPowerGw}
         fleetEnergyGwh={fleetEnergyGwh}
         fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
+        fleetFactor={fleetFactor}
+        fleetStrategy={fleetStrategy}
+        fleetSoGerechnet={fleetSoGerechnet}
       />
       {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
       {children}

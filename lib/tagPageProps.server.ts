@@ -9,9 +9,14 @@ import {
   nationalFleetMonthAvailable,
   nationalFleetMonthKeyForDay,
   parseFleetFactor,
+  parseFleetStrategy,
   sliceFleetDay,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
+import {
+  NATIONAL_FLEET_DISPLAY_ENERGY_GWH,
+  NATIONAL_FLEET_DISPLAY_POWER_GW,
+} from "@/lib/nationalFleetDisplay";
 import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
@@ -83,7 +88,7 @@ export async function loadCompleteTagPageModel(
   }
 
   const fleetFactor = parseFleetFactor(query.faktor);
-  const fleetStrategy: NationalFleetStrategyUi = "spitze";
+  const fleetStrategy = parseFleetStrategy(query.fahrweise);
   const fleetMonthKey = nationalFleetMonthKeyForDay(datum);
   const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
   const fleetRun = fleetMonth
@@ -105,8 +110,8 @@ export async function loadCompleteTagPageModel(
     day,
     lastSurplusKey: lastSurplusBefore(records, datum),
     dayOverview: view.dayOverview,
-    fleetPowerGw: fleet.powerGw,
-    fleetEnergyGwh: fleet.energyGwh,
+    fleetPowerGw: fleetMonth ? NATIONAL_FLEET_DISPLAY_POWER_GW : fleet.powerGw,
+    fleetEnergyGwh: fleetMonth ? NATIONAL_FLEET_DISPLAY_ENERGY_GWH : fleet.energyGwh,
     fleetFactor,
     fleetStrategy,
     fleetDayNoWindSolarSurplus: fleetDayNoWindSolarSurplus(fleetSlice),
@@ -114,10 +119,11 @@ export async function loadCompleteTagPageModel(
     marktInsights: marktInsightsForRoute({
       route: opts.isStartSurface ? "start" : "tag",
       records,
-      fleetPowerGw: fleet.powerGw,
-      fleetEnergyGwh: fleet.energyGwh,
+      fleetPowerGw: fleetMonth ? NATIONAL_FLEET_DISPLAY_POWER_GW : fleet.powerGw,
+      fleetEnergyGwh: fleetMonth ? NATIONAL_FLEET_DISPLAY_ENERGY_GWH : fleet.energyGwh,
       focusDayKey: datum,
       overview30: view.dayOverview,
+      monthKey: fleetMonthKey,
     }),
     simulatorTeaser: loadEps70Teaser(),
     fleetSoGerechnet:
@@ -135,9 +141,7 @@ export async function loadCompleteTagPageModel(
               fleetRun,
             ),
             showPeakWithoutSurplus:
-              fleetStrategy === "spitze" &&
-              fleetSlice.positiveSurplusQuarterHours === 0 &&
-              fleetSlice.chargeMwh > 1,
+              fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
           }
         : null,
     fleetRun,

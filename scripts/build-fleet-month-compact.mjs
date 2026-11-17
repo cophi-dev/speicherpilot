@@ -8,7 +8,8 @@ import { gzipSync } from "node:zlib";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOT = join(process.cwd(), "data/national-fleet/2026-10");
+const monthKey = process.argv[2] ?? "2026-10";
+const ROOT = join(process.cwd(), "data/national-fleet", monthKey);
 const OUT = join(ROOT, "fleet-month-compact.json");
 
 const RUNS = [
@@ -31,23 +32,46 @@ function loadRun(factor, fileKey) {
 const base = loadRun(1, "min_peak_perfect_foresight");
 const n = base.timestamp_berlin.length;
 
-/** Minuten seit 2026-10-01T00:00:00+02:00 (Berlin), DST-Offsets in den Roh-Timestamps. */
-function minuteOffsets(timestamps) {
-  const t0 = Date.parse("2026-10-01T00:00:00+02:00");
+/** Minuten seit erster Viertelstunde des Monatslaufs (Berlin-ISO). */
+function minuteOffsets(timestamps, t0Iso) {
+  const t0 = Date.parse(t0Iso);
   return timestamps.map((s) => Math.round((Date.parse(s) - t0) / 60_000));
+}
+
+const t0Iso = base.timestamp_berlin[0];
+let refPeakMw = 0;
+let refPeakTs = t0Iso;
+for (let i = 0; i < base.r_mw.length; i += 1) {
+  if (base.r_mw[i] > refPeakMw) {
+    refPeakMw = base.r_mw[i];
+    refPeakTs = base.timestamp_berlin[i];
+  }
+}
+let surplusPoolMwh = 0;
+for (const r of base.r_mw) {
+  surplusPoolMwh += Math.max(0, -r) * 0.25;
+}
+let marketKipppunktFactor = 3.9;
+for (const factor of [2, 5, 10]) {
+  const m = loadRun(factor, "price_oriented_da_arbitrage");
+  const after = Math.max(...m.r_prime_mw);
+  if (after > refPeakMw + 1) {
+    marketKipppunktFactor = factor - 0.1;
+    break;
+  }
 }
 
 const compact = {
   v: 1,
-  monthKey: "2026-10",
+  monthKey,
   n,
-  t0: "2026-10-01T00:00:00+02:00",
-  tm: minuteOffsets(base.timestamp_berlin),
+  t0: t0Iso,
+  tm: minuteOffsets(base.timestamp_berlin, t0Iso),
   r: base.r_mw.map((v) => Math.round(v)),
-  refPeakMw: 64405.9,
-  refPeakTs: "2026-10-29T18:15:00+01:00",
-  surplusPoolGwh: 134.241975,
-  marketKipppunktFactor: 3.9,
+  refPeakMw,
+  refPeakTs,
+  surplusPoolGwh: surplusPoolMwh / 1000,
+  marketKipppunktFactor,
   runs: {},
 };
 

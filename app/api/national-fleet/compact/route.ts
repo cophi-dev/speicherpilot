@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { NextResponse } from "next/server";
@@ -15,6 +15,9 @@ export async function GET(request: Request) {
     return new NextResponse("Monat nicht verfügbar", { status: 404 });
   }
   const compactPath = join(process.cwd(), "data/national-fleet", monthKey, "fleet-month-compact.json");
+  if (!existsSync(compactPath)) {
+    return new NextResponse("Kompakt-Asset fehlt", { status: 404 });
+  }
   const body = readFileSync(compactPath);
   return new NextResponse(body, {
     headers: {

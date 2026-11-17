@@ -2,6 +2,7 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { type ThreeGoalsCompareModel, type ThreeGoalsStrategyRow } from "@/lib/nationalFleetThreeGoals";
+import { formatBerlinMonthLabel } from "@/lib/monatCalendar";
 import { monthStatsForRun, type NationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel";
 
 export type MarktInsightCategory = "tag" | "monat" | "markt";
@@ -213,11 +214,12 @@ function ruleDreiZiele(bundle: NationalFleetMonthBundle): MarktInsight | null {
   if (mk.chargeGwh <= sp.chargeGwh * 5 || mk.peakReductionGw >= 1) {
     return null;
   }
+  const monthLabel = formatBerlinMonthLabel(bundle.monthKey);
   return {
     id: "drei_ziele",
     category: "monat",
-    text: `Oktober, 1× Zusatzflotte (×2): Markt bewegt ${fmtEur(mk.chargeGwh)} GWh und senkt die Spitze um ${fmtEur(mk.peakReductionGw)} GW. Spitze senken: ${fmtEur(sp.peakReductionGw)} GW bei ${fmtEur(sp.chargeGwh)} GWh. Differenz: ${fmtEur(ue.chargeGwh)} GWh, Spitze −${fmtEur(ue.peakReductionGw)} GW.`,
-    period: "Oktober 2026",
+    text: `${monthLabel}, 1× Zusatzflotte (×2): Markt bewegt ${fmtEur(mk.chargeGwh)} GWh und senkt die Spitze um ${fmtEur(mk.peakReductionGw)} GW. Spitze senken: ${fmtEur(sp.peakReductionGw)} GW bei ${fmtEur(sp.chargeGwh)} GWh. Differenz: ${fmtEur(ue.chargeGwh)} GWh, Spitze −${fmtEur(ue.peakReductionGw)} GW.`,
+    period: monthLabel,
     source: "Vorberechneter Monatslauf 4,64 GW / 8,15 GWh je ×",
     methodikHref: "/methodik#insight-drei-ziele",
   };
@@ -335,7 +337,7 @@ export function pickMarktInsightsForRoute(
   return picked;
 }
 
-export function threeGoalsSummarySentence(model: ThreeGoalsCompareModel): string {
+export function threeGoalsSummarySentence(model: ThreeGoalsCompareModel, monthKey = "2026-10"): string {
   const ue = model.rows.find((r) => r.strategy === "ueberschuss");
   const sp = model.rows.find((r) => r.strategy === "spitze");
   const mk = model.rows.find((r) => r.strategy === "markt");
@@ -346,7 +348,8 @@ export function threeGoalsSummarySentence(model: ThreeGoalsCompareModel): string
   if (!u2 || !s2 || !m2) {
     return "";
   }
-  return `Oktober, Basis 4,64 GW / 8,15 GWh, ×1 Zusatz (×2): Differenz senkt ${fmtEur(u2.peakReductionGw)} GW bei ${fmtEur(u2.chargeGwh)} GWh; Spitze ${fmtEur(s2.peakReductionGw)} GW bei ${fmtEur(s2.chargeGwh)} GWh; Markt ${fmtEur(m2.chargeGwh)} GWh bei ${fmtEur(m2.peakReductionGw)} GW Spitzenwirkung.`;
+  const monthLabel = formatBerlinMonthLabel(monthKey);
+  return `${monthLabel}, Basis 4,64 GW / 8,15 GWh, ×1 Zusatz (×2): Differenz senkt ${fmtEur(u2.peakReductionGw)} GW bei ${fmtEur(u2.chargeGwh)} GWh; Spitze ${fmtEur(s2.peakReductionGw)} GW bei ${fmtEur(s2.chargeGwh)} GWh; Markt ${fmtEur(m2.chargeGwh)} GWh bei ${fmtEur(m2.peakReductionGw)} GW Spitzenwirkung.`;
 }
 
 export const MARKT_INSIGHT_RULE_IDS = [

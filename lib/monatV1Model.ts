@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
@@ -7,10 +7,8 @@ import { formatPercentShare } from "@/lib/monatV1Format";
 import {
   getFleetRun,
   monthStatsForRun,
-  NATIONAL_FLEET_FACTORS,
   type NationalFleetFactor,
   type NationalFleetMonthBundle,
-  type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
 
 const GRAPH_FACTORS: NationalFleetFactor[] = [1, 2, 5, 10];
@@ -67,18 +65,51 @@ export type MonatV1Model = {
   pageFootnote: string;
 };
 
-function loadDurationSensitivity(): Record<string, Record<string, number>> {
-  const path = join(process.cwd(), "data/national-fleet/2026-10/duration-sensitivity.json");
+function loadDurationSensitivity(monthKey: string): Record<string, Record<string, number>> | null {
+  const path = join(process.cwd(), "data/national-fleet", monthKey, "duration-sensitivity.json");
+  if (!existsSync(path)) {
+    return null;
+  }
   const raw = JSON.parse(readFileSync(path, "utf8")) as {
     peak_reduction_gw: Record<string, Record<string, number>>;
   };
   return raw.peak_reduction_gw;
 }
 
-function loadMarktKipppunktFactor(): number {
-  const path = join(process.cwd(), "data/national-fleet/2026-10/market-kipppunkt.json");
+function loadMarktKipppunktFactor(monthKey: string, fallback: number): number {
+  const path = join(process.cwd(), "data/national-fleet", monthKey, "market-kipppunkt.json");
+  if (!existsSync(path)) {
+    return fallback;
+  }
   const raw = JSON.parse(readFileSync(path, "utf8")) as { factor_approx: number };
   return raw.factor_approx;
+}
+
+function surplusPoolFromBundle(bundle: NationalFleetMonthBundle): number {
+  const fromProvenance = bundle.provenance?.month_surplus_pool_gwh as number | undefined;
+  if (fromProvenance != null) {
+    return fromProvenance;
+  }
+  try {
+    const run = getFleetRun(bundle, 1, "spitze");
+    let mwh = 0;
+    for (const r of run.r_mw) {
+      mwh += Math.max(0, -r) * DT_H;
+    }
+    return mwh / 1000;
+  } catch {
+    return 0;
+  }
+}
+
+function refPeakFromBundle(bundle: NationalFleetMonthBundle): number {
+  try {
+    const run = getFleetRun(bundle, 1, "spitze");
+    return roundGw(Math.max(...run.r_mw) / 1000, 1);
+  } catch {
+    const refRow = bundle.summary["1"]?.surplus_wind_solar_over_load as Record<string, number> | undefined;
+    return roundGw((refRow?.baseline_max_residual_mw ?? 64_405.9) / 1000, 1);
+  }
 }
 
 /** Day-Ahead-Erlös bei Markt ×2 (= 1× zusätzliche Flotte), Modellschätzung. */
@@ -101,9 +132,9 @@ function roundGw(v: number, decimals = 2): number {
 }
 
 export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Model {
-  const refRow = bundle.summary["1"]?.surplus_wind_solar_over_load as Record<string, number> | undefined;
-  const refPeakGw = roundGw((refRow?.baseline_max_residual_mw ?? 64_405.9) / 1000, 1);
-  const surplusPoolGwh = (bundle.provenance?.month_surplus_pool_gwh as number | undefined) ?? 134.242;
+  const monthKey = bundle.monthKey;
+  const refPeakGw = refPeakFromBundle(bundle);
+  const surplusPoolGwh = surplusPoolFromBundle(bundle);
 
   const heroPoints: MonatV1HeroPoint[] = GRAPH_FACTORS.map((factor) => {
     const spitze = monthStatsForRun(bundle, factor, "spitze");
@@ -131,18 +162,21 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
       ? [40, 50, 60, 70, 80, 90, 100].filter((t) => t >= yMinGw && t <= yMaxGw)
       : [40, 60, 80, 100, 120].filter((t) => t <= yMaxGw);
 
-  const dur = loadDurationSensitivity();
-  const duration: MonatV1DurationPoint[] = GRAPH_FACTORS.map((factor) => ({
+  const dur = loadDurationSensitivity(monthKey);
+  const duration: MonatV1DurationPoint[] = GRAPH_FACTORS.map((factor) => {
+    const spitzeGw = monthStatsForRun(bundle, factor, "spitze").peakReductionGw;
+  return {
     factor,
-    h176: dur[String(factor)]["1.76"],
-    h2: dur[String(factor)]["2"],
-    h4: dur[String(factor)]["4"],
+    h176: dur?.[String(factor)]?.["1.76"] ?? spitzeGw,
+    h2: dur?.[String(factor)]?.["2"] ?? spitzeGw,
+    h4: dur?.[String(factor)]?.["4"] ?? spitzeGw,
     powerGwLabel: fleetPowerGwWithUnit(factor, factor === 10 ? 0 : 1),
-  }));
+  };
+  });
 
-  const x5h4 = duration.find((d) => d.factor === 5)!.h4;
-  const x10h176 = duration.find((d) => d.factor === 10)!.h176;
-  const showDauerVergleich = Math.abs(x5h4 - x10h176) <= 0.2;
+  const x5h4 = duration.find((d) => d.factor === 5)?.h4 ?? 0;
+  const x10h176 = duration.find((d) => d.factor === 10)?.h176 ?? 0;
+  const showDauerVergleich = dur != null && Math.abs(x5h4 - x10h176) <= 0.2;
 
   const pool: MonatV1PoolRow[] = GRAPH_FACTORS.map((factor) => {
     const st = monthStatsForRun(bundle, factor, "ueberschuss");
@@ -178,7 +212,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
       points: heroPoints,
       insightSpitzeX10Gw: roundGw(spitze10.peakAfterGw, 1),
       kipppunktLabel: "ab ≈×3,9",
-      kipppunktFactor: loadMarktKipppunktFactor(),
+      kipppunktFactor: loadMarktKipppunktFactor(monthKey, markt10.peakAfterGw > refPeakGw ? 3.9 : 10),
     },
     heroTable: {
       spitzeX1: roundGw(spitze1.peakAfterGw, 1),

@@ -7,7 +7,7 @@ import { computeDauerSpanne, preisMittelFensterText, preisModellLine, preisSpann
 import { tagLastSurplusLine, tagSurplusDefinitionLine } from "@/lib/kopfTagCopy";
 import {
   fleetMonatHref,
-  NATIONAL_FLEET_MONTH_KEY,
+  nationalFleetMonthKeyForDay,
   NATIONAL_FLEET_STRATEGY_UI,
   type NationalFleetDaySlice,
   type NationalFleetFactor,
@@ -180,7 +180,14 @@ export function TagSoGerechnet({
           <p>
             Monatslauf-Ausschnitt — hypothetisch, ohne Tages-Reset. Aus Überschuss ist an diesem Tag nichts zu
             laden, wenn max(0, Wind+Sonne−Last) durchgehend null ist.{" "}
-            <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, fleetExtra.factor, fleetExtra.strategy)} className="v4-text-link">
+            <Link
+              href={fleetMonatHref(
+                nationalFleetMonthKeyForDay(fleetExtra.dayKey),
+                fleetExtra.factor,
+                fleetExtra.strategy,
+              )}
+              className="v4-text-link"
+            >
               Zum Monatsmodell
             </Link>
             .
