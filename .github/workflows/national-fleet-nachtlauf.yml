@@ -50,8 +50,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git rebase origin/main
           CHANGED="$(git diff --cached --name-only)"
           if [ -z "$CHANGED" ]; then
             CHANGED="$(git diff --name-only data/national-fleet)"
@@ -66,4 +64,10 @@ jobs:
           done
           DATE_TAG="$(python3 -c 'from zoneinfo import ZoneInfo; from datetime import datetime,timedelta; print((datetime.now(ZoneInfo("Europe/Berlin"))-timedelta(days=1)).date().isoformat())')"
           git commit -m "data: nachtlauf ${DATE_TAG}"
-          git push origin HEAD:main
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
