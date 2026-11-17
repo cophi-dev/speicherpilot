@@ -11,6 +11,7 @@ import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { topYTickBaselineY, yAxisGwUnitPosition } from "@/lib/monatV1HeroLayout";
+import { monatFactorAxisY } from "@/lib/monatFactorAxisLayout";
 import { monatHeroChartBox, monatHeroUsesWideLayout, monatStundenChartBox } from "@/lib/monatChartViewBox";
 import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
@@ -138,6 +139,8 @@ function HeroChart({ model }: { model: MonatV1Model }) {
     return rows;
   }, [activeFactor, model.hero.points]);
   const crossX = activeFactor != null ? factorX(activeFactor, plotW, vb.L) : null;
+  const plotBottom = vb.T + plotH;
+  const factorAxis = monatFactorAxisY(plotBottom);
 
   return (
     <div
@@ -211,10 +214,10 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           const gw = fleetPowerGwLabel(f, f === 10 ? 0 : 1);
           return (
             <g key={f}>
-              <line x1={x} x2={x} y1={vb.T + plotH} y2={vb.T + plotH + 4} stroke="var(--mv-ink)" />
+              <line x1={x} x2={x} y1={plotBottom} y2={factorAxis.tickEnd} stroke="var(--mv-ink)" />
               <text
                 x={x}
-                y={vb.T + plotH + 16}
+                y={factorAxis.multLabel}
                 textAnchor="middle"
                 fill="var(--mv-ink)"
                 fontWeight={400}
@@ -224,7 +227,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               </text>
               <text
                 x={x}
-                y={vb.T + plotH + 36}
+                y={factorAxis.gwLabel}
                 textAnchor="middle"
                 fill="var(--mv-muted, #43474c)"
                 fontSize="14"

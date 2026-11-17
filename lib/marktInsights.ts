@@ -44,7 +44,12 @@ function fmtDate(dateKey: string): string {
   return `${Number(d)}.${Number(m)}.`;
 }
 
+const MINUS = "\u2212";
+
 function fmtEur(v: number, digits = 2): string {
+  if (v < 0) {
+    return `${MINUS}${formatQuantity(Math.abs(v), "de", digits)}`;
+  }
   return formatQuantity(v, "de", digits);
 }
 

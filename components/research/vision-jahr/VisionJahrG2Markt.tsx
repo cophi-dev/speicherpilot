@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { yAxisTickLabelDy } from "@/components/research/chartY";
 import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJahrChartFoot";
-import { formatVisionGwOne, formatVisionGwPlain } from "@/lib/research/visionJahrFormat";
+import { formatVisionGwOne, formatVisionGwPlain, formatVisionGwWithUnit } from "@/lib/research/visionJahrFormat";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
 import { layoutG2StressCapLabel } from "@/lib/research/visionG2CapLabel";
 import { G2_Y_AXIS_MAX_GW } from "@/lib/research/visionJahrG2Stress";
@@ -114,7 +114,7 @@ export function VisionJahrG2Markt({ model, width, height }: { model: VisionJahrM
         ))}
         <line x1={PAD_LEFT} x2={width - PAD_RIGHT} y1={refY} y2={refY} stroke="var(--research-muted)" strokeWidth={1.25} />
         <text x={width - PAD_RIGHT} y={refY - 6} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-          beobachtet {formatVisionGwOne(model.peakGw)} GW
+          beobachtet {formatVisionGwWithUnit(model.peakGw)}
         </text>
         <path d={band} fill="color-mix(in srgb, var(--research-muted) 20%, transparent)" stroke="none" />
         <path d={polyline(lowPts)} fill="none" stroke="var(--research-muted)" strokeWidth={1.25} opacity={0.75} />

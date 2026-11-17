@@ -4356,6 +4356,7 @@ footer .site-fold a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  min-width: 44px;
   padding-block: 8px;
   color: #0f6e7c;
   font-family: var(--font-space-grotesk);
@@ -11339,11 +11340,13 @@ table.sr-only-focusable:focus-within {
 
 .v4-markt-insights .v4-footnote-link,
 .markt-insights-regel-link {
-  min-height: 24px;
-  min-width: 24px;
+  min-height: 44px;
+  min-width: 44px;
   display: inline-flex;
   align-items: center;
-  padding: 4px 2px;
+  justify-content: center;
+  padding: 8px 6px;
+  margin: -8px -6px;
 }
 
 .v4-so-gerechnet {

@@ -6,6 +6,8 @@ import { PreisFenster } from "@/components/home/PreisFenster";
 import type { PreisTick } from "@/lib/preisFenster";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { formatQuantity } from "@/lib/formatQuantity";
+
+const NBSP = "\u00a0";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 export function TagChapter({
@@ -34,13 +36,13 @@ export function TagChapter({
 
   const hasSurplus = surplusGwh >= 0.05;
   const kernSurplus = hasSurplus
-    ? `Überschuss: ${formatQuantity(surplusGwh, "de", 1)} GWh`
-    : "Überschuss: unter 0,05 GWh";
+    ? `Überschuss: ${formatQuantity(surplusGwh, "de", 1)}${NBSP}GWh`
+    : `Überschuss: unter 0,05${NBSP}GWh`;
   const lead =
     peakGw !== null && peakAt
       ? hasSurplus
-        ? `Die Restlast erreichte abends ${formatQuantity(peakGw, "de", 1)} GW um ${peakAt} Uhr.`
-        : `Wind und Sonne lagen den ganzen Tag unter dem Verbrauch. Die Restlast (Verbrauch minus Wind und Sonne) erreichte ${formatQuantity(peakGw, "de", 1)} GW um ${peakAt} Uhr.`
+        ? `Die Restlast erreichte abends ${formatQuantity(peakGw, "de", 1)}${NBSP}GW um ${peakAt} Uhr.`
+        : `Wind und Sonne lagen den ganzen Tag unter dem Verbrauch. Die Restlast (Verbrauch minus Wind und Sonne) erreichte ${formatQuantity(peakGw, "de", 1)}${NBSP}GW um ${peakAt} Uhr.`
       : "Wind und Sonne decken den Verbrauch nicht durchgehend — die Lücke füllen andere Quellen.";
 
   return (
