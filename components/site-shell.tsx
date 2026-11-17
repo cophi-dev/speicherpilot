@@ -384,7 +384,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
                 target="_blank"
                 rel="me noopener"
                 aria-label="Phillipp Zarindast auf X"
-                className="inline-flex min-h-11 items-center hover:text-foreground"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-foreground"
               >
                 X
               </a>

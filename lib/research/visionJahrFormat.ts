@@ -7,11 +7,11 @@ export function formatVisionGwOne(gw: number): string {
 }
 
 export function formatVisionGwMinus(gw: number): string {
-  return `${GW_MINUS}${formatVisionGwOne(gw)} GW`;
+  return `${GW_MINUS}${formatVisionGwOne(gw)}\u00a0GW`;
 }
 
 export function formatVisionGwPlain(gw: number): string {
-  return `${formatVisionGwOne(gw)} GW`;
+  return `${formatVisionGwOne(gw)}\u00a0GW`;
 }
 
 export function formatVisionPercentWhole(pct: number): string {

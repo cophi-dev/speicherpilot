@@ -3,7 +3,13 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { reductionFromY, yAxisTickLabelDy, yAxisUnitLabelY, yFromReduction } from "@/components/research/chartY";
+import {
+  reductionFromY,
+  visionXAxisTitleY,
+  yAxisTickLabelDy,
+  yAxisUnitLabelY,
+  yFromReduction,
+} from "@/components/research/chartY";
 import { formatGwSenkung, formatReductionTickGw } from "@/lib/research/fleetBasis";
 import { visionAxisFontSize } from "@/lib/research/visionChartMetrics";
 import { visionReductionYTicks } from "@/lib/research/visionReductionTicks";
@@ -22,9 +28,9 @@ function xPos(gw: number, width: number) {
 }
 
 function durationCurveLabel(duration: "1.76" | "2" | "4"): string {
-  if (duration === "1.76") return "1,76 h";
-  if (duration === "2") return "2 h";
-  return "4 h";
+  if (duration === "1.76") return `1,76\u00a0h`;
+  if (duration === "2") return `2\u00a0h`;
+  return `4\u00a0h`;
 }
 
 export function VisionPlot({
@@ -146,6 +152,9 @@ export function VisionPlot({
           role="img"
           aria-label={ariaLabel}
         >
+          <text x={32} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            GW
+          </text>
           {visionReductionYTicks(yMax).map((tick) => (
             <g key={tick}>
               <line
@@ -173,8 +182,10 @@ export function VisionPlot({
             strokeDasharray="4 3"
             strokeWidth={1}
           />
-          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
-            {width < 420 ? `≥${model.commitmentsGw} GW*` : `≥ ${model.commitmentsGw} GW Zusagen*`}
+          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP) - 16} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+            {width < 420
+              ? `≥${model.commitmentsGw}\u00a0GW*`
+              : `≥ ${model.commitmentsGw}\u00a0GW Zusagen*`}
           </text>
           {showCurves ? (
             <>
@@ -335,7 +346,7 @@ export function VisionPlot({
           {points
             .filter((p) => p.id !== "x1")
             .map((p) => {
-              const yLabel = p.id === "nep-a" && stackNepALabel ? height - 2 : height - 14;
+              const yLabel = p.id === "nep-a" && stackNepALabel ? height - 8 : height - 18;
               return (
                 <text
                   key={p.id}
@@ -352,7 +363,7 @@ export function VisionPlot({
             })}
           <text
             x={(40 + width - 16) / 2}
-            y={trackY - 36}
+            y={visionXAxisTitleY(trackY)}
             textAnchor="middle"
             fontSize={axisFs}
             fill="var(--research-muted)"

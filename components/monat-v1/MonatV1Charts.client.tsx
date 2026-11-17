@@ -10,7 +10,9 @@ import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { MONAT_REGELR_GRAPH_CAPTION } from "@/lib/monatReglerPflichtzeile";
 import { formatGwAbs, formatGwReduction, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
+import { layoutMonatHeroYAxis } from "@/lib/monatHeroYAxisLabels";
 import { topYTickBaselineY, yAxisGwUnitPosition } from "@/lib/monatV1HeroLayout";
+import { monatFactorAxisY } from "@/lib/monatFactorAxisLayout";
 import { monatHeroChartBox, monatHeroUsesWideLayout, monatStundenChartBox } from "@/lib/monatChartViewBox";
 import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
@@ -111,7 +113,9 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   const yTicksRaw = wide
     ? model.yTicksGw
     : [40, 60, 80, 100].filter((t) => t >= yMinGw && t <= yMaxGw);
-  const yTicks = yTicksRaw.filter((t) => yGw(t, yMinGw, yMaxGw, plotH, vb.T) < vb.T + plotH - 40);
+  const yTickLine = (gw: number) => yGw(gw, yMinGw, yMaxGw, plotH, vb.T);
+  const yTicksInPlot = yTicksRaw.filter((t) => yTickLine(t) < vb.T + plotH - 40);
+  const { ticks: yTicks, refPeakLabelY } = layoutMonatHeroYAxis(yTicksInPlot, yTickLine, refY);
   const yMap = (gw: number) => yGw(gw, yMinGw, yMaxGw, plotH, vb.T);
   const topTickBaseline = topYTickBaselineY(yTicks, yMinGw, yMaxGw, plotH, vb.T, yMap);
   const gwUnit = yAxisGwUnitPosition({ padL: vb.L, plotTop: vb.T, topTickBaselineY: topTickBaseline });
@@ -138,6 +142,8 @@ function HeroChart({ model }: { model: MonatV1Model }) {
     return rows;
   }, [activeFactor, model.hero.points]);
   const crossX = activeFactor != null ? factorX(activeFactor, plotW, vb.L) : null;
+  const plotBottom = vb.T + plotH;
+  const factorAxis = monatFactorAxisY(plotBottom);
 
   return (
     <div
@@ -192,7 +198,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               strokeWidth="1"
               strokeDasharray={wide ? "0" : "3 3"}
             />
-            <text x={vb.L - 4} y={refY + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
+            <text x={vb.L - 4} y={refPeakLabelY} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
               {refPeakGw.toFixed(1).replace(".", ",")}
             </text>
           </g>
@@ -211,10 +217,10 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           const gw = fleetPowerGwLabel(f, f === 10 ? 0 : 1);
           return (
             <g key={f}>
-              <line x1={x} x2={x} y1={vb.T + plotH} y2={vb.T + plotH + 4} stroke="var(--mv-ink)" />
+              <line x1={x} x2={x} y1={plotBottom} y2={factorAxis.tickEnd} stroke="var(--mv-ink)" />
               <text
                 x={x}
-                y={vb.T + plotH + 16}
+                y={factorAxis.multLabel}
                 textAnchor="middle"
                 fill="var(--mv-ink)"
                 fontWeight={400}
@@ -224,7 +230,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               </text>
               <text
                 x={x}
-                y={vb.T + plotH + 36}
+                y={factorAxis.gwLabel}
                 textAnchor="middle"
                 fill="var(--mv-muted, #43474c)"
                 fontSize="14"

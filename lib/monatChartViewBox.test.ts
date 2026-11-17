@@ -14,4 +14,11 @@ describe("monatChartViewBox", () => {
     expect(monatHeroChartBox(1200).w).toBe(1152);
     expect(monatHeroUsesWideLayout(1200)).toBe(true);
   });
+
+  it("narrow 928: Höhe ~0,4×Breite, nicht 944", () => {
+    const box = monatHeroChartBox(928);
+    expect(box.w).toBe(928);
+    expect(box.h).toBeGreaterThanOrEqual(300);
+    expect(box.h).toBeLessThanOrEqual(400);
+  });
 });

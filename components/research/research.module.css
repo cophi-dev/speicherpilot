@@ -308,6 +308,16 @@
   color: var(--research-muted);
 }
 
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding-block: 10px;
+  padding-inline: 4px;
+  margin-inline: -4px;
+}
+
 .chartScope {
   font-family: var(--font-jetbrains-mono), monospace;
   font-size: var(--type-12);

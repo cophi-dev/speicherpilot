@@ -19,8 +19,8 @@ import type { VisionStageId } from "@/lib/research/researchTypes";
 import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
 
 const DURATIONS = [
-  { key: "2" as const, label: "2 h" },
-  { key: "4" as const, label: "4 h (Sensitivität)" },
+  { key: "2" as const, label: `2\u00a0h` },
+  { key: "4" as const, label: `4\u00a0h (Sensitivität)` },
 ];
 
 const VISION_SKIP_KEY = "speicherpilot-vision-guess-skip";

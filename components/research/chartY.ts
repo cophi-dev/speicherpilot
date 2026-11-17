@@ -1,6 +1,11 @@
 /** Y-Achsen-„GW“ oberhalb der Nulllinie, damit „0“ nicht kollidiert. */
 export function yAxisUnitLabelY(padTop: number): number {
-  return padTop - 10;
+  return padTop - 14;
+}
+
+/** X-Achsentitel (z. B. „Speicherleistung, GW“) mit Abstand zur Stufenzeile. */
+export function visionXAxisTitleY(trackY: number, gap = 44): number {
+  return trackY - gap;
 }
 
 /** Tick „0“ sitzt tiefer als negative Ticks (Baseline-Kollision mit „GW“). */

@@ -2,7 +2,9 @@
 
 import { useEffect, useState, type RefObject } from "react";
 
-/** Misst die nutzbare Chart-Breite (volle Inhaltskolonne, kein fixes 1280-SVG). */
+import { chartShellContentWidth } from "@/lib/chartShellWidth";
+
+/** Misst die nutzbare Chart-Breite (Inhalt minus Padding, kein Page-Border-Box). */
 export function useMeasuredChartWidth(
   ref: RefObject<HTMLElement | null>,
   fallback: number
@@ -13,7 +15,7 @@ export function useMeasuredChartWidth(
     const el = ref.current;
     if (!el) return;
     const measure = () => {
-      const w = Math.floor(el.getBoundingClientRect().width);
+      const w = chartShellContentWidth(el);
       if (w > 0) setWidth(w);
     };
     measure();
