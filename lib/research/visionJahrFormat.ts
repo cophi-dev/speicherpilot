@@ -1,6 +1,7 @@
+import { DISPLAY_NBSP, formatDeDurationH } from "@/lib/displayUnitFormat";
 import { GW_MINUS } from "@/lib/research/fleetBasis";
 
-const NBSP = "\u00a0";
+const NBSP = DISPLAY_NBSP;
 
 /** Anzeige wie im Konzept: eine Nachkommastelle, deutsches Komma. */
 export function formatVisionGwOne(gw: number): string {
@@ -46,13 +47,7 @@ export function formatVisionFleetGwGwhLine(powerGw: number, energyGwh: number, t
 }
 
 export function formatVisionDurationDe(label: "1,76" | "2" | "4" | string): string {
-  if (label === "1,76") return `1,76${NBSP}h`;
-  if (label === "2") return `2${NBSP}h`;
-  if (label === "4") return `4${NBSP}h`;
-  if (label.endsWith(" h")) {
-    return `${label.replace(/ h$/, "")}${NBSP}h`;
-  }
-  return label;
+  return formatDeDurationH(label);
 }
 
 export function formatVisionPercentWhole(pct: number): string {

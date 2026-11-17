@@ -14,6 +14,7 @@ import {
 } from "@/lib/monatReglerPflichtzeile";
 import { parseMonatReglerCompact, type MonatReglerCompact } from "@/lib/monatReglerAsset";
 import { reglerKpisFromBundle } from "@/lib/monatReglerKpis";
+import { formatDeDurationH, formatDeGw } from "@/lib/displayUnitFormat";
 import { formatGwAbs } from "@/lib/monatV1Format";
 import {
   fleetMonatHref,
@@ -115,7 +116,6 @@ export function MonatReglerHero({
         <div className={styles.chipGroup} role="group" aria-label="Flottenstufe">
           {NATIONAL_FLEET_FACTORS.map((f) => {
             const total = totalFleetAtFactor(f);
-            const gw = (total.powerMw / 1000).toFixed(2).replace(".", ",");
             return (
               <Link
                 key={f}
@@ -124,7 +124,7 @@ export function MonatReglerHero({
                 aria-current={f === factor ? "true" : undefined}
               >
                 ×{f}
-                <span className={styles.chipSub}>{gw} GW</span>
+                <span className={styles.chipSub}>{formatDeGw(total.powerMw / 1000, 2)}</span>
               </Link>
             );
           })}
@@ -142,7 +142,8 @@ export function MonatReglerHero({
           ))}
         </div>
         <p className={styles.durationRow}>
-          Speicherdauer heute: <strong>1,76 h</strong>. Was längere Speicher (2 h, 4 h) bringen, zeigt „Es fehlen Stunden“
+          Speicherdauer heute: <strong>{formatDeDurationH("1,76")}</strong>. Was längere Speicher ({formatDeDurationH("2")},{" "}
+          {formatDeDurationH("4")}) bringen, zeigt „Es fehlen Stunden“
           weiter unten.
         </p>
       </div>

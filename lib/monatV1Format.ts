@@ -1,6 +1,7 @@
+import { DISPLAY_NBSP } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 
-const NBSP = "\u00a0";
+const NBSP = DISPLAY_NBSP;
 const MINUS = "\u2212";
 
 export const MONAT_V1_GRAPH_CAPTION = "national, kein Netzengpass, Vollvoraussicht · Modell";
@@ -27,5 +28,5 @@ export function formatMioEurModell(valueMio: number): string {
 }
 
 export function formatPercentShare(pct: number): string {
-  return `${formatQuantity(pct, "de", 0)} %`;
+  return `${formatQuantity(pct, "de", 0)}${NBSP}%`;
 }

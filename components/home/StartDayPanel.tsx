@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
 import { formatPanelGwh } from "@/lib/homeDayGwhDisplay";
 import type { HomeDayPanelData } from "@/lib/homeDayPanel";
+import { formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 
 function StatValue({
@@ -88,7 +89,7 @@ export function StartDayFootnotes({
   const dayLabel = formatBerlinDayLabel(kopfDayKey);
   const wd = weekdayShort(kopfDayKey, "de");
 
-  const fleetLine = `Referenzflotte ${formatQuantity(panel.model.powerGw, "de", 2)} GW / ${formatQuantity(panel.model.energyGwh, "de", 2)} GWh.`;
+  const fleetLine = `Referenzflotte ${formatDeGwGwhLine(panel.model.powerGw, panel.model.energyGwh)}.`;
   const chargeLine = `Geladen ${formatPanelGwh(panel.model.chargedGwh)} GWh, abgegeben ${formatPanelGwh(panel.model.dischargedGwh)} GWh.`;
   const modelNote =
     panel.model.unavailableReasonDe && panel.model.unavailableReasonDe.length <= 70

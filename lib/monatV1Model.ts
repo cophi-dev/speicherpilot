@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
-import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
+import { fleetPowerGwWithUnit } from "@/lib/fleetXkConvention";
+import { formatPercentShare } from "@/lib/monatV1Format";
 import {
   getFleetRun,
   monthStatsForRun,
@@ -136,7 +137,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
     h176: dur[String(factor)]["1.76"],
     h2: dur[String(factor)]["2"],
     h4: dur[String(factor)]["4"],
-    powerGwLabel: fleetPowerGwLabel(factor, factor === 10 ? 0 : 1),
+    powerGwLabel: fleetPowerGwWithUnit(factor, factor === 10 ? 0 : 1),
   }));
 
   const x5h4 = duration.find((d) => d.factor === 5)!.h4;
@@ -146,8 +147,7 @@ export function buildMonatV1Model(bundle: NationalFleetMonthBundle): MonatV1Mode
   const pool: MonatV1PoolRow[] = GRAPH_FACTORS.map((factor) => {
     const st = monthStatsForRun(bundle, factor, "ueberschuss");
     const share = st.surplusCaptureSharePct ?? 0;
-    const label =
-      share >= 99.9 ? "voll" : `${Math.round(share)} %`;
+    const label = share >= 99.9 ? "voll" : formatPercentShare(Math.round(share));
     return {
       factor,
       poolSharePct: share,

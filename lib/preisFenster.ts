@@ -1,6 +1,7 @@
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { getBerlinDateKeyFromUnixSeconds } from "@/lib/berlinCalendar";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
+import { formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { niceAxis, type NiceAxis } from "@/lib/niceTicks";
 
@@ -205,7 +206,6 @@ export function preisMittelFensterText(
 ): string {
   return (
     `Mittel günstig / teuer: ${formatQuantity(dauer.meanLow, "de", 2)} und ${formatQuantity(dauer.meanHigh, "de", 2)}. ` +
-    `Die markierten Punkte sind diese Viertelstunden (${dauer.n}, Flotte ${formatQuantity(powerGw, "de", 2)} GW / ` +
-    `${formatQuantity(energyGwh, "de", 2)} GWh, ${dateLabel}).`
+    `Die markierten Punkte sind diese Viertelstunden (${dauer.n}, Flotte ${formatDeGwGwhLine(powerGw, energyGwh)}, ${dateLabel}).`
   );
 }

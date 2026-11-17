@@ -4782,7 +4782,9 @@ details[open] > .methodik-section-summary::before {
 .methodik-licence-cell {
   white-space: nowrap;
 }
-.methodik-sources td a {
+.methodik-sources td a,
+.methodik-v4 #quellen ul a,
+.methodik-v4 #d-recht > p a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
