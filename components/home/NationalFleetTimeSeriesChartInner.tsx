@@ -25,6 +25,7 @@ import type { FleetChartSeriesPayload } from "@/lib/nationalFleetSeriesPayload";
 import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { formatKonzeptWorkbenchCaption } from "@/lib/monatKonzeptA";
 import { fleetBandPaths } from "@/lib/fleetTagesvorlagePaths";
+import { nearestIndexFromClientXWithPlotPad } from "@/lib/chartNearestIndex";
 
 type SeriesPayload = FleetChartSeriesPayload;
 
@@ -163,6 +164,7 @@ export function NationalFleetTimeSeriesChart({
 
   const isDay = Boolean(dateKey);
   const monthNarrow = useMaxWidth(767);
+  const plotGutterForPick = tagesvorlageDay && isDay ? 42 : 0;
 
   useEffect(() => {
     const requestKey = `${monthKey}|${factor}|${strategy}|${dateKey ?? ""}`;
@@ -267,13 +269,16 @@ export function NationalFleetTimeSeriesChart({
       }
       const rect = target.getBoundingClientRect();
       const width = target.scrollWidth || rect.width;
-      if (width <= 0) {
-        return 0;
-      }
-      const x = clientX - rect.left + target.scrollLeft;
-      return Math.min(n - 1, Math.max(0, Math.round(x / (width / n))));
+      return nearestIndexFromClientXWithPlotPad(
+        clientX,
+        rect,
+        n,
+        plotGutterForPick,
+        target.scrollLeft,
+        width,
+      );
     },
-    [points.length],
+    [points.length, plotGutterForPick],
   );
   const { activeIndex, onMouseMove, onMouseLeave, onTouch, onKeyDown } = useSvgChartProbe(
     points.length,

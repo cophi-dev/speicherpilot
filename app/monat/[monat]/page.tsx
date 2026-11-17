@@ -25,6 +25,7 @@ import {
   parseFleetStrategy,
 } from "@/lib/nationalMonthFleetModel";
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
+import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
 
@@ -122,6 +123,7 @@ export default async function MonatDetailPage({
         observationLive={pageData.observationLive}
         observationFallbackNote={pageData.observationFallback?.sourceNoteDe ?? null}
         surplusBars={bars}
+        kompromissTeaser={fleetMonthOpen ? loadEps70Teaser() : null}
       >
         {fleetSlot}
       </MonatPageV4>

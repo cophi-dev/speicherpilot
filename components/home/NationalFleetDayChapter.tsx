@@ -25,7 +25,7 @@ import {
   NATIONAL_REFERENCE_FLEET_POWER_GW,
 } from "@/lib/nationalFleetReference";
 import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
-import Link from "next/link";
+import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
 
 function saturationSlices(dayKey: string): {
   x1: NationalFleetDaySlice | null;
@@ -85,7 +85,7 @@ export function NationalFleetDayChapter({
           <legend className="v4-fleet-legend">Stufe</legend>
           <div className="v4-fleet-factor-row">
             {NATIONAL_FLEET_FACTORS.map((f) => (
-              <Link
+              <FleetScenarioLink
                 key={f}
                 href={fleetTagHref(dayKey, f, strategy)}
                 role="button"
@@ -93,14 +93,14 @@ export function NationalFleetDayChapter({
                 className={`v4-fleet-pill${f === factor ? " is-active" : ""}${f === 1 ? " is-measured" : ""}`}
               >
                 {f === 1 ? "×1 heute" : `×${f}`}
-              </Link>
+              </FleetScenarioLink>
             ))}
           </div>
         </fieldset>
         <fieldset className="v4-fleet-fieldset">
           <legend className="v4-fleet-legend">Fahrweise</legend>
           <div className="v4-fleet-strategy-row">
-            <Link
+            <FleetScenarioLink
               href={fleetTagHref(dayKey, factor, "spitze")}
               role="button"
               aria-pressed={strategy === "spitze"}
@@ -108,7 +108,7 @@ export function NationalFleetDayChapter({
               title="senkt die bundesweite Restlast-Spitze"
             >
               Spitze
-            </Link>
+            </FleetScenarioLink>
           </div>
           <p className="v4-fleet-strategy-copy">
             lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig
@@ -117,9 +117,14 @@ export function NationalFleetDayChapter({
         </fieldset>
       </div>
 
-      <p className="v4-content v4-fleet-energy-context num">
-        Referenzflotte ×1: {formatQuantity(NATIONAL_REFERENCE_FLEET_POWER_GW, "de", 2)} GW ·{" "}
-        {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)} GWh nutzbare Energie
+      <p className="v4-content v4-fleet-energy-context">
+        Referenzflotte ×1:{" "}
+        <span className="num">
+          {formatQuantity(NATIONAL_REFERENCE_FLEET_POWER_GW, "de", 2)}
+          {"\u00a0"}GW · {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)}
+          {"\u00a0"}GWh
+        </span>{" "}
+        nutzbare Energie
       </p>
 
       <NationalFleetTimeSeriesChart

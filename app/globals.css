@@ -4782,8 +4782,23 @@ details[open] > .methodik-section-summary::before {
 .methodik-licence-cell {
   white-space: nowrap;
 }
-.methodik-sources td a,
-.methodik-v4 #quellen ul a,
+.methodik-sources td a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 10px;
+  margin-block: -8px;
+}
+.methodik-v4 #quellen ul li {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+.methodik-v4 #quellen ul a {
+  display: inline-flex;
+  align-items: center;
+  padding-block: 6px;
+}
 .methodik-v4 #d-recht > p a {
   display: inline-flex;
   align-items: center;
@@ -10553,7 +10568,9 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 }
 .v4-fleet-energy-context {
   margin: 12px 0 8px;
+  max-width: 42rem;
   font-size: var(--type-14);
+  line-height: var(--lh-body);
   color: var(--muted-foreground);
 }
 .v4-tagesvorlage-modelbox {

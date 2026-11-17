@@ -50,14 +50,14 @@ export function TagDayNav({
 
   const pushTag = (value: string) => {
     if (value) {
-      router.push(tagHref(value, fleetFactor, fleetStrategy));
+      router.push(tagHref(value, fleetFactor, fleetStrategy), { scroll: false });
     }
   };
 
   return (
     <nav className="v4-tag-nav v4-content" aria-label="Tag wählen">
       {canPrev ? (
-        <Link href={tagHref(prev, fleetFactor, fleetStrategy)} prefetch={false} className="v4-tag-nav-btn">
+        <Link href={tagHref(prev, fleetFactor, fleetStrategy)} prefetch={false} scroll={false} className="v4-tag-nav-btn">
           ← Vortag
         </Link>
       ) : (
@@ -80,7 +80,7 @@ export function TagDayNav({
         </span>
       </label>
       {canNext ? (
-        <Link href={tagHref(next, fleetFactor, fleetStrategy)} prefetch={false} className="v4-tag-nav-btn">
+        <Link href={tagHref(next, fleetFactor, fleetStrategy)} prefetch={false} scroll={false} className="v4-tag-nav-btn">
           Folgetag →
         </Link>
       ) : (
@@ -88,7 +88,7 @@ export function TagDayNav({
           Folgetag →
         </span>
       )}
-      <Link href={monatHref} prefetch={false} className="v4-tag-nav-btn v4-tag-nav-monat">
+      <Link href={monatHref} prefetch={false} scroll={false} className="v4-tag-nav-btn v4-tag-nav-monat">
         Monat
       </Link>
     </nav>

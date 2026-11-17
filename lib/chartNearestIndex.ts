@@ -81,3 +81,30 @@ export function nearestIndexFromClientXs(
 ): number {
   return nearestIndexFromXs(viewBoxXFromClientX(clientX, rect, viewBoxWidth), xs);
 }
+
+/**
+ * clientX → Datenindex, wenn die Plot-Fläche links/rechts Padding hat (SVG-Gutter, Achsen).
+ * `containerWidth` = sichtbare Breite inkl. Padding; `plotPadLeft` = linker Offset der Plot-Fläche.
+ */
+export function nearestIndexFromClientXWithPlotPad(
+  clientX: number,
+  rect: Pick<DOMRect, "left" | "width">,
+  count: number,
+  plotPadLeft: number,
+  scrollLeft = 0,
+  containerWidth?: number,
+): number {
+  if (count <= 0) {
+    return 0;
+  }
+  const outerW = containerWidth ?? rect.width;
+  if (outerW <= 0) {
+    return 0;
+  }
+  const plotWidth = Math.max(0, outerW - plotPadLeft);
+  if (plotWidth <= 0) {
+    return 0;
+  }
+  const x = clientX - rect.left + scrollLeft - plotPadLeft;
+  return nearestIndexFromFraction(x / plotWidth, count);
+}
