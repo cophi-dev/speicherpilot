@@ -98,4 +98,20 @@ describe("PreisFenster", () => {
       expect(chartSvg()).toHaveAttribute("viewBox", "0 0 390 180");
     });
   });
+
+  it("bei 768 px kein Y-Tick 0 (Kollision mit X-00)", async () => {
+    mockClientWidth = 704;
+    const negPoints = [
+      { hm: "00:00", eurPerMwh: -5 },
+      { hm: "12:00", eurPerMwh: 40 },
+      { hm: "23:45", eurPerMwh: 80 },
+    ];
+    render(<PreisFenster {...defaultProps} points={negPoints} compactCopy />);
+    await waitFor(() => {
+      const svg = chartSvg();
+      const texts = Array.from(svg.querySelectorAll("text")).map((el) => el.textContent?.trim());
+      expect(texts.filter((t) => t === "0")).toHaveLength(0);
+      expect(texts).toContain("00");
+    });
+  });
 });
