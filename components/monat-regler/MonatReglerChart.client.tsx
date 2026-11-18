@@ -12,6 +12,7 @@ import {
   type ReglerDayPoint,
 } from "@/lib/monatReglerAsset";
 import { estimateTextWidth, stackLineLabelsAtX } from "@/lib/messerHeroLabels";
+import { formatBerlinMonthLabel } from "@/lib/monatCalendar";
 import { fleetTagHref, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 const Y_MIN = 0;
@@ -62,10 +63,12 @@ export function MonatReglerChart({
   compact,
   factor,
   strategy,
+  monthKey,
 }: {
   compact: MonatReglerCompact;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
+  monthKey: string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [cssW, setCssW] = useState(358);
@@ -195,7 +198,7 @@ export function MonatReglerChart({
         width={cssW}
         height={totalH}
         role="img"
-        aria-label="Restlast im Oktober"
+        aria-label={`Restlast im ${formatBerlinMonthLabel(monthKey)}`}
       >
         <text x={pad.l + 6} y={pad.t - 4} className={styles.yUnit} textAnchor="start">
           GW

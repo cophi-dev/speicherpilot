@@ -4,6 +4,17 @@ import { formatQuantity } from "@/lib/formatQuantity";
 export const DISPLAY_NBSP = "\u00a0";
 const MINUS = "\u2212";
 
+const PROSE_UNIT_NBSP_RE =
+  /(?<=[\d\u2212][\d.,]*?) (?=(?:GW|GWh|MW|MWh|kWh|kW|MVA|kWh\/a|kW·a|kW\/a|€\/MWh|€\/kWh|€\/kW·a|Mio\. ?€|%|h\b))/g;
+
+/** Ersetzt normale Leerzeichen vor Einheiten in Fließtext (Methodik, Leads). */
+export function insertDisplayUnitNbsp(text: string): string {
+  if (!text.includes(" ")) {
+    return text;
+  }
+  return text.replace(PROSE_UNIT_NBSP_RE, DISPLAY_NBSP);
+}
+
 export function withDisplayUnit(numberPart: string, unit: string): string {
   return `${numberPart}${DISPLAY_NBSP}${unit}`;
 }

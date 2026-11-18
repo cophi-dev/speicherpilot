@@ -4,6 +4,7 @@ import { GlossaryTip } from "@/components/GlossaryTip";
 import type { AppLanguage } from "@/components/language-context";
 import snapshot from "@/data/fleet-snapshot.json";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LIVE_DISPATCH_FACTORS } from "@/lib/liveFleetDispatch";
 import { MORE_STORAGE_DISCHARGE_HOUR } from "@/lib/moreStorage";
@@ -90,7 +91,7 @@ export type MethodikFleetStand = {
 };
 
 function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFleetStand | null) {
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const tx = (de: string, en: string) => insertDisplayUnitNbsp(language === "de" ? de : en);
   const pct = (value: number) => formatQuantity(value * 100, language, 0);
   const rte = pct(ROUND_TRIP_EFFICIENCY);
   const soc = `${pct(CHAIN_SOC_MIN)}–${pct(CHAIN_SOC_MAX)}`;

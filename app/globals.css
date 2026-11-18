@@ -133,7 +133,7 @@ footer.border-t > div.mx-auto {
     --coral: #9e2b1a;
     --coral-stroke: #af351d;
     --ink: #101214;
-    --v4-warm: #b4532a;
+    --v4-warm: #e76f51;
 
     /* Typography scale (px base 16) */
     --type-12: 0.75rem;
@@ -4796,10 +4796,7 @@ details[open] > .methodik-section-summary::before {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding-block: 0.35rem;
-  min-height: 44px;
   padding-block: 10px;
-  margin-block: -8px;
 }
 .methodik-v4 #quellen ul li {
   min-height: 44px;
@@ -9897,6 +9894,25 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   .methodik-v4 .methodik-section-summary {
     margin-inline: 0;
     border-radius: 0;
+  }
+
+  .methodik-v4 .methodik-section + .methodik-section {
+    margin-top: 6px;
+  }
+
+  .methodik-v4 #lizenzen .methodik-nested-table {
+    margin-top: 0.5rem;
+  }
+
+  .methodik-v4 #lizenzen .methodik-sources td a {
+    display: flex;
+    width: 100%;
+    margin-block: 0;
+    padding-block: 12px;
+  }
+
+  .methodik-v4 #quellen ul li + li {
+    margin-top: 4px;
   }
 }
 

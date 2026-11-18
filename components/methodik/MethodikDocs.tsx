@@ -26,6 +26,7 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 
 import {
@@ -37,7 +38,7 @@ import {
 
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const tx = (de: string, en: string) => insertDisplayUnitNbsp(language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
   const modellFlotte = `${formatQuantity(NATIONAL_BASE_FLEET.powerMw / 1000, language, 2)} GW / ${formatQuantity(NATIONAL_BASE_FLEET.energyMwh / 1000, language, 2)} GWh`;
   return (

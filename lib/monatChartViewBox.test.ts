@@ -10,6 +10,9 @@ describe("monatChartViewBox", () => {
     const box = monatHeroChartBox(1024);
     expect(box.w).toBe(1024);
     expect(box.B).toBe(40);
+    expect(box.L).toBe(50);
+    const plotW = box.w - box.L - box.R;
+    expect(plotW / box.w).toBeGreaterThan(0.82);
     const plotH = box.h - box.T - box.B;
     expect(plotH / box.h).toBeGreaterThan(0.68);
   });

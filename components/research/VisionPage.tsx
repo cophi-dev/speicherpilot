@@ -22,6 +22,7 @@ import {
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
 
 const DURATIONS = [
@@ -59,9 +60,9 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
       <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
       <p className={styles.prose}>
-        NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das
-        Stromsystem der letzten zwölf Monate: Deutschland als ein Netzknoten ohne Leitungsengpässe, mit perfekter Vorausschau. Das ist
-        eine Obergrenze. Der Oktober-Ausschnitt steht auf{" "}
+        {insertDisplayUnitNbsp(
+          "NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das Stromsystem der letzten zwölf Monate: Deutschland als ein Netzknoten ohne Leitungsengpässe, mit perfekter Vorausschau. Das ist eine Obergrenze. Der Oktober-Ausschnitt steht auf ",
+        )}
         <Link href="/monat/2026-10" className={styles.link}>
           /monat/2026-10
         </Link>

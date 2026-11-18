@@ -1,8 +1,9 @@
 import type { AppLanguage } from "@/components/language-context";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 
 export function SzenarienMethodik({ language, bodyOnly = false }: { language: AppLanguage; bodyOnly?: boolean }) {
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const tx = (de: string, en: string) => insertDisplayUnitNbsp(language === "de" ? de : en);
   const eta = Math.sqrt(ROUND_TRIP_EFFICIENCY);
   const body = (
     <>

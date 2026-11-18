@@ -24,6 +24,7 @@ import {
   monatUeberschussChartBox,
 } from "@/lib/monatChartViewBox";
 import { formatVisionPoolHeaderGwh } from "@/lib/research/visionJahrFormat";
+import { monatPageContentWidth } from "@/lib/monatSvgTypography";
 import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
@@ -39,7 +40,11 @@ function yGw(gw: number, yMin: number, yMax: number, plotH: number, padT: number
 
 function useChartShellWidth(minWidth = 280) {
   const ref = useRef<HTMLDivElement>(null);
-  const [shellWidth, setShellWidth] = useState(MONAT_WIDE_VIEWBOX_W);
+  const [shellWidth, setShellWidth] = useState(() =>
+    typeof window !== "undefined"
+      ? Math.max(minWidth, Math.round(monatPageContentWidth(window.innerWidth)))
+      : minWidth,
+  );
   useEffect(() => {
     const el = ref.current;
     if (!el) return;

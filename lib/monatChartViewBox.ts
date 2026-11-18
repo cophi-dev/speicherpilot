@@ -36,10 +36,13 @@ export function monatHeroChartBox(shellWidth: number): MonatChartBox {
   }
   const box = narrowBox(NARROW_HERO_BASE, shellWidth, HERO_HEIGHT_RATIO, NARROW_MIN_HERO_H);
   if (shellWidth >= 960 && shellWidth < MONAT_WIDE_VIEWBOX_W) {
-    const plotH = box.h - box.T - box.B;
     const T = 22;
     const B = 40;
-    return { ...box, T, B, h: T + plotH + B };
+    const L = 50;
+    const R = Math.max(56, Math.min(80, Math.round(shellWidth * 0.07)));
+    const h = Math.max(NARROW_MIN_HERO_H, Math.round(shellWidth * HERO_HEIGHT_RATIO));
+    const plotH = h - T - B;
+    return { w: shellWidth, h: T + plotH + B, L, R, T, B };
   }
   return box;
 }

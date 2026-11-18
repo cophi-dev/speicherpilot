@@ -2,6 +2,7 @@
 
 import { DayRing } from "@/components/day-ring/DayRing";
 import type { AppLanguage } from "@/components/language-context";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import type { LiveDispatchPoint } from "@/lib/liveFleetDispatch";
 
 const PHASE_POINTS: LiveDispatchPoint[] = Array.from({ length: 96 }, (_, index) => {
@@ -25,7 +26,7 @@ const KW_MINI: LiveDispatchPoint[] = PHASE_POINTS.map((point) => ({
 }));
 
 export function MethodikHeroRings({ language }: { language: AppLanguage }) {
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const tx = (de: string, en: string) => insertDisplayUnitNbsp(language === "de" ? de : en);
   return (
     <div className="methodik-scales">
       <figure>

@@ -1,3 +1,4 @@
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { dreiZieleMethodikBullets } from "@/lib/methodikDreiZiele";
 import { loadNationalFleetMonthBundle } from "@/lib/nationalMonthFleetModel.server";
 
@@ -121,7 +122,7 @@ export async function MethodikInsights() {
             <h3 className="methodik-insights-dt">{rule.title}</h3>
             <ul className="methodik-insights-footnotes">
               {rule.bullets.map((line) => (
-                <li key={line.slice(0, 24)}>{line}</li>
+                <li key={line.slice(0, 24)}>{insertDisplayUnitNbsp(line)}</li>
               ))}
             </ul>
           </article>

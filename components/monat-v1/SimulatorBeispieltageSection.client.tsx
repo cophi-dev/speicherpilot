@@ -311,15 +311,24 @@ function DayChart({
       )}
 
       {is21 ? (
-        <SvgText
-          x={x24 - 4}
-          y={residualT + vb.topH / 2 + 4}
-          fill={colors.muted}
-          anchor="end"
-          size={bandWide ? 11 : 10}
-        >
-          {bandWide ? "23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)" : "23–24 Uhr: Modelleffekt"}
-        </SvgText>
+        (() => {
+          const label = bandWide
+            ? "23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)"
+            : "23–24 Uhr: Modelleffekt";
+          const labelY = priceT + vb.priceH - 6;
+          const labelX = bandWide ? x24 - 4 : x23 + 4;
+          const anchor: "start" | "end" = bandWide ? "end" : "start";
+          const wch = label.length * 6.2 + 10;
+          const kx = anchor === "end" ? labelX - wch : labelX - 4;
+          return (
+            <g>
+              <Knockout x={kx} y={labelY - 13} width={wch + 4} height={16} fill={colors.flaeche} />
+              <SvgText x={labelX} y={labelY} fill={colors.muted} anchor={anchor} size={12}>
+                {label}
+              </SvgText>
+            </g>
+          );
+        })()
       ) : null}
 
       {priceTicks.map((t) => (
