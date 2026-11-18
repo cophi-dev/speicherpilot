@@ -24,7 +24,11 @@ export function isSiteMainNavActive(pathname: string, itemHref: SiteMainNavHref)
     return pathname.startsWith("/jahr");
   }
   if (itemHref === "/kompromiss") {
-    return pathname.startsWith("/kompromiss") || pathname.startsWith("/simulator");
+    return (
+      pathname.startsWith("/kompromiss") ||
+      pathname.startsWith("/simulator") ||
+      pathname.startsWith("/knoten")
+    );
   }
   return pathname.startsWith(itemHref);
 }

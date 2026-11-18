@@ -6,6 +6,7 @@ import { Suspense, useMemo, type CSSProperties } from "react";
 import { RangLeiste } from "@/components/home/RangLeiste";
 import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
 import { StartKompromissTeaser } from "@/components/home/SimulatorTeasers";
+import { KnotenTagLink } from "@/components/knoten/KnotenTagLink";
 import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
@@ -311,6 +312,7 @@ export function TagPageV4({
         energyGwh={fleetEnergyGwh}
         surplusGwh={record.surplusGwh}
       />
+      {isStartSurface ? null : <KnotenTagLink dayKey={dayKey} />}
       <TagSystemChapter
         dayKey={dayKey}
         record={record}

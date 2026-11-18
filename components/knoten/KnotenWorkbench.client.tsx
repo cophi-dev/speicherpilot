@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
+import { SimulatorSubnav } from "@/components/simulator/SimulatorSubnav";
 import { KnotenChart } from "@/components/knoten/KnotenChart.client";
 import styles from "@/components/knoten/knoten.module.css";
 import { useKnotenTheme } from "@/components/knoten/useKnotenTheme";
@@ -57,6 +58,7 @@ export function KnotenWorkbench({
 
   return (
     <div className={styles.root} data-testid="knoten-page">
+      <SimulatorSubnav />
       <p className={styles.chipRow}>
         <span className={styles.modell}>MODELLKNOTEN</span>
       </p>
