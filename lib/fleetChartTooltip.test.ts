@@ -1,4 +1,7 @@
+import { DISPLAY_NBSP } from "@/lib/displayUnitFormat";
 import { fleetTooltipRows, fleetTooltipTime } from "@/lib/fleetChartTooltip";
+
+const NBSP = DISPLAY_NBSP;
 import type { FleetChartPoint } from "@/lib/nationalFleetCharts";
 
 const point: FleetChartPoint = {
@@ -16,17 +19,17 @@ describe("fleetChartTooltip", () => {
   it("rundet nicht genauer als die Achse (2 Dezimalstellen) und liest aus den Daten", () => {
     const rows = fleetTooltipRows(point);
     expect(rows.map((r) => r.label)).toEqual(["Restlast", "mit Speicher", "Laden", "Entladen", "SoC"]);
-    expect(rows[0]?.value).toBe("54,30 GW");
-    expect(rows[1]?.value).toBe("51,68 GW");
-    expect(rows[2]?.value).toBe("1,20 GW");
-    expect(rows[3]?.value).toBe("0,00 GW");
+    expect(rows[0]?.value).toBe(`54,30${NBSP}GW`);
+    expect(rows[1]?.value).toBe(`51,68${NBSP}GW`);
+    expect(rows[2]?.value).toBe(`1,20${NBSP}GW`);
+    expect(rows[3]?.value).toBe(`0,00${NBSP}GW`);
     expect(rows[4]?.value).toBe("4,13 GWh");
   });
 
   it("hängt die ×1-Vergleichskurve an, wenn vorhanden", () => {
     const rows = fleetTooltipRows(point, 53.012);
     expect(rows[2]?.label).toBe("×1 Vergleich");
-    expect(rows[2]?.value).toBe("53,01 GW");
+    expect(rows[2]?.value).toBe(`53,01${NBSP}GW`);
   });
 
   it("nimmt die Uhrzeit aus dem Zeitstempel", () => {

@@ -1,3 +1,4 @@
+import { DISPLAY_NBSP, formatDeEurPerMwh, formatDeGw } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
@@ -84,7 +85,7 @@ function ruleHohesMinimum(record: TagesKennzahlRecord | null): MarktInsight | nu
   return {
     id: "hohes_minimum",
     category: "markt",
-    text: `Am ${fmtDate(record.dateKey)} lag die Börse zwischen ${fmtEur(record.pmin)} und ${fmtEur(record.pmax ?? record.pmin)} €/MWh. Spanne ${fmtEur(record.spread)} €/MWh, keine Viertelstunde unter 100 €/MWh und keine Stunde unter null.`,
+    text: `Am ${fmtDate(record.dateKey)} lag die Börse zwischen ${formatDeEurPerMwh(record.pmin, 0)} und ${formatDeEurPerMwh(record.pmax ?? record.pmin, 0)}. Spanne ${formatDeEurPerMwh(record.spread!, 0)}, keine Viertelstunde unter 100${DISPLAY_NBSP}€/MWh und keine Stunde unter null.`,
     period: fmtDate(record.dateKey),
     source: "Bundesnetzagentur | SMARD.de, Day-Ahead DE-LU",
     methodikHref: "/methodik#insight-hohes-minimum",
@@ -99,7 +100,7 @@ function rulePreisSpike(record: TagesKennzahlRecord | null): MarktInsight | null
   return {
     id: "preis_spike",
     category: "markt",
-    text: `Am ${fmtDate(record.dateKey)} war der Überschuss 0 GWh. Maximum ${fmtEur(record.pmax)} €/MWh${at}.`,
+    text: `Am ${fmtDate(record.dateKey)} war der Überschuss 0 GWh. Maximum ${formatDeEurPerMwh(record.pmax, 0)}${at}.`,
     period: fmtDate(record.dateKey),
     source: "Bundesnetzagentur | SMARD.de, Day-Ahead DE-LU",
     methodikHref: "/methodik#insight-preis-spike",
@@ -136,7 +137,7 @@ function ruleGleicheSpanne(records: TagesKennzahlRecord[], focusDayKey?: string)
         return {
           id: "gleiche_spanne",
           category: "markt",
-          text: `${fmtDate(a.dateKey)} und ${fmtDate(b.dateKey)} haben ähnliche Spannen (${fmtEur(a.spread!)} vs. ${fmtEur(b.spread!)} €/MWh), aber Minima ${fmtEur(a.pmin!)} vs. ${fmtEur(b.pmin!)} €/MWh.`,
+          text: `${fmtDate(a.dateKey)} und ${fmtDate(b.dateKey)} haben ähnliche Spannen (${formatDeEurPerMwh(a.spread!, 0)} vs. ${formatDeEurPerMwh(b.spread!, 0)}), aber Minima ${formatDeEurPerMwh(a.pmin!, 0)} vs. ${formatDeEurPerMwh(b.pmin!, 0)}.`,
           period: `${fmtDate(WINDOW_START)}–${fmtDate(endKey)}`,
           source: "Bundesnetzagentur | SMARD.de",
           methodikHref: "/methodik#insight-gleiche-spanne",

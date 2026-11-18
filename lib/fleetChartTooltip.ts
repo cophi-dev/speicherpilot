@@ -1,4 +1,5 @@
 import type { ChartTooltipRow } from "@/components/charts/ChartTooltipPanel";
+import { formatDeGw } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { FleetChartPoint } from "@/lib/nationalFleetCharts";
 
@@ -12,8 +13,8 @@ export function fleetTooltipRows(point: FleetChartPoint, compareRpGw?: number | 
     rows.push({ label: "×1 Vergleich", value: `${formatQuantity(compareRpGw, "de", 2)} GW` });
   }
   rows.push(
-    { label: "Laden", value: `${formatQuantity(point.cMw / 1000, "de", 2)} GW` },
-    { label: "Entladen", value: `${formatQuantity(point.dMw / 1000, "de", 2)} GW` },
+    { label: "Laden", value: formatDeGw(point.cMw / 1000, 2) },
+    { label: "Entladen", value: formatDeGw(point.dMw / 1000, 2) },
     { label: "SoC", value: `${formatQuantity(point.socGwh, "de", 2)} GWh` },
   );
   return rows;

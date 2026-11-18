@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/home/PreisFenster.module.css";
+import { formatDeEurPerMwh } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LUECKE_DESKTOP, LUECKE_MOBILE_PAD, plotXFromSlotIndex } from "@/lib/lueckeChartGeometry";
 import {
@@ -100,7 +101,7 @@ export function PreisFenster({
       return null;
     }
     const p = points[activeIndex]!;
-    return [{ label: "Day-Ahead", value: `${formatQuantity(p.eurPerMwh, "de", 2)} €/MWh` }];
+    return [{ label: "Day-Ahead", value: formatDeEurPerMwh(p.eurPerMwh, 2) }];
   }, [activeIndex, points]);
 
   if (points.length < 2) {

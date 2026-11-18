@@ -1,12 +1,16 @@
 {
-  "commit": "01f38b86e34df6bb1d17521fb6ed80d278157218",
-  "buildId": "20261118T0552Z",
-  "builtAt": "2026-11-18T05:52:23.685Z",
+  "commit": "343d11a55204e0ed195cb1ba3839942d483d2e4b",
+  "buildId": "20261118T0644Z",
+  "builtAt": "2026-11-18T06:44:13.647Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M lib/siteNav.test.ts",
-    " M lib/siteNav.ts"
+    "M components/home/LiveTagPreisPanel.tsx",
+    " M components/home/PreisFenster.tsx",
+    " M lib/fleetChartTooltip.ts",
+    " M lib/marktInsights.ts",
+    " M lib/nationalFleetThreeGoals.ts",
+    " M lib/preisFenster.ts"
   ],
   "ci": false
 }

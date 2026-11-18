@@ -1,3 +1,4 @@
+import { formatDeEurPerMwh, formatDeGw } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   monthStatsForRun,
@@ -109,5 +110,5 @@ export function formatMarktPeakWarnShort(d: MarktPeakFootnoteDetail): string {
 
 export function formatMarktPeakFootnote(d: MarktPeakFootnoteDetail): string {
   const when = formatPeakInstantBerlin(d.timestampBerlin);
-  return `${when} Uhr: ${formatQuantity(d.residualGw, "de", 2)} GW Restlast + ${formatQuantity(d.chargeGw, "de", 1)} GW Laden bei ${formatQuantity(d.priceEurMwh, "de", 2)} €/MWh.`;
+  return `${when} Uhr: ${formatDeGw(d.residualGw, 2)} Restlast + ${formatDeGw(d.chargeGw, 1)} Laden bei ${formatDeEurPerMwh(d.priceEurMwh, 2)}.`;
 }

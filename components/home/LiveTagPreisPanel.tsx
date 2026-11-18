@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
-import { formatDeGwGwhLine } from "@/lib/displayUnitFormat";
+import { formatDeEurPerMwh, formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { hmToHourFraction, plotXFromBerlinHour, quarterWidthPx } from "@/lib/liveTagChartGeometry";
 import {
@@ -248,7 +248,7 @@ export function LiveTagPreisPanel({
       <p className="v4-content mt-3 text-sm text-muted-foreground">
         Modellrand: Preisnehmer, 85 % Wirkungsgrad, SoC 10 bis 90 %, Rückkehr auf 50 % um 24 Uhr. Referenzflotte ×1 (
         {formatDeGwGwhLine(fleetPowerGw, fleetEnergyGwh)}). Spanne heute{" "}
-        {formatQuantity(priceMin, "de", 0)} bis {formatQuantity(priceMax, "de", 0)} €/MWh.
+        {formatDeEurPerMwh(priceMin, 0)} bis {formatDeEurPerMwh(priceMax, 0)}.
       </p>
     </section>
   );
