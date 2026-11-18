@@ -11,6 +11,7 @@ import styles from "@/components/knoten/knoten.module.css";
 import type { KnotenPalette } from "@/components/knoten/knotenPalette";
 import {
   knotenFormatMwTick,
+  knotenLimitLabelLayout,
   knotenPlotMetrics,
   knotenYDomain,
   knotenYTicks,
@@ -71,6 +72,8 @@ export function KnotenChart({
   const title = `${KNOTEN_NODE_LABELS[typ]} · ${day.split("-").reverse().join(".")} · Stufe ×${k}`;
   const aria = `${title}. Leistung am Umspannwerk in Megawatt, 15-Minuten-Auflösung, Europe/Berlin. Grenze ${KNOTEN_LIMIT_MW} Megawatt.`;
   const axisFont = 12;
+  const limitY = yMw(lim);
+  const limitLabel = knotenLimitLabelLayout(typ, layout, limitY);
 
   return (
     <div className={styles.chartOuter} ref={outerRef} data-testid="knoten-chart">
@@ -191,9 +194,9 @@ export function KnotenChart({
                 strokeDasharray="5 4"
               />
               <SvgText
-                x={layout.left + 22}
-                y={yMw(lim) - 8}
-                anchor="start"
+                x={limitLabel.x}
+                y={limitLabel.y}
+                anchor={limitLabel.anchor}
                 fill={colors.muted}
                 size={axisFont}
               >
