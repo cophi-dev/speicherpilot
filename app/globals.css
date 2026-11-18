@@ -4775,6 +4775,11 @@ details[open] > .methodik-section-summary::before {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  width: 100%;
+  min-width: 0;
+}
+.methodik.v4-subpage {
+  overflow-x: clip;
 }
 .methodik-table {
   max-width: none;
@@ -4881,9 +4886,10 @@ math mi {
 .methodik-table { max-width: 100%; }
 .methodik table { width: 100%; border-collapse: collapse; font-size: var(--type-14); }
 .methodik article .methodik-table-wrap .methodik-fit {
-  width: max-content;
-  min-width: 100%;
-  table-layout: auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: fixed;
 }
 .methodik-fit th,
 .methodik-fit td {

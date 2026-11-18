@@ -5,12 +5,12 @@ function formatDePct(x: number): string {
 }
 
 export function knotenFazitSatz(node: KnotenTyp, row: KnotenDayRow): string {
-  const name = KNOTEN_NODE_LABELS[node].split(" ")[0]!;
+  const label = KNOTEN_NODE_LABELS[node];
   if (row.qhMarkt === 0) {
-    return `Am ${name}knoten zeigt der Markt-Speicher an diesem Tag kaum Konflikt mit der Grenze (Stufe ×${row.k}).`;
+    return `Am ${label} zeigt der Markt-Speicher an diesem Tag kaum Konflikt mit der Grenze (Stufe ×${row.k}).`;
   }
   return (
-    `Am ${name}knoten hätte der Markt-Speicher ${row.qhMarkt} Viertelstunden über die Grenze geschoben, ` +
+    `Am ${label} hätte der Markt-Speicher ${row.qhMarkt} Viertelstunden über die Grenze geschoben, ` +
     `knotentreu ${row.qhKnoten}, für ${formatDePct(row.verlustPct)}\u00A0% weniger Erlös.`
   );
 }
