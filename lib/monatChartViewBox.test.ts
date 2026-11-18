@@ -41,7 +41,7 @@ describe("monatChartViewBox", () => {
     const rows = 4;
     for (const shellW of [672, 928]) {
       const box = monatUeberschussChartBox(shellW, rows);
-      expect(box.w).toBe(shellW);
+      expect(box.w).toBe(shellW + 76);
       expect(box.h).toBeLessThan(Math.round(404 * (shellW / 350)));
       expect(box.h / box.w).toBeGreaterThan(0.35);
       expect(box.h / box.w).toBeLessThan(0.65);

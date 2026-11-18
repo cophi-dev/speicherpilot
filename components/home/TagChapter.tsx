@@ -4,7 +4,7 @@ import { GraphScopeMeta } from "@/components/home/GraphScopeMeta";
 import { LueckeChart } from "@/components/home/LueckeChart";
 import { PreisFenster } from "@/components/home/PreisFenster";
 import type { PreisTick } from "@/lib/preisFenster";
-import { formatDeGwh, formatDeGw } from "@/lib/displayUnitFormat";
+import { formatDeGwh, formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 
 const NBSP = "\u00a0";
@@ -38,12 +38,13 @@ export function TagChapter({
   const kernSurplus = hasSurplus
     ? `Überschuss: ${formatDeGwh(surplusGwh, 1)}`
     : `Überschuss: unter 0,05${NBSP}GWh`;
-  const lead =
+  const leadRaw =
     peakGw !== null && peakAt
       ? hasSurplus
-        ? `Die Restlast erreichte abends ${formatDeGw(peakGw, 1)} um ${peakAt} Uhr.`
-        : `Wind und Sonne lagen den ganzen Tag unter dem Verbrauch. Die Restlast (Verbrauch minus Wind und Sonne) erreichte ${formatDeGw(peakGw, 1)} um ${peakAt} Uhr.`
+        ? `Die Restlast erreichte abends ${formatDeGw(peakGw, 1)} um ${peakAt}\u00a0Uhr.`
+        : `Wind und Sonne lagen den ganzen Tag unter dem Verbrauch. Die Restlast (Verbrauch minus Wind und Sonne) erreichte ${formatDeGw(peakGw, 1)} um ${peakAt}\u00a0Uhr.`
       : "Wind und Sonne decken den Verbrauch nicht durchgehend — die Lücke füllen andere Quellen.";
+  const lead = insertDisplayUnitNbsp(leadRaw);
 
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag">

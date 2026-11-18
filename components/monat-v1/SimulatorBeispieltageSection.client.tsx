@@ -19,6 +19,7 @@ import {
 } from "@/lib/simulatorFahrweisenDerived";
 import type { SimulatorDispatchRow, SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
 import { formatGw } from "@/lib/simulatorFahrweisenTypes";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
 export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweisenData }) {
@@ -37,9 +38,9 @@ export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweis
         Am 21.10. lädt der Markt mittags. Am 29.10. liegt der Preis eine Stunde vor der Spitze.
       </h2>
       <p className={styles.lead}>
-        Drei Fahrpläne auf derselben Restlast. Am 21.10. kostet der 70-Prozent-Kompromiss {costPct}
-        {"\u00A0"}% des Tageserlöses — deutlich mehr als im Monatsmaßstab. Graues Band 23–24 Uhr: Modell füllt auf 50
-        {"\u00A0"}% zurück (kein echter Effekt).
+        {insertDisplayUnitNbsp(
+          `Drei Fahrpläne auf derselben Restlast. Am 21.10. kostet der 70-Prozent-Kompromiss ${costPct} % des Tageserlöses — deutlich mehr als im Monatsmaßstab. Graues Band 23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt).`,
+        )}
       </p>
       <div className={styles.legend} aria-hidden="true">
         <span className={styles.legendItem}>
@@ -116,8 +117,8 @@ function DayChart({
   const komp = day.modes.eps70;
   const is21 = date.endsWith("21");
   const vb = wide
-    ? { w: 560, L: 44, R: 16, T: 36, B: 28, topH: 240, priceH: 70, midH: 8 }
-    : { w: 350, L: 40, R: 12, T: 40, B: 28, topH: 220, priceH: 70, midH: 8 };
+    ? { w: 560, L: 44, R: 24, T: 36, B: 32, topH: 240, priceH: 70, midH: 8 }
+    : { w: 350, L: 40, R: 22, T: 40, B: 34, topH: 220, priceH: 70, midH: 8 };
   const VH = vb.T + vb.topH + vb.midH + vb.priceH + vb.B;
   const plotW = vb.w - vb.L - vb.R;
   const residualT = vb.T;
@@ -295,7 +296,7 @@ function DayChart({
           x1={xH(h)}
           x2={xH(h)}
           y1={residualT + vb.topH}
-          y2={residualT + vb.topH + 4}
+          y2={residualT + vb.topH + 5}
           stroke={colors.ink}
           strokeWidth={1}
         />
@@ -316,8 +317,15 @@ function DayChart({
       )}
 
       {is21 ? (
-        <SvgText x={(x23 + x24) / 2} y={priceT + 14} fill={colors.ink} anchor="middle" size={11} weight={500}>
-          23–24 h
+        <SvgText
+          x={(x23 + x24) / 2}
+          y={residualT + 14}
+          fill={colors.ink}
+          anchor="middle"
+          size={12}
+          weight={500}
+        >
+          23–24{"\u00a0"}h
         </SvgText>
       ) : null}
 

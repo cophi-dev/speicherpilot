@@ -9904,6 +9904,43 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   }
 }
 
+@media (max-width: 480px) {
+  .methodik-v4,
+  .methodik-v4 .methodik-layout,
+  .methodik-v4 .methodik-hero-copy,
+  .methodik-v4 article {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .methodik-v4 .methodik-section-summary,
+  .methodik-v4 .methodik-nested-table > summary,
+  .methodik-v4 .methodik-toc-sections > summary,
+  .methodik-v4 details.methodik-section > summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding-block: 8px;
+    gap: 8px;
+  }
+
+  .methodik-v4 .methodik-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .methodik-v4 #quellen ul a,
+  .methodik-v4 #d-recht > p a,
+  .methodik-v4 .methodik-sources td a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-block: 10px;
+  }
+}
+
 @media (max-width: 959px) {
   .methodik-v4 .methodik-chapter-nav {
     display: none;

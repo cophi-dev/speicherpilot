@@ -158,7 +158,8 @@ export function PreisFenster({
     <figure className={styles.figure} data-testid="preis-fenster">
       {compactCopy ? (
         <p className={`${styles.unitLead} text-sm text-muted-foreground`}>
-          Day-Ahead-Preis, €/MWh · Punkte: die günstigsten und teuersten Viertelstunden, in die die heutige Flotte passt
+          Day-Ahead-Preis, €/MWh · Punkte: die günstigsten und teuersten Viertelstunden, in die die heutige Flotte
+          passt
         </p>
       ) : null}
       <ChartTooltipPanel timeLabel={tooltipTime} rows={tooltipRows} testId="preis-fenster-tooltip" />

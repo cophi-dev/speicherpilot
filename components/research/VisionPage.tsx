@@ -22,7 +22,6 @@ import {
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
-import { DisplayUnitNormalizer } from "@/components/v4/DisplayUnitNormalizer.client";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
 
@@ -57,7 +56,6 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
   const g4Height = layout.isDesktop ? 360 : 320;
 
   return (
-    <DisplayUnitNormalizer>
     <div ref={pageRef} className={`${styles.page} ${styles.visionJahrPage}`}>
       <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
@@ -215,7 +213,6 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
         <p style={{ marginTop: 4 }}>Stand {model.stand} · statische Jahresrechnung</p>
       </footer>
     </div>
-    </DisplayUnitNormalizer>
   );
 
   function startGuess() {

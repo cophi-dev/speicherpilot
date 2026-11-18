@@ -10,7 +10,6 @@ import { KnotenTagLink } from "@/components/knoten/KnotenTagLink";
 import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
-import { DisplayUnitNormalizer } from "@/components/v4/DisplayUnitNormalizer.client";
 import { TagChapter } from "@/components/home/TagChapter";
 import { TagSoGerechnet, type TagFleetSoGerechnetExtra } from "@/components/home/TagSoGerechnet";
 import { tagSurplusLine } from "@/lib/kopfTagCopy";
@@ -275,7 +274,6 @@ export function TagPageV4({
     return null;
   }
   return (
-    <DisplayUnitNormalizer>
     <div className="v4-start">
       <Suspense fallback={null}>
         <FleetScrollRestore />
@@ -351,6 +349,5 @@ export function TagPageV4({
       <TagesvorlageModelBox />
       {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} layout="tag" /> : null}
     </div>
-    </DisplayUnitNormalizer>
   );
 }

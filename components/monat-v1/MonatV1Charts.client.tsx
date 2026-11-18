@@ -193,7 +193,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   const crossX = activeSnap?.x ?? null;
   const plotBottom = vb.T + plotH;
   const factorAxis = monatFactorAxisY(plotBottom, !wide);
-  const svgH = wide ? vb.h : Math.min(vb.h, factorAxis.gwLabel + 14);
+  const svgH = wide ? vb.h : Math.min(vb.h, Math.max(factorAxis.gwLabel + 16, vb.T + plotH + 24));
 
   return (
     <div
@@ -602,7 +602,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
         <text x={poolX} y={28} fill="var(--mv-ink)">
           {formatVisionPoolHeaderGwh(model.surplusPoolGwh)}
         </text>
-        <text x={poolX + vb.poolW + 40} y={28} fill="var(--mv-muted)">
+        <text x={poolX + vb.poolW + 12} y={28} fill="var(--mv-muted)">
           sinkt um
         </text>
         {model.pool.map((row, i) => {
@@ -636,7 +636,13 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
                   </text>
                 );
               })()}
-              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize="12">
+              <text
+                x={poolX + vb.poolW + 12}
+                y={y + barH - 2}
+                fill="var(--mv-ink)"
+                fontSize="12"
+                textAnchor="start"
+              >
                 {formatGwReduction(row.reductionGw, 2)}
               </text>
             </g>

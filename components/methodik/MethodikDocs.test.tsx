@@ -15,8 +15,10 @@ beforeAll(() => {
 
 const NETZ_ANSCHLUSS_PRUEFUNG = "Netzanschluss" + "prüfung";
 
+const NBSP = "\u00a0";
+
 function bodyText(): string {
-  return document.body.textContent?.replace(/\u00a0/g, " ") ?? "";
+  return document.body.textContent ?? "";
 }
 
 describe("methodik v2", () => {
@@ -51,13 +53,13 @@ describe("methodik v2", () => {
     expect(document.getElementById("peak-erklaert")).not.toBeNull();
     expect(text).not.toMatch(/P_Tag|E_Überschuss/);
     expect(document.querySelector("#groesse var")?.textContent).toBe("PTag");
-    expect(text).toContain("26,6 kWh");
+    expect(text).toContain(`26,6${NBSP}kWh`);
     expect(text).toContain("0,922");
-    expect(text).toContain("27,9 %");
+    expect(text).toContain(`27,9${NBSP}%`);
     expect(text).not.toMatch(/0,9487|√0,9/);
     expect(text).toContain("Modellschätzung");
-    expect(text).toContain("85 %");
-    expect(text).toContain("80–90 %");
+    expect(text).toContain(`85${NBSP}%`);
+    expect(text).toContain(`80–90${NBSP}%`);
     expect(text).toContain("PNNL");
     expect(text).toContain("AC zu AC");
     expect(text).not.toMatch(/MORE_STORAGE_ROUND_TRIP|dispatchPeakFleet|GRID_SUPPORT_CONFIG|sizeStorage|SOC_MAX|planSite|autoSize/);

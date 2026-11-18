@@ -20,7 +20,7 @@ const Y_MAX = 100;
 const Y_TICKS = [0, 20, 40, 60, 80, 100] as const;
 const MOBILE_X_DAYS = new Set(["01", "08", "15", "22", "29"]);
 const H_SOC = 48;
-const PAD_BASE = { l: 52, r: 92, t: 18, b: 32 };
+const PAD_BASE = { l: 52, r: 104, t: 18, b: 32 };
 const END_LABEL_GAP_PX = 16;
 const STRATEGY_LABEL: Record<NationalFleetStrategyUi, string> = {
   spitze: "Spitze",
@@ -225,7 +225,7 @@ export function MonatReglerChart({
           strokeWidth={1}
         />
         <text
-          x={cssW - pad.r - 4}
+          x={pad.l + (cssW - pad.l - pad.r) - 2}
           y={yAt(refGw, plotH, pad.t, pad.b) - 4}
           textAnchor="end"
           className={styles.ytick}

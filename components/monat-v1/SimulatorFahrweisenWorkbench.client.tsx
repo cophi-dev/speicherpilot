@@ -8,11 +8,9 @@ import { SimulatorBeispieltageSection } from "@/components/monat-v1/SimulatorBei
 import { SimulatorFnavSection } from "@/components/monat-v1/SimulatorFnavSection.client";
 import { SimulatorLegalBox } from "@/components/monat-v1/SimulatorLegalBox";
 import type { SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
-import { DisplayUnitNormalizer } from "@/components/v4/DisplayUnitNormalizer.client";
 
 export function SimulatorFahrweisenWorkbench({ data }: { data: SimulatorFahrweisenData }) {
   return (
-    <DisplayUnitNormalizer>
     <div data-testid="simulator-werkbank" className={simStyles.simulatorRoot}>
       <p className={styles.eyebrow}>FAHRWEISEN · OKTOBER 2026 · MONATSHORIZONT</p>
       <div className={styles.chipRow}>
@@ -27,6 +25,5 @@ export function SimulatorFahrweisenWorkbench({ data }: { data: SimulatorFahrweis
       <SimulatorFnavSection data={data} />
       <SimulatorLegalBox />
     </div>
-    </DisplayUnitNormalizer>
   );
 }

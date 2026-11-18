@@ -131,11 +131,19 @@
   font-weight: 600;
   border: 0;
   background: transparent;
-  color: var(--research-muted);
+  color: var(--research-fg);
   padding: 0 16px;
   min-height: 44px;
   border-radius: 18px;
   cursor: pointer;
+}
+
+.seg button[aria-pressed="false"] {
+  color: var(--research-muted);
+}
+
+:global(html.dark) .seg button[aria-pressed="false"] {
+  color: #c8ced6;
 }
 
 .seg button[aria-pressed="true"] {
@@ -145,6 +153,11 @@
 
 :global(html:not(.dark)) .seg button[aria-pressed="true"] {
   color: #fff;
+}
+
+:global(html.dark) .seg button[aria-pressed="true"] {
+  background: var(--v4-warm);
+  color: #0b0d0f;
 }
 
 .chartClip {

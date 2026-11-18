@@ -309,6 +309,11 @@
 
 .dayChartFigure {
   margin: 0;
+  overflow: visible;
+}
+
+.dayChartFigure :global(svg) {
+  overflow: visible;
 }
 
 .dayChartCaption {

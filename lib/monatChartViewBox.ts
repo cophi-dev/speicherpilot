@@ -81,15 +81,22 @@ export function monatUeberschussChartContentBottom(rowCount: number, wide: boole
   return lastCompareY + UEBERSCHUSS_BAR_H + UEBERSCHUSS_BOTTOM_PAD;
 }
 
+const UEBERSCHUSS_RIGHT_GUTTER = 76;
+
 export function monatUeberschussChartBox(
   shellWidth: number,
   rowCount: number,
-): { w: number; h: number; poolW: number } {
+): { w: number; h: number; poolW: number; rightGutter: number } {
   if (shellWidth >= MONAT_WIDE_VIEWBOX_W) {
-    return { ...WIDE_UEBERSCHUSS };
+    return { ...WIDE_UEBERSCHUSS, rightGutter: UEBERSCHUSS_RIGHT_GUTTER };
   }
   const w = Math.max(280, shellWidth);
   const scale = w / NARROW_HERO_BASE.w;
   const h = monatUeberschussChartContentBottom(rowCount, false);
-  return { w, h, poolW: Math.round(NARROW_UEBERSCHUSS_POOL_W * scale) };
+  return {
+    w: w + UEBERSCHUSS_RIGHT_GUTTER,
+    h,
+    poolW: Math.round(NARROW_UEBERSCHUSS_POOL_W * scale),
+    rightGutter: UEBERSCHUSS_RIGHT_GUTTER,
+  };
 }

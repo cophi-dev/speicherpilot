@@ -1,4 +1,4 @@
-import type { KnotenCurvePayload } from "@/lib/knoten/knotenTypes";
+import type { KnotenCurvePayload, KnotenTyp } from "@/lib/knoten/knotenTypes";
 
 const MINUS = "\u2212";
 
@@ -57,10 +57,31 @@ export function knotenYDomain(curve: KnotenCurvePayload, lim: number): { min: nu
   return { min, max };
 }
 
+export function knotenLimitLabelLayout(
+  typ: KnotenTyp,
+  layout: ReturnType<typeof knotenPlotMetrics>,
+  yAtLim: number,
+): { x: number; y: number; anchor: "start" | "end" } {
+  const isStadt = typ === "stadt";
+  if (layout.narrow && !isStadt) {
+    return {
+      x: layout.left + layout.plotW - 6,
+      y: layout.top + 11,
+      anchor: "end",
+    };
+  }
+  const y = yAtLim + (yAtLim <= layout.top + layout.plotH * 0.4 ? 14 : -8);
+  return {
+    x: layout.left + layout.plotW - 10,
+    y,
+    anchor: "end",
+  };
+}
+
 export function knotenPlotMetrics(width: number) {
   const narrow = width < 480;
   const left = narrow ? 52 : 56;
-  const right = narrow ? 10 : 16;
+  const right = narrow ? 14 : 18;
   const top = 12;
   const bottom = narrow ? 28 : 32;
   const height = narrow ? 240 : 300;
