@@ -5,11 +5,11 @@
   --mr-linie: #dadad3;
   --mr-flaeche: var(--card, #fff);
   --mr-grid: #e4e4dc;
-  --mr-rust: #e76f51;
+  --mr-rust: #b4532a;
   --mr-blue: #2f6f8f;
   --mr-gray: #9aa5ad;
   --mr-observed: #58606a;
-  --mr-markt-line: #e76f51;
+  --mr-markt-line: #b4532a;
   color: var(--mr-ink);
   margin: 0 auto 1.25rem;
   max-width: 1200px;
@@ -23,7 +23,7 @@
   --mr-linie: #262b31;
   --mr-flaeche: #121417;
   --mr-grid: #1f2529;
-  --mr-rust: #e07a48;
+  --mr-rust: #e76f51;
   --mr-blue: #5a9ec4;
   --mr-gray: #6b7580;
   --mr-observed: #9ea3a9;

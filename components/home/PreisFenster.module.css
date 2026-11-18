@@ -60,14 +60,14 @@
 
 .line {
   fill: none;
-  stroke: var(--v4-warm);
+  stroke: var(--v4-warm-chart);
   stroke-width: 1.75;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .mark {
-  fill: var(--v4-warm);
+  fill: var(--v4-warm-chart);
 }
 
 .zero {

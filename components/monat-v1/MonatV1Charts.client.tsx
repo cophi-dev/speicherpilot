@@ -192,7 +192,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   }, [activeFactor, model.hero.points]);
   const crossX = activeSnap?.x ?? null;
   const plotBottom = vb.T + plotH;
-  const factorAxis = monatFactorAxisY(plotBottom);
+  const factorAxis = monatFactorAxisY(plotBottom, !wide);
 
   return (
     <div
@@ -233,7 +233,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         </desc>
         <defs>
           <pattern id="hatch-markt" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="7" stroke="#e76f51" strokeWidth="1.25" />
+            <line x1="0" y1="0" x2="0" y2="7" stroke="#b4532a" strokeWidth="1.25" />
           </pattern>
           <clipPath id="monat-g1-plot-clip">
             <rect x={vb.L} y={vb.T} width={plotW} height={plotH} />
@@ -244,7 +244,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           return (
             <g key={tick}>
               <line x1={vb.L} x2={vb.L + plotW} y1={y} y2={y} stroke="var(--mv-gridline, #e4e4dc)" strokeWidth="1" />
-              <text x={vb.L - 4} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
+              <text x={vb.L - 6} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize={wide ? 14 : 12}>
                 {tick}
               </text>
             </g>
@@ -278,6 +278,8 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         {FACTOR_TICKS.map((f) => {
           const x = factorX(f, plotW, vb.L);
           const gw = fleetPowerGwLabel(f, f === 10 ? 0 : 1);
+          const showGw = wide || f === 1 || f === 10;
+          const tickFs = wide ? 14 : 12;
           return (
             <g key={f}>
               <line x1={x} x2={x} y1={plotBottom} y2={factorAxis.tickEnd} stroke="var(--mv-ink)" />
@@ -287,19 +289,21 @@ function HeroChart({ model }: { model: MonatV1Model }) {
                 textAnchor="middle"
                 fill="var(--mv-ink)"
                 fontWeight={400}
-                fontSize="14"
+                fontSize={tickFs}
               >
                 ×{f}
               </text>
-              <text
-                x={x}
-                y={factorAxis.gwLabel}
-                textAnchor="middle"
-                fill="var(--mv-muted, #43474c)"
-                fontSize="14"
-              >
-                {gw}
-              </text>
+              {showGw ? (
+                <text
+                  x={x}
+                  y={factorAxis.gwLabel}
+                  textAnchor="middle"
+                  fill="var(--mv-muted, #43474c)"
+                  fontSize={tickFs}
+                >
+                  {gw}
+                </text>
+              ) : null}
             </g>
           );
         })}

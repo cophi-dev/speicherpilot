@@ -242,7 +242,7 @@ export function VisionPlot({
                       y={Math.max(rightEnd.y - 6, plotHi + 12)}
                       textAnchor={anchorEnd ? "end" : "start"}
                       fontSize={axisFs}
-                      fill="var(--research-accent)"
+                      fill="var(--research-accent-text)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
                       {durationCurveLabel(duration)}

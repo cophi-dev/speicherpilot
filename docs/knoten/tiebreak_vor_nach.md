@@ -1,7 +1,13 @@
-# Knoten-LP: Rampen-Tiebreak Vorher/Nachher
+# Knoten-Datenabgleich (Referenz: main-Bundle vor R3-Tiebreak)
 
-| Tag | k | Erlös Markt Δ% | Erlös knoten Δ% | qh Markt | qh knoten | Sprünge Markt | Sprünge knoten |
-|-----|---|----------------|-----------------|----------|-----------|---------------|----------------|
-| wind 2026-10-24 | ×5 | 0.0097 | 0.0150 | 18→18 | 0→0 | 33→31 | 25→23 |
-| stadt 2026-11-13 | ×5 | 0.0000 | 0.0000 | 13→13 | 0→0 | 16→16 | 14→14 |
-| wind 2026-10-24 | ×2 | 0.0097 | 0.0097 | 6→6 | 0→0 | 19→16 | 15→12 |
+Referenz-Commit: `808717b4`. `main` enthält kein `data/knoten/`; die Referenz entspricht dem Bundle ohne Rampen-Tiebreak.
+
+**Ergebnis:** 0 Abweichungen, max. Delta 0 (Ziel: 0).
+
+Stichprobe Konzepttage:
+
+| Belegung | Tag | Knoten | k | Δ R Markt | Δ R knoten | Δ qh Markt | Δ qh knoten |
+|----------|-----|--------|---|-----------|------------|------------|-------------|
+| voll | 2026-10-24 | wind | ×5 | 0 | 0 | 0 | 0 |
+| voll | 2026-10-24 | wind | ×2 | 0 | 0 | 0 | 0 |
+| voll | 2026-11-13 | stadt | ×5 | 0 | 0 | 0 | 0 |

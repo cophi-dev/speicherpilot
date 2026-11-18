@@ -1,0 +1,1 @@
+{"peak_nat_mw": 71637.9, "share": 0.0011167273189191757, "L": 80.0, "headroom": 1.0, "nodes": {"wind": {"name": "Windknoten Nord", "zone": "TenneT", "wind": 137.0, "pv": 18.7, "load": 20}, "solar": {"name": "Solarknoten S\u00fcd", "zone": "TransnetBW", "wind": 7.7, "pv": 200.0, "load": 25}, "stadt": {"name": "Stadtknoten", "zone": "Amprion", "wind": 0, "pv": 10, "load": 80.2}}}

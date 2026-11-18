@@ -106,7 +106,8 @@ export function LiveTagPreisPanel({
         </h2>
         <p className="v4-tag-side">
           Fahrplan aus dem Day-Ahead-Preis (Modell). Überschuss- und Spitzen-Fahrweise rechnen wir, wenn der Tag komplett
-          ist.
+          ist. Der Speicher folgt dem Viertelstundenpreis am Day-Ahead-Markt, der innerhalb einer Stunde oft hin und her
+          springt, deshalb zackt die Kurve.
         </p>
       </div>
       <div ref={shellRef} className="v4-content v4-luecke-wrap w-full overflow-hidden">

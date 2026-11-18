@@ -133,7 +133,9 @@ footer.border-t > div.mx-auto {
     --coral: #9e2b1a;
     --coral-stroke: #af351d;
     --ink: #101214;
-    --v4-warm: #e76f51;
+    --v4-warm: #b4532a;
+    --v4-warm-text: #b4532a;
+    --v4-warm-chart: #b4532a;
 
     /* Typography scale (px base 16) */
     --type-12: 0.75rem;
@@ -234,7 +236,9 @@ footer.border-t > div.mx-auto {
     --mint-stroke: #7dfce6;
     --coral: #ff8a70;
     --coral-stroke: #ff8a70;
-    --v4-warm: #e07a48;
+    --v4-warm: #e76f51;
+    --v4-warm-text: #b4532a;
+    --v4-warm-chart: #b4532a;
   }
 
   * {
@@ -6694,7 +6698,7 @@ html {
   --vt-r: 100vmax;
 }
 .theme-btn {
-  color: var(--v4-warm);
+  color: var(--v4-warm-text);
 }
 .theme-btn.is-dark {
   color: #e9eef2;
@@ -7322,7 +7326,7 @@ html.vt-to-light::view-transition-new(root) {
 .v4-riesenzahl-unit {
   font-size: var(--type-14);
   margin-left: 0.35em;
-  color: var(--v4-warm);
+  color: var(--v4-warm-text);
   font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-meta);
   vertical-align: baseline;
@@ -7572,7 +7576,7 @@ html.vt-to-light::view-transition-new(root) {
 }
 
 .v4-riesenzahl-unit {
-  color: var(--v4-warm);
+  color: var(--v4-warm-text);
   font-size: var(--type-14);
   font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-meta);
@@ -8139,7 +8143,7 @@ footer.v4-content.v4-footnote > p {
   stroke-width: 2.4;
 }
 .v4-luecke-hatch {
-  stroke: var(--v4-warm);
+  stroke: var(--v4-warm-chart);
   opacity: 0.55;
 }
 .v4-luecke-gap-label {
@@ -9261,7 +9265,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 .v4-subpage .ort-netz-tabs button.is-active {
   background: transparent;
   color: hsl(var(--foreground));
-  border-bottom-color: var(--v4-warm);
+  border-bottom-color: var(--v4-warm-text);
 }
 
 .v4-subpage .site-card,
@@ -9425,7 +9429,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 .dark .v4-subpage .ort-netz-tabs button.is-active {
   background: transparent !important;
   color: hsl(var(--foreground)) !important;
-  border-bottom-color: var(--v4-warm) !important;
+  border-bottom-color: var(--v4-warm-text) !important;
 }
 
 .dark .v4-subpage a[class*="mint"],
@@ -9517,7 +9521,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 }
 
 .v4-subpage .day-cta:hover {
-  border-color: var(--v4-warm);
+  border-color: var(--v4-warm-text);
 }
 
 .v4-subpage .day-cta:focus-visible {
@@ -9562,7 +9566,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 }
 
 .v4-subpage .szen-range {
-  accent-color: var(--v4-warm);
+  accent-color: var(--v4-warm-text);
 }
 
 .v4-subpage .day-slider-track {
@@ -9640,11 +9644,11 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 
 .dark .v4-subpage .blog-callout {
   background: transparent;
-  border-color: var(--v4-warm);
+  border-color: var(--v4-warm-text);
 }
 
 .v4-subpage .blog-prose .blog-callout {
-  border-left-color: var(--v4-warm);
+  border-left-color: var(--v4-warm-text);
 }
 
 /* R3 — Ort column, netz cards, legal, news, methodik, lücke overlays */
@@ -9863,6 +9867,24 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 
 .methodik-v4 .methodik-paper {
   grid-area: paper;
+  min-width: 0;
+}
+
+.methodik-v4 .methodik-layout > *,
+.methodik-v4 .methodik-paper > section,
+.methodik-v4 details.methodik-section {
+  min-width: 0;
+}
+
+.methodik-v4 .methodik-sources {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.methodik-v4 .methodik-sources table {
+  width: max(100%, 42rem);
 }
 
 @media (min-width: 960px) {

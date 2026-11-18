@@ -15,9 +15,9 @@
   font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
-  color: var(--foreground, #101214);
-  border: 1px solid var(--border, #dadad3);
-  background: var(--card, #fff);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
 }
 
 .tab:first-child {
@@ -30,9 +30,9 @@
 }
 
 .tabActive {
-  background: var(--foreground, #101214);
-  color: var(--background, #f6f6f3);
-  border-color: var(--foreground, #101214);
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
 }
 
 :global(.dark) .tab {
