@@ -27,12 +27,23 @@ export function knotenYTicks(min: number, max: number, narrow: boolean): number[
 }
 
 export function knotenYDomain(curve: KnotenCurvePayload, lim: number): { min: number; max: number } {
-  const vals = [...curve.base, ...curve.fm, ...curve.fk, lim, 0];
+  const vals = [...curve.base, ...curve.fm, ...curve.fk, lim];
   const dataMin = Math.min(...vals);
   const dataMax = Math.max(...vals);
   const span = Math.max(dataMax - dataMin, 12);
-  const pad = Math.max(span * 0.08, 4);
-  return { min: dataMin - pad, max: dataMax + pad };
+  const pad = Math.max(span * 0.05, 3);
+  let min = dataMin - pad;
+  let max = dataMax + pad;
+  if (min < 0 && max > 0 && dataMin >= 0) {
+    min = 0;
+  }
+  if (max > 0 && dataMax <= 0) {
+    max = Math.min(max, dataMax + pad);
+  }
+  if (min < 0 && dataMin < 0) {
+    min = Math.min(min, lim < 0 ? lim - pad : min);
+  }
+  return { min, max };
 }
 
 export function knotenPlotMetrics(width: number) {
