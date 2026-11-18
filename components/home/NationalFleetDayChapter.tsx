@@ -3,10 +3,9 @@ import { GraphScopeMeta } from "@/components/home/GraphScopeMeta";
 import {
   formatDayPeakKpiFromSlice,
   formatPeakCaptionMonthContext,
-  formatPeakKpiBilingual,
+  formatTagDayPeakHeadline,
 } from "@/lib/nationalFleetCharts";
 import { formatQuantity } from "@/lib/formatQuantity";
-import { formatGwReduction } from "@/lib/monatV1Format";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import {
   FLEET_SATURATION_HINT_DE,
@@ -63,11 +62,11 @@ export function NationalFleetDayChapter({
   const peakRGw = slice.maxRMw / 1000;
   const dayPeakKpi = formatDayPeakKpiFromSlice(peakRpGw, peakRGw, dayKey);
   const peakReductionDayGw = dayPeakKpi.reductionGw;
-  const dayPeakSummary = formatPeakKpiBilingual(
+  const dayPeakHeadline = formatTagDayPeakHeadline(
+    peakRGw,
     peakRpGw,
     dayPeakKpi.reductionGw,
     dayPeakKpi.reductionPct,
-    { reference: dayPeakKpi.reference },
   );
   const monthKey = nationalFleetMonthKeyForDay(dayKey);
   const { x1, x5, x10 } = saturationSlices(dayKey);
@@ -80,19 +79,7 @@ export function NationalFleetDayChapter({
         <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
           ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
         </h2>
-        <p className="v4-tag-kern">
-          {Number.parseFloat(peakReductionDayGw.toFixed(2)) >= 0
-            ? formatGwReduction(peakReductionDayGw)
-            : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}\u00A0GW höher`}
-        </p>
-        <p className="v4-tag-side">
-          Tages-Spitze {formatQuantity(peakRGw, "de", 2)} → {formatQuantity(peakRpGw, "de", 2)} GW.{" "}
-          {dayPeakSummary.de}
-          <span className="sr-only" lang="en">
-            {" "}
-            {dayPeakSummary.en}
-          </span>
-        </p>
+        <p className="v4-tag-side num">{dayPeakHeadline}</p>
       </div>
 
       <div className="v4-content v4-fleet-controls" role="group" aria-label="Szenario wählen">
@@ -130,7 +117,7 @@ export function NationalFleetDayChapter({
           </div>
           <p className="v4-fleet-strategy-copy">
             {strategy === "spitze"
-              ? "lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht)."
+              ? "lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
               : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
           </p>
           <p className="v4-fleet-energy-context">
@@ -161,6 +148,7 @@ export function NationalFleetDayChapter({
         )}
         scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
         tagesvorlageDay
+        dayNoWindSolarSurplus={slice.positiveSurplusQuarterHours === 0}
       />
       <div className="v4-content">
         <GraphScopeMeta />

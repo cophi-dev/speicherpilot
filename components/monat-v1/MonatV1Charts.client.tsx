@@ -196,7 +196,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
       data-testid="monat-v1-hero"
       tabIndex={0}
       role="application"
-      aria-label="Höchste Restlast je Flottenstufe"
+      aria-label={`Höchste Restlast im ${formatBerlinMonthLabel(model.monthKey)} je Flottenstufe`}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       onTouchStart={onTouch}
@@ -253,7 +253,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               strokeWidth="1"
               strokeDasharray={wide ? "0" : "3 3"}
             />
-            <text x={vb.L - 4} y={refPeakLabelY} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
+            <text x={vb.L - 10} y={refPeakLabelY} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
               {refPeakGw.toFixed(1).replace(".", ",")}
             </text>
           </g>
@@ -343,6 +343,22 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               strokeWidth="1.75"
             />
           ))}
+        {!wide && marktPts.some((pt) => Math.abs(pt.f - kipF) < 0.05) ? (
+          (() => {
+            const pt = marktPts.find((p) => Math.abs(p.f - kipF) < 0.05);
+            return pt ? (
+              <circle
+                key="m-kipppunkt"
+                cx={pt.x}
+                cy={pt.y}
+                r="4"
+                fill="var(--mv-flaeche, #fff)"
+                stroke="#B4532A"
+                strokeWidth="1.75"
+              />
+            ) : null;
+          })()
+        ) : null}
         {crossX != null ? (
           <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
         ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 
 import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
@@ -155,7 +155,7 @@ export function PreisFenster({
   return (
     <figure className={styles.figure} data-testid="preis-fenster">
       {compactCopy ? (
-        <p className={`${styles.unitLabel} text-sm text-muted-foreground mb-2`}>
+        <p className={`${styles.unitLead} text-sm text-muted-foreground`}>
           Day-Ahead-Preis, €/MWh · Punkte: die günstigsten und teuersten Viertelstunden, in die die heutige Flotte passt
         </p>
       ) : null}
@@ -163,7 +163,12 @@ export function PreisFenster({
       <div
         ref={shellRef}
         className={`${styles.frame} v4-chart-probe`}
-        style={{ ["--preis-pad-l" as string]: `${padL}px` }}
+        style={
+          {
+            ["--preis-pad-l" as string]: `${padL}px`,
+            ["--preis-unit-top" as string]: `${Math.max(2, padT - 14)}px`,
+          } as CSSProperties
+        }
         tabIndex={0}
         role="application"
         aria-label={`Day-Ahead Preis am ${dateLabel}`}

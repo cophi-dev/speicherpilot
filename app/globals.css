@@ -10554,11 +10554,11 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   stroke-linejoin: round;
 }
 .v4-fleet-band-charge {
-  fill: hsl(var(--primary) / 0.22);
+  fill: rgb(42 157 143 / 0.3);
   stroke: none;
 }
 .v4-fleet-band-discharge {
-  fill: hsl(142 55% 38% / 0.28);
+  fill: rgb(231 111 81 / 0.3);
   stroke: none;
 }
 .v4-fleet-tageshorizont {

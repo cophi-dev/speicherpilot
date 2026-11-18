@@ -1,5 +1,6 @@
 import { auffaelligkeitForDay, weekdayLabelDe, type TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
+import { formatDeGwh, formatDeGw } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { dryDayFootnote } from "@/lib/preisFenster";
 
@@ -48,7 +49,7 @@ export function startPointe(
   if (end && end.dryStreak >= 3) {
     const h1 = `30 Tage: ${noSurplus} ohne Überschuss — gestern der ${end.dryStreak}. in Folge`;
     const subline = strongest
-      ? `Stärkster Tages-Überschuss im Fenster: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${weekdayLabelDe(strongest.dateKey).replace(/\.\s*$/, "")}.`
+      ? `Stärkster Tages-Überschuss im Fenster: ${formatDeGwh(strongest.surplusGwh, 1)} am ${weekdayLabelDe(strongest.dateKey).replace(/\.\s*$/, "")}.`
       : `Gestern (${gesternLabel}): ${end.dryStreak}. Tag in Folge ohne Überschuss-Kennzahl.`;
     const footnote = dryDayFootnote(gesternLabel, end);
     return {
@@ -65,10 +66,10 @@ export function startPointe(
   const h1 = `30 Tage im Blick: ${surplusDays.length} mit Überschuss, ${noSurplus} ohne`;
   const peakLine =
     end?.eveningPeakGw != null
-      ? ` Abendspitze gestern (${gesternLabel}): ${formatQuantity(end.eveningPeakGw, "de", 1)} GW.`
+      ? ` Abendspitze gestern (${gesternLabel}): ${formatDeGw(end.eveningPeakGw, 1)}.`
       : "";
   const subline = strongest
-    ? `Stärkster Tag: ${weekdayLabelDe(strongest.dateKey)} mit ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh.${peakLine} Summe Überschuss im Fenster: ${formatQuantity(totalSurplus, "de", 1)} GWh.`
+    ? `Stärkster Tag: ${weekdayLabelDe(strongest.dateKey)} mit ${formatDeGwh(strongest.surplusGwh, 1)}.${peakLine} Summe Überschuss im Fenster: ${formatDeGwh(totalSurplus, 1)}.`
     : `Gestern (${gesternLabel}) im Kontext der letzten 30 Tage.${peakLine}`;
 
   return {
