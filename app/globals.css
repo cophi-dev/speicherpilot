@@ -4782,9 +4782,17 @@ details[open] > .methodik-section-summary::before {
 .methodik-licence-cell {
   white-space: nowrap;
 }
+.methodik-sources li {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
 .methodik-sources td a {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
+  padding-block: 0.35rem;
   min-height: 44px;
   padding-block: 10px;
   margin-block: -8px;

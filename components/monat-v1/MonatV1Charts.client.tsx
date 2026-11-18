@@ -230,6 +230,9 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           <pattern id="hatch-markt" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="7" stroke="#B4532A" strokeWidth="1.25" />
           </pattern>
+          <clipPath id="monat-g1-plot-clip">
+            <rect x={vb.L} y={vb.T} width={plotW} height={plotH} />
+          </clipPath>
         </defs>
         {yTicks.map((tick) => {
           const y = yGw(tick, yMinGw, yMaxGw, plotH, vb.T);
@@ -297,38 +300,40 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         })}
         <rect x={vb.L} y={vb.T} width={plotW} height={refY - vb.T} fill="rgba(180, 83, 42, 0.1)" />
         <line x1={vb.L} x2={vb.L + plotW} y1={refY} y2={refY} stroke="var(--mv-ink)" strokeWidth="1.25" />
-        <polyline
-          fill="none"
-          stroke="var(--mv-ink)"
-          strokeWidth="2.5"
-          points={spitzePts.map((p) => `${p.x},${p.y}`).join(" ")}
-        />
-        {spitzePts.map((p) => (
-          <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-ink)" />
-        ))}
-        <polyline
-          fill="none"
-          stroke="var(--mv-muted, #43474c)"
-          strokeWidth="2"
-          points={ueberPts.map((p) => `${p.x},${p.y}`).join(" ")}
-        />
-        {ueberPts.map((p) => (
-          <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="var(--mv-muted)" strokeWidth="1.75" />
-        ))}
-        {hatchPts.length >= 2 ? (
-          <polygon
-            points={`${hatchPts.map((pt) => `${pt.x},${pt.y}`).join(" ")} ${hatchPts[hatchPts.length - 1]!.x},${refY}`}
-            fill="url(#hatch-markt)"
-            opacity="0.35"
+        <g clipPath="url(#monat-g1-plot-clip)">
+          <polyline
+            fill="none"
+            stroke="var(--mv-ink)"
+            strokeWidth="2.5"
+            points={spitzePts.map((p) => `${p.x},${p.y}`).join(" ")}
           />
-        ) : null}
-        <polyline
-          fill="none"
-          stroke="#B4532A"
-          strokeWidth="2.25"
-          strokeDasharray="7 5"
-          points={marktPts.map((pt) => `${pt.x},${pt.y}`).join(" ")}
-        />
+          {spitzePts.map((p) => (
+            <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-ink)" />
+          ))}
+          <polyline
+            fill="none"
+            stroke="var(--mv-muted, #43474c)"
+            strokeWidth="2"
+            points={ueberPts.map((p) => `${p.x},${p.y}`).join(" ")}
+          />
+          {ueberPts.map((p) => (
+            <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="var(--mv-muted)" strokeWidth="1.75" />
+          ))}
+          {hatchPts.length >= 2 ? (
+            <polygon
+              points={`${hatchPts.map((pt) => `${pt.x},${pt.y}`).join(" ")} ${hatchPts[hatchPts.length - 1]!.x},${refY}`}
+              fill="url(#hatch-markt)"
+              opacity="0.35"
+            />
+          ) : null}
+          <polyline
+            fill="none"
+            stroke="#B4532A"
+            strokeWidth="2.25"
+            strokeDasharray="7 5"
+            points={marktPts.map((pt) => `${pt.x},${pt.y}`).join(" ")}
+          />
+        </g>
         {marktPts
           .filter((pt) => pt.f > 1.05)
           .filter((pt) => wide || Math.abs(pt.f - kipF) > 0.05)

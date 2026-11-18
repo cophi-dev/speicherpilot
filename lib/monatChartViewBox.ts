@@ -4,10 +4,10 @@ import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 export type MonatChartBox = { w: number; h: number; L: number; R: number; T: number; B: number };
 
 const WIDE_HERO: MonatChartBox = { w: 1152, h: 460, L: 52, R: 188, T: 32, B: 62 };
-const NARROW_HERO_BASE: MonatChartBox = { w: 350, h: 356, L: 38, R: 26, T: 24, B: 62 };
+const NARROW_HERO_BASE: MonatChartBox = { w: 350, h: 356, L: 48, R: 26, T: 24, B: 62 };
 
 const WIDE_STUNDEN: MonatChartBox = { w: 1152, h: 400, L: 52, R: 24, T: 36, B: 48 };
-const NARROW_STUNDEN_BASE: MonatChartBox = { w: 350, h: 334, L: 38, R: 10, T: 28, B: 58 };
+const NARROW_STUNDEN_BASE: MonatChartBox = { w: 350, h: 334, L: 48, R: 10, T: 28, B: 58 };
 
 /** Breite/Höhe wie Desktop-Wide (~0,4 × Breite), nicht volle 350→928-Höhenskalierung. */
 const HERO_HEIGHT_RATIO = WIDE_HERO.h / WIDE_HERO.w;
