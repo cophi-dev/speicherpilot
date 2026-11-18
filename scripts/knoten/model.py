@@ -11,7 +11,10 @@ OUT = os.path.join(os.path.dirname(__file__), "ergebnisse"); os.makedirs(OUT, ex
 TZ = "Europe/Berlin"
 FLEET_P, FLEET_E = 4644.09, 8152.46          # MW, MWh, battery-charts 31.10.2026
 RTE = 0.85; ETA = RTE ** 0.5; SOC_LO, SOC_HI, SOC0 = 0.1, 0.9, 0.5
-EPS = 0.05                                    # €/MWh Durchsatz-Tiebreaker
+# Zielfunktions-Tiebreak bei entarteten LP-Lösungen (vgl. docs/knoten/tiebreak_vor_nach.md)
+EPS_THROUGHPUT_EUR_PER_MWH = 0.05             # €/MWh auf c+d (Durchsatz)
+EPS_RAMP_EUR_PER_MW = 0.01                    # € pro MW |Δ(c−d)| je Viertelstunde
+EPS = EPS_THROUGHPUT_EUR_PER_MWH              # Legacy-Alias
 L = 80.0                                      # MW, 2 × 40 MVA HS/MS (SimBench 1-MV-semiurb, cos φ = 1)
 NODES = {
   "wind":  dict(name="Windknoten Nord",  zone="TenneT",     wind=110, pv=15,  load=20),
@@ -60,16 +63,22 @@ def profiles(nat):
             out[(z, lab)] = q
     return out
 
-def solve_day(price, base, P, E, limit=None):
+def solve_day_legacy(price, base, P, E, limit=None):
+    """LP ohne Rampen-Tiebreak (Referenz für Vorher/Nachher-Vergleiche)."""
     n = len(price); dt = 0.25
-    # x = [c(n), d(n), e(n)]
-    cobj = np.concatenate([price*dt + EPS*dt, -price*dt + EPS*dt, np.zeros(n)])
-    A = lil_matrix((n, 3*n)); b = np.zeros(n)
+    cobj = np.concatenate([
+        price * dt + EPS_THROUGHPUT_EUR_PER_MWH * dt,
+        -price * dt + EPS_THROUGHPUT_EUR_PER_MWH * dt,
+        np.zeros(n),
+    ])
+    A = lil_matrix((n, 3 * n)); b = np.zeros(n)
     for t in range(n):
-        A[t, t] = -ETA*dt; A[t, n+t] = dt/ETA; A[t, 2*n+t] = 1
-        if t: A[t, 2*n+t-1] = -1
-        else: b[t] = SOC0*E
-    bounds = [(0, P)]*n + [(0, P)]*n + [(SOC_LO*E, SOC_HI*E)]*(n-1) + [(SOC0*E, SOC0*E)]
+        A[t, t] = -ETA * dt; A[t, n + t] = dt / ETA; A[t, 2 * n + t] = 1
+        if t:
+            A[t, 2 * n + t - 1] = -1
+        else:
+            b[t] = SOC0 * E
+    bounds = [(0, P)] * n + [(0, P)] * n + [(SOC_LO * E, SOC_HI * E)] * (n - 1) + [(SOC0 * E, SOC0 * E)]
     Aub = bub = None
     if limit is not None:
         hi = np.maximum(limit, base); lo = np.minimum(-limit, base)
@@ -78,8 +87,65 @@ def solve_day(price, base, P, E, limit=None):
         Aub = vstack([F, -F]).tocsr(); bub = np.concatenate([hi - base, base - lo])
     r = linprog(cobj, A_ub=Aub, b_ub=bub, A_eq=A.tocsr(), b_eq=b, bounds=bounds, method="highs")
     assert r.status == 0, r.message
-    c, d = r.x[:n], r.x[n:2*n]
-    return c, d, float(np.sum(price*dt*(d - c)))
+    c, d = r.x[:n], r.x[n:2 * n]
+    return c, d, float(np.sum(price * dt * (d - c)))
+
+
+def solve_day(price, base, P, E, limit=None):
+    n = len(price); dt = 0.25
+    n_ramp = max(n - 1, 0)
+    n_var = 3 * n + n_ramp
+    cobj = np.zeros(n_var)
+    cobj[:n] = price * dt + EPS_THROUGHPUT_EUR_PER_MWH * dt
+    cobj[n:2 * n] = -price * dt + EPS_THROUGHPUT_EUR_PER_MWH * dt
+    if n_ramp:
+        cobj[3 * n:] = EPS_RAMP_EUR_PER_MW
+
+    A = lil_matrix((n, n_var)); b = np.zeros(n)
+    for t in range(n):
+        A[t, t] = -ETA * dt; A[t, n + t] = dt / ETA; A[t, 2 * n + t] = 1
+        if t:
+            A[t, 2 * n + t - 1] = -1
+        else:
+            b[t] = SOC0 * E
+
+    bounds = [(0, P)] * n + [(0, P)] * n + [(SOC_LO * E, SOC_HI * E)] * (n - 1) + [(SOC0 * E, SOC0 * E)]
+    if n_ramp:
+        bounds += [(0, None)] * n_ramp
+
+    Aub_parts, bub_parts = [], []
+    if limit is not None:
+        hi = np.maximum(limit, base); lo = np.minimum(-limit, base)
+        I = eye(n, format="csr"); Z_ramp = csr_matrix((n, n_ramp)); Z = csr_matrix((n, n))
+        F = hstack([I, -I, Z, Z_ramp])
+        Aub_parts.append(vstack([F, -F]))
+        bub_parts.append(np.concatenate([hi - base, base - lo]))
+
+    if n_ramp:
+        Aub_ramp = lil_matrix((2 * n_ramp, n_var))
+        for t in range(1, n):
+            u = 3 * n + (t - 1)
+            row = 2 * (t - 1)
+            Aub_ramp[row, u] = -1
+            Aub_ramp[row, t] = 1
+            Aub_ramp[row, n + t] = -1
+            Aub_ramp[row, t - 1] = -1
+            Aub_ramp[row, n + t - 1] = 1
+            Aub_ramp[row + 1, u] = -1
+            Aub_ramp[row + 1, t] = -1
+            Aub_ramp[row + 1, n + t] = 1
+            Aub_ramp[row + 1, t - 1] = 1
+            Aub_ramp[row + 1, n + t - 1] = -1
+        Aub_parts.append(Aub_ramp.tocsr())
+        bub_parts.append(np.zeros(2 * n_ramp))
+
+    Aub = vstack(Aub_parts).tocsr() if Aub_parts else None
+    bub = np.concatenate(bub_parts) if bub_parts else None
+
+    r = linprog(cobj, A_ub=Aub, b_ub=bub, A_eq=A.tocsr(), b_eq=b, bounds=bounds, method="highs")
+    assert r.status == 0, r.message
+    c, d = r.x[:n], r.x[n:2 * n]
+    return c, d, float(np.sum(price * dt * (d - c)))
 
 def node_series(key, prof, lab):
     n = NODES[key]; q = prof[(n["zone"], lab)]
