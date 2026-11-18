@@ -1,4 +1,4 @@
-import { DISPLAY_NBSP, formatDeEurPerMwh, formatDeGw } from "@/lib/displayUnitFormat";
+import { DISPLAY_NBSP, formatDeEurPerMwh, formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
@@ -272,7 +272,7 @@ export function buildMarktInsights(input: BuildMarktInsightsInput): MarktInsight
   const items: MarktInsight[] = [];
   const push = (item: MarktInsight | null) => {
     if (item) {
-      items.push(item);
+      items.push({ ...item, text: insertDisplayUnitNbsp(item.text) });
     }
   };
 
@@ -350,7 +350,9 @@ export function threeGoalsSummarySentence(model: ThreeGoalsCompareModel, monthKe
     return "";
   }
   const monthLabel = formatBerlinMonthLabel(monthKey);
-  return `${monthLabel}, Basis 4,64 GW / 8,15 GWh, ×1 Zusatz (×2): Differenz senkt ${fmtEur(u2.peakReductionGw)} GW bei ${fmtEur(u2.chargeGwh)} GWh; Spitze ${fmtEur(s2.peakReductionGw)} GW bei ${fmtEur(s2.chargeGwh)} GWh; Markt ${fmtEur(m2.chargeGwh)} GWh bei ${fmtEur(m2.peakReductionGw)} GW Spitzenwirkung.`;
+  return insertDisplayUnitNbsp(
+    `${monthLabel}, Basis 4,64 GW / 8,15 GWh, ×1 Zusatz (×2): Differenz senkt ${fmtEur(u2.peakReductionGw)} GW bei ${fmtEur(u2.chargeGwh)} GWh; Spitze ${fmtEur(s2.peakReductionGw)} GW bei ${fmtEur(s2.chargeGwh)} GWh; Markt ${fmtEur(m2.chargeGwh)} GWh bei ${fmtEur(m2.peakReductionGw)} GW Spitzenwirkung.`,
+  );
 }
 
 export const MARKT_INSIGHT_RULE_IDS = [

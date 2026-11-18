@@ -225,9 +225,9 @@ export function MonatReglerChart({
           strokeWidth={1}
         />
         <text
-          x={pad.l + (cssW - pad.l - pad.r) - 2}
+          x={cssW - pad.r + 6}
           y={yAt(refGw, plotH, pad.t, pad.b) - 4}
-          textAnchor="end"
+          textAnchor="start"
           className={styles.ytick}
         >
           {formatQuantity(refGw, "de", 1)}

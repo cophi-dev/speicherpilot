@@ -89,6 +89,10 @@ export function formatGw(v: number, digits = 2): string {
   return `${v.toFixed(digits).replace(".", ",")}\u00A0GW`;
 }
 
+export function formatGwh(v: number, digits = 2): string {
+  return `${v.toFixed(digits).replace(".", ",")}\u00A0GWh`;
+}
+
 export function formatPct(v: number, digits = 2): string {
   return `${v.toFixed(digits).replace(".", ",")}\u00A0%`;
 }

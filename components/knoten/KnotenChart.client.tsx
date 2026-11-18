@@ -51,7 +51,7 @@ export function KnotenChart({
   const isStadt = typ === "stadt";
   const sign = isStadt ? 1 : -1;
   const lim = sign * KNOTEN_LIMIT_MW;
-  const layout = knotenPlotMetrics(measured);
+  const layout = knotenPlotMetrics(measured, typ);
   const { min: yMin, max: yMax } = knotenYDomain(curve, lim);
   const yRange = yMax - yMin || 1;
   const yMw = (mw: number) => layout.top + ((yMax - mw) / yRange) * layout.plotH;

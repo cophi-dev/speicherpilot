@@ -5,7 +5,7 @@ export const DISPLAY_NBSP = "\u00a0";
 const MINUS = "\u2212";
 
 const PROSE_UNIT_NBSP_RE =
-  /(?<=[\d\u2212][\d.,]*?) (?=(?:GW|GWh|MW|MWh|kWh|kW|MVA|kWh\/a|kW·a|kW\/a|€\/MWh|€\/kWh|€\/kW·a|Mio\. ?€|Viertelstunden|Tage|Uhr|%|h\b|€))/g;
+  /(?<=[\d\u2212][\d.,]*?) (?=(?:GW|GWh|MW|MWh|kWh|kW|MVA|kWh\/a|kW·a|kW\/a|€\/MWh|€\/kWh|€\/kW·a|ct\/kWh|Mio\. ?€|Viertelstunden|Tage|Uhr|%|h\b|€|ct\b))/g;
 
 /** Ersetzt normale Leerzeichen vor Einheiten in Fließtext (Methodik, Leads). */
 export function insertDisplayUnitNbsp(text: string): string {

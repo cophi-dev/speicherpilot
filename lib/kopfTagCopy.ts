@@ -1,4 +1,4 @@
-import { formatQuantity } from "@/lib/formatQuantity";
+import { formatDeGwh, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
 
 export function lastSurplusBefore(
@@ -19,8 +19,8 @@ export function lastSurplusBefore(
 
 export function tagSurplusLine(surplusGwh: number): string {
   return surplusGwh >= 0.05
-    ? `${formatQuantity(surplusGwh, "de", 1)} GWh Tages-Überschuss.`
-    : "Unter 0,05 GWh Tages-Überschuss.";
+    ? `${formatDeGwh(surplusGwh, 1)} Tages-Überschuss.`
+    : insertDisplayUnitNbsp("Unter 0,05 GWh Tages-Überschuss.");
 }
 
 export function tagSurplusDefinitionLine(): string {

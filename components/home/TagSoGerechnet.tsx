@@ -21,7 +21,7 @@ import {
   peakReductionPctVsReference,
   REF_RESIDUAL_PEAK_GW,
 } from "@/lib/nationalFleetCharts";
-import { formatDeGwh } from "@/lib/displayUnitFormat";
+import { formatDeGwh, formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { tagMiddayStoryBody } from "@/lib/tagDayStory";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 export type TagFleetSoGerechnetExtra = {
@@ -58,7 +58,7 @@ const STEPS = [
     title: "Abend",
     body: (peakAt: string | null, peakGw: number | null, loadGw: number, wsGw: number) =>
       peakAt && peakGw !== null
-        ? `${peakAt} Uhr: ${formatQuantity(loadGw, "de", 1)} GW Verbrauch, ${formatQuantity(wsGw, "de", 1)} GW Wind und Sonne, keine Sonne in der Dämmerung. Die Lücke: ${formatQuantity(peakGw, "de", 1)} GW.`
+        ? `${peakAt} Uhr: ${formatDeGw(loadGw, 1)} Verbrauch, ${formatDeGw(wsGw, 1)} Wind und Sonne, keine Sonne in der Dämmerung. Die Lücke: ${formatDeGw(peakGw!, 1)}.`
         : "Abends fehlt die Sonne, der Verbrauch steigt. Die Lücke ist am größten.",
   },
 ] as const;
@@ -216,8 +216,7 @@ export function TagSoGerechnet({
             <div>
               <dt>Netz-Ladung / -Abgabe (Tag)</dt>
               <dd>
-                {formatQuantity(fleetExtra.slice.chargeMwh / 1000, "de", 2)} /{" "}
-                {formatQuantity(fleetExtra.slice.dischargeMwh / 1000, "de", 2)} GWh
+                {formatDeGwh(fleetExtra.slice.chargeMwh / 1000, 2)} / {formatDeGwh(fleetExtra.slice.dischargeMwh / 1000, 2)}
               </dd>
             </div>
             <div>

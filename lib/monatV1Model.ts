@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { formatDeDurationH, formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 import { fleetPowerGwWithUnit } from "@/lib/fleetXkConvention";
 import { formatPercentShare } from "@/lib/monatV1Format";
@@ -243,9 +244,9 @@ const FLEET_XK_FOOTNOTE_SHORT =
   "Zusatzflotte = (k−1)× Basis; ×1 = Ist ohne Zusatz. Unterzeile: k-mal Gesamtflotte.";
 
 function formatFleetBasisDe(): string {
-  const gw = (NATIONAL_BASE_FLEET.powerMw / 1000).toFixed(2).replace(".", ",");
-  const gwh = (NATIONAL_BASE_FLEET.energyMwh / 1000).toFixed(2).replace(".", ",");
+  const powerGw = NATIONAL_BASE_FLEET.powerMw / 1000;
+  const energyGwh = NATIONAL_BASE_FLEET.energyMwh / 1000;
   const h = (NATIONAL_BASE_FLEET.energyMwh / NATIONAL_BASE_FLEET.powerMw).toFixed(2).replace(".", ",");
-  return `${gw} GW / ${gwh} GWh (≈ ${h} h)`;
+  return `${formatDeGwGwhLine(powerGw, energyGwh)} (≈ ${formatDeDurationH(h)})`;
 }
 

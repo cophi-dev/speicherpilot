@@ -1,3 +1,5 @@
+import { DISPLAY_NBSP } from "@/lib/displayUnitFormat";
+
 import {
   dayResidualLoadScale,
   formatDayPeakKpiFromSlice,
@@ -29,10 +31,10 @@ describe("dayResidualLoadScale", () => {
 describe("nationalFleetCharts copy", () => {
   it("Referenzspitze nennt Oktober 2026", () => {
     expect(formatReferencePeakCaption(defaultMonthPeakReference(), "de")).toBe(
-      "Höchste Restlast Oktober 2026: 64,41 GW",
+      `Höchste Restlast Oktober 2026: 64,41${DISPLAY_NBSP}GW`,
     );
     expect(formatReferencePeakCaption(defaultMonthPeakReference(), "en")).toBe(
-      "Highest residual load October 2026: 64.41 GW",
+      `Highest residual load October 2026: 64.41${DISPLAY_NBSP}GW`,
     );
   });
 
@@ -40,7 +42,7 @@ describe("nationalFleetCharts copy", () => {
     const slice = formatDayPeakKpiFromSlice(51.68, 54.3, "2026-11-16");
     expect(slice.reference.kind).toBe("day");
     expect(formatReferencePeakCaption(slice.reference, "de")).toMatch(
-      /Höchste Restlast am 16\.11\.2026: 54,30 GW, Verbrauch minus Wind und Sonne/,
+      new RegExp(`Höchste Restlast am 16\\.11\\.2026: 54,30${DISPLAY_NBSP}GW, Verbrauch minus Wind und Sonne`),
     );
     const parts = formatPeakKpiParts(51.68, slice.reductionGw, slice.reductionPct, { reference: slice.reference });
     expect(parts.note).toMatch(/16\.11\.2026/);
@@ -50,11 +52,13 @@ describe("nationalFleetCharts copy", () => {
   it("positive peak reduction", () => {
     expect(formatPeakKpi(59.5, 4.9, 7.6)).toMatch(/Senkung.*4,9/);
     expect(formatPeakKpi(59.5, 4.9, 7.6)).not.toMatch(/\(-/);
-    expect(formatPeakKpi(59.5, 4.9, 7.6)).toMatch(/Höchste Restlast Oktober 2026: 64,41 GW/);
+    expect(formatPeakKpi(59.5, 4.9, 7.6)).toMatch(
+      new RegExp(`Höchste Restlast Oktober 2026: 64,41${DISPLAY_NBSP}GW`),
+    );
     const parts = formatPeakKpiParts(62.16, 2.24, 3.478);
-    expect(parts.value).toBe("62,16 GW");
+    expect(parts.value).toBe(`62,16${DISPLAY_NBSP}GW`);
     expect(parts.note).toBe(
-      "(Senkung 2,24 GW, 3,5 % bezogen auf Höchste Restlast Oktober 2026: 64,41 GW)",
+      `(Senkung 2,24${DISPLAY_NBSP}GW, 3,5${DISPLAY_NBSP}% bezogen auf Höchste Restlast Oktober 2026: 64,41${DISPLAY_NBSP}GW)`,
     );
     expect(formatPeakKpi(62.16, 2.24, 3.478)).toBe(`${parts.value} ${parts.note}`);
   });

@@ -22,3 +22,9 @@ export function monatRenderedFontPx(viewBoxFont: number, viewportPx: number): nu
   const vbW = wide ? MONAT_WIDE_VIEWBOX_W : Math.max(MONAT_NARROW_VIEWBOX_W, container);
   return viewBoxFont * (container / vbW);
 }
+
+/** viewBox-fontSize so rendered size is at least targetPx (Gutter-viewBox mitbrechnen). */
+export function monatViewBoxFontSize(targetRenderedPx: number, renderedWidthPx: number, viewBoxW: number): number {
+  const w = Math.max(1, renderedWidthPx);
+  return (targetRenderedPx * viewBoxW) / w;
+}

@@ -24,8 +24,7 @@ import {
   monatUeberschussChartBox,
 } from "@/lib/monatChartViewBox";
 import { formatVisionPoolHeaderGwh } from "@/lib/research/visionJahrFormat";
-import { monatPageContentWidth } from "@/lib/monatSvgTypography";
-import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
+import { monatPageContentWidth, monatViewBoxFontSize, MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
 const FACTOR_PLOT = [1, 2, 5, 10] as const;
@@ -193,7 +192,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   const crossX = activeSnap?.x ?? null;
   const plotBottom = vb.T + plotH;
   const factorAxis = monatFactorAxisY(plotBottom, !wide);
-  const svgH = wide ? vb.h : Math.min(vb.h, Math.max(factorAxis.gwLabel + 16, vb.T + plotH + 24));
+  const svgH = wide ? vb.h : Math.min(vb.h, factorAxis.gwLabel + 10);
 
   return (
     <div
@@ -431,6 +430,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
     ];
   }, [activeCat]);
   const crossX = activeIndex != null ? stundenXs[activeIndex] : null;
+  const stundenSvgH = wide ? vb.h : Math.min(vb.h, vb.T + plotH + 44);
 
   return (
     <div
@@ -470,7 +470,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
       </div>
       <svg
         ref={stundenSvgRef}
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        viewBox={`0 0 ${vb.w} ${stundenSvgH}`}
         className={styles.svg}
         role="img"
         aria-labelledby="g3-title g3-desc"
@@ -557,6 +557,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
 function UeberschussChart({ model }: { model: MonatV1Model }) {
   const { ref, shellWidth, wide } = useChartShellWidth();
   const vb = monatUeberschussChartBox(shellWidth, model.pool.length);
+  const labelFs = monatViewBoxFontSize(12, shellWidth, vb.w);
   const rowH = wide ? 56 : 52;
   const barH = 18;
   const startY = 48;
@@ -599,10 +600,10 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
         <desc id="g4-desc">
           Die Überschuss-Strategie füllt den Monats-Pool, senkt die Spitze aber weniger als spitzenorientiertes Fahren.
         </desc>
-        <text x={poolX} y={28} fill="var(--mv-ink)">
+        <text x={poolX} y={28} fill="var(--mv-ink)" fontSize={labelFs}>
           {formatVisionPoolHeaderGwh(model.surplusPoolGwh)}
         </text>
-        <text x={poolX + vb.poolW + 12} y={28} fill="var(--mv-muted)">
+        <text x={poolX + vb.poolW + 12} y={28} fill="var(--mv-muted)" fontSize={labelFs}>
           sinkt um
         </text>
         {model.pool.map((row, i) => {
@@ -616,7 +617,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
                 y={y - 4}
                 textAnchor="middle"
                 fill="var(--mv-ink)"
-                fontSize="12"
+                fontSize={labelFs}
               >
                 ×{row.factor}
               </text>
@@ -630,7 +631,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
                     y={y + barH - 4}
                     textAnchor={label.textAnchor}
                     fill={label.onDarkFill ? "var(--mv-bg, #f6f6f3)" : "var(--mv-ink)"}
-                    fontSize="12"
+                    fontSize={labelFs}
                   >
                     {row.poolLabel}
                   </text>
@@ -640,7 +641,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
                 x={poolX + vb.poolW + 12}
                 y={y + barH - 2}
                 fill="var(--mv-ink)"
-                fontSize="12"
+                fontSize={labelFs}
                 textAnchor="start"
               >
                 {formatGwReduction(row.reductionGw, 2)}
@@ -660,12 +661,12 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
           const w = (row.gw / maxGw) * vb.poolW;
           return (
             <g key={row.label}>
-              <text x={poolX + vb.poolW / 2} y={y - 4} textAnchor="middle" fill="var(--mv-muted)" fontSize="12">
+              <text x={poolX + vb.poolW / 2} y={y - 4} textAnchor="middle" fill="var(--mv-muted)" fontSize={labelFs}>
                 {wide ? row.label : row.label === "Überschuss" ? "Überschuss" : "Spitze, orientiert"}
               </text>
               <rect x={poolX} y={y} width={vb.poolW} height={barH} fill="var(--mv-linie)" />
               <rect x={poolX} y={y} width={w} height={barH} fill={row.color} />
-              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize="12">
+              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize={labelFs}>
                 {formatGwReduction(row.gw, 2)}
               </text>
             </g>

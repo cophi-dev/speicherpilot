@@ -1,7 +1,12 @@
 import type { AppLanguage } from "@/components/language-context";
 import type { NationalFleetRunSeries } from "@/lib/nationalMonthFleetModel";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
-import { formatQuantity } from "@/lib/formatQuantity";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
+import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
+
+function unitCopy(text: string): string {
+  return insertDisplayUnitNbsp(text);
+}
 
 export const REF_RESIDUAL_PEAK_GW = 64.4059;
 
@@ -26,17 +31,19 @@ export function peakReductionPctVsReference(refPeakGw: number, afterGw: number):
 export function formatReferencePeakCaption(reference: PeakReference, language: AppLanguage = "de"): string {
   if (reference.kind === "day") {
     const dateLabel = formatBerlinDayLabel(reference.dateKey);
-    const gw = formatQuantity(reference.refPeakGw, language, 2);
-    return language === "de"
-      ? `Höchste Restlast am ${dateLabel}: ${gw} GW, Verbrauch minus Wind und Sonne`
-      : `Highest residual load on ${dateLabel}: ${gw} GW, consumption minus wind and solar`;
+    const gw = formatQuantityUnit(reference.refPeakGw, language, 2, "GW");
+    return unitCopy(
+      language === "de"
+        ? `Höchste Restlast am ${dateLabel}: ${gw}, Verbrauch minus Wind und Sonne`
+        : `Highest residual load on ${dateLabel}: ${gw}, consumption minus wind and solar`,
+    );
   }
   const refGw = reference.refPeakGw ?? REF_RESIDUAL_PEAK_GW;
-  const gw = formatQuantity(refGw, language, language === "de" ? 2 : 2);
+  const gw = formatQuantityUnit(refGw, language, 2, "GW");
   const month = language === "de" ? REFERENCE_PEAK_MONTH_DE : REFERENCE_PEAK_MONTH_EN;
-  return language === "de"
-    ? `Höchste Restlast ${month}: ${gw} GW`
-    : `Highest residual load ${month}: ${gw} GW`;
+  return unitCopy(
+    language === "de" ? `Höchste Restlast ${month}: ${gw}` : `Highest residual load ${month}: ${gw}`,
+  );
 }
 
 type PeakCopyOptions = {
@@ -119,24 +126,30 @@ export function formatPeakKpiParts(
   const reference = options?.reference ?? defaultMonthPeakReference();
   const refCaption = formatReferencePeakCaption(reference, language);
   const refCaptionEn = formatReferencePeakCaption(reference, "en");
-  const after = formatQuantity(afterGw, language, 2);
-  const pct = formatQuantity(Math.abs(reductionPct), language, 1);
-  const delta = formatQuantity(Math.abs(reductionGw), language, 2);
-  const value = `${after} GW`;
+  const after = formatQuantityUnit(afterGw, language, 2, "GW");
+  const pct = formatQuantityUnit(Math.abs(reductionPct), language, 1, "%");
+  const delta = formatQuantityUnit(Math.abs(reductionGw), language, 2, "GW");
+  const value = after;
   if (reductionGw >= 0.0005) {
-    const note =
+    const note = unitCopy(
       language === "de"
-        ? `(Senkung ${delta} GW, ${pct} % bezogen auf ${refCaption})`
-        : `(Reduction ${delta} GW, ${pct} % vs. ${refCaption})`;
-    const noteEn = `(Reduction ${formatQuantity(Math.abs(reductionGw), "en", 2)} GW, ${formatQuantity(Math.abs(reductionPct), "en", 1)} % vs. ${refCaptionEn})`;
+        ? `(Senkung ${delta}, ${pct} bezogen auf ${refCaption})`
+        : `(Reduction ${delta}, ${pct} vs. ${refCaption})`,
+    );
+    const noteEn = unitCopy(
+      `(Reduction ${formatQuantityUnit(Math.abs(reductionGw), "en", 2, "GW")}, ${formatQuantityUnit(Math.abs(reductionPct), "en", 1, "%")} vs. ${refCaptionEn})`,
+    );
     return { value, note, noteEn };
   }
   if (reductionGw <= -0.0005) {
-    const note =
+    const note = unitCopy(
       language === "de"
-        ? `(${delta} GW höher als ohne dieses Szenario, ${pct} % bezogen auf ${refCaption})`
-        : `(${delta} GW above this scenario baseline, ${pct} % vs. ${refCaption})`;
-    const noteEn = `(${formatQuantity(Math.abs(reductionGw), "en", 2)} GW above this scenario baseline, ${formatQuantity(Math.abs(reductionPct), "en", 1)} % vs. ${refCaptionEn})`;
+        ? `(${delta} höher als ohne dieses Szenario, ${pct} bezogen auf ${refCaption})`
+        : `(${delta} above this scenario baseline, ${pct} vs. ${refCaption})`,
+    );
+    const noteEn = unitCopy(
+      `(${formatQuantityUnit(Math.abs(reductionGw), "en", 2, "GW")} above this scenario baseline, ${formatQuantityUnit(Math.abs(reductionPct), "en", 1, "%")} vs. ${refCaptionEn})`,
+    );
     return { value, note, noteEn };
   }
   const flat =
@@ -234,36 +247,48 @@ export function formatPeakEffectLine(
   const language = options?.language ?? "de";
   const reference = options?.reference ?? defaultMonthPeakReference();
   const refCaption = formatReferencePeakCaption(reference, language);
-  const after = formatQuantity(afterGw, language, 2);
-  const delta = formatQuantity(Math.abs(reductionGw), language, 2);
-  const pct = formatQuantity(Math.abs(reductionPct), language, 1);
+  const after = formatQuantityUnit(afterGw, language, 2, "GW");
+  const delta = formatQuantityUnit(Math.abs(reductionGw), language, 2, "GW");
+  const pct = formatQuantityUnit(Math.abs(reductionPct), language, 1, "%");
   if (reductionGw >= 0.0005) {
-    return language === "de"
-      ? `Höchste Restlast mit Speicher: ${after} GW (Senkung um ${delta} GW, ${pct} % bezogen auf ${refCaption})`
-      : `Highest residual load with storage: ${after} GW (reduction of ${delta} GW, ${pct} % vs. ${refCaption})`;
+    return unitCopy(
+      language === "de"
+        ? `Höchste Restlast mit Speicher: ${after} (Senkung um ${delta}, ${pct} bezogen auf ${refCaption})`
+        : `Highest residual load with storage: ${after} (reduction of ${delta}, ${pct} vs. ${refCaption})`,
+    );
   }
   if (reductionGw <= -0.0005) {
-    return language === "de"
-      ? `Höchste Restlast mit Speicher: ${after} GW (${delta} GW höher als ohne dieses Szenario, ${pct} % bezogen auf ${refCaption})`
-      : `Highest residual load with storage: ${after} GW (${delta} GW above this scenario baseline, ${pct} % vs. ${refCaption})`;
+    return unitCopy(
+      language === "de"
+        ? `Höchste Restlast mit Speicher: ${after} (${delta} höher als ohne dieses Szenario, ${pct} bezogen auf ${refCaption})`
+        : `Highest residual load with storage: ${after} (${delta} above this scenario baseline, ${pct} vs. ${refCaption})`,
+    );
   }
-  return language === "de"
-    ? `Höchste Restlast mit Speicher: ${after} GW (ohne nennenswerte Spitzensenkung in diesem Ausschnitt)`
-    : `Highest residual load with storage: ${after} GW (no meaningful peak reduction in this window)`;
+  return unitCopy(
+    language === "de"
+      ? `Höchste Restlast mit Speicher: ${after} (ohne nennenswerte Spitzensenkung in diesem Ausschnitt)`
+      : `Highest residual load with storage: ${after} (no meaningful peak reduction in this window)`,
+  );
 }
 
 /** Tages-Chart: nur Tages-Spitze; Monatswirkung separat. */
 export function formatPeakCaptionDay(peakWithStorageGw: number, reductionDayGw: number, observedPeakGw: number): string {
-  const after = formatQuantity(peakWithStorageGw, "de", 2);
-  const obs = formatQuantity(observedPeakGw, "de", 2);
+  const after = formatQuantityUnit(peakWithStorageGw, "de", 2, "GW");
+  const obs = formatQuantityUnit(observedPeakGw, "de", 2, "GW");
   if (Math.abs(reductionDayGw) < 0.0005) {
-    return `Tages-Spitze Restlast mit Speicher: ${after} GW (beobachtete Restlast am Tag: ${obs} GW — ohne nennenswerte Tages-Senkung)`;
+    return unitCopy(
+      `Tages-Spitze Restlast mit Speicher: ${after} (beobachtete Restlast am Tag: ${obs} — ohne nennenswerte Tages-Senkung)`,
+    );
   }
-  const delta = formatQuantity(Math.abs(reductionDayGw), "de", 2);
+  const delta = formatQuantityUnit(Math.abs(reductionDayGw), "de", 2, "GW");
   if (reductionDayGw >= 0) {
-    return `Tages-Spitze Restlast mit Speicher: ${after} GW (beobachtet am Tag: ${obs} GW, Tages-Senkung ${delta} GW)`;
+    return unitCopy(
+      `Tages-Spitze Restlast mit Speicher: ${after} (beobachtet am Tag: ${obs}, Tages-Senkung ${delta})`,
+    );
   }
-  return `Tages-Spitze Restlast mit Speicher: ${after} GW (beobachtet am Tag: ${obs} GW, am Tag ${delta} GW höher)`;
+  return unitCopy(
+    `Tages-Spitze Restlast mit Speicher: ${after} (beobachtet am Tag: ${obs}, am Tag ${delta} höher)`,
+  );
 }
 
 export function formatPeakCaptionMonthContext(
@@ -273,11 +298,13 @@ export function formatPeakCaptionMonthContext(
 ): string {
   const language = options?.language ?? "de";
   const refCaption = formatReferencePeakCaption(options?.reference ?? defaultMonthPeakReference(), language);
-  const delta = formatQuantity(Math.abs(reductionGw), language, 2);
-  const pct = formatQuantity(Math.abs(reductionPct), language, 1);
-  return language === "de"
-    ? `Zum Vergleich — Monatslauf gesamt: Spitzensenkung ${delta} GW (${pct} % ggü. ${refCaption})`
-    : `For comparison — full month run: peak reduction ${delta} GW (${pct} % vs. ${refCaption})`;
+  const delta = formatQuantityUnit(Math.abs(reductionGw), language, 2, "GW");
+  const pct = formatQuantityUnit(Math.abs(reductionPct), language, 1, "%");
+  return unitCopy(
+    language === "de"
+      ? `Zum Vergleich — Monatslauf gesamt: Spitzensenkung ${delta} (${pct} ggü. ${refCaption})`
+      : `For comparison — full month run: peak reduction ${delta} (${pct} vs. ${refCaption})`,
+  );
 }
 
 export function formatDayPeakKpiFromSlice(

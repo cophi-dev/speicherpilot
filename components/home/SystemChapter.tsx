@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { SystemSurplusChart } from "@/components/home/SystemSurplusChart";
-import { formatDeGwGwhLine } from "@/lib/displayUnitFormat";
+import { formatDeGwGwhLine, formatDeGwh, formatDePercentInt, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 
@@ -75,7 +75,9 @@ export function SystemChapter({
         <SystemSurplusChart
           rows={dayRows}
           factor={factor}
-          caption={`Zusammengeschoben: ${formatQuantity(loaded, "de", 1)} von ${formatQuantity(totalSurplus, "de", 1)} GWh geladen (Modell)`}
+          caption={insertDisplayUnitNbsp(
+            `Zusammengeschoben: ${formatDeGwh(loaded, 1)} von ${formatDeGwh(totalSurplus, 1)} geladen (Modell)`,
+          )}
         />
       </div>
       <details className="v4-content v4-fold">
@@ -89,10 +91,9 @@ export function SystemChapter({
         <summary className="num">Modellgrenzen und 30-Tage-Details</summary>
         <p className="v4-fold-body">
           Nur Anteil des beobachteten Wind-Solar-Überschusses — keine Spitzen-, Preis- oder Netzwirkung, keine Abregelung.
-          Überschuss {formatQuantity(totalSurplus, "de", 1)} GWh in 30 Tagen. Bei ×1 hätte das Modell{" "}
-          {formatQuantity(model.factors[1].absorbedGwh, "de", 1)} GWh geladen (
-          {formatQuantity(Math.round((model.factors[1].absorbedShare ?? 0) * 100), "de", 0)}
-          &nbsp;%). Euro nur bei ×1 auf anderen Seiten — hier nur Prozent und GWh.
+          {insertDisplayUnitNbsp(
+            `Überschuss ${formatDeGwh(totalSurplus, 1)} in 30 Tagen. Bei ×1 hätte das Modell ${formatDeGwh(model.factors[1].absorbedGwh, 1)} geladen (${formatDePercentInt(Math.round((model.factors[1].absorbedShare ?? 0) * 100))}). Euro nur bei ×1 auf anderen Seiten — hier nur Prozent und GWh.`,
+          )}
         </p>
       </details>
     </section>

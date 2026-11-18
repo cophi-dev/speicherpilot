@@ -66,7 +66,7 @@ export function knotenLimitLabelLayout(
   if (layout.narrow && !isStadt) {
     return {
       x: layout.left + layout.plotW - 6,
-      y: layout.top + 11,
+      y: Math.max(11, layout.top - layout.labelBand + 10),
       anchor: "end",
     };
   }
@@ -78,14 +78,16 @@ export function knotenLimitLabelLayout(
   };
 }
 
-export function knotenPlotMetrics(width: number) {
+export function knotenPlotMetrics(width: number, typ?: KnotenTyp) {
   const narrow = width < 480;
+  const isStadt = typ === "stadt";
+  const labelBand = narrow && typ != null && !isStadt ? 22 : 0;
   const left = narrow ? 52 : 56;
   const right = narrow ? 14 : 18;
-  const top = 12;
+  const top = 12 + labelBand;
   const bottom = narrow ? 28 : 32;
-  const height = narrow ? 240 : 300;
+  const height = (narrow ? 240 : 300) + labelBand;
   const plotW = Math.max(200, width - left - right);
   const plotH = height - top - bottom;
-  return { narrow, left, right, top, bottom, height, plotW, plotH, width: left + plotW + right };
+  return { narrow, left, right, top, bottom, height, plotW, plotH, labelBand, width: left + plotW + right };
 }
