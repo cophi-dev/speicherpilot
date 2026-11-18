@@ -7524,6 +7524,36 @@ html.vt-to-light::view-transition-new(root) {
   }
 }
 
+@media (max-width: 480px) {
+  .v4-start .v4-kopf-inner {
+    display: flex;
+    flex-direction: column;
+  }
+  .v4-start .v4-kopf-hero {
+    display: contents;
+  }
+  .v4-start .v4-kopf-zahl {
+    display: none;
+  }
+  .v4-start .v4-kopf-intro {
+    order: 1;
+  }
+  .v4-start .v4-rang-leiste {
+    order: 2;
+    margin-top: 0.5rem;
+  }
+  .v4-start .v4-kopf-intro .v4-subline {
+    order: 3;
+    margin-top: 0.75rem;
+  }
+  .v4-start .v4-kopf-links {
+    order: 4;
+  }
+  .v4-start .v4-kicker.num {
+    order: 0;
+  }
+}
+
 .v4-riesenzahl-unit {
   color: var(--v4-warm);
   font-size: var(--type-14);
