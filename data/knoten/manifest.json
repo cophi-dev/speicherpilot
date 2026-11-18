@@ -1,0 +1,33 @@
+{
+  "belegungen": [
+    "voll",
+    "reserve",
+    "ueber"
+  ],
+  "limitMw": 80.0,
+  "factors": [
+    1,
+    2,
+    5,
+    10
+  ],
+  "nodes": [
+    "wind",
+    "solar",
+    "stadt"
+  ],
+  "dateRanges": {
+    "herbst": [
+      "2026-10-01",
+      "2026-11-17"
+    ],
+    "sommer": [
+      "2026-06-01",
+      "2026-07-31"
+    ]
+  },
+  "defaultFactor": 2,
+  "defaultBelegung": "voll",
+  "defaultNode": "wind",
+  "defaultDay": "2026-10-24"
+}

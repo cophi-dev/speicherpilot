@@ -1,0 +1,1 @@
+export { DAY_AHEAD_ZACKEN_HINWEIS_DE as KNOTEN_ZACKEN_HINWEIS_DE } from "@/lib/dayAheadZackenHinweis";

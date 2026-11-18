@@ -23,6 +23,10 @@ export function formatDePercentInt(pct: number): string {
   return withDisplayUnit(formatQuantity(pct, "de", 0), "%");
 }
 
+export function formatDeEurPerMwh(value: number, decimals = 2): string {
+  return formatDeQuantityUnit(value, decimals, "€/MWh");
+}
+
 export function formatDeGwGwhLine(
   powerGw: number,
   energyGwh: number,

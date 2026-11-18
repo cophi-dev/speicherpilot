@@ -1,0 +1,155 @@
+.root {
+  --kn-bg: var(--surface, #f6f6f3);
+  --kn-ink: #101214;
+  --kn-muted: #43474c;
+  --kn-linie: #dadad3;
+  --kn-flaeche: var(--card, #fff);
+  --kn-grid: #e4e4dc;
+  --kn-rust: #b4532a;
+  --kn-teal: #0f6e6b;
+  --kn-gray: #9aa5ad;
+  --kn-rot: #c62828;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 2.5rem;
+  color: var(--kn-ink);
+}
+
+:global(.dark) .root {
+  --kn-bg: #0b0d0f;
+  --kn-ink: #e9eef2;
+  --kn-muted: #9ea3a9;
+  --kn-linie: #262b31;
+  --kn-flaeche: #121417;
+  --kn-grid: #1f2529;
+  --kn-rust: #f4a261;
+  --kn-teal: #3db8b4;
+  --kn-gray: #6b7580;
+  --kn-rot: #ef5350;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.chip {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--kn-linie);
+  border-radius: 6px;
+  background: var(--kn-flaeche);
+  color: var(--kn-ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.chipActive {
+  border-color: var(--kn-ink);
+  box-shadow: inset 0 0 0 1px var(--kn-ink);
+}
+
+.chipGroupLabel {
+  font-size: 0.75rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  color: var(--kn-muted);
+  margin: 0.75rem 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fazit {
+  font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+  line-height: 1.45;
+  max-width: 52ch;
+  margin: 0.75rem 0 1rem;
+}
+
+.modell {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  border: 1px solid var(--kn-ink);
+  border-radius: 4px;
+  padding: 0.15rem 0.45rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--kn-muted);
+  margin: 0.5rem 0;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chartOuter {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.chartProbe {
+  width: 100%;
+}
+
+.svgIntrinsic {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.yAxisCaption,
+.xAxisCaption {
+  margin: 0.25rem 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--kn-muted);
+}
+
+.yAxisCaption {
+  margin-bottom: 0.35rem;
+}
+
+.xAxisCaption {
+  margin-top: 0.15rem;
+  text-align: center;
+}
+
+.footnote {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--kn-muted);
+  margin: 0.75rem 0 0;
+  max-width: 70ch;
+}
+
+.dateInput {
+  min-height: 44px;
+  font-size: 1rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--kn-linie);
+  border-radius: 6px;
+  background: var(--kn-flaeche);
+  color: var(--kn-ink);
+  max-width: 100%;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}

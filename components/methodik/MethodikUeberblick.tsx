@@ -392,7 +392,12 @@ export function MethodikAnnahmenSection({
             `All assumptions as a table (${assumptions.length})`
           )}
         </summary>
-        <div className="methodik-table-wrap">
+        <div
+          className="methodik-table-wrap"
+          role="region"
+          aria-label={tx("Annahmen-Tabelle", "Assumptions table")}
+          tabIndex={0}
+        >
           <FitTable
             className="methodik-assumptions"
             caption={tx("Annahmen auf einen Blick", "Assumptions at a glance")}
@@ -440,7 +445,12 @@ export function MethodikLizenzenSection({
             `All sources and licences (${sources.length})`
           )}
         </summary>
-        <div className="methodik-table-wrap">
+        <div
+          className="methodik-table-wrap"
+          role="region"
+          aria-label={tx("Quellen- und Lizenztabelle", "Sources and licences table")}
+          tabIndex={0}
+        >
           <table className="methodik-fit methodik-sources">
             <caption className="sr-only">{tx("Quellen und Lizenzen", "Sources and licences")}</caption>
             <colgroup>

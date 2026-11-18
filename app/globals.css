@@ -4724,8 +4724,10 @@ footer .site-fold a {
   align-items: center;
   min-height: 44px;
   padding-block: 8px;
-  padding-inline: 8px;
-  margin-inline: -8px;
+  padding-inline: 0;
+  margin-inline: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   border-radius: 6px;
   cursor: pointer;
   list-style: none;
@@ -4775,6 +4777,8 @@ details[open] > .methodik-section-summary::before {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  width: 100%;
+  min-width: 0;
 }
 .methodik-table {
   max-width: none;
@@ -4884,6 +4888,14 @@ math mi {
   width: max-content;
   min-width: 100%;
   table-layout: auto;
+}
+.methodik-assumptions th,
+.methodik-assumptions td {
+  min-width: 5.5rem;
+}
+.methodik-assumptions th[scope="col"]:first-child,
+.methodik-assumptions th[scope="row"] {
+  min-width: 9rem;
 }
 .methodik-fit th,
 .methodik-fit td {
