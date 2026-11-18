@@ -94,8 +94,9 @@ export function MonatReglerChart({
       factor > 1 ? `×${factor} · ${STRATEGY_LABEL[strategy]}` : null,
     ].filter(Boolean);
     const maxTextW = Math.max(...labels.map((t) => estimateTextWidth(t!, LINE_END_LABEL_FS)));
-    return Math.max(PAD_BASE.r, maxTextW + END_LABEL_GAP_PX + 8);
-  }, [factor, strategy]);
+    const refLabelW = estimateTextWidth(formatQuantity(refGw, "de", 1), 12);
+    return Math.max(PAD_BASE.r, maxTextW + END_LABEL_GAP_PX + 8, refLabelW + END_LABEL_GAP_PX + 10);
+  }, [factor, refGw, strategy]);
   const pad = useMemo(
     () => ({ ...PAD_BASE, r: padR }),
     [padR],
@@ -224,7 +225,7 @@ export function MonatReglerChart({
           strokeWidth={1}
         />
         <text
-          x={cssW - pad.r}
+          x={cssW - pad.r - 4}
           y={yAt(refGw, plotH, pad.t, pad.b) - 4}
           textAnchor="end"
           className={styles.ytick}

@@ -237,7 +237,7 @@ footer.border-t > div.mx-auto {
     --coral: #ff8a70;
     --coral-stroke: #ff8a70;
     --v4-warm: #e76f51;
-    --v4-warm-text: #b4532a;
+    --v4-warm-text: #e76f51;
     --v4-warm-chart: #b4532a;
   }
 
@@ -4833,6 +4833,14 @@ details[open] > .methodik-section-summary::before {
   display: grid;
   gap: 12px;
   padding-bottom: 16px;
+}
+.methodik-v4 .methodik-section-body > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.methodik-v4 details.methodik-nested-table {
+  min-width: 0;
+  max-width: 100%;
 }
 @media (min-width: 960px) {
   .methodik-layout {
@@ -9927,10 +9935,23 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   }
 
   .methodik-v4 #lizenzen .methodik-sources td a {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    min-height: 44px;
+    margin-block: 4px;
+    padding-block: 10px;
+    padding-inline: 2px;
+    gap: 0.35rem;
+  }
+
+  .methodik-v4 #lizenzen .methodik-sources td ul {
     display: flex;
-    width: 100%;
-    margin-block: 0;
-    padding-block: 12px;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .methodik-v4 #quellen ul li + li {

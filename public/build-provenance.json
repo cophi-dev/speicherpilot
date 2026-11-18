@@ -1,12 +1,31 @@
 {
-  "commit": "96cd081d3dbf1733fa784a9d9394df99f677de78",
-  "buildId": "20261118T1027Z",
-  "builtAt": "2026-11-18T10:27:08.280Z",
+  "commit": "e71706ef4613cc8d8713fa9fdcf25eb6b50dbd89",
+  "buildId": "20261118T1125Z",
+  "builtAt": "2026-11-18T11:25:40.585Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "?? scripts/knoten/ergebnisse/",
-    "?? scripts/vorlage1811-screenshots.mjs"
+    "M app/globals.css",
+    " M components/home/AuffaelligkeitKopf.tsx",
+    " M components/home/LiveTagPreisPanel.tsx",
+    " M components/home/MonatPageV4.tsx",
+    " M components/home/PreisFenster.module.css",
+    " M components/home/PreisFenster.tsx",
+    " M components/knoten/KnotenChart.client.tsx",
+    " M components/knoten/KnotenWorkbench.client.tsx",
+    " M components/methodik/MethodikDocs.tsx",
+    " M components/monat-regler/MonatReglerChart.client.tsx",
+    " M components/monat-v1/MonatV1Charts.client.tsx",
+    " M components/monat-v1/MonatV1Page.tsx",
+    " M components/monat-v1/SimulatorBeispieltageSection.client.tsx",
+    " M components/monat-v1/SimulatorFahrweisenWorkbench.client.tsx",
+    " M components/monat-v1/simulator-fahrweisen.module.css",
+    " M components/research/VisionPage.tsx",
+    " M lib/knoten/knotenZackenHinweis.ts",
+    "?? components/v4/",
+    "?? lib/dayAheadZackenHinweis.ts",
+    "?? lib/displayUnitNbspGuard.ts",
+    "?? lib/displayUnitNbspPages.test.ts"
   ],
   "ci": false
 }

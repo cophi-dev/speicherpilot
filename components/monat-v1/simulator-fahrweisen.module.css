@@ -307,6 +307,21 @@
   }
 }
 
+.dayChartFigure {
+  margin: 0;
+}
+
+.dayChartCaption {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mv-ink, #101214);
+}
+
+:global(html.dark) .dayChartCaption {
+  color: var(--mv-ink, #e9eef2);
+}
+
 .g3Stack {
   display: flex;
   flex-direction: column;

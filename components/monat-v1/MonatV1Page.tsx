@@ -4,6 +4,7 @@ import styles from "@/components/monat-v1/monat-v1.module.css";
 import type { MonatV1Model } from "@/lib/monatV1Model";
 import { formatBerlinMonthShort } from "@/lib/monatCalendar";
 import { MONAT_REGELR_MODEL_FOOTNOTE } from "@/lib/monatReglerPflichtzeile";
+import { DisplayUnitNormalizer } from "@/components/v4/DisplayUnitNormalizer.client";
 
 export function MonatV1Page({
   model,
@@ -13,6 +14,7 @@ export function MonatV1Page({
   monthKey: string;
 }) {
   return (
+    <DisplayUnitNormalizer>
     <div className={`${styles.root} v4-content`} data-testid="monat-v1-root">
       <p className={styles.eyebrow}>MONATSHORIZONT · {formatBerlinMonthShort(monthKey).toUpperCase()}</p>
       <div className={styles.chipRow}>
@@ -27,5 +29,6 @@ export function MonatV1Page({
         </a>
       </p>
     </div>
+    </DisplayUnitNormalizer>
   );
 }

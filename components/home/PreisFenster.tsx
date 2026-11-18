@@ -15,6 +15,7 @@ import {
   preisYAxisTicksVisible,
 } from "@/lib/preisFensterChartLayout";
 import { TAG_WIDE_VIEWBOX_W } from "@/lib/tagSvgTypography";
+import { DAY_AHEAD_ZACKEN_HINWEIS_DE } from "@/lib/dayAheadZackenHinweis";
 import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
 import { nearestIndexFromClientInSvg } from "@/lib/chartSvgPointer";
 
@@ -234,6 +235,11 @@ export function PreisFenster({
           ) : null}
         </svg>
       </div>
+      {compactCopy ? (
+        <figcaption className={`text-sm text-muted-foreground ${styles.zackenCaption}`}>
+          {DAY_AHEAD_ZACKEN_HINWEIS_DE}
+        </figcaption>
+      ) : null}
       {compactCopy ? null : (
         <>
       <dl className={`v4-day-notes ${styles.notes}`}>

@@ -193,6 +193,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   const crossX = activeSnap?.x ?? null;
   const plotBottom = vb.T + plotH;
   const factorAxis = monatFactorAxisY(plotBottom, !wide);
+  const svgH = wide ? vb.h : Math.min(vb.h, factorAxis.gwLabel + 14);
 
   return (
     <div
@@ -221,7 +222,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
       />
       <svg
         ref={heroSvgRef}
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        viewBox={`0 0 ${vb.w} ${svgH}`}
         className={styles.svg}
         role="img"
         aria-labelledby="g1-title g1-desc"

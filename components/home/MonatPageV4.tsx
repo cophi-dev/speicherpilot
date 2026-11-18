@@ -17,6 +17,7 @@ import {
 import { barsFromMonatGrid } from "@/lib/monatSurplusBars";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
+import { DisplayUnitNormalizer } from "@/components/v4/DisplayUnitNormalizer.client";
 import { StartKompromissTeaser } from "@/components/home/SimulatorTeasers";
 import type { Eps70TeaserUi } from "@/lib/simulatorTeaser.types";
 
@@ -92,6 +93,7 @@ export function MonatPageV4({
       buildMonatGrid({ monthKey, records, todayKey, lastCompleteDayKey }),
     );
   return (
+    <DisplayUnitNormalizer>
     <div className={`v4-start monat-page${fleetOnPage ? " has-fleet-konzept monat-page-v1" : ""}`}>
       <Suspense fallback={null}>
         <FleetScrollRestore />
@@ -159,5 +161,6 @@ export function MonatPageV4({
         </Link>
       </p>
     </div>
+    </DisplayUnitNormalizer>
   );
 }

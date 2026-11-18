@@ -191,8 +191,8 @@ export function KnotenChart({
                 strokeDasharray="5 4"
               />
               <SvgText
-                x={layout.left + 6}
-                y={yMw(lim) - 6}
+                x={layout.left + 22}
+                y={yMw(lim) - 8}
                 anchor="start"
                 fill={colors.muted}
                 size={axisFont}

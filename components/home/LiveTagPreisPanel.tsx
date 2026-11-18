@@ -14,6 +14,7 @@ import {
   preisPanelUnitLabelPositions,
   priceAxisValues,
 } from "@/lib/liveTagPreisPanelGeometry";
+import { DAY_AHEAD_ZACKEN_HINWEIS_DE } from "@/lib/dayAheadZackenHinweis";
 import type { ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
 import type { PreisTick } from "@/lib/preisFenster";
 
@@ -106,8 +107,7 @@ export function LiveTagPreisPanel({
         </h2>
         <p className="v4-tag-side">
           Fahrplan aus dem Day-Ahead-Preis (Modell). Überschuss- und Spitzen-Fahrweise rechnen wir, wenn der Tag komplett
-          ist. Der Speicher folgt dem Viertelstundenpreis am Day-Ahead-Markt, der innerhalb einer Stunde oft hin und her
-          springt, deshalb zackt die Kurve.
+          ist. {DAY_AHEAD_ZACKEN_HINWEIS_DE}
         </p>
       </div>
       <div ref={shellRef} className="v4-content v4-luecke-wrap w-full overflow-hidden">

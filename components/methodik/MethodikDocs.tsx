@@ -26,6 +26,7 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+import { DisplayUnitNormalizer } from "@/components/v4/DisplayUnitNormalizer.client";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 
@@ -42,6 +43,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
   const modellFlotte = `${formatQuantity(NATIONAL_BASE_FLEET.powerMw / 1000, language, 2)} GW / ${formatQuantity(NATIONAL_BASE_FLEET.energyMwh / 1000, language, 2)} GWh`;
   return (
+    <DisplayUnitNormalizer>
     <div className="methodik v4-subpage methodik-v4">
       <MethodikHashScroll />
       <section className="day-hero methodik-hero" aria-labelledby="methodik-title">
@@ -576,6 +578,7 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
         </div>
       </section>
     </div>
+    </DisplayUnitNormalizer>
   );
 }
 

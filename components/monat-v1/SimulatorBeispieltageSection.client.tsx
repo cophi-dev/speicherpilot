@@ -145,7 +145,12 @@ function DayChart({
   const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
+  const bandCaption = is21
+    ? "23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)"
+    : null;
+
   return (
+    <figure className={simStyles.dayChartFigure}>
     <SvgChartShell
       pointCount={market.length}
       pickIndex={pick}
@@ -311,18 +316,9 @@ function DayChart({
       )}
 
       {is21 ? (
-        (() => {
-          const label = bandWide
-            ? "23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)"
-            : "23–24 Uhr: Modelleffekt";
-          const bandMidX = (x23 + x24) / 2;
-          const labelY = priceT + vb.priceH / 2 + 4;
-          return (
-            <SvgText x={bandMidX} y={labelY} fill={colors.muted} anchor="middle" size={12}>
-              {label}
-            </SvgText>
-          );
-        })()
+        <SvgText x={(x23 + x24) / 2} y={priceT + 14} fill={colors.ink} anchor="middle" size={11} weight={500}>
+          23–24 h
+        </SvgText>
       ) : null}
 
       {priceTicks.map((t) => (
@@ -394,6 +390,10 @@ function DayChart({
     </svg>
       )}
     </SvgChartShell>
+    {bandCaption ? (
+      <figcaption className={simStyles.dayChartCaption}>{bandCaption}</figcaption>
+    ) : null}
+    </figure>
   );
 }
 
