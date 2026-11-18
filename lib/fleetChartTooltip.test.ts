@@ -23,7 +23,7 @@ describe("fleetChartTooltip", () => {
     expect(rows[1]?.value).toBe(`51,68${NBSP}GW`);
     expect(rows[2]?.value).toBe(`1,20${NBSP}GW`);
     expect(rows[3]?.value).toBe(`0,00${NBSP}GW`);
-    expect(rows[4]?.value).toBe("4,13 GWh");
+    expect(rows[4]?.value).toBe(`4,13${NBSP}GWh`);
   });
 
   it("hängt die ×1-Vergleichskurve an, wenn vorhanden", () => {

@@ -97,7 +97,7 @@ describe("Preis-Sätze", () => {
   it("names the exchange range on a dry day and does not call it revenue", () => {
     const text = dryDayFootnote("08.11.2026", { pmin: 206.09, pmax: 321.5, negH: 0 });
     expect(text).toBe(
-      "Gestern (08.11.2026) ohne Überschuss zum Laden. Börse 206 bis 322\u00A0€/MWh, keine Viertelstunde unter null.",
+      "Gestern (08.11.2026) ohne Überschuss zum Laden. Börse 206\u00A0€/MWh bis 322\u00A0€/MWh, keine Viertelstunde unter null.",
     );
     expect(text).not.toMatch(/Modellschätzung|Erlös/);
   });

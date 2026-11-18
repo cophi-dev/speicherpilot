@@ -40,7 +40,7 @@ describe("buildMarktInsights", () => {
       focusDayKey: "2026-11-05",
     });
     const rule = all.find((i) => i.id === "hohes_minimum");
-    expect(rule?.text).toMatch(/100 €\/MWh/);
+    expect(rule?.text).toMatch(new RegExp(`100\\s€/MWh`));
     expect(rule?.text).not.toMatch(/200 €\/MWh/);
   });
 
