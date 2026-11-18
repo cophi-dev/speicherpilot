@@ -1,10 +1,17 @@
 import type { KnotenCurvePayload } from "@/lib/knoten/knotenTypes";
 
+const MINUS = "\u2212";
+
+function formatSignedDeNumber(value: number, narrow: boolean): string {
+  const abs = Math.abs(value);
+  const body = narrow
+    ? Math.round(abs).toLocaleString("de-DE")
+    : abs.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return value < 0 ? `${MINUS}${body}` : body;
+}
+
 export function knotenFormatMwTick(value: number, narrow: boolean): string {
-  if (narrow) {
-    return Math.round(value).toLocaleString("de-DE");
-  }
-  return value.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return formatSignedDeNumber(value, narrow);
 }
 
 export function knotenYTicks(min: number, max: number, narrow: boolean): number[] {
@@ -52,7 +59,7 @@ export function knotenYDomain(curve: KnotenCurvePayload, lim: number): { min: nu
 
 export function knotenPlotMetrics(width: number) {
   const narrow = width < 480;
-  const left = narrow ? 44 : 52;
+  const left = narrow ? 52 : 56;
   const right = narrow ? 10 : 16;
   const top = 12;
   const bottom = narrow ? 28 : 32;

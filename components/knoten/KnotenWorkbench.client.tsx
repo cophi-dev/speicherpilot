@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
+import { SimulatorSubnav } from "@/components/simulator/SimulatorSubnav";
 import { KnotenChart } from "@/components/knoten/KnotenChart.client";
 import styles from "@/components/knoten/knoten.module.css";
 import { useKnotenTheme } from "@/components/knoten/useKnotenTheme";
 import { knotenEuroHinweis, knotenFazitSatz } from "@/lib/knoten/knotenFazit";
+import { KNOTEN_ZACKEN_HINWEIS_DE } from "@/lib/knoten/knotenZackenHinweis";
 import {
   KNOTEN_BELEGUNG_LABELS,
   KNOTEN_BELEGUNGEN,
@@ -57,6 +59,7 @@ export function KnotenWorkbench({
 
   return (
     <div className={styles.root} data-testid="knoten-page">
+      <SimulatorSubnav />
       <p className={styles.chipRow}>
         <span className={styles.modell}>MODELLKNOTEN</span>
       </p>
@@ -154,6 +157,8 @@ export function KnotenWorkbench({
           <span style={{ width: 14, height: 2, background: colors.rot, display: "inline-block" }} /> Grenze / Schraffur
         </span>
       </div>
+
+      <p className={styles.footnote}>{KNOTEN_ZACKEN_HINWEIS_DE}</p>
 
       <KnotenChart typ={typ} day={tag} k={k} curve={curve} colors={colors} />
     </div>

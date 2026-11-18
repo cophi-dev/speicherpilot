@@ -179,21 +179,22 @@ export function KnotenChart({
                 );
               })}
               <polyline fill="none" stroke={colors.gray} strokeWidth={1.6} points={linePath(curve.base)} />
-              <polyline fill="none" stroke={colors.rust} strokeWidth={1.6} points={linePath(curve.fm)} />
+              <polyline fill="none" stroke={colors.rust} strokeWidth={1.85} points={linePath(curve.fm)} />
               <polyline fill="none" stroke={colors.teal} strokeWidth={1.8} points={linePath(curve.fk)} />
               <line
                 x1={layout.left}
                 x2={layout.left + layout.plotW}
                 y1={yMw(lim)}
                 y2={yMw(lim)}
-                stroke={colors.rot}
-                strokeWidth={2}
+                stroke={colors.muted}
+                strokeWidth={1.25}
+                strokeDasharray="5 4"
               />
               <SvgText
-                x={layout.left + layout.plotW - 4}
-                y={yMw(lim) - 8}
-                anchor="end"
-                fill={colors.rot}
+                x={layout.left + 6}
+                y={yMw(lim) - 6}
+                anchor="start"
+                fill={colors.muted}
                 size={axisFont}
               >
                 Grenze {KNOTEN_LIMIT_MW}
