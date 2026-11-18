@@ -15,6 +15,14 @@ const sample: MarktInsight[] = [
 ];
 
 describe("MarktInsightsBlock", () => {
+  it("renders tag layout like Modell", () => {
+    render(<MarktInsightsBlock insights={sample} layout="tag" />);
+    expect(document.querySelector(".v4-tagesvorlage-modelbox")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Markt-Insights" })).toHaveStyle({
+      fontSize: "var(--type-16)",
+    });
+  });
+
   it("renders list and methodik link", () => {
     render(<MarktInsightsBlock insights={sample} />);
     expect(screen.getByTestId("markt-insights")).toBeInTheDocument();

@@ -323,7 +323,6 @@ export function TagPageV4({
         fleetSoGerechnet={fleetSoGerechnet}
       />
       {children}
-      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
       <TagSoGerechnet
         day={day}
         lastSurplusKey={lastSurplusKey}
@@ -346,6 +345,7 @@ export function TagPageV4({
       />
       {isStartSurface && simulatorTeaser ? <StartKompromissTeaser teaser={simulatorTeaser} /> : null}
       <TagesvorlageModelBox />
+      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} layout="tag" /> : null}
     </div>
   );
 }
