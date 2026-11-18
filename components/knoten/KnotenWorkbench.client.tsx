@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
+import { DisplayUnitNormalizer } from "@/components/v4/DisplayUnitNormalizer.client";
 import { SimulatorSubnav } from "@/components/simulator/SimulatorSubnav";
 import { KnotenChart } from "@/components/knoten/KnotenChart.client";
 import styles from "@/components/knoten/knoten.module.css";
@@ -58,6 +59,7 @@ export function KnotenWorkbench({
   );
 
   return (
+    <DisplayUnitNormalizer>
     <div className={styles.root} data-testid="knoten-page">
       <SimulatorSubnav />
       <p className={styles.chipRow}>
@@ -154,7 +156,15 @@ export function KnotenWorkbench({
           <span style={{ width: 14, height: 2, background: colors.teal, display: "inline-block" }} /> knotentreu
         </span>
         <span className={styles.legendItem}>
-          <span style={{ width: 14, height: 2, background: colors.rot, display: "inline-block" }} /> Grenze / Schraffur
+          <span
+            style={{
+              width: 14,
+              height: 0,
+              borderTop: `2px dashed ${colors.muted}`,
+              display: "inline-block",
+            }}
+          />{" "}
+          Grenze / Schraffur
         </span>
       </div>
 
@@ -162,5 +172,6 @@ export function KnotenWorkbench({
 
       <KnotenChart typ={typ} day={tag} k={k} curve={curve} colors={colors} />
     </div>
+    </DisplayUnitNormalizer>
   );
 }
