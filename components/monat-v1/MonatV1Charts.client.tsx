@@ -39,11 +39,7 @@ function yGw(gw: number, yMin: number, yMax: number, plotH: number, padT: number
 
 function useChartShellWidth(minWidth = 280) {
   const ref = useRef<HTMLDivElement>(null);
-  const [shellWidth, setShellWidth] = useState(() =>
-    typeof window !== "undefined"
-      ? Math.max(minWidth, Math.round(monatPageContentWidth(window.innerWidth)))
-      : minWidth,
-  );
+  const [shellWidth, setShellWidth] = useState(minWidth);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
