@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import {
@@ -15,6 +15,10 @@ describe("siteNav", () => {
     expect(isSiteMainNavActive("/tag/2026-11-10", "/tag")).toBe(true);
     expect(isSiteMainNavActive("/jahr", "/jahr")).toBe(true);
     expect(isSiteMainNavActive("/kompromiss", "/jahr")).toBe(false);
+    expect(isSiteMainNavActive("/kompromiss", "/kompromiss")).toBe(true);
+    expect(isSiteMainNavActive("/simulator", "/kompromiss")).toBe(true);
+    expect(isSiteMainNavActive("/simulator/extra", "/kompromiss")).toBe(true);
+    expect(isSiteMainNavActive("/methodik", "/kompromiss")).toBe(false);
     expect(isSiteMainNavActive("/monat/2026-10", "/monat")).toBe(true);
     expect(isSiteMainNavActive("/methodik", "/methodik")).toBe(true);
     expect(isSiteMainNavActive("/beitraege/foo", "/beitraege")).toBe(true);
@@ -40,21 +44,32 @@ describe("siteNav", () => {
     }
   });
 
-  it("P1: Jahr in der Nav, Kompromiss und Vision nicht in der Hauptnav", () => {
+  it("Hauptnav: Jahr und Simulator (→ /kompromiss), nicht Vision", () => {
     const labels = SITE_MAIN_NAV.map((item) => item.label);
     const hrefs = SITE_MAIN_NAV.map((item) => item.href);
     expect(labels).toContain("Jahr");
     expect(hrefs).toContain("/jahr");
-    expect(labels).not.toContain("Simulator");
+    expect(labels).toContain("Simulator");
+    expect(hrefs).toContain("/kompromiss");
+    const jahrIdx = labels.indexOf("Jahr");
+    const simIdx = labels.indexOf("Simulator");
+    expect(jahrIdx).toBeGreaterThanOrEqual(0);
+    expect(simIdx).toBe(jahrIdx + 1);
     expect(labels).not.toContain("Vision");
     expect(labels).not.toContain("Gestern");
-    expect(hrefs).not.toContain("/kompromiss");
     expect(hrefs).not.toContain("/vision");
     expect(hrefs).not.toContain("/simulator");
     expect(SITE_MAIN_NAV_STATIC_ROUTES).toContain("/jahr");
     expect(SITE_MAIN_NAV_STATIC_ROUTES).toContain("/kompromiss");
     expect(SITE_MAIN_NAV_STATIC_ROUTES).not.toContain("/vision");
     expect(SITE_MAIN_NAV_STATIC_ROUTES).not.toContain("/simulator");
+  });
+
+  it("leitet /simulator permanent auf /kompromiss um", () => {
+    const cfg = readFileSync(path.join(process.cwd(), "next.config.ts"), "utf8");
+    expect(cfg).toMatch(/source:\s*"\/simulator"/);
+    expect(cfg).toMatch(/destination:\s*"\/kompromiss"/);
+    expect(cfg).toMatch(/permanent:\s*true/);
   });
 
   it("keeps mobile extra anchors on documented home sections", () => {
