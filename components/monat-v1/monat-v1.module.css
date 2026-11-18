@@ -5,8 +5,8 @@
   --mv-linie: #dadad3;
   --mv-flaeche: var(--card, #fff);
   --mv-gridline: #e4e4dc;
-  --mv-rust: #b4532a;
-  --mv-rust-tint: rgba(180, 83, 42, 0.1);
+  --mv-rust: #e76f51;
+  --mv-rust-tint: rgba(231, 111, 81, 0.1);
   color: var(--mv-ink);
 }
 

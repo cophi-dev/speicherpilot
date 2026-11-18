@@ -105,7 +105,7 @@ function formatPeakInstantBerlin(ts: string): string {
 /** Eine Zeile unter dem Chart — Detail in Tabelle/Fußnote. */
 export function formatMarktPeakWarnShort(d: MarktPeakFootnoteDetail): string {
   const when = formatPeakInstantBerlin(d.timestampBerlin);
-  return `Markt ×10: Spitze ${formatQuantity(d.peakAfterGw, "de", 2)} GW am ${when} Uhr — Preise historisch, kein Rückwirkungsmodell.`;
+  return `Markt ×10: Spitze ${formatDeGw(d.peakAfterGw, 2)} am ${when} Uhr — Preise historisch, kein Rückwirkungsmodell.`;
 }
 
 export function formatMarktPeakFootnote(d: MarktPeakFootnoteDetail): string {

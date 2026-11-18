@@ -70,8 +70,8 @@ function navItemHref(item: (typeof SITE_MAIN_NAV)[number], navShortcuts: NavShor
 
 function mainNavLinkClass(active: boolean) {
   return active
-    ? "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 font-semibold text-[var(--v4-warm)]"
-    : "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 text-muted-foreground hover:text-foreground";
+    ? "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-[var(--v4-warm)]"
+    : "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 text-muted-foreground hover:text-foreground";
 }
 
 function mobileNavLinkClass(active: boolean) {

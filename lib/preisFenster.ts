@@ -129,9 +129,6 @@ export function computeDauerSpanne(
   };
 }
 
-const MINUS = "\u2212";
-const NBSP = "\u00a0";
-
 /** Ganze Euro, keine negative Null, „bis“, festes Leerzeichen vor der Einheit. */
 export function formatPreisSpanne(pmin: number, pmax: number): string {
   return `${formatDeEurPerMwh(pmin, 0)} bis ${formatDeEurPerMwh(pmax, 0)}`;

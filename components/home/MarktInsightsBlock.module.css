@@ -31,6 +31,16 @@
   max-width: 62ch;
 }
 
+:global(.v4-markt-insights-tag) .text,
+:global(.v4-markt-insights-tag) .meta {
+  font-size: var(--type-14);
+  color: var(--muted-foreground);
+}
+
+:global(.v4-markt-insights-tag) .text {
+  color: var(--muted-foreground);
+}
+
 .meta {
   margin: 4px 0 0;
   font-size: var(--type-label);

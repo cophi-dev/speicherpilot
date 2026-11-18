@@ -1,5 +1,6 @@
 import { formatBerlinChartTimeFromSlot } from "@/lib/formatBerlinChartTime";
 import { nearestIndexFromClientX } from "@/lib/chartNearestIndex";
+import { DISPLAY_NBSP } from "@/lib/displayUnitFormat";
 import { lueckeTooltipRows } from "@/lib/lueckeChartTooltip";
 
 describe("lueckeChartTooltip", () => {
@@ -14,8 +15,8 @@ describe("lueckeChartTooltip", () => {
 
   it("zeigt dasselbe GW wie die Daten (1 Dezimalstelle)", () => {
     const rows = lueckeTooltipRows(slot);
-    expect(rows[0]?.value).toBe("72,6 GW");
-    expect(rows[2]?.value).toBe("68,4 GW");
+    expect(rows[0]?.value).toBe(`72,6${DISPLAY_NBSP}GW`);
+    expect(rows[2]?.value).toBe(`68,4${DISPLAY_NBSP}GW`);
   });
 
   it("mappt Pointer-Position auf Slot-Index", () => {
@@ -23,6 +24,6 @@ describe("lueckeChartTooltip", () => {
     const idx = nearestIndexFromClientX(20 + 155, rect, 96);
     expect(idx).toBe(48);
     expect(formatBerlinChartTimeFromSlot(slot.hourBerlin, slot.minuteBerlin)).toBe("17:15");
-    expect(lueckeTooltipRows({ ...slot })[2]?.value).toBe("68,4 GW");
+    expect(lueckeTooltipRows({ ...slot })[2]?.value).toBe(`68,4${DISPLAY_NBSP}GW`);
   });
 });

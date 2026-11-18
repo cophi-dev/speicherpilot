@@ -31,7 +31,7 @@ import {
 } from "@/lib/nationalFleetDisplay";
 import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
-import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
+import { marktInsightsForLiveTag, marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 
 /** Must stay a literal and match DAILY_SERIES_REVALIDATE_SECONDS (30 minutes). */
 export const revalidate = 1800;
@@ -67,6 +67,7 @@ export default async function TagDetailPage({
   if (datum === todayKey) {
     const live = await loadLiveTagView(datum, now);
     if (live) {
+      const liveMarktInsights = await marktInsightsForLiveTag(live);
       const liveDataset = datasetJsonLd({
         path: `/tag/${datum}`,
         name: tagDocumentTitle(datum, true),
@@ -76,7 +77,7 @@ export default async function TagDetailPage({
       return (
         <Suspense fallback={<Skeleton className="mx-auto mt-8 h-[920px] max-w-[1200px]" />}>
           <JsonLd data={{ "@context": "https://schema.org", ...liveDataset }} />
-          <TagPageLaufend view={live} />
+          <TagPageLaufend view={live} marktInsights={liveMarktInsights} />
         </Suspense>
       );
     }

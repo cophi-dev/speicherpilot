@@ -3,10 +3,19 @@
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { LiveTagPreisPanel } from "@/components/home/LiveTagPreisPanel";
 import { LiveTagResidualChart } from "@/components/home/LiveTagResidualChart";
+import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
+import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
+import type { MarktInsight } from "@/lib/marktInsights";
 import type { LiveTagView } from "@/lib/liveTagView.server";
 
-export function TagPageLaufend({ view }: { view: LiveTagView }) {
+export function TagPageLaufend({
+  view,
+  marktInsights = [],
+}: {
+  view: LiveTagView;
+  marktInsights?: MarktInsight[];
+}) {
   const dayLabel = formatBerlinDayLabel(view.dayKey);
 
   return (
@@ -57,6 +66,8 @@ export function TagPageLaufend({ view }: { view: LiveTagView }) {
         fleetPowerGw={view.fleetPowerGw}
         fleetEnergyGwh={view.fleetEnergyGwh}
       />
+      <TagesvorlageModelBox />
+      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} layout="tag" /> : null}
     </div>
   );
 }

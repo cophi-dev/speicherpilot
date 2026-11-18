@@ -171,9 +171,19 @@ function StripeChart({
               <rect x={x} y={zeroY} width={bw} height={Math.max(2, yBot - zeroY)} fill={fill} />
             )}
             {showNum ? (
-              <SvgText x={xx} y={zeroY + 16} anchor={anc} fill={colors.muted}>
-                {String(dayNum).padStart(2, "0")}.
-              </SvgText>
+              <g>
+                <Knockout
+                  x={xx - (anc === "middle" ? 14 : anc === "end" ? 28 : 0)}
+                  y={zeroY + 4}
+                  width={28}
+                  height={14}
+                  fill={colors.bg}
+                  opacity={0.92}
+                />
+                <SvgText x={xx} y={zeroY + 16} anchor={anc} fill={colors.ink} size={12}>
+                  {String(dayNum).padStart(2, "0")}.
+                </SvgText>
+              </g>
             ) : null}
             {d.date === "2026-10-06" ? (
               <g>
