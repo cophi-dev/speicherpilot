@@ -34,14 +34,28 @@ export function monatHeroChartBox(shellWidth: number): MonatChartBox {
   if (shellWidth >= MONAT_WIDE_VIEWBOX_W) {
     return WIDE_HERO;
   }
-  return narrowBox(NARROW_HERO_BASE, shellWidth, HERO_HEIGHT_RATIO, NARROW_MIN_HERO_H);
+  const box = narrowBox(NARROW_HERO_BASE, shellWidth, HERO_HEIGHT_RATIO, NARROW_MIN_HERO_H);
+  if (shellWidth >= 960 && shellWidth < MONAT_WIDE_VIEWBOX_W) {
+    const plotH = box.h - box.T - box.B;
+    const T = 22;
+    const B = 40;
+    return { ...box, T, B, h: T + plotH + B };
+  }
+  return box;
 }
 
 export function monatStundenChartBox(shellWidth: number): MonatChartBox {
   if (shellWidth >= MONAT_WIDE_VIEWBOX_W) {
     return WIDE_STUNDEN;
   }
-  return narrowBox(NARROW_STUNDEN_BASE, shellWidth, STUNDEN_HEIGHT_RATIO, NARROW_MIN_STUNDEN_H);
+  const box = narrowBox(NARROW_STUNDEN_BASE, shellWidth, STUNDEN_HEIGHT_RATIO, NARROW_MIN_STUNDEN_H);
+  if (shellWidth >= 960 && shellWidth < MONAT_WIDE_VIEWBOX_W) {
+    const plotH = box.h - box.T - box.B;
+    const T = Math.max(22, box.T - 4);
+    const B = 44;
+    return { ...box, T, B, h: T + plotH + B };
+  }
+  return box;
 }
 
 export function monatHeroUsesWideLayout(shellWidth: number): boolean {

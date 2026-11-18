@@ -28,7 +28,7 @@ describe("marktPeakFootnoteFromRun", () => {
   it("formats 21.10. peak", () => {
     const d = marktPeakFootnoteFromRun("2026-10-21T14:00:00+02:00", 50960.5, 96760.5, 45800, 201.29);
     expect(d.peakAfterGw).toBeCloseTo(96.76, 2);
-    expect(formatMarktPeakWarnShort(d)).toContain("96,76 GW");
+    expect(formatMarktPeakWarnShort(d)).toMatch(/96,76\sGW/);
     expect(formatMarktPeakFootnote(d)).toContain("201,29");
     expect(formatMarktPeakFootnote(d)).toMatch(/21\.10\.2026/);
     expect(formatMarktPeakWarnShort(d)).toMatch(/21\.10\.2026, 14:00/);

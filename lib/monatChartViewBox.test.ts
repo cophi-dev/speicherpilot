@@ -6,6 +6,14 @@ import {
 import { monatRenderedFontPx } from "@/lib/monatSvgTypography";
 
 describe("monatChartViewBox", () => {
+  it("1024: engere Plot-Ränder", () => {
+    const box = monatHeroChartBox(1024);
+    expect(box.w).toBe(1024);
+    expect(box.B).toBe(40);
+    const plotH = box.h - box.T - box.B;
+    expect(plotH / box.h).toBeGreaterThan(0.68);
+  });
+
   it("viewBox-Breite folgt Shell bei 1024", () => {
     const box = monatHeroChartBox(928);
     expect(box.w).toBe(928);

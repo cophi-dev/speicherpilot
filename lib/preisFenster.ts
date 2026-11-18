@@ -1,7 +1,7 @@
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { getBerlinDateKeyFromUnixSeconds } from "@/lib/berlinCalendar";
 import type { DayAheadPricePoint } from "@/lib/dayAheadPrices";
-import { formatDeGwGwhLine } from "@/lib/displayUnitFormat";
+import { formatDeEurPerMwh, formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { niceAxis, type NiceAxis } from "@/lib/niceTicks";
 
@@ -129,18 +129,9 @@ export function computeDauerSpanne(
   };
 }
 
-const MINUS = "\u2212";
-const NBSP = "\u00a0";
-
 /** Ganze Euro, keine negative Null, „bis“, festes Leerzeichen vor der Einheit. */
 export function formatPreisSpanne(pmin: number, pmax: number): string {
-  const fmt = (value: number): string => {
-    const rounded = Math.round(value);
-    const abs = rounded === 0 ? 0 : Math.abs(rounded);
-    const body = formatQuantity(abs, "de", 0);
-    return rounded < 0 ? `${MINUS}${body}` : body;
-  };
-  return `${fmt(pmin)} bis ${fmt(pmax)}${NBSP}€/MWh`;
+  return `${formatDeEurPerMwh(pmin, 0)} bis ${formatDeEurPerMwh(pmax, 0)}`;
 }
 
 /** Price clause for a day that already has min and max. Null when the series is missing. */
@@ -190,7 +181,7 @@ export function preisFigurSatz(args: {
 /** Copy for „So gerechnet“: Mittel und Fenster, Spanne, Modellzeile — nichts geht verloren, wenn der Graph kompakt ist. */
 export function preisSpanneLine(dauer: DauerSpanne | null): string {
   return dauer
-    ? `${formatQuantity(dauer.dauerSpanne, "de", 2)} €/MWh (Ø ${dauer.n} teuerste − Ø ${dauer.n} günstigste ¼ h)`
+    ? `${formatDeEurPerMwh(dauer.dauerSpanne, 2)} (Ø ${dauer.n} teuerste − Ø ${dauer.n} günstigste ¼ h)`
     : "nicht gebildet";
 }
 

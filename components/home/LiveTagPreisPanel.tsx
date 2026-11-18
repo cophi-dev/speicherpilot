@@ -116,11 +116,11 @@ export function LiveTagPreisPanel({
             Day-Ahead (€/MWh)
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-pv)/0.65)]" aria-hidden />
+            <span className="inline-block h-3 w-3 rounded-sm bg-[#2a9d8f]/65" aria-hidden />
             Laden (GW)
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-bess)/0.65)]" aria-hidden />
+            <span className="inline-block h-3 w-3 rounded-sm bg-[#e76f51]/65" aria-hidden />
             Entladen (GW)
           </span>
         </div>
@@ -219,7 +219,7 @@ export function LiveTagPreisPanel({
                 y={y}
                 width={barW}
                 height={h}
-                fill={point.netGw >= 0 ? "hsl(var(--c-bess) / 0.65)" : "hsl(var(--c-pv) / 0.65)"}
+                fill={point.netGw >= 0 ? "rgb(231 111 81 / 0.65)" : "rgb(42 157 143 / 0.65)"}
               />
             );
           })}
