@@ -1,20 +1,20 @@
 import type { ChartTooltipRow } from "@/components/charts/ChartTooltipPanel";
-import { formatQuantity } from "@/lib/formatQuantity";
+import { formatDeGw, formatDeGwh } from "@/lib/displayUnitFormat";
 import type { FleetChartPoint } from "@/lib/nationalFleetCharts";
 
 /** Werte wie die Achse der Flotten-Zeitreihe: 2 Dezimalstellen, aus den Daten. */
 export function fleetTooltipRows(point: FleetChartPoint, compareRpGw?: number | null): ChartTooltipRow[] {
   const rows: ChartTooltipRow[] = [
-    { label: "Restlast", value: `${formatQuantity(point.rGw, "de", 2)} GW` },
-    { label: "mit Speicher", value: `${formatQuantity(point.rpGw, "de", 2)} GW` },
+    { label: "Restlast", value: formatDeGw(point.rGw, 2) },
+    { label: "mit Speicher", value: formatDeGw(point.rpGw, 2) },
   ];
   if (compareRpGw != null) {
-    rows.push({ label: "×1 Vergleich", value: `${formatQuantity(compareRpGw, "de", 2)} GW` });
+    rows.push({ label: "×1 Vergleich", value: formatDeGw(compareRpGw, 2) });
   }
   rows.push(
-    { label: "Laden", value: `${formatQuantity(point.cMw / 1000, "de", 2)} GW` },
-    { label: "Entladen", value: `${formatQuantity(point.dMw / 1000, "de", 2)} GW` },
-    { label: "SoC", value: `${formatQuantity(point.socGwh, "de", 2)} GWh` },
+    { label: "Laden", value: formatDeGw(point.cMw / 1000, 2) },
+    { label: "Entladen", value: formatDeGw(point.dMw / 1000, 2) },
+    { label: "SoC", value: formatDeGwh(point.socGwh, 2) },
   );
   return rows;
 }

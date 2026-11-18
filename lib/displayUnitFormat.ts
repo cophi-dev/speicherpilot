@@ -2,12 +2,16 @@ import { formatQuantity } from "@/lib/formatQuantity";
 
 /** Geschütztes Leerzeichen zwischen Zahl und Einheit (U+00A0). */
 export const DISPLAY_NBSP = "\u00a0";
+const MINUS = "\u2212";
 
 export function withDisplayUnit(numberPart: string, unit: string): string {
   return `${numberPart}${DISPLAY_NBSP}${unit}`;
 }
 
 export function formatDeQuantityUnit(value: number, decimals: number, unit: string): string {
+  if (value < 0) {
+    return `${MINUS}${withDisplayUnit(formatQuantity(Math.abs(value), "de", decimals), unit)}`;
+  }
   return withDisplayUnit(formatQuantity(value, "de", decimals), unit);
 }
 
@@ -24,7 +28,12 @@ export function formatDePercentInt(pct: number): string {
 }
 
 export function formatDeEurPerMwh(value: number, decimals = 2): string {
-  return formatDeQuantityUnit(value, decimals, "€/MWh");
+  const scale = 10 ** decimals;
+  let n = Math.round(value * scale) / scale;
+  if (Object.is(n, -0) || (n === 0 && Math.abs(value) > 0 && Math.abs(value) < 0.5 / Math.max(scale, 1))) {
+    n = 0;
+  }
+  return formatDeQuantityUnit(n, decimals, "€/MWh");
 }
 
 export function formatDeGwGwhLine(

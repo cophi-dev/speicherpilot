@@ -76,7 +76,7 @@ describe("PreisFenster", () => {
     render(<PreisFenster {...defaultProps} />);
     const figure = screen.getByTestId("preis-fenster");
     expect(figure.textContent).toMatch(/Day-Ahead DE-LU, €\/MWh/);
-    expect(figure.textContent).toMatch(/112,24 €\/MWh \(Ø 5 teuerste − Ø 5 günstigste ¼ h\)/);
+    expect(figure.textContent).toMatch(/112,24\u00a0€\/MWh \(Ø 5 teuerste − Ø 5 günstigste ¼ h\)/);
     expect(figure.textContent).toMatch(/lädt an diesem Tag nicht · kein Erlös/);
     expect(figure.textContent).toMatch(/Energy-Charts \/ SMARD, CC BY 4.0/);
     expect(figure.textContent).toMatch(/Mittel günstig \/ teuer: 207,62 und 319,85/);
