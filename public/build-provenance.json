@@ -1,21 +1,12 @@
 {
-  "commit": "1afa56a506c028d531ed38a34e6a459bcfee8a1b",
-  "buildId": "20261117T1246Z",
-  "builtAt": "2026-11-17T12:46:32.294Z",
+  "commit": "01f38b86e34df6bb1d17521fb6ed80d278157218",
+  "buildId": "20261118T0552Z",
+  "builtAt": "2026-11-18T05:52:23.685Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/home/NationalFleetDayChapter.tsx",
-    " M components/home/NationalFleetTimeSeriesChartInner.tsx",
-    " M components/home/SimulatorTeasers.tsx",
-    " M components/monat-regler/MonatReglerHero.client.tsx",
-    " M components/monat-regler/monat-regler.module.css",
-    " M lib/monatMonthFleetRoutes.test.ts",
-    " M lib/nationalFleetCharts.test.ts",
-    " M lib/nationalFleetCharts.ts",
-    " M lib/simulatorTeaser.server.ts",
-    " M lib/simulatorTeaser.types.ts",
-    " M lib/simulatorUmbau.test.ts"
+    "M lib/siteNav.test.ts",
+    " M lib/siteNav.ts"
   ],
   "ci": false
 }

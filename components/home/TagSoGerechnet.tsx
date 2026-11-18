@@ -15,7 +15,13 @@ import {
   type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
-import { formatPeakKpi } from "@/lib/nationalFleetCharts";
+import {
+  defaultMonthPeakReference,
+  formatPeakKpi,
+  peakReductionPctVsReference,
+  REF_RESIDUAL_PEAK_GW,
+} from "@/lib/nationalFleetCharts";
+import { formatDeGwh } from "@/lib/displayUnitFormat";
 import { tagMiddayStoryBody } from "@/lib/tagDayStory";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 export type TagFleetSoGerechnetExtra = {
@@ -203,8 +209,8 @@ export function TagSoGerechnet({
               <dt>Wind-Solar-Überschuss (Tag, integriert)</dt>
               <dd>
                 {fleetExtra.slice.positiveSurplusQuarterHours === 0
-                  ? "0 GWh (keine positive Viertelstunde)"
-                  : `${formatQuantity(fleetExtra.slice.windSolarSurplusMwh / 1000, "de", 2)} GWh in ${fleetExtra.slice.positiveSurplusQuarterHours} Viertelstunden`}
+                  ? `${formatDeGwh(0, 0)} (keine positive Viertelstunde)`
+                  : `${formatDeGwh(fleetExtra.slice.windSolarSurplusMwh / 1000, 2)} in ${fleetExtra.slice.positiveSurplusQuarterHours} Viertelstunden`}
               </dd>
             </div>
             <div>
@@ -217,11 +223,15 @@ export function TagSoGerechnet({
             <div>
               <dt>Monatskontext Spitze</dt>
               <dd>
-                {formatPeakKpi(
-                  fleetExtra.monthStats.peakAfterGw,
-                  fleetExtra.monthStats.peakReductionGw,
-                  fleetExtra.monthStats.peakReductionPct,
-                )}
+                {(() => {
+                  const afterGw = fleetExtra.monthStats.peakAfterGw;
+                  const refGw = REF_RESIDUAL_PEAK_GW;
+                  const reductionGw = refGw - afterGw;
+                  const reductionPct = peakReductionPctVsReference(refGw, afterGw);
+                  return formatPeakKpi(afterGw, reductionGw, reductionPct, {
+                    reference: defaultMonthPeakReference(),
+                  });
+                })()}
               </dd>
             </div>
           </dl>

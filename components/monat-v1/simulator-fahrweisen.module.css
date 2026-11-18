@@ -37,6 +37,10 @@
   margin-bottom: 0.35rem;
 }
 
+:global(html.dark) .sliderLabel {
+  color: #d2d6dc;
+}
+
 .range {
   width: 100%;
   min-height: 44px;

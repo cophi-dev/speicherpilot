@@ -60,7 +60,12 @@
 
 .hero .sliderDesktopOnly :global(.sliderLabel),
 .hero .sliderDesktopOnly :global(.sliderHint) {
-  color: #9ea3a9;
+  color: var(--mr-ink, #212529);
+}
+
+:global(html.dark) .hero .sliderDesktopOnly :global(.sliderLabel),
+:global(html.dark) .hero .sliderDesktopOnly :global(.sliderHint) {
+  color: #d2d6dc;
 }
 
 .chipGroup {
@@ -156,6 +161,10 @@
   margin: 0;
   line-height: 1.1;
   font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.kpiGrid .kpiNote {
+  margin-top: 8px;
 }
 
 .kpiNote {

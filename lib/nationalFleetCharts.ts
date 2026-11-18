@@ -28,8 +28,8 @@ export function formatReferencePeakCaption(reference: PeakReference, language: A
     const dateLabel = formatBerlinDayLabel(reference.dateKey);
     const gw = formatQuantity(reference.refPeakGw, language, 2);
     return language === "de"
-      ? `Höchste Restlast am ${dateLabel}: ${gw} GW (Verbrauch minus Wind und Sonne)`
-      : `Highest residual load on ${dateLabel}: ${gw} GW (consumption minus wind and solar)`;
+      ? `Höchste Restlast am ${dateLabel}: ${gw} GW, Verbrauch minus Wind und Sonne`
+      : `Highest residual load on ${dateLabel}: ${gw} GW, consumption minus wind and solar`;
   }
   const refGw = reference.refPeakGw ?? REF_RESIDUAL_PEAK_GW;
   const gw = formatQuantity(refGw, language, language === "de" ? 2 : 2);
@@ -292,6 +292,29 @@ export function formatDayPeakKpiFromSlice(
     reductionPct,
     reference: { kind: "day", dateKey, refPeakGw: peakObservedGw },
   };
+}
+
+const TAG_DAY_PEAK_NBSP = "\u00a0";
+
+/** Kopfzeile „03 · Monatslauf“ am Tag: eine Zeile ohne doppelte GW-Wiederholung. */
+export function formatTagDayPeakHeadline(
+  observedGw: number,
+  afterGw: number,
+  reductionGw: number,
+  reductionPct: number,
+): string {
+  const obs = formatQuantity(observedGw, "de", 2);
+  const aft = formatQuantity(afterGw, "de", 2);
+  const pct = formatQuantity(Math.abs(reductionPct), "de", 1);
+  if (reductionGw >= 0.0005) {
+    const delta = formatQuantity(Math.abs(reductionGw), "de", 2);
+    return `Tages-Spitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (−${delta}${TAG_DAY_PEAK_NBSP}GW, −${pct}${TAG_DAY_PEAK_NBSP}%)`;
+  }
+  if (reductionGw <= -0.0005) {
+    const delta = formatQuantity(Math.abs(reductionGw), "de", 2);
+    return `Tages-Spitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (+${delta}${TAG_DAY_PEAK_NBSP}GW, +${pct}${TAG_DAY_PEAK_NBSP}%)`;
+  }
+  return `Tages-Spitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (ohne nennenswerte Tages-Senkung)`;
 }
 
 export type FleetChartTick = { index: number; label: string; align?: "start" | "end" };

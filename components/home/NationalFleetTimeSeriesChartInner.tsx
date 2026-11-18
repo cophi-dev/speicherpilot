@@ -152,6 +152,8 @@ export type NationalFleetTimeSeriesChartProps = {
   konzeptWorkbench?: boolean;
   /** P1-Tagesvorlage: ein Restlast-Panel mit R′, R und Lade-/Entlade-Flächen */
   tagesvorlageDay?: boolean;
+  /** Keine Viertelstunde mit Wind+Sonne über Verbrauch (Tag, aus Daten) */
+  dayNoWindSolarSurplus?: boolean;
 };
 
 export function NationalFleetTimeSeriesChart({
@@ -169,6 +171,7 @@ export function NationalFleetTimeSeriesChart({
   prominentMonth = false,
   konzeptWorkbench = false,
   tagesvorlageDay = false,
+  dayNoWindSolarSurplus = false,
 }: NationalFleetTimeSeriesChartProps) {
   const [frame, setFrame] = useState<ChartFrame | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -399,6 +402,8 @@ export function NationalFleetTimeSeriesChart({
       : 0;
   const hideAuxPanels = tagesvorlageDay && isDay;
   const showEmptyScenarioNote = isDay && showPowerNote && socSpanGwh < 0.12;
+  const showUeberschussEmptyNote =
+    isDay && tagesvorlageDay && strategy === "ueberschuss" && dayNoWindSolarSurplus;
   const bands =
     tagesvorlageDay && isDay && factor !== 1
       ? fleetBandPaths(points, xs, rScale.y, rScale.y, pxPerQh / 2)
@@ -640,6 +645,12 @@ export function NationalFleetTimeSeriesChart({
         </div>
       </div>
       </div>
+      {showUeberschussEmptyNote ? (
+        <p className="v4-fleet-ts-power-note">
+          An diesem Tag lagen Wind und Sonne in keiner Viertelstunde über dem Verbrauch, darum lädt die Fahrweise
+          Überschuss nicht.
+        </p>
+      ) : null}
     </figure>
   );
 }
