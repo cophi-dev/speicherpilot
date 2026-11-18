@@ -43,6 +43,7 @@ export const SITE_MAIN_NAV_STATIC_ROUTES: readonly string[] = [
   "/monat",
   "/jahr",
   "/kompromiss",
+  "/knoten",
   "/methodik",
   "/beitraege",
   "/impressum",
