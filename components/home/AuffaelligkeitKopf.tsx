@@ -322,8 +322,8 @@ export function TagPageV4({
         fleetStrategy={fleetStrategy}
         fleetSoGerechnet={fleetSoGerechnet}
       />
-      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
       {children}
+      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} /> : null}
       <TagSoGerechnet
         day={day}
         lastSurplusKey={lastSurplusKey}
