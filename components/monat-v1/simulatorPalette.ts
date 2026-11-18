@@ -28,7 +28,7 @@ export function simulatorPalette(dark: boolean) {
         winWin: "#1B6B45",
         neutral: "#D5D5CD",
         konfliktSchwach: "#C9A46A",
-        konfliktHebung: "#B4532A",
+        konfliktHebung: "#e76f51",
         field70: "rgba(27,107,69,0.10)",
       };
 }

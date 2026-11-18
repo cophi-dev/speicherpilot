@@ -17,7 +17,7 @@ export function knotenPalette(dark: boolean) {
         muted: "#43474C",
         grid: "#E4E4DC",
         flaeche: "#FFFFFF",
-        rust: "#B4532A",
+        rust: "#e76f51",
         teal: "#0F6E6B",
         gray: "#9AA5AD",
         rot: "#C62828",
