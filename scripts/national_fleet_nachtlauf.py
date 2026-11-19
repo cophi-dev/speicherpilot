@@ -9,7 +9,7 @@ import re
 import sys
 import time
 import urllib.parse
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time as dtime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -73,8 +73,8 @@ def find_first_unix_second_for_berlin_date_key(date_key: str) -> int:
     """Kleinstes Unix-s für Mitternacht dieses Berlin-Kalendertags (wie lib/berlinCalendar.ts)."""
     y, mo, da = (int(x) for x in date_key.split("-"))
     base = date(y, mo, da)
-    lo = int(datetime.combine(base - timedelta(days=2), time.min, tzinfo=UTC).timestamp())
-    hi = int(datetime.combine(base + timedelta(days=2), time.min, tzinfo=UTC).timestamp())
+    lo = int(datetime.combine(base - timedelta(days=2), dtime.min, tzinfo=UTC).timestamp())
+    hi = int(datetime.combine(base + timedelta(days=2), dtime.min, tzinfo=UTC).timestamp())
     result = hi
     while lo <= hi:
         mid = (lo + hi) // 2
