@@ -1,4 +1,5 @@
 import type { BlogFigure as BlogFigureAsset } from "@/content/blog/figures";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 
 const A2_SRC = "/blog/A2_titelbild_1600x900.svg";
 
@@ -44,13 +45,19 @@ function BlogFigureA2Inner({ figure }: { figure: BlogFigureAsset }) {
         <div className="blog-figure-a2-overlay" aria-hidden="true">
           <p className="blog-figure-a2-kicker">DAY-AHEAD · VIERTELSTUNDE · DE-LU</p>
           <p className="blog-figure-a2-date">03.11.2026</p>
-          <p className="blog-figure-a2-label blog-figure-a2-label-min">218,62 €/MWh · 12:00</p>
-          <p className="blog-figure-a2-label blog-figure-a2-label-max">324,95 €/MWh · 17:30</p>
+          <p className="blog-figure-a2-label blog-figure-a2-label-min">
+            {insertDisplayUnitNbsp("218,62 €/MWh · 12:00")}
+          </p>
+          <p className="blog-figure-a2-label blog-figure-a2-label-max">
+            {insertDisplayUnitNbsp("324,95 €/MWh · 17:30")}
+          </p>
           <p className="blog-figure-a2-source">Quelle: SMARD (Bundesnetzagentur), Filter 4169, CC BY 4.0</p>
         </div>
       </div>
       <div className="blog-figure-a2-mobile-foot" aria-hidden="true">
-        <p className="blog-figure-a2-label blog-figure-a2-foot-min">218,62 €/MWh · 12:00</p>
+        <p className="blog-figure-a2-label blog-figure-a2-foot-min">
+          {insertDisplayUnitNbsp("218,62 €/MWh · 12:00")}
+        </p>
         <p className="blog-figure-a2-foot-source">Quelle: SMARD (Bundesnetzagentur), Filter 4169, CC BY 4.0</p>
       </div>
     </div>

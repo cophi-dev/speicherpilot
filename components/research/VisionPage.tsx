@@ -93,7 +93,8 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
             <p className={styles.meta}>
               {stageId.startsWith("nep") ? `NEP ${stage.label} · ` : `${stage.label} · `}
               {formatVisionGwPlain(stage.powerGw)} ·{" "}
-              {duration === "2" ? formatVisionDurationDe("2") : "4 h Sensitivität"} · spitzenorientiert (national)
+              {duration === "2" ? formatVisionDurationDe("2") : `${formatVisionDurationDe("4")} Sensitivität`} ·
+              spitzenorientiert (national)
             </p>
           </>
         ) : (

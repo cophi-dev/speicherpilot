@@ -235,7 +235,7 @@ export function VisionPlot({
                       fill="var(--research-fg)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
-                      4 h
+                      {`4\u00a0h`}
                     </text>
                     <text
                       x={lx}

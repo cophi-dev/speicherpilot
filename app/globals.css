@@ -4812,6 +4812,12 @@ details[open] > .methodik-section-summary::before {
   width: 100%;
   padding-block: 0;
 }
+.methodik-v4 #wirkungsgrad ~ p a[href^="http"] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 8px;
+}
 .methodik-v4 #d-recht > p a {
   display: inline-flex;
   align-items: center;
@@ -4925,8 +4931,8 @@ math mi {
 .methodik-sources col.c-name { width: 20%; }
 #annahmen button {
   box-sizing: border-box;
-  min-width: 24px;
-  min-height: 24px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 4px;
   border-color: #5f6670;
   color: #5f6670;
@@ -10605,7 +10611,7 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   background: #2a9d8f;
 }
 .v4-fleet-ts-legend-d::before {
-  background: #e76f51;
+  background: var(--v4-warm-chart, #b4532a);
 }
 .v4-fleet-ts-legend-e::before {
   background: #6a4c93;
@@ -10836,7 +10842,7 @@ html.dark .v4-fleet-ts-ytick-halo {
   stroke-width: 1.2;
 }
 .v4-fleet-line-d {
-  stroke: #e76f51;
+  stroke: var(--v4-warm-chart, #b4532a);
   stroke-width: 1.2;
 }
 .v4-fleet-line-soc {
@@ -10968,6 +10974,14 @@ html.dark .v4-fleet-ts-ytick-halo {
 .monat-page .v4-tag-nav {
   padding-top: 0.2rem;
   padding-bottom: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+.monat-page .v4-tag-nav-date-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 .monat-page .v4-chapter {
   margin-top: 0.4rem;

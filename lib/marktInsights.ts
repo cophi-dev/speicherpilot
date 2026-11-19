@@ -221,7 +221,7 @@ function ruleDreiZiele(bundle: NationalFleetMonthBundle): MarktInsight | null {
     category: "monat",
     text: `${monthLabel}, 1× Zusatzflotte (×2): Markt bewegt ${fmtEur(mk.chargeGwh)} GWh und senkt die Spitze um ${fmtEur(mk.peakReductionGw)} GW. Spitze senken: ${fmtEur(sp.peakReductionGw)} GW bei ${fmtEur(sp.chargeGwh)} GWh. Differenz: ${fmtEur(ue.chargeGwh)} GWh, Spitze −${fmtEur(ue.peakReductionGw)} GW.`,
     period: monthLabel,
-    source: "Vorberechneter Monatslauf 4,64 GW / 8,15 GWh je ×",
+    source: insertDisplayUnitNbsp("Vorberechneter Monatslauf 4,64 GW / 8,15 GWh je ×"),
     methodikHref: "/methodik#insight-drei-ziele",
   };
 }

@@ -274,21 +274,24 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         {FACTOR_TICKS.map((f) => {
           const x = factorX(f, plotW, vb.L);
           const gw = fleetPowerGwLabel(f, f === 10 ? 0 : 1);
-          const showGw = wide || f === 1 || f === 10;
+          const showMult = wide || f === 1 || f === 5 || f === 10;
+          const showGw = wide || f === 10;
           const tickFs = wide ? 14 : 12;
           return (
             <g key={f}>
               <line x1={x} x2={x} y1={plotBottom} y2={factorAxis.tickEnd} stroke="var(--mv-ink)" />
-              <text
-                x={x}
-                y={factorAxis.multLabel}
-                textAnchor="middle"
-                fill="var(--mv-ink)"
-                fontWeight={400}
-                fontSize={tickFs}
-              >
-                ×{f}
-              </text>
+              {showMult ? (
+                <text
+                  x={x}
+                  y={factorAxis.multLabel}
+                  textAnchor="middle"
+                  fill="var(--mv-ink)"
+                  fontWeight={400}
+                  fontSize={tickFs}
+                >
+                  ×{f}
+                </text>
+              ) : null}
               {showGw ? (
                 <text
                   x={x}
@@ -303,7 +306,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
             </g>
           );
         })}
-        <rect x={vb.L} y={vb.T} width={plotW} height={refY - vb.T} fill="rgba(231, 111, 81, 0.1)" />
+        <rect x={vb.L} y={vb.T} width={plotW} height={refY - vb.T} fill="rgba(180, 83, 42, 0.1)" />
         <line x1={vb.L} x2={vb.L + plotW} y1={refY} y2={refY} stroke="var(--mv-ink)" strokeWidth="1.25" />
         <g clipPath="url(#monat-g1-plot-clip)">
           <polyline
@@ -333,7 +336,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
           ) : null}
           <polyline
             fill="none"
-            stroke="#e76f51"
+            stroke="var(--mv-rust, #b4532a)"
             strokeWidth="2.25"
             strokeDasharray="7 5"
             points={marktPts.map((pt) => `${pt.x},${pt.y}`).join(" ")}
@@ -349,7 +352,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               cy={pt.y}
               r="4"
               fill="var(--mv-flaeche, #fff)"
-              stroke="#e76f51"
+              stroke="var(--mv-rust, #b4532a)"
               strokeWidth="1.75"
             />
           ))}
@@ -363,7 +366,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
                 cy={pt.y}
                 r="4"
                 fill="var(--mv-flaeche, #fff)"
-                stroke="#e76f51"
+                stroke="var(--mv-rust, #b4532a)"
                 strokeWidth="1.75"
               />
             ) : null;
@@ -494,7 +497,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
           const pts = [
             { series: "h176" as const, off: -dodge, val: c.h176, fill: "var(--mv-ink)", hollow: false, r: 4 },
             { series: "h2" as const, off: 0, val: c.h2, fill: "none", hollow: true, r: 4 },
-            { series: "h4" as const, off: dodge, val: c.h4, fill: "#e76f51", hollow: false, r: 6 },
+            { series: "h4" as const, off: dodge, val: c.h4, fill: "var(--mv-rust, #b4532a)", hollow: false, r: 6 },
           ];
           return (
             <g key={c.factor}>
@@ -645,7 +648,13 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
             </g>
           );
         })}
-        <text x={poolX} y={startY + model.pool.length * rowH + 24} fill="var(--mv-ink)" fontWeight="500">
+        <text
+          x={poolX}
+          y={startY + model.pool.length * rowH + 24}
+          fill="var(--mv-ink)"
+          fontWeight="500"
+          fontSize={labelFs}
+        >
           Bei ×10, zum Vergleich
         </text>
         {[
@@ -720,7 +729,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
           {model.surplusPoolGwh < 0.05 ? (
             <>
               Spitzenorientiert senkt ×10 die Restlast um {formatDeGw(model.compareX10.spitzeGw, 1)}; die
-              Überschuss-Fahrweise lädt 0 GWh. Markt orientiert sich an Preisen — ohne Überschuss bleibt der
+              Überschuss-Fahrweise lädt {formatDeGwh(0, 0)}. Markt orientiert sich an Preisen — ohne Überschuss bleibt der
               Unterschied zur Spitzen-Fahrweise klein.
             </>
           ) : (

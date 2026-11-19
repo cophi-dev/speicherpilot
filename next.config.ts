@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "speicherpilot.app" }],
+        destination: "https://www.speicherpilot.app/:path*",
+        permanent: true,
+      },
       { source: "/blog", destination: "/beitraege#artikel", permanent: true },
       {
         source: "/blog/:slug((?!.*\\.).*)",

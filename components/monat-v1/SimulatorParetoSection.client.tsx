@@ -30,6 +30,8 @@ import {
 } from "@/lib/simulatorFahrweisenTypes";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 import { FrontSlider } from "@/components/monat-v1/FrontSlider";
+import { formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
+import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 
 export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData }) {
   const wide = useLayoutWide(1100);
@@ -41,6 +43,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
   const e70 = data.endpoints.eps70;
   const voll = fullReduction(mkt.revenueMioEur, net.revenueMioEur);
   const komp = compromisePct(mkt.revenueMioEur, e70.revenueMioEur);
+  const baseGw = NATIONAL_BASE_FLEET.powerMw / 1000;
 
   const ariaFor = (p: SimulatorFrontPoint, label: string) =>
     `${label}: ${pctOfMarket(p.revenueMioEur, mkt.revenueMioEur)}, Senkung ${formatGw(p.reductionGw)}`;
@@ -53,7 +56,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
   return (
     <section className={styles.section} aria-labelledby="sim-g1-title" data-testid="simulator-pareto">
       <p className={styles.eyebrow}>
-        Oktober 2026 · doppelte Flotte (×2): heute 4,64 GW + 4,64 GW zusätzlich
+        Oktober 2026 · doppelte Flotte (×2): heute {formatDeGw(baseGw, 2)} + {formatDeGw(baseGw, 2)} zusätzlich
       </p>
       <p className={simStyles.display} aria-hidden="true">
         {formatGw(e70.reductionGw)}
@@ -70,7 +73,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
       <div className={wide ? simStyles.insight3wide : simStyles.insight3}>
         <div>
           {formatGw(e70.reductionGw)}
-          <div className={styles.insightMuted}>Kompromiss (70 % der Senkung)</div>
+          <div className={styles.insightMuted}>{insertDisplayUnitNbsp("Kompromiss (70 % der Senkung)")}</div>
         </div>
         <div>
           {komp.costLabel}{"\u00A0"}%
