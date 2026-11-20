@@ -539,7 +539,7 @@ export function NeonStart({ model }: NeonStartProps) {
         </div>
       </section>
 
-      {/* ==================== 6. WER HIER RECHNET ==================== */}
+      {/* ==================== 6. Wer hier rechnet ==================== */}
       <section className={styles.section} id="autor" aria-labelledby="neon-autor-title">
         <div className={styles.container}>
           <div className={styles.sectionHead}>
