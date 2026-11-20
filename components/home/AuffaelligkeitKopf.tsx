@@ -5,7 +5,7 @@ import { Suspense, useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
 import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
-import { StartKompromissTeaser } from "@/components/home/SimulatorTeasers";
+import { StartKnotenTeaser, StartKompromissTeaser } from "@/components/home/SimulatorTeasers";
 import { KnotenTagLink } from "@/components/knoten/KnotenTagLink";
 import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
@@ -346,6 +346,7 @@ export function TagPageV4({
         fleetExtra={fleetSoGerechnet}
       />
       {isStartSurface && simulatorTeaser ? <StartKompromissTeaser teaser={simulatorTeaser} /> : null}
+      {isStartSurface ? <StartKnotenTeaser /> : null}
       <TagesvorlageModelBox />
       {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} layout="tag" /> : null}
     </div>

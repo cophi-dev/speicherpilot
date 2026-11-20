@@ -369,6 +369,14 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
                 ? null
                 : " Wo Euro stehen, ist das als Modellschätzung gekennzeichnet."}
             </p>
+            {pathname === "/" ? (
+              <p className="mt-4 max-w-[52rem] leading-relaxed">
+                Im Arbeitsalltag der Hochspannungs- und Umspannwerkskonstruktion sehe ich, wie unterschiedlich
+                Speicherprojektierer und Netzplaner auf dasselbe Stromnetz schauen. Die einen optimieren auf
+                Börsenpreise, die anderen planen für Gleichzeitigkeit und Abendspitzen — selten auf derselben
+                Datenbasis.
+              </p>
+            ) : null}
             <p className="mt-4 flex flex-wrap gap-x-5">
               <a
                 href="https://www.linkedin.com/in/phillipp-zarindast/"
