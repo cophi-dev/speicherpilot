@@ -126,12 +126,14 @@ describe("navigation links e2e", () => {
           await expectNoNotFound(page);
         }
 
-        await gotoOk(page, "/");
-        await openMobileMenu(page);
-        await page.locator("#site-mobile-nav").getByRole("link", { name: "Woche", exact: true }).click();
-        await page.waitForLoadState("domcontentloaded");
-        await expectMenuClosed(page);
-        await page.locator("#woche").waitFor({ state: "visible" });
+        if (SITE_MOBILE_EXTRA_NAV.length > 0) {
+          await gotoOk(page, "/");
+          await openMobileMenu(page);
+          await page.locator("#site-mobile-nav").getByRole("link", { name: SITE_MOBILE_EXTRA_NAV[0]!.label, exact: true }).click();
+          await page.waitForLoadState("domcontentloaded");
+          await expectMenuClosed(page);
+          await page.locator(`#${SITE_MOBILE_EXTRA_NAV[0]!.fragment}`).waitFor({ state: "visible" });
+        }
       });
     });
 

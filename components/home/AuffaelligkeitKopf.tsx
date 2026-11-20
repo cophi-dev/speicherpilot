@@ -5,13 +5,18 @@ import { Suspense, useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
 import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
-import { StartKnotenTeaser, StartKompromissTeaser } from "@/components/home/SimulatorTeasers";
+import {
+  StartKnotenTeaser,
+  StartKompromissTeaser,
+  StartRoterFadenKompass,
+} from "@/components/home/SimulatorTeasers";
 import { KnotenTagLink } from "@/components/knoten/KnotenTagLink";
 import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
 import { TagSystemChapter } from "@/components/home/TagSystemChapter";
 import { TagChapter } from "@/components/home/TagChapter";
 import { TagSoGerechnet, type TagFleetSoGerechnetExtra } from "@/components/home/TagSoGerechnet";
+import { formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { tagSurplusLine } from "@/lib/kopfTagCopy";
 import type { AuffaelligkeitResult } from "@/lib/auffaelligkeit";
 import { kopfMetric, type TagesKennzahlRecord, weekdayLabelDe } from "@/lib/auffaelligkeit";
@@ -41,6 +46,7 @@ export function AuffaelligkeitKopf({
   records,
   kickerPrefix = "Gestern",
   hideTagLink = false,
+  leitfrage,
 }: {
   dayKey: string;
   todayKey: string;
@@ -49,6 +55,7 @@ export function AuffaelligkeitKopf({
   records: TagesKennzahlRecord[];
   kickerPrefix?: string;
   hideTagLink?: boolean;
+  leitfrage?: string;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
   const winner = result.kind === "metric" ? kopfMetric(records, dayKey) : null;
@@ -73,11 +80,18 @@ export function AuffaelligkeitKopf({
       record: false,
       zero: r.surplusGwh < 0.05,
     }));
+    const baseSubline = lastSurplus
+      ? `Zuletzt lagen Wind und Sonne am ${weekdayLabelDe(lastSurplus.dateKey)} bundesweit über dem Verbrauch.`
+      : "Wind und Sonne blieben unter dem Verbrauch.";
+    const peakContext =
+      record.eveningPeakGw != null && record.eveningPeakAt
+        ? insertDisplayUnitNbsp(
+            ` Die Restlast-Abendspitze erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr) — Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
+          )
+        : "";
     return {
       h1: `${record.dryStreak}. Tag in Folge ohne Überschuss`,
-      subline: lastSurplus
-        ? `Zuletzt lagen Wind und Sonne am ${weekdayLabelDe(lastSurplus.dateKey)} bundesweit über dem Verbrauch.`
-        : "Wind und Sonne blieben unter dem Verbrauch.",
+      subline: `${baseSubline}${peakContext}`,
       hero: {
         value: String(record.dryStreak),
         unit: "Tage",
@@ -158,6 +172,11 @@ export function AuffaelligkeitKopf({
     <section className="v4-kopf" aria-labelledby="auffaelligkeit-h1">
       <div className="v4-kopf-inner v4-content">
         <p className="v4-kicker num">{kicker}</p>
+        {leitfrage ? (
+          <p id="tages-leitfrage" className="v4-subline" style={{ marginBottom: "0.35rem", fontWeight: 500 }}>
+            {leitfrage}
+          </p>
+        ) : null}
         <div className="v4-kopf-intro">
           <h1 id="auffaelligkeit-h1" className="v4-h1">
             {kopfH1}
@@ -286,13 +305,6 @@ export function TagPageV4({
           fleetStrategy={fleetStrategy}
         />
       )}
-      {leitfrage ? (
-        <section className="v4-kopf v4-leitfrage v4-content" aria-labelledby="tages-leitfrage">
-          <h1 id="tages-leitfrage" className="v4-h1">
-            {leitfrage}
-          </h1>
-        </section>
-      ) : null}
       <AuffaelligkeitKopf
         dayKey={dayKey}
         todayKey={todayKey}
@@ -301,7 +313,9 @@ export function TagPageV4({
         records={records}
         kickerPrefix={isStartSurface ? "Gestern" : "Tag"}
         hideTagLink={!isStartSurface}
+        leitfrage={leitfrage}
       />
+      {isStartSurface ? <StartRoterFadenKompass /> : null}
       <TagChapter
         day={day}
         peakGw={record.eveningPeakGw ?? null}

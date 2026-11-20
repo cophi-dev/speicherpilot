@@ -66,9 +66,14 @@ export function KnotenWorkbench({
       <h1 className="v4-h1" style={{ marginBottom: "0.5rem" }}>
         Dein Knoten
       </h1>
-      <p className="v4-lead" style={{ maxWidth: "52ch" }}>
-        Drei Modellknoten mit derselben Preislogik wie auf /tag — hier mit Grenze am Umspannwerk statt bundesweiter
-        Restlast.
+      <p className="v4-lead" style={{ maxWidth: "60ch" }}>
+        Drei Modellknoten (Wind Nord, Solar Süd, Stadt) mit 80{"\u00A0"}MW Grenze am Umspannwerk (2 × 40{"\u00A0"}MVA
+        HS/MS): Wann überlastet reines Preisfahren den Knoten — und wie viel Day-Ahead-Erlös kostet eine knotentreue
+        Fahrweise (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)? Den nationalen Erlös-Spitzen-Kompromiss zeigt{" "}
+        <Link href="/kompromiss" className="v4-text-link">
+          Kompromiss
+        </Link>
+        .
       </p>
       <p className={styles.chipRow}>
         <Link href="/methodik#knoten-modell" className="v4-text-link">

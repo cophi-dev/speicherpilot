@@ -77,7 +77,7 @@ Wie stark die Fahrweise zählt, zeigt ein einzelner Tag. Am Mittwoch, 21.10.2026
 <!-- chart:netz-updates-duration -->
 <!-- chart:netz-updates-fahrweise -->
 
-*Interaktiv: [speicherpilot.app/monat/2026-10](https://www.speicherpilot.app/monat/2026-10) und [speicherpilot.app/simulator](https://www.speicherpilot.app/simulator).*
+*Interaktiv: [speicherpilot.app/monat/2026-10](https://www.speicherpilot.app/monat/2026-10) und [speicherpilot.app/kompromiss](https://www.speicherpilot.app/kompromiss).*
 
 Meine These: Speichersdorf zeigt, wie ein Netzbetreiber Fahrweise einkauft. Bei Stadorf und Vöhringen ist sie öffentlich offen.
 
@@ -98,5 +98,5 @@ Alle Links wurden am 16.11.2026 geöffnet (HTTP 200). Stand = Veröffentlichungs
 | Q3 | Windkraft-Journal, Pressemitteilung des Projektierers | 10.11.2026 | https://www.windkraft-journal.de/2026/11/10/elements-green-und-tennet-unterzeichnen-netzanschlussvertrag-fuer-16-gwh-batteriespeicher-stadorf/229339 |
 | Q4 | ju:niz Energy, Pressemitteilung Envision-Partnerschaft | 09.11.2026 | https://juniz.com/newsroom/presse/envision-energy-und-juniz-energy-bauen-partnerschaft-aus/ |
 | Q5 | SpeicherPilot, Monatsansicht Oktober 2026 | 16.11.2026 | https://www.speicherpilot.app/monat/2026-10 |
-| Q6 | SpeicherPilot, Simulator Fahrweisen Oktober 2026 (Beispieltag 21.10.) | 16.11.2026 | https://www.speicherpilot.app/simulator |
+| Q6 | SpeicherPilot, Kompromiss Fahrweisen Oktober 2026 (Beispieltag 21.10.) | 16.11.2026 | https://www.speicherpilot.app/kompromiss |
 | Q7 | SpeicherPilot, Tagesansicht 21.10.2026 | 16.11.2026 | https://www.speicherpilot.app/tag/2026-10-21 |
