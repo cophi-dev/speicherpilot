@@ -1,0 +1,925 @@
+.page {
+  width: 100%;
+  overflow-x: clip;
+  color: hsl(var(--foreground));
+}
+
+.section {
+  padding-block: 44px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.heroSection {
+  padding-top: 28px;
+  padding-bottom: 48px;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, hsl(var(--foreground)) 4%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, hsl(var(--foreground)) 4%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 40px 40px;
+}
+
+.transparencySection {
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 3%, hsl(var(--card)));
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.kickerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: var(--mint);
+  flex-shrink: 0;
+}
+
+.sectionHead {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: clamp(1.45rem, 3.2vw, 2.15rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: hsl(var(--foreground));
+}
+
+.sectionLead {
+  margin: 10px 0 0;
+  max-width: 66ch;
+  font-size: 1rem;
+  line-height: 1.58;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ==================== HERO ==================== */
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(2.15rem, 6.4vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.032em;
+  color: hsl(var(--foreground));
+}
+
+.heroLead {
+  margin: 0;
+  max-width: 56ch;
+  font-size: 1.0625rem;
+  line-height: 1.56;
+  color: hsl(var(--muted-foreground));
+}
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.heroMeta {
+  margin: 4px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Buttons & Links */
+
+.btnPrimary,
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  border: 1.5px solid hsl(var(--foreground));
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.btnPrimary {
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--card));
+}
+
+.btnPrimary:hover {
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 86%, hsl(var(--card)));
+}
+
+.btnSecondary {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
+.btnSecondary:hover {
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 8%, hsl(var(--card)));
+}
+
+.btnPrimary:focus-visible,
+.btnSecondary:focus-visible,
+.textLink:focus-visible,
+.textLinkMuted:focus-visible,
+.inlineLink:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+.textLink,
+.textLinkMuted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+}
+
+.textLink {
+  color: hsl(var(--foreground));
+}
+
+.textLinkMuted {
+  color: hsl(var(--muted-foreground));
+}
+
+.textLinkMuted:hover {
+  color: hsl(var(--foreground));
+}
+
+.inlineLink {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Proof Card */
+
+.proofCard {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.proofHeader {
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 4%, hsl(var(--card)));
+}
+
+.proofHeaderLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: hsl(var(--foreground));
+}
+
+.proofBody {
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.proofBigRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.proofMetric {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 2%, hsl(var(--card)));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.proofValue {
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: hsl(var(--foreground));
+}
+
+.proofValueAccent {
+  color: hsl(var(--primary));
+}
+
+.proofUnit {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: hsl(var(--muted-foreground));
+}
+
+.proofSentence {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border-left: 3px solid var(--v4-warm);
+  background-color: color-mix(in srgb, var(--v4-warm) 10%, hsl(var(--card)));
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+}
+
+.barList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.barItem {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.barItemHighlight {
+  border-color: var(--v4-warm);
+  background-color: color-mix(in srgb, var(--v4-warm) 7%, hsl(var(--card)));
+}
+
+.barHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.barName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.barNumbers {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.barTrack {
+  width: 100%;
+  height: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 10%, hsl(var(--card)));
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.barFillCoral {
+  background-color: var(--coral);
+}
+
+.barFillWarm {
+  background-color: var(--v4-warm);
+}
+
+.barFillMint {
+  background-color: var(--mint);
+}
+
+.proofFoot {
+  padding: 10px 16px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ==================== 2. ZWEI LAGER ==================== */
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.roleCard {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-top-width: 3px;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.roleCardMarket {
+  border-top-color: var(--coral);
+}
+
+.roleCardGrid {
+  border-top-color: var(--mint);
+}
+
+.roleTag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: hsl(var(--foreground));
+}
+
+.cardText {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.58;
+  color: hsl(var(--muted-foreground));
+}
+
+.factBox {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 3%, hsl(var(--card)));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.factRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.factTerm {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.factVal {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.cardActions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  padding-top: 4px;
+}
+
+/* ==================== 3. GESTERN IM NETZ ==================== */
+
+.kpiStrip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.kpiCard {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpiLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.kpiVal {
+  font-size: clamp(1.25rem, 3vw, 1.65rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: hsl(var(--foreground));
+}
+
+.kpiSub {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.dayChartCard {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dayChartBar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 4%, hsl(var(--card)));
+}
+
+.dayChartTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.dayLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+}
+
+.legendSwatch {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.swatchLoad {
+  background-color: hsl(var(--c-load));
+}
+
+.swatchPrice {
+  background-color: var(--coral);
+}
+
+.dayChartBody {
+  padding: 12px 6px;
+}
+
+.dayChartFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 10px 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.dayChartMeta {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* NeonDayChart SVG Styles */
+
+.chartFrame {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.chartSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chartEmpty {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.svgGridLine {
+  stroke: hsl(var(--c-grid));
+  stroke-width: 0.9;
+  opacity: 0.45;
+}
+
+.svgVerticalGrid {
+  stroke: hsl(var(--c-grid));
+  stroke-width: 0.8;
+  stroke-dasharray: 2 3;
+  opacity: 0.35;
+}
+
+.svgAxisLine {
+  stroke: hsl(var(--border));
+  stroke-width: 1.2;
+}
+
+.svgZeroLine {
+  stroke: hsl(var(--muted-foreground));
+  stroke-width: 1.1;
+  stroke-dasharray: 4 3;
+}
+
+.svgAxisUnit {
+  fill: hsl(var(--foreground));
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.svgTickText {
+  fill: hsl(var(--muted-foreground));
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.svgLoadLine {
+  stroke: hsl(var(--c-load));
+}
+
+.svgPriceLine {
+  stroke: var(--coral);
+}
+
+.svgPriceDotMax {
+  fill: var(--coral);
+  stroke: hsl(var(--card));
+  stroke-width: 1.5;
+}
+
+.svgPriceDotMin {
+  fill: hsl(var(--card));
+  stroke: var(--coral);
+  stroke-width: 2;
+}
+
+.svgPinLabel {
+  fill: hsl(var(--foreground));
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.svgCalloutText {
+  fill: hsl(var(--foreground));
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==================== 4. BEFUNDE & KNOTEN ==================== */
+
+.findingsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.findingCard {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.findingTag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.findingFigure {
+  font-size: clamp(1.3rem, 2.8vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: hsl(var(--foreground));
+}
+
+.findingMeta {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.knotenCard {
+  margin-top: 20px;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-left: 4px solid var(--mint);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.knotenBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.knotenTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: hsl(var(--foreground));
+}
+
+.knotenAction {
+  display: flex;
+  align-items: center;
+}
+
+/* ==================== 5. TRANSPARENZ ==================== */
+
+.transparencyBox {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.transparencyGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.transCell {
+  padding: 18px;
+  border-bottom: 1px solid hsl(var(--border));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--foreground));
+}
+
+.transText {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+
+.transparencyFoot {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: color-mix(in srgb, hsl(var(--foreground)) 3%, hsl(var(--card)));
+}
+
+.legalLine {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+}
+
+/* ==================== 6. WER HIER RECHNET ==================== */
+
+.authorLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.authorMetaCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.authorCard {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.authorName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.authorRole {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+.authorScope {
+  margin: 6px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.authorBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.authorBio {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 1.03rem;
+  line-height: 1.62;
+  color: hsl(var(--foreground));
+}
+
+.authorLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (min-width: 640px) {
+  .container {
+    padding-inline: 24px;
+  }
+
+  .heroActions,
+  .authorLinks {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .kpiStrip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dayChartBody {
+    padding: 16px 20px;
+  }
+}
+
+@media (min-width: 900px) {
+  .section {
+    padding-block: 60px;
+  }
+
+  .container {
+    padding-inline: 32px;
+  }
+
+  .splitGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .findingsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .knotenCard {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+  }
+
+  .knotenAction {
+    flex-shrink: 0;
+  }
+
+  .transparencyGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .transCell {
+    border-right: 1px solid hsl(var(--border));
+  }
+
+  .transCell:last-child {
+    border-right: none;
+  }
+
+  .transparencyFoot {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .authorLayout {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: 32px;
+  }
+}
+
+@media (min-width: 1080px) {
+  .heroSection {
+    padding-top: 44px;
+    padding-bottom: 64px;
+  }
+
+  .heroGrid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 36px;
+  }
+}

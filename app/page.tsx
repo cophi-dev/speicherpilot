@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { Tagesvorlage } from "@/components/home/Tagesvorlage";
+import { NeonStart } from "@/components/home/NeonStart";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Skeleton } from "@/components/ui/skeleton";
 import { datasetJsonLd } from "@/lib/seo/jsonLd";
@@ -76,7 +76,7 @@ export default async function Home({
           }),
         }}
       />
-      <Tagesvorlage model={model} />
+      <NeonStart model={model} />
     </Suspense>
   );
 }
