@@ -400,7 +400,7 @@ export function NeonStart({ model }: NeonStartProps) {
             <article className={styles.findingCard}>
               <span className={styles.findingTag}>Befund 01 · Kompromiss</span>
               <div className={`${styles.findingFigure} ${styles.num}`}>
-                70{"\u00a0"}% Senkung · −0,36{"\u00a0"}%
+                2,51{"\u00a0"}GW · −0,36{"\u00a0"}%
               </div>
               <p className={styles.cardText}>
                 70{"\u00a0"}% der möglichen Spitzensenkung (2,51 von 3,59{"\u00a0"}GW) für 0,36
