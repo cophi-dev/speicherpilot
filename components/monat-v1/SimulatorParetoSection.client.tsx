@@ -54,6 +54,33 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
     [data.front],
   );
 
+  const onDownloadParetoCsv = () => {
+    const header = "Punkt;Fahrweise;Erloes_Anteil_Prozent;Spitzensenkung_GW;Monatsspitze_GW";
+    const fmt = (n: number) => n.toFixed(2).replace(".", ",");
+    const rows = data.front.map((p, i) => {
+      const label =
+        i === data.namedIndices.markt
+          ? "Nur Preis"
+          : i === data.namedIndices.kompromiss
+            ? "Kompromiss"
+            : i === data.namedIndices.netzdienlich
+              ? "Spitze zuerst"
+              : `Frontpunkt ${i + 1}`;
+      const revPct = revenuePctOfMarket(p.revenueMioEur, mkt.revenueMioEur);
+      return `${i + 1};${label};${fmt(revPct)};${fmt(p.reductionGw)};${fmt(p.peakGw)}`;
+    });
+    const csv = `\uFEFF${[header, ...rows].join("\n")}\n`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "speicherpilot-kompromiss-pareto-2026-10.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <section className={styles.section} aria-labelledby="sim-g1-title" data-testid="simulator-pareto">
       <p className={styles.eyebrow}>
@@ -182,6 +209,16 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
             </tr>
           </tbody>
         </table>
+      </div>
+      <div className={simStyles.exportRow}>
+        <button
+          type="button"
+          className={simStyles.exportBtn}
+          onClick={onDownloadParetoCsv}
+          data-testid="pareto-csv-export"
+        >
+          Pareto-Front als CSV ({data.front.length} Punkte)
+        </button>
       </div>
       <p className={styles.figcaption}>{MONAT_V1_GRAPH_CAPTION}</p>
       <p className={simStyles.kipppunktHint}>

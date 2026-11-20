@@ -48,19 +48,26 @@ export function MonatReglerHero({
   factor,
   strategy,
   kpiSource,
+  initialCompact = null,
 }: {
   monthKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
   kpiSource: ReglerKpiSource;
+  initialCompact?: MonatReglerCompact | null;
 }) {
   const router = useRouter();
-  const [compact, setCompact] = useState<MonatReglerCompact | null>(null);
+  const [compact, setCompact] = useState<MonatReglerCompact | null>(initialCompact);
   const [error, setError] = useState<string | null>(null);
 
   const monthLabel = formatBerlinMonthLabel(monthKey);
 
   useEffect(() => {
+    if (initialCompact) {
+      setCompact(initialCompact);
+      setError(null);
+      return;
+    }
     let cancelled = false;
     fetch(`/api/national-fleet/compact?month=${encodeURIComponent(monthKey)}`)
       .then((r) => {
@@ -77,7 +84,7 @@ export function MonatReglerHero({
     return () => {
       cancelled = true;
     };
-  }, [monthKey]);
+  }, [initialCompact, monthKey]);
 
   const kpis = useMemo(
     () => (compact ? reglerKpisFromBundle(kpiSource, factor, strategy, compact) : null),

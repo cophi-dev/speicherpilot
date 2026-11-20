@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { SimulatorSubnav } from "@/components/simulator/SimulatorSubnav";
 import { KnotenChart } from "@/components/knoten/KnotenChart.client";
@@ -14,6 +14,7 @@ import {
   KNOTEN_BELEGUNG_LABELS,
   KNOTEN_BELEGUNGEN,
   KNOTEN_FAKTOREN,
+  KNOTEN_LIMIT_MW,
   KNOTEN_NODE_LABELS,
   KNOTEN_TYPEN,
   type KnotenBelegung,
@@ -22,6 +23,30 @@ import {
   type KnotenFaktor,
   type KnotenTyp,
 } from "@/lib/knoten/knotenTypes";
+
+const CUSTOM_LIMITS_MW = [40, 60, 80, 100, 120] as const;
+
+function formatDeMw(value: number): string {
+  return `${value.toFixed(1).replace(".", ",")}\u00A0MW`;
+}
+
+function slotTimeLabel(index: number): string {
+  const totalMinutes = index * 15;
+  const hh = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
+  const mm = String(totalMinutes % 60).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+function summarizeSeries(values: number[], limitMw: number) {
+  let qhOver = 0;
+  let maxAbs = 0;
+  for (const v of values) {
+    const abs = Math.abs(v);
+    if (abs > limitMw + 1e-6) qhOver += 1;
+    if (abs > maxAbs) maxAbs = abs;
+  }
+  return { qhOver, maxAbs };
+}
 
 function qs(belegung: KnotenBelegung, typ: KnotenTyp, k: KnotenFaktor, tag: string) {
   return `/knoten?belegung=${belegung}&typ=${typ}&k=${k}&tag=${tag}`;
@@ -46,9 +71,39 @@ export function KnotenWorkbench({
 }) {
   const { colors } = useKnotenTheme();
   const router = useRouter();
+  const [customLimitMw, setCustomLimitMw] = useState<number>(KNOTEN_LIMIT_MW);
   const fazit = knotenFazitSatz(typ, row);
   const euro = knotenEuroHinweis(row);
   const dateBounds = bounds;
+
+  const limitStats = useMemo(
+    () => ({
+      base: summarizeSeries(curve.base, customLimitMw),
+      markt: summarizeSeries(curve.fm, customLimitMw),
+      knoten: summarizeSeries(curve.fk, customLimitMw),
+    }),
+    [curve.base, curve.fk, curve.fm, customLimitMw],
+  );
+
+  const onDownloadCsv = useCallback(() => {
+    const header = "Uhrzeit;Ohne_Speicher_MW;Markt_MW;Knotentreu_MW;Grenze_MW";
+    const rows = curve.base.map((baseVal, i) => {
+      const fmVal = curve.fm[i] ?? 0;
+      const fkVal = curve.fk[i] ?? 0;
+      const fmt = (n: number) => n.toFixed(2).replace(".", ",");
+      return `${slotTimeLabel(i)};${fmt(baseVal)};${fmt(fmVal)};${fmt(fkVal)};${customLimitMw}`;
+    });
+    const csv = `\uFEFF${[header, ...rows].join("\n")}\n`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `speicherpilot-knoten-${typ}-x${k}-${tag}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [curve.base, curve.fk, curve.fm, customLimitMw, k, tag, typ]);
 
   const onDate = useCallback(
     (next: string) => {
@@ -182,6 +237,70 @@ export function KnotenWorkbench({
       <p className={styles.footnote}>{KNOTEN_ZACKEN_HINWEIS_DE}</p>
 
       <KnotenChart typ={typ} day={tag} k={k} curve={curve} colors={colors} />
+
+      <section className={styles.utilityCard} aria-labelledby="knoten-utility-title">
+        <div className={styles.utilityHead}>
+          <div>
+            <p className={styles.chipGroupLabel} style={{ marginTop: 0 }}>
+              Grenzwert-Sensitivität &amp; Datenexport
+            </p>
+            <h2 id="knoten-utility-title" className={styles.utilityTitle}>
+              Eigene Knotengrenze testen &amp; 96{"\u00A0"}Viertelstunden exportieren
+            </h2>
+          </div>
+          <button
+            type="button"
+            className={styles.exportBtn}
+            onClick={onDownloadCsv}
+            data-testid="knoten-csv-export"
+          >
+            96{"\u00A0"}Viertelstunden als CSV
+          </button>
+        </div>
+
+        <div className={styles.chipRow} role="group" aria-label="Eigene Knotengrenze in MW">
+          {CUSTOM_LIMITS_MW.map((limit) => (
+            <button
+              key={limit}
+              type="button"
+              className={`${styles.chip}${customLimitMw === limit ? ` ${styles.chipActive}` : ""}`}
+              aria-pressed={customLimitMw === limit}
+              onClick={() => setCustomLimitMw(limit)}
+            >
+              ±{limit}
+              {"\u00A0"}MW{limit === KNOTEN_LIMIT_MW ? " (Standard)" : ""}
+            </button>
+          ))}
+        </div>
+
+        <dl className={styles.utilityGrid}>
+          <div className={styles.utilityStat}>
+            <dt>Ohne Speicher über ±{customLimitMw}{"\u00A0"}MW</dt>
+            <dd>
+              <strong>{limitStats.base.qhOver}{"\u00A0"}Viertelstunden</strong>
+              <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.base.maxAbs)}</span>
+            </dd>
+          </div>
+          <div className={styles.utilityStat}>
+            <dt>Markt-Fahrplan über ±{customLimitMw}{"\u00A0"}MW</dt>
+            <dd>
+              <strong>{limitStats.markt.qhOver}{"\u00A0"}Viertelstunden</strong>
+              <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.markt.maxAbs)}</span>
+            </dd>
+          </div>
+          <div className={styles.utilityStat}>
+            <dt>Knotentreu über ±{customLimitMw}{"\u00A0"}MW</dt>
+            <dd>
+              <strong>{limitStats.knoten.qhOver}{"\u00A0"}Viertelstunden</strong>
+              <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.knoten.maxAbs)}</span>
+            </dd>
+          </div>
+        </dl>
+
+        <p className={styles.footnote}>
+          Der Speicherfahrplan „knotentreu“ ist fest auf die 80{"\u00A0"}MW Modellgrenze optimiert. Die Schwellwert-Auswertung zeigt direkt an denselben 96{"\u00A0"}Viertelstunden, wie empfindlich der Knoten auf engere oder weitere Betriebsmittelgrenzen reagiert.
+        </p>
+      </section>
     </div>
   );
 }

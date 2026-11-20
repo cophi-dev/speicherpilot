@@ -339,3 +339,23 @@
   gap: 24px;
   align-items: start;
 }
+
+.exportRow {
+  margin: 0.75rem 0 0.5rem;
+}
+
+.exportBtn {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--mv-ink, #101214);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mv-ink, #101214);
+  cursor: pointer;
+}
+
+.exportBtn:hover {
+  background: var(--mv-flaeche, #f6f6f3);
+}

@@ -217,46 +217,13 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
   const resolvedTheme = mounted ? resolveTheme(themePref) : "light";
   const themeIsDark = resolvedTheme === "dark";
 
-  const handleThemeToggle = useCallback(
-    (btn: HTMLButtonElement) => {
-      const next: ThemePreference = themeIsDark ? "light" : "dark";
-      const goingDark = next === "dark";
-
-      const apply = () => {
-        flushSync(() => {
-          setThemePref(next);
-        });
-        applyThemePreferenceToDocument(next);
-      };
-
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const startVT = (
-        document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } }
-      ).startViewTransition;
-
-      if (reduce || typeof startVT !== "function") {
-        apply();
-        return;
-      }
-
-      const rect = btn.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
-      const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-      const html = document.documentElement;
-      html.style.setProperty("--vt-x", `${x}px`);
-      html.style.setProperty("--vt-y", `${y}px`);
-      html.style.setProperty("--vt-r", `${radius}px`);
-      html.classList.toggle("vt-to-dark", goingDark);
-      html.classList.toggle("vt-to-light", !goingDark);
-
-      const vt = startVT.call(document, apply);
-      void vt.finished.finally(() => {
-        html.classList.remove("vt-to-dark", "vt-to-light");
-      });
-    },
-    [themeIsDark],
-  );
+  const handleThemeToggle = useCallback(() => {
+    const next: ThemePreference = themeIsDark ? "light" : "dark";
+    flushSync(() => {
+      setThemePref(next);
+    });
+    applyThemePreferenceToDocument(next);
+  }, [themeIsDark]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage: () => {} }}>
@@ -354,10 +321,11 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
         <footer className="border-t border-border">
           <div className="mx-auto py-8 text-sm text-muted-foreground">
             <nav className="legal-footer" aria-label="Rechtliches und Methodik">
-              <Link href="/impressum">Impressum</Link>
-              <Link href="/datenschutz">Datenschutz</Link>
+              <Link href="/ueber">Über SpeicherPilot</Link>
               <Link href="/methodik">Methodik</Link>
               <Link href="/methodik#so-pruefen-wir">So prüfen wir Meldungen</Link>
+              <Link href="/impressum">Impressum</Link>
+              <Link href="/datenschutz">Datenschutz</Link>
             </nav>
             <p className="mt-6 max-w-[52rem] leading-relaxed">
               Quellen und Glossar stehen in der{" "}

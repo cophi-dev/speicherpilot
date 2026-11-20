@@ -191,3 +191,80 @@
   padding: 0;
   margin: 0;
 }
+
+.utilityCard {
+  margin-top: 1.5rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--kn-linie);
+  border-radius: 8px;
+  background: var(--kn-flaeche);
+}
+
+.utilityHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.utilityTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+  color: var(--kn-ink);
+}
+
+.exportBtn {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--kn-ink);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--kn-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exportBtn:hover {
+  background: var(--kn-grid);
+}
+
+.utilityGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+}
+
+.utilityStat {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--kn-linie);
+  border-radius: 6px;
+  background: var(--kn-bg);
+}
+
+.utilityStat dt {
+  font-size: 0.75rem;
+  color: var(--kn-muted);
+  margin: 0 0 0.25rem;
+}
+
+.utilityStat dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+}
+
+.utilitySub {
+  font-size: 0.8125rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  color: var(--kn-muted);
+}

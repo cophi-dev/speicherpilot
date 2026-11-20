@@ -128,8 +128,8 @@ function buildGeometry(
     plotTop: frame.pad.top,
     plotBottom: frame.pad.top + plotH,
     labelLoad: { x: frame.pad.left + plotW * 0.34, y: frame.pad.top + 14 },
-    labelWs: { x: frame.pad.left + plotW * 0.16, y: frame.pad.top + plotH * 0.58 },
-    labelGap: { x: frame.pad.left + plotW * 0.52, y: frame.pad.top + plotH * 0.4 },
+    labelWs: { x: frame.pad.left + plotW * 0.08, y: frame.pad.top + plotH * 0.78 },
+    labelGap: { x: frame.pad.left + plotW * 0.36, y: frame.pad.top + plotH * 0.42 },
   };
 }
 
@@ -341,10 +341,10 @@ export function LueckeChart({
               <text x={frame.pad.left + plotW * 0.34} y={frame.pad.top + 18} className="v4-luecke-label">
                 Verbrauch
               </text>
-              <text x={frame.pad.left + plotW * 0.18} y={frame.pad.top + plotH * 0.58} className="v4-luecke-label">
+              <text x={frame.pad.left + plotW * 0.08} y={frame.pad.top + plotH * 0.78} className="v4-luecke-label">
                 Wind und Sonne
               </text>
-              <text x={frame.pad.left + plotW * 0.52} y={frame.pad.top + plotH * 0.42} className="v4-luecke-gap-label">
+              <text x={frame.pad.left + plotW * 0.36} y={frame.pad.top + plotH * 0.42} className="v4-luecke-gap-label">
                 andere Quellen
               </text>
             </>
