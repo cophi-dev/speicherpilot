@@ -128,7 +128,7 @@ function buildGeometry(
     plotTop: frame.pad.top,
     plotBottom: frame.pad.top + plotH,
     labelLoad: { x: frame.pad.left + plotW * 0.34, y: frame.pad.top + 14 },
-    labelWs: { x: frame.pad.left + plotW * 0.08, y: frame.pad.top + plotH * 0.78 },
+    labelWs: { x: frame.pad.left + plotW * 0.08, y: frame.pad.top + plotH * 0.86 },
     labelGap: { x: frame.pad.left + plotW * 0.36, y: frame.pad.top + plotH * 0.42 },
   };
 }
@@ -341,7 +341,7 @@ export function LueckeChart({
               <text x={frame.pad.left + plotW * 0.34} y={frame.pad.top + 18} className="v4-luecke-label">
                 Verbrauch
               </text>
-              <text x={frame.pad.left + plotW * 0.08} y={frame.pad.top + plotH * 0.78} className="v4-luecke-label">
+              <text x={frame.pad.left + plotW * 0.08} y={frame.pad.top + plotH * 0.86} className="v4-luecke-label">
                 Wind und Sonne
               </text>
               <text x={frame.pad.left + plotW * 0.36} y={frame.pad.top + plotH * 0.42} className="v4-luecke-gap-label">
@@ -363,9 +363,9 @@ export function LueckeChart({
               <circle cx={geometry.peakX} cy={geometry.peakYLoad} r={4.5} className="v4-luecke-peak-dot" />
               {labelInsideSvg ? (
                 <text
-                  x={geometry.peakX + 12}
+                  x={geometry.peakX > frame.w - 220 ? geometry.peakX - 12 : geometry.peakX + 12}
                   y={peakLabelY}
-                  textAnchor="start"
+                  textAnchor={geometry.peakX > frame.w - 220 ? "end" : "start"}
                   className="v4-luecke-peak-value num"
                 >
                   {peakLabel}
