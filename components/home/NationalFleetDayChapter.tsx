@@ -122,7 +122,7 @@ export function NationalFleetDayChapter({
           </div>
           <p className="v4-fleet-strategy-copy">
             {strategy === "spitze"
-              ? "lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
+              ? "Lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
               : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
           </p>
           <p className="v4-fleet-energy-context">

@@ -23,41 +23,41 @@ export function StartRoterFadenKompass() {
           )}
         </p>
       </div>
-      <dl className="v4-fleet-kpis v4-content">
-        <div>
-          <dt className="num">1 · Speicherdauer &amp; Flotte (National)</dt>
-          <dd>
+      <div className="v4-kompass-grid v4-content">
+        <article className="v4-kompass-card">
+          <p className="v4-kompass-kicker num">1 · Speicherdauer &amp; Flotte (National)</p>
+          <p className="v4-kompass-body">
             {insertDisplayUnitNbsp(
               "×5 mit 4 h senkt die Oktober-Spitze genauso stark wie ×10 mit 1,76 h (−14,0 GW bei halber Leistung).",
-            )}{" "}
-            <Link href="/monat/2026-10" className="v4-text-link">
-              Monatsmodell →
-            </Link>
-          </dd>
-        </div>
-        <div>
-          <dt className="num">2 · Fahrweise &amp; Leistungsdeckel (Pareto)</dt>
-          <dd>
+            )}
+          </p>
+          <Link href="/monat/2026-10" className="v4-text-link v4-kompass-link">
+            Monatsmodell →
+          </Link>
+        </article>
+        <article className="v4-kompass-card">
+          <p className="v4-kompass-kicker num">2 · Fahrweise &amp; Leistungsdeckel (Pareto)</p>
+          <p className="v4-kompass-body">
             {insertDisplayUnitNbsp(
               "70 % der maximalen Spitzensenkung (2,51 statt 0,37 GW) kosten bei doppelter Flotte nur 0,36 % Day-Ahead-Erlös.",
-            )}{" "}
-            <Link href="/kompromiss" className="v4-text-link">
-              Kompromiss →
-            </Link>
-          </dd>
-        </div>
-        <div>
-          <dt className="num">3 · Umspannwerk-Grenze (80{"\u00A0"}MW)</dt>
-          <dd>
+            )}
+          </p>
+          <Link href="/kompromiss" className="v4-text-link v4-kompass-link">
+            Kompromiss →
+          </Link>
+        </article>
+        <article className="v4-kompass-card">
+          <p className="v4-kompass-kicker num">3 · Umspannwerk-Grenze (80{"\u00A0"}MW)</p>
+          <p className="v4-kompass-body">
             {insertDisplayUnitNbsp(
               "Drei Modellknoten (Wind Nord, Solar Süd, Stadt): wo Markt-Laden die Grenze reißt und was knotentreu kostet.",
-            )}{" "}
-            <Link href="/knoten" className="v4-text-link">
-              Modellknoten →
-            </Link>
-          </dd>
-        </div>
-      </dl>
+            )}
+          </p>
+          <Link href="/knoten" className="v4-text-link v4-kompass-link">
+            Modellknoten →
+          </Link>
+        </article>
+      </div>
     </section>
   );
 }

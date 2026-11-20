@@ -26,6 +26,7 @@ export function SvgText({
   anchor = "start",
   weight = 400,
   size = 12,
+  halo,
   children,
 }: {
   x: number;
@@ -34,6 +35,7 @@ export function SvgText({
   anchor?: "start" | "middle" | "end";
   weight?: number;
   size?: number;
+  halo?: string;
   children: ReactNode;
 }) {
   return (
@@ -44,13 +46,23 @@ export function SvgText({
       fill={fill}
       fontSize={size}
       fontWeight={weight}
+      style={
+        halo
+          ? {
+              paintOrder: "stroke",
+              stroke: halo,
+              strokeWidth: 4,
+              strokeLinejoin: "round",
+            }
+          : undefined
+      }
     >
       {children}
     </text>
   );
 }
 
-/** Zweizeiliges Label, Zeilenabstand 18 px, Knockout, Anker am Punkt. */
+/** Zweizeiliges Label, Zeilenabstand 16 px, sauberer Text-Halo ohne dunkle Box. */
 export function TwoLineLabel({
   x,
   y1,
@@ -68,15 +80,12 @@ export function TwoLineLabel({
   fill: string;
   bg: string;
 }) {
-  const wch = Math.max(line1.length, line2.length) * 7.3 + 8;
-  const kx = anchor === "end" ? x - wch : anchor === "middle" ? x - wch / 2 : x - 4;
   return (
     <g>
-      <Knockout x={kx} y={y1 - 12} width={wch + 4} height={36} fill={bg} opacity={0.9} />
-      <SvgText x={x} y={y1} fill={fill} anchor={anchor} weight={500}>
+      <SvgText x={x} y={y1} fill={fill} anchor={anchor} weight={600} halo={bg}>
         {line1}
       </SvgText>
-      <SvgText x={x} y={y1 + 18} fill={fill} anchor={anchor} weight={400}>
+      <SvgText x={x} y={y1 + 16} fill={fill} anchor={anchor} weight={400} halo={bg}>
         {line2}
       </SvgText>
     </g>

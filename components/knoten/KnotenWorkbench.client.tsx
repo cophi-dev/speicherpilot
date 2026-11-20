@@ -81,62 +81,70 @@ export function KnotenWorkbench({
         </Link>
       </p>
 
-      <p className={styles.chipGroupLabel}>Knotentyp</p>
-      <div className={styles.chipRow} role="group" aria-label="Knotentyp">
-        {KNOTEN_TYPEN.map((id) => (
-          <Link
-            key={id}
-            href={qs(belegung, id, k, tag)}
-            className={`${styles.chip}${id === typ ? ` ${styles.chipActive}` : ""}`}
-            aria-current={id === typ ? "true" : undefined}
-          >
-            {KNOTEN_NODE_LABELS[id]}
-          </Link>
-        ))}
-      </div>
+      <div className={styles.controlBar}>
+        <div className={styles.controlGroup}>
+          <p className={styles.chipGroupLabel}>Knotentyp</p>
+          <div className={styles.chipRow} role="group" aria-label="Knotentyp">
+            {KNOTEN_TYPEN.map((id) => (
+              <Link
+                key={id}
+                href={qs(belegung, id, k, tag)}
+                className={`${styles.chip}${id === typ ? ` ${styles.chipActive}` : ""}`}
+                aria-current={id === typ ? "true" : undefined}
+              >
+                {KNOTEN_NODE_LABELS[id]}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-      <p className={styles.chipGroupLabel}>Flottenstufe am Knoten</p>
-      <div className={styles.chipRow} role="group" aria-label="Flottenstufe">
-        {KNOTEN_FAKTOREN.map((f) => (
-          <Link
-            key={f}
-            href={qs(belegung, typ, f, tag)}
-            className={`${styles.chip}${f === k ? ` ${styles.chipActive}` : ""}`}
-            aria-current={f === k ? "true" : undefined}
-          >
-            ×{f}
-          </Link>
-        ))}
-      </div>
+        <div className={styles.controlGroup}>
+          <p className={styles.chipGroupLabel}>Flottenstufe am Knoten</p>
+          <div className={styles.chipRow} role="group" aria-label="Flottenstufe">
+            {KNOTEN_FAKTOREN.map((f) => (
+              <Link
+                key={f}
+                href={qs(belegung, typ, f, tag)}
+                className={`${styles.chip}${f === k ? ` ${styles.chipActive}` : ""}`}
+                aria-current={f === k ? "true" : undefined}
+              >
+                ×{f}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-      <p className={styles.chipGroupLabel}>Belegung</p>
-      <div className={styles.chipRow} role="group" aria-label="Belegung">
-        {KNOTEN_BELEGUNGEN.map((b) => (
-          <Link
-            key={b}
-            href={qs(b, typ, k, tag)}
-            className={`${styles.chip}${b === belegung ? ` ${styles.chipActive}` : ""}`}
-            aria-current={b === belegung ? "true" : undefined}
-          >
-            {KNOTEN_BELEGUNG_LABELS[b]}
-          </Link>
-        ))}
-      </div>
+        <div className={styles.controlGroup}>
+          <p className={styles.chipGroupLabel}>Belegung</p>
+          <div className={styles.chipRow} role="group" aria-label="Belegung">
+            {KNOTEN_BELEGUNGEN.map((b) => (
+              <Link
+                key={b}
+                href={qs(b, typ, k, tag)}
+                className={`${styles.chip}${b === belegung ? ` ${styles.chipActive}` : ""}`}
+                aria-current={b === belegung ? "true" : undefined}
+              >
+                {KNOTEN_BELEGUNG_LABELS[b]}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-      <div className={styles.controls}>
-        <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
-          Tag
-        </label>
-        <input
-          id="knoten-tag"
-          type="date"
-          className={styles.dateInput}
-          value={tag}
-          min={dateBounds.min}
-          max={dateBounds.max}
-          onChange={(e) => onDate(e.target.value)}
-          data-testid="knoten-tag-input"
-        />
+        <div className={styles.controls}>
+          <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
+            Tag
+          </label>
+          <input
+            id="knoten-tag"
+            type="date"
+            className={styles.dateInput}
+            value={tag}
+            min={dateBounds.min}
+            max={dateBounds.max}
+            onChange={(e) => onDate(e.target.value)}
+            data-testid="knoten-tag-input"
+          />
+        </div>
       </div>
 
       <p className={styles.fazit} data-testid="knoten-fazit">
