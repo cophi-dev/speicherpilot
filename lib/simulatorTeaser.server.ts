@@ -33,7 +33,7 @@ export function loadEps70Teaser(): Eps70TeaserUi {
       `Double the fleet in October 2026: by price ${formatQuantityUnit(data.endpoints.marketLex.reductionGw, "en", 2, "GW")} less peak, peak-aware ${formatQuantityUnit(data.endpoints.netzLex.reductionGw, "en", 2, "GW")}.`,
     ),
     sublineDe: insertDisplayUnitNbsp(
-      `Dafür sinkt der Day-Ahead-Erlös um ${k.costLabel}\u00a0%. Die volle Senkung (${formatQuantityUnit(net.reductionGw, "de", 2, "GW")}) kostet ${voll.pctLabel}\u00a0%.`,
+      `Dafür sinkt der Day-Ahead-Erlös (Modell, perfekte Voraussicht) um ${k.costLabel}\u00a0%. Die volle Senkung (${formatQuantityUnit(net.reductionGw, "de", 2, "GW")}) kostet ${voll.pctLabel}\u00a0%.`,
     ),
     sublineEn: insertDisplayUnitNbsp(
       `Day-ahead revenue falls by ${k.costLabel}\u00a0%. Full peak reduction (${formatQuantityUnit(net.reductionGw, "en", 2, "GW")}) costs ${voll.pctLabel}\u00a0%.`,

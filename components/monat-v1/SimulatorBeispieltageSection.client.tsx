@@ -1,6 +1,9 @@
 "use client";
 
+import { useRef } from "react";
+
 import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { useMeasuredChartWidth } from "@/components/research/useMeasuredChartWidth";
 import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
 import { beispieltagTooltipRows, beispieltagTooltipTime } from "@/lib/simulatorChartTooltip";
 import styles from "@/components/monat-v1/monat-v1.module.css";
@@ -111,14 +114,18 @@ function DayChart({
   title: string;
   subtitle: string;
 }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const measuredW = useMeasuredChartWidth(wrapRef, wide ? 560 : 350);
+  const chartW = Math.max(340, Math.round(measuredW));
+  const compact = chartW < 480;
   const day = data.exampleDays[date]!;
   const market = day.modes.price;
   const netz = day.modes.peak;
   const komp = day.modes.eps70;
   const is21 = date.endsWith("21");
-  const vb = wide
-    ? { w: 560, L: 44, R: 24, T: 36, B: 32, topH: 240, priceH: 70, midH: 8 }
-    : { w: 350, L: 40, R: 22, T: 40, B: 34, topH: 220, priceH: 70, midH: 8 };
+  const vb = compact
+    ? { w: chartW, L: 42, R: 22, T: 40, B: 34, topH: 220, priceH: 74, midH: 12 }
+    : { w: chartW, L: 46, R: 24, T: 36, B: 32, topH: 240, priceH: 74, midH: 12 };
   const VH = vb.T + vb.topH + vb.midH + vb.priceH + vb.B;
   const plotW = vb.w - vb.L - vb.R;
   const residualT = vb.T;
@@ -151,7 +158,7 @@ function DayChart({
     : null;
 
   return (
-    <figure className={simStyles.dayChartFigure}>
+    <figure ref={wrapRef} className={simStyles.dayChartFigure}>
     <SvgChartShell
       pointCount={market.length}
       pickIndex={pick}

@@ -182,7 +182,7 @@ export function VisionPlot({
             strokeDasharray="4 3"
             strokeWidth={1}
           />
-          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP) - 16} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {width < 420
               ? `≥${model.commitmentsGw}\u00a0GW*`
               : `≥ ${model.commitmentsGw}\u00a0GW Zusagen*`}

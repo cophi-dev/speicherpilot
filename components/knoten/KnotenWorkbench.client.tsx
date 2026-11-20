@@ -66,9 +66,14 @@ export function KnotenWorkbench({
       <h1 className="v4-h1" style={{ marginBottom: "0.5rem" }}>
         Dein Knoten
       </h1>
-      <p className="v4-lead" style={{ maxWidth: "52ch" }}>
-        Drei Modellknoten mit derselben Preislogik wie auf /tag — hier mit Grenze am Umspannwerk statt bundesweiter
-        Restlast.
+      <p className="v4-lead" style={{ maxWidth: "60ch" }}>
+        Drei Modellknoten (Wind Nord, Solar Süd, Stadt) mit 80{"\u00A0"}MW Grenze am Umspannwerk (2 × 40{"\u00A0"}MVA
+        HS/MS): Wann überlastet reines Preisfahren den Knoten — und wie viel Day-Ahead-Erlös kostet eine knotentreue
+        Fahrweise (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)? Den nationalen Erlös-Spitzen-Kompromiss zeigt{" "}
+        <Link href="/kompromiss" className="v4-text-link">
+          Kompromiss
+        </Link>
+        .
       </p>
       <p className={styles.chipRow}>
         <Link href="/methodik#knoten-modell" className="v4-text-link">
@@ -76,62 +81,70 @@ export function KnotenWorkbench({
         </Link>
       </p>
 
-      <p className={styles.chipGroupLabel}>Knotentyp</p>
-      <div className={styles.chipRow} role="group" aria-label="Knotentyp">
-        {KNOTEN_TYPEN.map((id) => (
-          <Link
-            key={id}
-            href={qs(belegung, id, k, tag)}
-            className={`${styles.chip}${id === typ ? ` ${styles.chipActive}` : ""}`}
-            aria-current={id === typ ? "true" : undefined}
-          >
-            {KNOTEN_NODE_LABELS[id]}
-          </Link>
-        ))}
-      </div>
+      <div className={styles.controlBar}>
+        <div className={styles.controlGroup}>
+          <p className={styles.chipGroupLabel}>Knotentyp</p>
+          <div className={styles.chipRow} role="group" aria-label="Knotentyp">
+            {KNOTEN_TYPEN.map((id) => (
+              <Link
+                key={id}
+                href={qs(belegung, id, k, tag)}
+                className={`${styles.chip}${id === typ ? ` ${styles.chipActive}` : ""}`}
+                aria-current={id === typ ? "true" : undefined}
+              >
+                {KNOTEN_NODE_LABELS[id]}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-      <p className={styles.chipGroupLabel}>Flottenstufe am Knoten</p>
-      <div className={styles.chipRow} role="group" aria-label="Flottenstufe">
-        {KNOTEN_FAKTOREN.map((f) => (
-          <Link
-            key={f}
-            href={qs(belegung, typ, f, tag)}
-            className={`${styles.chip}${f === k ? ` ${styles.chipActive}` : ""}`}
-            aria-current={f === k ? "true" : undefined}
-          >
-            ×{f}
-          </Link>
-        ))}
-      </div>
+        <div className={styles.controlGroup}>
+          <p className={styles.chipGroupLabel}>Flottenstufe am Knoten</p>
+          <div className={styles.chipRow} role="group" aria-label="Flottenstufe">
+            {KNOTEN_FAKTOREN.map((f) => (
+              <Link
+                key={f}
+                href={qs(belegung, typ, f, tag)}
+                className={`${styles.chip}${f === k ? ` ${styles.chipActive}` : ""}`}
+                aria-current={f === k ? "true" : undefined}
+              >
+                ×{f}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-      <p className={styles.chipGroupLabel}>Belegung</p>
-      <div className={styles.chipRow} role="group" aria-label="Belegung">
-        {KNOTEN_BELEGUNGEN.map((b) => (
-          <Link
-            key={b}
-            href={qs(b, typ, k, tag)}
-            className={`${styles.chip}${b === belegung ? ` ${styles.chipActive}` : ""}`}
-            aria-current={b === belegung ? "true" : undefined}
-          >
-            {KNOTEN_BELEGUNG_LABELS[b]}
-          </Link>
-        ))}
-      </div>
+        <div className={styles.controlGroup}>
+          <p className={styles.chipGroupLabel}>Belegung</p>
+          <div className={styles.chipRow} role="group" aria-label="Belegung">
+            {KNOTEN_BELEGUNGEN.map((b) => (
+              <Link
+                key={b}
+                href={qs(b, typ, k, tag)}
+                className={`${styles.chip}${b === belegung ? ` ${styles.chipActive}` : ""}`}
+                aria-current={b === belegung ? "true" : undefined}
+              >
+                {KNOTEN_BELEGUNG_LABELS[b]}
+              </Link>
+            ))}
+          </div>
+        </div>
 
-      <div className={styles.controls}>
-        <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
-          Tag
-        </label>
-        <input
-          id="knoten-tag"
-          type="date"
-          className={styles.dateInput}
-          value={tag}
-          min={dateBounds.min}
-          max={dateBounds.max}
-          onChange={(e) => onDate(e.target.value)}
-          data-testid="knoten-tag-input"
-        />
+        <div className={styles.controls}>
+          <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
+            Tag
+          </label>
+          <input
+            id="knoten-tag"
+            type="date"
+            className={styles.dateInput}
+            value={tag}
+            min={dateBounds.min}
+            max={dateBounds.max}
+            onChange={(e) => onDate(e.target.value)}
+            data-testid="knoten-tag-input"
+          />
+        </div>
       </div>
 
       <p className={styles.fazit} data-testid="knoten-fazit">

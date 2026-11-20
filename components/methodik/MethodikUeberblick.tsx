@@ -382,6 +382,12 @@ export function MethodikAnnahmenSection({
     <>
       <p className="methodik-kurzfassung">
         {tx(
+          "Zwei Ebenen im Modell: (1) Nationale Bilanz auf /, /tag, /monat, /jahr und /kompromiss (Deutschland als ein Netzknoten ohne Leitungsengpässe, Day-Ahead DE-LU, Flotte ×1–×10). (2) Umspannwerk-Modellknoten auf /knoten (drei synthetische Umspannwerke Wind Nord, Solar Süd, Stadt mit 80 MW Grenze für den Vergleich von Markt-Fahrplan und knotentreuer Fahrweise nach § 17 Abs. 2b EnWG, siehe Abschnitt Modellknoten unten). Kapitel C1–C15 dokumentiert frühere Standort-Prototypen als Archiv.",
+          "Two levels in the model: (1) National balance on /, /tag, /monat, /jahr and /kompromiss (Germany as a single grid node without line bottlenecks, day-ahead DE-LU, fleet ×1–×10). (2) Substation model node on /knoten (three synthetic substations Wind North, Solar South, Urban with an 80 MW limit comparing market schedule and node-compliant operation under § 17 (2b) EnWG, see Model node below). Chapter C1–C15 documents earlier site prototypes as an archive.",
+        )}
+      </p>
+      <p className="methodik-kurzfassung">
+        {tx(
           `Kurzfassung: Round-Trip ${rte} % (Spanne 80–90 %), nutzbarer Ladezustand ${soc} %, Preisnehmer (Speicher ändern den Preis nicht), nur Day-Ahead, Deutschland als ein Netzknoten. Tagesseite: Überschuss-Modell (lädt nur, wenn Wind und Sonne über dem Verbrauch liegen). Monat und Kompromiss: drei Fahrweisen (gegen die Spitze, Überschuss, nach Preis) mit voller Vorausschau. Flotte ×1 = heutige Großspeicher (Battery Charts). Oktober-Rechnung: 4,64 GW / 8,15 GWh, Stand 31.10. Tagesseiten: aktueller Stand.`,
           `Summary: round-trip ${rte}% (range 80–90%), usable state of charge ${soc}%, price taker (storage does not change the price), day-ahead only, Germany as a single grid node. Day page: surplus model (charges only when wind and solar exceed load). Month and compromise: three operation modes (peak-oriented, surplus, price) with full foresight. Fleet ×1 = today’s large storage (Battery Charts). October run: 4.64 GW / 8.15 GWh, as of 31 Oct. Day pages: current fleet.`
         )}

@@ -29,16 +29,22 @@ describe("November 2026-11 fleet reference parity", () => {
     relOk(st.peakReductionGw, 9.54);
   });
 
-  it("Markt ×2 16/16 Tage laden (Monatslauf)", () => {
+  it("Markt ×2 lädt an allen verfügbaren Tagen im laufenden Monatslauf", () => {
     const run = getFleetRun(bundle, 2, "markt");
+    const allDays = new Set<string>();
     const chargeDays = new Set<string>();
     for (let i = 0; i < run.intervalCount; i += 1) {
+      const day = run.timestamp_berlin[i]!.slice(0, 10);
+      allDays.add(day);
       if (run.c_mw[i] > 0.5) {
-        chargeDays.add(run.timestamp_berlin[i]!.slice(0, 10));
+        chargeDays.add(day);
       }
     }
-    expect(chargeDays.size).toBe(16);
+    expect(allDays.size).toBeGreaterThanOrEqual(16);
+    expect(chargeDays.size).toBe(allDays.size);
     const st = monthStatsFromRunSeries(run, 2);
-    relOk(st.chargeGwh, 192.5);
+    const chargePerDayGwh = st.chargeGwh / allDays.size;
+    expect(chargePerDayGwh).toBeGreaterThan(8);
+    expect(chargePerDayGwh).toBeLessThan(20);
   });
 });

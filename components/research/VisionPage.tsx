@@ -48,6 +48,8 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
   const truth = stage.senkungGw[durationKey];
   const hero = formatGwSenkung(truth);
   const nepC = model.stages2h.find((s) => s.key === "NEP C")!;
+  const nepCCurve = model.curve.find((s) => s.id === "nep-c");
+  const nepCSenkung = duration === "4" && nepCCurve ? nepCCurve.senkungGw["4"] : nepC.senkung2hGw;
   const nepA = model.stages2h.find((s) => s.key === "NEP A")!;
   const inGuess = guessMode && !revealed;
   const showTruth = !inGuess;
@@ -74,8 +76,15 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
           Ab NEP A ({formatVisionGwPlain(nepA.powerGw)}) bringt jedes weitere GW Speicher wenig
         </h2>
         <p className={styles.meta}>
-          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}). NEP C senkt sie um{" "}
-          {formatVisionGwPlain(nepC.senkung2hGw)} (Vorjahreszeitraum: {formatVisionGwPlain(model.vorjahr2hSenkung["NEP C"] ?? 0)})
+          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}).
+          {showTruth ? (
+            <>
+              {" "}NEP C ({duration}{"\u00A0"}h) senkt sie um {formatVisionGwPlain(nepCSenkung)}
+              {duration === "2"
+                ? ` (Vorjahreszeitraum: ${formatVisionGwPlain(model.vorjahr2hSenkung["NEP C"] ?? 0)})`
+                : ""}
+            </>
+          ) : null}
         </p>
 
         {showTruth ? (

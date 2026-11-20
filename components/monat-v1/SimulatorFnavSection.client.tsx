@@ -1,6 +1,9 @@
 "use client";
 
+import { useRef } from "react";
+
 import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { useMeasuredChartWidth } from "@/components/research/useMeasuredChartWidth";
 import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
 import { fnavTooltipRows, fnavTooltipTime } from "@/lib/simulatorChartTooltip";
 import styles from "@/components/monat-v1/monat-v1.module.css";
@@ -74,7 +77,13 @@ function KipppunktChart({
   wide: boolean;
   colors: SimulatorPalette;
 }) {
-  const vb = wide ? { w: 560, h: 340, L: 52, R: 28, T: 32, B: 50 } : { w: 350, h: 320, L: 52, R: 16, T: 28, B: 50 };
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const measuredW = useMeasuredChartWidth(wrapRef, wide ? 960 : 350);
+  const chartW = Math.max(340, Math.round(measuredW));
+  const compact = chartW < 520;
+  const vb = compact
+    ? { w: chartW, h: 300, L: 52, R: 18, T: 28, B: 48 }
+    : { w: chartW, h: 320, L: 56, R: 28, T: 32, B: 48 };
   const plotW = vb.w - vb.L - vb.R;
   const plotH = vb.h - vb.T - vb.B;
   const yMin = 40;
@@ -89,7 +98,7 @@ function KipppunktChart({
   const n10 = netzAt(10)!;
   const m39 = marktAt(3.9)!;
   const xticks = [1, 2, 3, 5, 10];
-  const yticks = wide ? [40, 50, 60, 70, 80, 90, 100] : [40, 60, 80, 100];
+  const yticks = compact ? [40, 60, 80, 100] : [40, 50, 60, 70, 80, 90, 100];
   const marktPts = [...series].sort((a, b) => a.factor - b.factor);
   const netzPts = marktPts.filter((p) => netzAt(p.factor) != null);
   const pre = marktPts.filter((p) => p.factor <= 3.8 + 1e-9);
@@ -107,6 +116,7 @@ function KipppunktChart({
     "Monatsspitze nach Flottengröße: neue Spitze ab mal 3,9 unter dem Markt-Fahrplan, Preisnehmer, keine Euro-Zahl";
 
   return (
+    <div ref={wrapRef} style={{ width: "100%" }}>
     <SvgChartShell
       pointCount={marktPts.length}
       pickIndex={pick}
@@ -186,21 +196,21 @@ function KipppunktChart({
       <circle cx={fx(10)} cy={fy(m10)} r={5} fill={colors.rust} stroke={colors.flaeche} strokeWidth={1.25} />
       <circle cx={fx(2)} cy={fy(netzAt(2)!)} r={4} fill={colors.ink} stroke={colors.flaeche} strokeWidth={1} />
       <circle cx={fx(10)} cy={fy(n10)} r={5} fill={colors.ink} stroke={colors.flaeche} strokeWidth={1.25} />
-      {wide ? (
+      {!compact ? (
         <>
-          <SvgText x={fx(10) - 8} y={fy(m10) - 8} anchor="end" fill={colors.ink} weight={500}>
+          <SvgText x={fx(10) - 8} y={fy(m10) - 8} anchor="end" fill={colors.ink} weight={500} halo={colors.flaeche}>
             Nur Preis {formatGw(m10)}
           </SvgText>
-          <SvgText x={fx(10) - 8} y={fy(n10) + 16} anchor="end" fill={colors.ink} weight={500}>
+          <SvgText x={fx(10) - 8} y={fy(n10) + 16} anchor="end" fill={colors.ink} weight={500} halo={colors.flaeche}>
             Spitze zuerst {formatGw(n10)}
           </SvgText>
-          <SvgText x={fx(3.9) + 8} y={fy(m39) - 12} fill={colors.ink} weight={500}>
+          <SvgText x={fx(3.9) + 8} y={fy(m39) - 12} fill={colors.ink} weight={500} halo={colors.flaeche}>
             neue Spitze ab{"\u00A0"}×3,9
           </SvgText>
-          <SvgText x={fx(3.9) + 8} y={fy(m39) + 8} fill={colors.muted}>
+          <SvgText x={fx(3.9) + 8} y={fy(m39) + 8} fill={colors.muted} halo={colors.flaeche}>
             {formatGw(m39)} · 21.10. 14:00
           </SvgText>
-          <SvgText x={vb.L + 8} y={fy(ref) - 8} fill={colors.muted}>
+          <SvgText x={vb.L + 8} y={fy(ref) - 8} fill={colors.muted} halo={colors.flaeche}>
             beobachtet {formatDec(ref)}
           </SvgText>
           <SvgText x={vb.L + plotW} y={16} anchor="end" fill={colors.muted}>
@@ -212,25 +222,25 @@ function KipppunktChart({
         </>
       ) : (
         <>
-          <SvgText x={fx(10) - 4} y={fy(m10) - 8} anchor="end" fill={colors.ink} weight={500}>
+          <SvgText x={fx(10) - 4} y={fy(m10) - 8} anchor="end" fill={colors.ink} weight={500} halo={colors.flaeche}>
             Nur Preis
           </SvgText>
-          <SvgText x={fx(10) - 4} y={fy(m10) + 10} anchor="end" fill={colors.ink}>
+          <SvgText x={fx(10) - 4} y={fy(m10) + 10} anchor="end" fill={colors.ink} halo={colors.flaeche}>
             {formatGw(m10)}
           </SvgText>
-          <SvgText x={fx(10) - 4} y={fy(n10) + 16} anchor="end" fill={colors.ink} weight={500}>
+          <SvgText x={fx(10) - 4} y={fy(n10) + 16} anchor="end" fill={colors.ink} weight={500} halo={colors.flaeche}>
             Spitze zuerst
           </SvgText>
-          <SvgText x={fx(10) - 4} y={fy(n10) + 34} anchor="end" fill={colors.ink}>
+          <SvgText x={fx(10) - 4} y={fy(n10) + 34} anchor="end" fill={colors.ink} halo={colors.flaeche}>
             {formatGw(n10)}
           </SvgText>
-          <SvgText x={fx(3.9) + 8} y={fy(80) + 4} fill={colors.ink} weight={500}>
+          <SvgText x={fx(3.9) + 8} y={fy(80) + 4} fill={colors.ink} weight={500} halo={colors.flaeche}>
             neue Spitze
           </SvgText>
-          <SvgText x={fx(3.9) + 8} y={fy(80) + 22} fill={colors.ink}>
+          <SvgText x={fx(3.9) + 8} y={fy(80) + 22} fill={colors.ink} halo={colors.flaeche}>
             ab{"\u00A0"}×3,9
           </SvgText>
-          <SvgText x={vb.L + 6} y={fy(ref) - 10} fill={colors.muted}>
+          <SvgText x={vb.L + 6} y={fy(ref) - 10} fill={colors.muted} halo={colors.flaeche}>
             {formatDec(ref)}
           </SvgText>
           <SvgText x={vb.L} y={16} fill={colors.ink} weight={500}>
@@ -253,5 +263,6 @@ function KipppunktChart({
     </svg>
       )}
     </SvgChartShell>
+    </div>
   );
 }

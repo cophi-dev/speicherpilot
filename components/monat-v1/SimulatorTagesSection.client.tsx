@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 
 import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { useMeasuredChartWidth } from "@/components/research/useMeasuredChartWidth";
 import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
 import { tagesTooltipRows, tagesTooltipTime } from "@/lib/simulatorChartTooltip";
 
@@ -100,14 +102,20 @@ function StripeChart({
   maxPct: number;
   share29: number;
 }) {
-  const vb = wide ? { w: 1152, h: 200, L: 16, R: 16, T: 48, B: 36 } : { w: 350, h: 250, L: 16, R: 16, T: 56, B: 28 };
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const measuredW = useMeasuredChartWidth(wrapRef, wide ? 1152 : 350);
+  const chartW = Math.max(340, Math.round(measuredW));
+  const compact = chartW < 520;
+  const vb = compact
+    ? { w: chartW, h: 250, L: 16, R: 16, T: 56, B: 28 }
+    : { w: chartW, h: 210, L: 16, R: 16, T: 48, B: 36 };
   const plotW = vb.w - vb.L - vb.R;
   const days = data.tagesklassen;
   const n = days.length;
-  const gap = wide ? 3 : 2;
+  const gap = compact ? 2 : 3;
   const bw = (plotW - (n - 1) * gap) / n;
   const barT = vb.T;
-  const barH = wide ? 80 : 70;
+  const barH = compact ? 70 : 80;
   const y0Share = -0.6;
   const y1Share = 0.75;
   const sy = (share: number) => barT + ((y1Share - share) / (y1Share - y0Share)) * barH;
@@ -122,6 +130,7 @@ function StripeChart({
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
+    <div ref={wrapRef} style={{ width: "100%" }}>
     <SvgChartShell
       pointCount={days.length}
       pickIndex={pick}
@@ -248,5 +257,6 @@ function StripeChart({
     </svg>
       )}
     </SvgChartShell>
+    </div>
   );
 }

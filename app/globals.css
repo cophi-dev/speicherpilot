@@ -11684,3 +11684,50 @@ table.sr-only-focusable:focus-within {
   line-height: var(--lh-body);
   color: var(--ink);
 }
+
+.v4-kompass-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 860px) {
+  .v4-kompass-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+.v4-kompass-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.125rem 1.25rem;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche, hsl(var(--card)));
+}
+
+.v4-kompass-kicker {
+  font-size: var(--type-12);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+.v4-kompass-body {
+  font-size: var(--type-14);
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.v4-kompass-link {
+  align-self: flex-start;
+  font-size: var(--type-14);
+  font-weight: 500;
+}
