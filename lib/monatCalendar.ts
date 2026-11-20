@@ -1,5 +1,6 @@
 import { formatBerlinDayLabel, weekdayShort } from "@/lib/dayRingStory";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
+import { formatDeGwh } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 
 const MONTH_KEY = /^\d{4}-\d{2}$/;
@@ -231,7 +232,7 @@ export function monatPointe(
   const h1 = `${noSurplus} Tage unter der Überschuss-Schwelle im ${label}`;
   const subParts = [
     strongest
-      ? `Stärkster Tages-Überschuss: ${formatQuantity(strongest.surplusGwh, "de", 1)} GWh am ${formatBerlinDayLabel(strongest.dateKey)}.`
+      ? `Stärkster Tages-Überschuss: ${formatDeGwh(strongest.surplusGwh, 1)} am ${formatBerlinDayLabel(strongest.dateKey)}.`
       : null,
     missing.length > 0 && lastDayKey && todayKey
       ? (() => {

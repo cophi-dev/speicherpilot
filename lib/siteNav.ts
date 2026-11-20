@@ -9,7 +9,11 @@ export const SITE_MAIN_NAV = [
 ] as const;
 
 /** Extra mobile-only jump links (no desktop nav duplicate). */
-export const SITE_MOBILE_EXTRA_NAV = [{ href: "/#woche", label: "Woche", fragment: "woche" }] as const;
+export const SITE_MOBILE_EXTRA_NAV: readonly {
+  readonly href: string;
+  readonly label: string;
+  readonly fragment: string;
+}[] = [] as const;
 
 export type SiteMainNavHref = (typeof SITE_MAIN_NAV)[number]["href"];
 
@@ -24,7 +28,11 @@ export function isSiteMainNavActive(pathname: string, itemHref: SiteMainNavHref)
     return pathname.startsWith("/jahr");
   }
   if (itemHref === "/kompromiss") {
-    return pathname.startsWith("/kompromiss") || pathname.startsWith("/simulator");
+    return (
+      pathname.startsWith("/kompromiss") ||
+      pathname.startsWith("/simulator") ||
+      pathname.startsWith("/knoten")
+    );
   }
   return pathname.startsWith(itemHref);
 }
@@ -43,6 +51,7 @@ export const SITE_MAIN_NAV_STATIC_ROUTES: readonly string[] = [
   "/monat",
   "/jahr",
   "/kompromiss",
+  "/knoten",
   "/methodik",
   "/beitraege",
   "/impressum",

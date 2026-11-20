@@ -97,7 +97,7 @@ describe("Preis-Sätze", () => {
   it("names the exchange range on a dry day and does not call it revenue", () => {
     const text = dryDayFootnote("08.11.2026", { pmin: 206.09, pmax: 321.5, negH: 0 });
     expect(text).toBe(
-      "Gestern (08.11.2026) ohne Überschuss zum Laden. Börse 206 bis 322\u00A0€/MWh, keine Viertelstunde unter null.",
+      "Gestern (08.11.2026) ohne Überschuss zum Laden. Börse 206\u00A0€/MWh bis 322\u00A0€/MWh, keine Viertelstunde unter null.",
     );
     expect(text).not.toMatch(/Modellschätzung|Erlös/);
   });
@@ -111,11 +111,11 @@ describe("Preis-Sätze", () => {
   it("formatiert die Preisspanne ohne negative Null und mit „bis“", () => {
     const NBSP = "\u00a0";
     const MINUS = "\u2212";
-    expect(formatPreisSpanne(-0.01, 71.61)).toBe(`0 bis 72${NBSP}€/MWh`);
-    expect(formatPreisSpanne(-0.4, 72)).toBe(`0 bis 72${NBSP}€/MWh`);
-    expect(formatPreisSpanne(-0, 72)).toBe(`0 bis 72${NBSP}€/MWh`);
-    expect(formatPreisSpanne(-12.4, 72.1)).toBe(`${MINUS}12 bis 72${NBSP}€/MWh`);
-    expect(formatPreisSpanne(206.09, 321.5)).toBe(`206 bis 322${NBSP}€/MWh`);
+    expect(formatPreisSpanne(-0.01, 71.61)).toBe(`0${NBSP}€/MWh bis 72${NBSP}€/MWh`);
+    expect(formatPreisSpanne(-0.4, 72)).toBe(`0${NBSP}€/MWh bis 72${NBSP}€/MWh`);
+    expect(formatPreisSpanne(-0, 72)).toBe(`0${NBSP}€/MWh bis 72${NBSP}€/MWh`);
+    expect(formatPreisSpanne(-12.4, 72.1)).toBe(`${MINUS}12${NBSP}€/MWh bis 72${NBSP}€/MWh`);
+    expect(formatPreisSpanne(206.09, 321.5)).toBe(`206${NBSP}€/MWh bis 322${NBSP}€/MWh`);
     expect(formatPreisSpanne(-0.01, 71.61)).not.toMatch(new RegExp(`${MINUS}0`));
   });
 

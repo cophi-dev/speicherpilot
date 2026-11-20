@@ -3,6 +3,11 @@
   margin: 0.75rem 0 0;
 }
 
+.zackenCaption {
+  margin: 0.5rem 0 0;
+  line-height: 1.45;
+}
+
 .frame {
   position: relative;
   width: 100%;
@@ -60,14 +65,14 @@
 
 .line {
   fill: none;
-  stroke: var(--v4-warm);
+  stroke: var(--v4-warm-chart);
   stroke-width: 1.75;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .mark {
-  fill: var(--v4-warm);
+  fill: var(--v4-warm-chart);
 }
 
 .zero {

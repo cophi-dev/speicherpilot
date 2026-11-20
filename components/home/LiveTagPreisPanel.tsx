@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
-import { formatDeGwGwhLine } from "@/lib/displayUnitFormat";
+import { formatDeEurPerMwh, formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { hmToHourFraction, plotXFromBerlinHour, quarterWidthPx } from "@/lib/liveTagChartGeometry";
 import {
@@ -14,6 +14,7 @@ import {
   preisPanelUnitLabelPositions,
   priceAxisValues,
 } from "@/lib/liveTagPreisPanelGeometry";
+import { DAY_AHEAD_ZACKEN_HINWEIS_DE } from "@/lib/dayAheadZackenHinweis";
 import type { ReferenceParkModelDay } from "@/lib/referenceParkModelDay";
 import type { PreisTick } from "@/lib/preisFenster";
 
@@ -106,7 +107,7 @@ export function LiveTagPreisPanel({
         </h2>
         <p className="v4-tag-side">
           Fahrplan aus dem Day-Ahead-Preis (Modell). Überschuss- und Spitzen-Fahrweise rechnen wir, wenn der Tag komplett
-          ist.
+          ist. {DAY_AHEAD_ZACKEN_HINWEIS_DE}
         </p>
       </div>
       <div ref={shellRef} className="v4-content v4-luecke-wrap w-full overflow-hidden">
@@ -116,11 +117,11 @@ export function LiveTagPreisPanel({
             Day-Ahead (€/MWh)
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-pv)/0.65)]" aria-hidden />
+            <span className="inline-block h-3 w-3 rounded-sm bg-[#2a9d8f]/65" aria-hidden />
             Laden (GW)
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-sm bg-[hsl(var(--c-bess)/0.65)]" aria-hidden />
+            <span className="inline-block h-3 w-3 rounded-sm bg-[#e76f51]/65" aria-hidden />
             Entladen (GW)
           </span>
         </div>
@@ -219,7 +220,7 @@ export function LiveTagPreisPanel({
                 y={y}
                 width={barW}
                 height={h}
-                fill={point.netGw >= 0 ? "hsl(var(--c-bess) / 0.65)" : "hsl(var(--c-pv) / 0.65)"}
+                fill={point.netGw >= 0 ? "rgb(231 111 81 / 0.65)" : "rgb(42 157 143 / 0.65)"}
               />
             );
           })}
@@ -248,7 +249,7 @@ export function LiveTagPreisPanel({
       <p className="v4-content mt-3 text-sm text-muted-foreground">
         Modellrand: Preisnehmer, 85 % Wirkungsgrad, SoC 10 bis 90 %, Rückkehr auf 50 % um 24 Uhr. Referenzflotte ×1 (
         {formatDeGwGwhLine(fleetPowerGw, fleetEnergyGwh)}). Spanne heute{" "}
-        {formatQuantity(priceMin, "de", 0)} bis {formatQuantity(priceMax, "de", 0)} €/MWh.
+        {formatDeEurPerMwh(priceMin, 0)} bis {formatDeEurPerMwh(priceMax, 0)}.
       </p>
     </section>
   );

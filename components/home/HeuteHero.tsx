@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { GlossaryTip } from "@/components/GlossaryTip";
 import { useLanguage } from "@/components/language-context";
-import { formatQuantity } from "@/lib/formatQuantity";
+import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 import type { HeuteAnnotation, HeuteImNetz, HeutePoint } from "@/lib/heuteImNetz";
 
 const QUARTER_H = 0.25;
@@ -238,7 +238,9 @@ function ChartGeometry({
             strokeWidth={tick === 0 ? 1.25 : 1}
           />
           <text x={pad.l - 8} y={yOf(tick) + 4} textAnchor="end" className="fill-muted-foreground" fontSize="12" fontFamily="var(--font-jetbrains), monospace">
-            {tick === ticks[ticks.length - 1] ? `${formatQuantity(tick, language, 0)} GW` : formatQuantity(tick, language, 0)}
+            {tick === ticks[ticks.length - 1]
+              ? formatQuantityUnit(tick, language, 0, "GW")
+              : formatQuantity(tick, language, 0)}
           </text>
         </g>
       ))}

@@ -2,6 +2,7 @@
   --research-bg: #0b0d0f;
   --research-fg: #ecedee;
   --research-accent: var(--v4-warm);
+  --research-accent-text: var(--v4-warm-text);
   --research-accent-light: color-mix(in srgb, var(--v4-warm) 82%, white);
   --research-muted: #9ea3a9;
   --research-dim: #80868e;
@@ -38,6 +39,7 @@
   --research-bg: transparent;
   --research-fg: #14161a;
   --research-accent: var(--v4-warm);
+  --research-accent-text: var(--v4-warm-text);
   --research-accent-light: color-mix(in srgb, var(--v4-warm) 82%, white);
   --research-muted: #5a6068;
   --research-dim: #6b7178;
@@ -129,20 +131,33 @@
   font-weight: 600;
   border: 0;
   background: transparent;
-  color: var(--research-muted);
+  color: var(--research-fg);
   padding: 0 16px;
   min-height: 44px;
   border-radius: 18px;
   cursor: pointer;
 }
 
+.seg button[aria-pressed="false"] {
+  color: var(--research-muted);
+}
+
+:global(html.dark) .seg button[aria-pressed="false"] {
+  color: #c8ced6;
+}
+
 .seg button[aria-pressed="true"] {
-  background: var(--research-accent);
-  color: #0b0d0f;
+  background: var(--research-accent-text);
+  color: #fff;
 }
 
 :global(html:not(.dark)) .seg button[aria-pressed="true"] {
   color: #fff;
+}
+
+:global(html.dark) .seg button[aria-pressed="true"] {
+  background: var(--v4-warm);
+  color: #0b0d0f;
 }
 
 .chartClip {

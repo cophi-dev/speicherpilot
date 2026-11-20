@@ -134,6 +134,8 @@ footer.border-t > div.mx-auto {
     --coral-stroke: #af351d;
     --ink: #101214;
     --v4-warm: #b4532a;
+    --v4-warm-text: #b4532a;
+    --v4-warm-chart: #b4532a;
 
     /* Typography scale (px base 16) */
     --type-12: 0.75rem;
@@ -234,7 +236,9 @@ footer.border-t > div.mx-auto {
     --mint-stroke: #7dfce6;
     --coral: #ff8a70;
     --coral-stroke: #ff8a70;
-    --v4-warm: #e07a48;
+    --v4-warm: #e76f51;
+    --v4-warm-text: #e76f51;
+    --v4-warm-chart: #b4532a;
   }
 
   * {
@@ -4724,8 +4728,10 @@ footer .site-fold a {
   align-items: center;
   min-height: 44px;
   padding-block: 8px;
-  padding-inline: 8px;
-  margin-inline: -8px;
+  padding-inline: 0;
+  margin-inline: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   border-radius: 6px;
   cursor: pointer;
   list-style: none;
@@ -4775,6 +4781,8 @@ details[open] > .methodik-section-summary::before {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
+  width: 100%;
+  min-width: 0;
 }
 .methodik-table {
   max-width: none;
@@ -4782,12 +4790,17 @@ details[open] > .methodik-section-summary::before {
 .methodik-licence-cell {
   white-space: nowrap;
 }
+.methodik-sources li {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
 .methodik-sources td a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   padding-block: 10px;
-  margin-block: -8px;
 }
 .methodik-v4 #quellen ul li {
   min-height: 44px;
@@ -4798,6 +4811,12 @@ details[open] > .methodik-section-summary::before {
   min-height: 44px;
   width: 100%;
   padding-block: 0;
+}
+.methodik-v4 #wirkungsgrad ~ p a[href^="http"] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 8px;
 }
 .methodik-v4 #d-recht > p a {
   display: inline-flex;
@@ -4820,6 +4839,14 @@ details[open] > .methodik-section-summary::before {
   display: grid;
   gap: 12px;
   padding-bottom: 16px;
+}
+.methodik-v4 .methodik-section-body > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.methodik-v4 details.methodik-nested-table {
+  min-width: 0;
+  max-width: 100%;
 }
 @media (min-width: 960px) {
   .methodik-layout {
@@ -4885,6 +4912,14 @@ math mi {
   min-width: 100%;
   table-layout: auto;
 }
+.methodik-assumptions th,
+.methodik-assumptions td {
+  min-width: 5.5rem;
+}
+.methodik-assumptions th[scope="col"]:first-child,
+.methodik-assumptions th[scope="row"] {
+  min-width: 9rem;
+}
 .methodik-fit th,
 .methodik-fit td {
   white-space: normal;
@@ -4896,8 +4931,8 @@ math mi {
 .methodik-sources col.c-name { width: 20%; }
 #annahmen button {
   box-sizing: border-box;
-  min-width: 24px;
-  min-height: 24px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 4px;
   border-color: #5f6670;
   color: #5f6670;
@@ -6677,7 +6712,7 @@ html {
   --vt-r: 100vmax;
 }
 .theme-btn {
-  color: var(--v4-warm);
+  color: var(--v4-warm-text);
 }
 .theme-btn.is-dark {
   color: #e9eef2;
@@ -7305,7 +7340,7 @@ html.vt-to-light::view-transition-new(root) {
 .v4-riesenzahl-unit {
   font-size: var(--type-14);
   margin-left: 0.35em;
-  color: var(--v4-warm);
+  color: var(--v4-warm-text);
   font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-meta);
   vertical-align: baseline;
@@ -7555,7 +7590,7 @@ html.vt-to-light::view-transition-new(root) {
 }
 
 .v4-riesenzahl-unit {
-  color: var(--v4-warm);
+  color: var(--v4-warm-text);
   font-size: var(--type-14);
   font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-meta);
@@ -8122,7 +8157,7 @@ footer.v4-content.v4-footnote > p {
   stroke-width: 2.4;
 }
 .v4-luecke-hatch {
-  stroke: var(--v4-warm);
+  stroke: var(--v4-warm-chart);
   opacity: 0.55;
 }
 .v4-luecke-gap-label {
@@ -9244,7 +9279,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 .v4-subpage .ort-netz-tabs button.is-active {
   background: transparent;
   color: hsl(var(--foreground));
-  border-bottom-color: var(--v4-warm);
+  border-bottom-color: var(--v4-warm-text);
 }
 
 .v4-subpage .site-card,
@@ -9408,7 +9443,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 .dark .v4-subpage .ort-netz-tabs button.is-active {
   background: transparent !important;
   color: hsl(var(--foreground)) !important;
-  border-bottom-color: var(--v4-warm) !important;
+  border-bottom-color: var(--v4-warm-text) !important;
 }
 
 .dark .v4-subpage a[class*="mint"],
@@ -9500,7 +9535,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 }
 
 .v4-subpage .day-cta:hover {
-  border-color: var(--v4-warm);
+  border-color: var(--v4-warm-text);
 }
 
 .v4-subpage .day-cta:focus-visible {
@@ -9545,7 +9580,7 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 }
 
 .v4-subpage .szen-range {
-  accent-color: var(--v4-warm);
+  accent-color: var(--v4-warm-text);
 }
 
 .v4-subpage .day-slider-track {
@@ -9623,11 +9658,11 @@ html:not(.dark) .ort-v4 .ort-archetype-badge--belastend {
 
 .dark .v4-subpage .blog-callout {
   background: transparent;
-  border-color: var(--v4-warm);
+  border-color: var(--v4-warm-text);
 }
 
 .v4-subpage .blog-prose .blog-callout {
-  border-left-color: var(--v4-warm);
+  border-left-color: var(--v4-warm-text);
 }
 
 /* R3 — Ort column, netz cards, legal, news, methodik, lücke overlays */
@@ -9846,6 +9881,24 @@ article.legal-doc.v4-subpage .legal-doc-inner {
 
 .methodik-v4 .methodik-paper {
   grid-area: paper;
+  min-width: 0;
+}
+
+.methodik-v4 .methodik-layout > *,
+.methodik-v4 .methodik-paper > section,
+.methodik-v4 details.methodik-section {
+  min-width: 0;
+}
+
+.methodik-v4 .methodik-sources {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.methodik-v4 .methodik-sources table {
+  width: max(100%, 42rem);
 }
 
 @media (min-width: 960px) {
@@ -9854,6 +9907,43 @@ article.legal-doc.v4-subpage .legal-doc-inner {
     grid-template-areas:
       "toc hero"
       "toc paper";
+  }
+}
+
+@media (max-width: 480px) {
+  .methodik-v4,
+  .methodik-v4 .methodik-layout,
+  .methodik-v4 .methodik-hero-copy,
+  .methodik-v4 article {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .methodik-v4 .methodik-section-summary,
+  .methodik-v4 .methodik-nested-table > summary,
+  .methodik-v4 .methodik-toc-sections > summary,
+  .methodik-v4 details.methodik-section > summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding-block: 8px;
+    gap: 8px;
+  }
+
+  .methodik-v4 .methodik-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .methodik-v4 #quellen ul a,
+  .methodik-v4 #d-recht > p a,
+  .methodik-v4 .methodik-sources td a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-block: 10px;
   }
 }
 
@@ -9877,6 +9967,38 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   .methodik-v4 .methodik-section-summary {
     margin-inline: 0;
     border-radius: 0;
+  }
+
+  .methodik-v4 .methodik-section + .methodik-section {
+    margin-top: 6px;
+  }
+
+  .methodik-v4 #lizenzen .methodik-nested-table {
+    margin-top: 0.5rem;
+  }
+
+  .methodik-v4 #lizenzen .methodik-sources td a {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    min-height: 44px;
+    margin-block: 4px;
+    padding-block: 10px;
+    padding-inline: 2px;
+    gap: 0.35rem;
+  }
+
+  .methodik-v4 #lizenzen .methodik-sources td ul {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .methodik-v4 #quellen ul li + li {
+    margin-top: 4px;
   }
 }
 
@@ -10489,7 +10611,7 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   background: #2a9d8f;
 }
 .v4-fleet-ts-legend-d::before {
-  background: #e76f51;
+  background: var(--v4-warm-chart, #b4532a);
 }
 .v4-fleet-ts-legend-e::before {
   background: #6a4c93;
@@ -10720,7 +10842,7 @@ html.dark .v4-fleet-ts-ytick-halo {
   stroke-width: 1.2;
 }
 .v4-fleet-line-d {
-  stroke: #e76f51;
+  stroke: var(--v4-warm-chart, #b4532a);
   stroke-width: 1.2;
 }
 .v4-fleet-line-soc {
@@ -10852,6 +10974,14 @@ html.dark .v4-fleet-ts-ytick-halo {
 .monat-page .v4-tag-nav {
   padding-top: 0.2rem;
   padding-bottom: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+.monat-page .v4-tag-nav-date-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 .monat-page .v4-chapter {
   margin-top: 0.4rem;
@@ -11553,4 +11683,51 @@ table.sr-only-focusable:focus-within {
   font-size: var(--type-body);
   line-height: var(--lh-body);
   color: var(--ink);
+}
+
+.v4-kompass-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 860px) {
+  .v4-kompass-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+.v4-kompass-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.125rem 1.25rem;
+  border: 1px solid var(--linie);
+  border-radius: 8px;
+  background: var(--flaeche, hsl(var(--card)));
+}
+
+.v4-kompass-kicker {
+  font-size: var(--type-12);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+.v4-kompass-body {
+  font-size: var(--type-14);
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.v4-kompass-link {
+  align-self: flex-start;
+  font-size: var(--type-14);
+  font-weight: 500;
 }

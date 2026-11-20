@@ -1,6 +1,9 @@
 "use client";
 
+import { useRef } from "react";
+
 import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { useMeasuredChartWidth } from "@/components/research/useMeasuredChartWidth";
 import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
 import { beispieltagTooltipRows, beispieltagTooltipTime } from "@/lib/simulatorChartTooltip";
 import styles from "@/components/monat-v1/monat-v1.module.css";
@@ -19,6 +22,7 @@ import {
 } from "@/lib/simulatorFahrweisenDerived";
 import type { SimulatorDispatchRow, SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
 import { formatGw } from "@/lib/simulatorFahrweisenTypes";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 
 export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweisenData }) {
@@ -37,9 +41,9 @@ export function SimulatorBeispieltageSection({ data }: { data: SimulatorFahrweis
         Am 21.10. lädt der Markt mittags. Am 29.10. liegt der Preis eine Stunde vor der Spitze.
       </h2>
       <p className={styles.lead}>
-        Drei Fahrpläne auf derselben Restlast. Am 21.10. kostet der 70-Prozent-Kompromiss {costPct}
-        {"\u00A0"}% des Tageserlöses — deutlich mehr als im Monatsmaßstab. Graues Band 23–24 Uhr: Modell füllt auf 50
-        {"\u00A0"}% zurück (kein echter Effekt).
+        {insertDisplayUnitNbsp(
+          `Drei Fahrpläne auf derselben Restlast. Am 21.10. kostet der 70-Prozent-Kompromiss ${costPct} % des Tageserlöses — deutlich mehr als im Monatsmaßstab. Graues Band 23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt).`,
+        )}
       </p>
       <div className={styles.legend} aria-hidden="true">
         <span className={styles.legendItem}>
@@ -110,14 +114,18 @@ function DayChart({
   title: string;
   subtitle: string;
 }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const measuredW = useMeasuredChartWidth(wrapRef, wide ? 560 : 350);
+  const chartW = Math.max(340, Math.round(measuredW));
+  const compact = chartW < 480;
   const day = data.exampleDays[date]!;
   const market = day.modes.price;
   const netz = day.modes.peak;
   const komp = day.modes.eps70;
   const is21 = date.endsWith("21");
-  const vb = wide
-    ? { w: 560, L: 44, R: 16, T: 36, B: 28, topH: 240, priceH: 70, midH: 8 }
-    : { w: 350, L: 40, R: 12, T: 40, B: 28, topH: 220, priceH: 70, midH: 8 };
+  const vb = compact
+    ? { w: chartW, L: 42, R: 22, T: 40, B: 34, topH: 220, priceH: 74, midH: 12 }
+    : { w: chartW, L: 46, R: 24, T: 36, B: 32, topH: 240, priceH: 74, midH: 12 };
   const VH = vb.T + vb.topH + vb.midH + vb.priceH + vb.B;
   const plotW = vb.w - vb.L - vb.R;
   const residualT = vb.T;
@@ -145,7 +153,12 @@ function DayChart({
   const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
+  const bandCaption = is21
+    ? "23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)"
+    : null;
+
   return (
+    <figure ref={wrapRef} className={simStyles.dayChartFigure}>
     <SvgChartShell
       pointCount={market.length}
       pickIndex={pick}
@@ -290,7 +303,7 @@ function DayChart({
           x1={xH(h)}
           x2={xH(h)}
           y1={residualT + vb.topH}
-          y2={residualT + vb.topH + 4}
+          y2={residualT + vb.topH + 5}
           stroke={colors.ink}
           strokeWidth={1}
         />
@@ -312,13 +325,14 @@ function DayChart({
 
       {is21 ? (
         <SvgText
-          x={x24 - 4}
-          y={residualT + vb.topH / 2 + 4}
-          fill={colors.muted}
-          anchor="end"
-          size={bandWide ? 11 : 10}
+          x={(x23 + x24) / 2}
+          y={residualT + 14}
+          fill={colors.ink}
+          anchor="middle"
+          size={12}
+          weight={500}
         >
-          {bandWide ? "23–24 Uhr: Modell füllt auf 50 % zurück (kein echter Effekt)" : "23–24 Uhr: Modelleffekt"}
+          23–24{"\u00a0"}h
         </SvgText>
       ) : null}
 
@@ -391,6 +405,10 @@ function DayChart({
     </svg>
       )}
     </SvgChartShell>
+    {bandCaption ? (
+      <figcaption className={simStyles.dayChartCaption}>{bandCaption}</figcaption>
+    ) : null}
+    </figure>
   );
 }
 

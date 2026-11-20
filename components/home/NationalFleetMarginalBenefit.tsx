@@ -1,3 +1,4 @@
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
@@ -86,7 +87,9 @@ export function NationalFleetMarginalBenefit({
       ) : null}
 
       {surplusPoolOnly ? (
-        <p className="v4-fleet-marginal-pool num">Überschuss-Pool im Modell: 134,2 GWh (nur Differenz-Fahrweise).</p>
+        <p className="v4-fleet-marginal-pool num">
+          {insertDisplayUnitNbsp("Überschuss-Pool im Modell: 134,2 GWh (nur Differenz-Fahrweise).")}
+        </p>
       ) : null}
 
       <p className="v4-fleet-marginal-scroll-hint num">Tabellen bei schmalem Display horizontal scrollbar (Kante unten).</p>

@@ -15,11 +15,13 @@ export function NationalFleetTagSlot({
   factor,
   strategy,
   preloadedRun,
+  isStartSurface = false,
 }: {
   dayKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
   preloadedRun?: NationalFleetRunSeries;
+  isStartSurface?: boolean;
 }) {
   if (!nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
     return null;
@@ -41,6 +43,7 @@ export function NationalFleetTagSlot({
       run={run}
       slice={slice}
       monthStats={monthStats}
+      isStartSurface={isStartSurface}
     />
   );
 }

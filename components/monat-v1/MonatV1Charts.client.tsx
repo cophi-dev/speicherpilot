@@ -24,7 +24,7 @@ import {
   monatUeberschussChartBox,
 } from "@/lib/monatChartViewBox";
 import { formatVisionPoolHeaderGwh } from "@/lib/research/visionJahrFormat";
-import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
+import { monatPageContentWidth, monatViewBoxFontSize, MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 
 const FACTOR_TICKS = [1, 2, 3, 5, 10] as const;
 const FACTOR_PLOT = [1, 2, 5, 10] as const;
@@ -39,7 +39,7 @@ function yGw(gw: number, yMin: number, yMax: number, plotH: number, padT: number
 
 function useChartShellWidth(minWidth = 280) {
   const ref = useRef<HTMLDivElement>(null);
-  const [shellWidth, setShellWidth] = useState(MONAT_WIDE_VIEWBOX_W);
+  const [shellWidth, setShellWidth] = useState(minWidth);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -187,7 +187,8 @@ function HeroChart({ model }: { model: MonatV1Model }) {
   }, [activeFactor, model.hero.points]);
   const crossX = activeSnap?.x ?? null;
   const plotBottom = vb.T + plotH;
-  const factorAxis = monatFactorAxisY(plotBottom);
+  const factorAxis = monatFactorAxisY(plotBottom, !wide);
+  const svgH = wide ? vb.h : Math.min(vb.h, factorAxis.gwLabel + 10);
 
   return (
     <div
@@ -216,7 +217,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
       />
       <svg
         ref={heroSvgRef}
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        viewBox={`0 0 ${vb.w} ${svgH}`}
         className={styles.svg}
         role="img"
         aria-labelledby="g1-title g1-desc"
@@ -228,15 +229,18 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         </desc>
         <defs>
           <pattern id="hatch-markt" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="7" stroke="#B4532A" strokeWidth="1.25" />
+            <line x1="0" y1="0" x2="0" y2="7" stroke="#b4532a" strokeWidth="1.25" />
           </pattern>
+          <clipPath id="monat-g1-plot-clip">
+            <rect x={vb.L} y={vb.T} width={plotW} height={plotH} />
+          </clipPath>
         </defs>
         {yTicks.map((tick) => {
           const y = yGw(tick, yMinGw, yMaxGw, plotH, vb.T);
           return (
             <g key={tick}>
               <line x1={vb.L} x2={vb.L + plotW} y1={y} y2={y} stroke="var(--mv-gridline, #e4e4dc)" strokeWidth="1" />
-              <text x={vb.L - 4} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize="14">
+              <text x={vb.L - 6} y={y + 4} textAnchor="end" fill="var(--mv-muted, #43474c)" fontSize={wide ? 14 : 12}>
                 {tick}
               </text>
             </g>
@@ -270,65 +274,74 @@ function HeroChart({ model }: { model: MonatV1Model }) {
         {FACTOR_TICKS.map((f) => {
           const x = factorX(f, plotW, vb.L);
           const gw = fleetPowerGwLabel(f, f === 10 ? 0 : 1);
+          const showMult = wide || f === 1 || f === 5 || f === 10;
+          const showGw = wide || f === 10;
+          const tickFs = wide ? 14 : 12;
           return (
             <g key={f}>
               <line x1={x} x2={x} y1={plotBottom} y2={factorAxis.tickEnd} stroke="var(--mv-ink)" />
-              <text
-                x={x}
-                y={factorAxis.multLabel}
-                textAnchor="middle"
-                fill="var(--mv-ink)"
-                fontWeight={400}
-                fontSize="14"
-              >
-                ×{f}
-              </text>
-              <text
-                x={x}
-                y={factorAxis.gwLabel}
-                textAnchor="middle"
-                fill="var(--mv-muted, #43474c)"
-                fontSize="14"
-              >
-                {gw}
-              </text>
+              {showMult ? (
+                <text
+                  x={x}
+                  y={factorAxis.multLabel}
+                  textAnchor="middle"
+                  fill="var(--mv-ink)"
+                  fontWeight={400}
+                  fontSize={tickFs}
+                >
+                  ×{f}
+                </text>
+              ) : null}
+              {showGw ? (
+                <text
+                  x={x}
+                  y={factorAxis.gwLabel}
+                  textAnchor="middle"
+                  fill="var(--mv-muted, #43474c)"
+                  fontSize={tickFs}
+                >
+                  {gw}
+                </text>
+              ) : null}
             </g>
           );
         })}
         <rect x={vb.L} y={vb.T} width={plotW} height={refY - vb.T} fill="rgba(180, 83, 42, 0.1)" />
         <line x1={vb.L} x2={vb.L + plotW} y1={refY} y2={refY} stroke="var(--mv-ink)" strokeWidth="1.25" />
-        <polyline
-          fill="none"
-          stroke="var(--mv-ink)"
-          strokeWidth="2.5"
-          points={spitzePts.map((p) => `${p.x},${p.y}`).join(" ")}
-        />
-        {spitzePts.map((p) => (
-          <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-ink)" />
-        ))}
-        <polyline
-          fill="none"
-          stroke="var(--mv-muted, #43474c)"
-          strokeWidth="2"
-          points={ueberPts.map((p) => `${p.x},${p.y}`).join(" ")}
-        />
-        {ueberPts.map((p) => (
-          <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="var(--mv-muted)" strokeWidth="1.75" />
-        ))}
-        {hatchPts.length >= 2 ? (
-          <polygon
-            points={`${hatchPts.map((pt) => `${pt.x},${pt.y}`).join(" ")} ${hatchPts[hatchPts.length - 1]!.x},${refY}`}
-            fill="url(#hatch-markt)"
-            opacity="0.35"
+        <g clipPath="url(#monat-g1-plot-clip)">
+          <polyline
+            fill="none"
+            stroke="var(--mv-ink)"
+            strokeWidth="2.5"
+            points={spitzePts.map((p) => `${p.x},${p.y}`).join(" ")}
           />
-        ) : null}
-        <polyline
-          fill="none"
-          stroke="#B4532A"
-          strokeWidth="2.25"
-          strokeDasharray="7 5"
-          points={marktPts.map((pt) => `${pt.x},${pt.y}`).join(" ")}
-        />
+          {spitzePts.map((p) => (
+            <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-ink)" />
+          ))}
+          <polyline
+            fill="none"
+            stroke="var(--mv-muted, #43474c)"
+            strokeWidth="2"
+            points={ueberPts.map((p) => `${p.x},${p.y}`).join(" ")}
+          />
+          {ueberPts.map((p) => (
+            <circle key={p.f} cx={p.x} cy={p.y} r="4" fill="var(--mv-flaeche, #fff)" stroke="var(--mv-muted)" strokeWidth="1.75" />
+          ))}
+          {hatchPts.length >= 2 ? (
+            <polygon
+              points={`${hatchPts.map((pt) => `${pt.x},${pt.y}`).join(" ")} ${hatchPts[hatchPts.length - 1]!.x},${refY}`}
+              fill="url(#hatch-markt)"
+              opacity="0.35"
+            />
+          ) : null}
+          <polyline
+            fill="none"
+            stroke="var(--mv-rust, #b4532a)"
+            strokeWidth="2.25"
+            strokeDasharray="7 5"
+            points={marktPts.map((pt) => `${pt.x},${pt.y}`).join(" ")}
+          />
+        </g>
         {marktPts
           .filter((pt) => pt.f > 1.05)
           .filter((pt) => wide || Math.abs(pt.f - kipF) > 0.05)
@@ -339,7 +352,7 @@ function HeroChart({ model }: { model: MonatV1Model }) {
               cy={pt.y}
               r="4"
               fill="var(--mv-flaeche, #fff)"
-              stroke="#B4532A"
+              stroke="var(--mv-rust, #b4532a)"
               strokeWidth="1.75"
             />
           ))}
@@ -353,14 +366,14 @@ function HeroChart({ model }: { model: MonatV1Model }) {
                 cy={pt.y}
                 r="4"
                 fill="var(--mv-flaeche, #fff)"
-                stroke="#B4532A"
+                stroke="var(--mv-rust, #b4532a)"
                 strokeWidth="1.75"
               />
             ) : null;
           })()
         ) : null}
         {crossX != null ? (
-          <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
+          <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="var(--mv-muted)" strokeWidth="1.25" opacity="0.85" />
         ) : null}
       </svg>
       <p className={`${styles.figcaption} num`}>{MONAT_REGELR_GRAPH_CAPTION}</p>
@@ -416,6 +429,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
     ];
   }, [activeCat]);
   const crossX = activeIndex != null ? stundenXs[activeIndex] : null;
+  const stundenSvgH = wide ? vb.h : Math.min(vb.h, vb.T + plotH + 44);
 
   return (
     <div
@@ -455,7 +469,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
       </div>
       <svg
         ref={stundenSvgRef}
-        viewBox={`0 0 ${vb.w} ${vb.h}`}
+        viewBox={`0 0 ${vb.w} ${stundenSvgH}`}
         className={styles.svg}
         role="img"
         aria-labelledby="g3-title g3-desc"
@@ -483,7 +497,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
           const pts = [
             { series: "h176" as const, off: -dodge, val: c.h176, fill: "var(--mv-ink)", hollow: false, r: 4 },
             { series: "h2" as const, off: 0, val: c.h2, fill: "none", hollow: true, r: 4 },
-            { series: "h4" as const, off: dodge, val: c.h4, fill: "#B4532A", hollow: false, r: 6 },
+            { series: "h4" as const, off: dodge, val: c.h4, fill: "var(--mv-rust, #b4532a)", hollow: false, r: 6 },
           ];
           return (
             <g key={c.factor}>
@@ -531,7 +545,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
           </g>
         ) : null}
         {crossX != null ? (
-          <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="#B4532A" strokeWidth="1.25" opacity="0.85" />
+          <line x1={crossX} x2={crossX} y1={vb.T} y2={vb.T + plotH} stroke="var(--mv-muted)" strokeWidth="1.25" opacity="0.85" />
         ) : null}
       </svg>
       <p className={`${styles.figcaption} num`}>{MONAT_REGELR_GRAPH_CAPTION}</p>
@@ -542,6 +556,7 @@ function StundenChart({ model }: { model: MonatV1Model }) {
 function UeberschussChart({ model }: { model: MonatV1Model }) {
   const { ref, shellWidth, wide } = useChartShellWidth();
   const vb = monatUeberschussChartBox(shellWidth, model.pool.length);
+  const labelFs = monatViewBoxFontSize(12, shellWidth, vb.w);
   const rowH = wide ? 56 : 52;
   const barH = 18;
   const startY = 48;
@@ -584,10 +599,10 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
         <desc id="g4-desc">
           Die Überschuss-Strategie füllt den Monats-Pool, senkt die Spitze aber weniger als spitzenorientiertes Fahren.
         </desc>
-        <text x={poolX} y={28} fill="var(--mv-ink)">
+        <text x={poolX} y={28} fill="var(--mv-ink)" fontSize={labelFs}>
           {formatVisionPoolHeaderGwh(model.surplusPoolGwh)}
         </text>
-        <text x={poolX + vb.poolW + 40} y={28} fill="var(--mv-muted)">
+        <text x={poolX + vb.poolW + 12} y={28} fill="var(--mv-muted)" fontSize={labelFs}>
           sinkt um
         </text>
         {model.pool.map((row, i) => {
@@ -601,7 +616,7 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
                 y={y - 4}
                 textAnchor="middle"
                 fill="var(--mv-ink)"
-                fontSize="12"
+                fontSize={labelFs}
               >
                 ×{row.factor}
               </text>
@@ -615,19 +630,31 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
                     y={y + barH - 4}
                     textAnchor={label.textAnchor}
                     fill={label.onDarkFill ? "var(--mv-bg, #f6f6f3)" : "var(--mv-ink)"}
-                    fontSize="12"
+                    fontSize={labelFs}
                   >
                     {row.poolLabel}
                   </text>
                 );
               })()}
-              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize="12">
+              <text
+                x={poolX + vb.poolW + 12}
+                y={y + barH - 2}
+                fill="var(--mv-ink)"
+                fontSize={labelFs}
+                textAnchor="start"
+              >
                 {formatGwReduction(row.reductionGw, 2)}
               </text>
             </g>
           );
         })}
-        <text x={poolX} y={startY + model.pool.length * rowH + 24} fill="var(--mv-ink)" fontWeight="500">
+        <text
+          x={poolX}
+          y={startY + model.pool.length * rowH + 24}
+          fill="var(--mv-ink)"
+          fontWeight="500"
+          fontSize={labelFs}
+        >
           Bei ×10, zum Vergleich
         </text>
         {[
@@ -639,12 +666,12 @@ function UeberschussChart({ model }: { model: MonatV1Model }) {
           const w = (row.gw / maxGw) * vb.poolW;
           return (
             <g key={row.label}>
-              <text x={poolX + vb.poolW / 2} y={y - 4} textAnchor="middle" fill="var(--mv-muted)" fontSize="12">
+              <text x={poolX + vb.poolW / 2} y={y - 4} textAnchor="middle" fill="var(--mv-muted)" fontSize={labelFs}>
                 {wide ? row.label : row.label === "Überschuss" ? "Überschuss" : "Spitze, orientiert"}
               </text>
               <rect x={poolX} y={y} width={vb.poolW} height={barH} fill="var(--mv-linie)" />
               <rect x={poolX} y={y} width={w} height={barH} fill={row.color} />
-              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize="12">
+              <text x={poolX + vb.poolW + 16} y={y + barH - 2} fill="var(--mv-ink)" fontSize={labelFs}>
                 {formatGwReduction(row.gw, 2)}
               </text>
             </g>
@@ -702,7 +729,7 @@ export function MonatV1Charts({ model }: { model: MonatV1Model }) {
           {model.surplusPoolGwh < 0.05 ? (
             <>
               Spitzenorientiert senkt ×10 die Restlast um {formatDeGw(model.compareX10.spitzeGw, 1)}; die
-              Überschuss-Fahrweise lädt 0 GWh. Markt orientiert sich an Preisen — ohne Überschuss bleibt der
+              Überschuss-Fahrweise lädt {formatDeGwh(0, 0)}. Markt orientiert sich an Preisen — ohne Überschuss bleibt der
               Unterschied zur Spitzen-Fahrweise klein.
             </>
           ) : (

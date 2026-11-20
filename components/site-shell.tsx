@@ -70,13 +70,13 @@ function navItemHref(item: (typeof SITE_MAIN_NAV)[number], navShortcuts: NavShor
 
 function mainNavLinkClass(active: boolean) {
   return active
-    ? "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 font-semibold text-[var(--v4-warm)]"
-    : "inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 text-muted-foreground hover:text-foreground";
+    ? "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-[var(--v4-warm-text)]"
+    : "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 text-muted-foreground hover:text-foreground";
 }
 
 function mobileNavLinkClass(active: boolean) {
   return `inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring ${
-    active ? "font-semibold text-[var(--v4-warm)]" : "text-foreground"
+    active ? "font-semibold text-[var(--v4-warm-text)]" : "text-foreground"
   }`;
 }
 
@@ -272,7 +272,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
           className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
         >
           <div className="mx-auto flex h-16 w-full items-center justify-between gap-3">
-            <BrandLockup homeHref={navShortcuts.tagHref} />
+            <BrandLockup homeHref="/" />
             {isLgNav ? (
             <nav
               id="site-desktop-nav"
@@ -369,6 +369,14 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
                 ? null
                 : " Wo Euro stehen, ist das als Modellschätzung gekennzeichnet."}
             </p>
+            {pathname === "/" ? (
+              <p className="mt-4 max-w-[52rem] leading-relaxed">
+                Im Arbeitsalltag der Hochspannungs- und Umspannwerkskonstruktion sehe ich, wie unterschiedlich
+                Speicherprojektierer und Netzplaner auf dasselbe Stromnetz schauen. Die einen optimieren auf
+                Börsenpreise, die anderen planen für Gleichzeitigkeit und Abendspitzen — selten auf derselben
+                Datenbasis.
+              </p>
+            ) : null}
             <p className="mt-4 flex flex-wrap gap-x-5">
               <a
                 href="https://www.linkedin.com/in/phillipp-zarindast/"

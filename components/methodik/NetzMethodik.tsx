@@ -1,5 +1,6 @@
 import { GlossaryTip } from "@/components/GlossaryTip";
 import type { AppLanguage } from "@/components/language-context";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import report from "@/data/netz/pruefung.json";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { checkedOutages, loadNetzDemo } from "@/lib/netzDemo";
@@ -22,7 +23,7 @@ function median(values: number[]): number {
 }
 
 export function NetzMethodik({ language, bodyOnly = false }: { language: AppLanguage; bodyOnly?: boolean }) {
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const tx = (de: string, en: string) => insertDisplayUnitNbsp(language === "de" ? de : en);
   const data = loadNetzDemo();
   const hl = data.cases.hL.base;
   const lpv = data.cases.lPV.base;

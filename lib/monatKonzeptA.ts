@@ -1,4 +1,5 @@
-import { formatQuantity } from "@/lib/formatQuantity";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
+import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 import {
   monthStatsForRun,
   NATIONAL_FLEET_FACTORS,
@@ -143,9 +144,13 @@ export function arbeitPathCallouts(model: ArbeitWirkungModel): Record<NationalFl
   const spitze1 = pt("spitze", 1);
   const ladungRatio = markt1.chargeGwh / Math.max(spitze1.chargeGwh, 0.001);
   return {
-    spitze: `Spitze senken ×10: −${formatQuantity(spitze10.wirkungGw, "de", 2)} GW`,
+    spitze: insertDisplayUnitNbsp(
+      `Spitze senken ×10: −${formatQuantityUnit(spitze10.wirkungGw, "de", 2, "GW")}`,
+    ),
     ueberschuss: `Differenz aufnehmen · stößt bei ×10 an den Pool`,
-    markt: `Marktorientiert ×1: lädt ${formatQuantity(ladungRatio, "de", 0)}× so viel, senkt Spitze um ${formatQuantity(markt1.wirkungGw, "de", 2)} GW`,
+    markt: insertDisplayUnitNbsp(
+      `Marktorientiert ×1: lädt ${formatQuantity(ladungRatio, "de", 0)}× so viel, senkt Spitze um ${formatQuantityUnit(markt1.wirkungGw, "de", 2, "GW")}`,
+    ),
   };
 }
 
@@ -159,11 +164,14 @@ export function plateauPeakNoteFromGws(gws: number[], epsilonGw = 0.005): string
 }
 
 export function formatKonzeptWorkbenchCaption(peakAfterGw: number, wirkungGw: number): string {
+  const peak = formatQuantityUnit(peakAfterGw, "de", 2, "GW");
   if (wirkungGw >= 0.0005) {
-    return `Monatsspitze ${formatQuantity(peakAfterGw, "de", 2)} GW — Senkung ${formatQuantity(wirkungGw, "de", 2)} GW`;
+    return insertDisplayUnitNbsp(`Monatsspitze ${peak} — Senkung ${formatQuantityUnit(wirkungGw, "de", 2, "GW")}`);
   }
   if (wirkungGw <= -0.0005) {
-    return `Monatsspitze ${formatQuantity(peakAfterGw, "de", 2)} GW — ${formatQuantity(Math.abs(wirkungGw), "de", 2)} GW über Referenz`;
+    return insertDisplayUnitNbsp(
+      `Monatsspitze ${peak} — ${formatQuantityUnit(Math.abs(wirkungGw), "de", 2, "GW")} über Referenz`,
+    );
   }
-  return `Monatsspitze ${formatQuantity(peakAfterGw, "de", 2)} GW`;
+  return insertDisplayUnitNbsp(`Monatsspitze ${peak}`);
 }

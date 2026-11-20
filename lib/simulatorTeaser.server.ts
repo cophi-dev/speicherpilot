@@ -1,4 +1,5 @@
-import { formatQuantity } from "@/lib/formatQuantity";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
+import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 import { compromisePct, fullReduction } from "@/lib/simulatorFahrweisenDerived";
 import { loadSimulatorFahrweisen } from "@/lib/simulatorFahrweisen.server";
 import type { Eps70TeaserUi } from "@/lib/simulatorTeaser.types";
@@ -25,9 +26,17 @@ export function loadEps70Teaser(): Eps70TeaserUi {
     periodEn: "October 2026",
     eyebrowDe: "Kompromiss · Fahrweisen · Oktober 2026",
     eyebrowEn: "Compromise · Strategies · October 2026",
-    headlineDe: `Doppelte Flotte im Oktober 2026: nach Preis ${priceGw} GW weniger Spitze, mit Rücksicht auf die Spitze ${peakGw} GW.`,
-    headlineEn: `Double the fleet in October 2026: by price ${priceGwEn} GW less peak, peak-aware ${peakGwEn} GW.`,
-    sublineDe: `Dafür sinkt der Day-Ahead-Erlös um ${k.costLabel}\u00A0%. Die volle Senkung (${formatQuantity(net.reductionGw, "de", 2)} GW) kostet ${voll.pctLabel}\u00A0%.`,
-    sublineEn: `Day-ahead revenue falls by ${k.costLabel}\u00A0%. Full peak reduction (${fullPeakEn} GW) costs ${voll.pctLabel}\u00A0%.`,
+    headlineDe: insertDisplayUnitNbsp(
+      `Doppelte Flotte im Oktober 2026: nach Preis ${formatQuantityUnit(data.endpoints.marketLex.reductionGw, "de", 2, "GW")} weniger Spitze, mit Rücksicht auf die Spitze ${formatQuantityUnit(data.endpoints.netzLex.reductionGw, "de", 2, "GW")}.`,
+    ),
+    headlineEn: insertDisplayUnitNbsp(
+      `Double the fleet in October 2026: by price ${formatQuantityUnit(data.endpoints.marketLex.reductionGw, "en", 2, "GW")} less peak, peak-aware ${formatQuantityUnit(data.endpoints.netzLex.reductionGw, "en", 2, "GW")}.`,
+    ),
+    sublineDe: insertDisplayUnitNbsp(
+      `Dafür sinkt der Day-Ahead-Erlös (Modell, perfekte Voraussicht) um ${k.costLabel}\u00a0%. Die volle Senkung (${formatQuantityUnit(net.reductionGw, "de", 2, "GW")}) kostet ${voll.pctLabel}\u00a0%.`,
+    ),
+    sublineEn: insertDisplayUnitNbsp(
+      `Day-ahead revenue falls by ${k.costLabel}\u00a0%. Full peak reduction (${formatQuantityUnit(net.reductionGw, "en", 2, "GW")}) costs ${voll.pctLabel}\u00a0%.`,
+    ),
   };
 }

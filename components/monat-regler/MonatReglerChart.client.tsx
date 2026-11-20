@@ -12,6 +12,7 @@ import {
   type ReglerDayPoint,
 } from "@/lib/monatReglerAsset";
 import { estimateTextWidth, stackLineLabelsAtX } from "@/lib/messerHeroLabels";
+import { formatBerlinMonthLabel } from "@/lib/monatCalendar";
 import { fleetTagHref, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 
 const Y_MIN = 0;
@@ -19,7 +20,7 @@ const Y_MAX = 100;
 const Y_TICKS = [0, 20, 40, 60, 80, 100] as const;
 const MOBILE_X_DAYS = new Set(["01", "08", "15", "22", "29"]);
 const H_SOC = 48;
-const PAD_BASE = { l: 44, r: 92, t: 18, b: 32 };
+const PAD_BASE = { l: 52, r: 104, t: 18, b: 32 };
 const END_LABEL_GAP_PX = 16;
 const STRATEGY_LABEL: Record<NationalFleetStrategyUi, string> = {
   spitze: "Spitze",
@@ -62,10 +63,12 @@ export function MonatReglerChart({
   compact,
   factor,
   strategy,
+  monthKey,
 }: {
   compact: MonatReglerCompact;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
+  monthKey: string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [cssW, setCssW] = useState(358);
@@ -91,8 +94,9 @@ export function MonatReglerChart({
       factor > 1 ? `×${factor} · ${STRATEGY_LABEL[strategy]}` : null,
     ].filter(Boolean);
     const maxTextW = Math.max(...labels.map((t) => estimateTextWidth(t!, LINE_END_LABEL_FS)));
-    return Math.max(PAD_BASE.r, maxTextW + END_LABEL_GAP_PX + 8);
-  }, [factor, strategy]);
+    const refLabelW = estimateTextWidth(formatQuantity(refGw, "de", 1), 12);
+    return Math.max(PAD_BASE.r, maxTextW + END_LABEL_GAP_PX + 8, refLabelW + END_LABEL_GAP_PX + 10);
+  }, [factor, refGw, strategy]);
   const pad = useMemo(
     () => ({ ...PAD_BASE, r: padR }),
     [padR],
@@ -195,7 +199,7 @@ export function MonatReglerChart({
         width={cssW}
         height={totalH}
         role="img"
-        aria-label="Restlast im Oktober"
+        aria-label={`Restlast im ${formatBerlinMonthLabel(monthKey)}`}
       >
         <text x={pad.l + 6} y={pad.t - 4} className={styles.yUnit} textAnchor="start">
           GW
@@ -221,9 +225,9 @@ export function MonatReglerChart({
           strokeWidth={1}
         />
         <text
-          x={cssW - pad.r}
+          x={cssW - pad.r + 6}
           y={yAt(refGw, plotH, pad.t, pad.b) - 4}
-          textAnchor="end"
+          textAnchor="start"
           className={styles.ytick}
         >
           {formatQuantity(refGw, "de", 1)}

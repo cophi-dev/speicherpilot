@@ -4,10 +4,10 @@ import { MONAT_WIDE_VIEWBOX_W } from "@/lib/monatSvgTypography";
 export type MonatChartBox = { w: number; h: number; L: number; R: number; T: number; B: number };
 
 const WIDE_HERO: MonatChartBox = { w: 1152, h: 460, L: 52, R: 188, T: 32, B: 62 };
-const NARROW_HERO_BASE: MonatChartBox = { w: 350, h: 356, L: 38, R: 26, T: 24, B: 62 };
+const NARROW_HERO_BASE: MonatChartBox = { w: 350, h: 356, L: 54, R: 28, T: 24, B: 68 };
 
 const WIDE_STUNDEN: MonatChartBox = { w: 1152, h: 400, L: 52, R: 24, T: 36, B: 48 };
-const NARROW_STUNDEN_BASE: MonatChartBox = { w: 350, h: 334, L: 38, R: 10, T: 28, B: 58 };
+const NARROW_STUNDEN_BASE: MonatChartBox = { w: 350, h: 334, L: 48, R: 10, T: 28, B: 58 };
 
 /** Breite/Höhe wie Desktop-Wide (~0,4 × Breite), nicht volle 350→928-Höhenskalierung. */
 const HERO_HEIGHT_RATIO = WIDE_HERO.h / WIDE_HERO.w;
@@ -34,14 +34,31 @@ export function monatHeroChartBox(shellWidth: number): MonatChartBox {
   if (shellWidth >= MONAT_WIDE_VIEWBOX_W) {
     return WIDE_HERO;
   }
-  return narrowBox(NARROW_HERO_BASE, shellWidth, HERO_HEIGHT_RATIO, NARROW_MIN_HERO_H);
+  const box = narrowBox(NARROW_HERO_BASE, shellWidth, HERO_HEIGHT_RATIO, NARROW_MIN_HERO_H);
+  if (shellWidth >= 960 && shellWidth < MONAT_WIDE_VIEWBOX_W) {
+    const T = 22;
+    const B = 40;
+    const L = 50;
+    const R = Math.max(56, Math.min(80, Math.round(shellWidth * 0.07)));
+    const h = Math.max(NARROW_MIN_HERO_H, Math.round(shellWidth * HERO_HEIGHT_RATIO));
+    const plotH = h - T - B;
+    return { w: shellWidth, h: T + plotH + B, L, R, T, B };
+  }
+  return box;
 }
 
 export function monatStundenChartBox(shellWidth: number): MonatChartBox {
   if (shellWidth >= MONAT_WIDE_VIEWBOX_W) {
     return WIDE_STUNDEN;
   }
-  return narrowBox(NARROW_STUNDEN_BASE, shellWidth, STUNDEN_HEIGHT_RATIO, NARROW_MIN_STUNDEN_H);
+  const box = narrowBox(NARROW_STUNDEN_BASE, shellWidth, STUNDEN_HEIGHT_RATIO, NARROW_MIN_STUNDEN_H);
+  if (shellWidth >= 960 && shellWidth < MONAT_WIDE_VIEWBOX_W) {
+    const plotH = box.h - box.T - box.B;
+    const T = Math.max(22, box.T - 4);
+    const B = 44;
+    return { ...box, T, B, h: T + plotH + B };
+  }
+  return box;
 }
 
 export function monatHeroUsesWideLayout(shellWidth: number): boolean {
@@ -64,15 +81,22 @@ export function monatUeberschussChartContentBottom(rowCount: number, wide: boole
   return lastCompareY + UEBERSCHUSS_BAR_H + UEBERSCHUSS_BOTTOM_PAD;
 }
 
+const UEBERSCHUSS_RIGHT_GUTTER = 76;
+
 export function monatUeberschussChartBox(
   shellWidth: number,
   rowCount: number,
-): { w: number; h: number; poolW: number } {
+): { w: number; h: number; poolW: number; rightGutter: number } {
   if (shellWidth >= MONAT_WIDE_VIEWBOX_W) {
-    return { ...WIDE_UEBERSCHUSS };
+    return { ...WIDE_UEBERSCHUSS, rightGutter: UEBERSCHUSS_RIGHT_GUTTER };
   }
   const w = Math.max(280, shellWidth);
   const scale = w / NARROW_HERO_BASE.w;
   const h = monatUeberschussChartContentBottom(rowCount, false);
-  return { w, h, poolW: Math.round(NARROW_UEBERSCHUSS_POOL_W * scale) };
+  return {
+    w: w + UEBERSCHUSS_RIGHT_GUTTER,
+    h,
+    poolW: Math.round(NARROW_UEBERSCHUSS_POOL_W * scale),
+    rightGutter: UEBERSCHUSS_RIGHT_GUTTER,
+  };
 }

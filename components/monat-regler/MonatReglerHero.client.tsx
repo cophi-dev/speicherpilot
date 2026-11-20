@@ -209,7 +209,9 @@ export function MonatReglerHero({
           Zeitreihe wird geladen …
         </p>
       ) : null}
-      {compact ? <MonatReglerChart compact={compact} factor={factor} strategy={strategy} /> : null}
+      {compact ? (
+        <MonatReglerChart compact={compact} factor={factor} strategy={strategy} monthKey={monthKey} />
+      ) : null}
 
       <p className={styles.caption} data-testid="monat-regler-pflichtzeile">
         {MONAT_REGELR_GRAPH_CAPTION}

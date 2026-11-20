@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "speicherpilot.app" }],
+        destination: "https://www.speicherpilot.app/:path*",
+        permanent: true,
+      },
       { source: "/blog", destination: "/beitraege#artikel", permanent: true },
       {
         source: "/blog/:slug((?!.*\\.).*)",
@@ -18,12 +24,14 @@ const nextConfig: NextConfig = {
       { source: "/vision/:path*", destination: "/jahr", permanent: true },
       { source: "/simulator", destination: "/kompromiss", permanent: true },
       { source: "/simulator/:path*", destination: "/kompromiss", permanent: true },
-      { source: "/ort", destination: "/kompromiss", permanent: true },
-      { source: "/ort/:path*", destination: "/kompromiss", permanent: true },
-      { source: "/site", destination: "/kompromiss", permanent: true },
-      { source: "/site/:path*", destination: "/kompromiss", permanent: true },
-      { source: "/netz", destination: "/kompromiss", permanent: true },
-      { source: "/szenarien", destination: "/kompromiss", permanent: true },
+      { source: "/ort", destination: "/knoten", permanent: true },
+      { source: "/ort/:path*", destination: "/knoten", permanent: true },
+      { source: "/site", destination: "/knoten", permanent: true },
+      { source: "/site/:path*", destination: "/knoten", permanent: true },
+      { source: "/netz", destination: "/knoten", permanent: true },
+      { source: "/netz/:path*", destination: "/knoten", permanent: true },
+      { source: "/szenarien", destination: "/knoten", permanent: true },
+      { source: "/szenarien/:path*", destination: "/knoten", permanent: true },
     ];
   },
   async headers() {

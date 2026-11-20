@@ -12,6 +12,7 @@ import {
   shouldShowFleetSaturationHint,
 } from "@/lib/fleetDaySaturation";
 import {
+  fleetMonatQuery,
   fleetTagHref,
   NATIONAL_FLEET_FACTORS,
   NATIONAL_FLEET_STRATEGY_UI,
@@ -50,6 +51,7 @@ export function NationalFleetDayChapter({
   strategy,
   slice,
   monthStats,
+  isStartSurface = false,
 }: {
   dayKey: string;
   factor: NationalFleetFactor;
@@ -57,7 +59,10 @@ export function NationalFleetDayChapter({
   run: NationalFleetRunSeries;
   slice: NationalFleetDaySlice;
   monthStats: NationalFleetMonthStats;
+  isStartSurface?: boolean;
 }) {
+  const scenarioHref = (f: NationalFleetFactor, s: NationalFleetStrategyUi) =>
+    isStartSurface ? `/?${fleetMonatQuery(f, s)}` : fleetTagHref(dayKey, f, s);
   const peakRpGw = slice.maxRPrimeMw / 1000;
   const peakRGw = slice.maxRMw / 1000;
   const dayPeakKpi = formatDayPeakKpiFromSlice(peakRpGw, peakRGw, dayKey);
@@ -89,7 +94,7 @@ export function NationalFleetDayChapter({
             {NATIONAL_FLEET_FACTORS.map((f) => (
               <FleetScenarioLink
                 key={f}
-                href={fleetTagHref(dayKey, f, strategy)}
+                href={scenarioHref(f, strategy)}
                 role="button"
                 aria-pressed={f === factor}
                 className={`v4-fleet-pill${f === factor ? " is-active" : ""}${f === 1 ? " is-measured" : ""}`}
@@ -105,7 +110,7 @@ export function NationalFleetDayChapter({
             {(["spitze", "markt", "ueberschuss"] as const).map((id) => (
               <FleetScenarioLink
                 key={id}
-                href={fleetTagHref(dayKey, factor, id)}
+                href={scenarioHref(factor, id)}
                 role="button"
                 aria-pressed={strategy === id}
                 className={`v4-fleet-pill v4-fleet-pill-wide${strategy === id ? " is-active" : ""}`}
@@ -117,7 +122,7 @@ export function NationalFleetDayChapter({
           </div>
           <p className="v4-fleet-strategy-copy">
             {strategy === "spitze"
-              ? "lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
+              ? "Lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
               : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
           </p>
           <p className="v4-fleet-energy-context">

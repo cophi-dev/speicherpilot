@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { SoGerechnetBlock } from "@/components/home/SoGerechnetBlock";
+import { formatDeDurationH } from "@/lib/displayUnitFormat";
 import { fleetPowerGwLabel } from "@/lib/fleetXkConvention";
 import { formatGwAbs, formatGwReduction, MONAT_V1_GRAPH_CAPTION, MONAT_V1_KERN3 } from "@/lib/monatV1Format";
 import type { MonatV1Model } from "@/lib/monatV1Model";
@@ -55,9 +56,9 @@ export function MonatSoGerechnet({ model }: { model: MonatV1Model }) {
         <thead>
           <tr>
             <th scope="col">Stufe</th>
-            <th scope="col">1,76 h</th>
-            <th scope="col">2 h</th>
-            <th scope="col">4 h</th>
+            <th scope="col">{formatDeDurationH("1,76")}</th>
+            <th scope="col">{formatDeDurationH("2")}</th>
+            <th scope="col">{formatDeDurationH("4")}</th>
           </tr>
         </thead>
         <tbody>

@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { SvgChartShell } from "@/components/charts/SvgChartShell";
+import { useMeasuredChartWidth } from "@/components/research/useMeasuredChartWidth";
 import { nearestIndexFromClientXs } from "@/lib/chartNearestIndex";
 import { paretoTooltipRows, paretoTooltipTime } from "@/lib/simulatorChartTooltip";
 
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import simStyles from "@/components/monat-v1/simulator-fahrweisen.module.css";
 import type { SimulatorPalette } from "@/components/monat-v1/simulatorPalette";
-import { HatchDefs, Knockout, SvgText, TwoLineLabel } from "@/components/monat-v1/simulatorSvg";
+import { SvgText, TwoLineLabel } from "@/components/monat-v1/simulatorSvg";
 import { useLayoutWide, useSimulatorTheme } from "@/components/monat-v1/useSimulatorTheme";
 import {
   FULL_X,
@@ -30,6 +31,8 @@ import {
 } from "@/lib/simulatorFahrweisenTypes";
 import { MONAT_V1_GRAPH_CAPTION } from "@/lib/monatV1Format";
 import { FrontSlider } from "@/components/monat-v1/FrontSlider";
+import { formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
+import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
 
 export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData }) {
   const wide = useLayoutWide(1100);
@@ -41,6 +44,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
   const e70 = data.endpoints.eps70;
   const voll = fullReduction(mkt.revenueMioEur, net.revenueMioEur);
   const komp = compromisePct(mkt.revenueMioEur, e70.revenueMioEur);
+  const baseGw = NATIONAL_BASE_FLEET.powerMw / 1000;
 
   const ariaFor = (p: SimulatorFrontPoint, label: string) =>
     `${label}: ${pctOfMarket(p.revenueMioEur, mkt.revenueMioEur)}, Senkung ${formatGw(p.reductionGw)}`;
@@ -53,13 +57,13 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
   return (
     <section className={styles.section} aria-labelledby="sim-g1-title" data-testid="simulator-pareto">
       <p className={styles.eyebrow}>
-        Oktober 2026 · doppelte Flotte (×2): heute 4,64 GW + 4,64 GW zusätzlich
+        Oktober 2026 · doppelte Flotte (×2): heute {formatDeGw(baseGw, 2)} + {formatDeGw(baseGw, 2)} zusätzlich
       </p>
       <p className={simStyles.display} aria-hidden="true">
         {formatGw(e70.reductionGw)}
       </p>
       <h2 id="sim-g1-title" className={styles.h1}>
-        weniger Oktober-Spitze,
+        Weniger Oktober-Spitze,
         <br />
         statt {formatGw(mkt.reductionGw)} bei reinem Preisfahren.
       </h2>
@@ -70,7 +74,7 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
       <div className={wide ? simStyles.insight3wide : simStyles.insight3}>
         <div>
           {formatGw(e70.reductionGw)}
-          <div className={styles.insightMuted}>Kompromiss (70 % der Senkung)</div>
+          <div className={styles.insightMuted}>{insertDisplayUnitNbsp("Kompromiss (70 % der Senkung)")}</div>
         </div>
         <div>
           {komp.costLabel}{"\u00A0"}%
@@ -253,9 +257,12 @@ function FullAxisChart({
   e70: { reductionGw: number };
   voll: ReturnType<typeof fullReduction>;
 }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const measuredW = useMeasuredChartWidth(wrapRef, wide ? 260 : 350);
+  const chartW = wide ? 260 : Math.max(340, Math.round(measuredW));
   const vb = wide
     ? { w: 260, h: 360, L: 40, R: 14, T: 32, B: 52 }
-    : { w: 350, h: 120, L: 38, R: 16, T: 16, B: 36 };
+    : { w: chartW, h: 120, L: 38, R: 16, T: 22, B: 34 };
   const xmin = revenueAxisPct(FULL_X[0], marketMio);
   const xmax = revenueAxisPct(FULL_X[1], marketMio);
   const [ymin, ymax] = FULL_Y;
@@ -281,6 +288,7 @@ function FullAxisChart({
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
+    <div ref={wrapRef} style={{ width: "100%" }}>
     <SvgChartShell
       pointCount={frontPts.length}
       pickIndex={pick}
@@ -390,6 +398,7 @@ function FullAxisChart({
     </svg>
       )}
     </SvgChartShell>
+    </div>
   );
 }
 
@@ -414,9 +423,13 @@ function ZoomChart({
   selected: number;
   voll: ReturnType<typeof fullReduction>;
 }) {
-  const vb = wide
-    ? { w: 868, h: 360, L: 52, R: 36, T: 32, B: 54 }
-    : { w: 350, h: 300, L: 48, R: 18, T: 26, B: 54 };
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const measuredW = useMeasuredChartWidth(wrapRef, wide ? 868 : 350);
+  const chartW = Math.max(340, Math.round(measuredW));
+  const compact = chartW < 520;
+  const vb = compact
+    ? { w: chartW, h: 310, L: 48, R: 18, T: 26, B: 54 }
+    : { w: chartW, h: 360, L: 52, R: 36, T: 32, B: 54 };
   const xmin = revenueAxisPct(ZOOM_X[0], marketMio);
   const xmax = revenueAxisPct(ZOOM_X[1], marketMio);
   const [ymin, ymax] = FULL_Y;
@@ -425,9 +438,9 @@ function ZoomChart({
   const fx = (v: number) => mapX(v, xmin, xmax, plotW, vb.L);
   const fy = (v: number) => mapY(v, ymin, ymax, plotH, vb.T);
   const y70 = fy(e70.reductionGw);
-  const xticksMio = wide ? [33.7, 33.8, 33.9, 34.0, 34.1] : [33.7, 33.9, 34.1];
+  const xticksMio = !compact ? [33.7, 33.8, 33.9, 34.0, 34.1] : [33.7, 33.9, 34.1];
   const xticks = xticksMio.map((t) => revenueAxisPct(t, marketMio));
-  const yticks = wide ? [1, 2, 3, 4] : [2, 4];
+  const yticks = !compact ? [1, 2, 3, 4] : [2, 4];
   const line = frontPts.map((p) => `${fx(revenueAxisPct(p.xMio, marketMio))},${fy(p.yGw)}`).join(" ");
   const named = {
     markt: frontPts.find((p) => p.isMarketLex)!,
@@ -453,6 +466,7 @@ function ZoomChart({
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), vb.w, xs);
 
   return (
+    <div ref={wrapRef} style={{ width: "100%" }}>
     <SvgChartShell
       pointCount={frontPts.length}
       pickIndex={pick}
@@ -509,7 +523,7 @@ function ZoomChart({
       <SvgText x={(vb.L + vb.L + plotW) / 2} y={vb.h - 8} anchor="middle" fill={colors.muted}>
         Day-Ahead-Erlös, % vom Max.-Erlös
       </SvgText>
-      {wide ? (
+      {!compact ? (
         <SvgText x={vb.L} y={16} fill={colors.ink} weight={500}>
           Zoom {zoomRange}{"\u00A0"}% · Senkung in GW
         </SvgText>
@@ -518,15 +532,7 @@ function ZoomChart({
           Senkung, GW
         </SvgText>
       )}
-      <Knockout
-        x={vb.L + (wide ? 8 : 6)}
-        y={y70 - 22}
-        width={wide ? 188 : 156}
-        height={16}
-        fill={colors.flaeche}
-        opacity={0.92}
-      />
-      <SvgText x={vb.L + (wide ? 10 : 8)} y={y70 - 10} fill={colors.ink}>
+      <SvgText x={vb.L + 10} y={y70 + 16} fill={colors.muted} halo={colors.flaeche}>
         70{"\u00A0"}% der max. Senkung
       </SvgText>
       <polyline points={line} fill="none" stroke={colors.ink} strokeWidth={2.5} strokeLinejoin="round" />
@@ -555,11 +561,11 @@ function ZoomChart({
         stroke={colors.flaeche}
         strokeWidth={1.5}
       />
-      {wide ? (
+      {!compact ? (
         <>
           <TwoLineLabel
             x={nx + 12}
-            y1={ny - 4}
+            y1={ny - 6}
             line1="Spitze zuerst"
             line2={valN}
             anchor="start"
@@ -567,8 +573,8 @@ function ZoomChart({
             bg={colors.flaeche}
           />
           <TwoLineLabel
-            x={kx + 12}
-            y1={ky + 16}
+            x={kx + 14}
+            y1={ky - 16}
             line1="Kompromiss"
             line2={valK}
             anchor="start"
@@ -576,8 +582,8 @@ function ZoomChart({
             bg={colors.flaeche}
           />
           <TwoLineLabel
-            x={mx - 12}
-            y1={my - 8}
+            x={mx - 14}
+            y1={my - 22}
             line1="Nur Preis"
             line2={valM}
             anchor="end"
@@ -590,7 +596,7 @@ function ZoomChart({
         <>
           <TwoLineLabel
             x={nx + 10}
-            y1={ny - 20}
+            y1={ny - 18}
             line1="Spitze zuerst"
             line2={valN}
             anchor="start"
@@ -598,8 +604,8 @@ function ZoomChart({
             bg={colors.flaeche}
           />
           <TwoLineLabel
-            x={kx - 10}
-            y1={ky + 22}
+            x={kx - 14}
+            y1={ky + 20}
             line1="Kompromiss"
             line2={valK}
             anchor="end"
@@ -607,8 +613,8 @@ function ZoomChart({
             bg={colors.flaeche}
           />
           <TwoLineLabel
-            x={mx - 10}
-            y1={my - 6}
+            x={mx - 12}
+            y1={my - 20}
             line1="Nur Preis"
             line2={valM}
             anchor="end"
@@ -629,6 +635,7 @@ function ZoomChart({
     </svg>
       )}
     </SvgChartShell>
+    </div>
   );
 }
 
@@ -651,8 +658,7 @@ function CostBracket({
       <line x1={xL} y1={y} x2={xR} y2={y} stroke={colors.ink} strokeWidth={1} />
       <line x1={xL} y1={y - 4} x2={xL} y2={y + 4} stroke={colors.ink} strokeWidth={1} />
       <line x1={xR} y1={y - 4} x2={xR} y2={y + 4} stroke={colors.ink} strokeWidth={1} />
-      <Knockout x={mid - 110} y={y - 16} width={220} height={16} fill={colors.flaeche} opacity={0.92} />
-      <SvgText x={mid} y={y - 5} anchor="middle" fill={colors.ink} weight={500}>
+      <SvgText x={mid} y={y - 6} anchor="middle" fill={colors.ink} weight={500} halo={colors.flaeche}>
         {sentence}
       </SvgText>
     </g>

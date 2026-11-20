@@ -5,7 +5,7 @@ import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
   jest.setTimeout(120_000);
 
-  it("leitet /ort, /site und Unterpfade dauerhaft auf /kompromiss um", async () => {
+  it("leitet /ort, /site und Unterpfade dauerhaft auf /knoten um", async () => {
     const redirects = await nextConfig.redirects!();
     const sources = [
       "/ort",
@@ -13,12 +13,14 @@ describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
       "/site",
       "/site/:path*",
       "/netz",
+      "/netz/:path*",
       "/szenarien",
+      "/szenarien/:path*",
     ];
     for (const source of sources) {
       const rule = redirects.find((item) => item.source === source);
       expect(rule).toBeDefined();
-      expect(rule!.destination).toBe("/kompromiss");
+      expect(rule!.destination).toBe("/knoten");
       expect(rule!.permanent).toBe(true);
     }
   });
@@ -26,6 +28,7 @@ describe("Simulator-Umbau: Redirects, Sitemap, Kernzahl", () => {
   it("nimmt /kompromiss und /jahr in die Sitemap und lässt Redirect-Ziele draußen", async () => {
     const urls = (await sitemap()).map((entry) => new URL(entry.url).pathname);
     expect(urls).toContain("/kompromiss");
+    expect(urls).toContain("/knoten");
     expect(urls).toContain("/jahr");
     expect(urls).not.toContain("/simulator");
     expect(urls).not.toContain("/vision");

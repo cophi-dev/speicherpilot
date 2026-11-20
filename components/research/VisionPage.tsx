@@ -22,6 +22,7 @@ import {
 import { visionJahrUeberschussPct } from "@/lib/research/visionJahrData";
 import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
 
 const DURATIONS = [
@@ -47,6 +48,8 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
   const truth = stage.senkungGw[durationKey];
   const hero = formatGwSenkung(truth);
   const nepC = model.stages2h.find((s) => s.key === "NEP C")!;
+  const nepCCurve = model.curve.find((s) => s.id === "nep-c");
+  const nepCSenkung = duration === "4" && nepCCurve ? nepCCurve.senkungGw["4"] : nepC.senkung2hGw;
   const nepA = model.stages2h.find((s) => s.key === "NEP A")!;
   const inGuess = guessMode && !revealed;
   const showTruth = !inGuess;
@@ -59,9 +62,9 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
       <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
       <p className={styles.prose}>
-        NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das
-        Stromsystem der letzten zwölf Monate: Deutschland als ein Netzknoten ohne Leitungsengpässe, mit perfekter Vorausschau. Das ist
-        eine Obergrenze. Der Oktober-Ausschnitt steht auf{" "}
+        {insertDisplayUnitNbsp(
+          "NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das Stromsystem der letzten zwölf Monate: Deutschland als ein Netzknoten ohne Leitungsengpässe, mit perfekter Vorausschau. Das ist eine Obergrenze. Der Oktober-Ausschnitt steht auf ",
+        )}
         <Link href="/monat/2026-10" className={styles.link}>
           /monat/2026-10
         </Link>
@@ -73,8 +76,15 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
           Ab NEP A ({formatVisionGwPlain(nepA.powerGw)}) bringt jedes weitere GW Speicher wenig
         </h2>
         <p className={styles.meta}>
-          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}). NEP C senkt sie um{" "}
-          {formatVisionGwPlain(nepC.senkung2hGw)} (Vorjahreszeitraum: {formatVisionGwPlain(model.vorjahr2hSenkung["NEP C"] ?? 0)})
+          Jahresspitze {model.peakGwDisplay}{"\u00A0"}GW ({formatVisionGermanDate(model.peakTag)}, {model.peakTime}).
+          {showTruth ? (
+            <>
+              {" "}NEP C ({duration}{"\u00A0"}h) senkt sie um {formatVisionGwPlain(nepCSenkung)}
+              {duration === "2"
+                ? ` (Vorjahreszeitraum: ${formatVisionGwPlain(model.vorjahr2hSenkung["NEP C"] ?? 0)})`
+                : ""}
+            </>
+          ) : null}
         </p>
 
         {showTruth ? (
@@ -92,7 +102,8 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
             <p className={styles.meta}>
               {stageId.startsWith("nep") ? `NEP ${stage.label} · ` : `${stage.label} · `}
               {formatVisionGwPlain(stage.powerGw)} ·{" "}
-              {duration === "2" ? formatVisionDurationDe("2") : "4 h Sensitivität"} · spitzenorientiert (national)
+              {duration === "2" ? formatVisionDurationDe("2") : `${formatVisionDurationDe("4")} Sensitivität`} ·
+              spitzenorientiert (national)
             </p>
           </>
         ) : (

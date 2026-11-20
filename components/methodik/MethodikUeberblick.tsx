@@ -4,6 +4,7 @@ import { GlossaryTip } from "@/components/GlossaryTip";
 import type { AppLanguage } from "@/components/language-context";
 import snapshot from "@/data/fleet-snapshot.json";
 import { CHAIN_SOC_MAX, CHAIN_SOC_MIN } from "@/lib/chainedFleetSoc";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LIVE_DISPATCH_FACTORS } from "@/lib/liveFleetDispatch";
 import { MORE_STORAGE_DISCHARGE_HOUR } from "@/lib/moreStorage";
@@ -90,7 +91,7 @@ export type MethodikFleetStand = {
 };
 
 function buildMethodikOverviewContext(language: AppLanguage, fleet?: MethodikFleetStand | null) {
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const tx = (de: string, en: string) => insertDisplayUnitNbsp(language === "de" ? de : en);
   const pct = (value: number) => formatQuantity(value * 100, language, 0);
   const rte = pct(ROUND_TRIP_EFFICIENCY);
   const soc = `${pct(CHAIN_SOC_MIN)}–${pct(CHAIN_SOC_MAX)}`;
@@ -381,6 +382,12 @@ export function MethodikAnnahmenSection({
     <>
       <p className="methodik-kurzfassung">
         {tx(
+          "Zwei Ebenen im Modell: (1) Nationale Bilanz auf /, /tag, /monat, /jahr und /kompromiss (Deutschland als ein Netzknoten ohne Leitungsengpässe, Day-Ahead DE-LU, Flotte ×1–×10). (2) Umspannwerk-Modellknoten auf /knoten (drei synthetische Umspannwerke Wind Nord, Solar Süd, Stadt mit 80 MW Grenze für den Vergleich von Markt-Fahrplan und knotentreuer Fahrweise nach § 17 Abs. 2b EnWG, siehe Abschnitt Modellknoten unten). Kapitel C1–C15 dokumentiert frühere Standort-Prototypen als Archiv.",
+          "Two levels in the model: (1) National balance on /, /tag, /monat, /jahr and /kompromiss (Germany as a single grid node without line bottlenecks, day-ahead DE-LU, fleet ×1–×10). (2) Substation model node on /knoten (three synthetic substations Wind North, Solar South, Urban with an 80 MW limit comparing market schedule and node-compliant operation under § 17 (2b) EnWG, see Model node below). Chapter C1–C15 documents earlier site prototypes as an archive.",
+        )}
+      </p>
+      <p className="methodik-kurzfassung">
+        {tx(
           `Kurzfassung: Round-Trip ${rte} % (Spanne 80–90 %), nutzbarer Ladezustand ${soc} %, Preisnehmer (Speicher ändern den Preis nicht), nur Day-Ahead, Deutschland als ein Netzknoten. Tagesseite: Überschuss-Modell (lädt nur, wenn Wind und Sonne über dem Verbrauch liegen). Monat und Kompromiss: drei Fahrweisen (gegen die Spitze, Überschuss, nach Preis) mit voller Vorausschau. Flotte ×1 = heutige Großspeicher (Battery Charts). Oktober-Rechnung: 4,64 GW / 8,15 GWh, Stand 31.10. Tagesseiten: aktueller Stand.`,
           `Summary: round-trip ${rte}% (range 80–90%), usable state of charge ${soc}%, price taker (storage does not change the price), day-ahead only, Germany as a single grid node. Day page: surplus model (charges only when wind and solar exceed load). Month and compromise: three operation modes (peak-oriented, surplus, price) with full foresight. Fleet ×1 = today’s large storage (Battery Charts). October run: 4.64 GW / 8.15 GWh, as of 31 Oct. Day pages: current fleet.`
         )}
@@ -392,7 +399,12 @@ export function MethodikAnnahmenSection({
             `All assumptions as a table (${assumptions.length})`
           )}
         </summary>
-        <div className="methodik-table-wrap">
+        <div
+          className="methodik-table-wrap"
+          role="region"
+          aria-label={tx("Annahmen-Tabelle", "Assumptions table")}
+          tabIndex={0}
+        >
           <FitTable
             className="methodik-assumptions"
             caption={tx("Annahmen auf einen Blick", "Assumptions at a glance")}
@@ -440,7 +452,12 @@ export function MethodikLizenzenSection({
             `All sources and licences (${sources.length})`
           )}
         </summary>
-        <div className="methodik-table-wrap">
+        <div
+          className="methodik-table-wrap"
+          role="region"
+          aria-label={tx("Quellen- und Lizenztabelle", "Sources and licences table")}
+          tabIndex={0}
+        >
           <table className="methodik-fit methodik-sources">
             <caption className="sr-only">{tx("Quellen und Lizenzen", "Sources and licences")}</caption>
             <colgroup>

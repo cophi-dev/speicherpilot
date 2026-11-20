@@ -22,13 +22,13 @@ export function simulatorPalette(dark: boolean) {
         grid: "#E4E4DC",
         flaeche: "#FFFFFF",
         bg: "#F6F6F3",
-        rust: "#B4532A",
+        rust: "#b4532a",
         rustTint: "rgba(180, 83, 42, 0.10)",
         inkTint: "rgba(16, 18, 20, 0.10)",
         winWin: "#1B6B45",
         neutral: "#D5D5CD",
         konfliktSchwach: "#C9A46A",
-        konfliktHebung: "#B4532A",
+        konfliktHebung: "#b4532a",
         field70: "rgba(27,107,69,0.10)",
       };
 }

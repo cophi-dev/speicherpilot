@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import styles from "@/components/home/PreisFenster.module.css";
+import { formatDeEurPerMwh } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import { LUECKE_DESKTOP, LUECKE_MOBILE_PAD, plotXFromSlotIndex } from "@/lib/lueckeChartGeometry";
 import {
@@ -14,6 +15,7 @@ import {
   preisYAxisTicksVisible,
 } from "@/lib/preisFensterChartLayout";
 import { TAG_WIDE_VIEWBOX_W } from "@/lib/tagSvgTypography";
+import { DAY_AHEAD_ZACKEN_HINWEIS_DE } from "@/lib/dayAheadZackenHinweis";
 import { computeDauerSpanne, preisAxisTicks, preisFigurSatz, preisMittelFensterText, preisModellLine, preisSpanneLine, type PreisTick } from "@/lib/preisFenster";
 import { nearestIndexFromClientInSvg } from "@/lib/chartSvgPointer";
 
@@ -100,7 +102,7 @@ export function PreisFenster({
       return null;
     }
     const p = points[activeIndex]!;
-    return [{ label: "Day-Ahead", value: `${formatQuantity(p.eurPerMwh, "de", 2)} €/MWh` }];
+    return [{ label: "Day-Ahead", value: formatDeEurPerMwh(p.eurPerMwh, 2) }];
   }, [activeIndex, points]);
 
   if (points.length < 2) {
@@ -156,7 +158,8 @@ export function PreisFenster({
     <figure className={styles.figure} data-testid="preis-fenster">
       {compactCopy ? (
         <p className={`${styles.unitLead} text-sm text-muted-foreground`}>
-          Day-Ahead-Preis, €/MWh · Punkte: die günstigsten und teuersten Viertelstunden, in die die heutige Flotte passt
+          Day-Ahead-Preis, €/MWh · Punkte: die günstigsten und teuersten Viertelstunden, in die die heutige Flotte
+          passt
         </p>
       ) : null}
       <ChartTooltipPanel timeLabel={tooltipTime} rows={tooltipRows} testId="preis-fenster-tooltip" />
@@ -233,6 +236,11 @@ export function PreisFenster({
           ) : null}
         </svg>
       </div>
+      {compactCopy ? (
+        <figcaption className={`text-sm text-muted-foreground ${styles.zackenCaption}`}>
+          {DAY_AHEAD_ZACKEN_HINWEIS_DE}
+        </figcaption>
+      ) : null}
       {compactCopy ? null : (
         <>
       <dl className={`v4-day-notes ${styles.notes}`}>

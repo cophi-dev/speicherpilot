@@ -5,7 +5,8 @@ import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
 import { NationalFleetMarginalBenefit } from "@/components/home/NationalFleetMarginalBenefit";
 import { NationalFleetTimeSeriesChart } from "@/components/home/NationalFleetTimeSeriesChart";
 import { formatPeakKpiParts } from "@/lib/nationalFleetCharts";
-import { formatQuantity } from "@/lib/formatQuantity";
+import { formatDeGwh, formatDeGw, formatDePercentInt, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
+import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 import { MONAT_SURPLUS_EXPLAIN_DE } from "@/lib/monatCalendar";
 import type { MonatSurplusBar } from "@/lib/monatSurplusBars";
 import type { NationalFleetFactorCompareRow, StrategyMarginalStep } from "@/lib/nationalFleetMarginal";
@@ -21,10 +22,14 @@ import {
 } from "@/lib/nationalMonthFleetModel";
 
 function formatGw(gw: number, digits = 2): string {
-  return formatQuantity(gw, "de", digits);
+  return formatDeGw(gw, digits);
 }
 
-const FLEET_SIZE_LEGEND = "Größe (×1 = 4,64 GW / 8,15 GWh Nennenergie)";
+function formatGwh(gwh: number, digits = 2): string {
+  return formatDeGwh(gwh, digits);
+}
+
+const FLEET_SIZE_LEGEND = insertDisplayUnitNbsp("Größe (×1 = 4,64 GW / 8,15 GWh Nennenergie)");
 const FLEET_GOAL_LEGEND = "Ziel / Fahrweise";
 
 function FleetMonthFootnotes({
@@ -51,7 +56,7 @@ function FleetMonthFootnotes({
           <dd className="v4-month-mobile-note">{peakNote}</dd>
           <dd>{`Vorberechneter Monatslauf (×${factor}, hypothetisch).`}</dd>
           <dd>Modell auf beobachteter Last und Erzeugung (Okt. 2026).</dd>
-          <dd>{`Referenz 4,64 GW / 8,15 GWh Nennenergie, skaliert mit ×${factor}.`}</dd>
+          <dd>{insertDisplayUnitNbsp(`Referenz 4,64 GW / 8,15 GWh Nennenergie, skaliert mit ×${factor}.`)}</dd>
           <dd>Hypothetisch, kein amtlicher Bestand.</dd>
           <dd>Alle drei Fahrweisen rechnen jeden Viertelstundentag.</dd>
           <dd>Rampen, Starts und Abregelung am Ort fehlen.</dd>
@@ -206,14 +211,14 @@ export function NationalFleetMonthChapter({
             <span className="v4-fleet-kpi-label-long">Netzseitige Ladung</span>
             <span className="v4-fleet-kpi-label-short">Ladung</span>
           </dt>
-          <dd>{formatGw(stats.chargeGwh, 2)} GWh</dd>
+          <dd>{formatGwh(stats.chargeGwh, 2)}</dd>
         </div>
         <div>
           <dt>
             <span className="v4-fleet-kpi-label-long">Netzseitige Abgabe</span>
             <span className="v4-fleet-kpi-label-short">Abgabe</span>
           </dt>
-          <dd>{formatGw(stats.dischargeGwh, 2)} GWh</dd>
+          <dd>{formatGwh(stats.dischargeGwh, 2)}</dd>
         </div>
       </dl>
       <FleetMonthFootnotes
@@ -229,20 +234,20 @@ export function NationalFleetMonthChapter({
           <div>
             <dt>Referenzflotte (gewählt)</dt>
             <dd>
-              {formatGw(stats.fleetPowerGw, 2)} GW · {formatGw(stats.fleetEnergyGwh, 0)} GWh Nennenergie
+              {formatGw(stats.fleetPowerGw, 2)} · {formatGwh(stats.fleetEnergyGwh, 0)} Nennenergie
             </dd>
           </div>
           <div>
             <dt>Verlust (Ladung − Abgabe)</dt>
-            <dd>{formatGw(stats.lossGwh, 2)} GWh</dd>
+            <dd>{formatGwh(stats.lossGwh, 2)}</dd>
           </div>
           {stats.surplusCaptureGwh != null ? (
             <div>
               <dt>Aufnahme aus Wind-Solar-Differenz</dt>
               <dd>
-                {formatGw(stats.surplusCaptureGwh, 2)} GWh
+                {formatGwh(stats.surplusCaptureGwh, 2)}
                 {stats.surplusCaptureSharePct != null
-                  ? ` (${formatQuantity(stats.surplusCaptureSharePct, "de", 1)} % vom Okt.-Pool 134,2 GWh)`
+                  ? ` (${formatDePercentInt(stats.surplusCaptureSharePct)} vom Okt.-Pool 134,2\u00a0GWh)`
                   : null}
               </dd>
             </div>
@@ -250,7 +255,7 @@ export function NationalFleetMonthChapter({
           <div>
             <dt>SoC Monatsanfang / -ende</dt>
             <dd>
-              {formatGw(stats.socStartGwh, 1)} / {formatGw(stats.socEndGwh, 1)} GWh (50 % Nennenergie, durchgehend)
+              {formatGwh(stats.socStartGwh, 1)} / {formatGwh(stats.socEndGwh, 1)} ({formatDePercentInt(50)} Nennenergie, durchgehend)
             </dd>
           </div>
         </dl>
@@ -289,7 +294,9 @@ export function NationalFleetMonthChapter({
                     style={{ height: `${height}%`, marginTop: `${100 - highPct}%` }}
                     title={
                       band.min != null
-                        ? `SoC ${formatQuantity(band.min / 1000, "de", 2)}–${formatQuantity(band.max! / 1000, "de", 2)} GWh`
+                        ? insertDisplayUnitNbsp(
+                            `SoC ${formatGwh(band.min / 1000, 2)}–${formatGwh(band.max! / 1000, 2)}`,
+                          )
                         : "—"
                     }
                   />

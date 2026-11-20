@@ -23,7 +23,7 @@
   --mr-linie: #262b31;
   --mr-flaeche: #121417;
   --mr-grid: #1f2529;
-  --mr-rust: #e07a48;
+  --mr-rust: #e76f51;
   --mr-blue: #5a9ec4;
   --mr-gray: #6b7580;
   --mr-observed: #9ea3a9;
@@ -149,6 +149,18 @@
   }
 }
 
+@media (min-width: 768px) and (max-width: 1100px) {
+  .kpi dt {
+    font-size: 11px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+  .kpi dd {
+    font-size: clamp(20px, 2.2vw, 26px);
+  }
+}
+
 .kpi dt {
   font-size: 0.75rem;
   color: var(--mr-muted);
@@ -198,7 +210,8 @@
 .chartWrap {
   position: relative;
   width: 100%;
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   touch-action: manipulation;
   margin: 0.35rem 0 0.5rem;
   border: 1px solid var(--mr-linie);

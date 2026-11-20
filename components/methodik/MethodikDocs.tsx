@@ -26,6 +26,7 @@ import { ROUND_TRIP_EFFICIENCY } from "@/lib/roundTripEfficiency";
 import { GRID_SUPPORT_CONFIG } from "@/lib/sitePlanner";
 import { formatQuarterlyCurtailmentGwh, SMARD_QUARTERLY_TOPIC_URL } from "@/lib/eeCurtailmentQuarterly";
 import { NATIONAL_BASE_FLEET } from "@/lib/exportLaunchNationalDays";
+import { insertDisplayUnitNbsp, formatDeGwGwhLine } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 
 import {
@@ -37,9 +38,12 @@ import {
 
 export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
   const { language } = useLanguage();
-  const tx = (de: string, en: string) => (language === "de" ? de : en);
+  const tx = (de: string, en: string) => insertDisplayUnitNbsp(language === "de" ? de : en);
   const rtePct = Math.round(ROUND_TRIP_EFFICIENCY * 100);
-  const modellFlotte = `${formatQuantity(NATIONAL_BASE_FLEET.powerMw / 1000, language, 2)} GW / ${formatQuantity(NATIONAL_BASE_FLEET.energyMwh / 1000, language, 2)} GWh`;
+  const modellFlotte = formatDeGwGwhLine(
+    NATIONAL_BASE_FLEET.powerMw / 1000,
+    NATIONAL_BASE_FLEET.energyMwh / 1000,
+  );
   return (
     <div className="methodik v4-subpage methodik-v4">
       <MethodikHashScroll />
@@ -352,7 +356,13 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             <section id="c-netz" className="methodik-chapter">
               <h2 className="methodik-chapter-title">{tx("C · Netz und Beispiele", "C · Grid and examples")}</h2>
               <p className="methodik-chapter-lead">{language === "de" ? METHODIK_CHAPTERS[2].deLead : METHODIK_CHAPTERS[2].enLead}</p>
-            <MethodikSection id="ampel" defaultOpen title={methodikSectionLabel("ampel", language)}>
+              <p className="methodik-kurzfassung">
+                {tx(
+                  "Hinweis: Die aktive Umspannwerk-Rechnung läuft heute unter /knoten (siehe Abschnitt „Modellknoten (/knoten)“ weiter unten). Die Abschnitte C1–C15 sind als Archiv früherer Standort- und SimBench-Rechner eingeklappt.",
+                  "Note: The active substation model now runs at /knoten (see “Model node (/knoten)” below). Sections C1–C15 remain collapsed as an archive of earlier site and SimBench calculators.",
+                )}
+              </p>
+            <MethodikSection id="ampel" title={methodikSectionLabel("ampel", language)}>
               <div className="methodik-gauges">
                 <Gauge pct={70} label={tx("passt", "fits")} />
                 <Gauge pct={95} label={tx("knapp", "tight")} />

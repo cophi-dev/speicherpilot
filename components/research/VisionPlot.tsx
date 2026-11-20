@@ -182,7 +182,7 @@ export function VisionPlot({
             strokeDasharray="4 3"
             strokeWidth={1}
           />
-          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP) - 16} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
+          <text x={width - 12} y={yAxisUnitLabelY(PAD_TOP)} textAnchor="end" fontSize={axisFs} fill="var(--research-muted)" fontFamily="var(--font-jetbrains-mono)">
             {width < 420
               ? `≥${model.commitmentsGw}\u00a0GW*`
               : `≥ ${model.commitmentsGw}\u00a0GW Zusagen*`}
@@ -232,17 +232,17 @@ export function VisionPlot({
                       y={Math.min(rightEnd.y4 + 14, plotLo - 6)}
                       textAnchor={anchorEnd ? "end" : "start"}
                       fontSize={axisFs}
-                      fill="var(--research-muted)"
+                      fill="var(--research-fg)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
-                      4 h
+                      {`4\u00a0h`}
                     </text>
                     <text
                       x={lx}
                       y={Math.max(rightEnd.y - 6, plotHi + 12)}
                       textAnchor={anchorEnd ? "end" : "start"}
                       fontSize={axisFs}
-                      fill="var(--research-accent)"
+                      fill="var(--research-fg)"
                       fontFamily="var(--font-jetbrains-mono)"
                     >
                       {durationCurveLabel(duration)}

@@ -1,3 +1,4 @@
+import { DISPLAY_NBSP, formatDeEurPerMwh, formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
@@ -84,7 +85,7 @@ function ruleHohesMinimum(record: TagesKennzahlRecord | null): MarktInsight | nu
   return {
     id: "hohes_minimum",
     category: "markt",
-    text: `Am ${fmtDate(record.dateKey)} lag die Börse zwischen ${fmtEur(record.pmin)} und ${fmtEur(record.pmax ?? record.pmin)} €/MWh. Spanne ${fmtEur(record.spread)} €/MWh, keine Viertelstunde unter 100 €/MWh und keine Stunde unter null.`,
+    text: `Am ${fmtDate(record.dateKey)} lag die Börse zwischen ${formatDeEurPerMwh(record.pmin, 0)} und ${formatDeEurPerMwh(record.pmax ?? record.pmin, 0)}. Spanne ${formatDeEurPerMwh(record.spread!, 0)}, keine Viertelstunde unter 100${DISPLAY_NBSP}€/MWh und keine Stunde unter null.`,
     period: fmtDate(record.dateKey),
     source: "Bundesnetzagentur | SMARD.de, Day-Ahead DE-LU",
     methodikHref: "/methodik#insight-hohes-minimum",
@@ -99,7 +100,7 @@ function rulePreisSpike(record: TagesKennzahlRecord | null): MarktInsight | null
   return {
     id: "preis_spike",
     category: "markt",
-    text: `Am ${fmtDate(record.dateKey)} war der Überschuss 0 GWh. Maximum ${fmtEur(record.pmax)} €/MWh${at}.`,
+    text: `Am ${fmtDate(record.dateKey)} war der Überschuss 0 GWh. Maximum ${formatDeEurPerMwh(record.pmax, 0)}${at}.`,
     period: fmtDate(record.dateKey),
     source: "Bundesnetzagentur | SMARD.de, Day-Ahead DE-LU",
     methodikHref: "/methodik#insight-preis-spike",
@@ -136,7 +137,7 @@ function ruleGleicheSpanne(records: TagesKennzahlRecord[], focusDayKey?: string)
         return {
           id: "gleiche_spanne",
           category: "markt",
-          text: `${fmtDate(a.dateKey)} und ${fmtDate(b.dateKey)} haben ähnliche Spannen (${fmtEur(a.spread!)} vs. ${fmtEur(b.spread!)} €/MWh), aber Minima ${fmtEur(a.pmin!)} vs. ${fmtEur(b.pmin!)} €/MWh.`,
+          text: `${fmtDate(a.dateKey)} und ${fmtDate(b.dateKey)} haben ähnliche Spannen (${formatDeEurPerMwh(a.spread!, 0)} vs. ${formatDeEurPerMwh(b.spread!, 0)}), aber Minima ${formatDeEurPerMwh(a.pmin!, 0)} vs. ${formatDeEurPerMwh(b.pmin!, 0)}.`,
           period: `${fmtDate(WINDOW_START)}–${fmtDate(endKey)}`,
           source: "Bundesnetzagentur | SMARD.de",
           methodikHref: "/methodik#insight-gleiche-spanne",
@@ -220,7 +221,7 @@ function ruleDreiZiele(bundle: NationalFleetMonthBundle): MarktInsight | null {
     category: "monat",
     text: `${monthLabel}, 1× Zusatzflotte (×2): Markt bewegt ${fmtEur(mk.chargeGwh)} GWh und senkt die Spitze um ${fmtEur(mk.peakReductionGw)} GW. Spitze senken: ${fmtEur(sp.peakReductionGw)} GW bei ${fmtEur(sp.chargeGwh)} GWh. Differenz: ${fmtEur(ue.chargeGwh)} GWh, Spitze −${fmtEur(ue.peakReductionGw)} GW.`,
     period: monthLabel,
-    source: "Vorberechneter Monatslauf 4,64 GW / 8,15 GWh je ×",
+    source: insertDisplayUnitNbsp("Vorberechneter Monatslauf 4,64 GW / 8,15 GWh je ×"),
     methodikHref: "/methodik#insight-drei-ziele",
   };
 }
@@ -271,7 +272,7 @@ export function buildMarktInsights(input: BuildMarktInsightsInput): MarktInsight
   const items: MarktInsight[] = [];
   const push = (item: MarktInsight | null) => {
     if (item) {
-      items.push(item);
+      items.push({ ...item, text: insertDisplayUnitNbsp(item.text) });
     }
   };
 
@@ -349,7 +350,9 @@ export function threeGoalsSummarySentence(model: ThreeGoalsCompareModel, monthKe
     return "";
   }
   const monthLabel = formatBerlinMonthLabel(monthKey);
-  return `${monthLabel}, Basis 4,64 GW / 8,15 GWh, ×1 Zusatz (×2): Differenz senkt ${fmtEur(u2.peakReductionGw)} GW bei ${fmtEur(u2.chargeGwh)} GWh; Spitze ${fmtEur(s2.peakReductionGw)} GW bei ${fmtEur(s2.chargeGwh)} GWh; Markt ${fmtEur(m2.chargeGwh)} GWh bei ${fmtEur(m2.peakReductionGw)} GW Spitzenwirkung.`;
+  return insertDisplayUnitNbsp(
+    `${monthLabel}, Basis 4,64 GW / 8,15 GWh, ×1 Zusatz (×2): Differenz senkt ${fmtEur(u2.peakReductionGw)} GW bei ${fmtEur(u2.chargeGwh)} GWh; Spitze ${fmtEur(s2.peakReductionGw)} GW bei ${fmtEur(s2.chargeGwh)} GWh; Markt ${fmtEur(m2.chargeGwh)} GWh bei ${fmtEur(m2.peakReductionGw)} GW Spitzenwirkung.`,
+  );
 }
 
 export const MARKT_INSIGHT_RULE_IDS = [

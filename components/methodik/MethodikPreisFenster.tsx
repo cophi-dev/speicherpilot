@@ -48,7 +48,8 @@ export function MethodikPreisFenster() {
           Preise. Einheit €/MWh. Bei gleichem Preis bleibt die frühere Viertelstunde auf der günstigen Seite.
         </p>
         <p>
-          Quelle: Day-Ahead der Gebotszone DE-LU, Energy-Charts, Lizenzfeld CC BY 4.0, Bundesnetzagentur | SMARD.de.
+          Quelle: Day-Ahead der Gebotszone DE-LU, EPEX SPOT, 15-Minuten-Day-Ahead seit 1. Oktober 2025; Energy-Charts,
+          Lizenzfeld CC BY 4.0, Bundesnetzagentur | SMARD.de.
           Abruf der Gegenrechnung: 9. November 2026. Dieselbe Spanne des Tages steht in der SMARD-Reihe Filter 4169.
           SMARD prüft die Lizenz der Großhandelspreise im Verfahren HEDWIG. EPEX wird hier nicht abgefragt.
         </p>
