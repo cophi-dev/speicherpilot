@@ -66,7 +66,7 @@ export function KnotenSingleLine({
     return () => window.clearInterval(id);
   }, [base.length, playing]);
 
-  const effectiveMode: Mode = isCustom ? "knoten" : mode;
+  const effectiveMode: Mode = mode;
   const baseMw = base[slot] ?? 0;
   const trafoMw = effectiveMode === "markt" ? (fm[slot] ?? baseMw) : (fk[slot] ?? baseMw);
   const bessMw = trafoMw - baseMw; // + = charging, - = discharging
@@ -80,7 +80,7 @@ export function KnotenSingleLine({
   const gridDirectionLabel = trafoMw >= 0 ? "Bezug aus 110\u00A0kV" : "Rückspeisung in 110\u00A0kV";
   const bessStateLabel =
     bessMw > 0.15 ? "BESS lädt" : bessMw < -0.15 ? "BESS entlädt" : "Leerlauf";
-  const currentSoc = socPct?.[slot];
+  const currentSoc = effectiveMode === "knoten" ? socPct?.[slot] : undefined;
   const bessColor = effectiveMode === "markt" ? colors.rust : colors.teal;
 
   const ariaDesc = `Umspannwerk-Schaltbild um ${timeLabel}: Transformator ${fmtSignedMw(trafoMw)} (${Math.round(utilPct)} Prozent von ±${limitMw} MW), Speicher ${fmtSignedMw(bessMw)}, Knotenlast ${fmtSignedMw(baseMw)}.`;
@@ -98,26 +98,22 @@ export function KnotenSingleLine({
         </div>
 
         <div className={styles.singleLineActions}>
-          {!isCustom ? (
-            <>
-              <button
-                type="button"
-                className={`${styles.miniBtn}${effectiveMode === "markt" ? ` ${styles.miniBtnActive}` : ""}`}
-                aria-pressed={effectiveMode === "markt"}
-                onClick={() => setMode("markt")}
-              >
-                Markt
-              </button>
-              <button
-                type="button"
-                className={`${styles.miniBtn}${effectiveMode === "knoten" ? ` ${styles.miniBtnActive}` : ""}`}
-                aria-pressed={effectiveMode === "knoten"}
-                onClick={() => setMode("knoten")}
-              >
-                Knotentreu
-              </button>
-            </>
-          ) : null}
+          <button
+            type="button"
+            className={`${styles.miniBtn}${effectiveMode === "markt" ? ` ${styles.miniBtnActive}` : ""}`}
+            aria-pressed={effectiveMode === "markt"}
+            onClick={() => setMode("markt")}
+          >
+            Markt
+          </button>
+          <button
+            type="button"
+            className={`${styles.miniBtn}${effectiveMode === "knoten" ? ` ${styles.miniBtnActive}` : ""}`}
+            aria-pressed={effectiveMode === "knoten"}
+            onClick={() => setMode("knoten")}
+          >
+            Knotentreu
+          </button>
           <button
             type="button"
             className={styles.miniBtn}
