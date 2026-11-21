@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 
-import { SimulatorSubnav } from "@/components/simulator/SimulatorSubnav";
 import { KnotenChart } from "@/components/knoten/KnotenChart.client";
 import { KnotenSingleLine } from "@/components/knoten/KnotenSingleLine.client";
 import styles from "@/components/knoten/knoten.module.css";
@@ -352,8 +351,6 @@ export function KnotenWorkbench({
 
   return (
     <div className={styles.root} data-testid="knoten-page">
-      <SimulatorSubnav />
-
       <div className={styles.pageIntro}>
         <h1 className="v4-h1" style={{ marginBottom: "0.25rem" }}>
           Dein Knoten

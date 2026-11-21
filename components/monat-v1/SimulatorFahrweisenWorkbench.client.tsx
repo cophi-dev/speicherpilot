@@ -15,11 +15,7 @@ import type { SimulatorFahrweisenData } from "@/lib/simulatorFahrweisenTypes";
 export function SimulatorFahrweisenWorkbench({ data }: { data: SimulatorFahrweisenData }) {
   return (
     <div data-testid="simulator-werkbank" className={simStyles.simulatorRoot}>
-      <p className={styles.eyebrow}>FAHRWEISEN · OKTOBER 2026 · MONATSHORIZONT</p>
-      <div className={styles.chipRow}>
-        <span className={styles.chip}>MODELL</span>
-      </div>
-      <h1 className="v4-h1" style={{ marginBottom: "0.5rem" }} data-testid="simulator-vision-satz">
+      <h1 className="v4-h1" style={{ marginBottom: "0.4rem" }} data-testid="simulator-vision-satz">
         Fahrweise schlägt Größe.
       </h1>
       <p className={styles.lead}>

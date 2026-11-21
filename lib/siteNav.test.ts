@@ -18,8 +18,9 @@ describe("siteNav", () => {
     expect(isSiteMainNavActive("/kompromiss", "/kompromiss")).toBe(true);
     expect(isSiteMainNavActive("/simulator", "/kompromiss")).toBe(true);
     expect(isSiteMainNavActive("/simulator/extra", "/kompromiss")).toBe(true);
-    expect(isSiteMainNavActive("/knoten", "/kompromiss")).toBe(true);
-    expect(isSiteMainNavActive("/knoten?tag=2026-11-13", "/kompromiss")).toBe(true);
+    expect(isSiteMainNavActive("/knoten", "/kompromiss")).toBe(false);
+    expect(isSiteMainNavActive("/knoten", "/knoten")).toBe(true);
+    expect(isSiteMainNavActive("/knoten?tag=2026-11-13", "/knoten")).toBe(true);
     expect(isSiteMainNavActive("/methodik", "/kompromiss")).toBe(false);
     expect(isSiteMainNavActive("/monat/2026-10", "/monat")).toBe(true);
     expect(isSiteMainNavActive("/methodik", "/methodik")).toBe(true);

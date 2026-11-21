@@ -4,6 +4,7 @@ export const SITE_MAIN_NAV = [
   { href: "/monat", label: "Monat" },
   { href: "/jahr", label: "Jahr" },
   { href: "/kompromiss", label: "Simulator" },
+  { href: "/knoten", label: "Knoten" },
   { href: "/beitraege", label: "Beiträge" },
   { href: "/methodik", label: "Methodik" },
 ] as const;
@@ -28,11 +29,10 @@ export function isSiteMainNavActive(pathname: string, itemHref: SiteMainNavHref)
     return pathname.startsWith("/jahr");
   }
   if (itemHref === "/kompromiss") {
-    return (
-      pathname.startsWith("/kompromiss") ||
-      pathname.startsWith("/simulator") ||
-      pathname.startsWith("/knoten")
-    );
+    return pathname.startsWith("/kompromiss") || pathname.startsWith("/simulator");
+  }
+  if (itemHref === "/knoten") {
+    return pathname.startsWith("/knoten");
   }
   return pathname.startsWith(itemHref);
 }

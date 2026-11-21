@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { socialMeta } from "@/lib/siteOg";
 
-import { SimulatorSubnav } from "@/components/simulator/SimulatorSubnav";
 import { SimulatorFahrweisenWorkbench } from "@/components/monat-v1/SimulatorFahrweisenWorkbench.client";
 import styles from "@/components/monat-v1/monat-v1.module.css";
 import { loadSimulatorFahrweisen } from "@/lib/simulatorFahrweisen.server";
@@ -30,7 +29,6 @@ export default function KompromissPage() {
   const data = loadSimulatorFahrweisen();
   return (
     <div className={`${styles.root} v4-content`} data-testid="kompromiss-page">
-      <SimulatorSubnav />
       <SimulatorFahrweisenWorkbench data={data} />
       <footer className={styles.pageFooter}>
         <p>
