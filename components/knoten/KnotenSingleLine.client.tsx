@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import styles from "@/components/knoten/knoten.module.css";
-import type { KnotenPalette } from "@/components/knoten/useKnotenTheme";
+import type { KnotenPalette } from "@/components/knoten/knotenPalette";
 import { slotIndexToTime } from "@/lib/knoten/customProfileSim";
 
 type Mode = "markt" | "knoten";
@@ -144,7 +144,7 @@ export function KnotenSingleLine({
           aria-label={`Umspannwerk-Schaltbild um ${timeLabel}: Transformator ${fmtSignedMw(trafoMw)} (${Math.round(utilPct)} Prozent von ±${limitMw} MW), Speicher ${fmtSignedMw(bessMw)}, Knotenlast ${fmtSignedMw(baseMw)}.`}
         >
           {/* 110 kV Busbar (left) */}
-          <rect x={18} y={54} width={118} height={96} rx={10} fill="none" stroke={colors.linie} strokeWidth={1.5} />
+          <rect x={18} y={54} width={118} height={96} rx={10} fill="none" stroke={colors.grid} strokeWidth={1.5} />
           <line x1={32} y1={76} x2={122} y2={76} stroke={colors.ink} strokeWidth={3} />
           <text x={77} y={68} textAnchor="middle" fill={colors.muted} fontSize={11} fontFamily="var(--font-mono)">
             110{"\u00A0"}kV NETZ
@@ -157,7 +157,7 @@ export function KnotenSingleLine({
           </text>
 
           {/* Animated Flow Line: Grid <-> Trafo */}
-          <line x1={136} y1={102} x2={258} y2={102} stroke={colors.linie} strokeWidth={5} strokeLinecap="round" />
+          <line x1={136} y1={102} x2={258} y2={102} stroke={colors.grid} strokeWidth={5} strokeLinecap="round" />
           <line
             x1={136}
             y1={102}
@@ -215,9 +215,9 @@ export function KnotenSingleLine({
 
           {/* Branch 1: Knoten Basislast / EE (top right) */}
           <line x1={504} y1={56} x2={566} y2={56} stroke={colors.gray} strokeWidth={2.5} />
-          <rect x={568} y={18} width={174} height={76} rx={10} fill="none" stroke={colors.linie} strokeWidth={1.5} />
+          <rect x={568} y={18} width={174} height={76} rx={10} fill="none" stroke={colors.grid} strokeWidth={1.5} />
           <text x={655} y={38} textAnchor="middle" fill={colors.muted} fontSize={11} fontFamily="var(--font-mono)">
-            KNOTEN (OHNE BESS)
+            KNOTEN-BASISLAST
           </text>
           <text x={655} y={62} textAnchor="middle" fill={colors.ink} fontSize={15} fontWeight={600} fontFamily="var(--font-mono)">
             {fmtSignedMw(baseMw)}
@@ -232,7 +232,7 @@ export function KnotenSingleLine({
             y1={150}
             x2={566}
             y2={150}
-            stroke={Math.abs(bessMw) > 0.15 ? (effectiveMode === "markt" ? colors.rust : colors.teal) : colors.linie}
+            stroke={Math.abs(bessMw) > 0.15 ? (effectiveMode === "markt" ? colors.rust : colors.teal) : colors.grid}
             strokeWidth={2.5}
             strokeDasharray={Math.abs(bessMw) > 0.15 ? "6 4" : undefined}
             className={
