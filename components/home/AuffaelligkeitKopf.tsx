@@ -5,7 +5,6 @@ import { Suspense, useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
 import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
-import { StartFlagshipHero } from "@/components/home/StartFlagshipHero";
 import { KnotenTagLink } from "@/components/knoten/KnotenTagLink";
 import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
@@ -301,20 +300,16 @@ export function TagPageV4({
           fleetStrategy={fleetStrategy}
         />
       )}
-      {isStartSurface ? (
-        <StartFlagshipHero dayKey={dayKey} dataStand={dataStand} record={record} />
-      ) : (
-        <AuffaelligkeitKopf
-          dayKey={dayKey}
-          todayKey={todayKey}
-          dataStand={dataStand}
-          result={result}
-          records={records}
-          kickerPrefix="Tag"
-          hideTagLink
-          leitfrage={leitfrage}
-        />
-      )}
+      <AuffaelligkeitKopf
+        dayKey={dayKey}
+        todayKey={todayKey}
+        dataStand={dataStand}
+        result={result}
+        records={records}
+        kickerPrefix={isStartSurface ? "Gestern" : "Tag"}
+        hideTagLink={!isStartSurface}
+        leitfrage={leitfrage}
+      />
       <div id="tagesverlauf">
         <TagChapter
           day={day}
@@ -360,8 +355,10 @@ export function TagPageV4({
         surplusGwh={record.surplusGwh ?? 0}
         fleetExtra={fleetSoGerechnet}
       />
-      <TagesvorlageModelBox />
-      {marktInsights.length > 0 ? <MarktInsightsBlock insights={marktInsights} layout="tag" /> : null}
+      {isStartSurface ? null : <TagesvorlageModelBox />}
+      {!isStartSurface && marktInsights.length > 0 ? (
+        <MarktInsightsBlock insights={marktInsights} layout="tag" />
+      ) : null}
     </div>
   );
 }
