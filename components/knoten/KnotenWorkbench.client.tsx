@@ -329,26 +329,18 @@ export function KnotenWorkbench({
   return (
     <div className={styles.root} data-testid="knoten-page">
       <SimulatorSubnav />
-      <p className={styles.chipRow}>
-        <span className={styles.modell}>MODELLKNOTEN</span>
-      </p>
-      <h1 className="v4-h1" style={{ marginBottom: "0.5rem" }}>
-        Dein Knoten
-      </h1>
-      <p className="v4-lead" style={{ maxWidth: "60ch" }}>
-        Drei Modellknoten (Wind Nord, Solar Süd, Stadt) mit 80{"\u00A0"}MW Grenze am Umspannwerk (2 × 40{"\u00A0"}MVA
-        HS/MS): Wann überlastet reines Preisfahren den Knoten — und wie viel Day-Ahead-Erlös kostet eine knotentreue
-        Fahrweise (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)? Den nationalen Erlös-Spitzen-Kompromiss zeigt{" "}
-        <Link href="/kompromiss" className="v4-text-link">
-          Kompromiss
-        </Link>
-        .
-      </p>
-      <p className={styles.chipRow}>
-        <Link href="/methodik#knoten-modell" className="v4-text-link">
-          Quellen und Grenzen
-        </Link>
-      </p>
+      <div className={styles.pageIntro}>
+        <h1 className="v4-h1" style={{ marginBottom: "0.35rem" }}>
+          Dein Knoten
+        </h1>
+        <p className="v4-lead" style={{ maxWidth: "58ch", marginBottom: "0.5rem" }}>
+          80{"\u00A0"}MW Umspannwerk (2 × 40{"\u00A0"}MVA HS/MS): Wann überlastet Preisfahren den Knoten — und was
+          kostet knotentreues Fahren (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)?{" "}
+          <Link href="/methodik#knoten-modell" className="v4-text-link">
+            Methodik
+          </Link>
+        </p>
+      </div>
 
       <div className={styles.controlBar}>
         <div className={styles.controlGroup}>
@@ -372,7 +364,7 @@ export function KnotenWorkbench({
         </div>
 
         <div className={styles.controlGroup}>
-          <p className={styles.chipGroupLabel}>Flottenstufe am Knoten</p>
+          <p className={styles.chipGroupLabel}>Flottenstufe</p>
           <div className={styles.chipRow} role="group" aria-label="Flottenstufe">
             {KNOTEN_FAKTOREN.map((f) => (
               <Link
@@ -391,41 +383,49 @@ export function KnotenWorkbench({
           </div>
         </div>
 
-        <div className={styles.controlGroup}>
-          <p className={styles.chipGroupLabel}>Belegung</p>
-          <div className={styles.chipRow} role="group" aria-label="Belegung">
-            {KNOTEN_BELEGUNGEN.map((b) => (
-              <Link
-                key={b}
-                href={qs(b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
-                scroll={false}
-                prefetch={false}
-                data-no-nav-progress=""
-                onClick={(e) => onChipClick(e, b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
-                className={`${styles.chip}${b === activeSelection.belegung ? ` ${styles.chipActive}` : ""}`}
-                aria-current={b === activeSelection.belegung ? "true" : undefined}
-              >
-                {KNOTEN_BELEGUNG_LABELS[b]}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <details className={styles.filterDetails}>
+          <summary className={styles.filterSummary}>
+            Weitere Filter: <strong>{KNOTEN_BELEGUNG_LABELS[activeSelection.belegung]}</strong> ·{" "}
+            <strong>{activeSelection.tag}</strong>
+          </summary>
+          <div className={styles.filterDetailsBody}>
+            <div className={styles.controlGroup}>
+              <p className={styles.chipGroupLabel}>Belegung</p>
+              <div className={styles.chipRow} role="group" aria-label="Belegung">
+                {KNOTEN_BELEGUNGEN.map((b) => (
+                  <Link
+                    key={b}
+                    href={qs(b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
+                    scroll={false}
+                    prefetch={false}
+                    data-no-nav-progress=""
+                    onClick={(e) => onChipClick(e, b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
+                    className={`${styles.chip}${b === activeSelection.belegung ? ` ${styles.chipActive}` : ""}`}
+                    aria-current={b === activeSelection.belegung ? "true" : undefined}
+                  >
+                    {KNOTEN_BELEGUNG_LABELS[b]}
+                  </Link>
+                ))}
+              </div>
+            </div>
 
-        <div className={styles.controls}>
-          <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
-            Tag
-          </label>
-          <input
-            id="knoten-tag"
-            type="date"
-            className={styles.dateInput}
-            value={activeSelection.tag}
-            min={dateBounds.min}
-            max={dateBounds.max}
-            onChange={(e) => onDate(e.target.value)}
-            data-testid="knoten-tag-input"
-          />
-        </div>
+            <div className={styles.controls}>
+              <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
+                Tag
+              </label>
+              <input
+                id="knoten-tag"
+                type="date"
+                className={styles.dateInput}
+                value={activeSelection.tag}
+                min={dateBounds.min}
+                max={dateBounds.max}
+                onChange={(e) => onDate(e.target.value)}
+                data-testid="knoten-tag-input"
+              />
+            </div>
+          </div>
+        </details>
       </div>
 
       <div className={`${styles.smoothPanel}${isUpdating ? ` ${styles.smoothPanelUpdating}` : ""}`} aria-busy={isUpdating}>
@@ -499,157 +499,171 @@ export function KnotenWorkbench({
         <KnotenChart typ={typ} day={tag} k={k} curve={activeCurve} colors={colors} />
       </div>
 
-      <section className={styles.utilityCard} aria-labelledby="knoten-utility-title">
-        <div className={styles.utilityHead}>
-          <div>
-            <p className={styles.chipGroupLabel} style={{ marginTop: 0 }}>
-              Grenzwert-Sensitivität, Eigenes Profil &amp; Diagnose
+      <div className={styles.accordionStack}>
+        <details className={styles.accordionCard} open={customProfile != null}>
+          <summary className={styles.accordionSummary}>
+            <span>
+              <strong>Eigenes Lastprofil testen (100{"\u00A0"}% lokal im Browser) &amp; CSV-Export</strong>
+              <span className={styles.accordionSub}>
+                Eigene 96{"\u00A0"}Viertelstunden lokal simulieren oder aktuelle Kurve exportieren
+              </span>
+            </span>
+          </summary>
+          <div className={styles.accordionBody}>
+            <p className={styles.privacyBadge} data-testid="knoten-privacy-badge">
+              100{"\u00A0"}% lokal im Browser — keine Datei verlässt Ihr Gerät, kein Server-Upload, kein Login. Akzeptiert generische 96-Viertelstunden-CSVs (z.{"\u00A0"}B. „Uhrzeit;Last_MW“).
             </p>
-            <h2 id="knoten-utility-title" className={styles.utilityTitle}>
-              Eigene Knotengrenze testen, CSV lokal einlesen &amp; exportieren
-            </h2>
-          </div>
-          <div className={styles.utilityHeadActions}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,.txt,text/csv,text/plain"
-              onChange={onCsvFileChange}
-              className={styles.srFileInput}
-              aria-label="Eigene 96-Viertelstunden-CSV lokal laden"
-            />
-            <button
-              type="button"
-              className={styles.exportBtn}
-              onClick={() => fileInputRef.current?.click()}
-              data-testid="knoten-csv-import"
-            >
-              Eigene CSV laden (lokal)
-            </button>
-            <button
-              type="button"
-              className={styles.miniBtn}
-              onClick={onLoadSampleProfile}
-              data-testid="knoten-sample-profile"
-            >
-              Beispiel-Profil testen
-            </button>
-            <button
-              type="button"
-              className={styles.exportBtn}
-              onClick={onDownloadCsv}
-              data-testid="knoten-csv-export"
-            >
-              96{"\u00A0"}Viertelstunden als CSV
-            </button>
-          </div>
-        </div>
 
-        <p className={styles.privacyBadge} data-testid="knoten-privacy-badge">
-          100{"\u00A0"}% lokal im Browser — keine Datei verlässt Ihr Gerät, kein Server-Upload, kein Login. Akzeptiert generische 96-Viertelstunden-CSVs (z.{"\u00A0"}B. „Uhrzeit;Last_MW“).
-        </p>
+            <div className={styles.utilityHeadActions}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.txt,text/csv,text/plain"
+                onChange={onCsvFileChange}
+                className={styles.srFileInput}
+                aria-label="Eigene 96-Viertelstunden-CSV lokal laden"
+              />
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={() => fileInputRef.current?.click()}
+                data-testid="knoten-csv-import"
+              >
+                Eigene CSV laden (lokal)
+              </button>
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={onLoadSampleProfile}
+                data-testid="knoten-sample-profile"
+              >
+                Beispiel-Profil testen
+              </button>
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={onDownloadCsv}
+                data-testid="knoten-csv-export"
+              >
+                96{"\u00A0"}Viertelstunden als CSV
+              </button>
+            </div>
 
-        {customError ? (
-          <p className={styles.customError} role="alert">
-            {customError}
-          </p>
-        ) : null}
+            {customError ? (
+              <p className={styles.customError} role="alert">
+                {customError}
+              </p>
+            ) : null}
 
-        <div className={styles.chipRow} role="group" aria-label="Eigene Knotengrenze in MW">
-          {CUSTOM_LIMITS_MW.map((limit) => (
-            <button
-              key={limit}
-              type="button"
-              className={`${styles.chip}${customLimitMw === limit ? ` ${styles.chipActive}` : ""}`}
-              aria-pressed={customLimitMw === limit}
-              onClick={() => setCustomLimitMw(limit)}
-            >
-              ±{limit}
-              {"\u00A0"}MW{limit === KNOTEN_LIMIT_MW ? " (Standard)" : ""}
-            </button>
-          ))}
-        </div>
-
-        {customProfile ? (
-          <div className={styles.customSizingRow}>
-            <div className={styles.controlGroup}>
-              <p className={styles.chipGroupLabel}>Eigener BESS (Leistung)</p>
-              <div className={styles.chipRow} role="group" aria-label="Speicherleistung in MW">
-                {CUSTOM_BESS_POWER_MW.map((mw) => (
-                  <button
-                    key={mw}
-                    type="button"
-                    className={`${styles.chip}${customBessMw === mw ? ` ${styles.chipActive}` : ""}`}
-                    aria-pressed={customBessMw === mw}
-                    onClick={() => setCustomBessMw(mw)}
-                  >
-                    {mw}{"\u00A0"}MW
-                  </button>
-                ))}
+            {customProfile ? (
+              <div className={styles.customSizingRow}>
+                <div className={styles.controlGroup}>
+                  <p className={styles.chipGroupLabel}>Eigener BESS (Leistung)</p>
+                  <div className={styles.chipRow} role="group" aria-label="Speicherleistung in MW">
+                    {CUSTOM_BESS_POWER_MW.map((mw) => (
+                      <button
+                        key={mw}
+                        type="button"
+                        className={`${styles.chip}${customBessMw === mw ? ` ${styles.chipActive}` : ""}`}
+                        aria-pressed={customBessMw === mw}
+                        onClick={() => setCustomBessMw(mw)}
+                      >
+                        {mw}{"\u00A0"}MW
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className={styles.controlGroup}>
+                  <p className={styles.chipGroupLabel}>Speicherdauer</p>
+                  <div className={styles.chipRow} role="group" aria-label="Speicherdauer in Stunden">
+                    {CUSTOM_BESS_HOURS.map((h) => (
+                      <button
+                        key={h}
+                        type="button"
+                        className={`${styles.chip}${customBessHours === h ? ` ${styles.chipActive}` : ""}`}
+                        aria-pressed={customBessHours === h}
+                        onClick={() => setCustomBessHours(h)}
+                      >
+                        {h}{"\u00A0"}h ({customBessMw * h}{"\u00A0"}MWh)
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
+            ) : null}
+          </div>
+        </details>
+
+        <details className={styles.accordionCard}>
+          <summary className={styles.accordionSummary}>
+            <span>
+              <strong>Diagnose &amp; eigene Knotengrenze (±{customLimitMw}{"\u00A0"}MW)</strong>
+              <span className={styles.accordionSub}>
+                3-Satz-Auswertung &amp; Schwellwert-Sensitivität (±40 bis ±120{"\u00A0"}MW)
+              </span>
+            </span>
+          </summary>
+          <div className={styles.accordionBody}>
+            <div className={styles.chipRow} role="group" aria-label="Eigene Knotengrenze in MW">
+              {CUSTOM_LIMITS_MW.map((limit) => (
+                <button
+                  key={limit}
+                  type="button"
+                  className={`${styles.chip}${customLimitMw === limit ? ` ${styles.chipActive}` : ""}`}
+                  aria-pressed={customLimitMw === limit}
+                  onClick={() => setCustomLimitMw(limit)}
+                >
+                  ±{limit}
+                  {"\u00A0"}MW{limit === KNOTEN_LIMIT_MW ? " (Standard)" : ""}
+                </button>
+              ))}
             </div>
-            <div className={styles.controlGroup}>
-              <p className={styles.chipGroupLabel}>Speicherdauer</p>
-              <div className={styles.chipRow} role="group" aria-label="Speicherdauer in Stunden">
-                {CUSTOM_BESS_HOURS.map((h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    className={`${styles.chip}${customBessHours === h ? ` ${styles.chipActive}` : ""}`}
-                    aria-pressed={customBessHours === h}
-                    onClick={() => setCustomBessHours(h)}
-                  >
-                    {h}{"\u00A0"}h ({customBessMw * h}{"\u00A0"}MWh)
-                  </button>
+
+            <div className={styles.diagnosisBox} data-testid="knoten-diagnosis">
+              <p className={styles.chipGroupLabel} style={{ marginTop: 0 }}>
+                Automatische Knoten-Diagnose
+              </p>
+              <ul className={styles.diagnosisList}>
+                {diagnosis.sentences.map((s) => (
+                  <li key={s}>{s}</li>
                 ))}
+              </ul>
+            </div>
+
+            <dl className={styles.utilityGrid}>
+              <div className={styles.utilityStat}>
+                <dt>Ohne Speicher über ±{customLimitMw}{"\u00A0"}MW</dt>
+                <dd>
+                  <strong>{limitStats.base.qhOver}{"\u00A0"}Viertelstunden</strong>
+                  <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.base.maxAbs)}</span>
+                </dd>
               </div>
-            </div>
-          </div>
-        ) : null}
+              {!customProfile ? (
+                <div className={styles.utilityStat}>
+                  <dt>Markt-Fahrplan über ±{customLimitMw}{"\u00A0"}MW</dt>
+                  <dd>
+                    <strong>{limitStats.markt.qhOver}{"\u00A0"}Viertelstunden</strong>
+                    <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.markt.maxAbs)}</span>
+                  </dd>
+                </div>
+              ) : null}
+              <div className={styles.utilityStat}>
+                <dt>Knotentreu über ±{customLimitMw}{"\u00A0"}MW</dt>
+                <dd>
+                  <strong>{limitStats.knoten.qhOver}{"\u00A0"}Viertelstunden</strong>
+                  <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.knoten.maxAbs)}</span>
+                </dd>
+              </div>
+            </dl>
 
-        <div className={styles.diagnosisBox} data-testid="knoten-diagnosis">
-          <p className={styles.chipGroupLabel} style={{ marginTop: 0 }}>
-            Automatische Knoten-Diagnose
-          </p>
-          <ul className={styles.diagnosisList}>
-            {diagnosis.sentences.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
-        </div>
-
-        <dl className={styles.utilityGrid}>
-          <div className={styles.utilityStat}>
-            <dt>Ohne Speicher über ±{customLimitMw}{"\u00A0"}MW</dt>
-            <dd>
-              <strong>{limitStats.base.qhOver}{"\u00A0"}Viertelstunden</strong>
-              <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.base.maxAbs)}</span>
-            </dd>
+            <p className={styles.footnote}>
+              {customProfile
+                ? "Die lokale Browser-Simulation optimiert den BESS deterministisch auf Spitzenkappung und Rückspeise-Aufnahme an Ihrer gewählten Grenze (Wirkungsgrad 92\u00A0%, Start-SoC 50\u00A0%)."
+                : "Der Speicherfahrplan „knotentreu“ ist fest auf die 80\u00A0MW Modellgrenze optimiert. Die Schwellwert-Auswertung zeigt direkt an denselben 96\u00A0Viertelstunden, wie empfindlich der Knoten auf engere oder weitere Betriebsmittelgrenzen reagiert."}
+            </p>
           </div>
-          {!customProfile ? (
-            <div className={styles.utilityStat}>
-              <dt>Markt-Fahrplan über ±{customLimitMw}{"\u00A0"}MW</dt>
-              <dd>
-                <strong>{limitStats.markt.qhOver}{"\u00A0"}Viertelstunden</strong>
-                <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.markt.maxAbs)}</span>
-              </dd>
-            </div>
-          ) : null}
-          <div className={styles.utilityStat}>
-            <dt>Knotentreu über ±{customLimitMw}{"\u00A0"}MW</dt>
-            <dd>
-              <strong>{limitStats.knoten.qhOver}{"\u00A0"}Viertelstunden</strong>
-              <span className={styles.utilitySub}>Max. {formatDeMw(limitStats.knoten.maxAbs)}</span>
-            </dd>
-          </div>
-        </dl>
-
-        <p className={styles.footnote}>
-          {customProfile
-            ? "Die lokale Browser-Simulation optimiert den BESS deterministisch auf Spitzenkappung und Rückspeise-Aufnahme an Ihrer gewählten Grenze (Wirkungsgrad 92\u00A0%, Start-SoC 50\u00A0%)."
-            : "Der Speicherfahrplan „knotentreu“ ist fest auf die 80\u00A0MW Modellgrenze optimiert. Die Schwellwert-Auswertung zeigt direkt an denselben 96\u00A0Viertelstunden, wie empfindlich der Knoten auf engere oder weitere Betriebsmittelgrenzen reagiert."}
-        </p>
-      </section>
+        </details>
+      </div>
     </div>
   );
 }

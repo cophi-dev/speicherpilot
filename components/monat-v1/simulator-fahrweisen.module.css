@@ -359,3 +359,10 @@
 .exportBtn:hover {
   background: var(--mv-flaeche, #f6f6f3);
 }
+
+.simulatorRoot :global(.v4-text-link) {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}

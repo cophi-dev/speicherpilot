@@ -123,11 +123,6 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
         selected={idx}
         voll={voll}
       />
-      <p className={styles.lead}>
-        <strong>„Spitze zuerst“ senkt die Monatsspitze so weit wie möglich, nicht jede Tagesspitze.</strong> Auf Tagesbasis gab es im Oktober keinen
-        Tag, an dem beide Ziele gleichzeitig optimal waren.
-      </p>
-      <p className={simStyles.modelNote}>Fest ×2, ohne Preisrückwirkung · Erlös nur als % vom Max.-Erlös</p>
       <FrontSlider
         id="sim-front-range"
         value={idx}
@@ -164,6 +159,11 @@ export function SimulatorParetoSection({ data }: { data: SimulatorFahrweisenData
             </button>
           ))}
         </div>
+      <p className={styles.lead}>
+        <strong>„Spitze zuerst“ senkt die Monatsspitze so weit wie möglich, nicht jede Tagesspitze.</strong> Auf Tagesbasis gab es im Oktober keinen
+        Tag, an dem beide Ziele gleichzeitig optimal waren.
+      </p>
+      <p className={simStyles.modelNote}>Fest ×2, ohne Preisrückwirkung · Erlös nur als % vom Max.-Erlös</p>
       <div className={simStyles.tableScroll}>
         <table className={styles.valuesTable} aria-label="Fahrweisen nach Frontpunkt">
           <thead>

@@ -299,10 +299,19 @@
 }
 
 .singleLineActions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .singleLineActions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: auto;
+  }
 }
 
 .modeToggle {
@@ -312,9 +321,9 @@
 
 .miniBtn {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.78rem;
-  min-height: 36px;
-  padding: 0.25rem 0.65rem;
+  font-size: 0.8125rem;
+  min-height: 44px;
+  padding: 0.3rem 0.7rem;
   border: 1px solid var(--kn-linie);
   border-radius: 6px;
   background: var(--kn-bg);
@@ -333,16 +342,131 @@
   font-weight: 600;
 }
 
-.singleLineSvgWrap {
-  width: 100%;
-  overflow-x: auto;
+.singleLineDesktop {
+  display: none;
 }
 
-.singleLineSvg {
+.singleLineMobile {
   display: block;
   width: 100%;
-  min-width: 540px;
+}
+
+.singleLineSvg,
+.singleLineSvgMobile {
+  display: block;
+  width: 100%;
   height: auto;
+}
+
+@media (min-width: 600px) {
+  .singleLineDesktop {
+    display: block;
+    width: 100%;
+  }
+
+  .singleLineMobile {
+    display: none;
+  }
+}
+
+.pageIntro {
+  margin-top: 0.25rem;
+}
+
+.filterDetails {
+  width: 100%;
+  border-top: 1px solid var(--kn-linie);
+  padding-top: 0.55rem;
+  margin-top: 0.15rem;
+}
+
+.filterSummary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  color: var(--kn-muted);
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  list-style: none;
+}
+
+.filterSummary::-webkit-details-marker {
+  display: none;
+}
+
+.filterSummary::before {
+  content: "▸";
+  display: inline-block;
+  transition: transform 140ms ease;
+}
+
+.filterDetails[open] .filterSummary::before {
+  transform: rotate(90deg);
+}
+
+.filterDetailsBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
+  padding-top: 0.6rem;
+}
+
+.accordionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.accordionCard {
+  border: 1px solid var(--kn-linie);
+  border-radius: 8px;
+  background: var(--kn-flaeche);
+}
+
+.accordionSummary {
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  list-style: none;
+  font-size: 0.9375rem;
+  color: var(--kn-ink);
+}
+
+.accordionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.accordionSummary::after {
+  content: "+";
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 1.15rem;
+  color: var(--kn-muted);
+  flex-shrink: 0;
+}
+
+.accordionCard[open] .accordionSummary::after {
+  content: "−";
+}
+
+.accordionSub {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--kn-muted);
+  margin-top: 0.15rem;
+}
+
+.accordionBody {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--kn-linie);
+  padding-top: 0.85rem;
 }
 
 @keyframes flowForwardAnim {
