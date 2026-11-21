@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
-import { formatPreisSpanne } from "@/lib/preisTagFormat";
+import { formatPreisSpanne } from "@/lib/preisFenster";
 
 export function StartFlagshipHero({
   dayKey,
