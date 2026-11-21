@@ -562,6 +562,102 @@
   color: var(--kn-muted);
 }
 
+.tabBar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.tabBtn {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--kn-linie);
+  border-radius: 8px;
+  background: var(--kn-flaeche);
+  color: var(--kn-muted);
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.tabBtn:hover {
+  border-color: var(--kn-ink);
+  color: var(--kn-ink);
+}
+
+.tabBtnActive {
+  border-color: var(--kn-ink);
+  box-shadow: inset 0 0 0 1px var(--kn-ink);
+  color: var(--kn-ink);
+  font-weight: 600;
+}
+
+.ahaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.ahaCard {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--kn-linie);
+  border-radius: 8px;
+  background: var(--kn-flaeche);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ahaCardAlert {
+  border-color: var(--kn-rot);
+  border-left-width: 3px;
+}
+
+.ahaCardOk {
+  border-color: var(--kn-teal);
+  border-left-width: 3px;
+}
+
+.ahaKicker {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--kn-muted);
+}
+
+.ahaNumber {
+  font-size: clamp(1.15rem, 3vw, 1.45rem);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--kn-ink);
+}
+
+.ahaCardAlert .ahaNumber {
+  color: var(--kn-rot);
+}
+
+.ahaCardOk .ahaNumber {
+  color: var(--kn-teal);
+}
+
+.ahaSub {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--kn-muted);
+}
+
+.fazitCompact {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--kn-ink);
+  max-width: 60ch;
+  margin: 0 0 0.65rem;
+}
+
 @keyframes flowForwardAnim {
   from {
     stroke-dashoffset: 28;

@@ -8,11 +8,6 @@ import { slotIndexToTime } from "@/lib/knoten/customProfileSim";
 
 type Mode = "markt" | "knoten";
 
-function fmtSignedMw(v: number): string {
-  const sign = v > 0.05 ? "+" : v < -0.05 ? "−" : "";
-  return `${sign}${Math.abs(v).toFixed(1).replace(".", ",")}\u00A0MW`;
-}
-
 function fmtMwAbs(v: number): string {
   return `${Math.abs(v).toFixed(1).replace(".", ",")}\u00A0MW`;
 }
@@ -77,13 +72,14 @@ export function KnotenSingleLine({
   const trafoStatus = overload ? "ÜBERLAST" : warning ? "NAHE GRENZE" : "IM LIMIT";
 
   const timeLabel = `${slotIndexToTime(slot)}\u00A0Uhr`;
-  const gridDirectionLabel = trafoMw >= 0 ? "Bezug aus 110\u00A0kV" : "Rückspeisung in 110\u00A0kV";
+  const gridDirectionLabel = trafoMw >= 0 ? "Bezug aus 110\u00A0kV" : "Rückspeisung ins Netz";
+  const baseDirectionLabel = baseMw >= 0 ? "Verbrauch" : "Wind/PV-Rückspeisung";
   const bessStateLabel =
     bessMw > 0.15 ? "BESS lädt" : bessMw < -0.15 ? "BESS entlädt" : "Leerlauf";
   const currentSoc = effectiveMode === "knoten" ? socPct?.[slot] : undefined;
   const bessColor = effectiveMode === "markt" ? colors.rust : colors.teal;
 
-  const ariaDesc = `Umspannwerk-Schaltbild um ${timeLabel}: Transformator ${fmtSignedMw(trafoMw)} (${Math.round(utilPct)} Prozent von ±${limitMw} MW), Speicher ${fmtSignedMw(bessMw)}, Knotenlast ${fmtSignedMw(baseMw)}.`;
+  const ariaDesc = `Umspannwerk-Schaltbild um ${timeLabel}: Transformator ${fmtMwAbs(trafoMw)} ${gridDirectionLabel} (${Math.round(utilPct)} Prozent von ${limitMw} MW), Speicher ${fmtMwAbs(bessMw)} (${bessStateLabel}), Knotenlast ${fmtMwAbs(baseMw)} (${baseDirectionLabel}).`;
 
   return (
     <section className={styles.singleLineCard} aria-labelledby="knoten-singleline-title">
@@ -144,7 +140,7 @@ export function KnotenSingleLine({
             110{"\u00A0"}kV NETZ
           </text>
           <text x={77} y={106} textAnchor="middle" fill={colors.ink} fontSize={16} fontWeight={600} fontFamily="var(--font-mono)">
-            {fmtSignedMw(trafoMw)}
+            {fmtMwAbs(trafoMw)}
           </text>
           <text x={77} y={128} textAnchor="middle" fill={colors.muted} fontSize={11}>
             {gridDirectionLabel}
@@ -207,10 +203,10 @@ export function KnotenSingleLine({
             KNOTEN-BASISLAST
           </text>
           <text x={655} y={62} textAnchor="middle" fill={colors.ink} fontSize={15} fontWeight={600} fontFamily="var(--font-mono)">
-            {fmtSignedMw(baseMw)}
+            {fmtMwAbs(baseMw)}
           </text>
           <text x={655} y={80} textAnchor="middle" fill={colors.muted} fontSize={11}>
-            {baseMw >= 0 ? "Netto-Verbrauch" : "Netto-EE-Einspeisung"}
+            {baseDirectionLabel}
           </text>
 
           <line
@@ -248,7 +244,7 @@ export function KnotenSingleLine({
             110{"\u00A0"}kV NETZ · {gridDirectionLabel.toUpperCase()}
           </text>
           <text x={170} y={47} textAnchor="middle" fill={colors.ink} fontSize={16} fontWeight={600} fontFamily="var(--font-mono)">
-            {fmtSignedMw(trafoMw)}
+            {fmtMwAbs(trafoMw)}
           </text>
 
           {/* Vertical Flow: Grid <-> Trafo */}
@@ -315,10 +311,10 @@ export function KnotenSingleLine({
             BASISLAST
           </text>
           <text x={85} y={242} textAnchor="middle" fill={colors.ink} fontSize={15} fontWeight={600} fontFamily="var(--font-mono)">
-            {fmtSignedMw(baseMw)}
+            {fmtMwAbs(baseMw)}
           </text>
           <text x={85} y={260} textAnchor="middle" fill={colors.muted} fontSize={10.5}>
-            {baseMw >= 0 ? "Verbrauch" : "EE-Einspeisung"}
+            {baseDirectionLabel}
           </text>
 
           {/* Tier 3 Right: BESS */}

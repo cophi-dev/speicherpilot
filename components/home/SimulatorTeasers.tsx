@@ -13,48 +13,37 @@ export function StartRoterFadenKompass() {
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-roter-faden-start" data-testid="start-roter-faden">
       <div className="v4-chapter-head v4-content">
-        <p className="v4-chapter-num num">Überblick · Zwei Ebenen im Modell</p>
+        <p className="v4-chapter-num num">Überblick · Drei Werkzeuge</p>
         <h2 id="kapitel-roter-faden-start" className="v4-chapter-h2">
-          Nationale Bilanz (Tag · Monat · Jahr) und Umspannwerk-Grenze (Kompromiss · Knoten)
+          Vom Stromnetz bis zum Umspannwerk
         </h2>
-        <p className="v4-subline v4-ort-teaser-subline">
-          {insertDisplayUnitNbsp(
-            "Unten folgt der gestrige Systemtag. Für Auslegung, Speicherdauer (1,76 h vs. 4 h) und flexible Netzanschlussvereinbarungen (§ 17 Abs. 2b EnWG) führen drei Werkzeuge direkt in die Modellläufe:",
-          )}
-        </p>
       </div>
       <div className="v4-kompass-grid v4-content">
         <article className="v4-kompass-card">
-          <p className="v4-kompass-kicker num">1 · Speicherdauer &amp; Flotte (National)</p>
+          <p className="v4-kompass-kicker num">1 · Monatsflotte</p>
           <p className="v4-kompass-body">
-            {insertDisplayUnitNbsp(
-              "×5 mit 4 h senkt die Oktober-Spitze genauso stark wie ×10 mit 1,76 h (−14,0 GW bei halber Leistung).",
-            )}
+            {insertDisplayUnitNbsp("×5 mit 4 h senkt die Spitze genauso stark wie ×10 mit 1,76 h (−14,0 GW).")}
           </p>
           <Link href="/monat/2026-10" className="v4-text-link v4-kompass-link">
             Monatsmodell →
           </Link>
         </article>
         <article className="v4-kompass-card">
-          <p className="v4-kompass-kicker num">2 · Fahrweise &amp; Leistungsdeckel (Pareto)</p>
+          <p className="v4-kompass-kicker num">2 · Kompromiss (Pareto)</p>
           <p className="v4-kompass-body">
-            {insertDisplayUnitNbsp(
-              "70 % der maximalen Spitzensenkung (2,51 statt 0,37 GW) kosten bei doppelter Flotte nur 0,36 % Day-Ahead-Erlös.",
-            )}
+            {insertDisplayUnitNbsp("2,51 statt 0,37 GW Spitzensenkung kosten nur 0,36 % weniger Börsenerlös.")}
           </p>
           <Link href="/kompromiss" className="v4-text-link v4-kompass-link">
             Kompromiss →
           </Link>
         </article>
         <article className="v4-kompass-card">
-          <p className="v4-kompass-kicker num">3 · Umspannwerk-Grenze (80{"\u00A0"}MW)</p>
+          <p className="v4-kompass-kicker num">3 · Umspannwerk (80{"\u00A0"}MW)</p>
           <p className="v4-kompass-body">
-            {insertDisplayUnitNbsp(
-              "Drei Modellknoten (Wind Nord, Solar Süd, Stadt): wo Markt-Laden die Grenze reißt und was knotentreu kostet.",
-            )}
+            {insertDisplayUnitNbsp("Live-Schaltbild, Markt vs. knotentreu und lokaler CSV-Check im Browser.")}
           </p>
           <Link href="/knoten" className="v4-text-link v4-kompass-link">
-            Modellknoten →
+            Dein Knoten →
           </Link>
         </article>
       </div>

@@ -24,16 +24,15 @@ export function SimulatorFahrweisenWorkbench({ data }: { data: SimulatorFahrweis
       </h1>
       <p className={styles.lead}>
         {insertDisplayUnitNbsp(
-          "Wie viel Spitzensenkung lässt sich ohne großen Erlösverlust über einen dynamischen Leistungsdeckel (§ 17 Abs. 2b EnWG) erreichen? Hier gerechnet als Pareto-Front für die doppelte Flotte (×2) im Oktober 2026 — größere Stufen (×5, ×10, 4 h Dauer) stehen im ",
+          "Wie viel Spitzensenkung bringt ein dynamischer Leistungsdeckel (§ 17 Abs. 2b EnWG) — und wie wenig Börsenerlös kostet er? Gerechnet für ×2 im Oktober 2026. ",
         )}
         <Link href="/monat/2026-10" className="v4-text-link">
           Monatsmodell
         </Link>
-        {insertDisplayUnitNbsp(", die Wirkung an einer 80-MW-Umspannwerkgrenze unter ")}
+        {" · "}
         <Link href="/knoten" className="v4-text-link">
           Knoten
         </Link>
-        .
       </p>
       <SimulatorParetoSection data={data} />
       <SimulatorTagesSection data={data} />

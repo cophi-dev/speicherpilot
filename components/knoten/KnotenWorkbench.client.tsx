@@ -4,19 +4,19 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 
 import { SimulatorSubnav } from "@/components/simulator/SimulatorSubnav";
-import { KnotenAnalyticsCard } from "@/components/knoten/KnotenAnalyticsCard.client";
 import { KnotenChart } from "@/components/knoten/KnotenChart.client";
 import { KnotenSingleLine } from "@/components/knoten/KnotenSingleLine.client";
 import styles from "@/components/knoten/knoten.module.css";
 import { useKnotenTheme } from "@/components/knoten/useKnotenTheme";
 import {
+  buildAnalyticsReportText,
   buildKnotenRecommendation,
   parseQuarterHourCsv,
+  SAMPLE_SUBSTATION_PROFILES,
   simulateCustomKnotenBess,
   type SampleSubstationProfile,
 } from "@/lib/knoten/customProfileSim";
-import { knotenEuroHinweis, knotenFazitSatz } from "@/lib/knoten/knotenFazit";
-import { KNOTEN_ZACKEN_HINWEIS_DE } from "@/lib/knoten/knotenZackenHinweis";
+import { knotenFazitSatz } from "@/lib/knoten/knotenFazit";
 import {
   KNOTEN_BELEGUNG_LABELS,
   KNOTEN_BELEGUNGEN,
@@ -30,6 +30,12 @@ import {
   type KnotenFaktor,
   type KnotenTyp,
 } from "@/lib/knoten/knotenTypes";
+
+const CUSTOM_LIMITS_MW = [40, 60, 80, 100, 120] as const;
+const CUSTOM_BESS_POWER_MW = [10, 15, 20, 30, 40] as const;
+const CUSTOM_BESS_HOURS = [2, 4] as const;
+
+type WorkbenchTab = "modell" | "eigenes";
 
 function slotTimeLabel(index: number): string {
   const totalMinutes = index * 15;
@@ -77,6 +83,7 @@ export function KnotenWorkbench({
   bounds: { min: string; max: string };
 }) {
   const { colors } = useKnotenTheme();
+  const [activeTab, setActiveTab] = useState<WorkbenchTab>("modell");
   const [scenario, setScenario] = useState<KnotenScenarioState>({
     belegung: initialBelegung,
     typ: initialTyp,
@@ -94,13 +101,18 @@ export function KnotenWorkbench({
   const [isUpdating, setIsUpdating] = useState(false);
   const [customLimitMw, setCustomLimitMw] = useState<number>(KNOTEN_LIMIT_MW);
   const [customProfile, setCustomProfile] = useState<{
+    id?: string;
     values: number[];
     label: string;
     note?: string;
-  } | null>(null);
+  }>(() => {
+    const def = SAMPLE_SUBSTATION_PROFILES[2]!;
+    return { id: def.id, values: def.values, label: def.label, note: def.description };
+  });
   const [customError, setCustomError] = useState<string | null>(null);
   const [customBessMw, setCustomBessMw] = useState<number>(20);
   const [customBessHours, setCustomBessHours] = useState<number>(2);
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const cacheRef = useRef<Map<string, KnotenScenarioState>>(
@@ -134,10 +146,10 @@ export function KnotenWorkbench({
     setActiveSelection({ belegung: initialBelegung, typ: initialTyp, k: initialK, tag: initialTag });
   }, [initialBelegung, initialCurve, initialK, initialRow, initialTag, initialTyp]);
 
-  const { belegung, typ, k, tag, row, curve } = scenario;
+  const { typ, k, tag, row, curve } = scenario;
   const fazit = knotenFazitSatz(typ, row);
-  const euro = knotenEuroHinweis(row);
   const dateBounds = bounds;
+  const isCustom = activeTab === "eigenes";
 
   const switchScenario = useCallback(
     (nextBelegung: KnotenBelegung, nextTyp: KnotenTyp, nextK: KnotenFaktor, nextTag: string) => {
@@ -216,7 +228,7 @@ export function KnotenWorkbench({
 
   const customSim = useMemo(
     () =>
-      customProfile
+      isCustom
         ? simulateCustomKnotenBess(
             customProfile.values,
             customLimitMw,
@@ -224,7 +236,7 @@ export function KnotenWorkbench({
             customBessMw * customBessHours,
           )
         : null,
-    [customBessHours, customBessMw, customLimitMw, customProfile],
+    [customBessHours, customBessMw, customLimitMw, customProfile.values, isCustom],
   );
 
   const activeCurve: KnotenCurvePayload = useMemo(
@@ -253,6 +265,7 @@ export function KnotenWorkbench({
       if (parsed.ok) {
         setCustomProfile({ values: parsed.values, label: parsed.label, note: parsed.note });
         setCustomError(null);
+        setActiveTab("eigenes");
       } else {
         setCustomError(parsed.error);
       }
@@ -264,16 +277,12 @@ export function KnotenWorkbench({
   const onSelectSample = useCallback((sample: SampleSubstationProfile) => {
     setCustomLimitMw(sample.defaultLimitMw);
     setCustomProfile({
+      id: sample.id,
       values: sample.values,
       label: sample.label,
       note: sample.description,
     });
     setCustomError(null);
-  }, []);
-
-  const onApplyRecommendedSizing = useCallback((mw: number, hours: number) => {
-    setCustomBessMw(mw);
-    setCustomBessHours(hours);
   }, []);
 
   const onDownloadCsv = useCallback(() => {
@@ -285,9 +294,7 @@ export function KnotenWorkbench({
       if (customSim) {
         return `${slotTimeLabel(i)};${fmt(baseVal)};${fmt(customSim.market[i] ?? 0)};${fmt(customSim.withBess[i] ?? 0)};${fmt(customSim.bessDispatchMw[i] ?? 0)};${fmt(customSim.socPct[i] ?? 0)};${customLimitMw}`;
       }
-      const fmVal = activeCurve.fm[i] ?? 0;
-      const fkVal = activeCurve.fk[i] ?? 0;
-      return `${slotTimeLabel(i)};${fmt(baseVal)};${fmt(fmVal)};${fmt(fkVal)};${customLimitMw}`;
+      return `${slotTimeLabel(i)};${fmt(baseVal)};${fmt(activeCurve.fm[i] ?? 0)};${fmt(activeCurve.fk[i] ?? 0)};${customLimitMw}`;
     });
     const csv = `\uFEFF${[header, ...rows].join("\n")}\n`;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -295,13 +302,28 @@ export function KnotenWorkbench({
     const a = document.createElement("a");
     a.href = url;
     a.download = customSim
-      ? `speicherpilot-eigenes-profil-${customBessMw}mw-${customLimitMw}mw.csv`
+      ? `speicherpilot-eigenes-uw-${customBessMw}mw-${customLimitMw}mw.csv`
       : `speicherpilot-knoten-${typ}-x${k}-${tag}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
   }, [activeCurve.base, activeCurve.fk, activeCurve.fm, customBessMw, customLimitMw, customSim, k, tag, typ]);
+
+  const onCopyReport = useCallback(() => {
+    const text = buildAnalyticsReportText({
+      profileName: isCustom ? customProfile.label : `${KNOTEN_NODE_LABELS[typ]} · ×${k} · ${tag}`,
+      limitMw: customLimitMw,
+      recommendation,
+      bessLabel: isCustom ? `${customBessMw}\u00A0MW / ${customBessMw * customBessHours}\u00A0MWh` : "Modellknoten",
+    });
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2400);
+      });
+    }
+  }, [customBessHours, customBessMw, customLimitMw, customProfile.label, isCustom, k, recommendation, tag, typ]);
 
   const onDate = useCallback(
     (next: string) => {
@@ -310,137 +332,336 @@ export function KnotenWorkbench({
     [activeSelection.belegung, activeSelection.k, activeSelection.typ, switchScenario],
   );
 
+  const verlustLabel =
+    row.verlustPct > 0.05
+      ? `nur ${row.verlustPct.toFixed(1).replace(".", ",")}\u00A0% weniger Erlös`
+      : "ohne Erlösverlust";
+
+  const canApplyRecommended =
+    isCustom &&
+    recommendation.recommendedPowerMw > 0 &&
+    (customBessMw !== recommendation.recommendedPowerMw ||
+      customBessHours !== recommendation.recommendedHours);
+
+  const verdictClass =
+    recommendation.level === "high"
+      ? styles.verdictHigh
+      : recommendation.level === "medium"
+        ? styles.verdictMedium
+        : styles.verdictLow;
+
   return (
     <div className={styles.root} data-testid="knoten-page">
       <SimulatorSubnav />
+
       <div className={styles.pageIntro}>
-        <h1 className="v4-h1" style={{ marginBottom: "0.35rem" }}>
+        <h1 className="v4-h1" style={{ marginBottom: "0.25rem" }}>
           Dein Knoten
         </h1>
-        <p className="v4-lead" style={{ maxWidth: "58ch", marginBottom: "0.5rem" }}>
-          80{"\u00A0"}MW Umspannwerk (2 × 40{"\u00A0"}MVA HS/MS): Wann überlastet Preisfahren den Knoten — und was
-          kostet knotentreues Fahren (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)?{" "}
+        <p className="v4-lead" style={{ maxWidth: "56ch", marginBottom: "0.6rem" }}>
+          80{"\u00A0"}MW Umspannwerk: Wann überlastet reines Preisfahren den Trafo — und was bringt ein
+          Leistungsdeckel (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)?{" "}
           <Link href="/methodik#knoten-modell" className="v4-text-link">
             Methodik
           </Link>
         </p>
       </div>
 
-      <div className={styles.controlBar}>
-        <div className={styles.controlGroup}>
-          <p className={styles.chipGroupLabel}>Knotentyp</p>
-          <div className={styles.chipRow} role="group" aria-label="Knotentyp">
-            {KNOTEN_TYPEN.map((id) => (
-              <Link
-                key={id}
-                href={qs(activeSelection.belegung, id, activeSelection.k, activeSelection.tag)}
-                scroll={false}
-                prefetch={false}
-                data-no-nav-progress=""
-                onClick={(e) => onChipClick(e, activeSelection.belegung, id, activeSelection.k, activeSelection.tag)}
-                className={`${styles.chip}${id === activeSelection.typ ? ` ${styles.chipActive}` : ""}`}
-                aria-current={id === activeSelection.typ ? "true" : undefined}
-              >
-                {KNOTEN_NODE_LABELS[id]}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.controlGroup}>
-          <p className={styles.chipGroupLabel}>Flottenstufe</p>
-          <div className={styles.chipRow} role="group" aria-label="Flottenstufe">
-            {KNOTEN_FAKTOREN.map((f) => (
-              <Link
-                key={f}
-                href={qs(activeSelection.belegung, activeSelection.typ, f, activeSelection.tag)}
-                scroll={false}
-                prefetch={false}
-                data-no-nav-progress=""
-                onClick={(e) => onChipClick(e, activeSelection.belegung, activeSelection.typ, f, activeSelection.tag)}
-                className={`${styles.chip}${f === activeSelection.k ? ` ${styles.chipActive}` : ""}`}
-                aria-current={f === activeSelection.k ? "true" : undefined}
-              >
-                ×{f}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <details className={styles.filterDetails}>
-          <summary className={styles.filterSummary}>
-            Weitere Filter: <strong>{KNOTEN_BELEGUNG_LABELS[activeSelection.belegung]}</strong> ·{" "}
-            <strong>{activeSelection.tag}</strong>
-          </summary>
-          <div className={styles.filterDetailsBody}>
-            <div className={styles.controlGroup}>
-              <p className={styles.chipGroupLabel}>Belegung</p>
-              <div className={styles.chipRow} role="group" aria-label="Belegung">
-                {KNOTEN_BELEGUNGEN.map((b) => (
-                  <Link
-                    key={b}
-                    href={qs(b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
-                    scroll={false}
-                    prefetch={false}
-                    data-no-nav-progress=""
-                    onClick={(e) => onChipClick(e, b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
-                    className={`${styles.chip}${b === activeSelection.belegung ? ` ${styles.chipActive}` : ""}`}
-                    aria-current={b === activeSelection.belegung ? "true" : undefined}
-                  >
-                    {KNOTEN_BELEGUNG_LABELS[b]}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.controls}>
-              <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
-                Tag
-              </label>
-              <input
-                id="knoten-tag"
-                type="date"
-                className={styles.dateInput}
-                value={activeSelection.tag}
-                min={dateBounds.min}
-                max={dateBounds.max}
-                onChange={(e) => onDate(e.target.value)}
-                data-testid="knoten-tag-input"
-              />
-            </div>
-          </div>
-        </details>
+      {/* Clean 2-Tab Switcher: Modellknoten vs. Eigenes Umspannwerk (CSV lokal) */}
+      <div className={styles.tabBar} role="tablist" aria-label="Knoten-Modus">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={!isCustom}
+          className={`${styles.tabBtn}${!isCustom ? ` ${styles.tabBtnActive}` : ""}`}
+          onClick={() => setActiveTab("modell")}
+          data-testid="knoten-tab-modell"
+        >
+          Modellknoten (Wind · Solar · Stadt)
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={isCustom}
+          className={`${styles.tabBtn}${isCustom ? ` ${styles.tabBtnActive}` : ""}`}
+          onClick={() => setActiveTab("eigenes")}
+          data-testid="knoten-tab-eigenes"
+        >
+          Eigenes Umspannwerk (CSV lokal)
+        </button>
       </div>
 
-      <div className={`${styles.smoothPanel}${isUpdating ? ` ${styles.smoothPanelUpdating}` : ""}`} aria-busy={isUpdating}>
-        {customProfile ? (
-          <div className={styles.customBanner} role="status">
-            <span>
-              <strong>Eigenes Profil aktiv (100{"\u00A0"}% lokal im Browser):</strong> {customProfile.label} · BESS{" "}
-              {customBessMw}{"\u00A0"}MW / {customBessMw * customBessHours}{"\u00A0"}MWh
-            </span>
-            <button
-              type="button"
-              className={styles.miniBtn}
-              onClick={() => {
-                setCustomProfile(null);
-                setCustomError(null);
-              }}
-            >
-              Zurück zum Modellknoten
-            </button>
+      {/* TAB 1: Modellknoten Controls */}
+      {!isCustom ? (
+        <div className={styles.controlBar}>
+          <div className={styles.controlGroup}>
+            <p className={styles.chipGroupLabel}>Knotentyp</p>
+            <div className={styles.chipRow} role="group" aria-label="Knotentyp">
+              {KNOTEN_TYPEN.map((id) => (
+                <Link
+                  key={id}
+                  href={qs(activeSelection.belegung, id, activeSelection.k, activeSelection.tag)}
+                  scroll={false}
+                  prefetch={false}
+                  data-no-nav-progress=""
+                  onClick={(e) => onChipClick(e, activeSelection.belegung, id, activeSelection.k, activeSelection.tag)}
+                  className={`${styles.chip}${id === activeSelection.typ ? ` ${styles.chipActive}` : ""}`}
+                  aria-current={id === activeSelection.typ ? "true" : undefined}
+                >
+                  {KNOTEN_NODE_LABELS[id]}
+                </Link>
+              ))}
+            </div>
           </div>
-        ) : (
-          <>
-            <p className={styles.fazit} data-testid="knoten-fazit">
-              {fazit}
+
+          <div className={styles.controlGroup}>
+            <p className={styles.chipGroupLabel}>Flottenstufe</p>
+            <div className={styles.chipRow} role="group" aria-label="Flottenstufe">
+              {KNOTEN_FAKTOREN.map((f) => (
+                <Link
+                  key={f}
+                  href={qs(activeSelection.belegung, activeSelection.typ, f, activeSelection.tag)}
+                  scroll={false}
+                  prefetch={false}
+                  data-no-nav-progress=""
+                  onClick={(e) => onChipClick(e, activeSelection.belegung, activeSelection.typ, f, activeSelection.tag)}
+                  className={`${styles.chip}${f === activeSelection.k ? ` ${styles.chipActive}` : ""}`}
+                  aria-current={f === activeSelection.k ? "true" : undefined}
+                >
+                  ×{f}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <details className={styles.filterDetails}>
+            <summary className={styles.filterSummary}>
+              Belegung &amp; Tag: <strong>{KNOTEN_BELEGUNG_LABELS[activeSelection.belegung]}</strong> ·{" "}
+              <strong>{activeSelection.tag}</strong>
+            </summary>
+            <div className={styles.filterDetailsBody}>
+              <div className={styles.controlGroup}>
+                <p className={styles.chipGroupLabel}>Belegung</p>
+                <div className={styles.chipRow} role="group" aria-label="Belegung">
+                  {KNOTEN_BELEGUNGEN.map((b) => (
+                    <Link
+                      key={b}
+                      href={qs(b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
+                      scroll={false}
+                      prefetch={false}
+                      data-no-nav-progress=""
+                      onClick={(e) => onChipClick(e, b, activeSelection.typ, activeSelection.k, activeSelection.tag)}
+                      className={`${styles.chip}${b === activeSelection.belegung ? ` ${styles.chipActive}` : ""}`}
+                      aria-current={b === activeSelection.belegung ? "true" : undefined}
+                    >
+                      {KNOTEN_BELEGUNG_LABELS[b]}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.controls}>
+                <label htmlFor="knoten-tag" className={styles.chipGroupLabel}>
+                  Tag
+                </label>
+                <input
+                  id="knoten-tag"
+                  type="date"
+                  className={styles.dateInput}
+                  value={activeSelection.tag}
+                  min={dateBounds.min}
+                  max={dateBounds.max}
+                  onChange={(e) => onDate(e.target.value)}
+                  data-testid="knoten-tag-input"
+                />
+              </div>
+            </div>
+          </details>
+        </div>
+      ) : (
+        /* TAB 2: Eigenes Umspannwerk (CSV lokal) Controls */
+        <div className={styles.controlBar}>
+          <div style={{ width: "100%" }}>
+            <p className={styles.privacyBadge} data-testid="knoten-privacy-badge">
+              100{"\u00A0"}% lokal im Browser — keine Datei verlässt Ihr Gerät, kein Server-Upload, kein Login.
             </p>
-            {euro ? (
-              <p className={styles.footnote} data-testid="knoten-euro">
-                {euro}
+            <div className={styles.utilityHeadActions}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.txt,text/csv,text/plain"
+                onChange={onCsvFileChange}
+                className={styles.srFileInput}
+                aria-label="Eigene Viertelstunden-CSV lokal laden"
+              />
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={() => fileInputRef.current?.click()}
+                data-testid="knoten-csv-import"
+              >
+                Eigene CSV laden (lokal)
+              </button>
+              {SAMPLE_SUBSTATION_PROFILES.map((sample) => (
+                <button
+                  key={sample.id}
+                  type="button"
+                  className={`${styles.miniBtn}${customProfile.id === sample.id ? ` ${styles.miniBtnActive}` : ""}`}
+                  onClick={() => onSelectSample(sample)}
+                  data-testid={`knoten-sample-${sample.id}`}
+                >
+                  {sample.shortLabel}
+                </button>
+              ))}
+            </div>
+            {customError ? (
+              <p className={styles.customError} role="alert" style={{ marginTop: "0.5rem" }}>
+                {customError}
               </p>
             ) : null}
-          </>
+          </div>
+
+          <div className={styles.controlGroup}>
+            <p className={styles.chipGroupLabel}>BESS-Leistung</p>
+            <div className={styles.chipRow} role="group" aria-label="Speicherleistung in MW">
+              {CUSTOM_BESS_POWER_MW.map((mw) => (
+                <button
+                  key={mw}
+                  type="button"
+                  className={`${styles.chip}${customBessMw === mw ? ` ${styles.chipActive}` : ""}`}
+                  aria-pressed={customBessMw === mw}
+                  onClick={() => setCustomBessMw(mw)}
+                >
+                  {mw}
+                  {"\u00A0"}MW
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.controlGroup}>
+            <p className={styles.chipGroupLabel}>Dauer</p>
+            <div className={styles.chipRow} role="group" aria-label="Speicherdauer in Stunden">
+              {CUSTOM_BESS_HOURS.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  className={`${styles.chip}${customBessHours === h ? ` ${styles.chipActive}` : ""}`}
+                  aria-pressed={customBessHours === h}
+                  onClick={() => setCustomBessHours(h)}
+                >
+                  {h}
+                  {"\u00A0"}h ({customBessMw * h}
+                  {"\u00A0"}MWh)
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.controlGroup}>
+            <p className={styles.chipGroupLabel}>Grenze</p>
+            <div className={styles.chipRow} role="group" aria-label="Knotengrenze in MW">
+              {CUSTOM_LIMITS_MW.map((limit) => (
+                <button
+                  key={limit}
+                  type="button"
+                  className={`${styles.chip}${customLimitMw === limit ? ` ${styles.chipActive}` : ""}`}
+                  aria-pressed={customLimitMw === limit}
+                  onClick={() => setCustomLimitMw(limit)}
+                >
+                  ±{limit}
+                  {"\u00A0"}MW
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Instant 2-Card Aha Comparison: Markt vs. Knotentreu */}
+      <div className={`${styles.smoothPanel}${isUpdating ? ` ${styles.smoothPanelUpdating}` : ""}`} aria-busy={isUpdating}>
+        <div className={styles.ahaGrid} data-testid="knoten-aha-grid">
+          <div className={`${styles.ahaCard}${recommendation.qhOverMarket > 0 ? ` ${styles.ahaCardAlert}` : ""}`}>
+            <span className={styles.ahaKicker}>Reines Preisfahren (Markt)</span>
+            <strong className={styles.ahaNumber}>
+              {recommendation.qhOverMarket}× Überlast
+            </strong>
+            <span className={styles.ahaSub}>
+              Max. {Math.round(recommendation.maxUtilMarketPct)}
+              {"\u00A0"}% Trafo-Auslastung (±{customLimitMw}
+              {"\u00A0"}MW)
+            </span>
+          </div>
+          <div className={`${styles.ahaCard} ${styles.ahaCardOk}`}>
+            <span className={styles.ahaKicker}>Knotentreu (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)</span>
+            <strong className={styles.ahaNumber}>
+              {recommendation.qhOverKnoten}× Überlast
+            </strong>
+            <span className={styles.ahaSub}>
+              Max. {Math.round(recommendation.maxUtilKnotenPct)}
+              {"\u00A0"}% · {isCustom ? `${customBessMw}\u00A0MW / ${customBessMw * customBessHours}\u00A0MWh` : verlustLabel}
+            </span>
+          </div>
+        </div>
+
+        {/* Concise Fazit or Custom Recommendation Strip */}
+        {!isCustom ? (
+          <p className={styles.fazitCompact} data-testid="knoten-fazit">
+            {fazit}
+          </p>
+        ) : (
+          <div className={styles.verdictStrip} data-testid="knoten-verdict-strip" style={{ marginBottom: "0.75rem" }}>
+            <div className={styles.verdictMain}>
+              <span className={`${styles.verdictBadge} ${verdictClass}`}>
+                {recommendation.badgeLabel}
+              </span>
+              <p className={styles.verdictHeadline}>
+                <strong>{customProfile.label}:</strong> {recommendation.recommendedMode}
+                {recommendation.recommendedPowerMw > 0 ? (
+                  <>
+                    {" "}
+                    · Mindestgröße{" "}
+                    <strong>
+                      {recommendation.recommendedPowerMw}
+                      {"\u00A0"}MW / {recommendation.recommendedEnergyMwh}
+                      {"\u00A0"}MWh
+                    </strong>
+                  </>
+                ) : null}
+              </p>
+            </div>
+            <div className={styles.verdictActions}>
+              {canApplyRecommended ? (
+                <button
+                  type="button"
+                  className={styles.miniBtn}
+                  onClick={() => {
+                    setCustomBessMw(recommendation.recommendedPowerMw);
+                    setCustomBessHours(recommendation.recommendedHours);
+                  }}
+                  data-testid="knoten-apply-sizing"
+                >
+                  Empfohlene Größe anwenden
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className={styles.miniBtn}
+                onClick={onCopyReport}
+                data-testid="knoten-copy-report"
+              >
+                {copied ? "Kurzbericht kopiert ✓" : "Kurzbericht kopieren"}
+              </button>
+              <button
+                type="button"
+                className={styles.miniBtn}
+                onClick={onDownloadCsv}
+                data-testid="knoten-csv-export"
+              >
+                CSV exportieren
+              </button>
+            </div>
+          </div>
         )}
 
         <KnotenSingleLine
@@ -449,7 +670,7 @@ export function KnotenWorkbench({
           fk={activeCurve.fk}
           socPct={customSim?.socPct}
           limitMw={customLimitMw}
-          isCustom={customProfile != null}
+          isCustom={isCustom}
           colors={colors}
         />
 
@@ -472,37 +693,58 @@ export function KnotenWorkbench({
                 display: "inline-block",
               }}
             />{" "}
-            Grenze / Schraffur
+            Grenze (±{customLimitMw}
+            {"\u00A0"}MW)
           </span>
         </div>
-
-        <p className={styles.footnote}>{KNOTEN_ZACKEN_HINWEIS_DE}</p>
 
         <KnotenChart typ={typ} day={tag} k={k} curve={activeCurve} colors={colors} />
       </div>
 
-      <KnotenAnalyticsCard
-        profileName={customProfile ? customProfile.label : `${KNOTEN_NODE_LABELS[typ]} · ×${k} · ${tag}`}
-        isCustom={customProfile != null}
-        customNote={customProfile?.note ?? null}
-        customError={customError}
-        customLimitMw={customLimitMw}
-        customBessMw={customBessMw}
-        customBessHours={customBessHours}
-        recommendation={recommendation}
-        fileInputRef={fileInputRef}
-        onSelectLimit={setCustomLimitMw}
-        onSelectBessPower={setCustomBessMw}
-        onSelectBessHours={setCustomBessHours}
-        onApplyRecommendedSizing={onApplyRecommendedSizing}
-        onCsvFileChange={onCsvFileChange}
-        onSelectSample={onSelectSample}
-        onResetCustom={() => {
-          setCustomProfile(null);
-          setCustomError(null);
-        }}
-        onDownloadCsv={onDownloadCsv}
-      />
+      {/* Single quiet footer bar on Modellknoten for CSV Export + Limit check */}
+      {!isCustom ? (
+        <details className={styles.accordionCard} style={{ marginTop: "1rem" }}>
+          <summary className={styles.accordionSummary}>
+            <span>
+              <strong>Datenexport (CSV) &amp; eigene Grenze (±{customLimitMw}{"\u00A0"}MW)</strong>
+            </span>
+          </summary>
+          <div className={styles.accordionBody}>
+            <div className={styles.chipRow} role="group" aria-label="Eigene Knotengrenze in MW">
+              {CUSTOM_LIMITS_MW.map((limit) => (
+                <button
+                  key={limit}
+                  type="button"
+                  className={`${styles.chip}${customLimitMw === limit ? ` ${styles.chipActive}` : ""}`}
+                  aria-pressed={customLimitMw === limit}
+                  onClick={() => setCustomLimitMw(limit)}
+                >
+                  ±{limit}
+                  {"\u00A0"}MW
+                </button>
+              ))}
+            </div>
+            <div className={styles.utilityHeadActions} style={{ marginTop: "0.75rem" }}>
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={onDownloadCsv}
+                data-testid="knoten-csv-export"
+              >
+                96{"\u00A0"}Viertelstunden als CSV
+              </button>
+              <button
+                type="button"
+                className={styles.miniBtn}
+                onClick={onCopyReport}
+                data-testid="knoten-copy-report"
+              >
+                {copied ? "Kurzbericht kopiert ✓" : "Kurzbericht kopieren"}
+              </button>
+            </div>
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }
