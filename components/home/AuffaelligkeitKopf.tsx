@@ -5,7 +5,7 @@ import { Suspense, useMemo, type CSSProperties } from "react";
 
 import { RangLeiste } from "@/components/home/RangLeiste";
 import { FleetScrollRestore } from "@/components/home/FleetScrollRestore";
-import { StartRoterFadenKompass } from "@/components/home/SimulatorTeasers";
+import { StartFlagshipHero } from "@/components/home/StartFlagshipHero";
 import { KnotenTagLink } from "@/components/knoten/KnotenTagLink";
 import { TagesvorlageModelBox } from "@/components/home/TagesvorlageModelBox";
 import { TagDayNav } from "@/components/home/TagDayNav";
@@ -301,27 +301,32 @@ export function TagPageV4({
           fleetStrategy={fleetStrategy}
         />
       )}
-      <AuffaelligkeitKopf
-        dayKey={dayKey}
-        todayKey={todayKey}
-        dataStand={dataStand}
-        result={result}
-        records={records}
-        kickerPrefix={isStartSurface ? "Gestern" : "Tag"}
-        hideTagLink={!isStartSurface}
-        leitfrage={leitfrage}
-      />
-      {isStartSurface ? <StartRoterFadenKompass /> : null}
-      <TagChapter
-        day={day}
-        peakGw={record.eveningPeakGw ?? null}
-        peakAt={record.eveningPeakAt ?? null}
-        useTagDateHeading
-        prices={preisTag}
-        powerGw={fleetPowerGw}
-        energyGwh={fleetEnergyGwh}
-        surplusGwh={record.surplusGwh}
-      />
+      {isStartSurface ? (
+        <StartFlagshipHero dayKey={dayKey} dataStand={dataStand} record={record} />
+      ) : (
+        <AuffaelligkeitKopf
+          dayKey={dayKey}
+          todayKey={todayKey}
+          dataStand={dataStand}
+          result={result}
+          records={records}
+          kickerPrefix="Tag"
+          hideTagLink
+          leitfrage={leitfrage}
+        />
+      )}
+      <div id="tagesverlauf">
+        <TagChapter
+          day={day}
+          peakGw={record.eveningPeakGw ?? null}
+          peakAt={record.eveningPeakAt ?? null}
+          useTagDateHeading
+          prices={preisTag}
+          powerGw={fleetPowerGw}
+          energyGwh={fleetEnergyGwh}
+          surplusGwh={record.surplusGwh}
+        />
+      </div>
       {isStartSurface ? null : <KnotenTagLink dayKey={dayKey} />}
       <TagSystemChapter
         dayKey={dayKey}
