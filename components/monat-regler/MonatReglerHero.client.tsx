@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
-import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 
 import { FrontSlider } from "@/components/monat-v1/FrontSlider";
 import { MonatReglerChart } from "@/components/monat-regler/MonatReglerChart.client";
@@ -45,8 +42,8 @@ function formatPoolLine(gwh: number, sharePct: number | null): string {
 
 export function MonatReglerHero({
   monthKey,
-  factor,
-  strategy,
+  factor: initialFactor,
+  strategy: initialStrategy,
   kpiSource,
   initialCompact = null,
 }: {
@@ -56,9 +53,18 @@ export function MonatReglerHero({
   kpiSource: ReglerKpiSource;
   initialCompact?: MonatReglerCompact | null;
 }) {
-  const router = useRouter();
+  const [factor, setFactor] = useState<NationalFleetFactor>(initialFactor);
+  const [strategy, setStrategy] = useState<NationalFleetStrategyUi>(initialStrategy);
   const [compact, setCompact] = useState<MonatReglerCompact | null>(initialCompact);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFactor(initialFactor);
+  }, [initialFactor]);
+
+  useEffect(() => {
+    setStrategy(initialStrategy);
+  }, [initialStrategy]);
 
   const monthLabel = formatBerlinMonthLabel(monthKey);
 
@@ -91,14 +97,39 @@ export function MonatReglerHero({
     [compact, factor, kpiSource, strategy],
   );
 
+  const selectScenario = useCallback(
+    (nextFactor: NationalFleetFactor, nextStrategy: NationalFleetStrategyUi) => {
+      setFactor(nextFactor);
+      setStrategy(nextStrategy);
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, "", fleetMonatHref(monthKey, nextFactor, nextStrategy));
+      }
+    },
+    [monthKey],
+  );
+
   const factorIndex = NATIONAL_FLEET_FACTORS.indexOf(factor);
   const onFactorSlider = useCallback(
     (idx: number) => {
       const f = NATIONAL_FLEET_FACTORS[idx] ?? factor;
-      sessionStorage.setItem("speicherpilot-fleet-scroll", String(window.scrollY));
-      router.replace(fleetMonatHref(monthKey, f, strategy), { scroll: false });
+      selectScenario(f, strategy);
     },
-    [factor, monthKey, router, strategy],
+    [factor, selectScenario, strategy],
+  );
+
+  const onChipClick = useCallback(
+    (
+      event: MouseEvent<HTMLAnchorElement>,
+      nextFactor: NationalFleetFactor,
+      nextStrategy: NationalFleetStrategyUi,
+    ) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      event.preventDefault();
+      selectScenario(nextFactor, nextStrategy);
+    },
+    [selectScenario],
   );
 
   const surplusPoolZero =
@@ -136,28 +167,36 @@ export function MonatReglerHero({
           {NATIONAL_FLEET_FACTORS.map((f) => {
             const total = totalFleetAtFactor(f);
             return (
-              <FleetScenarioLink
+              <Link
                 key={f}
                 href={fleetMonatHref(monthKey, f, strategy)}
+                scroll={false}
+                prefetch={false}
+                data-no-nav-progress=""
+                onClick={(e) => onChipClick(e, f, strategy)}
                 className={`${styles.chip}${f === factor ? ` ${styles.chipActive}` : ""}`}
                 aria-current={f === factor ? "true" : undefined}
               >
                 ×{f}
                 <span className={styles.chipSub}>{formatDeGw(total.powerMw / 1000, 2)}</span>
-              </FleetScenarioLink>
+              </Link>
             );
           })}
         </div>
         <div className={styles.chipGroup} role="group" aria-label="Fahrweise">
           {STRATEGY_ORDER.map((id) => (
-            <FleetScenarioLink
+            <Link
               key={id}
               href={fleetMonatHref(monthKey, factor, id)}
+              scroll={false}
+              prefetch={false}
+              data-no-nav-progress=""
+              onClick={(e) => onChipClick(e, factor, id)}
               className={`${styles.chip}${id === strategy ? ` ${styles.chipActive}` : ""}`}
               title={NATIONAL_FLEET_STRATEGY_UI[id].labelDe}
             >
               {STRATEGY_LABEL[id]}
-            </FleetScenarioLink>
+            </Link>
           ))}
         </div>
         <p className={styles.durationRow}>

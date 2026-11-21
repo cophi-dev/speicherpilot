@@ -31,7 +31,7 @@ export function NavigationProgress({ label }: { label: string }) {
         return;
       }
       const anchor = (event.target as Element | null)?.closest("a");
-      if (!anchor || anchor.hasAttribute("download")) {
+      if (!anchor || anchor.hasAttribute("download") || anchor.hasAttribute("data-no-nav-progress")) {
         return;
       }
       if (anchor.target && anchor.target !== "_self") {

@@ -268,3 +268,15 @@
   font-family: var(--font-mono), ui-monospace, monospace;
   color: var(--kn-muted);
 }
+
+.smoothPanel {
+  transition: opacity 150ms ease;
+}
+
+.smoothPanelUpdating {
+  opacity: 0.6;
+}
+
+.chip {
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}

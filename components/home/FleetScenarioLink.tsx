@@ -7,5 +7,14 @@ type FleetScenarioLinkProps = Omit<ComponentProps<typeof Link>, "scroll" | "pref
 
 /** Flotten-Query-Links: Next-Navigation ohne Scroll (Speicher in FleetScrollRestore). */
 export function FleetScenarioLink({ href, ...rest }: FleetScenarioLinkProps) {
-  return <Link href={href} scroll={false} prefetch={false} data-fleet-scenario-link="" {...rest} />;
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      prefetch={false}
+      data-fleet-scenario-link=""
+      data-no-nav-progress=""
+      {...rest}
+    />
+  );
 }
