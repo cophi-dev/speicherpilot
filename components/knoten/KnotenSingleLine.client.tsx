@@ -20,6 +20,7 @@ export function KnotenSingleLine({
   limitMw,
   isCustom,
   colors,
+  onSlotChange,
 }: {
   base: number[];
   fm: number[];
@@ -28,6 +29,7 @@ export function KnotenSingleLine({
   limitMw: number;
   isCustom: boolean;
   colors: KnotenPalette;
+  onSlotChange?: (slot: number) => void;
 }) {
   const [mode, setMode] = useState<Mode>("knoten");
   const [playing, setPlaying] = useState(false);
@@ -52,6 +54,10 @@ export function KnotenSingleLine({
     setSlot(worstSlot);
     setPlaying(false);
   }, [worstSlot]);
+
+  useEffect(() => {
+    onSlotChange?.(slot);
+  }, [onSlotChange, slot]);
 
   useEffect(() => {
     if (!playing) return undefined;
@@ -96,18 +102,20 @@ export function KnotenSingleLine({
         <div className={styles.singleLineActions}>
           <button
             type="button"
-            className={`${styles.miniBtn}${effectiveMode === "markt" ? ` ${styles.miniBtnActive}` : ""}`}
+            className={`${styles.miniBtn}${effectiveMode === "markt" ? ` ${styles.miniBtnMarktActive}` : ""}`}
             aria-pressed={effectiveMode === "markt"}
             onClick={() => setMode("markt")}
           >
+            <span className={styles.modeDot} style={{ background: colors.rust }} aria-hidden="true" />
             Markt
           </button>
           <button
             type="button"
-            className={`${styles.miniBtn}${effectiveMode === "knoten" ? ` ${styles.miniBtnActive}` : ""}`}
+            className={`${styles.miniBtn}${effectiveMode === "knoten" ? ` ${styles.miniBtnKnotenActive}` : ""}`}
             aria-pressed={effectiveMode === "knoten"}
             onClick={() => setMode("knoten")}
           >
+            <span className={styles.modeDot} style={{ background: colors.teal }} aria-hidden="true" />
             Knotentreu
           </button>
           <button
@@ -348,6 +356,7 @@ export function KnotenSingleLine({
             setSlot(Number(e.target.value));
           }}
           className={styles.scrubberInput}
+          style={{ accentColor: bessColor }}
           aria-valuetext={timeLabel}
         />
         <span className={styles.scrubberRangeHint}>00:00 – 23:45</span>

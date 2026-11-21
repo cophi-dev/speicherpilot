@@ -111,6 +111,7 @@ export function KnotenWorkbench({
   const [customError, setCustomError] = useState<string | null>(null);
   const [customBessMw, setCustomBessMw] = useState<number>(20);
   const [customBessHours, setCustomBessHours] = useState<number>(2);
+  const [activeSlot, setActiveSlot] = useState<number | undefined>(undefined);
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -669,6 +670,7 @@ export function KnotenWorkbench({
           limitMw={customLimitMw}
           isCustom={isCustom}
           colors={colors}
+          onSlotChange={setActiveSlot}
         />
 
         <div className={styles.legend} aria-hidden="true">
@@ -695,7 +697,16 @@ export function KnotenWorkbench({
           </span>
         </div>
 
-        <KnotenChart typ={typ} day={tag} k={k} curve={activeCurve} colors={colors} />
+        <KnotenChart
+          typ={typ}
+          day={tag}
+          k={k}
+          curve={activeCurve}
+          colors={colors}
+          limitMw={customLimitMw}
+          isCustom={isCustom}
+          activeSlot={activeSlot}
+        />
       </div>
 
       {/* Single quiet footer bar on Modellknoten for CSV Export + Limit check */}

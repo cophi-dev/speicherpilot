@@ -37,22 +37,34 @@ export function KnotenChart({
   k,
   curve,
   colors,
+  limitMw = KNOTEN_LIMIT_MW,
+  isCustom = false,
+  activeSlot,
 }: {
   typ: KnotenTyp;
   day: string;
   k: number;
   curve: KnotenCurvePayload;
   colors: KnotenPalette;
+  limitMw?: number;
+  isCustom?: boolean;
+  activeSlot?: number;
 }) {
   const shellRef = useRef<HTMLDivElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
   const measured = useMeasuredChartWidth(outerRef, 360);
   const n = curve.base.length;
-  const isStadt = typ === "stadt";
+  const maxPos = Math.max(0, ...curve.base, ...curve.fm, ...curve.fk);
+  const minNeg = Math.min(0, ...curve.base, ...curve.fm, ...curve.fk);
+  const isStadt = isCustom ? maxPos >= Math.abs(minNeg) : typ === "stadt";
+  const showPosLimit = isCustom ? maxPos > limitMw * 0.45 : isStadt;
+  const showNegLimit = isCustom ? Math.abs(minNeg) > limitMw * 0.45 : !isStadt;
   const sign = isStadt ? 1 : -1;
-  const lim = sign * KNOTEN_LIMIT_MW;
-  const layout = knotenPlotMetrics(measured, typ);
-  const { min: yMin, max: yMax } = knotenYDomain(curve, lim);
+  const lim = sign * limitMw;
+  const layout = knotenPlotMetrics(measured, isStadt ? "stadt" : typ);
+  const { min: rawMin, max: rawMax } = knotenYDomain(curve, lim);
+  const yMin = showNegLimit ? Math.min(rawMin, -limitMw * 1.1) : rawMin;
+  const yMax = showPosLimit ? Math.max(rawMax, limitMw * 1.1) : rawMax;
   const yRange = yMax - yMin || 1;
   const yMw = (mw: number) => layout.top + ((yMax - mw) / yRange) * layout.plotH;
   const xs = curve.base.map((_, i) => layout.left + (i / Math.max(n - 1, 1)) * layout.plotW);
@@ -60,20 +72,22 @@ export function KnotenChart({
   const xTicks = layout.narrow ? [0, 6, 12, 18, 24] : [0, 3, 6, 9, 12, 15, 18, 21, 24];
 
   const overMask = curve.fm.map(
-    (fm, i) => Math.abs(fm) > KNOTEN_LIMIT_MW + 1e-6 && Math.abs(fm) > Math.abs(curve.base[i]!) + 1e-6,
+    (fm, i) => Math.abs(fm) > limitMw + 1e-6 && (isCustom || Math.abs(fm) > Math.abs(curve.base[i]!) + 1e-6),
   );
-  const hatchId = `kn-${typ}-${day.replace(/-/g, "")}`;
+  const hatchId = `kn-${typ}-${day.replace(/-/g, "")}-${limitMw}`;
 
   const linePath = (vals: number[]) => vals.map((v, i) => `${xs[i]},${yMw(v)}`).join(" ");
 
   const pick = (clientX: number, _clientY: number, target: HTMLDivElement) =>
     nearestIndexFromClientXs(clientX, target.getBoundingClientRect(), layout.width, xs);
 
-  const title = `${KNOTEN_NODE_LABELS[typ]} · ${day.split("-").reverse().join(".")} · Stufe ×${k}`;
-  const aria = `${title}. Leistung am Umspannwerk in Megawatt, 15-Minuten-Auflösung, Europe/Berlin. Grenze ${KNOTEN_LIMIT_MW} Megawatt.`;
+  const title = isCustom
+    ? `Eigenes Profil · Grenze ±${limitMw} MW`
+    : `${KNOTEN_NODE_LABELS[typ]} · ${day.split("-").reverse().join(".")} · Stufe ×${k}`;
+  const aria = `${title}. Leistung am Umspannwerk in Megawatt, 15-Minuten-Auflösung, Europe/Berlin. Grenze ${limitMw} Megawatt.`;
   const axisFont = 12;
   const limitY = yMw(lim);
-  const limitLabel = knotenLimitLabelLayout(typ, layout, limitY);
+  const limitLabel = knotenLimitLabelLayout(isStadt ? "stadt" : typ, layout, limitY);
 
   return (
     <div className={styles.chartOuter} ref={outerRef} data-testid="knoten-chart">
@@ -184,15 +198,40 @@ export function KnotenChart({
               <polyline fill="none" stroke={colors.gray} strokeWidth={1.6} points={linePath(curve.base)} />
               <polyline fill="none" stroke={colors.rust} strokeWidth={1.85} points={linePath(curve.fm)} />
               <polyline fill="none" stroke={colors.teal} strokeWidth={1.8} points={linePath(curve.fk)} />
-              <line
-                x1={layout.left}
-                x2={layout.left + layout.plotW}
-                y1={yMw(lim)}
-                y2={yMw(lim)}
-                stroke={colors.muted}
-                strokeWidth={1.25}
-                strokeDasharray="5 4"
-              />
+              {showPosLimit ? (
+                <line
+                  x1={layout.left}
+                  x2={layout.left + layout.plotW}
+                  y1={yMw(limitMw)}
+                  y2={yMw(limitMw)}
+                  stroke={colors.muted}
+                  strokeWidth={1.25}
+                  strokeDasharray="5 4"
+                />
+              ) : null}
+              {showNegLimit ? (
+                <line
+                  x1={layout.left}
+                  x2={layout.left + layout.plotW}
+                  y1={yMw(-limitMw)}
+                  y2={yMw(-limitMw)}
+                  stroke={colors.muted}
+                  strokeWidth={1.25}
+                  strokeDasharray="5 4"
+                />
+              ) : null}
+              {activeSlot != null && xs[activeSlot] != null ? (
+                <line
+                  x1={xs[activeSlot]}
+                  x2={xs[activeSlot]}
+                  y1={layout.top}
+                  y2={layout.top + layout.plotH}
+                  stroke={colors.ink}
+                  strokeWidth={1.25}
+                  strokeDasharray="3 3"
+                  opacity={0.55}
+                />
+              ) : null}
               <SvgText
                 x={limitLabel.x}
                 y={limitLabel.y}
@@ -200,7 +239,7 @@ export function KnotenChart({
                 fill={colors.muted}
                 size={axisFont}
               >
-                Grenze {KNOTEN_LIMIT_MW}
+                Grenze {limitMw}
                 {DISPLAY_NBSP}MW ({isStadt ? "+ Bezug" : "− Rückspeisung"})
               </SvgText>
             </svg>
@@ -209,8 +248,9 @@ export function KnotenChart({
       </div>
       <p className={styles.xAxisCaption}>Uhrzeit (Europe/Berlin)</p>
       <p className={styles.footnote}>
-        Modellknoten, kein realer Standort · Szenarien rechnen. Grenze {KNOTEN_LIMIT_MW}
-        {DISPLAY_NBSP}MW (2 × 40{DISPLAY_NBSP}MVA, n-0), Day-Ahead DE-LU, Vollvoraussicht.
+        {isCustom
+          ? `Lokale Browser-Auswertung · Grenze ±${limitMw}${DISPLAY_NBSP}MW · keine Daten verlassen Ihr Gerät.`
+          : `Modellknoten, kein realer Standort · Grenze ${limitMw}${DISPLAY_NBSP}MW (2 × 40${DISPLAY_NBSP}MVA, n-0), Day-Ahead DE-LU, Vollvoraussicht.`}
       </p>
     </div>
   );
