@@ -356,13 +356,27 @@ export function KnotenWorkbench({
         <h1 className="v4-h1" style={{ marginBottom: "0.25rem" }}>
           Dein Knoten
         </h1>
-        <p className="v4-lead" style={{ maxWidth: "56ch", marginBottom: "0.6rem" }}>
+        <p className="v4-lead" style={{ maxWidth: "56ch", marginBottom: "0.5rem" }}>
           80{"\u00A0"}MW Umspannwerk: Wann überlastet reines Preisfahren den Trafo — und was bringt ein
           Leistungsdeckel (§{"\u00A0"}17 Abs.{"\u00A0"}2b EnWG)?{" "}
           <Link href="/methodik#knoten-modell" className="v4-text-link">
             Methodik
           </Link>
         </p>
+        <ol className={styles.introGuide} aria-label="Kurzanleitung">
+          <li className={styles.introGuideItem}>
+            <strong>1 · Knoten oder CSV wählen</strong>
+            Drei 80{"\u00A0"}MW Modellknoten testen oder eigene 96-Viertelstunden-Lastgänge 100{"\u00A0"}% lokal im Browser laden.
+          </li>
+          <li className={styles.introGuideItem}>
+            <strong>2 · Markt vs. Knotentreu vergleichen</strong>
+            Sofort sehen, wann reines Preisfahren den Trafo überlastet — und wie ein Deckel das verhindert.
+          </li>
+          <li className={styles.introGuideItem}>
+            <strong>3 · Leistungsfluss live abspielen</strong>
+            Per Zeitregler durch alle 96{"\u00A0"}Viertelstunden fahren und Kurzbericht oder CSV exportieren.
+          </li>
+        </ol>
       </div>
 
       {/* Clean 2-Tab Switcher: Modellknoten vs. Eigenes Umspannwerk (CSV lokal) */}
