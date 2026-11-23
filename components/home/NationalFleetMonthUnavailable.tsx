@@ -13,10 +13,19 @@ export function NationalFleetMonthUnavailable({ monthKey }: { monthKey: string }
         Modellflotte für {formatBerlinMonthLabel(monthKey)}
       </h2>
       <p>
-        Für diesen Monat liegt noch keine vorberechnete Modellrechnung vor (nur Beobachtung unten) — das ist kein
-        Urteil „null Speichernutzen“. Vergleichbare Monatsläufe mit Peak- und Preisfahrweisen gibt es derzeit für{" "}
-        <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, 1, "ueberschuss")} className="v4-text-link">
+        Für {formatBerlinMonthLabel(monthKey)} liegt nur die beobachtete Restlast-Dauerlinie vor (kein
+        vorberechneter Flotten-Regler) — das ist kein Urteil „null Speichernutzen“. Vollständige interaktive
+        Flottenläufe gibt es für{" "}
+        <Link href={fleetMonatHref(NATIONAL_FLEET_MONTH_KEY, 10, "spitze")} className="v4-text-link">
           {formatBerlinMonthLabel(NATIONAL_FLEET_MONTH_KEY)}
+        </Link>{" "}
+        und{" "}
+        <Link href={fleetMonatHref("2026-11", 10, "spitze")} className="v4-text-link">
+          November 2026
+        </Link>
+        ; alle 12{"\u00A0"}Monate im Saisonvergleich stehen unter{" "}
+        <Link href="/jahr#saison-12m" className="v4-text-link">
+          Jahr
         </Link>
         .
       </p>

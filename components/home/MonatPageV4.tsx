@@ -3,8 +3,12 @@ import { Suspense } from "react";
 
 import { MonatSurplusGraph } from "@/components/home/MonatSurplusGraph";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
-import type { NationalFleetFactor, NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
-import { nationalFleetMonthAvailable } from "@/lib/nationalMonthFleetModel";
+import {
+  NATIONAL_FLEET_MONTH_KEYS,
+  nationalFleetMonthAvailable,
+  type NationalFleetFactor,
+  type NationalFleetStrategyUi,
+} from "@/lib/nationalMonthFleetModel";
 import {
   adjacentMonthWithData,
   buildMonatGrid,
@@ -29,28 +33,74 @@ export function MonatNav({
 }) {
   const prev = adjacentMonthWithData(monthKey, "prev", records);
   const next = adjacentMonthWithData(monthKey, "next", records);
+  const hasFleetModel = nationalFleetMonthAvailable(monthKey);
   return (
-    <nav className="v4-tag-nav v4-content" aria-label="Monat wählen">
-      {prev ? (
-        <Link href={`/monat/${prev}`} prefetch={false} className="v4-tag-nav-btn">
-          ← Vormonat
-        </Link>
-      ) : (
-        <span className="v4-tag-nav-btn is-disabled" aria-disabled="true">
-          ← Vormonat
+    <div className="v4-content">
+      <nav className="v4-tag-nav" aria-label="Monat wählen">
+        {prev ? (
+          <Link href={`/monat/${prev}`} prefetch={false} className="v4-tag-nav-btn">
+            ← Vormonat
+          </Link>
+        ) : (
+          <Link href="/jahr#saison-12m" prefetch={false} className="v4-tag-nav-btn">
+            ← 12-Monats-Übersicht
+          </Link>
+        )}
+        <span className="v4-tag-nav-date-label num">
+          {formatBerlinMonthLabel(monthKey)}
+          {hasFleetModel ? "" : " · nur Beobachtung"}
         </span>
-      )}
-      <span className="v4-tag-nav-date-label num">{formatBerlinMonthLabel(monthKey)}</span>
-      {next ? (
-        <Link href={`/monat/${next}`} prefetch={false} className="v4-tag-nav-btn">
-          Folgemonat →
+        {next ? (
+          <Link href={`/monat/${next}`} prefetch={false} className="v4-tag-nav-btn">
+            Folgemonat →
+          </Link>
+        ) : (
+          <span className="v4-tag-nav-btn is-disabled" aria-disabled="true">
+            Folgemonat →
+          </span>
+        )}
+      </nav>
+      <div
+        className="num"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "0.45rem 0.75rem",
+          fontSize: "0.78rem",
+          color: "var(--muted, hsl(var(--muted-foreground)))",
+          marginTop: "0.35rem",
+        }}
+      >
+        <span>Modellmonate mit Regler:</span>
+        {NATIONAL_FLEET_MONTH_KEYS.map((mk) => (
+          <Link
+            key={mk}
+            href={`/monat/${mk}`}
+            prefetch={false}
+            className="v4-text-link"
+            style={{
+              fontWeight: mk === monthKey ? 700 : 400,
+              display: "inline",
+              minHeight: 0,
+              padding: 0,
+            }}
+            aria-current={mk === monthKey ? "page" : undefined}
+          >
+            {formatBerlinMonthLabel(mk)}
+          </Link>
+        ))}
+        <span>·</span>
+        <Link
+          href="/jahr#saison-12m"
+          prefetch={false}
+          className="v4-text-link"
+          style={{ display: "inline", minHeight: 0, padding: 0 }}
+        >
+          Alle 12{"\u00A0"}Monate (Jahr) →
         </Link>
-      ) : (
-        <span className="v4-tag-nav-btn is-disabled" aria-disabled="true">
-          Folgemonat →
-        </span>
-      )}
-    </nav>
+      </div>
+    </div>
   );
 }
 

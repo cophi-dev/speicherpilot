@@ -6696,9 +6696,9 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   padding: 10px 16px;
   line-height: 1.25;
   margin: 0;
-  background: var(--card);
-  color: var(--foreground);
-  box-shadow: 0 0 0 2px var(--ring);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 0 0 2px hsl(var(--ring));
 }
 .site-shell-skip:focus,
 .site-shell-skip:focus-visible {

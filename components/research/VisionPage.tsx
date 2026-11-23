@@ -24,6 +24,27 @@ import type { VisionJahrModel } from "@/lib/research/visionJahrTypes";
 import type { VisionStageId } from "@/lib/research/researchTypes";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatGwSenkung, GW_MINUS } from "@/lib/research/fleetBasis";
+import surplusMonthsData from "@/data/surplus-months.json";
+
+const MONTH_SHORT_DE: Record<string, string> = {
+  "01": "Jan",
+  "02": "Feb",
+  "03": "Mär",
+  "04": "Apr",
+  "05": "Mai",
+  "06": "Jun",
+  "07": "Jul",
+  "08": "Aug",
+  "09": "Sep",
+  "10": "Okt",
+  "11": "Nov",
+  "12": "Dez",
+};
+
+function shortMonthLabel(ym: string): string {
+  const [y, m] = ym.split("-");
+  return `${MONTH_SHORT_DE[m ?? ""] ?? m} '${(y ?? "").slice(2)}`;
+}
 
 const DURATIONS = [
   { key: "2" as const, label: `2\u00a0h` },
@@ -63,13 +84,41 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
       <p className={styles.prose}>
         {insertDisplayUnitNbsp(
-          "NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das Stromsystem der letzten zwölf Monate: Deutschland als ein Netzknoten ohne Leitungsengpässe, mit perfekter Vorausschau. Das ist eine Obergrenze. Der Oktober-Ausschnitt steht auf ",
+          "NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das Stromsystem der letzten zwölf Monate (Deutschland als ein Netzknoten, perfekte Vorausschau = physikalische Obergrenze). Den interaktiven Monats-Regler gibt es unter ",
         )}
         <Link href="/monat/2026-10" className={styles.link}>
-          /monat/2026-10
+          Oktober 2026
+        </Link>{" "}
+        und{" "}
+        <Link href="/monat/2026-11" className={styles.link}>
+          November 2026
         </Link>
         .
       </p>
+
+      <dl className={styles.summaryGrid} aria-label="Jahreskennzahlen auf einen Blick">
+        <div className={styles.summaryCard}>
+          <dt>Jahresspitze Restlast</dt>
+          <dd>
+            <strong>{model.peakGwDisplay}{"\u00A0"}GW</strong>
+            <span>{formatVisionGermanDate(model.peakTag)} · {model.peakTime}{"\u00A0"}Uhr</span>
+          </dd>
+        </div>
+        <div className={styles.summaryCard}>
+          <dt>NEP A → NEP C (2{"\u00A0"}h)</dt>
+          <dd>
+            <strong>−{formatVisionGwOne(nepA.senkung2hGw)} → −{formatVisionGwOne(nepC.senkung2hGw)}{"\u00A0"}GW</strong>
+            <span>Ab 41{"\u00A0"}GW flacht der Zusatznutzen je GW ab</span>
+          </dd>
+        </div>
+        <div className={styles.summaryCard}>
+          <dt>Engpass-Tage bei NEP C</dt>
+          <dd>
+            <strong>{model.tageNepCCount}{"\u00A0"}Tage am Limit</strong>
+            <span>Fast alle zwischen Oktober und März</span>
+          </dd>
+        </div>
+      </dl>
 
       <section className={styles.section} aria-labelledby="vision-g1">
         <h2 id="vision-g1" className={styles.h2}>
@@ -178,7 +227,88 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
           </Link>
           ).
         </p>
+        <div style={{ marginTop: "0.75rem" }}>
+          <button
+            type="button"
+            className={styles.guessStart}
+            onClick={() => {
+              const header = "Stufe;Leistung_GW;Senkung_2h_GW;Senkung_4h_GW;Spitze_nach_2h_GW;Tage_am_Limit_2h";
+              const fmt = (n: number) => n.toFixed(2).replace(".", ",");
+              const rows = model.stages2h.map(
+                (s) =>
+                  `${s.key};${fmt(s.powerGw)};${fmt(s.senkung2hGw)};${fmt(s.senkung4hGw)};${fmt(s.spitzeNach2hGw)};${s.tageKappe2h}`,
+              );
+              const csv = `\uFEFF${[header, ...rows].join("\n")}\n`;
+              const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "speicherpilot-jahr-nep-stufen.csv";
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              URL.revokeObjectURL(url);
+            }}
+            data-testid="jahr-csv-export"
+          >
+            NEP-Stufen als CSV exportieren
+          </button>
+        </div>
         <VisionJahrChartFoot />
+      </section>
+
+      <section id="saison-12m" className={styles.section} aria-labelledby="vision-saison">
+        <h2 id="vision-saison" className={styles.h2}>
+          12{"\u00A0"}Monate im Saisonvergleich: Sommer-Überschuss vs. Winter-Flaute
+        </h2>
+        <p className={styles.prose}>
+          {insertDisplayUnitNbsp(
+            "Tage je Monat mit messbarem Wind+Solar-Überschuss (≥ 0,05 GWh): Im Hochsommer bis zu 29 Tage im Monat, im November und Dezember 0 Tage. Interaktive Viertelstunden-Flottenläufe stehen für ",
+          )}
+          <Link href="/monat/2026-10" className={styles.link}>
+            Oktober 2026
+          </Link>{" "}
+          und{" "}
+          <Link href="/monat/2026-11" className={styles.link}>
+            November 2026
+          </Link>{" "}
+          bereit.
+        </p>
+        <div className={styles.seasonGrid} role="list" aria-label="Überschusstage je Monat">
+          {surplusMonthsData.months.map((m) => {
+            const pct = Math.round((m.surplusDays / Math.max(1, m.days)) * 100);
+            const hasFleet = m.month === "2026-10" || m.month === "2026-11";
+            const inner = (
+              <>
+                <div className={styles.seasonBarWrap} aria-hidden="true">
+                  <div className={styles.seasonBar} style={{ height: `${Math.max(4, pct)}%` }} />
+                </div>
+                <strong className={styles.seasonNum}>{m.surplusDays}</strong>
+                <span className={styles.seasonLabel}>{shortMonthLabel(m.month)}</span>
+              </>
+            );
+            return hasFleet ? (
+              <Link
+                key={m.month}
+                href={`/monat/${m.month}`}
+                className={`${styles.seasonCell} ${styles.seasonCellActive}`}
+                role="listitem"
+                title={`${shortMonthLabel(m.month)}: ${m.surplusDays} von ${m.days} Tagen mit Überschuss (Modellmonat öffnen)`}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div
+                key={m.month}
+                className={styles.seasonCell}
+                role="listitem"
+                title={`${shortMonthLabel(m.month)}: ${m.surplusDays} von ${m.days} Tagen mit Überschuss`}
+              >
+                {inner}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <section className={styles.section} aria-labelledby="vision-g2">

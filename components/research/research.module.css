@@ -478,3 +478,115 @@
   color: var(--research-fg);
   margin: 8px 0 6px;
 }
+
+.prose .link,
+.meta .link {
+  display: inline;
+  min-height: 0;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin: 1.25rem 0 2rem;
+}
+
+@media (min-width: 720px) {
+  .summaryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.summaryCard {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--research-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--research-line) 18%, transparent);
+}
+
+.summaryCard dt {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: var(--type-12);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--research-muted);
+  margin: 0 0 0.3rem;
+}
+
+.summaryCard dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.summaryCard dd strong {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--research-fg);
+}
+
+.summaryCard dd span {
+  font-size: 0.8125rem;
+  color: var(--research-muted);
+}
+
+.seasonGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 760px) {
+  .seasonGrid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+.seasonCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.55rem 0.25rem;
+  border: 1px solid var(--research-line);
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.seasonCellActive {
+  border-color: var(--research-accent);
+}
+
+.seasonBarWrap {
+  width: 100%;
+  max-width: 24px;
+  height: 54px;
+  display: flex;
+  align-items: flex-end;
+  background: color-mix(in srgb, var(--research-line) 35%, transparent);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.seasonBar {
+  width: 100%;
+  background: var(--research-accent);
+  border-radius: 3px 3px 0 0;
+}
+
+.seasonNum {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--research-fg);
+}
+
+.seasonLabel {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.68rem;
+  color: var(--research-muted);
+}
