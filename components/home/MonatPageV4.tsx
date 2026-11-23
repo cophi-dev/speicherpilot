@@ -31,9 +31,15 @@ export function MonatNav({
   monthKey: string;
   records: TagesKennzahlRecord[];
 }) {
-  const prev = adjacentMonthWithData(monthKey, "prev", records);
-  const next = adjacentMonthWithData(monthKey, "next", records);
   const hasFleetModel = nationalFleetMonthAvailable(monthKey);
+  const fleetMonths = [...NATIONAL_FLEET_MONTH_KEYS].sort();
+  const fleetIdx = fleetMonths.indexOf(monthKey as (typeof NATIONAL_FLEET_MONTH_KEYS)[number]);
+  const prev = hasFleetModel
+    ? (fleetIdx > 0 ? fleetMonths[fleetIdx - 1]! : null)
+    : adjacentMonthWithData(monthKey, "prev", records);
+  const next = hasFleetModel
+    ? (fleetIdx >= 0 && fleetIdx < fleetMonths.length - 1 ? fleetMonths[fleetIdx + 1]! : null)
+    : adjacentMonthWithData(monthKey, "next", records);
   return (
     <div className="v4-content">
       <nav className="v4-tag-nav" aria-label="Monat wählen">
