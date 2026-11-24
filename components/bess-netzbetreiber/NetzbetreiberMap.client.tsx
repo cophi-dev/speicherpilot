@@ -9,20 +9,11 @@ import type { KnotenPalette } from "@/components/knoten/knotenPalette";
 
 const GERMANY_BOUNDS = L.latLngBounds([47.25, 5.8], [55.15, 15.05]);
 
-const WORLD_RING: [number, number][] = [
-  [85, -30],
-  [85, 45],
-  [-60, 45],
-  [-60, -30],
-  [85, -30],
-];
-
-const GERMANY_MASK_HOLE: [number, number][] = [
-  [55.2, 5.7],
-  [55.2, 15.2],
-  [47.2, 15.2],
-  [47.2, 5.7],
-  [55.2, 5.7],
+const OUTSIDE_PANELS: [number, number][][] = [
+  [[85, -30], [85, 45], [55.3, 45], [55.3, -30]],
+  [[-60, -30], [-60, 45], [47.1, 45], [47.1, -30]],
+  [[47.1, -30], [55.3, -30], [55.3, 5.6], [47.1, 5.6]],
+  [[47.1, 15.1], [55.3, 15.1], [55.3, 45], [47.1, 45]],
 ];
 
 function MapFitGermany() {
@@ -49,7 +40,7 @@ function neighborMaskStyle(): L.PathOptions {
 function MapNeighborMask() {
   const map = useMap();
   useEffect(() => {
-    const layer = L.polygon([WORLD_RING, GERMANY_MASK_HOLE], neighborMaskStyle()).addTo(map);
+    const layer = L.polygon(OUTSIDE_PANELS, neighborMaskStyle()).addTo(map);
     layer.bringToFront();
     return () => {
       map.removeLayer(layer);

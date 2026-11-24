@@ -42,7 +42,7 @@ export function NetzbetreiberG2Chart({
   yAxisWidth?: number;
 }) {
   return (
-    <ResponsiveContainer width="100%" height={Math.max(280, data.length * 32)}>
+    <ResponsiveContainer width="100%" height={Math.max(300, data.length * 36)}>
       <BarChart data={data} layout="vertical" margin={{ left: 4, right: 56, top: 8, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={palette.grid} />
         <XAxis type="number" domain={[0, G2_AXIS_CAP_MW]} tick={{ fill: palette.muted, fontSize: 12 }} tickFormatter={tickMw} />
@@ -58,12 +58,7 @@ export function NetzbetreiberG2Chart({
           labelFormatter={(_, p) => (p?.[0]?.payload as G2BarRow)?.fullLabel ?? ""}
           contentStyle={{ fontSize: 12 }}
         />
-        <ReferenceLine
-          x={50}
-          stroke={palette.gray}
-          strokeDasharray="4 4"
-          label={{ value: "50 MW", fill: palette.muted, fontSize: 11, position: "insideTopRight" }}
-        />
+        <ReferenceLine x={50} stroke={palette.gray} strokeDasharray="4 4" />
         <Bar dataKey="displayMw" radius={[0, 4, 4, 0]} isAnimationActive={false}>
           {data.map((row) => (
             <Cell key={row.key} fill={row.isEonGroup ? palette.teal : palette.gray} />
@@ -119,6 +114,10 @@ export function NetzbetreiberG3Chart({
 export function NetzbetreiberG4Chart({ data, palette }: { data: ScatterPoint[]; palette: KnotenPalette }) {
   const yMax = Math.max(...data.map((d) => d.y), 0.05) * 1.15;
   const xMax = Math.max(...data.map((d) => d.x), 1) * 1.05;
+  const labelNames = new Set(
+    [...data].sort((a, b) => b.y - a.y).slice(0, 6).map((d) => d.fullName),
+  );
+  const labeled = data.map((d) => ({ ...d, name: labelNames.has(d.fullName) ? d.name : "" }));
   return (
     <ResponsiveContainer width="100%" height={360}>
       <ScatterChart margin={{ left: 8, right: 24, top: 12, bottom: 8 }}>
@@ -145,7 +144,7 @@ export function NetzbetreiberG4Chart({ data, palette }: { data: ScatterPoint[]; 
           }
           labelFormatter={(_, p) => p?.[0]?.payload?.fullName ?? ""}
         />
-        <Scatter data={data} fill={palette.teal} isAnimationActive={false}>
+        <Scatter data={labeled} fill={palette.teal} isAnimationActive={false}>
           <LabelList dataKey="name" position="top" offset={8} style={{ fill: palette.ink, fontSize: 10 }} />
         </Scatter>
       </ScatterChart>

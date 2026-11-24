@@ -291,11 +291,11 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
                   <Bar dataKey="mwPerGwEe" fill={colors.teal} radius={[0, 4, 4, 0]} isAnimationActive={false} />
                 </BarChart>
               ) : (
-                <BarChart data={g5Data} margin={{ left: 8, right: 8, top: 8, bottom: 56 }}>
+                <BarChart data={g5Data} margin={{ left: 8, right: 8, top: 28, bottom: 72 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
-                  <XAxis dataKey="name" tick={{ fill: colors.muted, fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={56} />
+                  <XAxis dataKey="name" tick={{ fill: colors.muted, fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={72} />
                   <YAxis tickFormatter={(v) => `${v} GW`} tick={{ fill: colors.muted, fontSize: 12 }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 8 }} />
                   <Bar dataKey="wind" stackId="ee" fill={colors.gray} name="Wind an Land" isAnimationActive={false} />
                   <Bar dataKey="pv" stackId="ee" fill={colors.rust} name="PV" isAnimationActive={false} />
                   <Bar dataKey="bess" fill={colors.teal} name="BESS" isAnimationActive={false} />
