@@ -31,7 +31,9 @@ export function StartRoterFadenKompass() {
         <article className="v4-kompass-card">
           <p className="v4-kompass-kicker num">2 · Kompromiss (Pareto)</p>
           <p className="v4-kompass-body">
-            {insertDisplayUnitNbsp("2,51 statt 0,37 GW Spitzensenkung kosten nur 0,36 % weniger Börsenerlös.")}
+            {insertDisplayUnitNbsp(
+              "2,51 statt 0,37 GW Spitzensenkung kosten nur 0,36 % weniger Day-Ahead-Erlös (Modell).",
+            )}
           </p>
           <Link href="/kompromiss" className="v4-text-link v4-kompass-link">
             Kompromiss →

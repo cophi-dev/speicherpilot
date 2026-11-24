@@ -113,7 +113,7 @@ export function VisionJahrG4Tage({ model, width, height }: { model: VisionJahrMo
               y={yTop}
               width={w}
               height={Math.max(0, yBase - yTop)}
-              fill={over ? "var(--research-accent)" : "var(--research-dim)"}
+              fill={over ? "var(--research-accent)" : "var(--research-muted)"}
               opacity={isActive ? 1 : over ? 0.9 : 0.45}
             />
           );

@@ -237,7 +237,7 @@ footer.border-t > div.mx-auto {
     --coral: #ff8a70;
     --coral-stroke: #ff8a70;
     --v4-warm: #e76f51;
-    --v4-warm-text: #e76f51;
+    --v4-warm-text: #b4532a;
     --v4-warm-chart: #b4532a;
   }
 
@@ -4344,6 +4344,23 @@ footer .site-fold a {
   min-height: 44px;
 }
 
+.site-footer {
+  margin-top: 2rem;
+  background: transparent;
+}
+.site-footer-inner {
+  padding-top: var(--space-10);
+  padding-bottom: var(--space-10);
+}
+.site-footer-inner > p {
+  margin: 0;
+  max-width: none;
+  font-size: var(--type-14);
+  line-height: var(--lh-body);
+}
+.site-footer-inner > p + p {
+  margin-top: var(--space-4);
+}
 .legal-footer {
   display: flex;
   flex-wrap: wrap;
@@ -4354,6 +4371,7 @@ footer .site-fold a {
   width: 100%;
   margin-inline: 0;
   padding-inline: 0;
+  margin-bottom: var(--space-6);
 }
 
 .legal-footer a {
@@ -8140,10 +8158,10 @@ footer.v4-content.v4-footnote > p {
   fill: hsl(var(--muted-foreground));
 }
 .v4-luecke-ws-fill {
-  fill: color-mix(in srgb, #4d84a3 55%, transparent);
+  fill: color-mix(in srgb, #4d84a3 82%, transparent);
 }
 .dark .v4-luecke-ws-fill {
-  fill: color-mix(in srgb, #4d84a3 70%, transparent);
+  fill: color-mix(in srgb, #4d84a3 86%, transparent);
 }
 .v4-luecke-ws-line {
   stroke: #2f6b57;
@@ -8158,7 +8176,7 @@ footer.v4-content.v4-footnote > p {
 }
 .v4-luecke-hatch {
   stroke: var(--v4-warm-chart);
-  opacity: 0.55;
+  opacity: 0.85;
 }
 .v4-luecke-gap-label {
   font-size: var(--type-14);
@@ -8174,7 +8192,10 @@ footer.v4-content.v4-footnote > p {
   stroke-width: 3;
 }
 .v4-luecke-peak-dot {
-  fill: var(--v4-warm);
+  fill: var(--v4-warm-chart);
+  stroke: hsl(var(--background));
+  stroke-width: 3px;
+  paint-order: stroke fill;
 }
 .v4-luecke-peak-hair {
   stroke: var(--v4-warm);
@@ -10726,7 +10747,6 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 }
 .v4-tagesvorlage-modelbox {
   margin: 32px auto 48px;
-  max-width: 42rem;
   padding-top: 24px;
   border-top: 1px solid var(--linie);
   font-size: var(--type-14);
@@ -10976,6 +10996,33 @@ html.dark .v4-fleet-ts-ytick-halo {
   padding-bottom: 0;
   min-width: 0;
   max-width: 100%;
+  row-gap: 0.25rem;
+}
+.monat-page .v4-tag-nav-btn {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.v4-monat-model-months {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  font-size: var(--type-12);
+  line-height: var(--lh-label);
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.35rem;
+}
+.v4-monat-model-months-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  font-weight: 400;
+}
+.v4-monat-model-months-link[aria-current="page"] {
+  font-weight: 700;
 }
 .monat-page .v4-tag-nav-date-label {
   min-width: 0;

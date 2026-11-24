@@ -587,6 +587,6 @@
 
 .seasonLabel {
   font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 0.68rem;
+  font-size: var(--type-12);
   color: var(--research-muted);
 }

@@ -66,43 +66,21 @@ export function MonatNav({
           </span>
         )}
       </nav>
-      <div
-        className="num"
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          gap: "0.45rem 0.75rem",
-          fontSize: "0.78rem",
-          color: "var(--muted, hsl(var(--muted-foreground)))",
-          marginTop: "0.35rem",
-        }}
-      >
+      <div className="v4-monat-model-months num">
         <span>Modellmonate mit Regler:</span>
         {NATIONAL_FLEET_MONTH_KEYS.map((mk) => (
           <Link
             key={mk}
             href={`/monat/${mk}`}
             prefetch={false}
-            className="v4-text-link"
-            style={{
-              fontWeight: mk === monthKey ? 700 : 400,
-              display: "inline",
-              minHeight: 0,
-              padding: 0,
-            }}
+            className="v4-text-link v4-monat-model-months-link"
             aria-current={mk === monthKey ? "page" : undefined}
           >
             {formatBerlinMonthLabel(mk)}
           </Link>
         ))}
-        <span>·</span>
-        <Link
-          href="/jahr#saison-12m"
-          prefetch={false}
-          className="v4-text-link"
-          style={{ display: "inline", minHeight: 0, padding: 0 }}
-        >
+        <span aria-hidden="true">·</span>
+        <Link href="/jahr#saison-12m" prefetch={false} className="v4-text-link v4-monat-model-months-link">
           Alle 12{"\u00A0"}Monate (Jahr) →
         </Link>
       </div>

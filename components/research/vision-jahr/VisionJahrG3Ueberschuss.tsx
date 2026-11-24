@@ -73,7 +73,14 @@ export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrMod
               <text x={PAD_LEFT - 8} y={y + ROW_H / 2 + 4} textAnchor="end" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
                 {row.label}
               </text>
-              <rect x={PAD_LEFT} y={y} width={innerW} height={ROW_H} fill="var(--research-line)" opacity={0.45} rx={2} />
+              <rect
+                x={PAD_LEFT}
+                y={y}
+                width={innerW}
+                height={ROW_H}
+                fill="color-mix(in srgb, var(--research-muted) 35%, transparent)"
+                rx={2}
+              />
               <rect x={PAD_LEFT} y={y} width={barW} height={ROW_H} fill="var(--research-accent-light)" rx={2} />
               {(() => {
                 const seg = visionG3MarktLineY(y, ROW_H, axisFs);

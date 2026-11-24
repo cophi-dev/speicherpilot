@@ -22,6 +22,7 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
+import { StartKompromissTeaser, StartKnotenTeaser } from "@/components/home/SimulatorTeasers";
 import type { MarktInsight } from "@/lib/marktInsights";
 import { formatPreisSpanne, type PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
@@ -356,8 +357,14 @@ export function TagPageV4({
         fleetExtra={fleetSoGerechnet}
       />
       {isStartSurface ? null : <TagesvorlageModelBox />}
-      {!isStartSurface && marktInsights.length > 0 ? (
+      {marktInsights.length > 0 ? (
         <MarktInsightsBlock insights={marktInsights} layout="tag" />
+      ) : null}
+      {isStartSurface && simulatorTeaser ? (
+        <>
+          <StartKompromissTeaser teaser={simulatorTeaser} />
+          <StartKnotenTeaser />
+        </>
       ) : null}
     </div>
   );
