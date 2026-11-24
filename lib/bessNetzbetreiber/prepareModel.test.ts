@@ -30,11 +30,14 @@ describe("BESS-Netzbetreiber Datenaufbereitung", () => {
     }
   });
 
-  it("liefert Wachstums-Buckets ohne ÜNB als VNB-Balken", () => {
+  it("liefert Wachstums-Buckets inkl. MITNETZ-Zeile", () => {
     const stacks = prepareGrowthStacks(parsed.growthDefault, true);
     expect(stacks.some((s) => s.key === "eon_gruppe")).toBe(true);
+    const mitnetz = stacks.find((s) => s.key === "mitnetz_envia");
+    expect(mitnetz).toBeDefined();
+    expect((mitnetz?.vor2026Mw ?? 0) + (mitnetz?.y2026Mw ?? 0)).toBeGreaterThan(500);
     const eonPct = eonSharePercent(parsed.vnbRanking, true);
-    expect(Number.isFinite(eonPct)).toBe(true);
+    expect(eonPct).toBeGreaterThan(50);
   });
 
   it("enthält SMARD-Streuung je Bundesland", () => {

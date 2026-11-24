@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T14:46:15Z",
+  "generatedAt": "2026-11-24T17:43:06Z",
   "stichtagMastr": "2026-11-24",
   "sources": [
     {
@@ -18,7 +18,7 @@
   ],
   "plausibility": {
     "unitsGe1MwNetto": 575,
-    "sitesOnMap": 539,
+    "sitesOnMap": 535,
     "bruttoGw": 4.74,
     "nettoGw": 4.62,
     "energyGwh": 8.37,
@@ -33,10 +33,11 @@
     "excludedBruttoKw": 134672.0,
     "excludedBruttoMw": 134.7,
     "unitsAfterQualityFilter": 544,
-    "sitesAfterQualityFilter": 508,
-    "unitsAggregatedToSameCoordinate": 36,
+    "sitesAfterQualityFilter": 504,
+    "unitsAggregatedToSameCoordinate": 40,
     "uenbAttachedUnitsConcept": 15,
-    "explanation": "16 Einheiten natürliche Personen, 15 mit Niederspannung ohne abgeschlossene NB-Prüfung; 36 Einheiten teilen Kartenkoordinate mit anderen Einheiten."
+    "unitsWithoutMapCoordinate": 5,
+    "explanation": "16 Einheiten natürliche Personen, 15 mit Niederspannung ohne abgeschlossene NB-Prüfung; 40 Einheiten teilen Kartenkoordinate mit anderen Einheiten; 5 ohne MaStR-Koordinate (in Summen, nicht auf Karte)."
   },
   "vg250": {
     "available": false,
@@ -49,18 +50,17 @@
     "note": "MW je 1.000 km Stromkreislänge: folgt, bis ≥8 Top-VNB mit URL belegt sind.",
     "eeStockNormalization": true
   },
-  "eonGroupMembersDefault": [
-    "westnetz",
-    "bayernwerk netz",
-    "avacon netz",
-    "schleswig-holstein netz",
-    "e.dis netz",
-    "lew verteilnetz",
-    "syna",
-    "mitnetz",
-    "enviam",
-    "regionetz",
-    "energis"
+  "eonSnbIds": [
+    "SNB911641710114",
+    "SNB911705062982",
+    "SNB916269213931",
+    "SNB918250928893",
+    "SNB921897286493",
+    "SNB940352624434",
+    "SNB941690671609",
+    "SNB976379598847",
+    "SNB990362338043",
+    "SNB990857029876"
   ],
   "eeStockMastr": {
     "maxPagesPerEnergyCarrier": 8,

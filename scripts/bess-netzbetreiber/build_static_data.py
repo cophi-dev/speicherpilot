@@ -52,22 +52,37 @@ BUNDESLAENDER_DE = [
 
 PLZ_CENTROIDS: dict[str, tuple[float, float]] = {}
 
-EON_CORE_MARKERS = (
-    "westnetz",
-    "bayernwerk netz",
-    "avacon netz",
-    "schleswig-holstein netz",
-    "e.dis netz",
-    "lew verteilnetz",
-    "syna",
+# E.ON-Konzern: feste MaStR-Nummern (ANSchluss-Netzbetreiber), nicht Namenssubstrings.
+EON_SNB_BUCKETS: dict[str, tuple[str, str]] = {
+    "SNB921897286493": ("eon_westnetz", "Westnetz"),
+    "SNB940352624434": ("eon_bayernwerk", "Bayernwerk Netz"),
+    "SNB990362338043": ("eon_avacon", "Avacon Netz GmbH"),
+    "SNB990857029876": ("eon_sh_netz", "Schleswig-Holstein Netz"),
+    "SNB941690671609": ("eon_edis", "E.DIS Netz"),
+    "SNB911705062982": ("eon_lew", "LEW Verteilnetz"),
+    "SNB918250928893": ("eon_syna", "Syna"),
+    "SNB916269213931": ("mitnetz_envia", "MITNETZ / enviaM"),
+    "SNB911641710114": ("eon_regionetz", "Regionetz"),
+    "SNB976379598847": ("eon_energis", "energis Netzgesellschaft"),
+}
+EON_SNB_IDS = frozenset(EON_SNB_BUCKETS.keys())
+EON_SNB_WITHOUT_MITNETZ = EON_SNB_IDS - {"SNB916269213931"}
+EON_SNB_KERN = frozenset(
+    snb
+    for snb, (key, _) in EON_SNB_BUCKETS.items()
+    if key not in ("mitnetz_envia", "eon_regionetz", "eon_energis")
 )
-EON_EXTRA_MARKERS = (
-    "mitnetz",
-    "enviam",
+EON_LEGACY_NAME_FALLBACK = (
+    "westnetz",
+    "bayernwerk",
+    "avacon",
+    "schleswig-holstein netz",
+    "e.dis",
+    "lew",
+    "syna",
     "regionetz",
     "energis",
 )
-EON_GROUP_MARKERS = EON_CORE_MARKERS + EON_EXTRA_MARKERS
 
 UNB_KEYWORDS = (
     "tennet",
@@ -117,32 +132,50 @@ def strip_vnb_label(name: str) -> str:
     return base
 
 
+def extract_snb(row: dict[str, Any]) -> str | None:
+    for field in ("NetzbetreiberMaStRNummer", "NetzbetreiberMastrNummer", "AnschlussNetzMaStRNummer"):
+        raw = row.get(field)
+        if not raw:
+            continue
+        text = str(raw).strip().upper()
+        if text.startswith("SNB"):
+            return text
+        m = re.search(r"SNB\d+", text, re.I)
+        if m:
+            return m.group(0).upper()
+    name = row.get("NetzbetreiberNamen") or row.get("NetzbetreiberMaskedNamen") or ""
+    m = re.search(r"\(SNB(\d+)\)", name, re.I)
+    if m:
+        return f"SNB{m.group(1)}"
+    m = re.search(r"SNB\d+", name, re.I)
+    return m.group(0).upper() if m else None
+
+
+def bucket_for_row(row: dict[str, Any]) -> tuple[str, str, str]:
+    """(bucket_key, bucket_label, operator_class)."""
+    snb = extract_snb(row)
+    if snb and snb in EON_SNB_BUCKETS:
+        key, label = EON_SNB_BUCKETS[snb]
+        return key, label, "eon"
+    label = strip_vnb_label(row.get("NetzbetreiberNamen") or row.get("NetzbetreiberMaskedNamen") or "Unbekannt")
+    n = norm_name(label)
+    if any(k in n for k in UNB_KEYWORDS):
+        return f"uenb:{n}", label, "uenb"
+    if "ewe netz" in n:
+        return "ewe_netz", "EWE NETZ", "vnb"
+    if any(k in n for k in EON_LEGACY_NAME_FALLBACK):
+        return "eon_unmapped", label, "eon"
+    return f"vnb:{n}", label, "vnb"
+
+
 def classify_operator(netzbetreiber: str) -> str:
+    """Legacy-Helfer (nur Name) — bitte bucket_for_row bevorzugen."""
     n = norm_name(strip_vnb_label(netzbetreiber))
     if any(k in n for k in UNB_KEYWORDS):
         return "uenb"
-    if any(k in n for k in EON_GROUP_MARKERS):
+    if any(k in n for k in EON_LEGACY_NAME_FALLBACK):
         return "eon"
     return "vnb"
-
-
-def eon_group_label(include_extras: bool) -> str:
-    return "eon_gruppe" if include_extras else "eon_kern"
-
-
-def bucket_vnb_key(netzbetreiber: str, eon_include_extras: bool) -> tuple[str, str]:
-    cls = classify_operator(netzbetreiber)
-    label = strip_vnb_label(netzbetreiber)
-    if cls == "eon":
-        return (eon_group_label(eon_include_extras), "E.ON-Gruppe" if eon_include_extras else "E.ON (Kern)")
-    if cls == "uenb":
-        return (f"uenb:{norm_name(label)}", label)
-    n = norm_name(label)
-    if "mitnetz" in n or "enviam" in n:
-        return ("mitnetz_envia", "MITNETZ / enviaM")
-    if "ewe netz" in n:
-        return ("ewe_netz", "EWE NETZ")
-    return (f"vnb:{n}", label)
 
 
 def row_passes_concept(row: dict[str, Any]) -> bool:
@@ -206,35 +239,46 @@ def fetch_mastr_bess() -> list[dict[str, Any]]:
     return out
 
 
-def locate_row(row: dict[str, Any]) -> tuple[float, float, str]:
+def locate_row(row: dict[str, Any]) -> tuple[float | None, float | None, str, bool]:
+    """Koordinate, Qualität, auf Karte zeigen? Einheiten ohne MaStR-Koordinate nicht hashen."""
     lat = row.get("Breitengrad")
     lng = row.get("Laengengrad")
     if lat and lng:
-        return float(lat), float(lng), "exakt"
+        return float(lat), float(lng), "exakt", True
     plz = (row.get("Plz") or "").strip()
-    gemeinde = (row.get("Gemeinde") or row.get("Ort") or "").strip()
     if plz in PLZ_CENTROIDS:
-        return PLZ_CENTROIDS[plz][0], PLZ_CENTROIDS[plz][1], "plz_mittelpunkt"
-    # Gemeinde hash jitter within Bundesland bbox (not invented coordinates — marked approx)
-    bl = (row.get("Bundesland") or "Deutschland").strip()
-    seed = hashlib.sha1(f"{gemeinde}|{plz}|{bl}".encode()).hexdigest()
-    h = int(seed[:8], 16)
-    lat0 = 51.0 + ((h % 1000) / 1000) * 4.5
-    lng0 = 6.0 + (((h // 1000) % 1000) / 1000) * 9.0
-    return lat0, lng0, "gemeinde_naeherung"
+        unit_id = row.get("EinheitMastrNummer") or row.get("Id") or ""
+        seed = hashlib.sha1(f"{unit_id}|{plz}".encode()).hexdigest()
+        h = int(seed[:8], 16)
+        jitter_lat = ((h % 1000) / 1000 - 0.5) * 0.02
+        jitter_lng = (((h // 1000) % 1000) / 1000 - 0.5) * 0.03
+        base_lat, base_lng = PLZ_CENTROIDS[plz]
+        return base_lat + jitter_lat, base_lng + jitter_lng, "plz_mittelpunkt", True
+    return None, None, "ohne_koordinate", False
 
 
-def aggregate_locations(rows: list[dict[str, Any]], apply_quality_filter: bool, eon_include_extras: bool) -> dict[str, Any]:
+def aggregate_locations(rows: list[dict[str, Any]], apply_quality_filter: bool) -> dict[str, Any]:
     filtered, _filter_stats = filter_rows(rows, apply_quality_filter)
     loc: dict[str, dict[str, Any]] = {}
+    unit_brutto = unit_netto = unit_energy_kwh = 0.0
+    off_map_units = 0
     for row in filtered:
-        lat, lng, qual = locate_row(row)
-        loc_key = f"{round(lat, 4)}|{round(lng, 4)}"
         brutto_kw = float(row.get("Bruttoleistung") or 0)
         netto_kw = float(row.get("Nettonennleistung") or 0)
         energy_kwh = float(row.get("NutzbareSpeicherkapazitaet") or 0)
+        unit_brutto += brutto_kw
+        unit_netto += netto_kw
+        unit_energy_kwh += energy_kwh
+
+        lat, lng, qual, map_ok = locate_row(row)
+        if not map_ok or lat is None or lng is None:
+            off_map_units += 1
+            continue
+
+        loc_key = f"{round(lat, 4)}|{round(lng, 4)}"
         vnb = strip_vnb_label(row.get("NetzbetreiberNamen") or row.get("NetzbetreiberMaskedNamen") or "Unbekannt")
-        bucket_key, bucket_label = bucket_vnb_key(vnb, eon_include_extras)
+        bucket_key, bucket_label, operator_class = bucket_for_row(row)
+        mw = brutto_kw / 1000
         entry = loc.setdefault(
             loc_key,
             {
@@ -248,26 +292,37 @@ def aggregate_locations(rows: list[dict[str, Any]], apply_quality_filter: bool, 
                 "landkreis": row.get("Landkreis") or "",
                 "bundesland": row.get("Bundesland") or "",
                 "vnbDominant": vnb,
-                "operatorClass": classify_operator(vnb),
+                "_dominantMw": 0.0,
+                "operatorClass": operator_class,
                 "vnbBucketKey": bucket_key,
                 "vnbBucketLabel": bucket_label,
                 "inbetriebnahmeYears": [],
             },
         )
-        entry["bruttoMw"] += brutto_kw / 1000
+        entry["bruttoMw"] += mw
         entry["nettoMw"] += netto_kw / 1000
         entry["energyMwh"] += energy_kwh / 1000
         entry["units"] += 1
+        if mw >= entry["_dominantMw"]:
+            entry["_dominantMw"] = mw
+            entry["vnbDominant"] = vnb
+            entry["operatorClass"] = operator_class
+            entry["vnbBucketKey"] = bucket_key
+            entry["vnbBucketLabel"] = bucket_label
         inb = parse_mastr_date(row.get("InbetriebnahmeDatum"))
         if inb:
             entry["inbetriebnahmeYears"].append(int(inb[:4]))
 
-    sites = list(loc.values())
+    sites: list[dict[str, Any]] = []
+    for entry in loc.values():
+        entry.pop("_dominantMw", None)
+        sites.append(entry)
+
     totals = {
-        "units": sum(s["units"] for s in sites),
-        "bruttoMw": sum(s["bruttoMw"] for s in sites),
-        "nettoMw": sum(s["nettoMw"] for s in sites),
-        "energyGwh": sum(s["energyMwh"] for s in sites) / 1000,
+        "units": len(filtered),
+        "bruttoMw": round(unit_brutto / 1000, 6),
+        "nettoMw": round(unit_netto / 1000, 6),
+        "energyGwh": round(unit_energy_kwh / 1_000_000, 6),
     }
     return {
         "sites": sites,
@@ -275,6 +330,140 @@ def aggregate_locations(rows: list[dict[str, Any]], apply_quality_filter: bool, 
         "filteredUnitCount": len(filtered),
         "rawUnitCount": len(rows),
         "siteCount": len(sites),
+        "unitsWithoutMapCoordinate": off_map_units,
+    }
+
+
+def vnb_rollup_units(filtered: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by: dict[str, dict[str, Any]] = {}
+    for row in filtered:
+        bucket_key, bucket_label, operator_class = bucket_for_row(row)
+        brutto_kw = float(row.get("Bruttoleistung") or 0)
+        netto_kw = float(row.get("Nettonennleistung") or 0)
+        rec = by.setdefault(
+            bucket_key,
+            {
+                "key": bucket_key,
+                "label": bucket_label,
+                "operatorClass": operator_class,
+                "bruttoMw": 0.0,
+                "nettoMw": 0.0,
+                "units": 0,
+            },
+        )
+        rec["bruttoMw"] += brutto_kw / 1000
+        rec["nettoMw"] += netto_kw / 1000
+        rec["units"] += 1
+    out: list[dict[str, Any]] = []
+    for rec in sorted(by.values(), key=lambda r: -r["bruttoMw"]):
+        out.append({**rec, "sites": rec["units"]})
+    return out
+
+
+def growth_split_units(filtered: list[dict[str, Any]], eon_full_group: bool) -> dict[str, Any]:
+    buckets = ("eon_gruppe", "eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb")
+    acc = {b: {"vor2026Mw": 0.0, "y2026Mw": 0.0} for b in buckets}
+
+    def add(bucket: str, mw: float, yr: int) -> None:
+        if yr < 2026:
+            acc[bucket]["vor2026Mw"] += mw
+        else:
+            acc[bucket]["y2026Mw"] += mw
+
+    for row in filtered:
+        bucket_key, _, operator_class = bucket_for_row(row)
+        inb = parse_mastr_date(row.get("InbetriebnahmeDatum"))
+        if not inb:
+            continue
+        yr = int(inb[:4])
+        mw = float(row.get("Bruttoleistung") or 0) / 1000
+
+        if operator_class == "uenb":
+            add("uenb", mw, yr)
+            continue
+        if bucket_key == "mitnetz_envia":
+            add("mitnetz_envia", mw, yr)
+            add("eon_gruppe", mw, yr)
+            continue
+        if bucket_key.startswith("eon"):
+            if bucket_key in ("eon_regionetz", "eon_energis"):
+                if eon_full_group:
+                    add("eon_gruppe", mw, yr)
+                else:
+                    add("vnb_rest", mw, yr)
+            elif eon_full_group:
+                add("eon_gruppe", mw, yr)
+            else:
+                snb = extract_snb(row)
+                if snb and snb in EON_SNB_KERN:
+                    add("eon_kern", mw, yr)
+                else:
+                    add("vnb_rest", mw, yr)
+            continue
+        if bucket_key == "ewe_netz":
+            add("ewe_netz", mw, yr)
+            continue
+        add("vnb_rest", mw, yr)
+
+    return acc
+
+
+def compute_headline_stats(filtered: list[dict[str, Any]]) -> dict[str, Any]:
+    def sum_snb_set(snbs: frozenset[str]) -> dict[str, float]:
+        units = 0
+        brutto_kw = netto_kw = 0.0
+        for row in filtered:
+            snb = extract_snb(row)
+            if snb not in snbs:
+                continue
+            units += 1
+            brutto_kw += float(row.get("Bruttoleistung") or 0)
+            netto_kw += float(row.get("Nettonennleistung") or 0)
+        return {
+            "units": int(units),
+            "bruttoMw": round(brutto_kw / 1000, 1),
+            "nettoMw": round(netto_kw / 1000, 1),
+        }
+
+    total_brutto_kw = sum(float(r.get("Bruttoleistung") or 0) for r in filtered)
+    eon_with = sum_snb_set(EON_SNB_IDS)
+    eon_without = sum_snb_set(EON_SNB_WITHOUT_MITNETZ)
+    mitnetz = sum_snb_set(frozenset({"SNB916269213931"}))
+
+    zubau_all = zubau_eon = zubau_eon_ohne_mitnetz = 0.0
+    for row in filtered:
+        inb = parse_mastr_date(row.get("InbetriebnahmeDatum"))
+        if not inb or int(inb[:4]) < 2026:
+            continue
+        mw = float(row.get("Bruttoleistung") or 0) / 1000
+        zubau_all += mw
+        snb = extract_snb(row)
+        if snb in EON_SNB_IDS:
+            zubau_eon += mw
+        if snb in EON_SNB_WITHOUT_MITNETZ:
+            zubau_eon_ohne_mitnetz += mw
+
+    by_snb: dict[str, dict[str, float]] = {}
+    for snb in sorted(EON_SNB_BUCKETS):
+        by_snb[snb] = sum_snb_set(frozenset({snb}))
+
+    total_brutto_mw = total_brutto_kw / 1000
+    share_with = (eon_with["bruttoMw"] / total_brutto_mw * 100) if total_brutto_mw else 0.0
+    share_without = (eon_without["bruttoMw"] / total_brutto_mw * 100) if total_brutto_mw else 0.0
+    zubau_share = (zubau_eon / zubau_all * 100) if zubau_all else 0.0
+
+    return {
+        "eonWithMitnetz": {**eon_with, "sharePctTotal": round(share_with, 0)},
+        "eonWithoutMitnetz": {**eon_without, "sharePctTotal": round(share_without, 0)},
+        "mitnetzOnly": mitnetz,
+        "zubau2026": {
+            "allBruttoMw": round(zubau_all, 1),
+            "eonWithMitnetzBruttoMw": round(zubau_eon, 1),
+            "eonWithoutMitnetzBruttoMw": round(zubau_eon_ohne_mitnetz, 1),
+            "eonSharePct": round(zubau_share, 0),
+            "eonSharePctWithoutMitnetz": round((zubau_eon_ohne_mitnetz / zubau_all * 100) if zubau_all else 0, 0),
+        },
+        "bySnb": by_snb,
     }
 
 
@@ -295,6 +484,7 @@ def landkreis_rollup(sites: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def vnb_rollup(sites: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Kartenpunkt-Ranking (Legacy) — Kopfzahlen nutzen vnb_rollup_units."""
     by: dict[str, dict[str, Any]] = {}
     for s in sites:
         key = s["vnbBucketKey"]
@@ -314,35 +504,6 @@ def vnb_rollup(sites: list[dict[str, Any]]) -> list[dict[str, Any]]:
         row["sites"] += 1
     rows = sorted(by.values(), key=lambda r: -r["bruttoMw"])
     return rows
-
-
-def growth_split(sites: list[dict[str, Any]], eon_include_extras: bool) -> dict[str, Any]:
-    buckets = ("eon_gruppe" if eon_include_extras else "eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb")
-    acc = {b: {"vor2026Mw": 0.0, "y2026Mw": 0.0} for b in buckets}
-
-    def growth_bucket(site: dict[str, Any]) -> str:
-        key = site["vnbBucketKey"]
-        if key.startswith("eon"):
-            return "eon_gruppe" if eon_include_extras else "eon_kern"
-        if key == "mitnetz_envia":
-            return "mitnetz_envia"
-        if key == "ewe_netz":
-            return "ewe_netz"
-        if site["operatorClass"] == "uenb":
-            return "uenb"
-        return "vnb_rest"
-
-    for site in sites:
-        years = site.get("inbetriebnahmeYears") or []
-        if not years:
-            continue
-        yr = min(years)
-        b = growth_bucket(site)
-        if yr < 2026:
-            acc[b]["vor2026Mw"] += site["bruttoMw"]
-        else:
-            acc[b]["y2026Mw"] += site["bruttoMw"]
-    return acc
 
 
 def fetch_smard_ee_redispatch_2025() -> list[dict[str, Any]]:
@@ -515,17 +676,22 @@ def main() -> None:
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows = fetch_mastr_bess()
     _, filter_stats = filter_rows(rows, apply_quality_filter=False)
-    model_concept = aggregate_locations(rows, apply_quality_filter=False, eon_include_extras=True)
-    model_quality = aggregate_locations(rows, apply_quality_filter=True, eon_include_extras=True)
-    model_eon_kern = aggregate_locations(rows, apply_quality_filter=False, eon_include_extras=False)
+    model_concept = aggregate_locations(rows, apply_quality_filter=False)
+    model_quality = aggregate_locations(rows, apply_quality_filter=True)
+
+    concept_filtered, _ = filter_rows(rows, apply_quality_filter=False)
+    quality_filtered, _ = filter_rows(rows, apply_quality_filter=True)
+
+    headline_stats = compute_headline_stats(concept_filtered)
+    headline_stats_quality = compute_headline_stats(quality_filtered)
 
     smard_bl = fetch_smard_ee_redispatch_2025()
     ee_max_pages = int(os.environ.get("MASTR_GEN_MAX_PAGES", "80"))
     ee_stock = [] if os.environ.get("SKIP_EE_STOCK") == "1" else fetch_ee_stock_mastr(rows)
     uenb = uenb_planning_vs_operation(rows)
 
-    vnb_rows = vnb_rollup(model_concept["sites"])
-    vnb_rows_quality = vnb_rollup(model_quality["sites"])
+    vnb_rows = vnb_rollup_units(concept_filtered)
+    vnb_rows_quality = vnb_rollup_units(quality_filtered)
     landkreis_rows = landkreis_rollup(model_concept["sites"])
     lk_power = {(r["bundesland"], r["landkreis"]): r["bruttoMw"] for r in landkreis_rows}
 
@@ -541,8 +707,9 @@ def main() -> None:
     net_doc = int(net_lengths.get("documentedCount") or len(net_lengths.get("entries") or []))
     net_available = net_doc >= int(net_lengths.get("minimumForNormierung") or 8) and net_lengths.get("status") != "folgt"
 
-    uenb_units_concept = sum(1 for r in rows if row_passes_concept(r) and classify_operator(r.get("NetzbetreiberNamen") or "") == "uenb")
+    uenb_units_concept = sum(1 for r in concept_filtered if bucket_for_row(r)[2] == "uenb")
     dup_locations = model_concept["filteredUnitCount"] - model_concept["siteCount"]
+    off_map = model_concept.get("unitsWithoutMapCoordinate", 0)
 
     manifest = {
         "version": 1,
@@ -577,10 +744,12 @@ def main() -> None:
             "sitesAfterQualityFilter": model_quality["siteCount"],
             "unitsAggregatedToSameCoordinate": dup_locations,
             "uenbAttachedUnitsConcept": uenb_units_concept,
+            "unitsWithoutMapCoordinate": off_map,
             "explanation": (
                 f"{filter_stats['excludedNaturalPersonUnits']} Einheiten natürliche Personen, "
                 f"{filter_stats['excludedNsUnverifiedUnits']} mit Niederspannung ohne abgeschlossene NB-Prüfung; "
-                f"{dup_locations} Einheiten teilen Kartenkoordinate mit anderen Einheiten."
+                f"{dup_locations} Einheiten teilen Kartenkoordinate mit anderen Einheiten; "
+                f"{off_map} ohne MaStR-Koordinate (in Summen, nicht auf Karte)."
             ),
         },
         "vg250": {
@@ -594,7 +763,7 @@ def main() -> None:
             "note": "MW je 1.000 km Stromkreislänge: folgt, bis ≥8 Top-VNB mit URL belegt sind.",
             "eeStockNormalization": True,
         },
-        "eonGroupMembersDefault": list(EON_CORE_MARKERS + EON_EXTRA_MARKERS),
+        "eonSnbIds": sorted(EON_SNB_IDS),
         "eeStockMastr": {
             "maxPagesPerEnergyCarrier": ee_max_pages if os.environ.get("SKIP_EE_STOCK") != "1" else 0,
             "complete": bool(ee_stock) and sum(r["windOnshoreGw"] + r["pvGw"] for r in ee_stock) >= 140,
@@ -611,9 +780,11 @@ def main() -> None:
         "vnbRanking": vnb_rows,
         "vnbRankingQualityFiltered": vnb_rows_quality,
         "landkreise": landkreis_rows,
-        "growthDefault": growth_split(model_concept["sites"], True),
-        "growthQualityFiltered": growth_split(model_quality["sites"], True),
-        "growthEonKern": growth_split(model_eon_kern["sites"], False),
+        "growthDefault": growth_split_units(concept_filtered, True),
+        "growthQualityFiltered": growth_split_units(quality_filtered, True),
+        "growthEonKern": growth_split_units(concept_filtered, False),
+        "headlineStats": headline_stats,
+        "headlineStatsQualityFiltered": headline_stats_quality,
         "scatterBundeslaender": scatter,
         "scatterQualityFiltered": scatter_quality,
         "eeStockBundeslaender": ee_stock,

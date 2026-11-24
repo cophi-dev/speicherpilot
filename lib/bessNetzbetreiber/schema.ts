@@ -7,7 +7,7 @@ export const bessSiteSchema = z.object({
   nettoMw: z.number(),
   energyMwh: z.number(),
   units: z.number(),
-  coordinateQuality: z.enum(["exakt", "plz_mittelpunkt", "gemeinde_naeherung"]),
+  coordinateQuality: z.enum(["exakt", "plz_mittelpunkt", "gemeinde_naeherung", "ohne_koordinate"]),
   landkreis: z.string(),
   bundesland: z.string(),
   vnbDominant: z.string(),
@@ -122,6 +122,78 @@ export const bessNetzbetreiberBundleSchema = z.object({
         y2026Mw: z.number(),
       }),
     )
+    .optional(),
+  headlineStats: z
+    .object({
+      eonWithMitnetz: z.object({
+        units: z.number(),
+        bruttoMw: z.number(),
+        nettoMw: z.number(),
+        sharePctTotal: z.number(),
+      }),
+      eonWithoutMitnetz: z.object({
+        units: z.number(),
+        bruttoMw: z.number(),
+        nettoMw: z.number(),
+        sharePctTotal: z.number(),
+      }),
+      mitnetzOnly: z.object({
+        units: z.number(),
+        bruttoMw: z.number(),
+        nettoMw: z.number(),
+      }),
+      zubau2026: z.object({
+        allBruttoMw: z.number(),
+        eonWithMitnetzBruttoMw: z.number(),
+        eonWithoutMitnetzBruttoMw: z.number(),
+        eonSharePct: z.number(),
+        eonSharePctWithoutMitnetz: z.number(),
+      }),
+      bySnb: z.record(
+        z.string(),
+        z.object({
+          units: z.number(),
+          bruttoMw: z.number(),
+          nettoMw: z.number(),
+        }),
+      ),
+    })
+    .optional(),
+  headlineStatsQualityFiltered: z
+    .object({
+      eonWithMitnetz: z.object({
+        units: z.number(),
+        bruttoMw: z.number(),
+        nettoMw: z.number(),
+        sharePctTotal: z.number(),
+      }),
+      eonWithoutMitnetz: z.object({
+        units: z.number(),
+        bruttoMw: z.number(),
+        nettoMw: z.number(),
+        sharePctTotal: z.number(),
+      }),
+      mitnetzOnly: z.object({
+        units: z.number(),
+        bruttoMw: z.number(),
+        nettoMw: z.number(),
+      }),
+      zubau2026: z.object({
+        allBruttoMw: z.number(),
+        eonWithMitnetzBruttoMw: z.number(),
+        eonWithoutMitnetzBruttoMw: z.number(),
+        eonSharePct: z.number(),
+        eonSharePctWithoutMitnetz: z.number(),
+      }),
+      bySnb: z.record(
+        z.string(),
+        z.object({
+          units: z.number(),
+          bruttoMw: z.number(),
+          nettoMw: z.number(),
+        }),
+      ),
+    })
     .optional(),
 });
 

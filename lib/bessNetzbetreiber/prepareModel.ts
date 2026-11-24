@@ -50,8 +50,8 @@ export function prepareGrowthStacks(
   eonFullGroup = true,
 ): GrowthBucket[] {
   const order = eonFullGroup
-    ? (["eon_gruppe", "ewe_netz", "vnb_rest", "uenb"] as const)
-    : (["eon_kern", "ewe_netz", "vnb_rest", "uenb"] as const);
+    ? (["eon_gruppe", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const)
+    : (["eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const);
   return order
     .filter((key) => growth[key])
     .map((key) => ({
@@ -87,11 +87,14 @@ export function prepareG2Bars(ranking: BessNetzbetreiberBundle["vnbRanking"], ca
   });
 }
 
-export function eonSharePercent(ranking: BessNetzbetreiberBundle["vnbRanking"], eonFullGroup: boolean): number {
+export function eonSharePercent(
+  ranking: BessNetzbetreiberBundle["vnbRanking"],
+  includeMitnetz: boolean,
+): number {
   const total = ranking.filter((r) => r.operatorClass !== "uenb").reduce((s, r) => s + r.bruttoMw, 0);
   if (total <= 0) return 0;
   const eon = ranking
-    .filter((r) => r.key.startsWith("eon"))
+    .filter((r) => r.key.startsWith("eon") || (includeMitnetz && r.key === "mitnetz_envia"))
     .reduce((s, r) => s + r.bruttoMw, 0);
   return (eon / total) * 100;
 }

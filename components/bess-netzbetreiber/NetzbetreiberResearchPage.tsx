@@ -14,6 +14,7 @@ import { computeNetzbetreiberHeadlines } from "@/lib/bessNetzbetreiber/computeHe
 import type { BessNetzbetreiberBundle } from "@/lib/bessNetzbetreiber/schema";
 import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 import { eonSharePercent, prepareG2Bars, prepareGrowthStacks, prepareVnbBars } from "@/lib/bessNetzbetreiber/prepareModel";
+import { resolveVnbSearchFocusKey } from "@/lib/bessNetzbetreiber/vnbSearch";
 
 const NetzbetreiberMap = dynamic(() => import("@/components/bess-netzbetreiber/NetzbetreiberMap.client"), {
   ssr: false,
@@ -41,11 +42,15 @@ function vnbSearchOptions(ranking: BessNetzbetreiberBundle["vnbRanking"]) {
 export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberBundle }) {
   const { colors } = useKnotenTheme();
   const [qualityFilterOn, setQualityFilterOn] = useState(false);
+  const [eonIncludeMitnetz, setEonIncludeMitnetz] = useState(true);
   const [vnbQuery, setVnbQuery] = useState("");
   const [g5Mode, setG5Mode] = useState<"stock" | "norm">("stock");
 
   const manifest = model.manifest as ManifestShape;
-  const headlines = useMemo(() => computeNetzbetreiberHeadlines(model), [model]);
+  const headlines = useMemo(
+    () => computeNetzbetreiberHeadlines(model, { eonIncludeMitnetz }),
+    [model, eonIncludeMitnetz],
+  );
 
   const sites = useMemo(
     () => (qualityFilterOn ? (model.sitesQualityFiltered ?? model.sitesDefault) : model.sitesDefault),
@@ -66,13 +71,15 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
   const growth = useMemo(() => prepareGrowthStacks(growthSource, true), [growthSource]);
   const g2Rows = useMemo(() => prepareG2Bars(vnbRanking), [vnbRanking]);
   const vnbBars = useMemo(() => prepareVnbBars(vnbRanking), [vnbRanking]);
-  const eonPctVnb = eonSharePercent(vnbRanking, true);
+  const eonPctVnb = eonSharePercent(vnbRanking, eonIncludeMitnetz);
 
   const focusKey = useMemo(() => {
-    const q = vnbQuery.trim().toLowerCase();
+    const q = vnbQuery.trim();
     if (!q) return null;
-    const hit = vnbSearchOptions(vnbRanking).find((o) => o.label.toLowerCase().includes(q));
-    return hit?.key ?? q;
+    const alias = resolveVnbSearchFocusKey(q);
+    if (alias) return alias;
+    const hit = vnbSearchOptions(vnbRanking).find((o) => o.label.toLowerCase().includes(q.toLowerCase()));
+    return hit?.key ?? q.toLowerCase();
   }, [vnbQuery, vnbRanking]);
 
   const scatterData = scatterRows.map((r) => ({
@@ -109,7 +116,9 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
         <div className="v4-kopf-inner v4-content">
           <p className="v4-kicker num">Bestand · MaStR · Speicher ≥ 1 MW netto in Betrieb</p>
           <h1 id="nb-h1" className="v4-h1">
-            Über {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")} Batteriespeicher in Betrieb — der Schwerpunkt liegt an E.ON-Netzen, die Karte zeigt alle Standorte.
+            Über {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")} Batteriespeicher in Betrieb — rund{" "}
+            {formatQuantityUnit(headlines.eonBruttoGw, "de", 2, "GW")} ({formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")}) an
+            E.ON-Netzen{eonIncludeMitnetz ? " inkl. MITNETZ" : " ohne MITNETZ"}.
           </h1>
           <p className="v4-subline mt-3">
             Öffentliche Bestände und SMARD-Redispatch je Bundesland, ohne Euro und ohne Netzgebietspolygone. Für Szenarien:{" "}
@@ -143,14 +152,18 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
               <strong>
                 E.ON-Netze: {formatQuantityUnit(headlines.eonBruttoGw, "de", 2, "GW")} ({formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")} des Bestands)
               </strong>
-              Konzern inkl. Westnetz, Bayernwerk, Avacon, SH-Netz, E.DIS, LEW, Syna, Regionetz, energis.
+              Zuordnung über MaStR-Nummern der Anschluss-Netzbetreiber (SNB-Liste). MITNETZ:{" "}
+              {eonIncludeMitnetz ? "eingeschlossen" : "ausgeklammert"} (
+              {formatQuantityUnit((model.headlineStats?.mitnetzOnly.bruttoMw ?? 752.4) / 1000, "de", 2, "GW")} brutto bei MITNETZ
+              allein).
             </li>
             <li className={styles.kpiCard}>
               <strong>
                 Zubau 2026: {formatQuantityUnit(headlines.zubau2026Gw, "de", 2, "GW")}, davon{" "}
-                {formatQuantityUnit(headlines.zubau2026EonGw, "de", 2, "GW")} in E.ON-Netzen
+                {formatQuantityUnit(headlines.zubau2026EonGw, "de", 2, "GW")} in E.ON-Netzen (
+                {formatQuantityUnit(headlines.zubau2026EonSharePct, "de", 0, "%")})
               </strong>
-              Inbetriebnahmejahr 2026 (MaStR-Feld).
+              Inbetriebnahmejahr 2026 (MaStR-Feld), Einheiten-Summen.
             </li>
           </ul>
 
@@ -196,6 +209,14 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
               >
                 Qualitätsfilter: {qualityFilterOn ? "an" : "aus"}
               </button>
+              <button
+                type="button"
+                className={styles.filterToggle}
+                aria-pressed={eonIncludeMitnetz}
+                onClick={() => setEonIncludeMitnetz((v) => !v)}
+              >
+                E.ON-Konzern: {eonIncludeMitnetz ? "mit MITNETZ" : "ohne MITNETZ"}
+              </button>
             </div>
           </details>
         </div>
@@ -211,9 +232,10 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
         <div className="v4-content v4-luecke-wrap rounded-lg border border-border bg-card p-3 md:p-4">
           <NetzbetreiberG2Chart data={g2Rows} palette={colors} yAxisWidth={128} />
           <p className={styles.insight}>
-            {eonRow
-              ? `${eonRow.fullLabel}: ${formatQuantityUnit(eonRow.bruttoMw / 1000, "de", 2, "GW")} (${formatQuantityUnit(eonPctVnb, "de", 0, "%")} am VNB-Bestand). Achse lineär bis 1.000 MW — Werte darüber mit ▶.`
-              : null}{" "}
+            E.ON-Konzern (SNB): {formatQuantityUnit(headlines.eonBruttoGw, "de", 2, "GW")} (
+            {formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")} am Gesamtbestand,{" "}
+            {formatQuantityUnit(eonPctVnb, "de", 0, "%")} am VNB-Bestand ohne ÜNB).{" "}
+            {eonRow ? `Größter E.ON-Bucket: ${eonRow.fullLabel} (${formatQuantityUnit(eonRow.bruttoMw, "de", 0, "MW")}).` : null}{" "}
             Übrige VNB unter Rang 13: {formatQuantityUnit(vnbBars.restMw, "de", 1, "MW")} (Summe, nicht in Grafik).
           </p>
         </div>
