@@ -89,6 +89,7 @@ describe("Technik-SEO-Paket", () => {
     expect(paths).toContain("/beitraege");
     expect(paths).toContain("/kompromiss");
     expect(paths).toContain("/jahr");
+    expect(paths).toContain("/netzbetreiber");
     expect(paths).not.toContain("/tag");
     expect(paths).not.toContain("/simulator");
     expect(paths).not.toContain("/vision");

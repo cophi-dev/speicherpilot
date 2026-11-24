@@ -1,0 +1,12 @@
+{
+  "commit": "22ac9377ed0abac20d443a2863efe9b3088f2dfd",
+  "builtAt": "2026-11-24T18:19:48.564Z",
+  "shots": [
+    "netzbetreiber-v4-light-1280.png",
+    "netzbetreiber-v4-dark-1280.png",
+    "netzbetreiber-v4-light-390.png",
+    "netzbetreiber-v4-dark-390.png",
+    "tag-ref-light-1280.png"
+  ],
+  "fullPage": true
+}
