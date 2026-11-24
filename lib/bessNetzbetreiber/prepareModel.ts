@@ -81,3 +81,14 @@ export function operatorFillClass(operatorClass: BessNetzbetreiberBundle["sitesD
   if (operatorClass === "uenb") return "uenb";
   return "vnb";
 }
+
+export function truncateVnbLabel(label: string, max = 24): { short: string; full: string } {
+  const full = label.trim();
+  if (full.length <= max) return { short: full, full };
+  return { short: `${full.slice(0, max - 1)}…`, full };
+}
+
+export function maxBarMw(rows: { bruttoMw: number }[]): number {
+  if (!rows.length) return 100;
+  return Math.max(...rows.map((r) => r.bruttoMw));
+}

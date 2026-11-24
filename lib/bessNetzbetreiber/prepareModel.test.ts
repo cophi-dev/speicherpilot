@@ -11,7 +11,8 @@ describe("BESS-Netzbetreiber Datenaufbereitung", () => {
     expect(parsed.totalsDefault.bruttoMw).toBeGreaterThan(4500);
     expect(parsed.sitesDefault.length).toBeGreaterThan(400);
     const manifest = parsed.manifest as { plausibility?: { unitsGe1MwNetto?: number } };
-    expect(manifest.plausibility?.unitsGe1MwNetto).toBeGreaterThanOrEqual(540);
+    expect(manifest.plausibility?.unitsGe1MwNetto).toBeGreaterThanOrEqual(570);
+    expect(manifest.plausibility?.unitsGe1MwNetto).toBeLessThanOrEqual(580);
   });
 
   it("führt Brutto vor Netto (Standort-Summen)", () => {
@@ -39,5 +40,8 @@ describe("BESS-Netzbetreiber Datenaufbereitung", () => {
   it("enthält SMARD-Streuung je Bundesland", () => {
     expect(parsed.scatterBundeslaender.length).toBeGreaterThanOrEqual(16);
     expect(parsed.scatterBundeslaender.every((r) => r.eeRedispatch2025Gwh >= 0)).toBe(true);
+    const maxBess = Math.max(...parsed.scatterBundeslaender.map((r) => r.bessBruttoGw));
+    expect(maxBess).toBeLessThan(3);
+    expect(maxBess).toBeGreaterThan(0.1);
   });
 });

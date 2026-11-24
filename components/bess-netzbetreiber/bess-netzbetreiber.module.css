@@ -1,13 +1,56 @@
-.page {
-  composes: page from "@/components/research/research.module.css";
+.netzbetreiberPage {
+  --research-bg: #0b0d0f;
+  --research-fg: #ecedee;
+  --research-accent: var(--v4-warm);
+  --research-accent-text: var(--v4-warm-text);
+  --research-muted: #9ea3a9;
+  --research-dim: #80868e;
+  --research-line: #1e2226;
+  --research-card: #121518;
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: 0 var(--page-gutter) 48px;
+  box-sizing: border-box;
+}
+
+:global(html.dark) .netzbetreiberPage {
+  background: var(--research-bg);
+}
+
+:global(html:not(.dark)) .netzbetreiberPage {
+  --research-bg: transparent;
+  --research-fg: #14161a;
+  --research-muted: #5a6068;
+  --research-dim: #6b7178;
+  --research-line: #e3e5e8;
+  --research-card: #f4f5f6;
+}
+
+.root {
+  width: 100%;
 }
 
 .lead {
   font-size: var(--type-16);
   line-height: 1.55;
   color: var(--research-dim);
-  max-width: 42em;
+  max-width: 46em;
   margin: 0 0 24px;
+}
+
+.kpiLine {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: var(--type-13);
+  color: var(--research-fg);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.filterNote {
+  composes: kpiLine;
+  color: var(--research-muted);
+  font-size: var(--type-12);
 }
 
 .controls {
@@ -32,8 +75,9 @@
 
 .toggleOn {
   composes: toggle;
-  border-color: var(--research-accent);
-  color: var(--research-accent-text);
+  background: color-mix(in srgb, var(--research-fg) 6%, var(--research-card));
+  border-color: var(--research-line);
+  color: var(--research-fg);
 }
 
 .chartCard {
@@ -43,6 +87,8 @@
   padding: 16px 12px 12px;
   margin: 0 0 20px;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .chartTitle {
@@ -61,12 +107,25 @@
   line-height: 1.45;
 }
 
+.insight {
+  composes: chartFoot;
+  color: var(--research-fg);
+  margin-top: 12px;
+}
+
 .mapWrap {
   height: min(62vh, 520px);
   min-height: 320px;
+  width: 100%;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--research-line);
+}
+
+.mapAttribution {
+  font-size: var(--type-11);
+  color: var(--research-muted);
+  margin: 8px 0 0;
 }
 
 .legendRow {
@@ -101,17 +160,10 @@
   background: #6b7178;
 }
 
-.scatterSide {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 900px) {
-  .scatterSide {
-    grid-template-columns: minmax(0, 1fr) 180px;
-    align-items: start;
-  }
+.uenbBox {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--research-line);
 }
 
 .missing {

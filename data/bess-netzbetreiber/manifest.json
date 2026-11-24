@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-24T13:38:43Z",
+  "generatedAt": "2026-11-24T14:46:15Z",
   "stichtagMastr": "2026-11-24",
   "sources": [
     {
@@ -17,20 +17,37 @@
     }
   ],
   "plausibility": {
-    "unitsGe1MwNetto": 544,
-    "bruttoGw": 4.61,
-    "note": "Brutto/Netto in MW unless totals.note says GW",
-    "nettoGw": 4.49,
-    "energyGwh": 8.1
+    "unitsGe1MwNetto": 575,
+    "sitesOnMap": 539,
+    "bruttoGw": 4.74,
+    "nettoGw": 4.62,
+    "energyGwh": 8.37,
+    "note": "Default = Konzeptfilter (575 Ziel); Qualitätsfilter optional"
+  },
+  "filterBreakdown": {
+    "conceptUnits": 575,
+    "conceptBruttoKw": 4740396.73,
+    "qualityFilteredUnits": 544,
+    "excludedNaturalPersonUnits": 16,
+    "excludedNsUnverifiedUnits": 15,
+    "excludedBruttoKw": 134672.0,
+    "excludedBruttoMw": 134.7,
+    "unitsAfterQualityFilter": 544,
+    "sitesAfterQualityFilter": 508,
+    "unitsAggregatedToSameCoordinate": 36,
+    "uenbAttachedUnitsConcept": 15,
+    "explanation": "16 Einheiten natürliche Personen, 15 mit Niederspannung ohne abgeschlossene NB-Prüfung; 36 Einheiten teilen Kartenkoordinate mit anderen Einheiten."
   },
   "vg250": {
     "available": false,
-    "license": "dl-de/by-2-0",
-    "note": "BKG VG250 Landkreise when download succeeds; otherwise map uses MaStR-Punkte ohne Flächenkarte."
+    "license": "dl-de/by-2-0"
   },
   "networkLengthNormalization": {
     "available": false,
-    "note": "Keine belastbare öffentliche VNB-Netzlängenquelle pro Netzbetreiber — Graph 2 ohne Normierungsschalter."
+    "status": "folgt",
+    "documentedVnbCount": 0,
+    "note": "MW je 1.000 km Stromkreislänge: folgt, bis ≥8 Top-VNB mit URL belegt sind.",
+    "eeStockNormalization": true
   },
   "eonGroupMembersDefault": [
     "westnetz",
@@ -44,5 +61,9 @@
     "enviam",
     "regionetz",
     "energis"
-  ]
+  ],
+  "eeStockMastr": {
+    "maxPagesPerEnergyCarrier": 8,
+    "note": "Wind/PV je Bundesland; Seitenzahl über MASTR_GEN_MAX_PAGES (Default 80)."
+  }
 }

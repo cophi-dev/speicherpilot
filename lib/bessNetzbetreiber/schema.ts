@@ -63,7 +63,57 @@ export const bessNetzbetreiberBundleSchema = z.object({
   vg250: z
     .union([z.null(), z.object({ type: z.literal("FeatureCollection"), features: z.array(z.unknown()) })])
     .optional(),
+  sitesQualityFiltered: z.array(bessSiteSchema).optional(),
   sitesSensitiveOff: z.array(bessSiteSchema).optional(),
+  totalsQualityFiltered: z
+    .object({
+      units: z.number(),
+      bruttoMw: z.number(),
+      nettoMw: z.number(),
+      energyGwh: z.number(),
+    })
+    .optional(),
+  vnbRankingQualityFiltered: z
+    .array(
+      z.object({
+        key: z.string(),
+        label: z.string(),
+        operatorClass: z.string(),
+        bruttoMw: z.number(),
+        nettoMw: z.number(),
+        sites: z.number(),
+      }),
+    )
+    .optional(),
+  scatterQualityFiltered: z
+    .array(
+      z.object({
+        bundesland: z.string(),
+        eeRedispatch2025Gwh: z.number(),
+        bessBruttoGw: z.number(),
+      }),
+    )
+    .optional(),
+  growthQualityFiltered: z
+    .record(
+      z.string(),
+      z.object({
+        vor2026Mw: z.number(),
+        y2026Mw: z.number(),
+      }),
+    )
+    .optional(),
+  vnbNetworkLengths: z
+    .array(
+      z.object({
+        vnbKey: z.string(),
+        label: z.string(),
+        km: z.number(),
+        year: z.number(),
+        url: z.string(),
+      }),
+    )
+    .optional(),
   growthEonKern: z
     .record(
       z.string(),

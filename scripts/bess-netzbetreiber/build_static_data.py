@@ -145,18 +145,48 @@ def bucket_vnb_key(netzbetreiber: str, eon_include_extras: bool) -> tuple[str, s
     return (f"vnb:{n}", label)
 
 
-def row_passes_battery_charts_style(row: dict[str, Any], exclude_sensitive: bool) -> bool:
-    if row.get("AnlagenbetreiberPersonenArt") == NATURAL_PERSON_ART:
-        return False
-    if exclude_sensitive:
-        ebene = (row.get("SpannungsebenenNamen") or "").lower()
-        nb_ok = row.get("IsNBPruefungAbgeschlossen") == NB_PRUEFUNG_DONE
-        if "niederspannung" in ebene and not nb_ok:
-            return False
+def row_passes_concept(row: dict[str, Any]) -> bool:
+    """Konzeptfilter: Batterie, bereits per API-Filter In Betrieb und ≥1 MW netto."""
     tech = f"{row.get('StromspeichertechnologieBezeichnung') or ''} {row.get('Technologie') or ''}".lower()
     if "batterie" not in tech and row.get("Stromspeichertechnologie") not in (524, "524"):
         return False
     return True
+
+
+def quality_exclusion_reason(row: dict[str, Any]) -> str | None:
+    """Qualitätsfilter (optional auf der Seite): natürliche Person, ungeprüfte NS."""
+    if row.get("AnlagenbetreiberPersonenArt") == NATURAL_PERSON_ART:
+        return "natural_person"
+    ebene = (row.get("SpannungsebenenNamen") or "").lower()
+    nb_ok = row.get("IsNBPruefungAbgeschlossen") == NB_PRUEFUNG_DONE
+    if "niederspannung" in ebene and not nb_ok:
+        return "ns_unverified"
+    return None
+
+
+def filter_rows(rows: list[dict[str, Any]], apply_quality_filter: bool) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    concept = [r for r in rows if row_passes_concept(r)]
+
+    def sum_brutto_kw(rr: list[dict[str, Any]]) -> float:
+        return sum(float(r.get("Bruttoleistung") or 0) for r in rr)
+    reasons: dict[str, int] = defaultdict(int)
+    for r in concept:
+        reason = quality_exclusion_reason(r)
+        if reason:
+            reasons[reason] += 1
+    if apply_quality_filter:
+        kept = [r for r in concept if quality_exclusion_reason(r) is None]
+    else:
+        kept = concept
+    stats = {
+        "conceptUnits": len(concept),
+        "conceptBruttoKw": sum_brutto_kw(concept),
+        "qualityFilteredUnits": len([r for r in concept if quality_exclusion_reason(r) is None]),
+        "excludedNaturalPersonUnits": reasons["natural_person"],
+        "excludedNsUnverifiedUnits": reasons["ns_unverified"],
+        "excludedBruttoKw": sum_brutto_kw([r for r in concept if quality_exclusion_reason(r)]),
+    }
+    return kept, stats
 
 
 def fetch_mastr_bess() -> list[dict[str, Any]]:
@@ -194,8 +224,8 @@ def locate_row(row: dict[str, Any]) -> tuple[float, float, str]:
     return lat0, lng0, "gemeinde_naeherung"
 
 
-def aggregate_locations(rows: list[dict[str, Any]], exclude_sensitive: bool, eon_include_extras: bool) -> dict[str, Any]:
-    filtered = [r for r in rows if row_passes_battery_charts_style(r, exclude_sensitive)]
+def aggregate_locations(rows: list[dict[str, Any]], apply_quality_filter: bool, eon_include_extras: bool) -> dict[str, Any]:
+    filtered, _filter_stats = filter_rows(rows, apply_quality_filter)
     loc: dict[str, dict[str, Any]] = {}
     for row in filtered:
         lat, lng, qual = locate_row(row)
@@ -239,7 +269,13 @@ def aggregate_locations(rows: list[dict[str, Any]], exclude_sensitive: bool, eon
         "nettoMw": sum(s["nettoMw"] for s in sites),
         "energyGwh": sum(s["energyMwh"] for s in sites) / 1000,
     }
-    return {"sites": sites, "totals": totals, "filteredUnitCount": len(filtered), "rawUnitCount": len(rows)}
+    return {
+        "sites": sites,
+        "totals": totals,
+        "filteredUnitCount": len(filtered),
+        "rawUnitCount": len(rows),
+        "siteCount": len(sites),
+    }
 
 
 def landkreis_rollup(sites: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -331,12 +367,17 @@ def fetch_smard_ee_redispatch_2025() -> list[dict[str, Any]]:
 
 
 def sum_generation_by_bundesland(energy_id: str) -> dict[str, float]:
-    """Summe Nettonennleistung (GW) je Bundesland, In Betrieb."""
-    max_pages = int(os.environ.get("MASTR_GEN_MAX_PAGES", "120"))
+    """Summe Nettonennleistung (GW) je Bundesland, In Betrieb (ein Deutschland-Durchlauf)."""
+    max_pages = int(os.environ.get("MASTR_GEN_MAX_PAGES", "80"))
+    cache_file = CACHE / f"ee-stock-{energy_id}-p{max_pages}.json"
+    if cache_file.is_file():
+        return json.loads(cache_file.read_text(encoding="utf-8"))
+
     totals: dict[str, float] = defaultdict(float)
     filt = f"Energieträger~eq~{energy_id}~and~Betriebs-Status~eq~35"
     page = 1
     while page <= max_pages:
+        sys.stderr.write(f"EE {energy_id} Seite {page}/{max_pages} …\n")
         params = {"page": str(page), "pageSize": "25000", "filter": filt, "forExport": "true"}
         payload = http_json(MASTR_URL, params)
         batch = payload.get("Data") or []
@@ -346,28 +387,31 @@ def sum_generation_by_bundesland(energy_id: str) -> dict[str, float]:
             bl = (row.get("Bundesland") or "").strip()
             if not bl:
                 continue
-            if energy_id == "2497" and (row.get("NameDerTechnologie") or "").lower().find("offshore") >= 0:
-                continue
+            if energy_id == "2497":
+                tech = (row.get("NameDerTechnologie") or row.get("Technologie") or "").lower()
+                if "offshore" in tech or "see" in tech:
+                    continue
             kw = float(row.get("Nettonennleistung") or row.get("Bruttoleistung") or 0)
             totals[bl] += kw / 1_000_000
         if len(batch) < 25000:
             break
         page += 1
-    return dict(totals)
+    out = {k: round(v, 3) for k, v in totals.items()}
+    cache_file.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+    return out
 
 
-def fetch_ee_stock_mastr() -> list[dict[str, Any]]:
+def fetch_ee_stock_mastr(_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Wind an Land + PV je Bundesland (GW), MaStR Stromerzeugung."""
     pv = sum_generation_by_bundesland("2495")
     wind = sum_generation_by_bundesland("2497")
-    bls = sorted(set(pv) | set(wind))
     out: list[dict[str, Any]] = []
-    for bl in bls:
+    for bl in BUNDESLAENDER_DE:
         out.append(
             {
                 "bundesland": bl,
-                "windOnshoreGw": round(wind.get(bl, 0.0), 3),
-                "pvGw": round(pv.get(bl, 0.0), 3),
+                "windOnshoreGw": wind.get(bl, 0.0),
+                "pvGw": pv.get(bl, 0.0),
             }
         )
     return out
@@ -404,10 +448,14 @@ def uenb_planning_vs_operation(rows: list[dict[str, Any]]) -> dict[str, float]:
 
 def try_fetch_vg250_lan_geojson() -> dict[str, Any] | None:
     """Optional BKG VG250 Landkreise — skipped if download fails (noted in manifest)."""
-    url = os.environ.get(
-        "BKG_VG250_LAN_GEOJSON_URL",
+    candidates = [
+        os.environ.get("BKG_VG250_LAN_GEOJSON_URL", ""),
+        "https://daten.gdz.bkg.bund.de/geodata/VG250/VG250_KRS/SVG350_KRS.geojson",
         "https://www.inspire-gepir.de/geometrien/als-dienst3/VG250/lan/dvg2LAN.shp.geojson",
-    )
+    ]
+    url = next((u for u in candidates if u), "")
+    if not url:
+        return None
     try:
         raw = http_text(url, timeout=120)
         return json.loads(raw)
@@ -434,21 +482,51 @@ def simplify_geojson(geo: dict[str, Any], landkreis_power: dict[tuple[str, str],
     return {"type": "FeatureCollection", "features": feats}
 
 
+def load_vnb_network_lengths() -> dict[str, Any]:
+    path = OUT / "vnb-network-lengths.json"
+    if path.is_file():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return {"status": "folgt", "documentedCount": 0, "entries": []}
+
+
+def scatter_for_sites(sites: list[dict[str, Any]], smard_bl: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    bess_bl: dict[str, float] = defaultdict(float)
+    for s in sites:
+        bl = (s.get("bundesland") or "").strip()
+        if bl:
+            bess_bl[bl] += s["bruttoMw"]
+    scatter: list[dict[str, Any]] = []
+    for row in smard_bl:
+        bl = row["bundesland"]
+        scatter.append(
+            {
+                "bundesland": bl,
+                "eeRedispatch2025Gwh": row["eeRedispatch2025Gwh"],
+                "bessBruttoGw": round(bess_bl.get(bl, 0.0) / 1000, 3),
+            }
+        )
+    return scatter
+
+
 def main() -> None:
     CACHE.mkdir(parents=True, exist_ok=True)
     OUT.mkdir(parents=True, exist_ok=True)
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows = fetch_mastr_bess()
-    model_default = aggregate_locations(rows, exclude_sensitive=True, eon_include_extras=True)
-    model_sensitive = aggregate_locations(rows, exclude_sensitive=False, eon_include_extras=False)
+    _, filter_stats = filter_rows(rows, apply_quality_filter=False)
+    model_concept = aggregate_locations(rows, apply_quality_filter=False, eon_include_extras=True)
+    model_quality = aggregate_locations(rows, apply_quality_filter=True, eon_include_extras=True)
+    model_eon_kern = aggregate_locations(rows, apply_quality_filter=False, eon_include_extras=False)
 
     smard_bl = fetch_smard_ee_redispatch_2025()
-    ee_stock = [] if os.environ.get("SKIP_EE_STOCK") == "1" else fetch_ee_stock_mastr()
+    ee_max_pages = int(os.environ.get("MASTR_GEN_MAX_PAGES", "80"))
+    ee_stock = [] if os.environ.get("SKIP_EE_STOCK") == "1" else fetch_ee_stock_mastr(rows)
     uenb = uenb_planning_vs_operation(rows)
 
-    vnb_rows = vnb_rollup(model_default["sites"])
-    landkreis_rows = landkreis_rollup(model_default["sites"])
+    vnb_rows = vnb_rollup(model_concept["sites"])
+    vnb_rows_quality = vnb_rollup(model_quality["sites"])
+    landkreis_rows = landkreis_rollup(model_concept["sites"])
     lk_power = {(r["bundesland"], r["landkreis"]): r["bruttoMw"] for r in landkreis_rows}
 
     geo = try_fetch_vg250_lan_geojson()
@@ -456,23 +534,15 @@ def main() -> None:
     if geo:
         geo_out = simplify_geojson(geo, lk_power)
 
-    # Bundesland BESS GW for scatter
-    bess_bl: dict[str, float] = defaultdict(float)
-    for s in model_default["sites"]:
-        bl = (s.get("bundesland") or "").strip()
-        if bl:
-            bess_bl[bl] += s["bruttoMw"]
+    scatter = scatter_for_sites(model_concept["sites"], smard_bl)
+    scatter_quality = scatter_for_sites(model_quality["sites"], smard_bl)
 
-    scatter = []
-    for row in smard_bl:
-        bl = row["bundesland"]
-        scatter.append(
-            {
-                "bundesland": bl,
-                "eeRedispatch2025Gwh": row["eeRedispatch2025Gwh"],
-                "bessBruttoGw": round(bess_bl.get(bl, 0.0), 3),
-            }
-        )
+    net_lengths = load_vnb_network_lengths()
+    net_doc = int(net_lengths.get("documentedCount") or len(net_lengths.get("entries") or []))
+    net_available = net_doc >= int(net_lengths.get("minimumForNormierung") or 8) and net_lengths.get("status") != "folgt"
+
+    uenb_units_concept = sum(1 for r in rows if row_passes_concept(r) and classify_operator(r.get("NetzbetreiberNamen") or "") == "uenb")
+    dup_locations = model_concept["filteredUnitCount"] - model_concept["siteCount"]
 
     manifest = {
         "version": 1,
@@ -493,42 +563,62 @@ def main() -> None:
             },
         ],
         "plausibility": {
-            "unitsGe1MwNetto": model_default["filteredUnitCount"],
-            "bruttoGw": round(model_default["totals"]["bruttoMw"] / 1000, 2)
-            if model_default["totals"]["bruttoMw"] > 10_000
-            else round(model_default["totals"]["bruttoMw"], 2),
-            "note": "Brutto/Netto in MW unless totals.note says GW",
+            "unitsGe1MwNetto": model_concept["filteredUnitCount"],
+            "sitesOnMap": model_concept["siteCount"],
+            "bruttoGw": round(model_concept["totals"]["bruttoMw"] / 1000, 2),
+            "nettoGw": round(model_concept["totals"]["nettoMw"] / 1000, 2),
+            "energyGwh": round(model_concept["totals"]["energyGwh"], 2),
+            "note": "Default = Konzeptfilter (575 Ziel); Qualitätsfilter optional",
+        },
+        "filterBreakdown": {
+            **filter_stats,
+            "excludedBruttoMw": round(filter_stats["excludedBruttoKw"] / 1000, 1),
+            "unitsAfterQualityFilter": model_quality["filteredUnitCount"],
+            "sitesAfterQualityFilter": model_quality["siteCount"],
+            "unitsAggregatedToSameCoordinate": dup_locations,
+            "uenbAttachedUnitsConcept": uenb_units_concept,
+            "explanation": (
+                f"{filter_stats['excludedNaturalPersonUnits']} Einheiten natürliche Personen, "
+                f"{filter_stats['excludedNsUnverifiedUnits']} mit Niederspannung ohne abgeschlossene NB-Prüfung; "
+                f"{dup_locations} Einheiten teilen Kartenkoordinate mit anderen Einheiten."
+            ),
         },
         "vg250": {
             "available": geo_out is not None,
             "license": "dl-de/by-2-0",
-            "note": "BKG VG250 Landkreise when download succeeds; otherwise map uses MaStR-Punkte ohne Flächenkarte.",
         },
         "networkLengthNormalization": {
-            "available": False,
-            "note": "Keine belastbare öffentliche VNB-Netzlängenquelle pro Netzbetreiber — Graph 2 ohne Normierungsschalter.",
+            "available": net_available,
+            "status": net_lengths.get("status", "folgt"),
+            "documentedVnbCount": net_doc,
+            "note": "MW je 1.000 km Stromkreislänge: folgt, bis ≥8 Top-VNB mit URL belegt sind.",
+            "eeStockNormalization": True,
         },
         "eonGroupMembersDefault": list(EON_CORE_MARKERS + EON_EXTRA_MARKERS),
+        "eeStockMastr": {
+            "maxPagesPerEnergyCarrier": ee_max_pages if os.environ.get("SKIP_EE_STOCK") != "1" else 0,
+            "note": "Wind/PV je Bundesland; Seitenzahl über MASTR_GEN_MAX_PAGES (Default 80).",
+        },
     }
-
-    # Fix plausibility GW: totals are already MW
-    manifest["plausibility"]["bruttoGw"] = round(model_default["totals"]["bruttoMw"] / 1000, 2)
-    manifest["plausibility"]["nettoGw"] = round(model_default["totals"]["nettoMw"] / 1000, 2)
-    manifest["plausibility"]["energyGwh"] = round(model_default["totals"]["energyGwh"], 2)
 
     payload = {
         "manifest": manifest,
-        "totalsDefault": model_default["totals"],
-        "sitesDefault": model_default["sites"],
-        "sitesSensitiveOff": model_sensitive["sites"],
+        "totalsDefault": model_concept["totals"],
+        "totalsQualityFiltered": model_quality["totals"],
+        "sitesDefault": model_concept["sites"],
+        "sitesQualityFiltered": model_quality["sites"],
         "vnbRanking": vnb_rows,
+        "vnbRankingQualityFiltered": vnb_rows_quality,
         "landkreise": landkreis_rows,
-        "growthDefault": growth_split(model_default["sites"], True),
-        "growthEonKern": growth_split(model_sensitive["sites"], False),
+        "growthDefault": growth_split(model_concept["sites"], True),
+        "growthQualityFiltered": growth_split(model_quality["sites"], True),
+        "growthEonKern": growth_split(model_eon_kern["sites"], False),
         "scatterBundeslaender": scatter,
+        "scatterQualityFiltered": scatter_quality,
         "eeStockBundeslaender": ee_stock,
         "uenbEbene": uenb,
         "vg250": geo_out,
+        "vnbNetworkLengths": net_lengths.get("entries") or [],
     }
 
     (OUT / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -540,9 +630,10 @@ def main() -> None:
         json.dumps(
             {
                 "out": str(OUT),
-                "units": model_default["filteredUnitCount"],
+                "units": model_concept["filteredUnitCount"],
                 "bruttoGw": manifest["plausibility"]["bruttoGw"],
                 "vg250": geo_out is not None,
+                "eeStock": len(ee_stock),
             },
             ensure_ascii=False,
         )
