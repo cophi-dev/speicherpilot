@@ -1,9 +1,16 @@
 import bundle from "@/data/bess-netzbetreiber/bundle.json";
 import { bessNetzbetreiberBundleSchema } from "@/lib/bessNetzbetreiber/schema";
-import { eonSharePercent, prepareGrowthStacks, prepareVnbBars } from "@/lib/bessNetzbetreiber/prepareModel";
+import {
+  eonSharePercent,
+  GROWTH_DISJOINT_STACK_KEYS,
+  prepareGrowthStacks,
+  prepareVnbBars,
+  sumGrowthDisjointMw,
+} from "@/lib/bessNetzbetreiber/prepareModel";
 
 describe("BESS-Netzbetreiber Datenaufbereitung", () => {
   const parsed = bessNetzbetreiberBundleSchema.parse(bundle);
+  const hs = parsed.headlineStats!;
 
   it("enthält erwartete Größenordnung (≥1 MW, In Betrieb)", () => {
     expect(parsed.totalsDefault.bruttoMw / 1000).toBeGreaterThan(4);
@@ -30,14 +37,34 @@ describe("BESS-Netzbetreiber Datenaufbereitung", () => {
     }
   });
 
-  it("liefert Wachstums-Buckets inkl. MITNETZ-Zeile", () => {
-    const stacks = prepareGrowthStacks(parsed.growthDefault, true);
-    expect(stacks.some((s) => s.key === "eon_gruppe")).toBe(true);
+  it("liefert disjunkte Wachstums-Buckets inkl. MITNETZ-Zeile", () => {
+    const stacks = prepareGrowthStacks(parsed.growthDefault, { showMitnetz: true });
+    expect(stacks.some((s) => s.key === "eon_kern")).toBe(true);
     const mitnetz = stacks.find((s) => s.key === "mitnetz_envia");
     expect(mitnetz).toBeDefined();
-    expect((mitnetz?.vor2026Mw ?? 0) + (mitnetz?.y2026Mw ?? 0)).toBeGreaterThan(500);
+    expect(stacks.some((s) => s.key === "eon_gruppe")).toBe(false);
     const eonPct = eonSharePercent(parsed.vnbRanking, true);
     expect(eonPct).toBeGreaterThan(50);
+  });
+
+  it("G3-Teilsummen = Gesamt-Zubau 2026 und eon_gruppe = eon_kern + mitnetz", () => {
+    const g = parsed.growthDefault;
+    const yParts = sumGrowthDisjointMw(g, "y2026Mw");
+    expect(yParts).toBeCloseTo(hs.zubau2026.allBruttoMw, 0);
+    expect(g.eon_gruppe!.y2026Mw).toBeCloseTo(g.eon_kern!.y2026Mw + g.mitnetz_envia!.y2026Mw, 1);
+    expect(g.eon_gruppe!.vor2026Mw).toBeCloseTo(g.eon_kern!.vor2026Mw + g.mitnetz_envia!.vor2026Mw, 1);
+    expect(g.eon_kern!.y2026Mw).toBeCloseTo(hs.zubau2026.eonWithoutMitnetzBruttoMw, 0);
+    expect(g.eon_gruppe!.y2026Mw).toBeCloseTo(hs.zubau2026.eonWithMitnetzBruttoMw, 0);
+  });
+
+  it("growthEonKern nutzt dieselben disjunkten Schlüssel (kein vertauschter eon_gruppe-Inhalt)", () => {
+    const g = parsed.growthEonKern!;
+    for (const key of GROWTH_DISJOINT_STACK_KEYS) {
+      expect(parsed.growthDefault[key]?.y2026Mw).toBeCloseTo(g[key]!.y2026Mw, 3);
+    }
+    expect(g.eon_kern!.y2026Mw).toBeGreaterThan(900);
+    expect(g.mitnetz_envia!.y2026Mw).toBeCloseTo(454.3, 0);
+    expect(g.eon_gruppe!.y2026Mw).not.toBeCloseTo(g.mitnetz_envia!.y2026Mw, 0);
   });
 
   it("enthält SMARD-Streuung je Bundesland", () => {

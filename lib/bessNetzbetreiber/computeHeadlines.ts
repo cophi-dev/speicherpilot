@@ -52,7 +52,9 @@ export function computeNetzbetreiberHeadlines(
   } else {
     const growth = model.growthDefault;
     zubauAllMw = Object.values(growth).reduce((s, r) => s + r.y2026Mw, 0);
-    zubauEonMw = growth.eon_gruppe?.y2026Mw ?? growth.eon_kern?.y2026Mw ?? 0;
+    zubauEonMw =
+      growth.eon_gruppe?.y2026Mw ??
+      (growth.eon_kern?.y2026Mw ?? 0) + (growth.mitnetz_envia?.y2026Mw ?? 0);
     zubauEonSharePct = zubauAllMw > 0 ? (zubauEonMw / zubauAllMw) * 100 : 0;
     eonBruttoMw = model.sitesDefault
       .filter((s) => s.operatorClass === "eon")

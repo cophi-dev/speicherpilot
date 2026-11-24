@@ -151,6 +151,18 @@ def extract_snb(row: dict[str, Any]) -> str | None:
     return m.group(0).upper() if m else None
 
 
+def is_uenb_unit(row: dict[str, Any]) -> bool:
+    """ÜNB-Ebene: Höchst-/Übertragungsnetz oder TSO-Name an Mittel-/Hochspannung."""
+    ebene = (row.get("SpannungsebenenNamen") or "").lower()
+    if any(x in ebene for x in ("höchstspannung", "hoechstspannung", "übertragung", "uebertragung")):
+        return True
+    label = strip_vnb_label(row.get("NetzbetreiberNamen") or row.get("NetzbetreiberMaskedNamen") or "")
+    n = norm_name(label)
+    if any(k in n for k in UNB_KEYWORDS) and ("mittelspannung" in ebene or "hochspannung" in ebene):
+        return True
+    return False
+
+
 def bucket_for_row(row: dict[str, Any]) -> tuple[str, str, str]:
     """(bucket_key, bucket_label, operator_class)."""
     snb = extract_snb(row)
@@ -159,7 +171,7 @@ def bucket_for_row(row: dict[str, Any]) -> tuple[str, str, str]:
         return key, label, "eon"
     label = strip_vnb_label(row.get("NetzbetreiberNamen") or row.get("NetzbetreiberMaskedNamen") or "Unbekannt")
     n = norm_name(label)
-    if any(k in n for k in UNB_KEYWORDS):
+    if is_uenb_unit(row):
         return f"uenb:{n}", label, "uenb"
     if "ewe netz" in n:
         return "ewe_netz", "EWE NETZ", "vnb"
@@ -360,9 +372,10 @@ def vnb_rollup_units(filtered: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
-def growth_split_units(filtered: list[dict[str, Any]], eon_full_group: bool) -> dict[str, Any]:
-    buckets = ("eon_gruppe", "eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb")
-    acc = {b: {"vor2026Mw": 0.0, "y2026Mw": 0.0} for b in buckets}
+def growth_split_units(filtered: list[dict[str, Any]]) -> dict[str, Any]:
+    """Disjunkte Teilmengen; eon_gruppe = Summe (eon_kern + mitnetz_envia), nicht im Stapel mitzählen."""
+    stack_buckets = ("eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb")
+    acc = {b: {"vor2026Mw": 0.0, "y2026Mw": 0.0} for b in stack_buckets + ("eon_gruppe",)}
 
     def add(bucket: str, mw: float, yr: int) -> None:
         if yr < 2026:
@@ -383,28 +396,17 @@ def growth_split_units(filtered: list[dict[str, Any]], eon_full_group: bool) -> 
             continue
         if bucket_key == "mitnetz_envia":
             add("mitnetz_envia", mw, yr)
-            add("eon_gruppe", mw, yr)
             continue
         if bucket_key.startswith("eon"):
-            if bucket_key in ("eon_regionetz", "eon_energis"):
-                if eon_full_group:
-                    add("eon_gruppe", mw, yr)
-                else:
-                    add("vnb_rest", mw, yr)
-            elif eon_full_group:
-                add("eon_gruppe", mw, yr)
-            else:
-                snb = extract_snb(row)
-                if snb and snb in EON_SNB_KERN:
-                    add("eon_kern", mw, yr)
-                else:
-                    add("vnb_rest", mw, yr)
+            add("eon_kern", mw, yr)
             continue
         if bucket_key == "ewe_netz":
             add("ewe_netz", mw, yr)
             continue
         add("vnb_rest", mw, yr)
 
+    acc["eon_gruppe"]["vor2026Mw"] = acc["eon_kern"]["vor2026Mw"] + acc["mitnetz_envia"]["vor2026Mw"]
+    acc["eon_gruppe"]["y2026Mw"] = acc["eon_kern"]["y2026Mw"] + acc["mitnetz_envia"]["y2026Mw"]
     return acc
 
 
@@ -578,14 +580,15 @@ def fetch_ee_stock_mastr(_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
-def uenb_planning_vs_operation(rows: list[dict[str, Any]]) -> dict[str, float]:
-    def is_uenb_row(row: dict[str, Any]) -> bool:
-        ebene = (row.get("SpannungsebenenNamen") or "").lower()
-        return any(x in ebene for x in ("höchstspannung", "hoechstspannung", "übertragung", "uebertragung")) or classify_operator(
-            row.get("NetzbetreiberNamen") or ""
-        ) == "uenb"
+def uenb_planning_vs_operation(concept_filtered: list[dict[str, Any]]) -> dict[str, Any]:
+    """ÜNB-Bestand: Konzeptfilter, Brutto, Zuordnung wie VNB-Ranking (bucket uenb)."""
 
-    in_betrieb_kw = sum(float(r.get("Bruttoleistung") or 0) for r in rows if is_uenb_row(r))
+    def is_uenb_concept(row: dict[str, Any]) -> bool:
+        return is_uenb_unit(row)
+
+    in_betrieb_kw = sum(float(r.get("Bruttoleistung") or 0) for r in concept_filtered if is_uenb_concept(r))
+    in_betrieb_net_kw = sum(float(r.get("Nettonennleistung") or 0) for r in concept_filtered if is_uenb_concept(r))
+    units = sum(1 for r in concept_filtered if is_uenb_concept(r))
 
     filt = "Energieträger~eq~2496~and~Speichertechnologie~eq~524~and~Betriebs-Status~eq~31"
     planned_kw = 0.0
@@ -595,7 +598,7 @@ def uenb_planning_vs_operation(rows: list[dict[str, Any]]) -> dict[str, float]:
         for row in payload.get("Data") or []:
             if float(row.get("Nettonennleistung") or 0) < MIN_NET_KW:
                 continue
-            if not is_uenb_row(row):
+            if bucket_for_row(row)[2] != "uenb":
                 continue
             planned_kw += float(row.get("Bruttoleistung") or 0)
     except Exception:
@@ -603,7 +606,13 @@ def uenb_planning_vs_operation(rows: list[dict[str, Any]]) -> dict[str, float]:
 
     return {
         "inBetriebBruttoGw": round(in_betrieb_kw / 1_000_000, 3),
+        "inBetriebNettoGw": round(in_betrieb_net_kw / 1_000_000, 3),
         "inPlanungBruttoGw": round(planned_kw / 1_000_000, 3),
+        "inBetriebUnits": units,
+        "note": (
+            "MaStR Batterie In Betrieb, Konzeptfilter (≥1 MW netto). ÜNB: Höchst-/Übertragungsnetz "
+            "oder TSO-Name an Mittel-/Hochspannung. Hero „ÜNB in Betrieb“ = Netto; brutto separat."
+        ),
     }
 
 
@@ -688,7 +697,7 @@ def main() -> None:
     smard_bl = fetch_smard_ee_redispatch_2025()
     ee_max_pages = int(os.environ.get("MASTR_GEN_MAX_PAGES", "80"))
     ee_stock = [] if os.environ.get("SKIP_EE_STOCK") == "1" else fetch_ee_stock_mastr(rows)
-    uenb = uenb_planning_vs_operation(rows)
+    uenb = uenb_planning_vs_operation(concept_filtered)
 
     vnb_rows = vnb_rollup_units(concept_filtered)
     vnb_rows_quality = vnb_rollup_units(quality_filtered)
@@ -780,9 +789,9 @@ def main() -> None:
         "vnbRanking": vnb_rows,
         "vnbRankingQualityFiltered": vnb_rows_quality,
         "landkreise": landkreis_rows,
-        "growthDefault": growth_split_units(concept_filtered, True),
-        "growthQualityFiltered": growth_split_units(quality_filtered, True),
-        "growthEonKern": growth_split_units(concept_filtered, False),
+        "growthDefault": growth_split_units(concept_filtered),
+        "growthQualityFiltered": growth_split_units(quality_filtered),
+        "growthEonKern": growth_split_units(concept_filtered),
         "headlineStats": headline_stats,
         "headlineStatsQualityFiltered": headline_stats_quality,
         "scatterBundeslaender": scatter,

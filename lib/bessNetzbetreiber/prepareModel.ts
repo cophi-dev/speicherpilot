@@ -17,13 +17,23 @@ export type GrowthBucket = {
 };
 
 const GROWTH_LABELS: Record<string, string> = {
-  eon_gruppe: "E.ON-Gruppe",
-  eon_kern: "E.ON (Kern)",
+  eon_gruppe: "E.ON-Konzern (Summe)",
+  eon_kern: "E.ON-Netze (ohne MITNETZ)",
   mitnetz_envia: "MITNETZ / enviaM",
   ewe_netz: "EWE NETZ",
   vnb_rest: "übrige VNB",
   uenb: "ÜNB",
 };
+
+/** Teilmengen für G3-Stapel — ohne eon_gruppe (nur Kontrollsumme im Bundle). */
+export const GROWTH_DISJOINT_STACK_KEYS = ["eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const;
+
+export function sumGrowthDisjointMw(
+  growth: BessNetzbetreiberBundle["growthDefault"],
+  field: "y2026Mw" | "vor2026Mw",
+): number {
+  return GROWTH_DISJOINT_STACK_KEYS.reduce((sum, key) => sum + (growth[key]?.[field] ?? 0), 0);
+}
 
 /** VNB horizontal bar chart: top VNBs (excl. ÜNB) with ≥1 site; remainder summed as „übrige VNB“. */
 export function prepareVnbBars(
@@ -40,23 +50,24 @@ export function prepareVnbBars(
     bruttoMw: r.bruttoMw,
     nettoMw: r.nettoMw,
     isTopVnb: true,
-    isEonGroup: r.key.startsWith("eon"),
+    isEonGroup: r.key.startsWith("eon") || r.key === "mitnetz_envia",
   }));
   return { rows, restMw, markerMw: 50 };
 }
 
 export function prepareGrowthStacks(
   growth: BessNetzbetreiberBundle["growthDefault"],
-  eonFullGroup = true,
+  opts: { showMitnetz?: boolean } = {},
 ): GrowthBucket[] {
-  const order = eonFullGroup
-    ? (["eon_gruppe", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const)
-    : (["eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const);
+  const showMitnetz = opts.showMitnetz !== false;
+  const order = showMitnetz
+    ? GROWTH_DISJOINT_STACK_KEYS
+    : (["eon_kern", "ewe_netz", "vnb_rest", "uenb"] as const);
   return order
     .filter((key) => growth[key])
     .map((key) => ({
       key,
-      label: key === "eon_gruppe" ? "E.ON-Netze" : (GROWTH_LABELS[key] ?? key),
+      label: GROWTH_LABELS[key] ?? key,
       vor2026Mw: growth[key]!.vor2026Mw,
       y2026Mw: growth[key]!.y2026Mw,
     }))

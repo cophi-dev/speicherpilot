@@ -51,7 +51,10 @@ export const bessNetzbetreiberBundleSchema = z.object({
   ),
   uenbEbene: z.object({
     inBetriebBruttoGw: z.number(),
+    inBetriebNettoGw: z.number().optional(),
     inPlanungBruttoGw: z.number(),
+    inBetriebUnits: z.number().optional(),
+    note: z.string().optional(),
   }),
   eeStockBundeslaender: z.array(
     z.object({

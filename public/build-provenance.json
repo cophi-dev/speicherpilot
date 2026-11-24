@@ -1,12 +1,29 @@
 {
-  "commit": "860c4a338ab1d056a953db33e7a0644cebf16efe",
-  "buildId": "20261124T1740Z",
-  "builtAt": "2026-11-24T17:40:09.509Z",
+  "commit": "514a9d019f291682ff42c84c1a62d9dfe753cd58",
+  "buildId": "20261124T1816Z",
+  "builtAt": "2026-11-24T18:16:26.753Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/bess-netzbetreiber/NetzbetreiberMap.client.tsx",
-    " M components/bess-netzbetreiber/bess-netzbetreiber.module.css"
+    "M app/netzbetreiber/page.tsx",
+    " D components/bess-netzbetreiber/NetzbetreiberMap.client.tsx",
+    " M components/bess-netzbetreiber/NetzbetreiberResearchPage.tsx",
+    " M components/bess-netzbetreiber/bess-netzbetreiber.module.css",
+    " M components/methodik/MethodikDocs.tsx",
+    " M data/bess-netzbetreiber/bundle.json",
+    " M data/bess-netzbetreiber/manifest.json",
+    " M lib/bessNetzbetreiber/computeHeadlines.ts",
+    " M lib/bessNetzbetreiber/prepareModel.test.ts",
+    " M lib/bessNetzbetreiber/prepareModel.ts",
+    " M lib/bessNetzbetreiber/schema.ts",
+    " M scripts/bess-netzbetreiber/build_static_data.py",
+    "?? components/bess-netzbetreiber/NetzbetreiberSvgMap.tsx",
+    "?? components/bess-netzbetreiber/NetzbetreiberVnbBars.tsx",
+    "?? lib/bessNetzbetreiber/germanyOutlineData.ts",
+    "?? review-artifacts/netzbetreiber-v3/",
+    "?? scripts/netzbetreiber-v3b-g3-screenshots.mjs",
+    "?? scripts/netzbetreiber-v3b-karte-screenshots.mjs",
+    "?? scripts/netzbetreiber-v4-screenshots.mjs"
   ],
   "ci": false
 }

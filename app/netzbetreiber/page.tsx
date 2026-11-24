@@ -6,9 +6,9 @@ import { loadBessNetzbetreiberBundle, bessNetzbetreiberManifest } from "@/lib/be
 import { datasetJsonLd } from "@/lib/seo/jsonLd";
 import { socialMeta } from "@/lib/siteOg";
 
-const title = "BESS je Netzbetreiber · Karte und Bestand";
+const title = "BESS je Netzbetreiber · Bestand und Verteilnetze";
 const description =
-  "Batteriespeicher ≥1 MW in Betrieb: Deutschlandkarte, Bruttoleistung je VNB, Zubau 2026, EE-Redispatch je Bundesland (SMARD) — MaStR, ohne Euro-Zahlen.";
+  "Großspeicher ≥1 MW in Betrieb: Modell aus MaStR, Konzernanteil E.ON, Punktekarte Deutschland, Ranking der Verteilnetzbetreiber — ohne Euro-Zahlen.";
 
 export const metadata: Metadata = {
   title,

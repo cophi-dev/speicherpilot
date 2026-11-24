@@ -1,25 +1,19 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
-
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { type CSSProperties, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import { NetzbetreiberG2Chart, NetzbetreiberG3Chart, NetzbetreiberG4Chart } from "@/components/bess-netzbetreiber/NetzbetreiberCharts.client";
+import { NetzbetreiberG3Chart, NetzbetreiberG4Chart } from "@/components/bess-netzbetreiber/NetzbetreiberCharts.client";
+import { NetzbetreiberSvgMap } from "@/components/bess-netzbetreiber/NetzbetreiberSvgMap";
+import { NetzbetreiberVnbBars } from "@/components/bess-netzbetreiber/NetzbetreiberVnbBars";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
 import { useKnotenTheme } from "@/components/knoten/useKnotenTheme";
 import { computeNetzbetreiberHeadlines } from "@/lib/bessNetzbetreiber/computeHeadlines";
 import type { BessNetzbetreiberBundle } from "@/lib/bessNetzbetreiber/schema";
 import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
-import { eonSharePercent, prepareG2Bars, prepareGrowthStacks, prepareVnbBars } from "@/lib/bessNetzbetreiber/prepareModel";
+import { prepareGrowthStacks, prepareVnbBars, truncateVnbLabel } from "@/lib/bessNetzbetreiber/prepareModel";
 import { resolveVnbSearchFocusKey } from "@/lib/bessNetzbetreiber/vnbSearch";
-
-const NetzbetreiberMap = dynamic(() => import("@/components/bess-netzbetreiber/NetzbetreiberMap.client"), {
-  ssr: false,
-  loading: () => <div className="min-h-[240px] rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Karte lädt …</div>,
-});
 
 type ManifestShape = {
   stichtagMastr?: string;
@@ -27,24 +21,14 @@ type ManifestShape = {
     excludedNaturalPersonUnits?: number;
     excludedNsUnverifiedUnits?: number;
     excludedBruttoMw?: number;
-    unitsAggregatedToSameCoordinate?: number;
   };
-  eeStockMastr?: { maxPagesPerEnergyCarrier?: number; complete?: boolean };
+  eeStockMastr?: { complete?: boolean };
 };
-
-function vnbSearchOptions(ranking: BessNetzbetreiberBundle["vnbRanking"]) {
-  return ranking
-    .filter((r) => r.operatorClass !== "uenb")
-    .map((r) => ({ key: r.key, label: r.label, mw: r.bruttoMw }))
-    .sort((a, b) => b.mw - a.mw);
-}
 
 export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberBundle }) {
   const { colors } = useKnotenTheme();
-  const [qualityFilterOn, setQualityFilterOn] = useState(false);
   const [eonIncludeMitnetz, setEonIncludeMitnetz] = useState(true);
   const [vnbQuery, setVnbQuery] = useState("");
-  const [g5Mode, setG5Mode] = useState<"stock" | "norm">("stock");
 
   const manifest = model.manifest as ManifestShape;
   const headlines = useMemo(
@@ -52,36 +36,44 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
     [model, eonIncludeMitnetz],
   );
 
-  const sites = useMemo(
-    () => (qualityFilterOn ? (model.sitesQualityFiltered ?? model.sitesDefault) : model.sitesDefault),
-    [qualityFilterOn, model.sitesDefault, model.sitesQualityFiltered],
-  );
-
-  const vnbRanking = useMemo(
-    () => (qualityFilterOn ? (model.vnbRankingQualityFiltered ?? model.vnbRanking) : model.vnbRanking),
-    [qualityFilterOn, model.vnbRanking, model.vnbRankingQualityFiltered],
-  );
-
-  const scatterRows = useMemo(
-    () => (qualityFilterOn ? (model.scatterQualityFiltered ?? model.scatterBundeslaender) : model.scatterBundeslaender),
-    [qualityFilterOn, model.scatterBundeslaender, model.scatterQualityFiltered],
-  );
-
-  const growthSource = qualityFilterOn ? (model.growthQualityFiltered ?? model.growthDefault) : model.growthDefault;
-  const growth = useMemo(() => prepareGrowthStacks(growthSource, true), [growthSource]);
-  const g2Rows = useMemo(() => prepareG2Bars(vnbRanking), [vnbRanking]);
-  const vnbBars = useMemo(() => prepareVnbBars(vnbRanking), [vnbRanking]);
-  const eonPctVnb = eonSharePercent(vnbRanking, eonIncludeMitnetz);
+  const sites = model.sitesDefault;
+  const vnbRanking = model.vnbRanking;
+  const growth = useMemo(() => prepareGrowthStacks(model.growthDefault, { showMitnetz: eonIncludeMitnetz }), [model.growthDefault, eonIncludeMitnetz]);
+  const vnbBarRows = useMemo(() => {
+    const { rows } = prepareVnbBars(vnbRanking);
+    return rows.map((r) => {
+      const { full, short } = truncateVnbLabel(r.label, 28);
+      return {
+        ...r,
+        fullLabel: full,
+        shortLabel: short,
+        displayMw: r.bruttoMw,
+        capped: false,
+        isEonGroup: r.key.startsWith("eon") || r.key === "mitnetz_envia",
+      };
+    });
+  }, [vnbRanking]);
 
   const focusKey = useMemo(() => {
     const q = vnbQuery.trim();
     if (!q) return null;
     const alias = resolveVnbSearchFocusKey(q);
     if (alias) return alias;
-    const hit = vnbSearchOptions(vnbRanking).find((o) => o.label.toLowerCase().includes(q.toLowerCase()));
+    const hit = vnbRanking.find(
+      (o) => o.operatorClass !== "uenb" && o.label.toLowerCase().includes(q.toLowerCase()),
+    );
     return hit?.key ?? q.toLowerCase();
   }, [vnbQuery, vnbRanking]);
 
+  const stichtagRaw = manifest.stichtagMastr ?? headlines.stichtag;
+  const stichtagDe = /^\d{4}-\d{2}-\d{2}$/.test(stichtagRaw)
+    ? stichtagRaw.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$3.$2.$1")
+    : stichtagRaw;
+  const eonGwFormatted = formatQuantityUnit(headlines.eonBruttoGw, "de", 2, "GW");
+  const eonGwParts = eonGwFormatted.replace(/\s*GW$/i, "").trim();
+  const heroCh = String(eonGwParts.replace(/\s/g, "").length + 2);
+
+  const scatterRows = model.scatterBundeslaender;
   const scatterData = scatterRows.map((r) => ({
     name: r.bundesland,
     x: r.eeRedispatch2025Gwh,
@@ -90,9 +82,6 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
   }));
 
   const eeStock = model.eeStockBundeslaender;
-  const eeSumGw = eeStock.reduce((s, r) => s + r.windOnshoreGw + r.pvGw, 0);
-  const eeVorlaeufig = !((manifest.eeStockMastr?.complete ?? false) || eeSumGw > 130);
-
   const g5Data = eeStock.map((r) => {
     const bessGw = scatterRows.find((s) => s.bundesland === r.bundesland)?.bessBruttoGw ?? 0;
     const eeGw = r.windOnshoreGw + r.pvGw;
@@ -105,234 +94,155 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
     };
   });
 
-  const eonRow = g2Rows.find((r) => r.isEonGroup);
-  const sh = scatterRows.find((r) => r.bundesland === "Schleswig-Holstein");
-  const ni = scatterRows.find((r) => r.bundesland === "Niedersachsen");
-  const by = scatterRows.find((r) => r.bundesland === "Bayern");
+  const h1 = eonIncludeMitnetz
+    ? "Mehr als die Hälfte der Großspeicher hängt an E.ON-Netzen."
+    : "Der Großteil der ≥1-MW-Speicher liegt an westdeutschen Verteilnetzen.";
 
   return (
-    <div className="v4-start" data-testid="netzbetreiber-page">
+    <div className={styles.netzbetreiberV4} data-testid="netzbetreiber-page">
       <section className="v4-kopf" aria-labelledby="nb-h1">
         <div className="v4-kopf-inner v4-content">
-          <p className="v4-kicker num">Bestand · MaStR · Speicher ≥ 1 MW netto in Betrieb</p>
-          <h1 id="nb-h1" className="v4-h1">
-            Über {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")} Batteriespeicher in Betrieb — rund{" "}
-            {formatQuantityUnit(headlines.eonBruttoGw, "de", 2, "GW")} ({formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")}) an
-            E.ON-Netzen{eonIncludeMitnetz ? " inkl. MITNETZ" : " ohne MITNETZ"}.
-          </h1>
-          <p className="v4-subline mt-3">
-            Öffentliche Bestände und SMARD-Redispatch je Bundesland, ohne Euro und ohne Netzgebietspolygone. Für Szenarien:{" "}
-            <Link href="/szenarien" className="v4-text-link">
-              Szenarien rechnen
-            </Link>
-            .
+          <p className="v4-kicker num">BESS-KARTE · NETZBETREIBER · DATENSTAND {stichtagDe}</p>
+          <p id="nb-leitfrage" className="v4-subline" style={{ marginBottom: "0.35rem", fontWeight: 500 }}>
+            Wo stehen Deutschlands Batteriespeicher?
           </p>
 
-          <div className={styles.kopfMap}>
-            <div className={styles.mapShell} data-testid="nb-map">
-              <NetzbetreiberMap sites={sites} palette={colors} focusKey={focusKey} />
+          <div className="v4-kopf-intro">
+            <h1 id="nb-h1" className="v4-h1" style={{ maxWidth: "22ch" }}>
+              {h1}
+            </h1>
+            <div className="v4-kopf-subgrid">
+              <p className={`v4-subline ${styles.leadTight}`}>
+                Modell: MaStR-Konzeptfilter (Batterie, In Betrieb, netto ≥ 1 MW).{" "}
+                {formatQuantity(headlines.units, "de", 0)} Einheiten mit{" "}
+                {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")} brutto im Bestand. Konzernzuordnung über
+                feste SNB-Nummern;{" "}
+                <button
+                  type="button"
+                  className={styles.mitnetzLink}
+                  onClick={() => setEonIncludeMitnetz((v) => !v)}
+                >
+                  {eonIncludeMitnetz ? "MITNETZ im E.ON-Konzern eingeschlossen" : "ohne mitteldeutsche Tochter"}
+                </button>
+                .
+              </p>
+              <div className="v4-preis-block">
+                <p className="v4-preis-label num">Bestand</p>
+                <p className="v4-preis-value num">
+                  {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")} in Betrieb, MaStR
+                </p>
+              </div>
             </div>
-            <p className={styles.footnote}>
-              Basiskarte ©{" "}
-              <a href="https://www.openstreetmap.org/copyright" className="v4-text-link">
-                OpenStreetMap
-              </a>
-              . VNB-Zuordnung über Anschluss-Netzbetreiber (MaStR).
-            </p>
           </div>
 
-          <ul className={styles.kpiGrid} aria-label="Kernaussagen">
-            <li className={styles.kpiCard}>
-              <strong>
-                {formatQuantity(headlines.units, "de", 0)} Speicher ≥ 1 MW, {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")} in Betrieb
-              </strong>
-              MaStR, Stichtag {headlines.stichtag}.
-            </li>
-            <li className={styles.kpiCard}>
-              <strong>
-                E.ON-Netze: {formatQuantityUnit(headlines.eonBruttoGw, "de", 2, "GW")} ({formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")} des Bestands)
-              </strong>
-              Zuordnung über MaStR-Nummern der Anschluss-Netzbetreiber (SNB-Liste). MITNETZ:{" "}
-              {eonIncludeMitnetz ? "eingeschlossen" : "ausgeklammert"} (
-              {formatQuantityUnit((model.headlineStats?.mitnetzOnly.bruttoMw ?? 752.4) / 1000, "de", 2, "GW")} brutto bei MITNETZ
-              allein).
-            </li>
-            <li className={styles.kpiCard}>
-              <strong>
-                Zubau 2026: {formatQuantityUnit(headlines.zubau2026Gw, "de", 2, "GW")}, davon{" "}
-                {formatQuantityUnit(headlines.zubau2026EonGw, "de", 2, "GW")} in E.ON-Netzen (
-                {formatQuantityUnit(headlines.zubau2026EonSharePct, "de", 0, "%")})
-              </strong>
-              Inbetriebnahmejahr 2026 (MaStR-Feld), Einheiten-Summen.
-            </li>
-          </ul>
+          <div className={`v4-kopf-hero ${styles.netzbetreiberV4Hero}`}>
+            <div className="v4-kopf-zahl">
+              <p
+                className="v4-riesenzahl num"
+                aria-hidden="true"
+                style={{ "--v4-ries-ch": heroCh } as CSSProperties}
+              >
+                {eonGwParts}
+                <span className="v4-riesenzahl-unit">GW</span>
+              </p>
+              <div className="v4-kern-row">
+                <span>
+                  an E.ON-Netzen, {formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")} der Leistung in
+                  Betrieb
+                </span>
+              </div>
+            </div>
+            <div className={styles.mapColumn}>
+              <NetzbetreiberSvgMap sites={sites} focusKey={focusKey} />
+            </div>
+          </div>
 
-          <p className={styles.plainList}>
-            Für Netzplanung: der Bestand ballt sich an westdeutschen E.ON-Netzen; auf Länderebene fallen hoher EE-Redispatch (
-            {sh ? formatQuantityUnit(sh.eeRedispatch2025Gwh, "de", 0, "GWh") : "—"} in SH, {ni ? formatQuantityUnit(ni.eeRedispatch2025Gwh, "de", 0, "GWh") : "—"} in
-            NI) und zugleich sichtbarer BESS-Zubau (Bayern {by ? formatQuantityUnit(by.bessBruttoGw, "de", 2, "GW") : "—"} BESS) nebeneinander — ohne Kausalurteil.
+          <p className={styles.flowPara}>
+            Zubau mit Inbetriebnahme 2026: {formatQuantityUnit(headlines.zubau2026Gw, "de", 2, "GW")} brutto — davon{" "}
+            {formatQuantityUnit(headlines.zubau2026EonGw, "de", 2, "GW")} an E.ON-Netzen (
+            {formatQuantityUnit(headlines.zubau2026EonSharePct, "de", 0, "%")} des Zubaus). ÜNB in Betrieb (netto):{" "}
+            {formatQuantityUnit(model.uenbEbene.inBetriebNettoGw ?? model.uenbEbene.inBetriebBruttoGw, "de", 2, "GW")}{" "}
+            ({model.uenbEbene.inBetriebUnits ?? "—"} Einheiten, Konzeptfilter).
           </p>
 
-          <div className={styles.searchRow}>
-            <label htmlFor="vnb-suche" className="text-sm text-muted-foreground">
-              Eigenen Netzbetreiber suchen
+          <div className={styles.searchLine}>
+            <label htmlFor="vnb-suche" className="v4-subline">
+              Netzbetreiber auf der Karte markieren
             </label>
             <input
               id="vnb-suche"
               className={styles.searchInput}
-              list="vnb-suggest"
               value={vnbQuery}
               onChange={(e) => setVnbQuery(e.target.value)}
-              placeholder="z. B. Westnetz, MITNETZ, EWE NETZ"
+              placeholder="Name eingeben …"
+              autoComplete="off"
             />
-            <datalist id="vnb-suggest">
-              {vnbSearchOptions(vnbRanking).map((o) => (
-                <option key={o.key} value={o.label} />
-              ))}
-            </datalist>
           </div>
-
-          <details className={styles.filterDetails}>
-            <summary className={styles.filterSummary}>Filter &amp; Datenstand</summary>
-            <div className={styles.filterBody}>
-              <p>
-                Konzeptfilter: Batterie, In Betrieb, Netto ≥ 1 MW. Qualitätsfilter streicht{" "}
-                {manifest.filterBreakdown?.excludedNaturalPersonUnits ?? 16} natürliche Personen und{" "}
-                {manifest.filterBreakdown?.excludedNsUnverifiedUnits ?? 15} Niederspannung ohne NB-Prüfung (
-                {formatQuantityUnit(manifest.filterBreakdown?.excludedBruttoMw ?? 134.7, "de", 1, "MW")} brutto).
-              </p>
-              <button
-                type="button"
-                className={styles.filterToggle}
-                aria-pressed={qualityFilterOn}
-                onClick={() => setQualityFilterOn((v) => !v)}
-              >
-                Qualitätsfilter: {qualityFilterOn ? "an" : "aus"}
-              </button>
-              <button
-                type="button"
-                className={styles.filterToggle}
-                aria-pressed={eonIncludeMitnetz}
-                onClick={() => setEonIncludeMitnetz((v) => !v)}
-              >
-                E.ON-Konzern: {eonIncludeMitnetz ? "mit MITNETZ" : "ohne MITNETZ"}
-              </button>
-            </div>
-          </details>
         </div>
       </section>
 
-      <section className="v4-chapter" aria-labelledby="g2-title">
-        <div className="v4-chapter-head v4-content">
-          <p className="v4-chapter-num num">01 · VNB</p>
-          <h2 id="g2-title" className="v4-chapter-h2">
-            Bruttoleistung je Verteilnetzbetreiber
-          </h2>
-        </div>
-        <div className="v4-content v4-luecke-wrap rounded-lg border border-border bg-card p-3 md:p-4">
-          <NetzbetreiberG2Chart data={g2Rows} palette={colors} yAxisWidth={128} />
-          <p className={styles.insight}>
-            E.ON-Konzern (SNB): {formatQuantityUnit(headlines.eonBruttoGw, "de", 2, "GW")} (
-            {formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")} am Gesamtbestand,{" "}
-            {formatQuantityUnit(eonPctVnb, "de", 0, "%")} am VNB-Bestand ohne ÜNB).{" "}
-            {eonRow ? `Größter E.ON-Bucket: ${eonRow.fullLabel} (${formatQuantityUnit(eonRow.bruttoMw, "de", 0, "MW")}).` : null}{" "}
-            Übrige VNB unter Rang 13: {formatQuantityUnit(vnbBars.restMw, "de", 1, "MW")} (Summe, nicht in Grafik).
-          </p>
-        </div>
+      <section className="v4-chapter v4-content" aria-labelledby="g2-title">
+        <p className="v4-chapter-num num">01 — Verteilnetzbetreiber</p>
+        <h2 id="g2-title" className="v4-chapter-h2">
+          Bruttoleistung (Top 13)
+        </h2>
+        <p className="v4-subline">
+          Summen je Einheit im Bundle, nicht über Kartenpunkte. E.ON-Tochtergesellschaften im Akzent, übrige Netzbetreiber
+          grau.
+        </p>
+        <NetzbetreiberVnbBars rows={vnbBarRows} />
       </section>
 
-      <section className="v4-chapter" aria-labelledby="g3-title">
-        <div className="v4-chapter-head v4-content">
-          <p className="v4-chapter-num num">02 · Zubau</p>
-          <h2 id="g3-title" className="v4-chapter-h2">
-            Zubau 2026 vs. Bestand vor 2026
-          </h2>
-        </div>
-        <div className="v4-content v4-luecke-wrap rounded-lg border border-border bg-card p-3 md:p-4">
-          <NetzbetreiberG3Chart data={growth} palette={colors} />
-          <p className={styles.insight}>
-            Gesamt-Zubau 2026: {formatQuantityUnit(headlines.zubau2026Gw, "de", 2, "GW")} brutto — E.ON-Netze{" "}
-            {formatQuantityUnit(headlines.zubau2026EonSharePct, "de", 0, "%")} davon.
-          </p>
-        </div>
-      </section>
-
-      <section className="v4-chapter" aria-labelledby="g4-title">
-        <div className="v4-chapter-head v4-content">
-          <p className="v4-chapter-num num">03 · Bundesländer</p>
-          <h2 id="g4-title" className="v4-chapter-h2">
-            EE-Redispatch 2025 und BESS in Betrieb
-          </h2>
-        </div>
-        <div className="v4-content v4-luecke-wrap rounded-lg border border-border bg-card p-3 md:p-4">
-          <NetzbetreiberG4Chart data={scatterData} palette={colors} />
-          <p className={styles.footnote}>
-            Quelle X: SMARD Energiedaten kompakt, CSV s-nepm_baet-1-* (2025), Spalten Wind an Land + PV (Redispatch-Reduzierung, GWh je Bundesland). Index 2
-            = Bayern ({by ? formatQuantityUnit(by.eeRedispatch2025Gwh, "de", 0, "GWh") : "—"}), 9 = Niedersachsen, 15 = Schleswig-Holstein.
-          </p>
-          <p className={styles.insight}>
-            Höchster BESS-Bestand: {formatQuantityUnit(headlines.topBessBl.gw, "de", 2, "GW")} ({headlines.topBessBl.bundesland}).
-          </p>
-          <p className={styles.footnote}>
-            ÜNB in Betrieb: {formatQuantityUnit(model.uenbEbene.inBetriebBruttoGw, "de", 2, "GW")} · in Planung ≥ 1 MW:{" "}
-            {formatQuantityUnit(model.uenbEbene.inPlanungBruttoGw, "de", 2, "GW")} (MaStR).
-          </p>
-        </div>
-      </section>
-
-      {eeStock.length > 0 ? (
-        <section className="v4-chapter" aria-labelledby="g5-title">
-          <div className="v4-chapter-head v4-content">
-            <p className="v4-chapter-num num">04 · Erneuerbare</p>
-            <h2 id="g5-title" className="v4-chapter-h2">
-              Wind an Land, PV und BESS je Bundesland
-              {eeVorlaeufig ? (
-                <>
-                  {" "}
-                  <span className={styles.badgeVorl}>vorläufig</span>
-                </>
-              ) : null}
+      <details className={styles.moreData}>
+        <summary className={styles.moreDataSummary}>Mehr Daten</summary>
+        <div className={styles.moreDataBody}>
+          <section aria-labelledby="g3-more">
+            <p className="v4-chapter-num num">Zubau 2026</p>
+            <h2 id="g3-more" className="v4-chapter-h2">
+              Bestand vor 2026 und Zubau 2026
             </h2>
-          </div>
-          <div className="v4-content v4-luecke-wrap rounded-lg border border-border bg-card p-3 md:p-4">
-            <div className="mb-3 flex flex-wrap gap-2">
-              <button type="button" className={styles.filterToggle} aria-pressed={g5Mode === "stock"} onClick={() => setG5Mode("stock")}>
-                Bestände (GW)
-              </button>
-              <button type="button" className={styles.filterToggle} aria-pressed={g5Mode === "norm"} onClick={() => setG5Mode("norm")}>
-                MW BESS je GW EE{eeVorlaeufig ? " (vorläufig)" : ""}
-              </button>
-            </div>
-            <ResponsiveContainer width="100%" height={340}>
-              {g5Mode === "norm" ? (
-                <BarChart data={g5Data} layout="vertical" margin={{ left: 4, right: 16, top: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={colors.grid} />
-                  <XAxis type="number" tick={{ fill: colors.muted, fontSize: 12 }} />
-                  <YAxis dataKey="name" type="category" width={118} tick={{ fill: colors.ink, fontSize: 10 }} interval={0} />
-                  <Tooltip />
-                  <Bar dataKey="mwPerGwEe" fill={colors.teal} radius={[0, 4, 4, 0]} isAnimationActive={false} />
-                </BarChart>
-              ) : (
+            <NetzbetreiberG3Chart data={growth} palette={colors} />
+          </section>
+          <section aria-labelledby="g4-more">
+            <p className="v4-chapter-num num">Bundesländer</p>
+            <h2 id="g4-more" className="v4-chapter-h2">
+              EE-Redispatch 2025 und BESS (Modell)
+            </h2>
+            <NetzbetreiberG4Chart data={scatterData} palette={colors} />
+            <p className="v4-subline">
+              ÜNB in Betrieb brutto {formatQuantityUnit(model.uenbEbene.inBetriebBruttoGw, "de", 2, "GW")}, netto{" "}
+              {formatQuantityUnit(model.uenbEbene.inBetriebNettoGw ?? 0, "de", 2, "GW")} — siehe{" "}
+              <Link href="/methodik#bess-netzbetreiber" className="v4-text-link">
+                Methodik
+              </Link>
+              .
+            </p>
+          </section>
+          {eeStock.length > 0 ? (
+            <section aria-labelledby="g5-more">
+              <p className="v4-chapter-num num">Erneuerbare</p>
+              <h2 id="g5-more" className="v4-chapter-h2">
+                Wind, PV und BESS je Bundesland (Modell, MaStR-Auszug)
+              </h2>
+              <ResponsiveContainer width="100%" height={340}>
                 <BarChart data={g5Data} margin={{ left: 8, right: 8, top: 28, bottom: 72 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
                   <XAxis dataKey="name" tick={{ fill: colors.muted, fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={72} />
                   <YAxis tickFormatter={(v) => `${v} GW`} tick={{ fill: colors.muted, fontSize: 12 }} />
                   <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 8 }} />
+                  <Tooltip />
                   <Bar dataKey="wind" stackId="ee" fill={colors.gray} name="Wind an Land" isAnimationActive={false} />
                   <Bar dataKey="pv" stackId="ee" fill={colors.rust} name="PV" isAnimationActive={false} />
                   <Bar dataKey="bess" fill={colors.teal} name="BESS" isAnimationActive={false} />
                 </BarChart>
-              )}
-            </ResponsiveContainer>
-            <p className={styles.footnote}>
-              MaStR Stromerzeugung In Betrieb (Wind 2497 / PV 2495){eeVorlaeufig ? ", Auszug noch unvollständig — Kennzeichnung vorläufig." : "."}
-            </p>
-          </div>
-        </section>
-      ) : null}
+              </ResponsiveContainer>
+            </section>
+          ) : null}
+        </div>
+      </details>
 
       <p className={`v4-chapter-foot v4-content num ${styles.chapterFoot}`}>
-        Quellen: Marktstammdatenregister (dl-de/by-2-0), SMARD Energiedaten kompakt (CC BY 4.0), Stichtag {headlines.stichtag}.{" "}
+        Quellen: Marktstammdatenregister (dl-de/by-2-0), SMARD Energiedaten kompakt (CC BY 4.0), Stichtag {stichtagDe}.{" "}
         <Link href="/methodik#bess-netzbetreiber" className="v4-text-link">
           Methodik
         </Link>
