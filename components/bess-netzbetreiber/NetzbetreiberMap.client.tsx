@@ -16,26 +16,36 @@ import type { BessSite } from "@/lib/bessNetzbetreiber/schema";
 import type { KnotenPalette } from "@/components/knoten/knotenPalette";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
 
-/** Enger DE-Ausschnitt (kein halbes Europa). */
-const GERMANY_BOUNDS = L.latLngBounds([47.27, 5.86], [55.06, 15.04]);
-const MAX_BOUNDS = L.latLngBounds([46.4, 4.3], [55.9, 16.2]);
+/** Sichtfenster = Deutschland (kein Europa-Panorama). */
+const GERMANY_SW: L.LatLngTuple = [47.35, 5.95];
+const GERMANY_NE: L.LatLngTuple = [55.02, 14.92];
+const GERMANY_BOUNDS = L.latLngBounds(GERMANY_SW, GERMANY_NE);
+const MAX_BOUNDS = GERMANY_BOUNDS;
 
-const OUTSIDE_PANELS: [number, number][][] = [
-  [[85, -30], [85, 45], [55.15, 45], [55.15, -30]],
-  [[-60, -30], [-60, 45], [47.1, 45], [47.1, -30]],
-  [[47.1, -30], [55.15, -30], [55.15, 5.75], [47.1, 5.75]],
-  [[47.1, 15.05], [55.15, 15.05], [55.15, 45], [47.1, 45]],
-];
+function buildOutsidePanels(b: L.LatLngBounds): L.LatLngExpression[][] {
+  const sw = b.getSouthWest();
+  const ne = b.getNorthEast();
+  const lngPad = 24;
+  const latPad = 12;
+  const w = (lat: number, lng: number): L.LatLngExpression => [lat, lng];
+  return [
+    [w(ne.lat, sw.lng - lngPad), w(ne.lat + latPad, sw.lng - lngPad), w(ne.lat + latPad, ne.lng + lngPad), w(ne.lat, ne.lng + lngPad)],
+    [w(sw.lat - latPad, sw.lng - lngPad), w(sw.lat, sw.lng - lngPad), w(sw.lat, ne.lng + lngPad), w(sw.lat - latPad, ne.lng + lngPad)],
+    [w(sw.lat - latPad, sw.lng - lngPad), w(ne.lat + latPad, sw.lng - lngPad), w(ne.lat + latPad, sw.lng), w(sw.lat - latPad, sw.lng)],
+    [w(sw.lat - latPad, ne.lng), w(ne.lat + latPad, ne.lng), w(ne.lat + latPad, ne.lng + lngPad), w(sw.lat - latPad, ne.lng + lngPad)],
+  ];
+}
 
 type ClusterOrPoint =
   | { kind: "point"; site: BessSite }
   | { kind: "cluster"; lat: number; lng: number; units: number; bruttoMw: number; sites: BessSite[] };
 
 function cellDegForZoom(zoom: number): number | null {
-  if (zoom >= 9) return null;
-  if (zoom >= 7) return 0.12;
-  if (zoom >= 6) return 0.22;
-  return 0.42;
+  if (zoom >= 10) return null;
+  if (zoom >= 8) return 0.1;
+  if (zoom >= 7) return 0.2;
+  if (zoom >= 6) return 0.35;
+  return 0.6;
 }
 
 function clusterSitesForZoom(sites: BessSite[], zoom: number): ClusterOrPoint[] {
@@ -67,25 +77,49 @@ function clusterSitesForZoom(sites: BessSite[], zoom: number): ClusterOrPoint[] 
   return out;
 }
 
+function fitGermany(map: L.Map, padding: L.PointExpression = [4, 4]) {
+  map.fitBounds(GERMANY_BOUNDS, { padding, animate: false, maxZoom: 8 });
+  const minZoom = map.getBoundsZoom(GERMANY_BOUNDS, false, padding);
+  if (Number.isFinite(minZoom)) {
+    map.setMinZoom(minZoom);
+    if (map.getZoom() < minZoom) map.setZoom(minZoom);
+  }
+}
+
 function MapSetup() {
   const map = useMap();
   useEffect(() => {
-    map.setMinZoom(5);
     map.setMaxBounds(MAX_BOUNDS);
     map.options.maxBoundsViscosity = 1;
-    map.fitBounds(GERMANY_BOUNDS, { padding: [10, 10], maxZoom: 6 });
-    const t = window.setTimeout(() => map.invalidateSize(true), 200);
-    return () => window.clearTimeout(t);
+    map.options.worldCopyJump = false;
+
+    const apply = () => {
+      fitGermany(map, [4, 4]);
+      map.invalidateSize(true);
+    };
+
+    apply();
+    const t = window.setTimeout(apply, 150);
+
+    const container = map.getContainer();
+    const ro = new ResizeObserver(() => {
+      fitGermany(map, [4, 4]);
+    });
+    ro.observe(container);
+
+    return () => {
+      window.clearTimeout(t);
+      ro.disconnect();
+    };
   }, [map]);
   return null;
 }
 
 function neighborMaskStyle(): L.PathOptions {
-  const bg = getComputedStyle(document.documentElement).getPropertyValue("--background").trim();
-  const fill = bg.startsWith("hsl") ? bg : `hsl(${bg})`;
+  const isDark = document.documentElement.classList.contains("dark");
   return {
-    fillColor: fill || "#f4f5f6",
-    fillOpacity: 0.85,
+    fillColor: "hsl(var(--background))",
+    fillOpacity: isDark ? 0.96 : 0.92,
     stroke: false,
     interactive: false,
   };
@@ -107,8 +141,14 @@ function MapNeighborMask() {
       const pane = map.createPane("maskPane");
       pane.style.zIndex = "340";
     }
-    const layer = L.polygon(OUTSIDE_PANELS, { ...neighborMaskStyle(), pane: "maskPane" }).addTo(map);
+    const panels = buildOutsidePanels(GERMANY_BOUNDS);
+    const layer = L.polygon(panels, { ...neighborMaskStyle(), pane: "maskPane" }).addTo(map);
+    const sync = () => {
+      layer.setStyle(neighborMaskStyle());
+    };
+    map.on("zoomend", sync);
     return () => {
+      map.off("zoomend", sync);
       map.removeLayer(layer);
     };
   }, [map, bump]);
@@ -131,14 +171,14 @@ function clusterIcon(units: number, bruttoMw: number, fill: string) {
   return L.divIcon({
     className: styles.clusterIcon,
     html: `<div class="${styles.clusterBubble}" style="border-color:${fill};color:${fill}"><span class="${styles.clusterCount}">${units}</span><span class="${styles.clusterGw}">${formatClusterPower(bruttoMw)}</span></div>`,
-    iconSize: [52, 52],
-    iconAnchor: [26, 26],
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
   });
 }
 
 function radiusForMw(bruttoMw: number): number {
   const area = Math.max(bruttoMw, 0.35);
-  return Math.min(20, Math.max(5, Math.sqrt(area / Math.PI) * 5.2));
+  return Math.min(18, Math.max(4, Math.sqrt(area / Math.PI) * 4.8));
 }
 
 function MapMarkers({
@@ -161,17 +201,22 @@ function MapMarkers({
     };
   }, [map]);
 
+  const inGermany = useMemo(
+    () => sites.filter((s) => GERMANY_BOUNDS.contains(L.latLng(s.lat, s.lng))),
+    [sites],
+  );
+
   const filtered = useMemo(
     () =>
       focusKey
-        ? sites.filter(
+        ? inGermany.filter(
             (s) =>
               s.vnbBucketKey === focusKey ||
               s.vnbBucketLabel.toLowerCase().includes(focusKey.toLowerCase()) ||
               s.vnbDominant.toLowerCase().includes(focusKey.toLowerCase()),
           )
-        : sites,
-    [sites, focusKey],
+        : inGermany,
+    [inGermany, focusKey],
   );
 
   const items = useMemo(() => clusterSitesForZoom(filtered, zoom), [filtered, zoom]);
@@ -180,6 +225,7 @@ function MapMarkers({
     <>
       {items.map((item) => {
         if (item.kind === "cluster") {
+          if (!GERMANY_BOUNDS.contains(L.latLng(item.lat, item.lng))) return null;
           const fill = colorFor(
             item.sites.sort((a, b) => b.bruttoMw - a.bruttoMw)[0]!.operatorClass,
             palette,
@@ -247,11 +293,14 @@ export default function NetzbetreiberMap({
   palette: KnotenPalette;
   focusKey?: string | null;
 }) {
+  const center = useMemo(() => GERMANY_BOUNDS.getCenter(), []);
+
   return (
     <MapContainer
-      bounds={GERMANY_BOUNDS}
-      minZoom={5}
+      center={center}
+      zoom={6}
       maxBounds={MAX_BOUNDS}
+      maxBoundsViscosity={1}
       scrollWheelZoom
       className="netzbetreiber-leaflet"
       style={{ height: "100%", width: "100%", background: "hsl(var(--background))" }}
