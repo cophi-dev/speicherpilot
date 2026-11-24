@@ -47,19 +47,44 @@ export function prepareVnbBars(
 
 export function prepareGrowthStacks(
   growth: BessNetzbetreiberBundle["growthDefault"],
-  eonFullGroup: boolean,
+  eonFullGroup = true,
 ): GrowthBucket[] {
   const order = eonFullGroup
-    ? (["eon_gruppe", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const)
-    : (["eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const);
+    ? (["eon_gruppe", "ewe_netz", "vnb_rest", "uenb"] as const)
+    : (["eon_kern", "ewe_netz", "vnb_rest", "uenb"] as const);
   return order
     .filter((key) => growth[key])
     .map((key) => ({
       key,
-      label: GROWTH_LABELS[key] ?? key,
+      label: key === "eon_gruppe" ? "E.ON-Netze" : (GROWTH_LABELS[key] ?? key),
       vor2026Mw: growth[key]!.vor2026Mw,
       y2026Mw: growth[key]!.y2026Mw,
-    }));
+    }))
+    .filter((row) => row.vor2026Mw + row.y2026Mw > 0);
+}
+
+export const G2_AXIS_CAP_MW = 1000;
+
+export type G2BarRow = VnbBarRow & {
+  displayMw: number;
+  capped: boolean;
+  fullLabel: string;
+  shortLabel: string;
+};
+
+export function prepareG2Bars(ranking: BessNetzbetreiberBundle["vnbRanking"], capMw = G2_AXIS_CAP_MW): G2BarRow[] {
+  const { rows } = prepareVnbBars(ranking);
+  return rows.map((r) => {
+    const { short, full } = truncateVnbLabel(r.label, 22);
+    const capped = r.bruttoMw > capMw;
+    return {
+      ...r,
+      fullLabel: full,
+      shortLabel: short,
+      displayMw: Math.min(r.bruttoMw, capMw),
+      capped,
+    };
+  });
 }
 
 export function eonSharePercent(ranking: BessNetzbetreiberBundle["vnbRanking"], eonFullGroup: boolean): number {

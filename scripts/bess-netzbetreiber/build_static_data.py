@@ -597,6 +597,7 @@ def main() -> None:
         "eonGroupMembersDefault": list(EON_CORE_MARKERS + EON_EXTRA_MARKERS),
         "eeStockMastr": {
             "maxPagesPerEnergyCarrier": ee_max_pages if os.environ.get("SKIP_EE_STOCK") != "1" else 0,
+            "complete": bool(ee_stock) and sum(r["windOnshoreGw"] + r["pvGw"] for r in ee_stock) >= 140,
             "note": "Wind/PV je Bundesland; Seitenzahl über MASTR_GEN_MAX_PAGES (Default 80).",
         },
     }

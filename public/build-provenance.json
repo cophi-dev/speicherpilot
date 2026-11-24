@@ -1,20 +1,18 @@
 {
-  "commit": "717cbdbb058669e2b9b22bda606954711d2b32b6",
-  "buildId": "20261124T1419Z",
-  "builtAt": "2026-11-24T14:19:49.410Z",
+  "commit": "33c1951b4e02097e17f633edf1722728e7b22340",
+  "buildId": "20261124T1731Z",
+  "builtAt": "2026-11-24T17:31:51.013Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M components/bess-netzbetreiber/NetzbetreiberResearchPage.tsx",
+    "M components/bess-netzbetreiber/NetzbetreiberMap.client.tsx",
+    " M components/bess-netzbetreiber/NetzbetreiberResearchPage.tsx",
     " M components/bess-netzbetreiber/bess-netzbetreiber.module.css",
-    " M components/methodik/MethodikDocs.tsx",
-    " M data/bess-netzbetreiber/bundle.json",
-    " M data/bess-netzbetreiber/manifest.json",
-    " M lib/bessNetzbetreiber/prepareModel.test.ts",
     " M lib/bessNetzbetreiber/prepareModel.ts",
-    " M lib/bessNetzbetreiber/schema.ts",
     " M scripts/bess-netzbetreiber/build_static_data.py",
-    "?? data/bess-netzbetreiber/vnb-network-lengths.json"
+    "?? components/bess-netzbetreiber/NetzbetreiberCharts.client.tsx",
+    "?? lib/bessNetzbetreiber/computeHeadlines.test.ts",
+    "?? lib/bessNetzbetreiber/computeHeadlines.ts"
   ],
   "ci": false
 }
