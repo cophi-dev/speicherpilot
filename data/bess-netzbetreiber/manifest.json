@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-24T13:38:43Z",
+  "stichtagMastr": "2026-11-24",
+  "sources": [
+    {
+      "name": "Marktstammdatenregister",
+      "license": "dl-de/by-2-0",
+      "retrieved": "2026-11-24",
+      "url": "https://www.marktstammdatenregister.de/MaStR"
+    },
+    {
+      "name": "SMARD Energiedaten kompakt (s-nepm_baet-1-*)",
+      "license": "CC BY 4.0",
+      "retrieved": "2026-11-24",
+      "url": "https://www.smard.de/resource/blob/217306/-/data-csv-data.csv"
+    }
+  ],
+  "plausibility": {
+    "unitsGe1MwNetto": 544,
+    "bruttoGw": 4.61,
+    "note": "Brutto/Netto in MW unless totals.note says GW",
+    "nettoGw": 4.49,
+    "energyGwh": 8.1
+  },
+  "vg250": {
+    "available": false,
+    "license": "dl-de/by-2-0",
+    "note": "BKG VG250 Landkreise when download succeeds; otherwise map uses MaStR-Punkte ohne Flächenkarte."
+  },
+  "networkLengthNormalization": {
+    "available": false,
+    "note": "Keine belastbare öffentliche VNB-Netzlängenquelle pro Netzbetreiber — Graph 2 ohne Normierungsschalter."
+  },
+  "eonGroupMembersDefault": [
+    "westnetz",
+    "bayernwerk netz",
+    "avacon netz",
+    "schleswig-holstein netz",
+    "e.dis netz",
+    "lew verteilnetz",
+    "syna",
+    "mitnetz",
+    "enviam",
+    "regionetz",
+    "energis"
+  ]
+}
