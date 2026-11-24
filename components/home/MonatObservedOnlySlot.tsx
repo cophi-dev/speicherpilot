@@ -20,6 +20,9 @@ export function MonatObservedOnlySlot({ monthKey }: { monthKey: string }) {
 
   return (
     <>
+      <p className="v4-content v4-footnote" role="note">
+        Hinweis: nur beobachtete Daten, kein Modelllauf.
+      </p>
       <NationalFleetMonthUnavailable monthKey={monthKey} />
       <MonatDauerlinieChart
         model={model}
