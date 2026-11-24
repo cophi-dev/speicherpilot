@@ -181,16 +181,20 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
         </div>
       </section>
 
-      <section className="v4-chapter v4-content" aria-labelledby="g2-title">
-        <p className="v4-chapter-num num">01 — Verteilnetzbetreiber</p>
-        <h2 id="g2-title" className="v4-chapter-h2">
-          Bruttoleistung (Top 13)
-        </h2>
-        <p className="v4-subline">
-          Summen je Einheit im Bundle, nicht über Kartenpunkte. E.ON-Tochtergesellschaften im Akzent, übrige Netzbetreiber
-          grau.
-        </p>
-        <NetzbetreiberVnbBars rows={vnbBarRows} />
+      <section className="v4-chapter" aria-labelledby="g2-title">
+        <div className="v4-chapter-head v4-content">
+          <p className="v4-chapter-num num">01 — Verteilnetzbetreiber</p>
+          <h2 id="g2-title" className="v4-chapter-h2">
+            Bruttoleistung (Top 13)
+          </h2>
+          <p className="v4-tag-side">
+            Summen je Einheit im Bundle, nicht über Kartenpunkte. E.ON-Tochtergesellschaften im Akzent, übrige
+            Netzbetreiber grau.
+          </p>
+        </div>
+        <div className="v4-content v4-luecke-wrap">
+          <NetzbetreiberVnbBars rows={vnbBarRows} />
+        </div>
       </section>
 
       <details className={styles.moreData}>
