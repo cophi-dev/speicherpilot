@@ -32,7 +32,7 @@ export function NetzbetreiberSvgMap({
   const outline = useMemo(() => germanyOutlineSvgPath(VIEW_W, VIEW_H), []);
 
   const points = useMemo(() => {
-    return sites.map((site) => {
+    const mapped = sites.map((site) => {
       const { x, y } = projectSiteToSvg(site.lat, site.lng, VIEW_W, VIEW_H);
       const dimmed = Boolean(focusKey && site.vnbBucketKey !== focusKey && !site.vnbBucketLabel.toLowerCase().includes((focusKey ?? "").toLowerCase()));
       return {
@@ -45,6 +45,7 @@ export function NetzbetreiberSvgMap({
         label: `${site.vnbBucketLabel}: ${formatQuantityUnit(site.bruttoMw, "de", 1, "MW")} brutto`,
       };
     });
+    return mapped.sort((a, b) => a.r - b.r);
   }, [sites, focusKey]);
 
   return (

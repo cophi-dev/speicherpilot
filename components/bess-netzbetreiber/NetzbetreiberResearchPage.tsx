@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { type CSSProperties, useMemo, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import { NetzbetreiberG3Chart, NetzbetreiberG4Chart } from "@/components/bess-netzbetreiber/NetzbetreiberCharts.client";
+import {
+  NetzbetreiberBlBessBars,
+  NetzbetreiberEeStockBars,
+  NetzbetreiberG3Bars,
+} from "@/components/bess-netzbetreiber/NetzbetreiberMoreBars";
 import { NetzbetreiberSvgMap } from "@/components/bess-netzbetreiber/NetzbetreiberSvgMap";
 import { NetzbetreiberVnbBars } from "@/components/bess-netzbetreiber/NetzbetreiberVnbBars";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
-import { useKnotenTheme } from "@/components/knoten/useKnotenTheme";
 import { computeNetzbetreiberHeadlines } from "@/lib/bessNetzbetreiber/computeHeadlines";
 import type { BessNetzbetreiberBundle } from "@/lib/bessNetzbetreiber/schema";
 import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
@@ -25,8 +27,9 @@ type ManifestShape = {
   eeStockMastr?: { complete?: boolean };
 };
 
+const EON_HYPH = "\u2011";
+
 export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberBundle }) {
-  const { colors } = useKnotenTheme();
   const [eonIncludeMitnetz, setEonIncludeMitnetz] = useState(true);
   const [vnbQuery, setVnbQuery] = useState("");
 
@@ -74,35 +77,36 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
   const heroCh = String(eonGwParts.replace(/\s/g, "").length + 2);
 
   const scatterRows = model.scatterBundeslaender;
-  const scatterData = scatterRows.map((r) => ({
-    name: r.bundesland,
-    x: r.eeRedispatch2025Gwh,
-    y: r.bessBruttoGw,
-    fullName: r.bundesland,
-  }));
-
   const eeStock = model.eeStockBundeslaender;
   const g5Data = eeStock.map((r) => {
     const bessGw = scatterRows.find((s) => s.bundesland === r.bundesland)?.bessBruttoGw ?? 0;
-    const eeGw = r.windOnshoreGw + r.pvGw;
     return {
-      name: r.bundesland,
+      bundesland: r.bundesland,
       wind: r.windOnshoreGw,
       pv: r.pvGw,
       bess: bessGw,
-      mwPerGwEe: eeGw > 0 ? (bessGw * 1000) / eeGw : 0,
     };
   });
 
-  const h1 = eonIncludeMitnetz
-    ? "Mehr als die Hälfte der Großspeicher hängt an E.ON-Netzen."
-    : "Der Großteil der ≥1-MW-Speicher liegt an westdeutschen Verteilnetzen.";
+  const vnbOver50Count = useMemo(() => {
+    const vnbOnly = vnbRanking.filter((r) => r.operatorClass !== "uenb");
+    return vnbOnly.filter((r) => r.bruttoMw > 50).length;
+  }, [vnbRanking]);
+
+  const h1 = eonIncludeMitnetz ? (
+    <>
+      Mehr als die Hälfte der Großspeicher hängt an{" "}
+      <span className={styles.eonNowrap}>E.ON{EON_HYPH}Netzen</span>.
+    </>
+  ) : (
+    "Der Großteil der ≥1-MW-Speicher liegt an westdeutschen Verteilnetzen."
+  );
 
   return (
     <div className={styles.netzbetreiberV4} data-testid="netzbetreiber-page">
       <section className="v4-kopf" aria-labelledby="nb-h1">
         <div className="v4-kopf-inner v4-content">
-          <p className="v4-kicker num">BESS-KARTE · NETZBETREIBER · DATENSTAND {stichtagDe}</p>
+          <p className="v4-kicker num">BESS-Karte · NETZBETREIBER · DATENSTAND {stichtagDe}</p>
           <p id="nb-leitfrage" className="v4-subline" style={{ marginBottom: "0.35rem", fontWeight: 500 }}>
             Wo stehen Deutschlands Batteriespeicher?
           </p>
@@ -113,16 +117,20 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
             </h1>
             <div className="v4-kopf-subgrid">
               <p className={`v4-subline ${styles.leadTight}`}>
-                Modell: MaStR-Konzeptfilter (Batterie, In Betrieb, netto ≥ 1 MW).{" "}
-                {formatQuantity(headlines.units, "de", 0)} Einheiten mit{" "}
-                {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")} brutto im Bestand. Konzernzuordnung über
-                feste SNB-Nummern;{" "}
+                Marktstammdatenregister, Stand {stichtagDe}: {formatQuantity(headlines.units, "de", 0)} Batteriespeicher
+                ab 1 MW sind in Betrieb, zusammen {formatQuantityUnit(headlines.bruttoGw, "de", 2, "GW")}.{" "}
                 <button
                   type="button"
                   className={styles.mitnetzLink}
                   onClick={() => setEonIncludeMitnetz((v) => !v)}
                 >
-                  {eonIncludeMitnetz ? "MITNETZ im E.ON-Konzern eingeschlossen" : "ohne mitteldeutsche Tochter"}
+                  {eonIncludeMitnetz ? (
+                    <>
+                      MITNETZ im <span className={styles.eonNowrap}>E.ON{EON_HYPH}Konzern</span> eingeschlossen
+                    </>
+                  ) : (
+                    "ohne mitteldeutsche Tochter"
+                  )}
                 </button>
                 .
               </p>
@@ -147,8 +155,8 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
               </p>
               <div className="v4-kern-row">
                 <span>
-                  an E.ON-Netzen, {formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")} der Leistung in
-                  Betrieb
+                  an <span className={styles.eonNowrap}>E.ON{EON_HYPH}Netzen</span>,{" "}
+                  {formatQuantityUnit(headlines.eonSharePctTotal, "de", 0, "%")} der Leistung in Betrieb
                 </span>
               </div>
             </div>
@@ -159,7 +167,8 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
 
           <p className={styles.flowPara}>
             Zubau mit Inbetriebnahme 2026: {formatQuantityUnit(headlines.zubau2026Gw, "de", 2, "GW")} brutto — davon{" "}
-            {formatQuantityUnit(headlines.zubau2026EonGw, "de", 2, "GW")} an E.ON-Netzen (
+            {formatQuantityUnit(headlines.zubau2026EonGw, "de", 2, "GW")} an{" "}
+            <span className={styles.eonNowrap}>E.ON{EON_HYPH}Netzen</span> (
             {formatQuantityUnit(headlines.zubau2026EonSharePct, "de", 0, "%")} des Zubaus). ÜNB in Betrieb (netto):{" "}
             {formatQuantityUnit(model.uenbEbene.inBetriebNettoGw ?? model.uenbEbene.inBetriebBruttoGw, "de", 2, "GW")}{" "}
             ({model.uenbEbene.inBetriebUnits ?? "—"} Einheiten, Konzeptfilter).
@@ -188,8 +197,9 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
             Bruttoleistung (Top 13)
           </h2>
           <p className="v4-tag-side">
-            Summen je Einheit im Bundle, nicht über Kartenpunkte. E.ON-Tochtergesellschaften im Akzent, übrige
-            Netzbetreiber grau.
+            Nur {vnbOver50Count} Verteilnetzbetreiber haben mehr als 50 MW. MITNETZ liegt vor Westnetz. Balken der{" "}
+            <span className={styles.eonNowrap}>E.ON{EON_HYPH}Gruppe</span> in Rostorange, übrige Verteilnetzbetreiber
+            grau.
           </p>
         </div>
         <div className="v4-content v4-luecke-wrap">
@@ -205,14 +215,14 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
             <h2 id="g3-more" className="v4-chapter-h2">
               Bestand vor 2026 und Zubau 2026
             </h2>
-            <NetzbetreiberG3Chart data={growth} palette={colors} />
+            <NetzbetreiberG3Bars rows={growth} />
           </section>
           <section aria-labelledby="g4-more">
             <p className="v4-chapter-num num">Bundesländer</p>
             <h2 id="g4-more" className="v4-chapter-h2">
               EE-Redispatch 2025 und BESS (Modell)
             </h2>
-            <NetzbetreiberG4Chart data={scatterData} palette={colors} />
+            <NetzbetreiberBlBessBars rows={scatterRows} />
             <p className="v4-subline">
               ÜNB in Betrieb brutto {formatQuantityUnit(model.uenbEbene.inBetriebBruttoGw, "de", 2, "GW")}, netto{" "}
               {formatQuantityUnit(model.uenbEbene.inBetriebNettoGw ?? 0, "de", 2, "GW")} — siehe{" "}
@@ -228,18 +238,7 @@ export function NetzbetreiberResearchPage({ model }: { model: BessNetzbetreiberB
               <h2 id="g5-more" className="v4-chapter-h2">
                 Wind, PV und BESS je Bundesland (Modell, MaStR-Auszug)
               </h2>
-              <ResponsiveContainer width="100%" height={340}>
-                <BarChart data={g5Data} margin={{ left: 8, right: 8, top: 28, bottom: 72 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
-                  <XAxis dataKey="name" tick={{ fill: colors.muted, fontSize: 10 }} interval={0} angle={-35} textAnchor="end" height={72} />
-                  <YAxis tickFormatter={(v) => `${v} GW`} tick={{ fill: colors.muted, fontSize: 12 }} />
-                  <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 8 }} />
-                  <Tooltip />
-                  <Bar dataKey="wind" stackId="ee" fill={colors.gray} name="Wind an Land" isAnimationActive={false} />
-                  <Bar dataKey="pv" stackId="ee" fill={colors.rust} name="PV" isAnimationActive={false} />
-                  <Bar dataKey="bess" fill={colors.teal} name="BESS" isAnimationActive={false} />
-                </BarChart>
-              </ResponsiveContainer>
+              <NetzbetreiberEeStockBars rows={g5Data} />
             </section>
           ) : null}
         </div>

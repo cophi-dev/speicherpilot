@@ -1,23 +1,20 @@
 {
-  "commit": "22ac9377ed0abac20d443a2863efe9b3088f2dfd",
-  "buildId": "20261124T1820Z",
-  "builtAt": "2026-11-24T18:20:27.842Z",
+  "commit": "28df42b48b1760257d7ee91b61d470c84bd94a96",
+  "buildId": "20261124T1826Z",
+  "builtAt": "2026-11-24T18:26:44.455Z",
   "node": "v22.23.4",
   "dirty": true,
   "dirtyPaths": [
-    "M  components/methodik/MethodikDocs.tsx",
-    "A  review-artifacts/netzbetreiber-v4/manifest.json",
-    "R  review-artifacts/netzbetreiber-v4/screens/netzbetreiber-v4-dark-1280.png -> review-artifacts/netzbetreiber-v4/netzbetreiber-v4-dark-1280.png",
-    "A  review-artifacts/netzbetreiber-v4/netzbetreiber-v4-dark-390.png",
-    "R  review-artifacts/netzbetreiber-v4/screens/netzbetreiber-v4-light-1280.png -> review-artifacts/netzbetreiber-v4/netzbetreiber-v4-light-1280.png",
-    "A  review-artifacts/netzbetreiber-v4/netzbetreiber-v4-light-390.png",
-    "D  review-artifacts/netzbetreiber-v4/screens/netzbetreiber-v4-dark-390.png",
-    "D  review-artifacts/netzbetreiber-v4/screens/netzbetreiber-v4-light-390.png",
-    "R  review-artifacts/netzbetreiber-v4/screens/tag-v4-light-1280-compare.png -> review-artifacts/netzbetreiber-v4/tag-ref-light-1280.png",
-    "M  scripts/netzbetreiber-v4-screenshots.mjs",
+    "M components/bess-netzbetreiber/NetzbetreiberResearchPage.tsx",
+    " M components/bess-netzbetreiber/NetzbetreiberSvgMap.tsx",
+    " M components/bess-netzbetreiber/bess-netzbetreiber.module.css",
+    " M components/methodik/MethodikDocs.tsx",
+    "?? components/bess-netzbetreiber/NetzbetreiberMoreBars.tsx",
     "?? review-artifacts/netzbetreiber-v3/",
+    "?? review-artifacts/netzbetreiber-v5/",
     "?? scripts/netzbetreiber-v3b-g3-screenshots.mjs",
-    "?? scripts/netzbetreiber-v3b-karte-screenshots.mjs"
+    "?? scripts/netzbetreiber-v3b-karte-screenshots.mjs",
+    "?? scripts/netzbetreiber-v5-screenshots.mjs"
   ],
   "ci": false
 }

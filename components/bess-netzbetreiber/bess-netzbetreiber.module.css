@@ -38,14 +38,35 @@
   cursor: pointer;
 }
 
+.netzbetreiberV4 :global(.v4-kopf-intro .v4-subline) {
+  margin-bottom: 0.65rem;
+}
+
 .netzbetreiberV4Hero {
-  margin-top: 1.5rem;
+  margin-top: 0.35rem;
+  align-items: start;
 }
 
 @media (min-width: 1200px) {
   .netzbetreiberV4Hero {
     grid-template-columns: minmax(0, 1fr) minmax(200px, 480px);
   }
+}
+
+@media (max-width: 767px) {
+  .netzbetreiberV4 :global(.v4-kopf-zahl) {
+    width: 100%;
+    max-width: 100%;
+  }
+  .netzbetreiberV4 :global(.v4-riesenzahl) {
+    --v4-ries-max: 8.5rem;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.eonNowrap {
+  white-space: nowrap;
 }
 
 .mapColumn {
@@ -169,6 +190,25 @@
   background: color-mix(in srgb, hsl(var(--foreground)) 12%, transparent);
   border-radius: 1px;
   overflow: hidden;
+}
+
+.vnbBarTrackStack {
+  height: 8px;
+  background: color-mix(in srgb, hsl(var(--foreground)) 12%, transparent);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.vnbBarStackInner {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+}
+
+.vnbBarStackInner .vnbBarFillOther,
+.vnbBarStackInner .vnbBarFillEon {
+  display: block;
+  height: 100%;
 }
 
 .vnbBarFillEon {
