@@ -113,7 +113,7 @@ Alle Links wurden am 27.10.2026 mit curl geprüft (HTTP 200). Stand = Veröffent
 | Q10 | Bundesgerichtshof: Pressemitteilung Nr. 129/2025 zu EnVR 1/24 | 15.07.2025 | https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025129.html |
 | Q11 | Gesetze im Internet: § 17 EnWG | Abruf 04.11.2026 | https://www.gesetze-im-internet.de/enwg_2005/__17.html |
 | Q12 | dena: Großbatteriespeicher effizient integrieren (Analyse) | 02/2026 | https://www.dena.de/fileadmin/dena/Publikationen/PDFs/2026/Analyse_Grossbatteriespeicher_UA.pdf |
-| Q13 | Netzbooster Kupferzell, Projektporträt (öffentliche Netzentwicklungsseite) | Abruf 04.11.2026 | https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/Netzengpassmanagement/start.html |
+| Q13 | Netzbooster Kupferzell, Projektporträt (öffentliche Netzentwicklungsseite) | Abruf 04.11.2026 | https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/Versorgungssicherheit/Netzengpassmanagement/start.html |
 | Q14 | Regelzone Nordost: Policy Brief Hochlauf der Großbatteriespeicher (Positionspapier) | 2025 | https://www.bundesnetzagentur.de/DE/Home/home_node.html |
 | Q15 | VDE FNN: Hinweis Netzbildende Eigenschaften inkl. Momentanreserve, Version 2.0 | 05/2025 | https://www.vde.com/resource/blob/2387778/d2af154bb6d0669eaaf705dbf0594b86/vde-fnn-hinweis-netzbildende-eigenschaften-download-data.pdf |
 | Q16 | SMARD (Bundesnetzagentur): Day-Ahead-Großhandelspreise DE-LU, Stundenwerte, eigene Auswertung | Daten bis 27.10.2026 | https://www.smard.de/app/chart_data/4169/DE-LU/index_hour.json (Marktdaten: https://www.smard.de/home/marktdaten) |
