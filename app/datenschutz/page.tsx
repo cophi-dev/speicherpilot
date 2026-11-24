@@ -10,6 +10,7 @@ const description =
 export const metadata: Metadata = {
   title: "Datenschutz",
   description,
+  alternates: { canonical: "/datenschutz" },
   ...socialMeta({ title: "Datenschutz", description, url: "/datenschutz" }),
 };
 

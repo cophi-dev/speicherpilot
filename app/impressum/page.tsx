@@ -10,6 +10,7 @@ const description =
 export const metadata: Metadata = {
   title: "Impressum",
   description,
+  alternates: { canonical: "/impressum" },
   ...socialMeta({ title: "Impressum", description, url: "/impressum" }),
 };
 
