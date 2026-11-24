@@ -6,9 +6,16 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
-  height: min(58vh, 440px);
+  height: 60vh;
   min-height: 280px;
   width: 100%;
+}
+
+@media (min-width: 768px) {
+  .mapShell {
+    height: 70vh;
+    max-height: 900px;
+  }
 }
 
 .kpiGrid {
@@ -158,9 +165,32 @@
   font-size: 18px !important;
 }
 
-@media (max-width: 767px) {
-  .mapShell {
-    min-height: 240px;
-    height: 46vh;
-  }
+.clusterIcon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.clusterBubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: color-mix(in srgb, hsl(var(--background)) 88%, transparent);
+  border: 2px solid currentColor;
+  font-family: var(--font-jetbrains-mono), monospace;
+  line-height: 1.1;
+  box-shadow: 0 1px 4px color-mix(in srgb, hsl(var(--foreground)) 12%, transparent);
+}
+
+.clusterCount {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.clusterGw {
+  font-size: 10px;
+  opacity: 0.9;
 }
