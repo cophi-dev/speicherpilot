@@ -10,7 +10,7 @@ import {
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
 import {
-  adjacentMonthWithData,
+  adjacentAvailableMonths,
   buildMonatGrid,
   formatBerlinMonthLabel,
   formatBerlinMonthShort,
@@ -32,14 +32,7 @@ export function MonatNav({
   records: TagesKennzahlRecord[];
 }) {
   const hasFleetModel = nationalFleetMonthAvailable(monthKey);
-  const fleetMonths = [...NATIONAL_FLEET_MONTH_KEYS].sort();
-  const fleetIdx = fleetMonths.indexOf(monthKey as (typeof NATIONAL_FLEET_MONTH_KEYS)[number]);
-  const prev = hasFleetModel
-    ? (fleetIdx > 0 ? fleetMonths[fleetIdx - 1]! : null)
-    : adjacentMonthWithData(monthKey, "prev", records);
-  const next = hasFleetModel
-    ? (fleetIdx >= 0 && fleetIdx < fleetMonths.length - 1 ? fleetMonths[fleetIdx + 1]! : null)
-    : adjacentMonthWithData(monthKey, "next", records);
+  const { prev, next } = adjacentAvailableMonths(monthKey, records, NATIONAL_FLEET_MONTH_KEYS);
   return (
     <div className="v4-content">
       <nav className="v4-tag-nav" aria-label="Monat wählen">
@@ -48,9 +41,9 @@ export function MonatNav({
             ← Vormonat
           </Link>
         ) : (
-          <Link href="/jahr#saison-12m" prefetch={false} className="v4-tag-nav-btn">
-            ← 12-Monats-Übersicht
-          </Link>
+          <span className="v4-tag-nav-btn is-disabled" aria-disabled="true" aria-label="Kein Vormonat vorhanden">
+            ← Vormonat
+          </span>
         )}
         <span className="v4-tag-nav-date-label num">
           {formatBerlinMonthLabel(monthKey)}
@@ -61,7 +54,7 @@ export function MonatNav({
             Folgemonat →
           </Link>
         ) : (
-          <span className="v4-tag-nav-btn is-disabled" aria-disabled="true">
+          <span className="v4-tag-nav-btn is-disabled" aria-disabled="true" aria-label="Kein Folgemonat vorhanden">
             Folgemonat →
           </span>
         )}
