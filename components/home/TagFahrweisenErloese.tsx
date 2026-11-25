@@ -38,13 +38,7 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
             {view.rows.map((row) => (
               <tr key={row.strategy}>
                 <th scope="row">{row.labelDe}</th>
-                <td>
-                  {row.revenueEur == null ? (
-                    <span>steht aus ({row.sourceFieldPath} · {view.revenueField})</span>
-                  ) : (
-                    formatTagRevenueEur(row.revenueEur)
-                  )}
-                </td>
+                <td>{row.revenueEur == null ? "steht aus" : formatTagRevenueEur(row.revenueEur)}</td>
                 <td>{insertDisplayUnitNbsp(formatThroughputLine(row))}</td>
               </tr>
             ))}

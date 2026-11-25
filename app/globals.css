@@ -10530,6 +10530,20 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 
 .v4-tag-erloese {
   margin-block: 8px 28px;
+  max-width: 100%;
+  min-width: 0;
+}
+.v4-tag-erloese .v4-fleet-day-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.v4-tag-erloese .v4-fleet-day-table {
+  table-layout: fixed;
+}
+.v4-tag-erloese .v4-fleet-day-table th,
+.v4-tag-erloese .v4-fleet-day-table td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .v4-tag-erloese-title {
   margin: 0 0 8px;
