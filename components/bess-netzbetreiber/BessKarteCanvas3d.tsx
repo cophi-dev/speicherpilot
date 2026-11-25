@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   abregelungOhneOffshore,
@@ -13,9 +13,14 @@ import {
   clampCamera3d,
   createProjectionParams3d,
   geoToPlane,
+  panCameraBy,
   type Point2d,
   projectCuboid,
   projectPoint3d,
+  screenCross2d,
+  ZOOM_MAX,
+  ZOOM_MIN,
+  zoomCameraAt,
 } from "@/lib/bessKarte3d/projection3d";
 import type {
   BundeslaenderGeoJson,
@@ -39,7 +44,14 @@ type Props = {
   camera: Camera3d;
   onCameraChange: (next: Camera3d) => void;
   onResetCamera: () => void;
+  /** Hero: größere Bühne, ohne Rahmen. */
+  hero?: boolean;
+  overlay?: ReactNode;
 };
+
+/** Dicke der Landplatte (Ebenen-Einheiten, 1 ≈ 470 km). */
+const LAND_DEPTH = 0.075;
+const ZOOM_STEP = 1.45;
 
 type PreparedPoly = {
   name: string;
@@ -136,6 +148,8 @@ export function BessKarteCanvas3d({
   camera,
   onCameraChange,
   onResetCamera,
+  hero = false,
+  overlay,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -146,7 +160,22 @@ export function BessKarteCanvas3d({
     startY: number;
     startCam: Camera3d;
     moved: boolean;
+    pan: boolean;
   } | null>(null);
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{ dist: number; midX: number; midY: number } | null>(null);
+  const cameraRef = useRef(camera);
+  useEffect(() => {
+    cameraRef.current = camera;
+  }, [camera]);
+  const sizeRef = useRef({ width: 720, height: 560 });
+  const [wheelActive, setWheelActive] = useState(false);
+  const wheelActiveRef = useRef(false);
+  useEffect(() => {
+    wheelActiveRef.current = wheelActive;
+  }, [wheelActive]);
+  const [wheelHint, setWheelHint] = useState(false);
+  const wheelHintTimer = useRef<number | null>(null);
 
   const [size, setSize] = useState({ width: 720, height: 560 });
   const [isDark, setIsDark] = useState(false);
@@ -216,12 +245,53 @@ export function BessKarteCanvas3d({
       const entry = entries[0];
       if (!entry) return;
       const w = Math.max(320, Math.round(entry.contentRect.width));
-      const h = Math.max(460, Math.min(600, Math.round(w * 0.78)));
+      const h = hero
+        ? Math.max(520, Math.min(880, Math.round(window.innerHeight * 0.8), Math.round(w * 0.72)))
+        : Math.max(460, Math.min(600, Math.round(w * 0.78)));
       setSize((prev) => (prev.width === w && prev.height === h ? prev : { width: w, height: h }));
     });
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
+  }, [hero]);
+
+  useEffect(() => {
+    sizeRef.current = size;
+  }, [size]);
+
+  // Mausrad zoomt nur mit Strg/⌘ oder nachdem die Karte angeklickt wurde; sonst scrollt die Seite
+  // weiter und ein dezenter Hinweis erscheint.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey || wheelActiveRef.current)) {
+        setWheelHint(true);
+        if (wheelHintTimer.current) window.clearTimeout(wheelHintTimer.current);
+        wheelHintTimer.current = window.setTimeout(() => setWheelHint(false), 1600);
+        return;
+      }
+      e.preventDefault();
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const factor = Math.exp(-Math.max(-60, Math.min(60, e.deltaY)) * 0.006);
+      const { width, height } = sizeRef.current;
+      onCameraChange(
+        zoomCameraAt(cameraRef.current, factor, e.clientX - rect.left, e.clientY - rect.top, width, height),
+      );
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      if (wheelHintTimer.current) window.clearTimeout(wheelHintTimer.current);
+    };
+  }, [onCameraChange]);
+
+  function zoomBy(factor: number) {
+    const { width, height } = sizeRef.current;
+    const params = createProjectionParams3d(camera, width, height);
+    onCameraChange(zoomCameraAt(camera, factor, params.cx, params.cy, width, height));
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -247,16 +317,16 @@ export function BessKarteCanvas3d({
       ? createNullHatchPattern(ctx, isDark)
       : null;
 
-    // 1. Subtiler Boden-Schatten unter Deutschland-Umriss
+    // 1. Weicher Boden-Schatten unter der Landplatte
     ctx.save();
-    ctx.translate(0, 5);
-    ctx.fillStyle = isDark ? "rgba(0, 0, 0, 0.35)" : "rgba(16, 18, 20, 0.06)";
+    ctx.fillStyle = isDark ? "rgba(0, 0, 0, 0.32)" : "rgba(16, 18, 20, 0.07)";
+    ctx.filter = "blur(6px)";
     for (const poly of preparedPolys) {
       ctx.beginPath();
       for (const ring of poly.rings) {
         for (let i = 0; i < ring.length; i += 1) {
           const pt = ring[i]!;
-          const p = projectPoint3d(pt.x, pt.y, 0, params);
+          const p = projectPoint3d(pt.x + 0.01, pt.y - 0.02, -LAND_DEPTH, params);
           if (i === 0) ctx.moveTo(p.x, p.y);
           else ctx.lineTo(p.x, p.y);
         }
@@ -265,6 +335,52 @@ export function BessKarteCanvas3d({
       ctx.fill();
     }
     ctx.restore();
+
+    // 1b. Landplatte als Körper: Seitenwände von z = −LAND_DEPTH bis 0, von hinten nach vorne.
+    const walls: { pts: [Point2d, Point2d, Point2d, Point2d]; depth: number; shade: number }[] = [];
+    for (const poly of preparedPolys) {
+      for (const ring of poly.rings) {
+        for (let i = 0; i < ring.length - 1; i += 1) {
+          const a = ring[i]!;
+          const b = ring[i + 1]!;
+          const a0 = projectPoint3d(a.x, a.y, 0, params);
+          const b0 = projectPoint3d(b.x, b.y, 0, params);
+          const a1 = projectPoint3d(a.x, a.y, -LAND_DEPTH, params);
+          const b1 = projectPoint3d(b.x, b.y, -LAND_DEPTH, params);
+          // Nur Kanten, deren Wand nach vorne (unten im Bild) zeigt, sind sichtbar.
+          const cross = screenCross2d(a0, b0, b1);
+          if (Math.abs(cross) < 1e-3) continue;
+          const ex = b0.x - a0.x;
+          const ey = b0.y - a0.y;
+          const len = Math.hypot(ex, ey) || 1;
+          let nx = -ey / len;
+          let ny = ex / len;
+          if (ny < 0) {
+            nx = -nx;
+            ny = -ny;
+          }
+          const shade = Math.max(0, Math.min(1, 0.55 + 0.45 * (nx * -0.6 + ny * 0.8)));
+          walls.push({ pts: [a0, b0, b1, a1], depth: (a0.depth + b0.depth) / 2, shade });
+        }
+      }
+    }
+    walls.sort((x, y) => x.depth - y.depth);
+    const wallLit = isDark ? "#3a414a" : "#d4d4cc";
+    const wallDark = isDark ? "#1a1e23" : "#a9a9a0";
+    for (const w of walls) {
+      ctx.beginPath();
+      ctx.moveTo(w.pts[0].x, w.pts[0].y);
+      ctx.lineTo(w.pts[1].x, w.pts[1].y);
+      ctx.lineTo(w.pts[2].x, w.pts[2].y);
+      ctx.lineTo(w.pts[3].x, w.pts[3].y);
+      ctx.closePath();
+      const c = mixHex(wallDark, wallLit, w.shade);
+      ctx.fillStyle = c;
+      ctx.strokeStyle = c;
+      ctx.lineWidth = 0.6;
+      ctx.fill();
+      ctx.stroke();
+    }
 
     // 2. Bundesländer-Flächen und ruhige Grenzen
     const landFillDefault = isDark ? "#171b20" : "#efefe9";
@@ -312,8 +428,10 @@ export function BessKarteCanvas3d({
     }
 
     // 4. 3D-Säulen (Painter-Sortierung von hinten nach vorne)
-    const maxColHeight = 0.5;
-    const baseHalfW = 0.0072;
+    // Beim Hineinzoomen wachsen Säulen langsamer als die Karte, damit einzelne Lokationen trennbar bleiben.
+    const zoomDamp = Math.max(1, camera.zoom);
+    const maxColHeight = 0.5 / Math.pow(zoomDamp, 0.55);
+    const baseHalfW = 0.0072 / Math.pow(zoomDamp, 0.7);
 
     const sortedItems = siteCoords
       .map(({ site, plane }) => {
@@ -447,18 +565,50 @@ export function BessKarteCanvas3d({
     return null;
   }
 
+  function pinchState() {
+    const pts = [...pointersRef.current.values()];
+    if (pts.length < 2) return null;
+    const [p, q] = [pts[0]!, pts[1]!];
+    return { dist: Math.hypot(p.x - q.x, p.y - q.y), midX: (p.x + q.x) / 2, midY: (p.y + q.y) / 2 };
+  }
+
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     e.currentTarget.setPointerCapture(e.pointerId);
+    setWheelActive(true);
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size >= 2) {
+      dragRef.current = null;
+      pinchRef.current = pinchState();
+      return;
+    }
     dragRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       startCam: camera,
       moved: false,
+      // Ohne Zoom dreht Ziehen die Karte; hineingezoomt verschiebt es sie (Shift dreht immer).
+      pan: camera.zoom > 1.05 && !e.shiftKey,
     };
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (pointersRef.current.has(e.pointerId)) {
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+    if (pinchRef.current && pointersRef.current.size >= 2) {
+      const now = pinchState();
+      const prev = pinchRef.current;
+      if (now && prev.dist > 0) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const { width, height } = sizeRef.current;
+        let next = zoomCameraAt(camera, now.dist / prev.dist, now.midX - rect.left, now.midY - rect.top, width, height);
+        next = panCameraBy(next, now.midX - prev.midX, now.midY - prev.midY, width, height);
+        onCameraChange(next);
+        pinchRef.current = now;
+      }
+      return;
+    }
     const drag = dragRef.current;
     if (drag && drag.pointerId === e.pointerId) {
       const dx = e.clientX - drag.startX;
@@ -469,13 +619,18 @@ export function BessKarteCanvas3d({
         setHoveredSite(null);
       }
       if (drag.moved) {
-        onCameraChange(
-          clampCamera3d({
-            ...drag.startCam,
-            yawDeg: drag.startCam.yawDeg + dx * 0.42,
-            tiltDeg: drag.startCam.tiltDeg + dy * 0.3,
-          }),
-        );
+        if (drag.pan) {
+          const { width, height } = sizeRef.current;
+          onCameraChange(panCameraBy(drag.startCam, dx, dy, width, height));
+        } else {
+          onCameraChange(
+            clampCamera3d({
+              ...drag.startCam,
+              yawDeg: drag.startCam.yawDeg + dx * 0.42,
+              tiltDeg: drag.startCam.tiltDeg + dy * 0.3,
+            }),
+          );
+        }
       }
       return;
     }
@@ -485,6 +640,13 @@ export function BessKarteCanvas3d({
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
+    pointersRef.current.delete(e.pointerId);
+    if (pinchRef.current) {
+      if (pointersRef.current.size < 2) pinchRef.current = null;
+      dragRef.current = null;
+      setDragging(false);
+      return;
+    }
     const drag = dragRef.current;
     if (drag && drag.pointerId === e.pointerId) {
       const wasDrag = drag.moved;
@@ -513,6 +675,12 @@ export function BessKarteCanvas3d({
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       onCameraChange(clampCamera3d({ ...camera, tiltDeg: camera.tiltDeg + 6 }));
+    } else if (e.key === "+" || e.key === "=") {
+      e.preventDefault();
+      zoomBy(ZOOM_STEP);
+    } else if (e.key === "-" || e.key === "_") {
+      e.preventDefault();
+      zoomBy(1 / ZOOM_STEP);
     } else if (e.key === "0" || e.key === "r" || e.key === "R") {
       e.preventDefault();
       onResetCamera();
@@ -520,7 +688,11 @@ export function BessKarteCanvas3d({
   }
 
   return (
-    <div ref={wrapRef} className={styles.canvasStageWrap}>
+    <div
+      ref={wrapRef}
+      className={hero ? `${styles.canvasStageWrap} ${styles.canvasStageHero}` : styles.canvasStageWrap}
+      onMouseLeave={() => setWheelActive(false)}
+    >
       <canvas
         ref={canvasRef}
         className={styles.canvas3d}
@@ -531,7 +703,7 @@ export function BessKarteCanvas3d({
         }}
         tabIndex={0}
         role="img"
-        aria-label="Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit Maus oder Pfeiltasten drehen und neigen, Säule anklicken für Details."
+        aria-label="Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit Maus oder Pfeiltasten drehen und neigen, mit Plus und Minus zoomen, Säule anklicken für Details."
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -542,9 +714,21 @@ export function BessKarteCanvas3d({
         onKeyDown={handleKeyDown}
       />
 
+      {overlay ? (
+        <div
+          className={styles.canvasHeroOverlay}
+          style={{ opacity: camera.zoom > 1.15 ? 0 : 1 }}
+          aria-hidden={camera.zoom > 1.15 ? true : undefined}
+        >
+          {overlay}
+        </div>
+      ) : null}
+
       <div className={styles.canvasOverlayTop}>
         <span className={`${styles.canvasHint} num`}>
-          Ziehen zum Drehen &amp; Neigen · Klick auf Säule für Details
+          {camera.zoom > 1.05
+            ? "Ziehen: verschieben · Shift + Ziehen: drehen · Säule anklicken: Details"
+            : "Ziehen: drehen und neigen · Strg/⌘ + Mausrad: zoomen · Säule anklicken: Details"}
         </span>
         <div className={styles.canvasCamBtns}>
           <button
@@ -584,15 +768,46 @@ export function BessKarteCanvas3d({
           >
             {camera.tiltDeg > 25 ? "Draufsicht" : "3D"}
           </button>
-          <button
-            type="button"
-            className={styles.camBtn}
-            onClick={onResetCamera}
-          >
-            Zurücksetzen
-          </button>
         </div>
       </div>
+
+      <div className={styles.zoomBtns} role="group" aria-label="Zoom">
+        <button
+          type="button"
+          className={styles.camBtn}
+          onClick={() => zoomBy(ZOOM_STEP)}
+          disabled={camera.zoom >= ZOOM_MAX - 1e-6}
+          aria-label="Hineinzoomen"
+          title="Hineinzoomen (+)"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          className={styles.camBtn}
+          onClick={() => zoomBy(1 / ZOOM_STEP)}
+          disabled={camera.zoom <= ZOOM_MIN + 1e-6}
+          aria-label="Herauszoomen"
+          title="Herauszoomen (−)"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className={styles.camBtn}
+          onClick={onResetCamera}
+          aria-label="Ansicht zurücksetzen"
+          title="Ansicht zurücksetzen (0)"
+        >
+          ⌂
+        </button>
+      </div>
+
+      {wheelHint ? (
+        <div className={`${styles.wheelHint} num`} role="status" aria-live="polite">
+          Zum Zoomen Strg/⌘ + Mausrad oder erst auf die Karte klicken
+        </div>
+      ) : null}
 
       {hoveredSite ? (
         <div className={styles.canvasHoverPill} role="status" aria-live="polite">

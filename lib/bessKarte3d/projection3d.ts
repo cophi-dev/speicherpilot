@@ -12,12 +12,21 @@ export type Camera3d = {
   tiltDeg: number;
   /** Zoom-Multiplikator (1 = Standard). */
   zoom: number;
+  /** Verschiebung des Bildmittelpunkts in Ebenen-Koordinaten (optional, 0 = Deutschland-Mitte). */
+  panX?: number;
+  panY?: number;
 };
+
+/** Zoomgrenzen: 1 = ganz Deutschland, 14 ≈ Landkreis-/Lokationsebene. */
+export const ZOOM_MIN = 0.75;
+export const ZOOM_MAX = 14;
 
 export const DEFAULT_CAMERA_3D: Camera3d = {
   yawDeg: -8,
   tiltDeg: 22,
   zoom: 1,
+  panX: 0,
+  panY: 0,
 };
 
 export type Point2d = {
@@ -92,6 +101,8 @@ export type ProjectionParams3d = {
   cy: number;
   scale: number;
   cameraDist: number;
+  panX: number;
+  panY: number;
 };
 
 export function createProjectionParams3d(
@@ -111,6 +122,8 @@ export function createProjectionParams3d(
     cy: height * 0.56,
     scale: minDim * 0.43 * camera.zoom,
     cameraDist: 5.2,
+    panX: camera.panX ?? 0,
+    panY: camera.panY ?? 0,
   };
 }
 
@@ -121,8 +134,10 @@ export function projectPoint3d(
   z: number,
   params: ProjectionParams3d,
 ): ProjectedPoint3d {
-  const x1 = x * params.cosY - y * params.sinY;
-  const y1 = x * params.sinY + y * params.cosY;
+  const px = x - params.panX;
+  const py = y - params.panY;
+  const x1 = px * params.cosY - py * params.sinY;
+  const y1 = px * params.sinY + py * params.cosY;
   const sy = y1 * params.cosT + z * params.sinT;
   const depth = -y1 * params.sinT + z * params.cosT;
   const denom = Math.max(0.8, params.cameraDist - depth);
@@ -142,8 +157,66 @@ export function clampCamera3d(camera: Camera3d): Camera3d {
   return {
     yawDeg: yaw,
     tiltDeg: Math.max(12, Math.min(76, camera.tiltDeg)),
-    zoom: Math.max(0.75, Math.min(1.85, camera.zoom)),
+    zoom: Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, camera.zoom)),
+    panX: Math.max(-1, Math.min(1, camera.panX ?? 0)),
+    panY: Math.max(-1.1, Math.min(1.1, camera.panY ?? 0)),
   };
+}
+
+/** Umkehrung von projectPoint3d für z = 0: Canvas-Punkt → Ebenen-Punkt (null, wenn hinter dem Horizont). */
+export function unprojectGround(sx: number, sy: number, params: ProjectionParams3d): Point2d | null {
+  const u = (sx - params.cx) / params.scale;
+  const v = (params.cy - sy) / params.scale;
+  const d = params.cameraDist;
+  const denom = params.cosT * d - v * params.sinT;
+  if (Math.abs(denom) < 1e-6) return null;
+  const y1 = (v * d) / denom;
+  const persp = d / (d + y1 * params.sinT);
+  if (!(persp > 0)) return null;
+  const x1 = u / persp;
+  return {
+    x: x1 * params.cosY + y1 * params.sinY + params.panX,
+    y: -x1 * params.sinY + y1 * params.cosY + params.panY,
+  };
+}
+
+/** Zoomt um einen Canvas-Punkt: der Ebenen-Punkt unter dem Cursor bleibt stehen. */
+export function zoomCameraAt(
+  camera: Camera3d,
+  factor: number,
+  sx: number,
+  sy: number,
+  width: number,
+  height: number,
+): Camera3d {
+  const next = clampCamera3d({ ...camera, zoom: camera.zoom * factor });
+  const before = unprojectGround(sx, sy, createProjectionParams3d(camera, width, height));
+  const after = unprojectGround(sx, sy, createProjectionParams3d(next, width, height));
+  if (!before || !after) return next;
+  return clampCamera3d({
+    ...next,
+    panX: (next.panX ?? 0) + (before.x - after.x),
+    panY: (next.panY ?? 0) + (before.y - after.y),
+  });
+}
+
+/** Verschiebt die Karte um einen Bildschirm-Versatz (Ziehen bei Zoom > 1). */
+export function panCameraBy(
+  camera: Camera3d,
+  dxPx: number,
+  dyPx: number,
+  width: number,
+  height: number,
+): Camera3d {
+  const params = createProjectionParams3d(camera, width, height);
+  const a = unprojectGround(params.cx, params.cy, params);
+  const b = unprojectGround(params.cx - dxPx, params.cy - dyPx, params);
+  if (!a || !b) return camera;
+  return clampCamera3d({
+    ...camera,
+    panX: (camera.panX ?? 0) + (b.x - a.x),
+    panY: (camera.panY ?? 0) + (b.y - a.y),
+  });
 }
 
 /** 2D-Kreuzprodukt für Sichtbarkeitsprüfung (in Canvas mit Y nach unten: < 0 = dem Betrachter zugewandt). */

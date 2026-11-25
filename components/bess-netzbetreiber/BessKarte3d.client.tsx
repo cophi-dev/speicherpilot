@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import {
   abregelungOhneOffshore,
@@ -41,10 +41,17 @@ import { BkgAttribution, BmweQuelle } from "@/components/bess-netzbetreiber/Kart
 export function BessKarte3d({
   summary,
   geoJson,
+  hero = false,
+  overlay,
 }: {
   summary: Karte3dSummary;
   geoJson: BundeslaenderGeoJson;
+  /** Hero-Variante: große Bühne, ohne Kästen. */
+  hero?: boolean;
+  /** Inhalt oben links auf der 3D-Bühne (Hero-Zahl), nur Desktop. */
+  overlay?: ReactNode;
 }) {
+  const shellClass = hero ? `${styles.karteShell} ${styles.karteHero}` : styles.karteShell;
   const [karte, setKarte] = useState<Karte3dData | null>(null);
   const [isDesktop, setIsDesktop] = useState<boolean>(true);
   const [reducedMotion, setReducedMotion] = useState<boolean>(false);
@@ -196,7 +203,8 @@ export function BessKarte3d({
 
   if (!karte || !cutResult) {
     return (
-      <div className={styles.karteShell} aria-busy="true" aria-label="Speicherkarte wird geladen">
+      <div className={shellClass} aria-busy="true" aria-label="Speicherkarte wird geladen">
+        {hero && overlay ? <div className={styles.heroOverlayStatic}>{overlay}</div> : null}
         <div className={styles.karteLoading}>
           <p className="num">Interaktive Speicherkarte (545 Lokationen) wird geladen …</p>
         </div>
@@ -205,7 +213,7 @@ export function BessKarte3d({
   }
 
   return (
-    <div className={styles.karteShell} data-testid="bess-karte-3d">
+    <div className={shellClass} data-testid="bess-karte-3d">
       {/* Steuerleiste: Modus, Ebene, Filter */}
       <div className={styles.karteControls} role="region" aria-label="Kartenfilter und Darstellung">
         <div className={styles.controlGroup}>
@@ -323,6 +331,8 @@ export function BessKarte3d({
         <div className={styles.karteMapPane}>
           {isDesktop ? (
             <BessKarteCanvas3d
+              hero={hero}
+              overlay={overlay}
               geoJson={geoJson}
               bundeslaender={summary.bundeslaender}
               sites={cutResult.sites}

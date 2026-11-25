@@ -1230,3 +1230,291 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* ===== Hero-Karte (neon/sp-karte-hero, Phillipp 25.11 13:33/13:34) ===== */
+
+.heroSection {
+  padding-top: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.heroHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.heroH1 {
+  margin: 0;
+  font-size: var(--type-18, 1.125rem);
+  font-weight: 500;
+  line-height: 1.3;
+  color: hsl(var(--foreground));
+}
+
+.heroZahlRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1.75rem;
+}
+
+.heroZahlRow :global(.v4-riesenzahl) {
+  margin: 0;
+}
+
+.heroZahlText {
+  margin: 0 0 0.6rem;
+  max-width: 34ch;
+  font-size: var(--type-14);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.heroStage {
+  width: min(1440px, calc(100vw - 2rem));
+  margin: 0.75rem auto 0;
+}
+
+/* Keine Kästen: Filter, Bühne, Legende, Detailpanel und Zeitachse sitzen frei auf der Seite. */
+.karteHero .karteControls,
+.karteHero .legendsRow,
+.karteHero .timelineBox,
+.karteHero .mobile2dWrap {
+  border: none;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.karteHero .karteControls {
+  padding-top: 0;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
+  border-radius: 0;
+}
+
+.karteHero .canvasStageWrap {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+.karteHero .canvasHint {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.karteHero .camBtn {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--linie) 65%, transparent);
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: var(--type-14);
+}
+
+.karteHero .camBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.karteHero .canvasHoverPill {
+  border: none;
+  border-left: 3px solid var(--v4-warm);
+  background: color-mix(in srgb, hsl(var(--background)) 80%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: none;
+}
+
+.karteHero .detailCard {
+  border: none;
+  border-left: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
+  border-radius: 0;
+  background: transparent;
+  padding: 0 0 0 1.25rem;
+}
+
+@media (max-width: 1024px) {
+  .karteHero .detailCard {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
+.zoomBtns {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.zoomBtns .camBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.mobileMapFrame {
+  position: relative;
+}
+
+.wheelHint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  max-width: calc(100% - 2rem);
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, hsl(var(--foreground)) 80%, transparent);
+  color: hsl(var(--background));
+  font-size: var(--type-12);
+  text-align: center;
+  pointer-events: none;
+}
+
+.kernGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+}
+
+@media (min-width: 900px) {
+  .kernGrid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+.kernItem {
+  min-width: 0;
+  padding-top: 0.9rem;
+  border-top: 2px solid hsl(var(--foreground));
+}
+
+.kernZahl {
+  margin: 0 0 0.35rem;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--v4-warm);
+}
+
+.kernTitle {
+  margin: 0 0 0.5rem;
+  font-size: var(--type-18, 1.125rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.kernText {
+  margin: 0;
+  font-size: var(--type-16, 1rem);
+  line-height: 1.55;
+}
+
+.kernSmall {
+  margin: 0.75rem 0 0;
+  font-size: var(--type-12);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Hero: Zahl liegt oben links auf der Karte (Nordsee-Fläche), mobil darüber. */
+.heroZahlMobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .heroZahlMobile {
+    display: none;
+  }
+}
+
+.canvasHeroOverlay {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  z-index: 1;
+  max-width: min(46%, 34rem);
+  pointer-events: none;
+}
+
+.canvasHeroOverlay .heroZahlRow {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.canvasHeroOverlay :global(.v4-riesenzahl) {
+  font-size: clamp(4rem, 9vw, 8.5rem) !important;
+}
+
+.canvasHeroOverlay .heroZahlText {
+  max-width: 30ch;
+}
+
+.karteHero .karteControls {
+  order: 2;
+}
+
+.karteHero .karteNotes {
+  order: 3;
+}
+
+.karteHero .karteStageDesktop,
+.karteHero .karteStageMobile {
+  order: 1;
+}
+
+.karteHero > :last-child,
+.karteHero .timelineBox {
+  order: 4;
+}
+
+.karteHero .canvasOverlayTop {
+  top: auto;
+  bottom: 0.75rem;
+  right: 4.25rem;
+  align-items: flex-end;
+}
+
+.karteHero .canvasHoverPill {
+  left: auto;
+  right: 0.75rem;
+  top: 0.75rem;
+  bottom: auto;
+  max-width: min(22rem, calc(100% - 1.5rem));
+}
+
+.heroOverlayStatic {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .heroOverlayStatic {
+    display: block;
+  }
+  .heroOverlayStatic .heroZahlRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.canvasHeroOverlay {
+  transition: opacity 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvasHeroOverlay {
+    transition: none;
+  }
+}

@@ -1,6 +1,7 @@
 import geoRaw from "@/data/bess-karte-3d/bundeslaender.geo.json";
 import karteRaw from "@/data/bess-karte-3d/karte3d.json";
 
+import { computeKarteKernzahlen, type KarteKernzahlen } from "@/lib/bessKarte3d/kernzahlen";
 import type {
   BundeslaenderGeoJson,
   Karte3dData,
@@ -35,4 +36,13 @@ export function loadBundeslaenderGeoJson(): BundeslaenderGeoJson {
   }
   cachedGeoJson = geoRaw as unknown as BundeslaenderGeoJson;
   return cachedGeoJson;
+}
+
+let cachedKern: KarteKernzahlen | null = null;
+
+/** Kernzahlen (Konzentration, Zubau) serverseitig aus allen Einheiten, damit nur die Zahlen ins HTML gehen. */
+export function loadKarte3dKernzahlen(): KarteKernzahlen {
+  if (cachedKern) return cachedKern;
+  cachedKern = computeKarteKernzahlen((karteRaw as unknown as Karte3dData).einheiten);
+  return cachedKern;
 }

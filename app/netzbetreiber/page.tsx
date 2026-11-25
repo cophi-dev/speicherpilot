@@ -4,6 +4,7 @@ import { NetzbetreiberResearchPage } from "@/components/bess-netzbetreiber/Netzb
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   loadBundeslaenderGeoJson,
+  loadKarte3dKernzahlen,
   loadKarte3dSummary,
 } from "@/lib/bessKarte3d/loadSummary.server";
 import {
@@ -15,7 +16,7 @@ import { socialMeta } from "@/lib/siteOg";
 
 const title = "BESS je Netzbetreiber · 3D-Speicherkarte und Verteilnetze";
 const description =
-  "Großspeicher ≥1 MW (Nettonennleistung) in Betrieb: interaktive 3D-Speicherkarte 2018–heute aus dem MaStR, Konzernanteil E.ON, Ranking der Verteilnetzbetreiber — ohne Euro-Zahlen.";
+  "Großspeicher ≥1 MW (Nettonennleistung) in Betrieb: interaktive 3D-Speicherkarte 2018–heute aus dem MaStR mit Konzentration, Zubau und EE-Redispatch je Land — ohne Euro-Zahlen.";
 
 export const metadata: Metadata = {
   title,
@@ -47,6 +48,7 @@ export default function NetzbetreiberPage() {
         model={model}
         karteSummary={karteSummary}
         geoJson={geoJson}
+        kern={loadKarte3dKernzahlen()}
       />
     </>
   );

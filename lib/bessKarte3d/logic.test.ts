@@ -197,7 +197,7 @@ describe("bessKarte3d Kontrollwerte und Logik", () => {
     const cam = clampCamera3d({ yawDeg: 400, tiltDeg: 95, zoom: 5 });
     expect(cam.yawDeg).toBeCloseTo(40, 5);
     expect(cam.tiltDeg).toBe(76);
-    expect(cam.zoom).toBe(1.85);
+    expect(cam.zoom).toBe(5);
 
     const params = createProjectionParams3d(DEFAULT_CAMERA_3D, 800, 600);
     const p = geoToPlane(10.0, 51.0);
@@ -260,5 +260,42 @@ describe("mobilMindestPunktWert", () => {
     const { mobilMindestPunktWert } = jest.requireActual("./logic") as typeof import("./logic");
     expect(mobilMindestPunktWert(140)).toBeCloseTo(3.2, 1);
     expect(mobilMindestPunktWert(0)).toBe(0);
+  });
+});
+
+describe("Zoom und Verschieben (projection3d)", () => {
+  it("unprojectGround kehrt projectPoint3d um, Zoom hält den Punkt unter dem Cursor fest", async () => {
+    const pr = await import("@/lib/bessKarte3d/projection3d");
+    const cam = { ...pr.DEFAULT_CAMERA_3D, zoom: 2.3, panX: 0.1, panY: -0.2 };
+    const params = pr.createProjectionParams3d(cam, 1200, 800);
+    const plane = pr.geoToPlane(13.4, 52.5);
+    const s = pr.projectPoint3d(plane.x, plane.y, 0, params);
+    const back = pr.unprojectGround(s.x, s.y, params)!;
+    expect(back.x).toBeCloseTo(plane.x, 6);
+    expect(back.y).toBeCloseTo(plane.y, 6);
+
+    const zoomed = pr.zoomCameraAt(cam, 2, s.x, s.y, 1200, 800);
+    expect(zoomed.zoom).toBeCloseTo(4.6, 6);
+    const s2 = pr.projectPoint3d(plane.x, plane.y, 0, pr.createProjectionParams3d(zoomed, 1200, 800));
+    expect(s2.x).toBeCloseTo(s.x, 3);
+    expect(s2.y).toBeCloseTo(s.y, 3);
+
+    expect(pr.clampCamera3d({ ...cam, zoom: 99 }).zoom).toBe(pr.ZOOM_MAX);
+    const panned = pr.panCameraBy(cam, 40, 0, 1200, 800);
+    const s3 = pr.projectPoint3d(plane.x, plane.y, 0, pr.createProjectionParams3d(panned, 1200, 800));
+    expect(Math.abs(s3.x - s.x - 40)).toBeLessThan(8);
+  });
+});
+
+describe("computeKarteKernzahlen", () => {
+  it("55 Lokationen = 48 %, Zubau 2025/26 = 62 % (Vorgabe speicherpilot 13:34)", async () => {
+    const { computeKarteKernzahlen } = await import("@/lib/bessKarte3d/kernzahlen");
+    const k = computeKarteKernzahlen(data.einheiten);
+    expect(k.lokationen).toBe(550);
+    expect(k.topLokationen).toBe(55);
+    expect(Math.round(k.topAnteilPct)).toBe(48);
+    expect(k.topMinMw).toBeGreaterThanOrEqual(17);
+    expect(Math.round(k.zubauAnteilPct)).toBe(62);
+    expect(k.zubauJahre.map((z) => z.jahr)).toEqual([2025, 2026]);
   });
 });
