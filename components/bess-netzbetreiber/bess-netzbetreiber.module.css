@@ -313,6 +313,44 @@
   outline: none;
 }
 
+/* Mobil: ein Finger scrollt die Seite weiter; Zwei-Finger fängt JS per preventDefault. */
+.canvasStageTouch {
+  touch-action: pan-y;
+}
+
+.canvasStageTouch .canvas3d {
+  touch-action: pan-y;
+}
+
+/* Mobil: Kamera- und Zoom-Knöpfe unter der Karte, damit sie keine Säulen verdecken. */
+@media (max-width: 767px) {
+  .canvasStageTouch {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .canvasStageTouch .canvasOverlayTop,
+  .karteHero .canvasStageTouch .canvasOverlayTop {
+    position: static;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    margin-top: 0.55rem;
+    align-items: center;
+  }
+
+  .canvasStageTouch .zoomBtns,
+  .karteHero .canvasStageTouch .zoomBtns {
+    position: static;
+    right: auto;
+    bottom: auto;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 0.4rem;
+  }
+}
+
 .canvas3d:focus-visible {
   box-shadow: inset 0 0 0 2px var(--v4-warm);
 }
