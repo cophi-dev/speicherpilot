@@ -48,6 +48,15 @@
   padding-bottom: 0.12em;
   margin-bottom: 0.1em;
 }
+/* Mit größerem „GW“ passt die Zahl ab 768 px sonst nicht in die Inhaltsbreite. */
+@media (min-width: 768px) {
+  .netzbetreiberV4 :global(.v4-riesenzahl) {
+    font-size: min(
+      clamp(4.5rem, calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 1.75rem), var(--v4-ries-max)),
+      30vw
+    );
+  }
+}
 .netzbetreiberV4 :global(.v4-riesenzahl .v4-riesenzahl-unit) {
   font-size: 0.33em;
   color: hsl(var(--foreground));
