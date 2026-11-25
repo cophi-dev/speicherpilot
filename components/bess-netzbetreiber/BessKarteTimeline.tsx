@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { formatMonatLabel } from "@/lib/bessKarte3d/logic";
 import type { MonatKumuliertEintrag } from "@/lib/bessKarte3d/types";
@@ -18,11 +18,8 @@ type Props = {
 };
 
 const CHART_W = 640;
-const CHART_H = 112;
-const PAD_L = 44;
+const PLOT_H = 76;
 const PAD_R = 14;
-const PAD_T = 12;
-const PAD_B = 24;
 
 export function BessKarteTimeline({
   kurve,
@@ -34,14 +31,33 @@ export function BessKarteTimeline({
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const draggingRef = useRef(false);
+  // Achsenbeschriftung im viewBox-Maß so wählen, dass sie gerendert nie unter 12 px fällt.
+  const [tickFontSize, setTickFontSize] = useState(13);
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const update = () => {
+      const w = el.getBoundingClientRect().width;
+      if (w > 0) setTickFontSize(Math.max(13, (12.5 * CHART_W) / w));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   if (kurve.length === 0) return null;
 
   const safeIdx = Math.max(0, Math.min(kurve.length - 1, activeIndex));
   const current = kurve[safeIdx]!;
   const maxMw = Math.max(...kurve.map((d) => d.kumNettoMw), 100);
+  // Ränder wachsen mit der Schrift, damit Achsenlabels nicht abgeschnitten werden oder kollidieren.
+  const PAD_L = Math.round(tickFontSize * 3.6);
+  const PAD_T = Math.round(tickFontSize * 0.9);
+  const PAD_B = Math.round(tickFontSize * 1.8);
+  const CHART_H = PAD_T + PLOT_H + PAD_B;
   const plotW = CHART_W - PAD_L - PAD_R;
-  const plotH = CHART_H - PAD_T - PAD_B;
+  const plotH = PLOT_H;
   const denom = Math.max(1, kurve.length - 1);
 
   const xAt = (i: number) => PAD_L + (i / denom) * plotW;
@@ -165,10 +181,12 @@ export function BessKarteTimeline({
             y2={PAD_T}
             className={styles.curveGrid}
           />
-          <text x={PAD_L - 6} y={PAD_T + 4} textAnchor="end" className={styles.curveTickLabel}>
+          <text x={PAD_L - 6} y={PAD_T + tickFontSize * 0.35} textAnchor="end" className={styles.curveTickLabel}
+              style={{ fontSize: tickFontSize }}>
             {topLabelGw}
           </text>
-          <text x={PAD_L - 6} y={PAD_T + plotH + 3} textAnchor="end" className={styles.curveTickLabel}>
+          <text x={PAD_L - 6} y={PAD_T + plotH} textAnchor="end" className={styles.curveTickLabel}
+              style={{ fontSize: tickFontSize }}>
             0
           </text>
 
@@ -188,9 +206,10 @@ export function BessKarteTimeline({
             <text
               key={t.label}
               x={xAt(t.idx)}
-              y={CHART_H - 6}
+              y={CHART_H - tickFontSize * 0.3}
               textAnchor="middle"
               className={styles.curveTickLabel}
+              style={{ fontSize: tickFontSize }}
             >
               {t.label}
             </text>

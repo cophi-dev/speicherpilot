@@ -148,7 +148,7 @@ export function BessKarteDetailCard({
           </option>
           {sites.map((s) => (
             <option key={s.lok} value={s.lok}>
-              {s.name} ({s.bl}) · {formatQuantity(s.nettoMw, "de", 1)} MW
+              {s.name} ({s.bl}) · {formatQuantity(s.nettoMw, "de", 1)}{"\u00a0"}MW
             </option>
           ))}
         </select>

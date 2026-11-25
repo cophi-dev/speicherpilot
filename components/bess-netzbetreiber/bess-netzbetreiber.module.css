@@ -138,13 +138,13 @@
   flex-wrap: wrap;
   border: 1px solid var(--linie);
   border-radius: var(--radius);
-  overflow: hidden;
   max-width: 100%;
 }
 
 .segBtn,
 .segBtnActive {
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 0.35rem 0.75rem;
   font-size: var(--type-14);
   font-weight: 500;
@@ -155,9 +155,17 @@
   transition: background-color 120ms ease, color 120ms ease;
 }
 
+.segBtn:first-child,
+.segBtnActive:first-child {
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
 .segBtn:last-child,
 .segBtnActive:last-child {
   border-right: none;
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }
 
 .segBtn {
@@ -176,7 +184,7 @@
 
 .toggleBtn,
 .toggleBtnActive {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0.35rem 0.85rem;
   font-size: var(--type-14);
   font-weight: 500;
@@ -206,7 +214,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 0.75rem;
   border: 1px solid var(--linie);
   border-radius: var(--radius);
@@ -316,8 +324,8 @@
 }
 
 .camBtn {
-  min-height: 32px;
-  min-width: 32px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 0.2rem 0.55rem;
   font-size: var(--type-12);
   font-weight: 500;
@@ -392,7 +400,7 @@
 }
 
 .mobileCityLabel {
-  font-size: 10px;
+  font-size: 15.5px; /* viewBox-Skalierung ~0,79 bei 390 px -> >= 12 px gerendert */
   font-weight: 500;
   fill: hsl(var(--foreground));
   fill-opacity: 0.82;
@@ -714,7 +722,7 @@
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0.4rem 0.6rem;
   text-align: left;
   font-size: var(--type-12);
@@ -903,7 +911,7 @@
 }
 
 .curveTickLabel {
-  font-size: 10px;
+  font-size: 13px; /* viewBox 640 breit, bei 768 px ~1:1 -> >= 12 px gerendert */
   fill: hsl(var(--muted-foreground));
   font-variant-numeric: tabular-nums;
 }
