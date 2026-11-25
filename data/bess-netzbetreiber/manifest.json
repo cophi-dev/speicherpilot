@@ -10,10 +10,10 @@
       "url": "https://www.marktstammdatenregister.de/MaStR"
     },
     {
-      "name": "SMARD Energiedaten kompakt (s-nepm_baet-1-*)",
-      "license": "CC BY 4.0",
-      "retrieved": "2026-11-24",
-      "url": "https://www.smard.de/resource/blob/217306/-/data-csv-data.csv"
+      "name": "Antwort der Bundesregierung (BMWE, StS Frank Wetzel) vom 12.05.2026 auf Schriftliche Frage 70, BT-Drucksache 21/5933, S. 43–44; Redispatch-Maßnahmen mit EE 2025, Karte ohne Wind Offshore",
+      "license": "amtliches Werk (§ 5 Abs. 2 UrhG)",
+      "retrieved": "2026-05-12",
+      "url": "https://dserver.bundestag.de/btd/21/059/2105933.pdf"
     }
   ],
   "plausibility": {
@@ -50,18 +50,6 @@
     "note": "MW je 1.000 km Stromkreislänge: folgt, bis ≥8 Top-VNB mit URL belegt sind.",
     "eeStockNormalization": true
   },
-  "eonSnbIds": [
-    "SNB911641710114",
-    "SNB911705062982",
-    "SNB916269213931",
-    "SNB918250928893",
-    "SNB921897286493",
-    "SNB940352624434",
-    "SNB941690671609",
-    "SNB976379598847",
-    "SNB990362338043",
-    "SNB990857029876"
-  ],
   "eeStockMastr": {
     "maxPagesPerEnergyCarrier": 8,
     "note": "Wind/PV je Bundesland; Seitenzahl über MASTR_GEN_MAX_PAGES (Default 80)."

@@ -11,7 +11,7 @@ export const bessSiteSchema = z.object({
   landkreis: z.string(),
   bundesland: z.string(),
   vnbDominant: z.string(),
-  operatorClass: z.enum(["eon", "uenb", "vnb"]),
+  operatorClass: z.enum(["uenb", "vnb"]),
   vnbBucketKey: z.string(),
   vnbBucketLabel: z.string(),
 });
@@ -38,8 +38,13 @@ export const bessNetzbetreiberBundleSchema = z.object({
   scatterBundeslaender: z.array(
     z.object({
       bundesland: z.string(),
-      eeRedispatch2025Gwh: z.number(),
+      /** EE-Abregelung 2025, BMWE 12.05.2026; null = k. A. (HH, BE). */
+      eeRedispatch2025Gwh: z.number().nullable(),
       bessBruttoGw: z.number(),
+      bessNettoGw: z.number().optional(),
+      eeRedispatch2025GesamtGwh: z.number().nullable().optional(),
+      eeRedispatch2025OffshoreGwh: z.number().nullable().optional(),
+      abregelungQuelle: z.string().optional(),
     }),
   ),
   growthDefault: z.record(
@@ -47,6 +52,8 @@ export const bessNetzbetreiberBundleSchema = z.object({
     z.object({
       vor2026Mw: z.number(),
       y2026Mw: z.number(),
+      vor2026NettoMw: z.number().optional(),
+      y2026NettoMw: z.number().optional(),
     }),
   ),
   uenbEbene: z.object({
@@ -92,8 +99,9 @@ export const bessNetzbetreiberBundleSchema = z.object({
     .array(
       z.object({
         bundesland: z.string(),
-        eeRedispatch2025Gwh: z.number(),
+        eeRedispatch2025Gwh: z.number().nullable(),
         bessBruttoGw: z.number(),
+        abregelungQuelle: z.string().optional(),
       }),
     )
     .optional(),
@@ -103,6 +111,8 @@ export const bessNetzbetreiberBundleSchema = z.object({
       z.object({
         vor2026Mw: z.number(),
         y2026Mw: z.number(),
+        vor2026NettoMw: z.number().optional(),
+        y2026NettoMw: z.number().optional(),
       }),
     )
     .optional(),
@@ -116,87 +126,6 @@ export const bessNetzbetreiberBundleSchema = z.object({
         url: z.string(),
       }),
     )
-    .optional(),
-  growthEonKern: z
-    .record(
-      z.string(),
-      z.object({
-        vor2026Mw: z.number(),
-        y2026Mw: z.number(),
-      }),
-    )
-    .optional(),
-  headlineStats: z
-    .object({
-      eonWithMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      eonWithoutMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      mitnetzOnly: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-      }),
-      zubau2026: z.object({
-        allBruttoMw: z.number(),
-        eonWithMitnetzBruttoMw: z.number(),
-        eonWithoutMitnetzBruttoMw: z.number(),
-        eonSharePct: z.number(),
-        eonSharePctWithoutMitnetz: z.number(),
-      }),
-      bySnb: z.record(
-        z.string(),
-        z.object({
-          units: z.number(),
-          bruttoMw: z.number(),
-          nettoMw: z.number(),
-        }),
-      ),
-    })
-    .optional(),
-  headlineStatsQualityFiltered: z
-    .object({
-      eonWithMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      eonWithoutMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      mitnetzOnly: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-      }),
-      zubau2026: z.object({
-        allBruttoMw: z.number(),
-        eonWithMitnetzBruttoMw: z.number(),
-        eonWithoutMitnetzBruttoMw: z.number(),
-        eonSharePct: z.number(),
-        eonSharePctWithoutMitnetz: z.number(),
-      }),
-      bySnb: z.record(
-        z.string(),
-        z.object({
-          units: z.number(),
-          bruttoMw: z.number(),
-          nettoMw: z.number(),
-        }),
-      ),
-    })
     .optional(),
 });
 

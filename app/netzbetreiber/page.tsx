@@ -1,14 +1,25 @@
 import type { Metadata } from "next";
 
-import { NetzbetreiberResearchPage } from "@/components/bess-netzbetreiber/NetzbetreiberResearchPage";
+import {
+  type NetzbetreiberClientDaten,
+  NetzbetreiberResearchPage,
+} from "@/components/bess-netzbetreiber/NetzbetreiberResearchPage";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { loadBessNetzbetreiberBundle, bessNetzbetreiberManifest } from "@/lib/bessNetzbetreiber/loadBessNetzbetreiber.server";
+import {
+  loadBundeslaenderGeoJson,
+  loadKarte3dKernzahlen,
+  loadKarte3dSummary,
+} from "@/lib/bessKarte3d/loadSummary.server";
+import {
+  bessNetzbetreiberManifest,
+  loadBessNetzbetreiberBundle,
+} from "@/lib/bessNetzbetreiber/loadBessNetzbetreiber.server";
 import { datasetJsonLd } from "@/lib/seo/jsonLd";
 import { socialMeta } from "@/lib/siteOg";
 
-const title = "BESS je Netzbetreiber · Bestand und Verteilnetze";
+const title = "BESS-Karte · Batteriespeicher ab 1 MW in Deutschland";
 const description =
-  "Großspeicher ≥1 MW in Betrieb: Modell aus MaStR, Konzernanteil E.ON, Punktekarte Deutschland, Ranking der Verteilnetzbetreiber — ohne Euro-Zahlen.";
+  "Batteriespeicher ab 1 MW in Deutschland: interaktive 3D-Karte aus dem Marktstammdatenregister, mit Konzentration, Zubau und EE-Redispatch je Land.";
 
 export const metadata: Metadata = {
   title,
@@ -22,7 +33,17 @@ export const revalidate = 86400;
 export default function NetzbetreiberPage() {
   const model = loadBessNetzbetreiberBundle();
   const manifest = bessNetzbetreiberManifest();
-  const stichtag = String(manifest.stichtagMastr ?? "2026-11-24");
+  // Nur die nötigen Felder an den Client, nicht das ganze bundle.json (speicherpilot 25.11 14:42).
+  const nb: NetzbetreiberClientDaten = {
+    stichtagMastr: typeof manifest.stichtagMastr === "string" ? manifest.stichtagMastr : null,
+    uenbEbene: {
+      inBetriebBruttoGw: model.uenbEbene.inBetriebBruttoGw,
+      inBetriebNettoGw: model.uenbEbene.inBetriebNettoGw ?? null,
+    },
+  };
+  const karteSummary = loadKarte3dSummary();
+  const geoJson = loadBundeslaenderGeoJson();
+  const stichtag = String(karteSummary.meta.stichtag ?? manifest.stichtagMastr ?? "2026-11-24");
 
   const dataset = datasetJsonLd({
     path: "/netzbetreiber",
@@ -34,7 +55,12 @@ export default function NetzbetreiberPage() {
   return (
     <>
       <JsonLd data={{ "@context": "https://schema.org", ...dataset }} />
-      <NetzbetreiberResearchPage model={model} />
+      <NetzbetreiberResearchPage
+        nb={nb}
+        karteSummary={karteSummary}
+        geoJson={geoJson}
+        kern={loadKarte3dKernzahlen()}
+      />
     </>
   );
 }

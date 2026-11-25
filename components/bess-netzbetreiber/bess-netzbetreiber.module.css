@@ -17,17 +17,16 @@
     display: block;
     order: 1;
   }
-  .netzbetreiberV4 .mapColumn {
-    order: 2;
-  }
 }
 
 .leadTight {
+  text-align: left;
   max-width: 60ch;
   margin-bottom: 0;
 }
 
 .mitnetzLink {
+  text-align: left;
   background: none;
   border: none;
   padding: 0;
@@ -42,15 +41,41 @@
   margin-bottom: 0.65rem;
 }
 
-.netzbetreiberV4Hero {
-  margin-top: 0.35rem;
-  align-items: start;
+/* Riesenzahl: line-height 0.74 lässt das Komma von 2,68 in die nächste Zeile ragen.
+   Nur auf /netzbetreiber Unterlänge freigeben; Einheit ≈ ⅓ Ziffernhöhe in Textfarbe. */
+.netzbetreiberV4 :global(.v4-riesenzahl) {
+  line-height: 0.9;
+  padding-bottom: 0.12em;
+  margin-bottom: 0.1em;
+}
+/* Mit größerem „GW“ passt die Zahl ab 768 px sonst nicht in die Inhaltsbreite. */
+@media (min-width: 768px) {
+  .netzbetreiberV4 :global(.v4-riesenzahl) {
+    font-size: min(
+      clamp(4.5rem, calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 1.75rem), var(--v4-ries-max)),
+      30vw
+    );
+  }
+}
+.netzbetreiberV4 :global(.v4-riesenzahl .v4-riesenzahl-unit) {
+  font-size: 0.33em;
+  color: hsl(var(--foreground));
+  letter-spacing: 0;
+  margin-left: 0.14em;
+  font-weight: var(--weight-regular);
 }
 
-@media (min-width: 1200px) {
-  .netzbetreiberV4Hero {
-    grid-template-columns: minmax(0, 1fr) minmax(200px, 480px);
-  }
+.netzbetreiberHeroCompact {
+  margin-top: 0.35rem;
+  display: block;
+}
+
+.heroNotesRow {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 66ch;
 }
 
 @media (max-width: 767px) {
@@ -65,92 +90,1011 @@
   }
 }
 
-.eonNowrap {
-  white-space: nowrap;
+.flowPara {
+  font-size: var(--type-16);
+  line-height: var(--lh-lead);
+  max-width: 60ch;
+  margin: 0;
+  color: hsl(var(--foreground));
 }
 
-.mapColumn {
+.nettoDefNote {
+  margin: 0;
+  font-size: var(--type-14);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--linie);
+  max-width: 60ch;
+}
+
+/* ===== Interaktive 3D / 2D Speicherkarte ===== */
+
+.karteShell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  max-width: 100%;
+}
+
+.karteLoading {
+  min-height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--type-14);
+}
+
+.karteControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   min-width: 0;
-  width: 100%;
 }
 
-@media (min-width: 1200px) {
-  .mapColumn {
-    max-width: 480px;
-    justify-self: end;
+.controlLabel {
+  font-size: var(--type-12);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  max-width: 100%;
+}
+
+.segBtn,
+.segBtnActive {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.35rem 0.75rem;
+  font-size: var(--type-14);
+  font-weight: 500;
+  border: none;
+  border-right: 1px solid var(--linie);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.segBtn:first-child,
+.segBtnActive:first-child {
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+
+.segBtn:last-child,
+.segBtnActive:last-child {
+  border-right: none;
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+
+.segBtn {
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+
+.segBtn:hover {
+  background: color-mix(in srgb, hsl(var(--foreground)) 6%, transparent);
+}
+
+.segBtnActive {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
+.toggleBtn,
+.toggleBtnActive {
+  min-height: 44px;
+  padding: 0.35rem 0.85rem;
+  font-size: var(--type-14);
+  font-weight: 500;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.toggleBtn {
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+
+.toggleBtn:hover {
+  background: color-mix(in srgb, hsl(var(--foreground)) 6%, transparent);
+}
+
+.toggleBtnActive {
+  background: hsl(var(--foreground));
+  border-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
+.checkLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  font-size: var(--type-14);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkLabel input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--v4-warm);
+  cursor: pointer;
+}
+
+.karteNotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+}
+
+.karteNoteItem {
+  margin: 0;
+  font-size: var(--type-12);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Bühne Desktop vs Mobil */
+
+.karteStageDesktop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .karteStageDesktop {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
-.svgMapFigure {
-  margin: 0;
-  width: 100%;
+.karteStageMobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
-.svgMap {
+.karteMapPane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* 3D Canvas Stage */
+
+.canvasStageWrap {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+}
+
+.canvas3d {
+  display: block;
+  width: 100%;
+  outline: none;
+}
+
+.canvas3d:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--v4-warm);
+}
+
+.canvasOverlayTop {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.canvasHint {
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+  background: color-mix(in srgb, var(--flaeche) 88%, transparent);
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--linie) 80%, transparent);
+}
+
+.canvasCamBtns {
+  display: inline-flex;
+  gap: 0.35rem;
+  pointer-events: auto;
+}
+
+.camBtn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.2rem 0.55rem;
+  font-size: var(--type-12);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  background: color-mix(in srgb, var(--flaeche) 94%, transparent);
+  border: 1px solid var(--linie);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.camBtn:hover {
+  background: hsl(var(--secondary));
+}
+
+.canvasHoverPill {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  max-width: calc(100% - 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.45rem 0.7rem;
+  background: color-mix(in srgb, var(--flaeche) 96%, transparent);
+  border: 1px solid var(--linie);
+  border-left: 3px solid var(--v4-warm);
+  border-radius: 4px;
+  font-size: var(--type-12);
+  color: hsl(var(--foreground));
+  pointer-events: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Mobil 2D Map */
+
+.mobile2dWrap {
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  padding: 0.5rem 0.5rem 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobileTapHint {
+  margin: 0 0 0.35rem 0.25rem;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+.mobile2dSvg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1000 / 1350;
-  color: hsl(var(--foreground));
+  touch-action: manipulation;
 }
 
-.svgDotEon {
+.mobileDot {
   fill: var(--v4-warm);
-  stroke: none;
+  fill-opacity: 0.78;
+  stroke: var(--flaeche);
+  stroke-width: 0.75;
+  cursor: pointer;
 }
 
-.svgDotOther {
-  fill: color-mix(in srgb, hsl(var(--foreground)) 38%, transparent);
-  stroke: none;
+.mobileDotSelected {
+  fill: var(--mint);
+  fill-opacity: 0.95;
+  stroke: hsl(var(--foreground));
+  stroke-width: 1.6;
+  cursor: pointer;
 }
 
-.svgMapLegend {
-  margin-top: 0.65rem;
+.mobileCityLabel {
+  font-size: 15.5px; /* viewBox-Skalierung ~0,79 bei 390 px -> >= 12 px gerendert */
+  font-weight: 500;
+  fill: hsl(var(--foreground));
+  fill-opacity: 0.82;
+  paint-order: stroke;
+  stroke: var(--flaeche);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+
+.mobileSelectWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Legenden */
+
+.legendsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+
+.heightLegend,
+.abregLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.legendTitle {
   font-size: var(--type-12);
-  letter-spacing: 0.06em;
   color: hsl(var(--muted-foreground));
 }
 
-.svgMapTip {
-  margin-top: 0.5rem;
+.heightBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.15rem;
+}
+
+.heightBarItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.heightBarWell {
+  height: 46px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.heightBarCol {
+  display: block;
+  width: 12px;
+  background: linear-gradient(135deg, var(--v4-warm) 55%, color-mix(in srgb, var(--v4-warm) 65%, #000) 100%);
+  border-top: 2px solid color-mix(in srgb, var(--v4-warm) 75%, #fff);
+  border-radius: 1px 1px 0 0;
+}
+
+.heightDot {
+  display: block;
+  border-radius: 999px;
+  background: var(--v4-warm);
+  opacity: 0.82;
+}
+
+.heightBarVal {
+  font-size: var(--type-12);
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+}
+
+.abregRampRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--type-12);
+  color: hsl(var(--foreground));
+}
+
+.abregRampBar {
+  display: inline-block;
+  width: 120px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--linie);
+  background: linear-gradient(90deg, #e6e6e0, #cfcfc8, #b3b3ab, #94948c, #76766f);
+}
+
+:global(.dark) .abregRampBar {
+  background: linear-gradient(90deg, #1f2328, #2b3036, #3a4048, #4b525b, #5f6770);
+}
+
+.abregNullSwatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.4rem;
+}
+
+.abregNullBox {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border: 1px solid var(--linie);
+  background: repeating-linear-gradient(
+    -45deg,
+    #d9d9d2,
+    #d9d9d2 3px,
+    #bfbfba 3px,
+    #bfbfba 4.5px
+  );
+}
+
+:global(.dark) .abregNullBox {
+  background: repeating-linear-gradient(
+    -45deg,
+    #2a2f36,
+    #2a2f36 3px,
+    #414852 3px,
+    #414852 4.5px
+  );
+}
+
+.geoAttribution {
+  margin: 0;
+  font-size: var(--type-12);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+.geoAttribution a,
+.abregSource a {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+.vnbSelect {
+  min-height: 44px;
+  max-width: 100%;
+  width: 18rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
   font-size: var(--type-14);
-  line-height: 1.45;
-  color: hsl(var(--foreground));
-  min-height: 1.45em;
+}
+.geoAttribution a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-.flowPara {
-  font-size: var(--type-lead);
-  line-height: var(--lh-lead);
-  max-width: 60ch;
-  margin-top: 1.5rem;
-  color: hsl(var(--foreground));
+.abregSource {
+  margin: 0;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
 }
 
-.searchLine {
-  margin-top: 1.25rem;
-  max-width: 60ch;
+/* Desktop Detail Card & Mobile Bottom-Sheet */
+
+.detailCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.9rem;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  min-width: 0;
 }
 
-.searchInput {
+.detailCardBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.detailSelectLabel {
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+.detailSelect {
   width: 100%;
+  min-height: 44px;
+  padding: 0.4rem 0.6rem;
   font-size: var(--type-14);
-  line-height: 1.45;
-  border: none;
-  border-bottom: 1px solid var(--linie);
-  background: transparent;
-  padding: 0.35rem 0;
   color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
 }
 
-.searchInput::placeholder {
+.detailCloseRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.detailBadge {
+  font-size: var(--type-12);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mint);
+  font-weight: 600;
+}
+
+.detailCloseBtn {
+  background: none;
+  border: 1px solid var(--linie);
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  font-size: var(--type-12);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detailHeadMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: var(--type-16);
+  font-weight: 600;
+  line-height: 1.3;
+  color: hsl(var(--foreground));
+  word-break: break-word;
+}
+
+.detailSub {
+  margin: 0;
+  font-size: var(--type-12);
   color: hsl(var(--muted-foreground));
 }
 
-.searchInput:focus-visible {
-  outline: 2px solid var(--v4-warm);
-  outline-offset: 2px;
+.detailGrid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 0.75rem;
 }
+
+.detailGrid dt {
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+.detailGrid dd {
+  margin: 0.1rem 0 0;
+  font-size: var(--type-14);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  word-break: break-word;
+}
+
+.detailWarn {
+  display: block;
+  font-size: var(--type-12);
+  font-weight: 400;
+  color: var(--coral);
+}
+
+.detailUnitsBox {
+  border-top: 1px solid var(--linie);
+  padding-top: 0.6rem;
+}
+
+.detailUnitsHead {
+  margin: 0 0 0.4rem;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+.detailUnitsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.detailUnitsList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: var(--type-12);
+  color: hsl(var(--foreground));
+}
+
+.detailEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  font-size: var(--type-14);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.detailEmpty p {
+  margin: 0;
+}
+
+.detailQuickList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.detailQuickHead {
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+.detailQuickBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.detailQuickBtn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  font-size: var(--type-12);
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border: 1px solid var(--linie);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.detailQuickBtn:hover {
+  border-color: var(--v4-warm);
+}
+
+/* Mobile Bottom-Sheet */
+
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(11, 13, 15, 0.48);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheetPanel {
+  width: 100%;
+  max-width: 520px;
+  max-height: 82vh;
+  overflow-y: auto;
+  background: var(--flaeche);
+  color: hsl(var(--foreground));
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  border-top: 1px solid var(--linie);
+  padding: 0.6rem 1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.22);
+}
+
+.sheetHandle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--linie);
+  margin: 0 auto 0.65rem;
+}
+
+.sheetTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.sheetCloseBtn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+  background: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+/* Zeitachse + Kumulierte Kurve */
+
+.timelineBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+
+.timelineTopRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.playBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 0.95rem;
+  font-size: var(--type-14);
+  font-weight: 500;
+  color: hsl(var(--background));
+  background: hsl(var(--foreground));
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.timelineStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: var(--type-14);
+  color: hsl(var(--foreground));
+  min-width: 0;
+}
+
+.timelineStatus span {
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+.sliderRow {
+  display: block;
+}
+
+.sliderBound {
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+.timelineSlider {
+  display: block;
+  margin: 0;
+  width: 100%;
+  height: 36px;
+  accent-color: var(--v4-warm);
+  cursor: pointer;
+}
+
+.curveWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.curveSvg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.curveAxis {
+  stroke: var(--linie);
+  stroke-width: 1;
+}
+
+.curveGrid {
+  stroke: var(--linie);
+  stroke-width: 0.75;
+  stroke-dasharray: 3 3;
+}
+
+.curveArea {
+  fill: color-mix(in srgb, var(--v4-warm) 16%, transparent);
+}
+
+.curveLine {
+  fill: none;
+  stroke: var(--v4-warm);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.curveCursor {
+  stroke: hsl(var(--foreground));
+  stroke-width: 1.25;
+  stroke-dasharray: 3 3;
+}
+
+.curveDot {
+  fill: var(--mint);
+  stroke: var(--flaeche);
+  stroke-width: 1.5;
+}
+
+.curveEndLabel {
+  fill: hsl(var(--foreground));
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.curveTickLabel {
+  font-size: 13px; /* viewBox 640 breit, bei 768 px ~1:1 -> >= 12 px gerendert */
+  fill: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+.curveNote {
+  margin: 0;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+
+/* Tabelle: 5 Einheiten ohne Koordinate */
+
+.unmappedWrap {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+}
+
+.unmappedHead {
+  margin-bottom: 0.75rem;
+}
+
+.unmappedTitle {
+  margin: 0 0 0.25rem;
+  font-size: var(--type-16);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.unmappedSub {
+  margin: 0;
+  font-size: var(--type-12);
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.unmappedTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-14);
+}
+
+.unmappedTable th,
+.unmappedTable td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--linie);
+  vertical-align: top;
+}
+
+.unmappedTable th {
+  font-size: var(--type-12);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+.unmappedTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.numCol {
+  text-align: right !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 680px) {
+  .karteControls {
+    padding: 0.75rem;
+    gap: 0.65rem;
+  }
+
+  .segBtn,
+  .segBtnActive,
+  .toggleBtn,
+  .toggleBtnActive,
+  .checkLabel {
+    min-height: 44px;
+    font-size: var(--type-12);
+    padding: 0.35rem 0.6rem;
+  }
+
+  .unmappedTable thead {
+    display: none;
+  }
+
+  .unmappedTable,
+  .unmappedTable tbody,
+  .unmappedTable tr,
+  .unmappedTable td {
+    display: block;
+    width: 100%;
+  }
+
+  .unmappedTable tr {
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--linie);
+  }
+
+  .unmappedTable tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .unmappedTable td {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.2rem 0;
+    border-bottom: none;
+    text-align: right;
+  }
+
+  .unmappedTable td::before {
+    content: attr(data-label);
+    font-size: var(--type-12);
+    color: hsl(var(--muted-foreground));
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .numCol {
+    text-align: right !important;
+  }
+}
+
+/* Bestehende VNB- & Mehr-Daten-Balken */
 
 .vnbBars {
   display: flex;
@@ -206,12 +1150,12 @@
 }
 
 .vnbBarStackInner .vnbBarFillOther,
-.vnbBarStackInner .vnbBarFillEon {
+.vnbBarStackInner .vnbBarFillAccent {
   display: block;
   height: 100%;
 }
 
-.vnbBarFillEon {
+.vnbBarFillAccent {
   height: 100%;
   background: var(--v4-warm);
   border-radius: 1px;
@@ -237,6 +1181,9 @@
 }
 
 .moreDataSummary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   font-size: var(--type-14);
   color: hsl(var(--muted-foreground));
   cursor: pointer;
@@ -259,4 +1206,446 @@
   margin-bottom: 2rem;
   font-size: var(--type-14);
   color: hsl(var(--muted-foreground));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.chapterFoot p {
+  margin: 0;
+}
+.chapterFoot p a {
+  overflow-wrap: normal;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.minPunktNote {
+  margin: var(--space-2, 0.5rem) 0 0;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+.geoAttribution a,
+.abregSource a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ===== Hero-Karte (neon/sp-karte-hero, Phillipp 25.11 13:33/13:34) ===== */
+
+.heroSection {
+  padding-top: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.heroHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.heroH1 {
+  margin: 0;
+  font-size: var(--type-18, 1.125rem);
+  font-weight: 500;
+  line-height: 1.3;
+  color: hsl(var(--foreground));
+}
+
+.heroZahlRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1.75rem;
+}
+
+.heroZahlRow :global(.v4-riesenzahl) {
+  margin: 0;
+}
+
+.heroZahlText {
+  margin: 0 0 0.6rem;
+  max-width: 34ch;
+  font-size: var(--type-14);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.heroStage {
+  margin-top: 0.75rem;
+}
+
+/* Keine Kästen: Filter, Bühne, Legende, Detailpanel und Zeitachse sitzen frei auf der Seite. */
+.karteHero .karteControls,
+.karteHero .legendsRow,
+.karteHero .timelineBox,
+.karteHero .mobile2dWrap {
+  border: none;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.karteHero .karteControls {
+  padding-top: 0;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
+  border-radius: 0;
+}
+
+.karteHero .canvasStageWrap {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+.karteHero .canvasHint {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.karteHero .camBtn {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--linie) 65%, transparent);
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: var(--type-14);
+}
+
+.karteHero .camBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.karteHero .canvasHoverPill {
+  border: none;
+  border-left: 3px solid var(--v4-warm);
+  background: color-mix(in srgb, hsl(var(--background)) 80%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: none;
+}
+
+
+
+.zoomBtns {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.zoomBtns .camBtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.mobileMapFrame {
+  position: relative;
+}
+
+.wheelHint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  max-width: calc(100% - 2rem);
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, hsl(var(--foreground)) 80%, transparent);
+  color: hsl(var(--background));
+  font-size: var(--type-12);
+  text-align: center;
+  pointer-events: none;
+}
+
+.kernGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+}
+
+@media (min-width: 900px) {
+  .kernGrid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+.kernItem {
+  min-width: 0;
+  padding-top: 0.9rem;
+  border-top: 2px solid hsl(var(--foreground));
+}
+
+.kernZahl {
+  margin: 0 0 0.35rem;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--v4-warm);
+}
+
+.kernTitle {
+  margin: 0 0 0.5rem;
+  font-size: var(--type-18, 1.125rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.kernText {
+  margin: 0;
+  font-size: var(--type-16, 1rem);
+  line-height: 1.55;
+}
+
+.kernSmall {
+  margin: 0.75rem 0 0;
+  font-size: var(--type-12);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Hero: Zahl liegt oben links auf der Karte (Nordsee-Fläche), mobil darüber. */
+.heroZahlMobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .heroZahlMobile {
+    display: none;
+  }
+}
+
+.canvasHeroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  max-width: min(46%, 34rem);
+  pointer-events: none;
+}
+
+.canvasHeroOverlay .heroZahlRow {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.canvasHeroOverlay :global(.v4-riesenzahl) {
+  font-size: clamp(4rem, 9vw, 8.5rem) !important;
+}
+
+.canvasHeroOverlay .heroZahlText {
+  max-width: 30ch;
+}
+
+.karteHero .karteControls {
+  order: 2;
+}
+
+.karteHero .karteNotes {
+  order: 3;
+}
+
+.karteHero .karteStageDesktop,
+.karteHero .karteStageMobile {
+  order: 1;
+}
+
+.karteHero > :last-child,
+.karteHero .timelineBox {
+  order: 4;
+}
+
+.karteHero .canvasOverlayTop {
+  top: auto;
+  bottom: 0.75rem;
+  right: 4.25rem;
+  align-items: flex-end;
+}
+
+.karteHero .canvasHoverPill {
+  left: auto;
+  right: 0.75rem;
+  top: 0.75rem;
+  bottom: auto;
+  max-width: min(22rem, calc(100% - 1.5rem));
+}
+
+.heroOverlayStatic {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .heroOverlayStatic {
+    display: block;
+  }
+  .heroOverlayStatic .heroZahlRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.canvasHeroOverlay {
+  transition: opacity 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvasHeroOverlay {
+    transition: none;
+  }
+}
+
+
+/* ===== Hero R2 (design 14:25): eine Inhaltskante, Karte volle Breite, ruhige Pill-Leiste ===== */
+
+.karteHero .karteStageDesktop {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+/* Lokationsliste unter der Karte, auf derselben Inhaltskante */
+.karteHero .detailCard {
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
+  border-radius: 0;
+  background: transparent;
+  padding: 1rem 0 0;
+}
+
+@media (min-width: 1024px) {
+  .karteHero .detailCard {
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 1rem 2rem;
+    align-items: start;
+  }
+  .karteHero .detailQuickBtns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+.karteHero .detailQuickBtn,
+.karteHero .detailSelect,
+.karteHero .vnbSelect {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Ruhige Leiste: keine Kästen, Labels klein in Mono, Segmente und Pills wie die Zoom-Knöpfe */
+.karteHero .karteControls {
+  gap: 1rem 1.75rem;
+  padding: 1rem 0 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
+  border-bottom: none;
+}
+
+.karteHero .controlLabel,
+.karteHero .detailSelectLabel,
+.karteHero .detailQuickHead,
+.karteHero .legendTitle {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--type-12);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.karteHero .segmented {
+  border: none;
+  border-radius: 0;
+  gap: 0.35rem;
+}
+
+.karteHero .segBtn,
+.karteHero .segBtnActive,
+.karteHero .toggleBtn,
+.karteHero .toggleBtnActive,
+.karteHero .checkLabel {
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+  font-size: var(--type-14);
+}
+
+.karteHero .segBtn:first-child,
+.karteHero .segBtn:last-child,
+.karteHero .segBtnActive:first-child,
+.karteHero .segBtnActive:last-child {
+  border-radius: 999px;
+  border-right: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+}
+
+.karteHero .segBtn,
+.karteHero .toggleBtn,
+.karteHero .checkLabel {
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  color: hsl(var(--foreground));
+}
+
+.karteHero .segBtnActive,
+.karteHero .toggleBtnActive {
+  background: hsl(var(--foreground));
+  border-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
+.karteHero .karteNotes {
+  padding-top: 0;
+}
+
+/* Mobil: Zoom-Knöpfe unter der Karte rechts, außerhalb der Landesfläche */
+.zoomBtnsBelow {
+  position: static;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.noWrap {
+  white-space: nowrap;
+}
+
+.karteHero .mobileTapHint {
+  margin-left: 0;
+}
+
+/* Höhenlegende + kurze BKG-Zeile auf der Kartenbühne (speicherpilot 14:42), unten links über dem Bedienhinweis */
+.canvasFootOverlay {
+  position: absolute;
+  left: 0;
+  bottom: 3.25rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: min(21rem, 30%);
+  pointer-events: auto;
+}
+
+.canvasFootOverlay .geoAttribution {
+  font-size: var(--type-12);
+}
+
+.karteHero .canvasOverlayTop {
+  left: 0;
+}
+
+.heroSection {
+  padding-top: clamp(1rem, 2vw, 1.75rem);
 }
