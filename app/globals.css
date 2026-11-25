@@ -7427,7 +7427,6 @@ html.vt-to-light::view-transition-new(root) {
     text-transform: uppercase;
     color: hsl(var(--foreground));
     background: hsl(var(--background));
-    padding: 0 0.2em;
     white-space: nowrap;
     pointer-events: none;
   }
