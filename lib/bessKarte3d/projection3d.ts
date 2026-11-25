@@ -199,7 +199,8 @@ export function createProjectionParams3d(
     ...sized,
     scale: scale0 * camera.zoom,
     cx: sized.cx + width * 0.5 - (box.minX + box.maxX) / 2,
-    cy: sized.cy + height * 0.5 - (box.minY + box.maxY) / 2,
+    // Überschüssige Höhe nach unten, damit unter der Kopfzahl wenig Leerraum bleibt.
+    cy: sized.cy + padY - box.minY,
     panX: camera.panX ?? 0,
     panY: camera.panY ?? 0,
   };

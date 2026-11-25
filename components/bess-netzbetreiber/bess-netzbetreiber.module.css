@@ -1356,6 +1356,15 @@
   margin-top: 0.75rem;
 }
 
+@media (max-width: 767px) {
+  .heroStage {
+    margin-top: 0.15rem;
+  }
+  .heroZahlMobile .heroZahlText {
+    margin-bottom: 0.15rem;
+  }
+}
+
 /* Keine Kästen: Filter, Bühne, Legende, Detailpanel und Zeitachse sitzen frei auf der Seite. */
 .karteHero .karteControls,
 .karteHero .legendsRow,
