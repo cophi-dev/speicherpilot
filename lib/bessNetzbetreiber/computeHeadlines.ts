@@ -7,7 +7,9 @@ export type NetzbetreiberHeadlines = {
   energyGwh: number;
   stichtag: string;
   eonBruttoGw: number;
+  eonNettoGw: number;
   eonSharePctTotal: number;
+  eonSharePctTotalNetto: number;
   zubau2026Gw: number;
   zubau2026EonGw: number;
   zubau2026EonSharePct: number;
@@ -32,20 +34,25 @@ export function computeNetzbetreiberHeadlines(
   };
   const totals = model.totalsDefault;
   const bruttoGw = manifest.plausibility?.bruttoGw ?? totals.bruttoMw / 1000;
+  const nettoGw = manifest.plausibility?.nettoGw ?? totals.nettoMw / 1000;
 
   const hs = model.headlineStats;
   const eonBlock = hs ? (includeMitnetz ? hs.eonWithMitnetz : hs.eonWithoutMitnetz) : null;
   const zubauHs = hs?.zubau2026;
 
   let eonBruttoMw: number;
+  let eonNettoMw: number;
   let eonSharePctTotal: number;
+  let eonSharePctTotalNetto: number;
   let zubauAllMw: number;
   let zubauEonMw: number;
   let zubauEonSharePct: number;
 
   if (eonBlock && zubauHs) {
     eonBruttoMw = eonBlock.bruttoMw;
+    eonNettoMw = eonBlock.nettoMw;
     eonSharePctTotal = eonBlock.sharePctTotal;
+    eonSharePctTotalNetto = totals.nettoMw > 0 ? (eonNettoMw / totals.nettoMw) * 100 : 0;
     zubauAllMw = zubauHs.allBruttoMw;
     zubauEonMw = includeMitnetz ? zubauHs.eonWithMitnetzBruttoMw : zubauHs.eonWithoutMitnetzBruttoMw;
     zubauEonSharePct = includeMitnetz ? zubauHs.eonSharePct : zubauHs.eonSharePctWithoutMitnetz;
@@ -59,7 +66,11 @@ export function computeNetzbetreiberHeadlines(
     eonBruttoMw = model.sitesDefault
       .filter((s) => s.operatorClass === "eon")
       .reduce((sum, s) => sum + s.bruttoMw, 0);
+    eonNettoMw = model.sitesDefault
+      .filter((s) => s.operatorClass === "eon")
+      .reduce((sum, s) => sum + s.nettoMw, 0);
     eonSharePctTotal = bruttoGw > 0 ? (eonBruttoMw / 1000 / bruttoGw) * 100 : 0;
+    eonSharePctTotalNetto = nettoGw > 0 ? (eonNettoMw / 1000 / nettoGw) * 100 : 0;
   }
 
   const scatter = model.scatterBundeslaender;
@@ -69,11 +80,13 @@ export function computeNetzbetreiberHeadlines(
   return {
     units: manifest.plausibility?.unitsGe1MwNetto ?? totals.units,
     bruttoGw,
-    nettoGw: manifest.plausibility?.nettoGw ?? totals.nettoMw / 1000,
+    nettoGw,
     energyGwh: manifest.plausibility?.energyGwh ?? totals.energyGwh,
     stichtag: manifest.stichtagMastr ?? "—",
     eonBruttoGw: eonBruttoMw / 1000,
+    eonNettoGw: eonNettoMw / 1000,
     eonSharePctTotal,
+    eonSharePctTotalNetto,
     zubau2026Gw: zubauAllMw / 1000,
     zubau2026EonGw: zubauEonMw / 1000,
     zubau2026EonSharePct: zubauEonSharePct,

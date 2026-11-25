@@ -2,11 +2,13 @@
 
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantityUnit } from "@/lib/formatQuantity";
+import type { BundeslandKarteDatum } from "@/lib/bessKarte3d/types";
 import type { GrowthBucket } from "@/lib/bessNetzbetreiber/prepareModel";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
 
 function formatMw(mw: number): string {
   if (mw >= 1000) return insertDisplayUnitNbsp(formatQuantityUnit(mw / 1000, "de", 2, "GW"));
+  if (mw < 10) return insertDisplayUnitNbsp(formatQuantityUnit(mw, "de", 1, "MW"));
   return insertDisplayUnitNbsp(formatQuantityUnit(mw, "de", 0, "MW"));
 }
 
@@ -17,7 +19,7 @@ function isEonGrowthKey(key: string): boolean {
 export function NetzbetreiberG3Bars({ rows }: { rows: GrowthBucket[] }) {
   const maxTotal = Math.max(...rows.map((r) => r.vor2026Mw + r.y2026Mw), 1);
   return (
-    <div className={styles.vnbBars} role="list" aria-label="Bestand und Zubau 2026 je Netzbetreibergruppe">
+    <div className={styles.vnbBars} role="list" aria-label="Bestand vor 2026 und Zubau 2026 (brutto) je Netzbetreibergruppe">
       {rows.map((row) => {
         const total = row.vor2026Mw + row.y2026Mw;
         const trackPct = (total / maxTotal) * 100;
@@ -49,25 +51,27 @@ export function NetzbetreiberG3Bars({ rows }: { rows: GrowthBucket[] }) {
 export function NetzbetreiberBlBessBars({
   rows,
 }: {
-  rows: { bundesland: string; bessBruttoGw: number; eeRedispatch2025Gwh: number }[];
+  rows: readonly BundeslandKarteDatum[];
 }) {
-  const sorted = [...rows].sort((a, b) => b.bessBruttoGw - a.bessBruttoGw);
-  const maxGw = Math.max(...sorted.map((r) => r.bessBruttoGw), 0.01);
+  const sorted = [...rows].sort((a, b) => b.nettoMw - a.nettoMw);
+  const maxMw = Math.max(...sorted.map((r) => r.nettoMw), 0.1);
   return (
-    <div className={styles.vnbBars} role="list" aria-label="BESS-Bruttoleistung je Bundesland">
+    <div className={styles.vnbBars} role="list" aria-label="BESS-Nettoleistung je Bundesland (alle 16 Länder)">
       {sorted.map((row) => {
-        const pct = (row.bessBruttoGw / maxGw) * 100;
+        const pct = (row.nettoMw / maxMw) * 100;
+        const abregLabel =
+          row.abregelung2025Gwh === null
+            ? "EE-Abregelung 2025: k. A."
+            : `EE-Abregelung 2025: ${insertDisplayUnitNbsp(formatQuantityUnit(row.abregelung2025Gwh, "de", 1, "GWh"))}`;
         return (
-          <div className={styles.vnbBarRow} role="listitem" key={row.bundesland}>
-            <span className={`${styles.vnbBarLabel} num`} title={`EE-Redispatch 2025: ${formatQuantityUnit(row.eeRedispatch2025Gwh, "de", 1, "GWh")}`}>
+          <div className={styles.vnbBarRow} role="listitem" key={row.kuerzel}>
+            <span className={`${styles.vnbBarLabel} num`} title={abregLabel}>
               {row.bundesland}
             </span>
             <div className={styles.vnbBarTrack} aria-hidden="true">
               <div className={styles.vnbBarFillOther} style={{ width: `${pct}%`, opacity: 0.55 }} />
             </div>
-            <span className={`${styles.vnbBarValue} num`}>
-              {insertDisplayUnitNbsp(formatQuantityUnit(row.bessBruttoGw, "de", 2, "GW"))}
-            </span>
+            <span className={`${styles.vnbBarValue} num`}>{formatMw(row.nettoMw)}</span>
           </div>
         );
       })}
@@ -78,23 +82,21 @@ export function NetzbetreiberBlBessBars({
 export function NetzbetreiberEeStockBars({
   rows,
 }: {
-  rows: { bundesland: string; wind: number; pv: number; bess: number }[];
+  rows: { bundesland: string; wind: number; pv: number; bessNettoMw: number }[];
 }) {
-  const sorted = [...rows].sort((a, b) => b.bess - a.bess);
-  const maxBess = Math.max(...sorted.map((r) => r.bess), 0.01);
+  const sorted = [...rows].sort((a, b) => b.bessNettoMw - a.bessNettoMw);
+  const maxBess = Math.max(...sorted.map((r) => r.bessNettoMw), 0.1);
   return (
-    <div className={styles.vnbBars} role="list" aria-label="BESS je Bundesland (MaStR-Modell)">
+    <div className={styles.vnbBars} role="list" aria-label="BESS-Nettoleistung je Bundesland (MaStR)">
       {sorted.map((row) => {
-        const pct = (row.bess / maxBess) * 100;
+        const pct = (row.bessNettoMw / maxBess) * 100;
         return (
           <div className={styles.vnbBarRow} role="listitem" key={row.bundesland}>
             <span className={`${styles.vnbBarLabel} num`}>{row.bundesland}</span>
             <div className={styles.vnbBarTrack} aria-hidden="true">
               <div className={styles.vnbBarFillEon} style={{ width: `${pct}%` }} />
             </div>
-            <span className={`${styles.vnbBarValue} num`}>
-              {insertDisplayUnitNbsp(formatQuantityUnit(row.bess, "de", 2, "GW"))}
-            </span>
+            <span className={`${styles.vnbBarValue} num`}>{formatMw(row.bessNettoMw)}</span>
           </div>
         );
       })}

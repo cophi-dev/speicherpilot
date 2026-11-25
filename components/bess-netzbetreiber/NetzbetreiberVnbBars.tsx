@@ -13,11 +13,11 @@ function formatBarMw(mw: number): string {
 }
 
 export function NetzbetreiberVnbBars({ rows }: { rows: G2BarRow[] }) {
-  const maxMw = Math.max(...rows.map((r) => r.bruttoMw), 1);
+  const maxMw = Math.max(...rows.map((r) => r.displayMw), 1);
   return (
-    <div className={styles.vnbBars} role="list" aria-label="Bruttoleistung je Verteilnetzbetreiber">
+    <div className={styles.vnbBars} role="list" aria-label="Nettoleistung je Verteilnetzbetreiber">
       {rows.map((row) => {
-        const pct = (row.bruttoMw / maxMw) * 100;
+        const pct = (row.displayMw / maxMw) * 100;
         return (
           <div className={styles.vnbBarRow} role="listitem" key={row.key}>
             <span className={`${styles.vnbBarLabel} num`}>{row.fullLabel}</span>
@@ -27,7 +27,7 @@ export function NetzbetreiberVnbBars({ rows }: { rows: G2BarRow[] }) {
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <span className={`${styles.vnbBarValue} num`}>{formatBarMw(row.bruttoMw)}</span>
+            <span className={`${styles.vnbBarValue} num`}>{formatBarMw(row.displayMw)}</span>
           </div>
         );
       })}

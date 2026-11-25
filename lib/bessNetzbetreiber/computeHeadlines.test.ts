@@ -32,6 +32,18 @@ describe("computeNetzbetreiberHeadlines", () => {
     expect(ohne.eonBruttoGw).toBeLessThan(2.05);
   });
 
+  it("liefert Netto-Kopfzahlen (~4,62 GW gesamt, E.ON netto inkl./ohne MITNETZ)", () => {
+    const withM = computeNetzbetreiberHeadlines(model, { eonIncludeMitnetz: true });
+    const ohne = computeNetzbetreiberHeadlines(model, { eonIncludeMitnetz: false });
+    expect(withM.nettoGw).toBeCloseTo(4.62, 2);
+    expect(withM.eonNettoGw).toBeCloseTo(2.6833, 3);
+    expect(withM.eonSharePctTotalNetto).toBeGreaterThanOrEqual(57.5);
+    expect(withM.eonSharePctTotalNetto).toBeLessThanOrEqual(58.6);
+    expect(ohne.eonNettoGw).toBeCloseTo(1.9598, 3);
+    expect(ohne.eonSharePctTotalNetto).toBeGreaterThanOrEqual(42);
+    expect(ohne.eonSharePctTotalNetto).toBeLessThanOrEqual(43);
+  });
+
   it("SNB916269213931 gehört zum E.ON-Konzern", () => {
     expect(snbMapsToEonKonzern("SNB916269213931")).toBe(true);
   });

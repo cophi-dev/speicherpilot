@@ -35,15 +35,18 @@ export function sumGrowthDisjointMw(
   return GROWTH_DISJOINT_STACK_KEYS.reduce((sum, key) => sum + (growth[key]?.[field] ?? 0), 0);
 }
 
-/** VNB horizontal bar chart: top VNBs (excl. ÜNB) with ≥1 site; remainder summed as „übrige VNB“. */
+/** VNB horizontal bar chart: top VNBs (excl. ÜNB) with ≥1 site; sorted by nettoMw descending. */
 export function prepareVnbBars(
   ranking: BessNetzbetreiberBundle["vnbRanking"],
   topVnbCount = 13,
-): { rows: VnbBarRow[]; restMw: number; markerMw: number } {
-  const vnbOnly = ranking.filter((r) => r.operatorClass !== "uenb");
+): { rows: VnbBarRow[]; restMw: number; restNettoMw: number; markerMw: number } {
+  const vnbOnly = ranking
+    .filter((r) => r.operatorClass !== "uenb")
+    .sort((a, b) => b.nettoMw - a.nettoMw || b.bruttoMw - a.bruttoMw);
   const top = vnbOnly.slice(0, topVnbCount);
   const rest = vnbOnly.slice(topVnbCount);
   const restMw = rest.reduce((s, r) => s + r.bruttoMw, 0);
+  const restNettoMw = rest.reduce((s, r) => s + r.nettoMw, 0);
   const rows: VnbBarRow[] = top.map((r) => ({
     key: r.key,
     label: r.label,
@@ -52,7 +55,7 @@ export function prepareVnbBars(
     isTopVnb: true,
     isEonGroup: r.key.startsWith("eon") || r.key === "mitnetz_envia",
   }));
-  return { rows, restMw, markerMw: 50 };
+  return { rows, restMw, restNettoMw, markerMw: 50 };
 }
 
 export function prepareGrowthStacks(
