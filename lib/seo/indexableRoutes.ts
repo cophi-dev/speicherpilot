@@ -25,9 +25,11 @@ function staticIndexableRoutes(now: Date): IndexableRoute[] {
   const routes: IndexableRoute[] = [
     { path: "/", lastModified: new Date(dataStandModified) },
     { path: "/jahr", lastModified: buildModified },
+    { path: "/netzbetreiber", lastModified: buildModified },
     { path: "/methodik", lastModified: buildModified },
     { path: "/kompromiss", lastModified: buildModified },
     { path: "/knoten", lastModified: buildModified },
+    { path: "/daten", lastModified: buildModified },
     { path: "/beitraege", lastModified: buildModified },
     { path: "/ueber", lastModified: buildModified },
     { path: "/impressum", lastModified: buildModified },

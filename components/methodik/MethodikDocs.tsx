@@ -182,10 +182,16 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
                   "Storage across days: start at 10% usable energy, carry state day to day, remainder at period end. Discharged ≠ 85% of absorbed because energy stays stored. Discharge during import hours is at most Σ min(discharge, max(0, trade)) · ¼ h — not proof that import disappears."
                 )}
               </p>
-              <p>
+              <p id="vision-jahr">
                 {tx(
                   "/jahr (Stand 16.11.2026): Zwölf Monate 16.11.2025–15.11.2026, 35 040 Viertelstunden Energy-Charts (Last, Wind, Solar) und Day-Ahead DE-LU 15 min (CC BY 4.0). Referenzflotte 4,70 GW / 8,27 GWh Großspeicher (battery-charts, 16.11.2026). NEP-Stufen 41,1 / 67,6 / 94,1 GW bei 2 h; 4 h nur Sensitivitätslinie. Spitzenorientiert = minimale nationale Jahresspitze der Restlast (Vollvoraussicht, Obergrenze); zusätzlich Tagesvoraussicht als Text. Nach Preis: Day-Ahead-LP; Preisrückwirkung als grobes OLS-Band (b … 2b), nicht Prognose. Price Taker ohne Rückwirkung nur als gekappter Stresstest. Überschuss = Σ max(0, −Restlast) nach Fahrt minus vorher. National, kein (n-1), nicht Abregelung — keine Euro auf der Seite. Rohdaten: data/forschung/daten_jahr_v1.json.",
                   "/jahr (as of 16 Nov 2026): twelve months 16 Nov 2025–15 Nov 2026, 35,040 quarter-hours Energy-Charts (load, wind, solar) and DE-LU day-ahead 15 min (CC BY 4.0). Reference fleet 4.70 GW / 8.27 GWh utility storage (battery-charts, 16 Nov 2026). NEP levels 41.1 / 67.6 / 94.1 GW at 2 h; 4 h sensitivity line only. Peak-oriented = minimum national annual residual peak (perfect foresight, upper bound); day-ahead foresight noted in text. By price: day-ahead LP; price feedback as coarse OLS band (b … 2b), not a forecast. Price taker without feedback only as a capped stress test. Surplus = Σ max(0, −residual) after operation minus before. National, not (n-1), not curtailment — no euro on the page. Raw data: data/forschung/daten_jahr_v1.json."
+                )}
+              </p>
+              <p id="bess-netzbetreiber">
+                {tx(
+                  "/netzbetreiber (Stand 24.11.2026): Konzeptfilter MaStR (Batterie, In Betrieb, netto ≥ 1 MW) = 575 Einheiten, 4,74 GW brutto / 4,62 GW netto / 8,37 GWh. Qualitätsfilter optional (−134,7 MW). Konzernzuordnung über feste SNB-Nummern; headlineStats je Einheit (nicht Kartenpunkte). Schalter mitteldeutsche Tochter (SNB) auf der Seite. G3 disjunkt (eon_kern, mitnetz_envia, …); eon_gruppe Kontrolle. ÜNB in Betrieb: netto 0,32 GW, brutto 0,358 GW; Höchst-/Übertragungsnetz oder TSO an MS/HS. Karte v4: SVG-Punkte, DE-Umriss Natural Earth 110m (CC0), keine OSM-Kacheln. G5 MaStR Wind/PV. npm run data:bess-netzbetreiber.",
+                  "/netzbetreiber (as of 24 Nov 2026): Default concept filter = 575 units, 4.74 GW gross / 4.62 GW net / 8.37 GWh (MaStR battery in operation, net ≥ 1 MW). Quality filter off by default: removes 16 natural persons and 15 low-voltage without completed NB check (−130 MW gross → 544 units); breakdown on page. Map: coordinate merge reduces point count. Tochter-SN toggle on page. Map: SVG outline, no OSM tiles. G5: MaStR onshore wind + PV per state. G2 per-1,000 km line length: pending VNB source file. Data via npm run data:bess-netzbetreiber."
                 )}
               </p>
               <p>

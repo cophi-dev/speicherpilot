@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-24T18:11:16Z",
+  "stichtagMastr": "2026-11-24",
+  "sources": [
+    {
+      "name": "Marktstammdatenregister",
+      "license": "dl-de/by-2-0",
+      "retrieved": "2026-11-24",
+      "url": "https://www.marktstammdatenregister.de/MaStR"
+    },
+    {
+      "name": "SMARD Energiedaten kompakt (s-nepm_baet-1-*)",
+      "license": "CC BY 4.0",
+      "retrieved": "2026-11-24",
+      "url": "https://www.smard.de/resource/blob/217306/-/data-csv-data.csv"
+    }
+  ],
+  "plausibility": {
+    "unitsGe1MwNetto": 575,
+    "sitesOnMap": 535,
+    "bruttoGw": 4.74,
+    "nettoGw": 4.62,
+    "energyGwh": 8.37,
+    "note": "Default = Konzeptfilter (575 Ziel); Qualitätsfilter optional"
+  },
+  "filterBreakdown": {
+    "conceptUnits": 575,
+    "conceptBruttoKw": 4740396.73,
+    "qualityFilteredUnits": 544,
+    "excludedNaturalPersonUnits": 16,
+    "excludedNsUnverifiedUnits": 15,
+    "excludedBruttoKw": 134672.0,
+    "excludedBruttoMw": 134.7,
+    "unitsAfterQualityFilter": 544,
+    "sitesAfterQualityFilter": 504,
+    "unitsAggregatedToSameCoordinate": 40,
+    "uenbAttachedUnitsConcept": 15,
+    "unitsWithoutMapCoordinate": 5,
+    "explanation": "16 Einheiten natürliche Personen, 15 mit Niederspannung ohne abgeschlossene NB-Prüfung; 40 Einheiten teilen Kartenkoordinate mit anderen Einheiten; 5 ohne MaStR-Koordinate (in Summen, nicht auf Karte)."
+  },
+  "vg250": {
+    "available": false,
+    "license": "dl-de/by-2-0"
+  },
+  "networkLengthNormalization": {
+    "available": false,
+    "status": "folgt",
+    "documentedVnbCount": 0,
+    "note": "MW je 1.000 km Stromkreislänge: folgt, bis ≥8 Top-VNB mit URL belegt sind.",
+    "eeStockNormalization": true
+  },
+  "eonSnbIds": [
+    "SNB911641710114",
+    "SNB911705062982",
+    "SNB916269213931",
+    "SNB918250928893",
+    "SNB921897286493",
+    "SNB940352624434",
+    "SNB941690671609",
+    "SNB976379598847",
+    "SNB990362338043",
+    "SNB990857029876"
+  ],
+  "eeStockMastr": {
+    "maxPagesPerEnergyCarrier": 8,
+    "note": "Wind/PV je Bundesland; Seitenzahl über MASTR_GEN_MAX_PAGES (Default 80)."
+  }
+}

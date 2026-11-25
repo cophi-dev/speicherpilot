@@ -71,9 +71,28 @@ export function datasetJsonLd(opts: {
   description: string;
   temporalCoverage: string;
   includeNep?: boolean;
+  license?: string;
+  keywords?: string[];
+  distribution?: Array<{ name: string; contentUrl: string; encodingFormat: string }>;
 }) {
   const origin = getPublicSiteOrigin();
   const citations = dataCitations(opts.includeNep ?? false);
+  const extra: Record<string, unknown> = {};
+  if (opts.license) {
+    extra.license = opts.license;
+    extra.isAccessibleForFree = true;
+  }
+  if (opts.keywords?.length) {
+    extra.keywords = opts.keywords;
+  }
+  if (opts.distribution?.length) {
+    extra.distribution = opts.distribution.map((item) => ({
+      "@type": "DataDownload",
+      name: item.name,
+      contentUrl: item.contentUrl.startsWith("http") ? item.contentUrl : `${origin}${item.contentUrl}`,
+      encodingFormat: item.encodingFormat,
+    }));
+  }
   return {
     "@type": "Dataset",
     "@id": `${origin}${opts.path}#dataset`,
@@ -88,6 +107,7 @@ export function datasetJsonLd(opts: {
     },
     isBasedOn: citations,
     citation: citations.map((item) => item.url),
+    ...extra,
   };
 }
 

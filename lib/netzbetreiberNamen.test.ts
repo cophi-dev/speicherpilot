@@ -42,7 +42,11 @@ describe("netzbetreiberNamen blocklist", () => {
         base === "loadLiveBoard.ts" ||
         base === "germanyBessProjects.ts" ||
         base === "OrtUnbHinweis.tsx" ||
-        base === "MethodikNetzKapazitaet.tsx"
+        base === "MethodikNetzKapazitaet.tsx" ||
+        base === "prepareModel.ts" ||
+        file.includes(`${path.sep}bess-netzbetreiber${path.sep}`) ||
+        file.includes(`${path.sep}bessNetzbetreiber${path.sep}`) ||
+        file.includes(`${path.sep}data${path.sep}bess-netzbetreiber${path.sep}`)
       ) {
         continue;
       }

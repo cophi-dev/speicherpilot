@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "note": "Stromkreislänge gesamt (km) je VNB aus § 23c EnWG / StromNEV-Veröffentlichung auf VNB-Websites. Keine Schätzwerte.",
+  "status": "folgt",
+  "minimumForNormierung": 8,
+  "documentedCount": 0,
+  "entries": [
+  ]
+}

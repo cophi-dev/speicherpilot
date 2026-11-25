@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "jest",
     "data:mastr": "tsx --tsconfig tsconfig.json scripts/generate-mastr-repo-snapshot.ts",
+    "data:bess-netzbetreiber": "python3 scripts/bess-netzbetreiber/build_static_data.py",
     "data:fca": "python3 scripts/build-fca-table.py",
     "data:netz": "python3 scripts/netz/build_netz_demo.py data/netz/netz-demo.json && python3 scripts/netz/pruefe_netz_demo.py data/netz/netz-demo.json",
     "data:ort": "python3 scripts/ort/build_ort_archetypes.py",

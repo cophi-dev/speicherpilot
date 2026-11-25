@@ -3,6 +3,7 @@ export const SITE_MAIN_NAV = [
   { href: "/tag", label: "Tag" },
   { href: "/monat", label: "Monat" },
   { href: "/jahr", label: "Jahr" },
+  { href: "/netzbetreiber", label: "BESS-Karte" },
   { href: "/kompromiss", label: "Simulator" },
   { href: "/knoten", label: "Knoten" },
   { href: "/beitraege", label: "Beiträge" },
@@ -27,6 +28,9 @@ export function isSiteMainNavActive(pathname: string, itemHref: SiteMainNavHref)
   }
   if (itemHref === "/jahr") {
     return pathname.startsWith("/jahr");
+  }
+  if (itemHref === "/netzbetreiber") {
+    return pathname.startsWith("/netzbetreiber");
   }
   if (itemHref === "/kompromiss") {
     return pathname.startsWith("/kompromiss") || pathname.startsWith("/simulator");
@@ -53,6 +57,7 @@ export const SITE_MAIN_NAV_STATIC_ROUTES: readonly string[] = [
   "/tag",
   "/monat",
   "/jahr",
+  "/netzbetreiber",
   "/kompromiss",
   "/knoten",
   "/methodik",

@@ -323,6 +323,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
             <nav className="legal-footer" aria-label="Rechtliches und Methodik">
               <Link href="/ueber">Über SpeicherPilot</Link>
               <Link href="/methodik">Methodik</Link>
+              <Link href="/daten">Daten (CC BY 4.0)</Link>
               <Link href="/methodik#so-pruefen-wir">So prüfen wir Meldungen</Link>
               <Link href="/impressum">Impressum</Link>
               <Link href="/datenschutz">Datenschutz</Link>

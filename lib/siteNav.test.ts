@@ -61,7 +61,9 @@ describe("siteNav", () => {
     const jahrIdx = labels.indexOf("Jahr");
     const simIdx = labels.indexOf("Simulator");
     expect(jahrIdx).toBeGreaterThanOrEqual(0);
-    expect(simIdx).toBe(jahrIdx + 1);
+    expect(labels).toContain("BESS-Karte");
+    expect(hrefs).toContain("/netzbetreiber");
+    expect(simIdx).toBe(jahrIdx + 2);
     expect(labels).not.toContain("Vision");
     expect(labels).not.toContain("Gestern");
     expect(hrefs).not.toContain("/vision");
