@@ -313,6 +313,88 @@
   outline: none;
 }
 
+/* Mobil: ein Finger scrollt die Seite weiter; Zwei-Finger fängt JS per preventDefault. */
+.canvasStageTouch {
+  touch-action: pan-y;
+}
+
+.canvasStageTouch .canvas3d {
+  touch-action: pan-y;
+}
+
+.canvasStageTouch {
+  display: flex;
+  flex-direction: column;
+}
+
+.canvasToolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+  width: 100%;
+}
+
+.canvasToolbarHint {
+  margin: 0;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.canvasToolbarRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.canvasToolbarCluster {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.camBtnCircle {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  flex: 0 0 44px;
+}
+
+.canvasToolbarToggle {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  color: hsl(var(--foreground));
+  font-size: var(--type-14);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.canvasToolbarToggle[aria-pressed="true"] {
+  background: hsl(var(--foreground));
+  border-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
+.canvasFallback {
+  margin: 0.75rem 0 0;
+  font-size: var(--type-14);
+  color: hsl(var(--muted-foreground));
+}
+
 .canvas3d:focus-visible {
   box-shadow: inset 0 0 0 2px var(--v4-warm);
 }
@@ -1272,6 +1354,15 @@
 
 .heroStage {
   margin-top: 0.75rem;
+}
+
+@media (max-width: 767px) {
+  .heroStage {
+    margin-top: 0.15rem;
+  }
+  .heroZahlMobile .heroZahlText {
+    margin-bottom: 0.15rem;
+  }
 }
 
 /* Keine Kästen: Filter, Bühne, Legende, Detailpanel und Zeitachse sitzen frei auf der Seite. */

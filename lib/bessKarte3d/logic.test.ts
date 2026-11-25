@@ -299,3 +299,45 @@ describe("computeKarteKernzahlen", () => {
     expect(k.zubauJahre.map((z) => z.jahr)).toEqual([2025, 2026]);
   });
 });
+
+describe("mobile projection fit (390-Karte)", () => {
+  it("passt Deutschland inkl. Schleswig-Holstein in 350×490 ein, Norden oben, Neigung 16°", async () => {
+    const pr = await import("@/lib/bessKarte3d/projection3d");
+    expect(pr.MOBILE_CAMERA_3D.tiltDeg).toBeLessThanOrEqual(20);
+    expect(pr.MOBILE_CAMERA_3D.yawDeg).toBe(0);
+
+    const w = 350;
+    const h = 490;
+    const params = pr.createProjectionParams3d(pr.MOBILE_CAMERA_3D, w, h, "mobile");
+    const inside = (lng: number, lat: number) => {
+      const plane = pr.geoToPlane(lng, lat);
+      const p = pr.projectPoint3d(plane.x, plane.y, 0, params);
+      expect(p.x).toBeGreaterThan(8);
+      expect(p.x).toBeLessThan(w - 8);
+      expect(p.y).toBeGreaterThan(8);
+      expect(p.y).toBeLessThan(h - 8);
+      return p;
+    };
+    const flensburg = inside(9.44, 54.79);
+    const sylt = inside(8.29, 55.02);
+    const oberstdorf = inside(10.29, 47.41);
+    const selfkant = inside(5.92, 51.02);
+    const goerlitz = inside(15.0, 51.16);
+    expect(flensburg.y).toBeLessThan(oberstdorf.y);
+    expect(sylt.y).toBeLessThan(flensburg.y);
+    expect(goerlitz.x).toBeGreaterThan(selfkant.x);
+    const span = goerlitz.x - selfkant.x;
+    expect(span).toBeGreaterThan(300);
+  });
+
+  it("Desktop-Projektion bleibt unverändert, wenn fit fehlt", async () => {
+    const pr = await import("@/lib/bessKarte3d/projection3d");
+    const a = pr.createProjectionParams3d(pr.DEFAULT_CAMERA_3D, 1280, 800);
+    const b = pr.createProjectionParams3d(pr.DEFAULT_CAMERA_3D, 1280, 800, "default");
+    expect(a.scale).toBeCloseTo(b.scale, 8);
+    expect(a.cx).toBeCloseTo(b.cx, 8);
+    expect(a.cy).toBeCloseTo(b.cy, 8);
+    expect(a.cy).toBeCloseTo(800 * 0.56, 8);
+    expect(a.scale).toBeCloseTo(Math.min(1280, 800) * 0.47, 8);
+  });
+});

@@ -15,6 +15,7 @@ import {
   geoToPlane,
   panCameraBy,
   type Point2d,
+  type ProjectionFit,
   projectCuboid,
   projectPoint3d,
   screenCross2d,
@@ -46,6 +47,8 @@ type Props = {
   onResetCamera: () => void;
   /** Hero: größere Bühne, ohne Rahmen. */
   hero?: boolean;
+  /** Mobil: Ein-Finger scrollt die Seite, Zwei-Finger dreht/neigt/zoomt, kein Scroll-Trap. */
+  touchFriendly?: boolean;
   overlay?: ReactNode;
   /** Unten links auf der Bühne: Höhenlegende und kurze BKG-Zeile. */
   footOverlay?: ReactNode;
@@ -151,6 +154,7 @@ export function BessKarteCanvas3d({
   onCameraChange,
   onResetCamera,
   hero = false,
+  touchFriendly = false,
   overlay,
   footOverlay,
 }: Props) {
@@ -167,6 +171,7 @@ export function BessKarteCanvas3d({
   } | null>(null);
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; midX: number; midY: number } | null>(null);
+  const tapRef = useRef<{ pointerId: number; startX: number; startY: number } | null>(null);
   const cameraRef = useRef(camera);
   useEffect(() => {
     cameraRef.current = camera;
@@ -184,6 +189,8 @@ export function BessKarteCanvas3d({
   const [isDark, setIsDark] = useState(false);
   const [hoveredSite, setHoveredSite] = useState<KarteSite | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [canvasBlocked, setCanvasBlocked] = useState(false);
+  const projFit: ProjectionFit = touchFriendly ? "mobile" : "default";
 
   const preparedPolys = useMemo<PreparedPoly[]>(() => {
     return geoJson.features.map((feat) => {
@@ -248,9 +255,14 @@ export function BessKarteCanvas3d({
       const entry = entries[0];
       if (!entry) return;
       const w = Math.max(320, Math.round(entry.contentRect.width));
+      const narrow = w < 768;
       const h = hero
-        ? Math.max(560, Math.min(900, Math.round(window.innerHeight * 0.76), Math.round(w * 0.74)))
-        : Math.max(460, Math.min(600, Math.round(w * 0.78)));
+        ? narrow
+          ? Math.max(460, Math.min(Math.round(window.innerHeight * 0.62), Math.round(w * 1.42)))
+          : Math.max(560, Math.min(900, Math.round(window.innerHeight * 0.76), Math.round(w * 0.74)))
+        : narrow
+          ? Math.max(420, Math.min(540, Math.round(w * 1.35)))
+          : Math.max(460, Math.min(600, Math.round(w * 0.78)));
       setSize((prev) => (prev.width === w && prev.height === h ? prev : { width: w, height: h }));
     });
     obs.observe(el);
@@ -280,7 +292,15 @@ export function BessKarteCanvas3d({
       const factor = Math.exp(-Math.max(-60, Math.min(60, e.deltaY)) * 0.006);
       const { width, height } = sizeRef.current;
       onCameraChange(
-        zoomCameraAt(cameraRef.current, factor, e.clientX - rect.left, e.clientY - rect.top, width, height),
+        zoomCameraAt(
+          cameraRef.current,
+          factor,
+          e.clientX - rect.left,
+          e.clientY - rect.top,
+          width,
+          height,
+          touchFriendly ? "mobile" : "default",
+        ),
       );
     };
     el.addEventListener("wheel", onWheel, { passive: false });
@@ -288,19 +308,40 @@ export function BessKarteCanvas3d({
       el.removeEventListener("wheel", onWheel);
       if (wheelHintTimer.current) window.clearTimeout(wheelHintTimer.current);
     };
-  }, [onCameraChange]);
+  }, [onCameraChange, touchFriendly]);
+
+  // Zwei Finger: Browser-Scroll und -Pinch unterbinden, damit drehen/neigen/zoomen bei uns landet.
+  // Ein Finger bleibt pan-y (Seite scrollt). touch-action wird beim Gestenstart festgeschrieben,
+  // darum preventDefault erst ab dem zweiten Finger.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || !touchFriendly) return;
+    const blockTwoFinger = (e: TouchEvent) => {
+      if (e.touches.length >= 2) e.preventDefault();
+    };
+    el.addEventListener("touchstart", blockTwoFinger, { passive: false });
+    el.addEventListener("touchmove", blockTwoFinger, { passive: false });
+    return () => {
+      el.removeEventListener("touchstart", blockTwoFinger);
+      el.removeEventListener("touchmove", blockTwoFinger);
+    };
+  }, [touchFriendly]);
 
   function zoomBy(factor: number) {
     const { width, height } = sizeRef.current;
-    const params = createProjectionParams3d(camera, width, height);
-    onCameraChange(zoomCameraAt(camera, factor, params.cx, params.cy, width, height));
+    const params = createProjectionParams3d(camera, width, height, projFit);
+    onCameraChange(zoomCameraAt(camera, factor, params.cx, params.cy, width, height, projFit));
   }
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      setCanvasBlocked((prev) => (prev ? prev : true));
+      return;
+    }
+    setCanvasBlocked((prev) => (prev ? false : prev));
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     if (
@@ -315,7 +356,7 @@ export function BessKarteCanvas3d({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size.width, size.height);
 
-    const params = createProjectionParams3d(camera, size.width, size.height);
+    const params = createProjectionParams3d(camera, size.width, size.height, projFit);
     const nullPattern = showAbregelung
       ? createNullHatchPattern(ctx, isDark)
       : null;
@@ -433,8 +474,14 @@ export function BessKarteCanvas3d({
     // 4. 3D-Säulen (Painter-Sortierung von hinten nach vorne)
     // Beim Hineinzoomen wachsen Säulen langsamer als die Karte, damit einzelne Lokationen trennbar bleiben.
     const zoomDamp = Math.max(1, camera.zoom);
-    const maxColHeight = 0.5 / Math.pow(zoomDamp, 0.55);
-    const baseHalfW = 0.0072 / Math.pow(zoomDamp, 0.7);
+    let maxColHeight = 0.5 / Math.pow(zoomDamp, 0.55);
+    let baseHalfW = 0.0072 / Math.pow(zoomDamp, 0.7);
+    if (touchFriendly) {
+      baseHalfW *= 0.6;
+      const pxPerUnit = params.scale * Math.max(0.22, params.sinT);
+      const cap = (size.height * 0.25) / Math.max(pxPerUnit, 1e-6);
+      maxColHeight = Math.min(maxColHeight, cap);
+    }
 
     const sortedItems = siteCoords
       .map(({ site, plane }) => {
@@ -548,6 +595,8 @@ export function BessKarteCanvas3d({
     maxScaleValue,
     selectedLok,
     hoveredSite,
+    touchFriendly,
+    projFit,
   ]);
 
   function findHit(clientX: number, clientY: number): KarteSite | null {
@@ -576,9 +625,29 @@ export function BessKarteCanvas3d({
   }
 
   function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
-    e.currentTarget.setPointerCapture(e.pointerId);
     setWheelActive(true);
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Mobil: ein Finger scrollt oder tippt eine Säule; erst der zweite Finger greift die Kamera.
+    if (e.pointerType === "touch") {
+      if (pointersRef.current.size >= 2) {
+        dragRef.current = null;
+        tapRef.current = null;
+        pinchRef.current = pinchState();
+        try {
+          for (const id of pointersRef.current.keys()) {
+            e.currentTarget.setPointerCapture(id);
+          }
+        } catch {
+          /* Capture kann fehlen, wenn der erste Finger schon losgelassen wurde. */
+        }
+      } else {
+        tapRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY };
+      }
+      return;
+    }
+
+    e.currentTarget.setPointerCapture(e.pointerId);
     if (pointersRef.current.size >= 2) {
       dragRef.current = null;
       pinchRef.current = pinchState();
@@ -605,13 +674,30 @@ export function BessKarteCanvas3d({
       if (now && prev.dist > 0) {
         const rect = e.currentTarget.getBoundingClientRect();
         const { width, height } = sizeRef.current;
-        let next = zoomCameraAt(camera, now.dist / prev.dist, now.midX - rect.left, now.midY - rect.top, width, height);
-        next = panCameraBy(next, now.midX - prev.midX, now.midY - prev.midY, width, height);
+        let next = zoomCameraAt(
+          camera,
+          now.dist / prev.dist,
+          now.midX - rect.left,
+          now.midY - rect.top,
+          width,
+          height,
+          projFit,
+        );
+        if (e.pointerType === "touch") {
+          next = clampCamera3d({
+            ...next,
+            yawDeg: next.yawDeg + (now.midX - prev.midX) * 0.42,
+            tiltDeg: next.tiltDeg + (now.midY - prev.midY) * 0.3,
+          });
+        } else {
+          next = panCameraBy(next, now.midX - prev.midX, now.midY - prev.midY, width, height, projFit);
+        }
         onCameraChange(next);
         pinchRef.current = now;
       }
       return;
     }
+    if (e.pointerType === "touch") return;
     const drag = dragRef.current;
     if (drag && drag.pointerId === e.pointerId) {
       const dx = e.clientX - drag.startX;
@@ -624,7 +710,7 @@ export function BessKarteCanvas3d({
       if (drag.moved) {
         if (drag.pan) {
           const { width, height } = sizeRef.current;
-          onCameraChange(panCameraBy(drag.startCam, dx, dy, width, height));
+          onCameraChange(panCameraBy(drag.startCam, dx, dy, width, height, projFit));
         } else {
           onCameraChange(
             clampCamera3d({
@@ -642,12 +728,31 @@ export function BessKarteCanvas3d({
     setHoveredSite((prev) => (prev?.lok === hit?.lok ? prev : hit));
   }
 
+  function handlePointerCancel(e: React.PointerEvent<HTMLCanvasElement>) {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (tapRef.current?.pointerId === e.pointerId) tapRef.current = null;
+    dragRef.current = null;
+    setDragging(false);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  }
+
   function handlePointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
     pointersRef.current.delete(e.pointerId);
     if (pinchRef.current) {
       if (pointersRef.current.size < 2) pinchRef.current = null;
       dragRef.current = null;
       setDragging(false);
+      return;
+    }
+    const tap = tapRef.current;
+    if (tap && tap.pointerId === e.pointerId) {
+      tapRef.current = null;
+      if (Math.hypot(e.clientX - tap.startX, e.clientY - tap.startY) <= 8) {
+        onSelectSite(findHit(e.clientX, e.clientY));
+      }
       return;
     }
     const drag = dragRef.current;
@@ -693,7 +798,13 @@ export function BessKarteCanvas3d({
   return (
     <div
       ref={wrapRef}
-      className={hero ? `${styles.canvasStageWrap} ${styles.canvasStageHero}` : styles.canvasStageWrap}
+      className={[
+        styles.canvasStageWrap,
+        hero ? styles.canvasStageHero : "",
+        touchFriendly ? styles.canvasStageTouch : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       onMouseLeave={() => setWheelActive(false)}
     >
       <canvas
@@ -706,11 +817,15 @@ export function BessKarteCanvas3d({
         }}
         tabIndex={0}
         role="img"
-        aria-label="Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit Maus oder Pfeiltasten drehen und neigen, mit Plus und Minus zoomen, Säule anklicken für Details."
+        aria-label={
+          touchFriendly
+            ? "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit zwei Fingern drehen, neigen und zoomen, über die Knöpfe neigen, Säule antippen für Details."
+            : "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit Maus oder Pfeiltasten drehen und neigen, mit Plus und Minus zoomen, Säule anklicken für Details."
+        }
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onPointerLeave={() => {
           if (!dragRef.current) setHoveredSite(null);
         }}
@@ -729,84 +844,172 @@ export function BessKarteCanvas3d({
 
       {footOverlay ? <div className={styles.canvasFootOverlay}>{footOverlay}</div> : null}
 
-      <div className={styles.canvasOverlayTop}>
-        <span className={`${styles.canvasHint} num`}>
-          {camera.zoom > 1.05
-            ? "Ziehen: verschieben · Shift + Ziehen: drehen · Säule anklicken: Details"
-            : "Ziehen: drehen und neigen · Strg/⌘ + Mausrad: zoomen · Säule anklicken: Details"}
-        </span>
-        <div className={styles.canvasCamBtns}>
-          <button
-            type="button"
-            className={styles.camBtn}
-            onClick={() =>
-              onCameraChange(clampCamera3d({ ...camera, yawDeg: camera.yawDeg - 20 }))
-            }
-            aria-label="Karte nach links drehen"
-            title="Nach links drehen"
-          >
-            ⟲
-          </button>
-          <button
-            type="button"
-            className={styles.camBtn}
-            onClick={() =>
-              onCameraChange(clampCamera3d({ ...camera, yawDeg: camera.yawDeg + 20 }))
-            }
-            aria-label="Karte nach rechts drehen"
-            title="Nach rechts drehen"
-          >
-            ⟳
-          </button>
-          <button
-            type="button"
-            className={styles.camBtn}
-            onClick={() =>
-              onCameraChange(
-                clampCamera3d({
-                  ...camera,
-                  tiltDeg: camera.tiltDeg > 25 ? 14 : 48,
-                }),
-              )
-            }
-            aria-label={camera.tiltDeg > 25 ? "In Draufsicht wechseln" : "In 3D-Neigung wechseln"}
-          >
-            {camera.tiltDeg > 25 ? "Draufsicht" : "3D"}
-          </button>
-        </div>
-      </div>
+      {canvasBlocked ? (
+        <p className={styles.canvasFallback} role="status">
+          Die 3D-Karte kann auf diesem Gerät nicht gezeichnet werden. Die Standorte lassen sich
+          weiterhin über die Liste darunter wählen.
+        </p>
+      ) : null}
 
-      <div className={styles.zoomBtns} role="group" aria-label="Zoom">
-        <button
-          type="button"
-          className={styles.camBtn}
-          onClick={() => zoomBy(ZOOM_STEP)}
-          disabled={camera.zoom >= ZOOM_MAX - 1e-6}
-          aria-label="Hineinzoomen"
-          title="Hineinzoomen (+)"
-        >
-          +
-        </button>
-        <button
-          type="button"
-          className={styles.camBtn}
-          onClick={() => zoomBy(1 / ZOOM_STEP)}
-          disabled={camera.zoom <= ZOOM_MIN + 1e-6}
-          aria-label="Herauszoomen"
-          title="Herauszoomen (−)"
-        >
-          −
-        </button>
-        <button
-          type="button"
-          className={styles.camBtn}
-          onClick={onResetCamera}
-          aria-label="Ansicht zurücksetzen"
-          title="Ansicht zurücksetzen (0)"
-        >
-          ⌂
-        </button>
-      </div>
+      {touchFriendly ? (
+        <div className={styles.canvasToolbar}>
+          <p className={`${styles.canvasHint} ${styles.canvasToolbarHint} num`}>
+            Zwei Finger: drehen, neigen, zoomen · Antippen: Details
+          </p>
+          <div className={styles.canvasToolbarRow} role="group" aria-label="Kartenansicht">
+            <div className={styles.canvasToolbarCluster}>
+              <button
+                type="button"
+                className={`${styles.camBtn} ${styles.camBtnCircle}`}
+                onClick={() =>
+                  onCameraChange(clampCamera3d({ ...camera, yawDeg: camera.yawDeg - 20 }))
+                }
+                aria-label="Karte nach links drehen"
+                title="Nach links drehen"
+              >
+                ⟲
+              </button>
+              <button
+                type="button"
+                className={`${styles.camBtn} ${styles.camBtnCircle}`}
+                onClick={() =>
+                  onCameraChange(clampCamera3d({ ...camera, yawDeg: camera.yawDeg + 20 }))
+                }
+                aria-label="Karte nach rechts drehen"
+                title="Nach rechts drehen"
+              >
+                ⟳
+              </button>
+              <button
+                type="button"
+                className={`${styles.camBtn} ${styles.camBtnCircle}`}
+                onClick={() => zoomBy(ZOOM_STEP)}
+                disabled={camera.zoom >= ZOOM_MAX - 1e-6}
+                aria-label="Hineinzoomen"
+                title="Hineinzoomen (+)"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                className={`${styles.camBtn} ${styles.camBtnCircle}`}
+                onClick={() => zoomBy(1 / ZOOM_STEP)}
+                disabled={camera.zoom <= ZOOM_MIN + 1e-6}
+                aria-label="Herauszoomen"
+                title="Herauszoomen (−)"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                className={`${styles.camBtn} ${styles.camBtnCircle}`}
+                onClick={onResetCamera}
+                aria-label="Ansicht zurücksetzen"
+                title="Ansicht zurücksetzen (0)"
+              >
+                ⌂
+              </button>
+            </div>
+            <button
+              type="button"
+              className={styles.canvasToolbarToggle}
+              aria-pressed={camera.tiltDeg <= 20}
+              aria-label={camera.tiltDeg <= 20 ? "Draufsicht aktiv, zur 3D-Neigung wechseln" : "In Draufsicht wechseln"}
+              onClick={() =>
+                onCameraChange(
+                  clampCamera3d({
+                    ...camera,
+                    tiltDeg: camera.tiltDeg <= 20 ? 48 : 16,
+                  }),
+                )
+              }
+            >
+              Draufsicht
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className={styles.canvasOverlayTop}>
+            <span className={`${styles.canvasHint} num`}>
+              {camera.zoom > 1.05
+                ? "Ziehen: verschieben · Shift + Ziehen: drehen · Säule anklicken: Details"
+                : "Ziehen: drehen und neigen · Strg/⌘ + Mausrad: zoomen · Säule anklicken: Details"}
+            </span>
+            <div className={styles.canvasCamBtns}>
+              <button
+                type="button"
+                className={styles.camBtn}
+                onClick={() =>
+                  onCameraChange(clampCamera3d({ ...camera, yawDeg: camera.yawDeg - 20 }))
+                }
+                aria-label="Karte nach links drehen"
+                title="Nach links drehen"
+              >
+                ⟲
+              </button>
+              <button
+                type="button"
+                className={styles.camBtn}
+                onClick={() =>
+                  onCameraChange(clampCamera3d({ ...camera, yawDeg: camera.yawDeg + 20 }))
+                }
+                aria-label="Karte nach rechts drehen"
+                title="Nach rechts drehen"
+              >
+                ⟳
+              </button>
+              <button
+                type="button"
+                className={styles.camBtn}
+                onClick={() =>
+                  onCameraChange(
+                    clampCamera3d({
+                      ...camera,
+                      tiltDeg: camera.tiltDeg > 25 ? 14 : 48,
+                    }),
+                  )
+                }
+                aria-label={camera.tiltDeg > 25 ? "In Draufsicht wechseln" : "In 3D-Neigung wechseln"}
+              >
+                {camera.tiltDeg > 25 ? "Draufsicht" : "3D"}
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.zoomBtns} role="group" aria-label="Zoom">
+            <button
+              type="button"
+              className={styles.camBtn}
+              onClick={() => zoomBy(ZOOM_STEP)}
+              disabled={camera.zoom >= ZOOM_MAX - 1e-6}
+              aria-label="Hineinzoomen"
+              title="Hineinzoomen (+)"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              className={styles.camBtn}
+              onClick={() => zoomBy(1 / ZOOM_STEP)}
+              disabled={camera.zoom <= ZOOM_MIN + 1e-6}
+              aria-label="Herauszoomen"
+              title="Herauszoomen (−)"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              className={styles.camBtn}
+              onClick={onResetCamera}
+              aria-label="Ansicht zurücksetzen"
+              title="Ansicht zurücksetzen (0)"
+            >
+              ⌂
+            </button>
+          </div>
+        </>
+      )}
 
       {wheelHint ? (
         <div className={`${styles.wheelHint} num`} role="status" aria-live="polite">
