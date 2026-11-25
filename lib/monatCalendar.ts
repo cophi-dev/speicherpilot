@@ -172,6 +172,46 @@ export function adjacentMonthWithData(
   return null;
 }
 
+/** Sorted union of months present in `records` and extra available month keys (e.g. model months). */
+export function availableMonatKeys(
+  records: TagesKennzahlRecord[],
+  extraMonthKeys: readonly string[] = [],
+): string[] {
+  const set = new Set<string>(monthsWithData(records));
+  for (const key of extraMonthKeys) {
+    if (isBerlinMonthKey(key)) {
+      set.add(key);
+    }
+  }
+  return [...set].sort();
+}
+
+/**
+ * Nearest previous and next available month keys for `/monat/[monat]` navigation,
+ * using the union of months with day records and additional model month keys.
+ */
+export function adjacentAvailableMonths(
+  monthKey: string,
+  records: TagesKennzahlRecord[],
+  extraMonthKeys: readonly string[] = [],
+): { prev: string | null; next: string | null } {
+  if (!isBerlinMonthKey(monthKey)) {
+    return { prev: null, next: null };
+  }
+  const months = availableMonatKeys(records, extraMonthKeys);
+  let prev: string | null = null;
+  let next: string | null = null;
+  for (const mk of months) {
+    if (mk < monthKey) {
+      prev = mk;
+    } else if (mk > monthKey) {
+      next = mk;
+      break;
+    }
+  }
+  return { prev, next };
+}
+
 export type MonatDayCell = {
   dateKey: string;
   dayNum: number;

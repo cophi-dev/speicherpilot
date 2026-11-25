@@ -22,6 +22,7 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
+import { StartKompromissTeaser, StartKnotenTeaser } from "@/components/home/SimulatorTeasers";
 import type { MarktInsight } from "@/lib/marktInsights";
 import { formatPreisSpanne, type PreisTick } from "@/lib/preisFenster";
 import type { ResidualDay } from "@/lib/windSolarResidual";
@@ -81,7 +82,7 @@ export function AuffaelligkeitKopf({
     const peakContext =
       record.eveningPeakGw != null && record.eveningPeakAt
         ? insertDisplayUnitNbsp(
-            ` Die Restlast-Abendspitze erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr) — Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
+            ` Die Restlastspitze erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr). Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
           )
         : "";
     return {
@@ -163,6 +164,15 @@ export function AuffaelligkeitKopf({
     </Link>
   );
 
+  const rangMobileSummary = useMemo(() => {
+    if (!isTagPage || !metricHero || metricKey !== "evening_peak_gw" || record?.eveningPeakGw == null) {
+      return undefined;
+    }
+    const rank = metricHero.rankLabel?.match(/Platz (\d+)/)?.[1];
+    const platz = rank ? `Platz ${rank}` : metricHero.rankLabel;
+    return `Abendspitze Restlast · 31 Tage · gestern ${formatDeGw(record.eveningPeakGw, 1)} (${platz})`;
+  }, [isTagPage, metricHero, metricKey, record?.eveningPeakGw]);
+
   return (
     <section className="v4-kopf" aria-labelledby="auffaelligkeit-h1">
       <div className="v4-kopf-inner v4-content">
@@ -220,7 +230,8 @@ export function AuffaelligkeitKopf({
             <RangLeiste
               bars={bars}
               metricLabel={hero.kernLabel}
-              rankLabel={seriePresentation ? "Überschuss je Tag" : undefined}
+              rankLabel={seriePresentation ? "Überschuss je Tag" : metricHero?.rankLabel ?? undefined}
+              mobileSummary={rangMobileSummary}
             />
           </div>
         ) : (
@@ -356,8 +367,14 @@ export function TagPageV4({
         fleetExtra={fleetSoGerechnet}
       />
       {isStartSurface ? null : <TagesvorlageModelBox />}
-      {!isStartSurface && marktInsights.length > 0 ? (
+      {marktInsights.length > 0 ? (
         <MarktInsightsBlock insights={marktInsights} layout="tag" />
+      ) : null}
+      {isStartSurface && simulatorTeaser ? (
+        <>
+          <StartKompromissTeaser teaser={simulatorTeaser} />
+          <StartKnotenTeaser />
+        </>
       ) : null}
     </div>
   );

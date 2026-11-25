@@ -5,7 +5,7 @@
   --mv-linie: #dadad3;
   --mv-flaeche: var(--card, #fff);
   --mv-gridline: #e4e4dc;
-  --mv-rust: #b4532a;
+  --mv-rust: #9a4524;
   --mv-rust-tint: rgba(180, 83, 42, 0.12);
   color: var(--mv-ink);
 }
@@ -17,8 +17,8 @@
   --mv-linie: #262b31;
   --mv-flaeche: #121417;
   --mv-gridline: #1f2529;
-  --mv-rust: #b4532a;
-  --mv-rust-tint: rgba(180, 83, 42, 0.18);
+  --mv-rust: #d8663f;
+  --mv-rust-tint: rgba(216, 102, 63, 0.22);
 }
 
 .eyebrow {

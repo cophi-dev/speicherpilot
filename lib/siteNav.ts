@@ -42,6 +42,9 @@ export function isSiteMainNavActive(pathname: string, itemHref: SiteMainNavHref)
 }
 
 export function isSiteMobileExtraNavActive(pathname: string, href: string, hash: string): boolean {
+  if (SITE_MOBILE_EXTRA_NAV.length === 0) {
+    return false;
+  }
   if (href !== "/#woche") {
     return false;
   }

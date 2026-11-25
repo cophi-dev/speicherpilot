@@ -6,6 +6,7 @@ import { ChartTooltipPanel } from "@/components/charts/ChartTooltipPanel";
 import { useSvgChartProbe } from "@/components/charts/useSvgChartProbe";
 import { fleetTooltipRows, fleetTooltipTime } from "@/lib/fleetChartTooltip";
 
+import { formatDeGwSpan } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   fleetChartPointsForIndices,
@@ -105,7 +106,9 @@ function SinglePanel({
       <div className="v4-fleet-ts-panel-head">
         <span className="v4-fleet-ts-panel-title">{title}</span>
         <span className="v4-fleet-ts-panel-unit num">
-          {formatQuantity(yMin, "de", 1)}–{formatQuantity(yMax, "de", 1)} {unit}
+          {unit === "GW"
+            ? formatDeGwSpan(yMin, yMax, 1)
+            : `${formatQuantity(yMin, "de", 1)}–${formatQuantity(yMax, "de", 1)} ${unit}`}
         </span>
       </div>
       <svg
@@ -182,7 +185,7 @@ export function NationalFleetTimeSeriesChart({
 
   const isDay = Boolean(dateKey);
   const monthNarrow = useMaxWidth(767);
-  const plotGutterLayout = tagesvorlageDay && isDay ? 42 : 0;
+  const plotGutterLayout = tagesvorlageDay && isDay ? 50 : 0;
 
   useEffect(() => {
     const requestKey = `${monthKey}|${factor}|${strategy}|${dateKey ?? ""}`;
@@ -418,7 +421,9 @@ export function NationalFleetTimeSeriesChart({
       >
         <span className="v4-fleet-caption-main">{captionMain}</span>
         {captionMonth ? <span className="v4-fleet-caption-month num"> {captionMonth}</span> : null}
-        {scrollHint ? <span className="v4-fleet-caption-hint"> · {scrollHint}</span> : null}
+        {scrollHint && !(tagesvorlageDay && isDay) ? (
+          <span className="v4-fleet-caption-hint"> · {scrollHint}</span>
+        ) : null}
       </figcaption>
       <div className="v4-fleet-ts-legend num" aria-hidden="true">
         {tagesvorlageDay && isDay ? (

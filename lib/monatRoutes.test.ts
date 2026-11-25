@@ -16,4 +16,10 @@ describe("monat routes", () => {
     expect(src).toMatch(/MonatSurplusGraph/);
     expect(src).not.toMatch(/MonatCalendarGrid/);
   });
+
+  it("keeps symmetric prev/next month navigation without 12-Monats-Übersicht fallback in the left slot", () => {
+    const src = readFileSync(join(process.cwd(), "components/home/MonatPageV4.tsx"), "utf8");
+    expect(src).toMatch(/adjacentAvailableMonths/);
+    expect(src).not.toMatch(/12-Monats-Übersicht/);
+  });
 });

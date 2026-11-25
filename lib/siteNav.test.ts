@@ -27,7 +27,11 @@ describe("siteNav", () => {
     expect(isSiteMainNavActive("/beitraege/foo", "/beitraege")).toBe(true);
   });
 
-  it("marks Woche extra link active only on home hash", () => {
+  it("marks Woche extra link active only on home hash when configured", () => {
+    if (SITE_MOBILE_EXTRA_NAV.length === 0) {
+      expect(isSiteMobileExtraNavActive("/", "/#woche", "#woche")).toBe(false);
+      return;
+    }
     expect(isSiteMobileExtraNavActive("/", "/#woche", "#woche")).toBe(true);
     expect(isSiteMobileExtraNavActive("/", "/#woche", "")).toBe(false);
     expect(isSiteMobileExtraNavActive("/kompromiss", "/#woche", "#woche")).toBe(false);

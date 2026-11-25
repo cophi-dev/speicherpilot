@@ -30,6 +30,11 @@ export function formatDeGw(value: number, decimals = 1): string {
   return formatDeQuantityUnit(value, decimals, "GW");
 }
 
+/** Y-Achsen- oder Panel-Spanne mit NBSP vor der Einheit (z. B. 30,5–61,9 GW). */
+export function formatDeGwSpan(min: number, max: number, decimals = 1): string {
+  return `${formatQuantity(min, "de", decimals)}–${formatQuantity(max, "de", decimals)}${DISPLAY_NBSP}GW`;
+}
+
 export function formatDeGwh(value: number, decimals = 1): string {
   return formatDeQuantityUnit(value, decimals, "GWh");
 }

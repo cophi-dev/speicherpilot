@@ -13,6 +13,7 @@ import {
   parseNews,
   type NewsItem,
 } from "@/lib/newsFeed";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { plainNewsText } from "@/lib/newsText";
 
 type NewsPlace = "page" | "home";
@@ -154,8 +155,8 @@ function NewsRow({
   const source = plainNewsText(item.source);
   const short = item.sourceShort ? plainNewsText(item.sourceShort) : "";
   const label = short || source;
-  const teaser = item.teaser ? plainNewsText(item.teaser) : "";
-  const einordnung = plainNewsText(item.einordnung);
+  const teaser = item.teaser ? insertDisplayUnitNbsp(plainNewsText(item.teaser)) : "";
+  const einordnung = insertDisplayUnitNbsp(plainNewsText(item.einordnung));
   const showTeaserBlock =
     showTeaser && Boolean(teaser) && !sameCopy(teaser, headline, source) && !hasEuro(teaser);
   const read = de ? `Lesen bei ${label}` : `Read at ${label}`;

@@ -125,7 +125,11 @@ export function MonatReglerChart({
   );
 
   const fleetStroke =
-    strategy === "markt" ? "var(--mr-markt-line)" : strategy === "spitze" ? "var(--mr-rust)" : "var(--mr-blue)";
+    strategy === "markt"
+      ? "var(--mr-markt-line)"
+      : strategy === "spitze"
+        ? "var(--mr-rust-label, var(--mr-rust))"
+        : "var(--mr-blue)";
   const fleetDash = strategy === "markt" ? "6 3" : undefined;
   const marketStress = strategy === "markt" && factor > 1;
 

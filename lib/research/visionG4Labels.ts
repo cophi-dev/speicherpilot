@@ -1,3 +1,4 @@
+import { DISPLAY_NBSP } from "@/lib/displayUnitFormat";
 import { formatVisionGwOne } from "@/lib/research/visionJahrFormat";
 
 const Y_MIN = 40;
@@ -34,8 +35,12 @@ export function layoutG4KappeLabels(
     }
   }
   return [
-    { key: "nepC", y: yC, text: `NEP C drückt die Spitze bis ${formatVisionGwOne(kappeC)} GW` },
-    { key: "nepA", y: yA, text: `NEP A ${formatVisionGwOne(kappeA)}` },
+    {
+      key: "nepC",
+      y: yC,
+      text: `NEP C drückt die Spitze bis ${formatVisionGwOne(kappeC)}${DISPLAY_NBSP}GW`,
+    },
+    { key: "nepA", y: yA, text: `NEP A ${formatVisionGwOne(kappeA)}${DISPLAY_NBSP}GW` },
   ];
 }
 
