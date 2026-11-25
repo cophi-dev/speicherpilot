@@ -323,7 +323,7 @@ export function formatDayPeakKpiFromSlice(
 
 const TAG_DAY_PEAK_NBSP = "\u00a0";
 
-/** Kopfzeile „03 · Monatslauf“ am Tag: eine Zeile ohne doppelte GW-Wiederholung. */
+/** Kopfzeile „03 · Tageshorizont“ am Tag: eine Zeile ohne doppelte GW-Wiederholung. */
 export function formatTagDayPeakHeadline(
   observedGw: number,
   afterGw: number,

@@ -90,4 +90,24 @@ describe("methodik v2", () => {
     expect(document.querySelector("#annahmen th[scope='col']")).not.toBeNull();
     expect(document.querySelector("#annahmen th[scope='row']")).not.toBeNull();
   });
+
+  it("A7 nennt denselben Tie-Break wie lib/auffaelligkeit (Preisspanne vor Abendspitze)", async () => {
+    render(
+      <LanguageContext.Provider value={{ language: "de", setLanguage: () => {} }}>
+        <MethodikDocs />
+      </LanguageContext.Provider>
+    );
+    const section = document.getElementById("auffaelligkeit");
+    expect(section).toBeInstanceOf(HTMLDetailsElement);
+    if (section instanceof HTMLDetailsElement) {
+      section.open = true;
+      section.dispatchEvent(new Event("toggle"));
+    }
+    await waitFor(() => {
+      expect(bodyText()).toContain("Preisspanne Day-Ahead, Abendspitze Residuallast");
+    });
+    const text = bodyText();
+    expect(text).toContain("feste Reihenfolge: Überschuss, Preisspanne Day-Ahead, Abendspitze Residuallast");
+    expect(text).not.toMatch(/feste Reihenfolge: Überschuss, Abendspitze Residuallast, Preisspanne Day-Ahead/);
+  });
 });

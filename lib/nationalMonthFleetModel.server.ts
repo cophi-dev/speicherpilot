@@ -154,3 +154,33 @@ export function nationalFleetContext(
     runs: { [runKey(factor, strategy)]: run },
   };
 }
+
+const DAY_AHEAD_REVENUE_FIELD = "dayAheadRevenueEur" as const;
+
+export function nationalFleetIsolatedDayAvailable(monthKey: string, dayKey: string): boolean {
+  const dir = join(fleetMonthRoot(monthKey), "days", dayKey);
+  const keys = [
+    "x1_min_peak_perfect_foresight.json",
+    "x1_price_oriented_da_arbitrage.json",
+    "x1_surplus_wind_solar_over_load.json",
+  ];
+  return keys.every((name) => existsSync(join(dir, name)));
+}
+
+/** Liest das von speicherpilot zu liefernde Feld dayAheadRevenueEur (nur ×1-Tagesdatei). */
+export function loadDayAheadRevenueEur(
+  monthKey: string,
+  dayKey: string,
+  strategy: NationalFleetStrategyUi,
+): number | null {
+  const key = runKey(1, strategy);
+  const path = join(fleetMonthRoot(monthKey), "days", dayKey, `${key}.json`);
+  if (!existsSync(path)) {
+    return null;
+  }
+  const raw = JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+  const value = raw[DAY_AHEAD_REVENUE_FIELD];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export const TAG_DAY_AHEAD_REVENUE_FIELD = DAY_AHEAD_REVENUE_FIELD;

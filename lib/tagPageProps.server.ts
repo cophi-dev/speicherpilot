@@ -9,6 +9,7 @@ import {
   nationalFleetMonthAvailable,
   nationalFleetMonthKeyForDay,
   parseFleetFactor,
+  parseTagFleetFactor,
   parseFleetStrategy,
   sliceFleetDay,
   type NationalFleetStrategyUi,
@@ -17,7 +18,7 @@ import {
   NATIONAL_FLEET_DISPLAY_ENERGY_GWH,
   NATIONAL_FLEET_DISPLAY_POWER_GW,
 } from "@/lib/nationalFleetDisplay";
-import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
+import { loadNationalFleetRunSeries, nationalFleetContext, nationalFleetIsolatedDayAvailable } from "@/lib/nationalMonthFleetModel.server";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
@@ -48,6 +49,7 @@ export type CompleteTagPageModel = {
     slice: NonNullable<ReturnType<typeof sliceFleetDay>>;
     monthStats: ReturnType<typeof monthStatsForRun>;
     showPeakWithoutSurplus: boolean;
+    isolatedDayHorizon: boolean;
   } | null;
   fleetRun: ReturnType<typeof loadNationalFleetRunSeries> | null;
   fleetSlice: ReturnType<typeof sliceFleetDay> | null;
@@ -87,7 +89,7 @@ export async function loadCompleteTagPageModel(
     return "unavailable";
   }
 
-  const fleetFactor = parseFleetFactor(query.faktor);
+  const fleetFactor = opts.isStartSurface ? parseFleetFactor(query.faktor) : parseTagFleetFactor(query.faktor);
   const fleetStrategy = parseFleetStrategy(query.fahrweise);
   const fleetMonthKey = nationalFleetMonthKeyForDay(datum);
   const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
@@ -142,6 +144,7 @@ export async function loadCompleteTagPageModel(
             ),
             showPeakWithoutSurplus:
               fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
+            isolatedDayHorizon: nationalFleetIsolatedDayAvailable(fleetMonthKey, datum),
           }
         : null,
     fleetRun,

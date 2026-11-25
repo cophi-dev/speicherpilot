@@ -30,6 +30,8 @@ import {
 } from "@/lib/nationalFleetReference";
 import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
 import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
+import { TagFahrweisenErloese, TagFahrweisenErloeseHint } from "@/components/home/TagFahrweisenErloese";
+import { nationalFleetIsolatedDayAvailable } from "@/lib/nationalMonthFleetModel.server";
 
 function saturationSlices(dayKey: string): {
   x1: NationalFleetDaySlice | null;
@@ -74,13 +76,14 @@ export function NationalFleetDayChapter({
     dayPeakKpi.reductionPct,
   );
   const monthKey = nationalFleetMonthKeyForDay(dayKey);
+  const isolatedDayHorizon = nationalFleetIsolatedDayAvailable(monthKey, dayKey);
   const { x1, x5, x10 } = saturationSlices(dayKey);
   const showSaturation = shouldShowFleetSaturationHint(x1, x5, x10);
 
   return (
     <section className="v4-chapter v4-chapter-fleet-day" aria-labelledby="fleet-day-title">
       <div className="v4-chapter-head v4-content">
-        <p className="v4-chapter-num num">03 · Monatslauf</p>
+        <p className="v4-chapter-num num">{isolatedDayHorizon ? "03 · Tageshorizont" : "03 · Monatslauf"}</p>
         <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
           ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
         </h2>
@@ -136,6 +139,8 @@ export function NationalFleetDayChapter({
           </p>
         </fieldset>
       </div>
+
+      {factor === 1 ? <TagFahrweisenErloese dayKey={dayKey} /> : <TagFahrweisenErloeseHint dayKey={dayKey} />}
 
       <NationalFleetTimeSeriesChart
         monthKey={monthKey}

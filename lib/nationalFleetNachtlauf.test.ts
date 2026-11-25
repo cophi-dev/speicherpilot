@@ -174,4 +174,17 @@ raise SystemExit(mod.validate_paths(paths))
     expect(withInvalid.status).toBe(1);
     expect(withInvalid.stderr).toMatch(/horizon fehlt/);
   });
+
+  it("Wächter: 2026-11-23 hat Kapitel 03 ×1, 2026-11-24 nicht", () => {
+    const py = join(process.cwd(), "scripts/national_fleet_nachtlauf_waechter.py");
+    const ok = spawnSync("python3", [py, "--day", "2026-11-23"], { encoding: "utf8" });
+    expect(ok.status).toBe(0);
+    expect(ok.stdout).toMatch(/Kapitel 03 ×1 vorhanden für 2026-11-23/);
+
+    const missing = spawnSync("python3", [py, "--day", "2026-11-24"], { encoding: "utf8" });
+    expect(missing.status).toBe(1);
+    expect(missing.stderr).toMatch(/ALERT Kapitel 03 fehlt für 2026-11-24/);
+    expect(missing.stderr).toMatch(/x1_min_peak_perfect_foresight\.json/);
+  });
 });
+

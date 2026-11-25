@@ -10528,6 +10528,26 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   padding: 6px 8px;
 }
 
+.v4-tag-erloese {
+  margin-block: 8px 28px;
+}
+.v4-tag-erloese-title {
+  margin: 0 0 8px;
+  font-size: var(--type-18);
+  font-weight: 600;
+}
+.v4-tag-erloese-lead,
+.v4-tag-erloese-delta,
+.v4-tag-erloese-missing,
+.v4-tag-erloese-hint {
+  margin: 8px 0 0;
+  max-width: 42rem;
+}
+.v4-tag-erloese-missing {
+  color: hsl(var(--muted-foreground));
+}
+
+
 .v4-fleet-ts-wrap {
   margin-bottom: 24px;
 }

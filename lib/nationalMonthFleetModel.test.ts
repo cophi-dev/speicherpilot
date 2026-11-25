@@ -8,6 +8,8 @@ import {
   getFleetRun,
   monthStatsForRun,
   nationalFleetMonthAvailable,
+  parseFleetFactor,
+  parseTagFleetFactor,
   replaySocFromAsymmetricStart,
   runKey,
   sliceFleetDay,
@@ -107,5 +109,18 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
     const stats = monthStatsForRun(bundle, 1, "spitze");
     const maxRp = Math.max(...run.r_prime_mw) / 1000;
     expect(stats.peakAfterGw).toBeCloseTo(maxRp, 3);
+  });
+});
+
+describe("parseTagFleetFactor", () => {
+  it("öffnet die Tag-Seite ohne Parameter und mit ?faktor=1 bei ×1", () => {
+    expect(parseTagFleetFactor(undefined)).toBe(1);
+    expect(parseTagFleetFactor("1")).toBe(1);
+    expect(parseTagFleetFactor("2")).toBe(2);
+    expect(parseTagFleetFactor("5")).toBe(5);
+  });
+
+  it("lässt den globalen Default für Start und Monat bei ×2", () => {
+    expect(parseFleetFactor(undefined)).toBe(2);
   });
 });

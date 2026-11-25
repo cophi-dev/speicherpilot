@@ -21,7 +21,7 @@ import { resolveNavShortcuts } from "@/lib/navShortcuts.server";
 import {
   nationalFleetMonthAvailable,
   monthStatsForRun,
-  parseFleetFactor,
+  parseTagFleetFactor,
   parseFleetStrategy,
   sliceFleetDay,
 } from "@/lib/nationalMonthFleetModel";
@@ -29,7 +29,7 @@ import {
   NATIONAL_FLEET_DISPLAY_ENERGY_GWH,
   NATIONAL_FLEET_DISPLAY_POWER_GW,
 } from "@/lib/nationalFleetDisplay";
-import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
+import { loadNationalFleetRunSeries, nationalFleetContext, nationalFleetIsolatedDayAvailable } from "@/lib/nationalMonthFleetModel.server";
 import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 import { marktInsightsForLiveTag, marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 
@@ -169,7 +169,7 @@ export default async function TagDetailPage({
     return null;
   }
 
-  const fleetFactor = parseFleetFactor(typeof query.faktor === "string" ? query.faktor : undefined);
+  const fleetFactor = parseTagFleetFactor(typeof query.faktor === "string" ? query.faktor : undefined);
   const fleetStrategy = parseFleetStrategy(typeof query.fahrweise === "string" ? query.fahrweise : undefined);
   const fleetMonthKey = dayKey.slice(0, 7);
   const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
@@ -194,6 +194,7 @@ export default async function TagDetailPage({
           ),
           showPeakWithoutSurplus:
             fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
+          isolatedDayHorizon: nationalFleetIsolatedDayAvailable(fleetMonthKey, dayKey),
         }
       : null;
   const marktInsights = marktInsightsForRoute({

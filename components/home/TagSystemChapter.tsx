@@ -28,7 +28,7 @@ export function TagSystemChapter({
   fleetPowerGw,
   fleetEnergyGwh,
   fleetDayNoWindSolarSurplus,
-  fleetFactor = 2,
+  fleetFactor = 1,
   fleetStrategy = "spitze",
   fleetSoGerechnet = null,
 }: {
@@ -60,7 +60,7 @@ export function TagSystemChapter({
       Verbrauch.{" "}
       {slice && peakReductionDayGw != null ? (
         <>
-          Monatslauf (×{fleetFactor}, {NATIONAL_FLEET_STRATEGY_UI[fleetStrategy].shortDe}): Spitzensenkung{" "}
+          Tageshorizont (×{fleetFactor}, {NATIONAL_FLEET_STRATEGY_UI[fleetStrategy].shortDe}): Spitzensenkung{" "}
           {peakReductionDayGw >= 0
             ? formatGwReduction(peakReductionDayGw)
             : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}${NBSP}GW höher`}

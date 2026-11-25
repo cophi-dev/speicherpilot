@@ -1,0 +1,109 @@
+name: National fleet nachtlauf
+
+on:
+  schedule:
+    # 04:30 UTC ist 05:30 Europe/Berlin. GitHub hat diesen Cron 18.–24.11.2026
+    # durchgängig erst gegen 12:45–15:06 UTC gestartet (~8–10 h Verzug). Deshalb
+    # zusätzliche Slots: 20:00 UTC (empirisch eher morgens Berlin) und 06:00 UTC
+    # als Nachzug vor 08:00 Europe/Berlin.
+    - cron: "0 20 * * *"
+    - cron: "30 4 * * *"
+    - cron: "0 6 * * *"
+    # Wächter vor 08:00 Europe/Berlin (06:50 UTC im Winter, 05:50 UTC in der MESZ-Zeit
+    # wäre enger; 06:50 UTC = 07:50 MEZ / 08:50 MESZ). Zusätzlich prüft der Job
+    # waechter nach jedem Nachtlauf.
+    - cron: "50 6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: national-fleet-nachtlauf
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  nachtlauf:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule != '50 6 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r scripts/requirements-fleet-solver.txt
+      - run: pnpm install --frozen-lockfile
+      - name: Nachtlauf Vortag (Tag + Monat)
+        run: node scripts/national-fleet-nachtlauf.mjs --yesterday
+      - name: Meta und Compact aus runs neu bauen
+        run: |
+          set -euo pipefail
+          MONTH="$(python3 -c 'from zoneinfo import ZoneInfo; from datetime import datetime,timedelta; print((datetime.now(ZoneInfo("Europe/Berlin"))-timedelta(days=1)).strftime("%Y-%m"))')"
+          node scripts/build-fleet-month-summary-from-runs.mjs "$MONTH"
+          node scripts/build-fleet-month-compact.mjs "$MONTH"
+      - name: Schema- und Plausibilitätstests
+        run: |
+          set -euo pipefail
+          pnpm test lib/nationalFleetNachtlauf.test.ts
+          git add data/national-fleet
+          python3 scripts/national_fleet_nachtlauf.py --validate-staged
+      - name: Commit und Push auf main (nur data/national-fleet)
+        run: |
+          set -euo pipefail
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "Keine Änderungen"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          CHANGED="$(git diff --cached --name-only)"
+          if [ -z "$CHANGED" ]; then
+            CHANGED="$(git diff --name-only data/national-fleet)"
+            git add data/national-fleet
+            CHANGED="$(git diff --cached --name-only)"
+          fi
+          for f in $CHANGED; do
+            case "$f" in
+              data/national-fleet/*) ;;
+              *) echo "Abbruch: Änderung außerhalb data/national-fleet/: $f"; exit 1 ;;
+            esac
+          done
+          DATE_TAG="$(python3 -c 'from zoneinfo import ZoneInfo; from datetime import datetime,timedelta; print((datetime.now(ZoneInfo("Europe/Berlin"))-timedelta(days=1)).date().isoformat())')"
+          git commit -m "data: nachtlauf ${DATE_TAG}"
+          git fetch origin main
+          git rebase origin/main
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+
+  waechter:
+    # Scheitert sichtbar (Actions-Mail an Watcher), wenn /tag/{gestern} vor dem
+    # Prüfzeitpunkt kein Kapitel 03 ×1 hat. Kein externer Dienst.
+    name: Kapitel 03 am Vortag?
+    runs-on: ubuntu-latest
+    needs: [nachtlauf]
+    if: always()
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Prüfe Kapitel 03 ×1 für den Berliner Vortag
+        run: python3 scripts/national_fleet_nachtlauf_waechter.py --yesterday

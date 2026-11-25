@@ -95,6 +95,11 @@ export function parseFleetFactor(raw: string | undefined): NationalFleetFactor {
   return NATIONAL_FLEET_DEFAULT_FACTOR;
 }
 
+/** Tag-Seite und Deep-Link: ohne ?faktor= oder mit ?faktor=1 öffnet die ×1-Ansicht. */
+export function parseTagFleetFactor(raw: string | undefined): NationalFleetFactor {
+  return parseFleetFactor(raw ?? "1");
+}
+
 export function parseFleetStrategy(raw: string | undefined): NationalFleetStrategyUi {
   if (raw && raw in NATIONAL_FLEET_STRATEGY_UI) {
     return raw as NationalFleetStrategyUi;

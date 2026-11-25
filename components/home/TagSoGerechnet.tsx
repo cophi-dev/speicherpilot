@@ -32,6 +32,8 @@ export type TagFleetSoGerechnetExtra = {
   slice: NationalFleetDaySlice;
   monthStats: NationalFleetMonthStats;
   showPeakWithoutSurplus: boolean;
+  /** True, wenn days/{dayKey} den isolierten Tageshorizont (Start-SoC = End-SoC) liefert. */
+  isolatedDayHorizon?: boolean;
 };
 
 export type TagSoGerechnetProps = {
@@ -166,7 +168,7 @@ export function TagSoGerechnet({
         ) : null}
         {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
           <p>
-            Monatslauf unten (
+            Kapitel 03 unten (
             {fleetStrategyBelow === "spitze" ? "Spitze senken" : "Marktorientiert"}, Price Taker nur Marktfahrweise)
             rechnet Netzladung getrennt vom Überschuss-Modell.
           </p>
@@ -182,10 +184,14 @@ export function TagSoGerechnet({
 
       {fleetExtra ? (
         <div className="v4-so-gerechnet-section">
-          <p className="v4-so-gerechnet-kicker num">Monatslauf · {formatBerlinDayLabel(fleetExtra.dayKey)}</p>
+          <p className="v4-so-gerechnet-kicker num">
+            {fleetExtra.isolatedDayHorizon === false ? "Monatslauf" : "Tageshorizont"} · {formatBerlinDayLabel(fleetExtra.dayKey)}
+          </p>
           <p>
-            Monatslauf-Ausschnitt — hypothetisch, ohne Tages-Reset. Aus Überschuss ist an diesem Tag nichts zu
-            laden, wenn max(0, Wind+Sonne−Last) durchgehend null ist.{" "}
+            {fleetExtra.isolatedDayHorizon === false
+              ? "Monatslauf-Ausschnitt — hypothetisch, ohne Tages-Reset (SoC läuft über den Monat). "
+              : "Isolierter Tageshorizont: Start-SoC gleich End-SoC. "}
+            Aus Überschuss ist an diesem Tag nichts zu laden, wenn max(0, Wind+Sonne−Last) durchgehend null ist.{" "}
             <Link
               href={fleetMonatHref(
                 nationalFleetMonthKeyForDay(fleetExtra.dayKey),
