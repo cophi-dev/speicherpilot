@@ -59,7 +59,7 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
       <p className="v4-tag-erloese-delta">
         Differenz Spitze minus Markt: {delta ?? "steht aus"}
       </p>
-      {view.grenzeDe ? <p className="v4-tag-erloese-grenze">{view.grenzeDe}</p> : null}
+      {view.grenzeDe ? <p className="v4-tag-erloese-grenze">{insertDisplayUnitNbsp(view.grenzeDe)}</p> : null}
       {missing ? <p className="v4-tag-erloese-missing">{missing}</p> : null}
     </div>
   );
