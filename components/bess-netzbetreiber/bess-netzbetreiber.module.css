@@ -1559,7 +1559,7 @@
 .karteHero .detailQuickHead,
 .karteHero .legendTitle {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
+  font-size: var(--type-12);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
@@ -1639,7 +1639,7 @@
 }
 
 .canvasFootOverlay .geoAttribution {
-  font-size: 0.6875rem;
+  font-size: var(--type-12);
 }
 
 .karteHero .canvasOverlayTop {
