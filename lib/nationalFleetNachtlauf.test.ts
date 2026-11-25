@@ -174,4 +174,32 @@ raise SystemExit(mod.validate_paths(paths))
     expect(withInvalid.status).toBe(1);
     expect(withInvalid.stderr).toMatch(/horizon fehlt/);
   });
+
+  it("Wächter: prüft x2 und die Wochen-Datei, nicht die leeren x1-Dateien", () => {
+    const py = join(process.cwd(), "scripts/national_fleet_nachtlauf_waechter.py");
+    for (const day of ["2026-11-17", "2026-11-23", "2026-11-24"]) {
+      const ok = spawnSync("python3", [py, "--day", day], { encoding: "utf8" });
+      expect(ok.status).toBe(0);
+      expect(ok.stdout).toMatch(new RegExp(`Kapitel 03 Referenzflotte vorhanden für ${day}`));
+    }
+
+    const missing = spawnSync("python3", [py, "--day", "2026-11-01"], { encoding: "utf8" });
+    expect(missing.status).toBe(1);
+    expect(missing.stderr).toMatch(/ALERT Kapitel 03 fehlt für 2026-11-01/);
+    expect(missing.stderr).toMatch(/auffaelligkeit-woche\/tage\/2026-11-01\.json/);
+    expect(missing.stderr).not.toMatch(/x1_min_peak/);
+  });
+
+  it("Nachprüfung der Wochen-Dateien ohne Löser ist grün", () => {
+    const py = join(process.cwd(), "scripts/auffaelligkeit_woche_nachpruefen.py");
+    const run = spawnSync("python3", [py], { encoding: "utf8" });
+    if (run.status !== 0) {
+      // eslint-disable-next-line no-console -- Jest failure diagnostics
+      console.error(run.stderr || run.stdout);
+    }
+    expect(run.status).toBe(0);
+    expect(run.stdout).toMatch(/2026-11-24/);
+    expect(run.stdout).toMatch(/OK/);
+  });
 });
+

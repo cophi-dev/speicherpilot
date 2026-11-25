@@ -320,7 +320,7 @@ export function auffaelligkeitForDay(
 
   if (!top && r.dryStreak >= 3) {
     const lastSurplus = [...records.slice(0, index)].reverse().find((d) => d.surplusGwh >= 0.05);
-    const headline = `${weekdayLabelDe(dateKey)}: der ${r.dryStreak}. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am ${lastSurplus ? weekdayLabelDe(lastSurplus.dateKey) : "—"} Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Monatslauf rechnen trotzdem Lastverschiebung.`;
+    const headline = `${weekdayLabelDe(dateKey)}: der ${r.dryStreak}. Tag in Folge ohne Tages-Überschuss-Kennzahl. Zuletzt war am ${lastSurplus ? weekdayLabelDe(lastSurplus.dateKey) : "—"} Strom übrig — für das Überschuss-Lade-Modell nichts zu laden; Peak-/Preisfahrweisen im Tageshorizont (Kapitel 03) rechnen trotzdem Lastverschiebung.`;
     return { kind: "serie", headline, subline: "", kopfH1: headline, kopfSubline: "" };
   }
 
@@ -365,7 +365,7 @@ export function auffaelligkeitForDay(
       }
       subline =
         (r.peakCutGw ?? 0) < 0.05
-          ? "Im Überschuss-Modell (Laden nur bei Wind+Sonne über Verbrauch) war an diesem Tag nichts zu speichern. Spitze- und Markt-Fahrweisen rechnen weiter unten im Monatslauf."
+          ? "Im Überschuss-Modell (Laden nur bei Wind+Sonne über Verbrauch) war an diesem Tag nichts zu speichern. Spitze- und Markt-Fahrweisen rechnen weiter unten im Tageshorizont (Kapitel 03)."
           : `Die heutige Flotte hätte die Spitze um ${deNum(r.peakCutGw ?? 0)} GW gesenkt (Modell).`;
       kopfSubline = nearDay ? subline : withModellSubline(V, subline);
       break;

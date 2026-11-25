@@ -320,8 +320,8 @@ export function MethodikDocs({ fleet }: { fleet?: MethodikFleetStand | null }) {
             <MethodikSection id="auffaelligkeit" title={methodikSectionLabel("auffaelligkeit", language)}>
               <p>
                 {tx(
-                  "Jede Tageskennzahl wird mit den 30 Kalendertagen davor verglichen (ohne den Tag selbst). Platz 1 bedeutet: extremer als alle 30 Vortage in der jeweiligen Richtung. Kennzahlen auf Platz 1–3 gelten als auffällig. Bei gleichem Platz entscheidet zuerst ein echter Rekord vor Gleichstand, dann die feste Reihenfolge: Überschuss, Abendspitze Residuallast, Preisspanne Day-Ahead, niedrigster Preis, Anteil Wind+Sonne, Uhrzeit „Flotte voll“ im Modell.",
-                  "Each daily metric is compared with the 30 calendar days before it (excluding the day itself). Rank 1 means more extreme than all 30 prior days in that direction. Ranks 1–3 count as notable. On a tie in rank, a clear record beats a shared one, then the fixed order applies: surplus, evening residual peak, day-ahead price span, lowest price, wind+solar share, time the model fleet is full."
+                  "Jede Tageskennzahl wird mit den 30 Kalendertagen davor verglichen (ohne den Tag selbst). Platz 1 bedeutet: extremer als alle 30 Vortage in der jeweiligen Richtung. Kennzahlen auf Platz 1–3 gelten als auffällig. Bei gleichem Platz entscheidet zuerst ein echter Rekord vor Gleichstand, dann die feste Reihenfolge: Überschuss, Preisspanne Day-Ahead, Abendspitze Residuallast, niedrigster Preis, Anteil Wind+Sonne, Uhrzeit „Flotte voll“ im Modell.",
+                  "Each daily metric is compared with the 30 calendar days before it (excluding the day itself). Rank 1 means more extreme than all 30 prior days in that direction. Ranks 1–3 count as notable. On a tie in rank, a clear record beats a shared one, then the fixed order applies: surplus, day-ahead price span, evening residual peak, lowest price, wind+solar share, time the model fleet is full."
                 )}
               </p>
             </MethodikSection>

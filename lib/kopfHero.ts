@@ -46,7 +46,7 @@ export function kopfHero(
       return {
         value: displayGw(record.eveningPeakGw).replace(" GW", ""),
         unit: "GW",
-        kernLabel: `Restlastspitze · ${record.eveningPeakAt ?? "—"} Uhr`,
+        kernLabel: `Abendspitze der Restlast · ${record.eveningPeakAt ?? "—"} Uhr`,
         rankLabel,
       };
     case "surplus_gwh":

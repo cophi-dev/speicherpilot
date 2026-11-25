@@ -14,7 +14,9 @@ import {
 import {
   fleetMonatQuery,
   fleetTagHref,
+  fleetFactorChapterTitle,
   NATIONAL_FLEET_FACTORS,
+  NATIONAL_FLEET_FACTOR_LABEL_DE,
   NATIONAL_FLEET_STRATEGY_UI,
   nationalFleetMonthKeyForDay,
   sliceFleetDay,
@@ -27,9 +29,12 @@ import {
 import {
   NATIONAL_REFERENCE_FLEET_ENERGY_GWH,
   NATIONAL_REFERENCE_FLEET_POWER_GW,
+  NATIONAL_REFERENCE_FLEET_USABLE_ENERGY_GWH,
 } from "@/lib/nationalFleetReference";
-import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
+import { loadNationalFleetRunSeries, type TagFleetRunSource } from "@/lib/nationalMonthFleetModel.server";
 import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
+import { TagFahrweisenErloese, TagFahrweisenErloeseHint } from "@/components/home/TagFahrweisenErloese";
+import { REFERENCE_FLEET_REPO_FACTOR } from "@/lib/auffaelligkeitWoche";
 
 function saturationSlices(dayKey: string): {
   x1: NationalFleetDaySlice | null;
@@ -51,6 +56,8 @@ export function NationalFleetDayChapter({
   strategy,
   slice,
   monthStats,
+  isolatedDayHorizon,
+  runSource,
   isStartSurface = false,
 }: {
   dayKey: string;
@@ -59,6 +66,8 @@ export function NationalFleetDayChapter({
   run: NationalFleetRunSeries;
   slice: NationalFleetDaySlice;
   monthStats: NationalFleetMonthStats;
+  isolatedDayHorizon: boolean;
+  runSource?: TagFleetRunSource;
   isStartSurface?: boolean;
 }) {
   const scenarioHref = (f: NationalFleetFactor, s: NationalFleetStrategyUi) =>
@@ -80,9 +89,9 @@ export function NationalFleetDayChapter({
   return (
     <section className="v4-chapter v4-chapter-fleet-day" aria-labelledby="fleet-day-title">
       <div className="v4-chapter-head v4-content">
-        <p className="v4-chapter-num num">03 · Monatslauf</p>
+        <p className="v4-chapter-num num">{isolatedDayHorizon ? "03 · Tageshorizont" : "03 · Monatslauf"}</p>
         <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
-          ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
+          {fleetFactorChapterTitle(factor, strategy)}
         </h2>
         <p className="v4-tag-side num">{dayPeakHeadline}</p>
       </div>
@@ -99,7 +108,7 @@ export function NationalFleetDayChapter({
                 aria-pressed={f === factor}
                 className={`v4-fleet-pill${f === factor ? " is-active" : ""}${f === 1 ? " is-measured" : ""}`}
               >
-                {f === 1 ? "×1 heute" : `×${f}`}
+                {NATIONAL_FLEET_FACTOR_LABEL_DE[f]}
               </FleetScenarioLink>
             ))}
           </div>
@@ -121,21 +130,39 @@ export function NationalFleetDayChapter({
             ))}
           </div>
           <p className="v4-fleet-strategy-copy">
-            {strategy === "spitze"
-              ? "Lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
-              : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
+            {!isolatedDayHorizon
+              ? "Für diesen Tag fehlt die Tagesrechnung. Die Kurve stammt aus dem Monatslauf, der Speicherstand läuft über Mitternacht weiter."
+              : strategy === "spitze" && runSource === "woche"
+                ? "Min. Tagesspitze der Restlast, danach max. Day-Ahead-Erlös (volle Voraussicht). Ort und Knoten rechnet das Modell nicht."
+                : strategy === "spitze"
+                  ? "Lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
+                  : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
           </p>
           <p className="v4-fleet-energy-context">
-            Referenzflotte ×1:{" "}
+            Referenzflotte:{" "}
             <span className="num">
               {formatQuantity(NATIONAL_REFERENCE_FLEET_POWER_GW, "de", 2)}
-              {"\u00a0"}GW · {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)}
+              {"\u00a0"}GW · {formatQuantity(NATIONAL_REFERENCE_FLEET_USABLE_ENERGY_GWH, "de", 2)}
               {"\u00a0"}GWh
             </span>{" "}
-            nutzbare Energie
+            nutzbare Energie (SoC 10–90{"\u00a0"}% von {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)}
+            {"\u00a0"}GWh Nennenergie)
           </p>
         </fieldset>
       </div>
+
+      {!isolatedDayHorizon ? (
+        <p className="v4-content v4-tag-monat-fallback">
+          Für diesen Tag fehlt die Tagesrechnung. Die Kurve stammt aus dem Monatslauf, der Speicherstand läuft über
+          Mitternacht weiter.
+        </p>
+      ) : null}
+
+      {factor === REFERENCE_FLEET_REPO_FACTOR ? (
+        <TagFahrweisenErloese dayKey={dayKey} />
+      ) : (
+        <TagFahrweisenErloeseHint dayKey={dayKey} />
+      )}
 
       <NationalFleetTimeSeriesChart
         monthKey={monthKey}
@@ -151,7 +178,7 @@ export function NationalFleetDayChapter({
           monthStats.peakReductionGw,
           monthStats.peakReductionPct,
         )}
-        scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
+        scrollHint={`${isolatedDayHorizon ? "Tageshorizont" : "Monatslauf"} · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
         tagesvorlageDay
         dayNoWindSolarSurplus={slice.positiveSurplusQuarterHours === 0}
       />

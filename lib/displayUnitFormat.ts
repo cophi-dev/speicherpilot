@@ -52,6 +52,11 @@ export function formatDeEurPerMwh(value: number, decimals = 2): string {
   return formatDeQuantityUnit(n, decimals, "€/MWh");
 }
 
+export function formatDeEur(value: number, decimals = 0): string {
+  return formatDeQuantityUnit(value, decimals, "€");
+}
+
+
 export function formatDeGwGwhLine(
   powerGw: number,
   energyGwh: number,

@@ -95,6 +95,30 @@ export function parseFleetFactor(raw: string | undefined): NationalFleetFactor {
   return NATIONAL_FLEET_DEFAULT_FACTOR;
 }
 
+/** Tag-Seite und Deep-Link ohne ?faktor=: Referenzflotte (Repo-Stufe ×2). Stufe 1 ist der Ist ohne Zusatzflotte (0). */
+export function parseTagFleetFactor(raw: string | undefined): NationalFleetFactor {
+  return parseFleetFactor(raw ?? "2");
+}
+
+/** Zusatzflotte (k−1)×4,64 GW. Nie „×1“ für die Referenzflotte (das ist +4,6 GW). */
+export const NATIONAL_FLEET_FACTOR_LABEL_DE: Record<NationalFleetFactor, string> = {
+  1: "heute (Ist)",
+  2: "+4,6\u00a0GW",
+  5: "+18,6\u00a0GW",
+  10: "+41,8\u00a0GW",
+};
+
+export function fleetFactorChapterTitle(
+  factor: NationalFleetFactor,
+  strategy: NationalFleetStrategyUi,
+): string {
+  const strat = NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe;
+  if (factor === 2) {
+    return `+4,6\u00a0GW wie heute, ${strat}`;
+  }
+  return `${NATIONAL_FLEET_FACTOR_LABEL_DE[factor]}, ${strat}`;
+}
+
 export function parseFleetStrategy(raw: string | undefined): NationalFleetStrategyUi {
   if (raw && raw in NATIONAL_FLEET_STRATEGY_UI) {
     return raw as NationalFleetStrategyUi;

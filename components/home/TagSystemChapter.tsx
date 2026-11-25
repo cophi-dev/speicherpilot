@@ -2,11 +2,11 @@
 
 import { formatDeGwGwhLine, formatDePercentInt } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
-import { formatGwReduction } from "@/lib/monatV1Format";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { weekdayLabelDe } from "@/lib/auffaelligkeit";
 import type { TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import {
+  NATIONAL_FLEET_FACTOR_LABEL_DE,
   NATIONAL_FLEET_STRATEGY_UI,
   type NationalFleetFactor,
   type NationalFleetStrategyUi,
@@ -60,13 +60,13 @@ export function TagSystemChapter({
       Verbrauch.{" "}
       {slice && peakReductionDayGw != null ? (
         <>
-          Monatslauf (×{fleetFactor}, {NATIONAL_FLEET_STRATEGY_UI[fleetStrategy].shortDe}): Spitzensenkung{" "}
+          {fleetSoGerechnet?.isolatedDayHorizon === false ? "Monatslauf" : "Tageshorizont"} ({NATIONAL_FLEET_FACTOR_LABEL_DE[fleetFactor]}, {NATIONAL_FLEET_STRATEGY_UI[fleetStrategy].shortDe}):{" "}
           {peakReductionDayGw >= 0
-            ? formatGwReduction(peakReductionDayGw)
-            : `${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}${NBSP}GW höher`}
+            ? `Senkung ${formatQuantity(peakReductionDayGw, "de", 2)}${NBSP}GW`
+            : `Spitze ${formatQuantity(Math.abs(peakReductionDayGw), "de", 2)}${NBSP}GW höher`}
           , geladen {formatQuantity(slice.chargeMwh / 1000, "de", 1)}
           {NBSP}GWh, entladen {formatQuantity(slice.dischargeMwh / 1000, "de", 1)}
-          {NBSP}GWh (Modell, Tageshorizont).
+          {NBSP}GWh (Modell, {fleetSoGerechnet?.isolatedDayHorizon === false ? "Monatslauf-Ausschnitt" : "Tageshorizont"}).
         </>
       ) : null}
     </>
@@ -83,7 +83,7 @@ export function TagSystemChapter({
 
   const kernNoSurplus =
     slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05
-      ? formatGwReduction(peakReductionDayGw)
+      ? `${formatQuantity(peakReductionDayGw, "de", 2)}${NBSP}GW`
       : slice && slice.chargeMwh > 1
         ? `${formatQuantity(slice.chargeMwh / 1000, "de", 1)}${NBSP}GWh geladen`
         : `0${NBSP}GWh geladen`;
