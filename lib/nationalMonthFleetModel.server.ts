@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
+import { REFERENCE_FLEET_REPO_FACTOR } from "@/lib/auffaelligkeitWoche";
+import { auffaelligkeitWocheAvailable, loadWocheFleetRunSeries } from "@/lib/auffaelligkeitWoche.server";
 import {
   NATIONAL_FLEET_MONTH_KEY,
   runKey,
@@ -108,6 +110,62 @@ export function loadNationalFleetRunSeries(
   return run;
 }
 
+export type TagFleetRunSource = "woche" | "day" | "month";
+
+export type TagFleetRunLoad = {
+  run: NationalFleetRunSeries;
+  source: TagFleetRunSource;
+};
+
+/**
+ * Tag-Seite und Chart-API: Referenzflotte (Stufe ×2) nimmt den lexikografischen
+ * Fahrplan aus data/auffaelligkeit-woche/tage/{datum}.json, wenn vorhanden.
+ * Sonst Tagesdatei, sonst Monatslauf (source = "month", sichtbar markieren).
+ */
+export function loadTagFleetRunSeries(
+  factor: NationalFleetFactor,
+  strategy: NationalFleetStrategyUi,
+  opts: { monthKey: string; dayKey: string },
+): TagFleetRunLoad {
+  const { monthKey, dayKey } = opts;
+  if (factor === REFERENCE_FLEET_REPO_FACTOR) {
+    const cacheId = `${monthKey}:${dayKey}:woche:${strategy}`;
+    const hit = runCache.get(cacheId);
+    if (hit) {
+      return { run: hit, source: "woche" };
+    }
+    const woche = loadWocheFleetRunSeries(dayKey, strategy);
+    if (woche) {
+      runCache.set(cacheId, woche);
+      return { run: woche, source: "woche" };
+    }
+  }
+
+  const key = runKey(factor, strategy);
+  const dayPath = join(fleetMonthRoot(monthKey), "days", dayKey, `${key}.json`);
+  if (existsSync(dayPath)) {
+    const run = normalizeFleetRun(JSON.parse(readFileSync(dayPath, "utf8")) as Record<string, unknown>);
+    return { run, source: "day" };
+  }
+
+  const path = join(fleetMonthRoot(monthKey), "runs", `${key}.json`);
+  const run = JSON.parse(readFileSync(path, "utf8")) as NationalFleetRunSeries;
+  return { run, source: "month" };
+}
+
+export function tagIsolierterTageshorizont(factor: NationalFleetFactor, dayKey: string): boolean {
+  if (factor === REFERENCE_FLEET_REPO_FACTOR && auffaelligkeitWocheAvailable(dayKey)) {
+    return true;
+  }
+  const monthKey = dayKey.slice(0, 7);
+  const dayPath = join(fleetMonthRoot(monthKey), "days", dayKey, `${runKey(factor, "spitze")}.json`);
+  if (!existsSync(dayPath)) {
+    return false;
+  }
+  const raw = JSON.parse(readFileSync(dayPath, "utf8")) as { horizon?: string };
+  return raw.horizon === "day";
+}
+
 /** Parity / tests: assemble all shards (cold ~12× single-run read). */
 export function loadNationalFleetMonthBundle(monthKey = NATIONAL_FLEET_MONTH_KEY): NationalFleetMonthBundle {
   const hit = monolithCache.get(monthKey);
@@ -154,3 +212,33 @@ export function nationalFleetContext(
     runs: { [runKey(factor, strategy)]: run },
   };
 }
+
+const DAY_AHEAD_REVENUE_FIELD = "dayAheadRevenueEur" as const;
+
+export function nationalFleetIsolatedDayAvailable(monthKey: string, dayKey: string): boolean {
+  const dir = join(fleetMonthRoot(monthKey), "days", dayKey);
+  const keys = [
+    "x1_min_peak_perfect_foresight.json",
+    "x1_price_oriented_da_arbitrage.json",
+    "x1_surplus_wind_solar_over_load.json",
+  ];
+  return keys.every((name) => existsSync(join(dir, name)));
+}
+
+/** Liest das von speicherpilot zu liefernde Feld dayAheadRevenueEur (nur ×1-Tagesdatei). */
+export function loadDayAheadRevenueEur(
+  monthKey: string,
+  dayKey: string,
+  strategy: NationalFleetStrategyUi,
+): number | null {
+  const key = runKey(1, strategy);
+  const path = join(fleetMonthRoot(monthKey), "days", dayKey, `${key}.json`);
+  if (!existsSync(path)) {
+    return null;
+  }
+  const raw = JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+  const value = raw[DAY_AHEAD_REVENUE_FIELD];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export const TAG_DAY_AHEAD_REVENUE_FIELD = DAY_AHEAD_REVENUE_FIELD;

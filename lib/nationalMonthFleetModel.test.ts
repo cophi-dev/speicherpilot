@@ -8,6 +8,10 @@ import {
   getFleetRun,
   monthStatsForRun,
   nationalFleetMonthAvailable,
+  parseFleetFactor,
+  parseTagFleetFactor,
+  NATIONAL_FLEET_FACTOR_LABEL_DE,
+  fleetFactorChapterTitle,
   replaySocFromAsymmetricStart,
   runKey,
   sliceFleetDay,
@@ -107,5 +111,27 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
     const stats = monthStatsForRun(bundle, 1, "spitze");
     const maxRp = Math.max(...run.r_prime_mw) / 1000;
     expect(stats.peakAfterGw).toBeCloseTo(maxRp, 3);
+  });
+});
+
+describe("parseTagFleetFactor", () => {
+  it("öffnet die Tag-Seite ohne Parameter bei der Referenzflotte (Stufe ×2)", () => {
+    expect(parseTagFleetFactor(undefined)).toBe(2);
+    expect(parseTagFleetFactor("1")).toBe(1);
+    expect(parseTagFleetFactor("2")).toBe(2);
+    expect(parseTagFleetFactor("5")).toBe(5);
+  });
+
+  it("lässt den globalen Default für Start und Monat bei ×2", () => {
+    expect(parseFleetFactor(undefined)).toBe(2);
+  });
+
+  it("beschriftet die Stufen ohne ×1 für die Referenzflotte", () => {
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[1]).toBe("heute (Ist)");
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[2]).toBe("+4,6\u00a0GW");
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[5]).toBe("+18,6\u00a0GW");
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[10]).toBe("+41,8\u00a0GW");
+    expect(fleetFactorChapterTitle(2, "spitze")).toBe("+4,6\u00a0GW wie heute, Spitze senken");
+    expect(fleetFactorChapterTitle(1, "spitze")).toBe("heute (Ist), Spitze senken");
   });
 });

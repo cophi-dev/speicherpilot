@@ -82,7 +82,7 @@ export function AuffaelligkeitKopf({
     const peakContext =
       record.eveningPeakGw != null && record.eveningPeakAt
         ? insertDisplayUnitNbsp(
-            ` Die Restlastspitze erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr). Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
+            ` Die Abendspitze der Restlast (ab 17 Uhr) erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr). Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
           )
         : "";
     return {
@@ -174,75 +174,121 @@ export function AuffaelligkeitKopf({
   }, [isTagPage, metricHero, metricKey, record?.eveningPeakGw]);
 
   return (
-    <section className="v4-kopf" aria-labelledby="auffaelligkeit-h1">
+    <section className={isTagPage ? "v4-kopf v4-kopf--tag" : "v4-kopf"} aria-labelledby="auffaelligkeit-h1">
       <div className="v4-kopf-inner v4-content">
         <p className="v4-kicker num">{kicker}</p>
         {leitfrage ? (
-          <p id="tages-leitfrage" className="v4-subline" style={{ marginBottom: "0.35rem", fontWeight: 500 }}>
+          <p id="tages-leitfrage" className="v4-leitfrage">
             {leitfrage}
           </p>
         ) : null}
-        <div className="v4-kopf-intro">
-          <h1 id="auffaelligkeit-h1" className="v4-h1">
-            {kopfH1}
-          </h1>
-          {kopfSubline ? (
-            <div className="v4-kopf-subgrid">
-              <p className="v4-subline">{kopfSubline}</p>
-              {priceLine ? (
-                <div className="v4-preis-block">
-                  <p className="v4-preis-label num">{priceLine.label}</p>
-                  <p className="v4-preis-value num">{priceLine.value}</p>
+        {isTagPage ? (
+          <>
+            <h1 id="auffaelligkeit-h1" className="v4-h1">
+              {kopfH1}
+            </h1>
+            {hero ? (
+              <div className="v4-kopf-hero">
+                <div className="v4-kopf-zahl">
+                  <p
+                    className="v4-riesenzahl num"
+                    aria-hidden="true"
+                    style={
+                      {
+                        "--v4-ries-ch": String(hero.value.length + Math.ceil(hero.unit.length * 0.45)),
+                      } as CSSProperties
+                    }
+                  >
+                    {hero.value}
+                    <span className="v4-riesenzahl-unit">{hero.unit}</span>
+                  </p>
+                  <div className="v4-kern-row">
+                    <span>{hero.kernLabel}</span>
+                    {metricHero?.rankLabel ? <span>{metricHero.rankLabel}</span> : null}
+                  </div>
+                </div>
+                <RangLeiste
+                  bars={bars}
+                  metricLabel={hero.kernLabel}
+                  rankLabel={seriePresentation ? "Überschuss je Tag" : undefined}
+                />
+              </div>
+            ) : null}
+            {priceLine ? (
+              <div className="v4-preis-block">
+                <p className="v4-preis-label num">{priceLine.label}</p>
+                <p className="v4-preis-value num">{priceLine.value}</p>
+              </div>
+            ) : null}
+            {kopfSubline ? <p className="v4-subline">{kopfSubline}</p> : null}
+            <div className="v4-kopf-links">
+              {methodikLink}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="v4-kopf-intro">
+              <h1 id="auffaelligkeit-h1" className="v4-h1">
+                {kopfH1}
+              </h1>
+              {kopfSubline ? (
+                <div className="v4-kopf-subgrid">
+                  <p className="v4-subline">{kopfSubline}</p>
+                  {priceLine ? (
+                    <div className="v4-preis-block">
+                      <p className="v4-preis-label num">{priceLine.label}</p>
+                      <p className="v4-preis-value num">{priceLine.value}</p>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
-          ) : null}
-        </div>
-
-        {hero ? (
-          <div className="v4-kopf-hero">
-            <div className="v4-kopf-zahl">
-              <p
-                className="v4-riesenzahl num"
-                aria-hidden="true"
-                style={
-                  {
-                    "--v4-ries-ch": String(hero.value.length + Math.ceil(hero.unit.length * 0.45)),
-                  } as CSSProperties
-                }
-              >
-                {hero.value}
-                <span className="v4-riesenzahl-unit">{hero.unit}</span>
-              </p>
-              <div className="v4-kern-row">
-                <span>{hero.kernLabel}</span>
-                {metricHero?.rankLabel ? <span>{metricHero.rankLabel}</span> : null}
+            {hero ? (
+              <div className="v4-kopf-hero">
+                <div className="v4-kopf-zahl">
+                  <p
+                    className="v4-riesenzahl num"
+                    aria-hidden="true"
+                    style={
+                      {
+                        "--v4-ries-ch": String(hero.value.length + Math.ceil(hero.unit.length * 0.45)),
+                      } as CSSProperties
+                    }
+                  >
+                    {hero.value}
+                    <span className="v4-riesenzahl-unit">{hero.unit}</span>
+                  </p>
+                  <div className="v4-kern-row">
+                    <span>{hero.kernLabel}</span>
+                    {metricHero?.rankLabel ? <span>{metricHero.rankLabel}</span> : null}
+                  </div>
+                  <div className="v4-kopf-links">
+                    {!hideTagLink ? (
+                      <Link href={`/tag/${dayKey}`} className="v4-text-link">
+                        Tag ansehen →
+                      </Link>
+                    ) : null}
+                    {methodikLink}
+                  </div>
+                </div>
+                <RangLeiste
+                  bars={bars}
+                  metricLabel={hero.kernLabel}
+                  rankLabel={seriePresentation ? "Überschuss je Tag" : metricHero?.rankLabel ?? undefined}
+                  mobileSummary={rangMobileSummary}
+                />
               </div>
-              <div className="v4-kopf-links">
-                {!hideTagLink && !isTagPage ? (
+            ) : (
+              <div className="v4-kopf-links v4-kopf-links-standalone">
+                {!hideTagLink ? (
                   <Link href={`/tag/${dayKey}`} className="v4-text-link">
                     Tag ansehen →
                   </Link>
                 ) : null}
                 {methodikLink}
               </div>
-            </div>
-            <RangLeiste
-              bars={bars}
-              metricLabel={hero.kernLabel}
-              rankLabel={seriePresentation ? "Überschuss je Tag" : metricHero?.rankLabel ?? undefined}
-              mobileSummary={rangMobileSummary}
-            />
-          </div>
-        ) : (
-          <div className="v4-kopf-links v4-kopf-links-standalone">
-            {!hideTagLink && !isTagPage ? (
-              <Link href={`/tag/${dayKey}`} className="v4-text-link">
-                Tag ansehen →
-              </Link>
-            ) : null}
-            {methodikLink}
-          </div>
+            )}
+          </>
         )}
       </div>
     </section>
@@ -299,7 +345,7 @@ export function TagPageV4({
     return null;
   }
   return (
-    <div className="v4-start">
+    <div className={isStartSurface ? "v4-start" : "v4-start is-tag-page"}>
       <Suspense fallback={null}>
         <FleetScrollRestore />
       </Suspense>

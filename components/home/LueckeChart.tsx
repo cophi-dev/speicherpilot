@@ -127,7 +127,7 @@ function buildGeometry(
     peakYWs: y(slotGw(peakSlot).ws),
     plotTop: frame.pad.top,
     plotBottom: frame.pad.top + plotH,
-    labelLoad: { x: frame.pad.left + plotW * 0.34, y: frame.pad.top + 14 },
+    labelLoad: { x: frame.pad.left + plotW * 0.28, y: frame.pad.top + 10 },
     labelWs: { x: frame.pad.left + plotW * 0.08, y: frame.pad.top + plotH * 0.86 },
     labelGap: { x: frame.pad.left + plotW * 0.36, y: frame.pad.top + plotH * 0.42 },
   };
@@ -336,8 +336,9 @@ export function LueckeChart({
           {wideFrame && !compact ? (
             <>
               <text
-                x={frame.pad.left + plotW * 0.42}
-                y={Math.max(frame.pad.top + 10, geometry.peakYLoad - 14)}
+                x={Math.max(frame.pad.left + 80, geometry.peakX - 40)}
+                y={Math.max(frame.pad.top + 16, geometry.peakYLoad - 26)}
+                textAnchor="end"
                 className="v4-luecke-label"
               >
                 Verbrauch
@@ -368,8 +369,8 @@ export function LueckeChart({
               <circle cx={geometry.peakX} cy={geometry.peakYLoad} r={4.5} className="v4-luecke-peak-dot" />
               {wideFrame && !compact ? (
                 <text
-                  x={geometry.peakX + 10}
-                  y={Math.max(frame.pad.top + 12, geometry.peakYLoad - 8)}
+                  x={Math.min(geometry.peakX + 14, frame.pad.left + plotW - 8)}
+                  y={Math.max(frame.pad.top + 16, geometry.peakYLoad - 22)}
                   textAnchor="start"
                   className="v4-luecke-peak-micro num"
                 >

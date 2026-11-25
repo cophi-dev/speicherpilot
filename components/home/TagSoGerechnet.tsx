@@ -32,6 +32,8 @@ export type TagFleetSoGerechnetExtra = {
   slice: NationalFleetDaySlice;
   monthStats: NationalFleetMonthStats;
   showPeakWithoutSurplus: boolean;
+  /** True, wenn der angezeigte Lauf ein isolierter Tageshorizont ist (Woche-JSON oder Tagesdatei). */
+  isolatedDayHorizon?: boolean;
 };
 
 export type TagSoGerechnetProps = {
@@ -145,7 +147,7 @@ export function TagSoGerechnet({
       <div className="v4-so-gerechnet-section">
         <p className="v4-so-gerechnet-kicker num">02 · Das System</p>
         <p>
-          Nennenergie bezeichnet die Größenordnung der Referenzflotte in der ×1-Skala — keine verfügbare
+          Nennenergie bezeichnet die Größenordnung der Referenzflotte — keine verfügbare
           Ladeenergie an diesem Tag.
         </p>
         {priceLine ? <p>Börsenpreis Day-Ahead: {priceLine}</p> : null}
@@ -166,7 +168,7 @@ export function TagSoGerechnet({
         ) : null}
         {showFleetMonthBelow && fleetStrategyBelow && fleetStrategyBelow !== "ueberschuss" ? (
           <p>
-            Monatslauf unten (
+            Kapitel 03 unten (
             {fleetStrategyBelow === "spitze" ? "Spitze senken" : "Marktorientiert"}, Price Taker nur Marktfahrweise)
             rechnet Netzladung getrennt vom Überschuss-Modell.
           </p>
@@ -182,10 +184,14 @@ export function TagSoGerechnet({
 
       {fleetExtra ? (
         <div className="v4-so-gerechnet-section">
-          <p className="v4-so-gerechnet-kicker num">Monatslauf · {formatBerlinDayLabel(fleetExtra.dayKey)}</p>
+          <p className="v4-so-gerechnet-kicker num">
+            {fleetExtra.isolatedDayHorizon === false ? "Monatslauf" : "Tageshorizont"} · {formatBerlinDayLabel(fleetExtra.dayKey)}
+          </p>
           <p>
-            Monatslauf-Ausschnitt — hypothetisch, ohne Tages-Reset. Aus Überschuss ist an diesem Tag nichts zu
-            laden, wenn max(0, Wind+Sonne−Last) durchgehend null ist.{" "}
+            {fleetExtra.isolatedDayHorizon === false
+              ? "Für diesen Tag fehlt die Tagesrechnung. Die Kurve stammt aus dem Monatslauf, der Speicherstand läuft über Mitternacht weiter. "
+              : "Isolierter Tageshorizont: Speicherstand am Abend wie am Morgen. "}
+            Aus Überschuss ist an diesem Tag nichts zu laden, wenn max(0, Wind+Sonne−Last) durchgehend null ist.{" "}
             <Link
               href={fleetMonatHref(
                 nationalFleetMonthKeyForDay(fleetExtra.dayKey),
@@ -201,7 +207,7 @@ export function TagSoGerechnet({
           {fleetExtra.showPeakWithoutSurplus ? (
             <p>
               <strong>Ohne Wind-Solar-Überschuss:</strong> „{NATIONAL_FLEET_STRATEGY_UI[fleetExtra.strategy].shortDe}“ nutzt
-              Netzladung und senkt die Tages-Spitze im Modell.
+              Netzladung und senkt die Tagesspitze im Modell.
             </p>
           ) : null}
           <dl className="v4-fleet-kpis num">

@@ -6,8 +6,7 @@ export function TagesvorlageModelBox() {
       </h2>
       <p>
         National gerechnet, wo geladen wird, entscheidet das Netz vor Ort. Laden erhöht die Restlast am Netzanschluss —
-        das zeigt die Fläche zwischen gemessener und gefahrener Restlast. Entladen senkt sie. Euro nur bei Stufe ×1, wo
-        als Modellschätzung gekennzeichnet.
+        das zeigt die Fläche zwischen gemessener und gefahrener Restlast. Entladen senkt sie. Euro nur für die Referenzflotte (4,6{"\u00a0"}GW), als Modellschätzung.
       </p>
     </aside>
   );

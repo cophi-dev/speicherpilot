@@ -72,6 +72,8 @@ describe("nationalFleetCharts copy", () => {
     const line = formatTagDayPeakHeadline(34.79, 32.86, 1.93, 5.6);
     expect(line).toMatch(/34,79 → 32,86\u00a0GW/);
     expect(line).toMatch(/−1,93\u00a0GW/);
+    expect(line).toMatch(/5,6\u00a0% der Spitze/);
+    expect(line).not.toMatch(/−5,6/);
     expect(line).not.toMatch(/32,86.*32,86/);
   });
 

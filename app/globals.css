@@ -7380,6 +7380,8 @@ html.vt-to-light::view-transition-new(root) {
   align-items: flex-end;
   gap: 3px;
   height: 72px;
+  overflow: visible;
+  box-sizing: content-box;
 }
 .v4-rang-bar {
   position: relative;
@@ -7419,9 +7421,10 @@ html.vt-to-light::view-transition-new(root) {
     display: block;
     position: absolute;
     bottom: calc(100% + 2px);
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.625rem;
+    left: auto;
+    right: 0;
+    transform: none;
+    font-size: 12px;
     line-height: 1.1;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -7684,6 +7687,10 @@ html.vt-to-light::view-transition-new(root) {
 @media (max-width: 767px) {
   .v4-rang-bars {
     height: 120px;
+    padding-top: 16px;
+  }
+  .v4-rang-leiste {
+    overflow: visible;
   }
 }
 @media (min-width: 640px) and (max-width: 1199px) {
@@ -7697,6 +7704,61 @@ html.vt-to-light::view-transition-new(root) {
   }
   .v4-rang-leiste {
     margin-top: 0.5rem;
+  }
+}
+
+
+/* Tag-Seite /tag: Riesenzahl sichtbar, Reihenfolge Frage–H1–Zahl–Balken–Preis */
+.v4-leitfrage {
+  margin: 0 0 0.35rem;
+  font-size: var(--type-lead);
+  line-height: var(--lh-lead);
+  font-weight: 500;
+  max-width: 48ch;
+  color: hsl(var(--foreground));
+}
+.is-tag-page .v4-kopf--tag .v4-h1 {
+  margin-bottom: 0.85rem;
+}
+.is-tag-page .v4-kopf--tag .v4-kopf-hero {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+.is-tag-page .v4-kopf--tag .v4-preis-block {
+  margin: 0 0 1.25rem;
+  border-left: none;
+  padding-left: 0;
+}
+.is-tag-page .v4-kopf--tag > .v4-kopf-inner > .v4-subline {
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 480px) {
+  .is-tag-page .v4-kopf-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .is-tag-page .v4-kopf-zahl {
+    display: block;
+    max-width: 100%;
+  }
+}
+@media (min-width: 1200px) {
+  .is-tag-page .v4-kopf--tag .v4-h1,
+  .v4-kopf--tag .v4-h1 {
+    margin-bottom: 24px;
+  }
+  .is-tag-page .v4-kopf-hero,
+  .v4-kopf--tag .v4-kopf-hero {
+    grid-template-columns: max-content minmax(240px, 1fr);
+    column-gap: 32px;
+    align-items: end;
+    margin-top: 0;
+    padding-top: 8px;
+  }
+  .is-tag-page .v4-riesenzahl {
+    white-space: nowrap;
+    max-width: 100%;
   }
 }
 
@@ -8226,6 +8288,18 @@ footer.v4-content.v4-footnote > p {
   font-weight: 600;
   fill: hsl(var(--foreground));
 }
+.v4-luecke-label,
+.v4-luecke-peak-micro {
+  paint-order: stroke fill;
+  stroke: hsl(var(--background));
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+html.dark .v4-luecke-label,
+html.dark .v4-luecke-peak-micro {
+  stroke: hsl(var(--background));
+}
+
 .v4-luecke-peak-line {
   stroke: var(--v4-warm);
   stroke-width: 3;
@@ -10090,6 +10164,13 @@ article.legal-doc.v4-subpage .legal-doc-inner {
   letter-spacing: 0.04em;
   color: hsl(var(--foreground));
   max-width: 42%;
+  text-shadow:
+    -2px 0 0 hsl(var(--background)),
+    2px 0 0 hsl(var(--background)),
+    0 -2px 0 hsl(var(--background)),
+    0 2px 0 hsl(var(--background)),
+    -2px -2px 0 hsl(var(--background)),
+    2px 2px 0 hsl(var(--background));
 }
 
 .v4-luecke-overlay-ws {
@@ -10527,6 +10608,84 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   border: 1px solid var(--linie);
   padding: 6px 8px;
 }
+
+.v4-tag-erloese {
+  margin-block: 8px 28px;
+  max-width: var(--page-max);
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+  box-sizing: border-box;
+}
+.v4-chapter-fleet-day > .v4-tag-erloese {
+  padding-inline: var(--page-gutter);
+}
+.v4-tag-erloese .v4-fleet-day-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.v4-tag-erloese .v4-fleet-day-table {
+  table-layout: fixed;
+}
+.v4-tag-erloese .v4-fleet-day-table th,
+.v4-tag-erloese .v4-fleet-day-table td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.v4-tag-erloese-title {
+  margin: 0 0 8px;
+  font-size: var(--type-18);
+  font-weight: 600;
+}
+.v4-tag-erloese-lead,
+.v4-tag-erloese-delta,
+.v4-tag-erloese-grenze,
+.v4-tag-erloese-missing,
+.v4-tag-erloese-hint {
+  margin: 8px 0 0;
+  max-width: 42rem;
+}
+.v4-tag-erloese-grenze {
+  color: hsl(var(--muted-foreground));
+}
+.v4-tag-erloese-colhint {
+  font-weight: 500;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
+}
+.v4-tag-erloese-missing {
+  color: hsl(var(--muted-foreground));
+}
+
+.v4-tag-erloese .v4-fleet-day-table caption {
+  caption-side: bottom;
+  text-align: left;
+  padding-top: 8px;
+  font-size: var(--type-14);
+  color: hsl(var(--muted-foreground));
+}
+.v4-tag-erloese .v4-fleet-day-table th[scope="col"]:first-child,
+.v4-tag-erloese .v4-tag-erloese-fahrweise {
+  text-align: left;
+}
+.v4-tag-erloese .v4-fleet-day-table th[scope="col"]:not(:first-child),
+.v4-tag-erloese .v4-tag-erloese-eur {
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+
+.v4-tag-monat-fallback {
+  margin: 8px 0 0;
+  max-width: 42rem;
+  padding: 8px 12px;
+  border-left: 3px solid hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.5);
+}
+
 
 .v4-fleet-ts-wrap {
   margin-bottom: 24px;
