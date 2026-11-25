@@ -12,6 +12,7 @@ import { VisionJahrChartFoot } from "@/components/research/vision-jahr/VisionJah
 import { VisionJahrG2Markt } from "@/components/research/vision-jahr/VisionJahrG2Markt";
 import { VisionJahrG3Ueberschuss } from "@/components/research/vision-jahr/VisionJahrG3Ueberschuss";
 import { VisionJahrG4Tage } from "@/components/research/vision-jahr/VisionJahrG4Tage";
+import { VisionJahrKernsatzBlock } from "@/components/research/VisionJahrKernsatz";
 import {
   formatVisionDurationDe,
   formatVisionGermanDate,
@@ -53,7 +54,7 @@ const DURATIONS = [
 
 const VISION_SKIP_KEY = "speicherpilot-vision-guess-skip";
 
-export function VisionPage({ model }: { model: VisionJahrModel }) {
+export function VisionPage({ model, kernsatz }: { model: VisionJahrModel; kernsatz?: string }) {
   const reduced = useReducedMotion();
   const layout = useResearchLayout();
   const pageRef = useRef<HTMLDivElement>(null);
@@ -82,6 +83,7 @@ export function VisionPage({ model }: { model: VisionJahrModel }) {
     <div ref={pageRef} className={`${styles.page} ${styles.visionJahrPage}`}>
       <p className={styles.eyebrow}>VISION · JAHR · 16.11.2025–15.11.2026</p>
       <h1 className={styles.h1}>Was bringt der NEP-Ausbau übers Jahr?</h1>
+      {kernsatz ? <VisionJahrKernsatzBlock paragraph={kernsatz} /> : null}
       <p className={styles.prose}>
         {insertDisplayUnitNbsp(
           "NEP = Netzentwicklungsplan Strom. Seine Szenarien A, B und C erwarten 41, 68 und 94 GW Großspeicher. Wir setzen sie in das Stromsystem der letzten zwölf Monate (Deutschland als ein Netzknoten, perfekte Vorausschau = physikalische Obergrenze). Den interaktiven Monats-Regler gibt es unter ",
