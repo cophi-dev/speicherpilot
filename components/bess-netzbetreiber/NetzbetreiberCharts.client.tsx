@@ -139,7 +139,7 @@ export function NetzbetreiberG4Chart({ data, palette }: { data: ScatterPoint[]; 
         <Tooltip
           formatter={(val, key) =>
             key === "x"
-              ? [formatQuantityUnit(Number(val), "de", 1, "GWh"), "EE-Redispatch 2025"]
+              ? [formatQuantityUnit(Number(val), "de", 1, "GWh"), "EE-Redispatch 2025 ohne Wind Offshore"]
               : [formatQuantityUnit(Number(val), "de", 2, "GW"), "BESS Brutto"]
           }
           labelFormatter={(_, p) => p?.[0]?.payload?.fullName ?? ""}

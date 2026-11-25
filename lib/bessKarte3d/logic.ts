@@ -11,7 +11,37 @@ import type {
 export const DEFAULT_KARTE_FILTER: KarteFilter = {
   nurGeprueft: false,
   einspeisung: "alle",
+  vnb: null,
 };
+
+/** EE-Redispatch 2025 ohne Wind Offshore (Gesamt minus Offshore), Basis der Flächenfärbung. */
+export function abregelungOhneOffshore(b: BundeslandKarteDatum): number | null {
+  if (b.abregelung2025Gwh === null || !Number.isFinite(b.abregelung2025Gwh)) return null;
+  const off = b.abregelung2025OffshoreGwh ?? 0;
+  return Math.round((b.abregelung2025Gwh - off) * 100) / 100;
+}
+
+/** „Name GmbH (SNB…)“ → „Name GmbH“ (MaStR-Kennung ab). */
+export function vnbAnzeigeName(vnb: string): string {
+  return vnb.replace(/\s*\(SNB\d+\)\s*$/, "").replace(/＆/g, "&").trim();
+}
+
+export type VnbOption = { vnb: string; label: string; nettoMw: number; lokationen: number };
+
+/** Netzbetreiber der Karte, absteigend nach Nettoleistung. */
+export function vnbOptionen(einheiten: readonly KarteEinheit[]): VnbOption[] {
+  const acc = new Map<string, { nettoMw: number; loks: Set<string> }>();
+  for (const e of einheiten) {
+    if (!e.vnb) continue;
+    const cur = acc.get(e.vnb) ?? { nettoMw: 0, loks: new Set<string>() };
+    cur.nettoMw += e.nettoMw;
+    cur.loks.add(e.lok);
+    acc.set(e.vnb, cur);
+  }
+  return [...acc.entries()]
+    .map(([vnb, v]) => ({ vnb, label: vnbAnzeigeName(vnb), nettoMw: v.nettoMw, lokationen: v.loks.size }))
+    .sort((a, b) => b.nettoMw - a.nettoMw || a.label.localeCompare(b.label, "de"));
+}
 
 export const ORIENTIERUNGS_STAEDTE = [
   { name: "Hamburg", lat: 53.551, lng: 9.994 },
@@ -53,6 +83,9 @@ export function filterEinheiten(
       return false;
     }
     if (filter.einspeisung === "teil" && e.einspeisung !== "teil") {
+      return false;
+    }
+    if (filter.vnb && e.vnb !== filter.vnb) {
       return false;
     }
     return true;

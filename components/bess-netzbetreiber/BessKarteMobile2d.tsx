@@ -17,6 +17,7 @@ import type {
   KarteSite,
 } from "@/lib/bessKarte3d/types";
 import { abregelungColor } from "@/components/bess-netzbetreiber/BessKarteCanvas3d";
+import { abregelungOhneOffshore } from "@/lib/bessKarte3d/logic";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
 
 type Props = {
@@ -63,9 +64,11 @@ export function BessKarteMobile2d({
     const m = new Map<string, number | null>();
     let maxGwh = 0;
     for (const b of bundeslaender) {
-      m.set(b.bundesland, b.abregelung2025Gwh);
-      if (b.abregelung2025Gwh !== null && b.abregelung2025Gwh > maxGwh) {
-        maxGwh = b.abregelung2025Gwh;
+      // Fläche: EE-Redispatch 2025 ohne Wind Offshore (BMWE-Gesamt minus Offshore-Anteil)
+      const gwh = abregelungOhneOffshore(b);
+      m.set(b.bundesland, gwh);
+      if (gwh !== null && gwh > maxGwh) {
+        maxGwh = gwh;
       }
     }
     return { map: m, maxGwh };

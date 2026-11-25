@@ -3,6 +3,7 @@
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantityUnit } from "@/lib/formatQuantity";
 import type { BundeslandKarteDatum } from "@/lib/bessKarte3d/types";
+import { abregelungOhneOffshore } from "@/lib/bessKarte3d/logic";
 import type { GrowthBucket } from "@/lib/bessNetzbetreiber/prepareModel";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
 
@@ -59,10 +60,15 @@ export function NetzbetreiberBlBessBars({
     <div className={styles.vnbBars} role="list" aria-label="BESS-Nettoleistung je Bundesland (alle 16 Länder)">
       {sorted.map((row) => {
         const pct = (row.nettoMw / maxMw) * 100;
+        const ohne = abregelungOhneOffshore(row);
+        const off = row.abregelung2025OffshoreGwh ?? 0;
+        const gwh = (v: number) => insertDisplayUnitNbsp(formatQuantityUnit(v, "de", 2, "GWh"));
         const abregLabel =
-          row.abregelung2025Gwh === null
-            ? "EE-Abregelung 2025: k. A."
-            : `EE-Abregelung 2025: ${insertDisplayUnitNbsp(formatQuantityUnit(row.abregelung2025Gwh, "de", 1, "GWh"))}`;
+          row.abregelung2025Gwh === null || ohne === null
+            ? "EE-Redispatch 2025: k. A."
+            : off > 0
+              ? `EE-Redispatch 2025 ohne Wind Offshore: ${gwh(ohne)} (gesamt ${gwh(row.abregelung2025Gwh)}, davon Wind Offshore ${gwh(off)})`
+              : `EE-Redispatch 2025: ${gwh(row.abregelung2025Gwh)}`;
         return (
           <div className={styles.vnbBarRow} role="listitem" key={row.kuerzel}>
             <span className={`${styles.vnbBarLabel} num`} title={abregLabel}>

@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  abregelungOhneOffshore,
   computeKumulierteKurve,
   DEFAULT_KARTE_FILTER,
   deriveMwhReferenzWerte,
   mastrNameNbsp,
   saeulenHoehe,
   sitesAtCut,
+  vnbOptionen,
 } from "@/lib/bessKarte3d/logic";
 import {
   type Camera3d,
@@ -33,6 +35,7 @@ import { BessKarteTimeline } from "@/components/bess-netzbetreiber/BessKarteTime
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
+import { BkgAttribution, BmweQuelle } from "@/components/bess-netzbetreiber/KarteQuellen";
 
 export function BessKarte3d({
   summary,
@@ -111,7 +114,9 @@ export function BessKarte3d({
   }, [isPlaying, monate.length, reducedMotion]);
 
   const isDefaultFilter =
-    !filter.nurGeprueft && filter.einspeisung === "alle";
+    !filter.nurGeprueft && filter.einspeisung === "alle" && filter.vnb === null;
+
+  const vnbListe = useMemo(() => (karte ? vnbOptionen(karte.einheiten) : []), [karte]);
 
   const kurve = useMemo(() => {
     if (!karte) return [];
@@ -155,11 +160,20 @@ export function BessKarte3d({
     return cutResult.sites.find((s) => s.lok === selectedLok) ?? null;
   }, [selectedLok, cutResult]);
 
-  const maxAbregGwh = useMemo(() => {
-    return summary.bundeslaender.reduce(
-      (m, b) => (b.abregelung2025Gwh !== null ? Math.max(m, b.abregelung2025Gwh) : m),
-      0,
-    );
+  const abreg = useMemo(() => {
+    let max = 0;
+    let gesamt = 0;
+    let offshore = 0;
+    const offshoreLaender: string[] = [];
+    for (const b of summary.bundeslaender) {
+      const ohne = abregelungOhneOffshore(b);
+      if (ohne !== null) max = Math.max(max, ohne);
+      gesamt += b.abregelung2025Gwh ?? 0;
+      const off = b.abregelung2025OffshoreGwh ?? 0;
+      offshore += off;
+      if (off >= 1) offshoreLaender.push(b.kuerzel);
+    }
+    return { max, gesamt, offshore, ohne: gesamt - offshore, offshoreLaender };
   }, [summary.bundeslaender]);
 
   function handleTogglePlay() {
@@ -194,7 +208,7 @@ export function BessKarte3d({
       <div className={styles.karteControls} role="region" aria-label="Kartenfilter und Darstellung">
         <div className={styles.controlGroup}>
           <span className={`${styles.controlLabel} num`}>
-            {isDesktop ? "Säulenhöhe" : "Kreisfläche"}
+            {isDesktop ? "Säulenhöhe" : "Kreisfläche ∝"}
           </span>
           <div className={styles.segmented} role="group" aria-label="Skalierung wählen">
             <button
@@ -203,7 +217,7 @@ export function BessKarte3d({
               aria-pressed={modus === "mw"}
               onClick={() => setModus("mw")}
             >
-              √(Netto-MW)
+              {isDesktop ? "√(Netto-MW)" : "Netto-MW"}
             </button>
             <button
               type="button"
@@ -211,7 +225,7 @@ export function BessKarte3d({
               aria-pressed={modus === "mwh"}
               onClick={() => setModus("mwh")}
             >
-              √(MWh)
+              {isDesktop ? "√(MWh)" : "MWh"}
             </button>
           </div>
         </div>
@@ -224,7 +238,7 @@ export function BessKarte3d({
             aria-pressed={showAbregelung}
             onClick={() => setShowAbregelung((v) => !v)}
           >
-            EE-Abregelung 2025 {showAbregelung ? "an" : "aus"}
+            EE-Redispatch 2025 {showAbregelung ? "an" : "aus"}
           </button>
         </div>
 
@@ -240,6 +254,29 @@ export function BessKarte3d({
             />
             <span>nur NB-geprüft</span>
           </label>
+        </div>
+
+        <div className={styles.controlGroup}>
+          <label className={`${styles.controlLabel} num`} htmlFor="karte-vnb">
+            Netzbetreiber
+          </label>
+          <select
+            id="karte-vnb"
+            className={styles.vnbSelect}
+            value={filter.vnb ?? ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSelectedLok(null);
+              setFilter((prev) => ({ ...prev, vnb: v === "" ? null : v }));
+            }}
+          >
+            <option value="">Alle ({formatQuantity(vnbListe.length, "de", 0)})</option>
+            {vnbListe.map((o) => (
+              <option key={o.vnb} value={o.vnb}>
+                {o.label} · {formatQuantity(o.nettoMw, "de", 1)}{"\u00a0"}MW
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={styles.controlGroup}>
@@ -309,17 +346,7 @@ export function BessKarte3d({
             />
           )}
 
-          <p className={styles.geoAttribution}>
-            Ländergrenzen: ©{"\u00a0"}GeoBasis-DE /{" "}
-            <a href="https://www.bkg.bund.de" rel="noopener">
-              BKG
-            </a>{" "}
-            (2026),{" "}
-            <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener">
-              dl-de/by-2-0
-            </a>
-            , VG2500 generalisiert.
-          </p>
+          <BkgAttribution className={styles.geoAttribution} />
 
           {/* Höhen-/Größenlegende + Abregelung-Legende direkt unter der Karte */}
           <div className={styles.legendsRow}>
@@ -366,23 +393,28 @@ export function BessKarte3d({
             {showAbregelung ? (
               <div className={styles.abregLegend} aria-label="Legende EE-Abregelung 2025">
                 <span className={`${styles.legendTitle} num`}>
-                  EE-Abregelung 2025 (GWh) · Standort ist nicht Betriebsweise.
+                  EE-Redispatch 2025 ohne Wind Offshore (GWh) · Standort ist nicht Betriebsweise.
                 </span>
                 <div className={styles.abregRampRow}>
                   <span className="num">0</span>
                   <span className={styles.abregRampBar} aria-hidden="true" />
                   <span className="num">
-                    {insertDisplayUnitNbsp(formatQuantityUnit(maxAbregGwh, "de", 0, "GWh"))}
+                    {insertDisplayUnitNbsp(formatQuantityUnit(abreg.max, "de", 0, "GWh"))}
                   </span>
                   <span className={styles.abregNullSwatch}>
                     <span className={styles.abregNullBox} aria-hidden="true" />
                     <span className="num">HH/BE: k.&nbsp;A.</span>
                   </span>
                 </div>
-                <p className={styles.abregSource}>
-                  Quelle: BMWE-Antwort vom 12.05.2026 (Schriftliche Frage 70), Jahr 2025, 14 Länder,
-                  ohne Offshore-AWZ.
+                <p className={`${styles.abregSource} num`}>
+                  Redispatch-Maßnahmen mit EE, 2025: gesamt{" "}
+                  {insertDisplayUnitNbsp(formatQuantityUnit(abreg.gesamt, "de", 2, "GWh"))} inkl. Wind
+                  Offshore; davon{" "}
+                  {insertDisplayUnitNbsp(formatQuantityUnit(abreg.offshore, "de", 2, "GWh"))} Wind Offshore (
+                  {abreg.offshoreLaender.join(", ")}), hier abgezogen; Fläche zusammen{" "}
+                  {insertDisplayUnitNbsp(formatQuantityUnit(abreg.ohne, "de", 2, "GWh"))}.
                 </p>
+                <BmweQuelle className={styles.abregSource} />
               </div>
             ) : null}
           </div>

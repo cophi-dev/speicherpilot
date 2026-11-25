@@ -7,12 +7,15 @@ export type HoehenModus = "mw" | "mwh";
 export type KarteFilter = {
   nurGeprueft: boolean;
   einspeisung: EinspeisungFilter;
+  /** Anschlussnetzbetreiber („Name (SNB…)“ aus dem MaStR); null = alle. */
+  vnb: string | null;
 };
 
 export type KarteQuelle = {
   name: string;
   lizenz: string;
   url: string;
+  datenquellen?: string;
 };
 
 export type KarteMeta = {
@@ -25,6 +28,9 @@ export type KarteMeta = {
   saeulenregel: string;
   hoehenReferenzMw: number[];
   epPlausibelH: [number, number];
+  vnbRegel?: string;
+  landZuordnung?: string;
+  abregelungUmfang?: string;
   quellen: KarteQuelle[];
 };
 
@@ -54,6 +60,8 @@ export type KarteEinheit = {
   geprueft: boolean;
   einspeisung: EinspeisungArt;
   span: string;
+  /** Anschlussnetzbetreiber, „Name (SNB…)“; je Lokation identisch. */
+  vnb?: string;
 };
 
 export type OhneKoordinateEintrag = {
@@ -72,7 +80,10 @@ export type BundeslandKarteDatum = {
   nettoMw: number;
   bruttoMw: number;
   kapMwh: number;
+  /** EE-Redispatch 2025 laut BMWE inkl. Wind Offshore; null = k. A. */
   abregelung2025Gwh: number | null;
+  /** Darin enthaltener Wind-Offshore-Anteil. */
+  abregelung2025OffshoreGwh?: number | null;
 };
 
 export type MonatKumuliertEintrag = {
@@ -86,6 +97,7 @@ export type Karte3dData = {
   meta: KarteMeta;
   totals: KarteTotals;
   einheiten: KarteEinheit[];
+  vnbJeLokation?: Record<string, string>;
   ohneKoordinate: OhneKoordinateEintrag[];
   bundeslaender: BundeslandKarteDatum[];
   monatKumuliert: MonatKumuliertEintrag[];

@@ -3,9 +3,14 @@
 - Zubau 2026 und G3-Stapel zusätzlich in Nettonennleistung aus dem MaStR-Rohabruf
   24.11.2026 18:39 MEZ (gleiche Filter und Buckets wie build_static_data.py; Brutto wird
   gegen das bestehende Bundle geprüft).
-- scatterBundeslaender: EE-Abregelung 2025 ersetzt durch BMWE-Antwort 12.05.2026
-  (Schriftliche Frage 70, 14 Länder, 9.387 GWh, HH/BE k. A. = null) aus karte3d.json.
-  Die SMARD-Reihe s-nepm_baet misst einen anderen Umfang und wird entfernt.
+- scatterBundeslaender: EE-Redispatch 2025 aus der BMWE-Antwort 12.05.2026 (BT-Drs. 21/5933,
+  Frage 70) aus dem speicherpilot-Export karte3d.json. eeRedispatch2025Gwh = ohne Wind Offshore
+  (Gesamt minus abregelung2025OffshoreGwh, zusammen 6.036,02 GWh), dazu gesamt und offshore.
+  HH/BE k. A. = null. Die SMARD-Reihe s-nepm_baet misst einen anderen Umfang und wird entfernt.
+
+Der Export ersetzt dieses Skript nicht: bundle.json ist ein eigenes Artefakt aus
+build_static_data.py (Netzbetreiber-Buckets, Zubau, Scatter). Idempotent, läuft auf dem
+bestehenden Bundle.
 
 Aufruf: python3 scripts/bess-netzbetreiber/patch_netto_bmwe.py
 """
@@ -23,7 +28,10 @@ import build_static_data as m  # noqa: E402
 ROH = Path("/workspace/speicherpilot/forschung/bess-karte-vnb/mastr_rohabruf_20261124_1839.json")
 BUNDLE = ROOT / "data" / "bess-netzbetreiber" / "bundle.json"
 KARTE = ROOT / "data" / "bess-karte-3d" / "karte3d.json"
-BMWE_NAME = "BMWE-Antwort vom 12.05.2026 auf Schriftliche Frage 70, EE-Abregelung 2025 je Bundesland, ohne Offshore-AWZ"
+MANIFEST = ROOT / "data" / "bess-netzbetreiber" / "manifest.json"
+BMWE_NAME = ("Antwort der Bundesregierung (BMWE, StS Frank Wetzel) vom 12.05.2026 auf Schriftliche Frage 70, "
+             "BT-Drucksache 21/5933, S. 43–44; Redispatch-Maßnahmen mit EE 2025, Karte ohne Wind Offshore")
+BMWE_URL = "https://dserver.bundestag.de/btd/21/059/2105933.pdf"
 
 
 def mw(row: dict, field: str) -> float:
@@ -66,6 +74,7 @@ def main() -> None:
     rows = json.loads(ROH.read_text(encoding="utf-8"))["Data"]
     bundle = json.loads(BUNDLE.read_text(encoding="utf-8"))
     karte = json.loads(KARTE.read_text(encoding="utf-8"))
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
     for hs_key, growth_keys, quality in (
         ("headlineStats", ("growthDefault", "growthEonKern"), False),
@@ -90,25 +99,32 @@ def main() -> None:
                 if bucket in bundle[gk]:
                     bundle[gk][bucket].update(vals)
 
-    bmwe = {b["bundesland"]: b["abregelung2025Gwh"] for b in karte["bundeslaender"]}
-    total = sum(v for v in bmwe.values() if v is not None)
-    if round(total) != 9387 or sum(v is not None for v in bmwe.values()) != 14:
-        raise SystemExit(f"BMWE-Werte unerwartet: {total:.1f} GWh")
-    netto_bl = {b["bundesland"]: b["nettoMw"] for b in karte["bundeslaender"]}
+    bmwe = {b["bundesland"]: b for b in karte["bundeslaender"]}
+    total = sum(b["abregelung2025Gwh"] or 0 for b in bmwe.values())
+    off_total = sum(b.get("abregelung2025OffshoreGwh") or 0 for b in bmwe.values())
+    if round(total, 2) != 9387.08 or round(off_total, 2) != 3351.06 or sum(b["abregelung2025Gwh"] is not None for b in bmwe.values()) != 14:
+        raise SystemExit(f"BMWE-Werte unerwartet: {total:.2f} / Offshore {off_total:.2f} GWh")
     for sk in ("scatterBundeslaender", "scatterQualityFiltered"):
         for row in bundle.get(sk) or []:
-            row["eeRedispatch2025Gwh"] = bmwe[row["bundesland"]]
-            row["abregelungQuelle"] = "BMWE 12.05.2026"
+            b = bmwe[row["bundesland"]]
+            ges, off = b["abregelung2025Gwh"], b.get("abregelung2025OffshoreGwh")
+            row["eeRedispatch2025Gwh"] = None if ges is None else round(ges - (off or 0), 2)
+            row["eeRedispatch2025GesamtGwh"] = ges
+            row["eeRedispatch2025OffshoreGwh"] = off
+            row["abregelungQuelle"] = "BMWE 12.05.2026, BT-Drs. 21/5933, ohne Wind Offshore"
             if sk == "scatterBundeslaender":
-                row["bessNettoGw"] = round(netto_bl[row["bundesland"]] / 1000, 3)
+                row["bessNettoGw"] = round(b["nettoMw"] / 1000, 3)
 
-    srcs = [s for s in bundle["manifest"].get("sources", []) if "SMARD" not in s.get("name", "")]
-    srcs.append({"name": BMWE_NAME, "retrieved": "2026-05-12"})
-    bundle["manifest"]["sources"] = srcs
+    bmwe_src = {"name": BMWE_NAME, "license": "amtliches Werk (§ 5 Abs. 2 UrhG)", "retrieved": "2026-05-12", "url": BMWE_URL}
+    for target in (bundle["manifest"], manifest):
+        srcs = [x for x in target.get("sources", []) if "SMARD" not in x.get("name", "") and "BMWE" not in x.get("name", "")]
+        srcs.append(bmwe_src)
+        target["sources"] = srcs
+    MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     BUNDLE.write_text(json.dumps(bundle, ensure_ascii=False), encoding="utf-8")
     hs = bundle["headlineStats"]["zubau2026"]
     print("Zubau 2026 netto", hs["allNettoMw"], "E.ON", hs["eonWithMitnetzNettoMw"], f"{hs['eonSharePctNetto']:.0f} %",
-          "| BMWE", round(total, 2), "GWh")
+          "| BMWE", round(total, 2), "GWh, ohne Offshore", round(total - off_total, 2))
 
 
 if __name__ == "__main__":

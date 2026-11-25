@@ -43,6 +43,7 @@ describe("bessKarte3d Kontrollwerte und Logik", () => {
     const filtered = filterEinheiten(data.einheiten, {
       nurGeprueft: true,
       einspeisung: "alle",
+      vnb: null,
     });
     expect(filtered).toHaveLength(345);
     const sumNetto = filtered.reduce((s, e) => s + e.nettoMw, 0);
@@ -53,14 +54,17 @@ describe("bessKarte3d Kontrollwerte und Logik", () => {
     const voll = filterEinheiten(data.einheiten, {
       nurGeprueft: false,
       einspeisung: "voll",
+      vnb: null,
     });
     const teil = filterEinheiten(data.einheiten, {
       nurGeprueft: false,
       einspeisung: "teil",
+      vnb: null,
     });
     const alle = filterEinheiten(data.einheiten, {
       nurGeprueft: false,
       einspeisung: "alle",
+      vnb: null,
     });
     const ohne = data.einheiten.filter((e) => e.einspeisung === "ohne");
 
@@ -210,5 +214,43 @@ describe("mastrNameNbsp", () => {
     expect(mastrNameNbsp("Speicher 2 MWh Nord")).toBe("Speicher 2\u00a0MWh Nord");
     expect(mastrNameNbsp("Park 3 Kwartier")).toBe("Park 3 Kwartier");
     expect(mastrNameNbsp("Batterie Halle 4")).toBe("Batterie Halle 4");
+  });
+});
+
+describe("VNB-Filter und Abregelung ohne Offshore (Export 25.11 13:03)", () => {
+  it("jede Einheit hat einen VNB, je Lokation identisch (550/550)", async () => {
+    const karte = (await import("@/data/bess-karte-3d/karte3d.json")).default as unknown as {
+      einheiten: Array<{ lok: string; vnb?: string; nettoMw: number }>;
+      vnbJeLokation: Record<string, string>;
+    };
+    expect(karte.einheiten.every((e) => typeof e.vnb === "string" && e.vnb.length > 0)).toBe(true);
+    expect(Object.keys(karte.vnbJeLokation)).toHaveLength(550);
+    for (const e of karte.einheiten) expect(karte.vnbJeLokation[e.lok]).toBe(e.vnb);
+  });
+
+  it("filtert auf einen Netzbetreiber; MITNETZ 723,5 MW netto", async () => {
+    const { vnbOptionen, filterEinheiten: f } = await import("@/lib/bessKarte3d/logic");
+    const karte = (await import("@/data/bess-karte-3d/karte3d.json")).default as never as {
+      einheiten: Parameters<typeof f>[0];
+    };
+    const opts = vnbOptionen(karte.einheiten);
+    expect(opts[0]!.label).toBe("Mitteldeutsche Netzgesellschaft Strom mbH");
+    const sel = f(karte.einheiten, { nurGeprueft: false, einspeisung: "alle", vnb: opts[0]!.vnb });
+    expect(sel.reduce((s, e) => s + e.nettoMw, 0)).toBeCloseTo(723.49, 1);
+  });
+
+  it("Flächenwert = Gesamt minus Wind Offshore (6.036,02 GWh; SH 742,98, NI 845,04, MV 188,82)", async () => {
+    const { abregelungOhneOffshore } = await import("@/lib/bessKarte3d/logic");
+    const karte = (await import("@/data/bess-karte-3d/karte3d.json")).default as never as {
+      bundeslaender: Array<Parameters<typeof abregelungOhneOffshore>[0]>;
+    };
+    const by = Object.fromEntries(karte.bundeslaender.map((b) => [b.kuerzel, abregelungOhneOffshore(b)]));
+    expect(by.SH).toBeCloseTo(742.98, 2);
+    expect(by.NI).toBeCloseTo(845.04, 2);
+    expect(by.MV).toBeCloseTo(188.82, 2);
+    expect(by.HH).toBeNull();
+    expect(by.BE).toBeNull();
+    const sum = Object.values(by).reduce<number>((s, v) => s + (v ?? 0), 0);
+    expect(sum).toBeCloseTo(6036.02, 1);
   });
 });

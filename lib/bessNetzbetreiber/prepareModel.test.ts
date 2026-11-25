@@ -75,13 +75,15 @@ describe("BESS-Netzbetreiber Datenaufbereitung", () => {
     expect(g.eon_gruppe!.y2026Mw).not.toBeCloseTo(g.mitnetz_envia!.y2026Mw, 0);
   });
 
-  it("Abregelung je Bundesland einheitlich nach BMWE 12.05.2026 (14 Länder, 9.387 GWh, HH/BE k. A.)", () => {
+  it("EE-Redispatch je Land nach BMWE 12.05.2026 ohne Wind Offshore (14 Länder, 6.036,02 von 9.387,08 GWh, HH/BE k. A.)", () => {
     const rows = parsed.scatterBundeslaender;
     expect(rows.length).toBe(16);
     const known = rows.filter((r) => r.eeRedispatch2025Gwh !== null);
     expect(known).toHaveLength(14);
     const sum = known.reduce((s, r) => s + (r.eeRedispatch2025Gwh ?? 0), 0);
-    expect(Math.round(sum)).toBe(9387);
+    expect(sum).toBeCloseTo(6036.02, 1);
+    const gesamt = rows.reduce((s, r) => s + (r.eeRedispatch2025GesamtGwh ?? 0), 0);
+    expect(gesamt).toBeCloseTo(9387.08, 1);
     const ka = rows.filter((r) => r.eeRedispatch2025Gwh === null).map((r) => r.bundesland).sort();
     expect(ka).toEqual(["Berlin", "Hamburg"]);
     const maxBess = Math.max(...parsed.scatterBundeslaender.map((r) => r.bessBruttoGw));

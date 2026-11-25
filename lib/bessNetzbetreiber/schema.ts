@@ -42,6 +42,8 @@ export const bessNetzbetreiberBundleSchema = z.object({
       eeRedispatch2025Gwh: z.number().nullable(),
       bessBruttoGw: z.number(),
       bessNettoGw: z.number().optional(),
+      eeRedispatch2025GesamtGwh: z.number().nullable().optional(),
+      eeRedispatch2025OffshoreGwh: z.number().nullable().optional(),
       abregelungQuelle: z.string().optional(),
     }),
   ),

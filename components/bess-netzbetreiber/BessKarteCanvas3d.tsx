@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  abregelungOhneOffshore,
   ORIENTIERUNGS_STAEDTE,
   mastrNameNbsp,
   saeulenHoehe,
@@ -172,9 +173,11 @@ export function BessKarteCanvas3d({
     const m = new Map<string, number | null>();
     let maxGwh = 0;
     for (const b of bundeslaender) {
-      m.set(b.bundesland, b.abregelung2025Gwh);
-      if (b.abregelung2025Gwh !== null && b.abregelung2025Gwh > maxGwh) {
-        maxGwh = b.abregelung2025Gwh;
+      // Fläche: EE-Redispatch 2025 ohne Wind Offshore (BMWE-Gesamt minus Offshore-Anteil)
+      const gwh = abregelungOhneOffshore(b);
+      m.set(b.bundesland, gwh);
+      if (gwh !== null && gwh > maxGwh) {
+        maxGwh = gwh;
       }
     }
     return { map: m, maxGwh };

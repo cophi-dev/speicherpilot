@@ -12,6 +12,7 @@ import {
 } from "@/components/bess-netzbetreiber/NetzbetreiberMoreBars";
 import { NetzbetreiberVnbBars } from "@/components/bess-netzbetreiber/NetzbetreiberVnbBars";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
+import { BkgAttribution, BmweQuelle } from "@/components/bess-netzbetreiber/KarteQuellen";
 import { blNetto } from "@/lib/bessKarte3d/logic";
 import type {
   BundeslaenderGeoJson,
@@ -89,6 +90,20 @@ export function NetzbetreiberResearchPage({
     () => blNetto(karteSummary.bundeslaender),
     [karteSummary.bundeslaender],
   );
+
+  const abregSumme = useMemo(() => {
+    let gesamt = 0;
+    let offshore = 0;
+    const offshoreTeile: { kuerzel: string; gwh: number }[] = [];
+    for (const b of karteSummary.bundeslaender) {
+      gesamt += b.abregelung2025Gwh ?? 0;
+      const off = b.abregelung2025OffshoreGwh ?? 0;
+      offshore += off;
+      if (off >= 1) offshoreTeile.push({ kuerzel: b.kuerzel, gwh: off });
+    }
+    offshoreTeile.sort((x, y) => y.gwh - x.gwh);
+    return { gesamt, offshore, offshoreTeile };
+  }, [karteSummary.bundeslaender]);
 
   const eeStock = model.eeStockBundeslaender;
   const g5Data = useMemo(() => {
@@ -292,7 +307,7 @@ export function NetzbetreiberResearchPage({
             Nettoleistung (Top 13)
           </h2>
           <p className="v4-tag-side">
-            Nur {vnbOver50Count} Verteilnetzbetreiber haben mehr als 50&nbsp;MW
+            Nur {vnbOver50Count}{"\u00a0"}Verteilnetzbetreiber haben mehr als 50&nbsp;MW
             netto. MITNETZ liegt vor Westnetz. Balken der{" "}
             <span className={styles.eonNowrap}>E.ON{EON_HYPH}Gruppe</span> in
             Rostorange, übrige Verteilnetzbetreiber grau.
@@ -319,6 +334,17 @@ export function NetzbetreiberResearchPage({
               BESS-Nettoleistung je Bundesland (alle 16 Länder)
             </h2>
             <NetzbetreiberBlBessBars rows={blNettoRows} />
+            <p className="v4-subline num">
+              EE-Redispatch 2025 laut BMWE (Hover auf dem Ländernamen): gesamt{" "}
+              {insertDisplayUnitNbsp(formatQuantityUnit(abregSumme.gesamt, "de", 2, "GWh"))} inkl.{" "}
+              {insertDisplayUnitNbsp(formatQuantityUnit(abregSumme.offshore, "de", 2, "GWh"))} Wind Offshore (
+              {abregSumme.offshoreTeile
+                .map((t) => `${t.kuerzel} ${formatQuantity(t.gwh, "de", 2)}`)
+                .join(", ")}
+              ); ohne Offshore{" "}
+              {insertDisplayUnitNbsp(formatQuantityUnit(abregSumme.gesamt - abregSumme.offshore, "de", 2, "GWh"))}.
+              Hamburg und Berlin: k.{"\u00a0"}A.
+            </p>
             <p className="v4-subline">
               Alle 16 Länder inkl. der{" "}
               {formatQuantity(karteSummary.totals.ohneKoordinateN, "de", 0)}{" "}
@@ -368,18 +394,23 @@ export function NetzbetreiberResearchPage({
         </div>
       </details>
 
-      <p className={`v4-chapter-foot v4-content num ${styles.chapterFoot}`}>
-        Quellen: Marktstammdatenregister (dl-de/by-2-0), EE-Abregelung 2025:
-        BMWE-Antwort vom 12.05.2026 (Schriftliche Frage 70), Ländergrenzen ©{"\u00a0"}GeoBasis-DE / BKG
-        (2026), dl-de/by-2-0, Stichtag {stichtagDe}.{" "}
-        <Link href="/methodik#bess-karte-3d" className="v4-text-link">
-          Methodik Karte
-        </Link>{" "}
-        ·{" "}
-        <Link href="/methodik#bess-netzbetreiber" className="v4-text-link">
-          Methodik Netzbetreiber
-        </Link>
-      </p>
+      <div className={`v4-chapter-foot v4-content num ${styles.chapterFoot}`}>
+        <p>
+          Quellen: Marktstammdatenregister (dl-de/by-2-0), Stichtag {stichtagDe}. Redispatch-Maßnahmen mit EE
+          2025 (Karte ohne Wind Offshore):
+        </p>
+        <BmweQuelle />
+        <BkgAttribution />
+        <p>
+          <Link href="/methodik#bess-karte-3d" className="v4-text-link">
+            Methodik Karte
+          </Link>{" "}
+          ·{"\u00a0"}
+          <Link href="/methodik#bess-netzbetreiber" className="v4-text-link">
+            Methodik Netzbetreiber
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
