@@ -88,11 +88,18 @@ export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrMod
                   <line x1={marktX} x2={marktX} y1={seg.y1} y2={seg.y2} stroke="var(--research-fg)" strokeWidth={2} />
                 );
               })()}
-              <text x={PAD_LEFT + Math.max(barW, 36) - 6} y={y + ROW_H / 2 + 4} textAnchor="end" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-                <tspan stroke="var(--research-bg, #fff)" strokeWidth={4} paintOrder="stroke">
-                  {formatVisionPercentWhole(row.maxPct)}
-                </tspan>
-              </text>
+              {barW >= 44 ? (
+                // Label im Balken: --research-on-accent auf Rost >= 4,5:1 (hell und dunkel)
+                <text x={PAD_LEFT + barW - 6} y={y + ROW_H / 2 + 4} textAnchor="end" fontSize={axisFs} fill="var(--research-on-accent)" fontFamily="var(--font-jetbrains-mono)">
+                  <tspan>{formatVisionPercentWhole(row.maxPct)}</tspan>
+                </text>
+              ) : (
+                <text x={PAD_LEFT + barW + 6} y={y + ROW_H / 2 + 4} textAnchor="start" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+                  <tspan stroke="var(--research-bg, #fff)" strokeWidth={4} paintOrder="stroke">
+                    {formatVisionPercentWhole(row.maxPct)}
+                  </tspan>
+                </text>
+              )}
             </g>
           );
         })}

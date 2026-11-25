@@ -7425,7 +7425,9 @@ html.vt-to-light::view-transition-new(root) {
     line-height: 1.1;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--v4-warm-text);
+    color: hsl(var(--foreground));
+    background: hsl(var(--background));
+    padding: 0 0.2em;
     white-space: nowrap;
     pointer-events: none;
   }
@@ -7597,6 +7599,12 @@ html.vt-to-light::view-transition-new(root) {
   line-height: 0.74;
   letter-spacing: -0.065em;
   max-width: 100%;
+}
+@media (min-width: 768px) and (max-width: 899px) {
+  /* einspaltiger Kopf: Riesenzahl + Einheit muessen in die Spalte passen (pr_measure clip @768) */
+  .v4-riesenzahl {
+    --v4-ries-max: 13rem;
+  }
 }
 @media (max-width: 767px) {
   .v4-riesenzahl {

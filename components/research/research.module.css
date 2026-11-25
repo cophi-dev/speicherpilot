@@ -4,6 +4,8 @@
   --research-accent: var(--v4-warm);
   --research-accent-text: var(--v4-warm-text);
   --research-accent-light: color-mix(in srgb, var(--v4-warm) 92%, #6a3820);
+  /* Text auf --research-accent-light, >= 4,5:1 */
+  --research-on-accent: #0b0d0f;
   --research-muted: #9ea3a9;
   --research-dim: #80868e;
   --research-line: #1e2226;
@@ -41,6 +43,7 @@
   --research-accent: var(--v4-warm);
   --research-accent-text: var(--v4-warm-text);
   --research-accent-light: color-mix(in srgb, var(--v4-warm) 92%, #6a3820);
+  --research-on-accent: #ffffff;
   --research-muted: #4a5058;
   --research-dim: #6b7178;
   --research-line: #e3e5e8;
