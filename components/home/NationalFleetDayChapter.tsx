@@ -80,10 +80,21 @@ export function NationalFleetDayChapter({
   return (
     <section className="v4-chapter v4-chapter-fleet-day" aria-labelledby="fleet-day-title">
       <div className="v4-chapter-head v4-content">
-        <p className="v4-chapter-num num">03 · Monatslauf</p>
-        <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
-          ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
-        </h2>
+        {isStartSurface ? (
+          <div className="v4-chapter-title-row">
+            <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
+              ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
+            </h2>
+            <p className="v4-chapter-num num">03 · Monatslauf</p>
+          </div>
+        ) : (
+          <>
+            <p className="v4-chapter-num num">03 · Monatslauf</p>
+            <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
+              ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
+            </h2>
+          </>
+        )}
         <p className="v4-tag-side num">{dayPeakHeadline}</p>
       </div>
 
@@ -137,27 +148,55 @@ export function NationalFleetDayChapter({
         </fieldset>
       </div>
 
-      <NationalFleetTimeSeriesChart
-        monthKey={monthKey}
-        factor={factor}
-        strategy={strategy}
-        dateKey={dayKey}
-        peakReductionGw={dayPeakKpi.reductionGw}
-        peakReductionPct={dayPeakKpi.reductionPct}
-        peakReductionDayGw={peakReductionDayGw}
-        peakObservedDayGw={peakRGw}
-        dayPeakReference={dayPeakKpi.reference}
-        monthContextNote={formatPeakCaptionMonthContext(
-          monthStats.peakReductionGw,
-          monthStats.peakReductionPct,
-        )}
-        scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
-        tagesvorlageDay
-        dayNoWindSolarSurplus={slice.positiveSurplusQuarterHours === 0}
-      />
-      <div className="v4-content">
-        <GraphScopeMeta />
-      </div>
+      {isStartSurface ? (
+        <div className="v4-content v4-chart-stage">
+          <div className="v4-chart-plate v4-chart-plate-fleet">
+            <NationalFleetTimeSeriesChart
+              monthKey={monthKey}
+              factor={factor}
+              strategy={strategy}
+              dateKey={dayKey}
+              peakReductionGw={dayPeakKpi.reductionGw}
+              peakReductionPct={dayPeakKpi.reductionPct}
+              peakReductionDayGw={peakReductionDayGw}
+              peakObservedDayGw={peakRGw}
+              dayPeakReference={dayPeakKpi.reference}
+              monthContextNote={formatPeakCaptionMonthContext(
+                monthStats.peakReductionGw,
+                monthStats.peakReductionPct,
+              )}
+              scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
+              tagesvorlageDay
+              dayNoWindSolarSurplus={slice.positiveSurplusQuarterHours === 0}
+            />
+            <GraphScopeMeta />
+          </div>
+        </div>
+      ) : (
+        <>
+          <NationalFleetTimeSeriesChart
+            monthKey={monthKey}
+            factor={factor}
+            strategy={strategy}
+            dateKey={dayKey}
+            peakReductionGw={dayPeakKpi.reductionGw}
+            peakReductionPct={dayPeakKpi.reductionPct}
+            peakReductionDayGw={peakReductionDayGw}
+            peakObservedDayGw={peakRGw}
+            dayPeakReference={dayPeakKpi.reference}
+            monthContextNote={formatPeakCaptionMonthContext(
+              monthStats.peakReductionGw,
+              monthStats.peakReductionPct,
+            )}
+            scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
+            tagesvorlageDay
+            dayNoWindSolarSurplus={slice.positiveSurplusQuarterHours === 0}
+          />
+          <div className="v4-content">
+            <GraphScopeMeta />
+          </div>
+        </>
+      )}
       {showSaturation ? (
         <p className="v4-content v4-fleet-saturation-hint">{FLEET_SATURATION_HINT_DE}</p>
       ) : null}

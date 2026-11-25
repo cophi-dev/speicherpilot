@@ -70,8 +70,8 @@ function navItemHref(item: (typeof SITE_MAIN_NAV)[number], navShortcuts: NavShor
 
 function mainNavLinkClass(active: boolean) {
   return active
-    ? "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-[var(--v4-warm-text)]"
-    : "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 text-muted-foreground hover:text-foreground";
+    ? "site-nav-link is-active inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-foreground"
+    : "site-nav-link inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 text-muted-foreground hover:text-foreground";
 }
 
 function mobileNavLinkClass(active: boolean) {
@@ -236,14 +236,14 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
         </a>
         <NavigationProgress label="Seite wird geladen." />
         <header
-          className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
+          className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "is-solid border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
         >
           <div className="mx-auto flex h-16 w-full items-center justify-between gap-3">
-            <BrandLockup homeHref="/" />
+            <BrandLockup homeHref="/" height={32} />
             {isLgNav ? (
             <nav
               id="site-desktop-nav"
-              className="flex min-h-6 min-w-0 items-center gap-5 text-sm font-medium"
+              className="flex min-h-6 min-w-0 items-center gap-4 text-sm font-medium xl:gap-6"
               aria-label="Hauptnavigation"
             >
               {SITE_MAIN_NAV.map((item) => {
@@ -318,54 +318,60 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
         <main id="inhalt">
           <NavigationMain>{children}</NavigationMain>
         </main>
-        <footer className="border-t border-border">
-          <div className="mx-auto py-8 text-sm text-muted-foreground">
-            <nav className="legal-footer" aria-label="Rechtliches und Methodik">
-              <Link href="/ueber">Über SpeicherPilot</Link>
-              <Link href="/methodik">Methodik</Link>
-              <Link href="/daten">Daten (CC BY 4.0)</Link>
-              <Link href="/methodik#so-pruefen-wir">So prüfen wir Meldungen</Link>
-              <Link href="/impressum">Impressum</Link>
-              <Link href="/datenschutz">Datenschutz</Link>
-            </nav>
-            <p className="mt-6 max-w-[52rem] leading-relaxed">
-              Quellen und Glossar stehen in der{" "}
-              <Link href="/methodik#quellen" className="text-primary underline underline-offset-[3px]">
-                Methodik
-              </Link>
-              . Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung.
-              {pathname === "/jahr"
-                ? null
-                : " Wo Euro stehen, ist das als Modellschätzung gekennzeichnet."}
-            </p>
-            {pathname === "/" ? (
-              <p className="mt-4 max-w-[52rem] leading-relaxed">
-                Im Arbeitsalltag der Hochspannungs- und Umspannwerkskonstruktion sehe ich, wie unterschiedlich
-                Speicherprojektierer und Netzplaner auf dasselbe Stromnetz schauen. Die einen optimieren auf
-                Börsenpreise, die anderen planen für Gleichzeitigkeit und Abendspitzen — selten auf derselben
-                Datenbasis.
-              </p>
-            ) : null}
-            <p className="mt-4 flex flex-wrap gap-x-5">
-              <a
-                href="https://www.linkedin.com/in/phillipp-zarindast/"
-                target="_blank"
-                rel="me noopener"
-                aria-label="Phillipp Zarindast auf LinkedIn"
-                className="inline-flex min-h-11 items-center hover:text-foreground"
-              >
-                LinkedIn
-              </a>
-              <a
-                href="https://x.com/pphhiillliipppp"
-                target="_blank"
-                rel="me noopener"
-                aria-label="Phillipp Zarindast auf X"
-                className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-foreground"
-              >
-                X
-              </a>
-            </p>
+        <footer className="site-footer border-t border-border">
+          <div className="mx-auto py-10 text-sm text-muted-foreground">
+            <div className="site-footer-grid">
+              <div className="site-footer-col-main">
+                <p className="site-footer-note max-w-[60ch] leading-relaxed">
+                  Quellen und Glossar stehen in der{" "}
+                  <Link href="/methodik#quellen" className="text-primary underline underline-offset-[3px]">
+                    Methodik
+                  </Link>
+                  . Modellrechnungen dienen der Einordnung, nicht der Beschaffung oder Anlagenplanung.
+                  {pathname === "/jahr"
+                    ? null
+                    : " Wo Euro stehen, ist das als Modellschätzung gekennzeichnet."}
+                </p>
+                {pathname === "/" ? (
+                  <p className="site-footer-author mt-4 max-w-[60ch] leading-relaxed">
+                    Im Arbeitsalltag der Hochspannungs- und Umspannwerkskonstruktion sehe ich, wie unterschiedlich
+                    Speicherprojektierer und Netzplaner auf dasselbe Stromnetz schauen. Die einen optimieren auf
+                    Börsenpreise, die anderen planen für Gleichzeitigkeit und Abendspitzen — selten auf derselben
+                    Datenbasis.
+                  </p>
+                ) : null}
+              </div>
+              <div className="site-footer-col-links">
+                <nav className="legal-footer" aria-label="Rechtliches und Methodik">
+                  <Link href="/ueber">Über SpeicherPilot</Link>
+                  <Link href="/methodik">Methodik</Link>
+                  <Link href="/daten">Daten (CC BY 4.0)</Link>
+                  <Link href="/methodik#so-pruefen-wir">So prüfen wir Meldungen</Link>
+                  <Link href="/impressum">Impressum</Link>
+                  <Link href="/datenschutz">Datenschutz</Link>
+                </nav>
+                <p className="site-footer-social mt-4 flex flex-wrap gap-x-5">
+                  <a
+                    href="https://www.linkedin.com/in/phillipp-zarindast/"
+                    target="_blank"
+                    rel="me noopener"
+                    aria-label="Phillipp Zarindast auf LinkedIn"
+                    className="inline-flex min-h-11 items-center hover:text-foreground"
+                  >
+                    LinkedIn
+                  </a>
+                  <a
+                    href="https://x.com/pphhiillliipppp"
+                    target="_blank"
+                    rel="me noopener"
+                    aria-label="Phillipp Zarindast auf X"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-foreground"
+                  >
+                    X
+                  </a>
+                </p>
+              </div>
+            </div>
           </div>
         </footer>
       </div>
