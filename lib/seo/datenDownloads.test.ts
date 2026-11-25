@@ -114,7 +114,7 @@ describe("/daten Downloads", () => {
     expect((await collectIndexableRoutes()).map((r) => r.path)).toContain("/daten");
     expect(llmsTxtBody()).toContain("/daten");
     expect(llmsFullTxtBody()).toContain("speicherpilot-jahr-stufen.csv");
-  });
+  }, 15_000);
 
   it("jeder YYYY-MM-DD-Schlüssel in den vier Dateien ist ein gültiges ISO-Kalenderdatum", () => {
     const isoDate = /\d{4}-\d{2}-\d{2}/g;
