@@ -5,6 +5,48 @@
 const BKG_DATENQUELLEN = "https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf";
 const BMWE_PDF = "https://dserver.bundestag.de/btd/21/059/2105933.pdf";
 
+/** URL als Text, der nur an „/“ umbrechen darf (kein Umbruch mitten im Wort). */
+function UrlText({ url }: { url: string }) {
+  const teile = url.split("/");
+  return (
+    <>
+      {teile.map((t, i) => (
+        <span key={i}>
+          {t}
+          {i < teile.length - 1 ? (
+            <>
+              /<wbr />
+            </>
+          ) : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
+/** Kurzer Verweis unter der Karte: „Ländergrenzen: VG2500 (BKG) · dl-de/by-2-0“, Volltext im Quellenblock. */
+export function BkgKurz({ className, quellenId }: { className?: string; quellenId: string }) {
+  return (
+    <p className={className}>
+      Ländergrenzen:{" "}
+      <a href={`#${quellenId}`}>VG2500{"\u00a0"}(BKG)</a> ·{" "}
+      <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener">
+        dl-de/by-2-0
+      </a>
+    </p>
+  );
+}
+
+/** Kurzer Verweis in der Legende auf die BMWE-Quelle im Quellenblock. */
+export function BmweKurz({ className, quellenId }: { className?: string; quellenId: string }) {
+  return (
+    <p className={className}>
+      Quelle: BMWE, BT-Drucksache 21/5933, S.{"\u00a0"}43–44 ·{" "}
+      <a href={`#${quellenId}`}>Quellenangabe</a>
+    </p>
+  );
+}
+
 export function BkgAttribution({ className }: { className?: string }) {
   return (
     <p className={className}>
@@ -18,7 +60,7 @@ export function BkgAttribution({ className }: { className?: string }) {
       </a>
       , Datenquellen:{" "}
       <a href={BKG_DATENQUELLEN} rel="noopener">
-        {BKG_DATENQUELLEN}
+        geodatenzentrum.de{"\u00a0"}(PDF)
       </a>
       ; Daten geändert (generalisiert, WGS84).
     </p>
@@ -31,7 +73,7 @@ export function BmweQuelle({ className, flaeche = true }: { className?: string; 
       Quelle: Antwort der Bundesregierung (BMWE, StS Frank Wetzel) vom 12.05.2026 auf Schriftliche Frage 70,
       BT-Drucksache 21/5933, S. 43–44,{" "}
       <a href={BMWE_PDF} rel="noopener">
-        {BMWE_PDF}
+        <UrlText url={BMWE_PDF} />
       </a>
       ; amtliches Werk (§{"\u00a0"}5 Abs.{"\u00a0"}2 UrhG), Werte unverändert übernommen, eigene Darstellung.
       {flaeche ? " Fläche: eigene Berechnung (Gesamt minus Wind Offshore)." : null}

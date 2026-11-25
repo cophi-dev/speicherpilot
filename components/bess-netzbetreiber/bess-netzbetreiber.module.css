@@ -570,7 +570,8 @@
 }
 .geoAttribution a,
 .abregSource a {
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 .vnbSelect {
   min-height: 44px;
@@ -1217,7 +1218,7 @@
   margin: 0;
 }
 .chapterFoot p a {
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -1274,8 +1275,7 @@
 }
 
 .heroStage {
-  width: min(1440px, calc(100vw - 2rem));
-  margin: 0.75rem auto 0;
+  margin-top: 0.75rem;
 }
 
 /* Keine Kästen: Filter, Bühne, Legende, Detailpanel und Zeitachse sitzen frei auf der Seite. */
@@ -1331,20 +1331,7 @@
   box-shadow: none;
 }
 
-.karteHero .detailCard {
-  border: none;
-  border-left: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
-  border-radius: 0;
-  background: transparent;
-  padding: 0 0 0 1.25rem;
-}
 
-@media (max-width: 1024px) {
-  .karteHero .detailCard {
-    border-left: none;
-    padding-left: 0;
-  }
-}
 
 .zoomBtns {
   position: absolute;
@@ -1444,8 +1431,8 @@
 
 .canvasHeroOverlay {
   position: absolute;
-  top: 0.25rem;
-  left: 0.25rem;
+  top: 0;
+  left: 0;
   z-index: 1;
   max-width: min(46%, 34rem);
   pointer-events: none;
@@ -1520,4 +1507,124 @@
   .canvasHeroOverlay {
     transition: none;
   }
+}
+
+
+/* ===== Hero R2 (design 14:25): eine Inhaltskante, Karte volle Breite, ruhige Pill-Leiste ===== */
+
+.karteHero .karteStageDesktop {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+/* Lokationsliste unter der Karte, auf derselben Inhaltskante */
+.karteHero .detailCard {
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
+  border-radius: 0;
+  background: transparent;
+  padding: 1rem 0 0;
+}
+
+@media (min-width: 1024px) {
+  .karteHero .detailCard {
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: 1rem 2rem;
+    align-items: start;
+  }
+  .karteHero .detailQuickBtns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+.karteHero .detailQuickBtn,
+.karteHero .detailSelect,
+.karteHero .vnbSelect {
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Ruhige Leiste: keine Kästen, Labels klein in Mono, Segmente und Pills wie die Zoom-Knöpfe */
+.karteHero .karteControls {
+  gap: 1rem 1.75rem;
+  padding: 1rem 0 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--linie) 70%, transparent);
+  border-bottom: none;
+}
+
+.karteHero .controlLabel,
+.karteHero .detailSelectLabel,
+.karteHero .detailQuickHead,
+.karteHero .legendTitle {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.karteHero .segmented {
+  border: none;
+  border-radius: 0;
+  gap: 0.35rem;
+}
+
+.karteHero .segBtn,
+.karteHero .segBtnActive,
+.karteHero .toggleBtn,
+.karteHero .toggleBtnActive,
+.karteHero .checkLabel {
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+  font-size: var(--type-14);
+}
+
+.karteHero .segBtn:first-child,
+.karteHero .segBtn:last-child,
+.karteHero .segBtnActive:first-child,
+.karteHero .segBtnActive:last-child {
+  border-radius: 999px;
+  border-right: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+}
+
+.karteHero .segBtn,
+.karteHero .toggleBtn,
+.karteHero .checkLabel {
+  background: color-mix(in srgb, hsl(var(--background)) 72%, transparent);
+  color: hsl(var(--foreground));
+}
+
+.karteHero .segBtnActive,
+.karteHero .toggleBtnActive {
+  background: hsl(var(--foreground));
+  border-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
+.karteHero .karteNotes {
+  padding-top: 0;
+}
+
+/* Mobil: Zoom-Knöpfe unter der Karte rechts, außerhalb der Landesfläche */
+.zoomBtnsBelow {
+  position: static;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.noWrap {
+  white-space: nowrap;
+}
+
+.karteHero .mobileTapHint {
+  margin-left: 0;
 }

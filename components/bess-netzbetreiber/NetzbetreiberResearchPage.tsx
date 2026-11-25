@@ -116,7 +116,7 @@ export function NetzbetreiberResearchPage({
           </h1>
           <div className={styles.heroZahlMobile}>{heroZahlBlock}</div>
         </div>
-        <div className={styles.heroStage}>
+        <div className={`v4-content ${styles.heroStage}`}>
           <BessKarte3d summary={karteSummary} geoJson={geoJson} hero overlay={heroZahlBlock} />
         </div>
       </section>
@@ -245,7 +245,7 @@ export function NetzbetreiberResearchPage({
         </div>
       </details>
 
-      <div className={`v4-chapter-foot v4-content num ${styles.chapterFoot}`}>
+      <div id="karte-quellen" className={`v4-chapter-foot v4-content num ${styles.chapterFoot}`}>
         <p>
           Quellen: Marktstammdatenregister (dl-de/by-2-0), Stichtag {stichtagDe}. Redispatch-Maßnahmen mit EE
           2025 (Karte ohne Wind Offshore):

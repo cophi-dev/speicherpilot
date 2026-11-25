@@ -276,7 +276,8 @@ export function BessKarteMobile2d({
   return (
     <div className={styles.mobile2dWrap} onMouseLeave={() => setWheelActive(false)}>
       <p className={`${styles.mobileTapHint} num`}>
-        Punkt antippen für Lokationsdetails (Kreisfläche ∝ {modus === "mwh" ? "MWh" : "Netto-MW"}) · zwei Finger:
+        Punkt antippen für Lokationsdetails{" "}
+        <span className={styles.noWrap}>(Kreisfläche ∝ {modus === "mwh" ? "MWh" : "Netto-MW"})</span> · zwei{"\u00a0"}Finger:
         zoomen
       </p>
       <div className={styles.mobileMapFrame}>
@@ -370,7 +371,13 @@ export function BessKarteMobile2d({
           ))}
         </g>
       </svg>
-      <div className={styles.zoomBtns} role="group" aria-label="Zoom">
+      {wheelHint ? (
+        <div className={`${styles.wheelHint} num`} role="status" aria-live="polite">
+          Zum Zoomen Strg/⌘ + Mausrad oder erst auf die Karte klicken
+        </div>
+      ) : null}
+      </div>
+      <div className={`${styles.zoomBtns} ${styles.zoomBtnsBelow}`} role="group" aria-label="Zoom">
         <button
           type="button"
           className={styles.camBtn}
@@ -397,12 +404,6 @@ export function BessKarteMobile2d({
         >
           ⌂
         </button>
-      </div>
-      {wheelHint ? (
-        <div className={`${styles.wheelHint} num`} role="status" aria-live="polite">
-          Zum Zoomen Strg/⌘ + Mausrad oder erst auf die Karte klicken
-        </div>
-      ) : null}
       </div>
     </div>
   );

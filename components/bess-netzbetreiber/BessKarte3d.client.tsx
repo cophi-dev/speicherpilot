@@ -36,7 +36,7 @@ import { BessKarteTimeline } from "@/components/bess-netzbetreiber/BessKarteTime
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
-import { BkgAttribution, BmweQuelle } from "@/components/bess-netzbetreiber/KarteQuellen";
+import { BkgKurz, BmweKurz } from "@/components/bess-netzbetreiber/KarteQuellen";
 
 export function BessKarte3d({
   summary,
@@ -358,7 +358,7 @@ export function BessKarte3d({
             />
           )}
 
-          <BkgAttribution className={styles.geoAttribution} />
+          <BkgKurz className={styles.geoAttribution} quellenId="karte-quellen" />
 
           {/* Höhen-/Größenlegende + Abregelung-Legende direkt unter der Karte */}
           <div className={styles.legendsRow}>
@@ -434,7 +434,7 @@ export function BessKarte3d({
                   {abreg.offshoreLaender.join(", ")}), hier abgezogen; Fläche zusammen{" "}
                   {insertDisplayUnitNbsp(formatQuantityUnit(abreg.ohne, "de", 2, "GWh"))}.
                 </p>
-                <BmweQuelle className={styles.abregSource} />
+                <BmweKurz className={styles.abregSource} quellenId="karte-quellen" />
               </div>
             ) : null}
           </div>
