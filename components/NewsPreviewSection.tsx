@@ -155,7 +155,7 @@ function NewsRow({
   const source = plainNewsText(item.source);
   const short = item.sourceShort ? plainNewsText(item.sourceShort) : "";
   const label = short || source;
-  const teaser = item.teaser ? plainNewsText(item.teaser) : "";
+  const teaser = item.teaser ? insertDisplayUnitNbsp(plainNewsText(item.teaser)) : "";
   const einordnung = insertDisplayUnitNbsp(plainNewsText(item.einordnung));
   const showTeaserBlock =
     showTeaser && Boolean(teaser) && !sameCopy(teaser, headline, source) && !hasEuro(teaser);

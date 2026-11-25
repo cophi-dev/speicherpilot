@@ -70,13 +70,13 @@ function navItemHref(item: (typeof SITE_MAIN_NAV)[number], navShortcuts: NavShor
 
 function mainNavLinkClass(active: boolean) {
   return active
-    ? "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-[var(--v4-warm-text)]"
+    ? "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-[var(--v4-warm-nav-text)]"
     : "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 text-muted-foreground hover:text-foreground";
 }
 
 function mobileNavLinkClass(active: boolean) {
   return `inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring ${
-    active ? "font-semibold text-[var(--v4-warm-text)]" : "text-foreground"
+    active ? "font-semibold text-[var(--v4-warm-nav-text)]" : "text-foreground"
   }`;
 }
 

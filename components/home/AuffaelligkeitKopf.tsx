@@ -82,7 +82,7 @@ export function AuffaelligkeitKopf({
     const peakContext =
       record.eveningPeakGw != null && record.eveningPeakAt
         ? insertDisplayUnitNbsp(
-            ` Die Restlast-Abendspitze erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr) — Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
+            ` Die Restlastspitze erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr). Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
           )
         : "";
     return {
@@ -164,6 +164,15 @@ export function AuffaelligkeitKopf({
     </Link>
   );
 
+  const rangMobileSummary = useMemo(() => {
+    if (!isTagPage || !metricHero || metricKey !== "evening_peak_gw" || record?.eveningPeakGw == null) {
+      return undefined;
+    }
+    const rank = metricHero.rankLabel?.match(/Platz (\d+)/)?.[1];
+    const platz = rank ? `Platz ${rank}` : metricHero.rankLabel;
+    return `Abendspitze Restlast · 31 Tage · gestern ${formatDeGw(record.eveningPeakGw, 1)} (${platz})`;
+  }, [isTagPage, metricHero, metricKey, record?.eveningPeakGw]);
+
   return (
     <section className="v4-kopf" aria-labelledby="auffaelligkeit-h1">
       <div className="v4-kopf-inner v4-content">
@@ -221,7 +230,8 @@ export function AuffaelligkeitKopf({
             <RangLeiste
               bars={bars}
               metricLabel={hero.kernLabel}
-              rankLabel={seriePresentation ? "Überschuss je Tag" : undefined}
+              rankLabel={seriePresentation ? "Überschuss je Tag" : metricHero?.rankLabel ?? undefined}
+              mobileSummary={rangMobileSummary}
             />
           </div>
         ) : (

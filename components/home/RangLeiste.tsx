@@ -6,16 +6,20 @@ export function RangLeiste({
   bars,
   metricLabel,
   rankLabel,
+  mobileSummary,
 }: {
   bars: Array<{ dateKey: string; value: number | null; highlight: boolean; record?: boolean; zero?: boolean }>;
   metricLabel: string;
   rankLabel?: string;
+  /** Eine Zeile über den Balken (mobil / schmal), z. B. „Abendspitze Restlast · 31 Tage …“. */
+  mobileSummary?: string;
 }) {
   const values = bars.map((b) => b.value ?? 0);
   const max = Math.max(...values, 1e-9);
 
   return (
     <div className="v4-rang-leiste" aria-label={`${metricLabel}, ${rankLabel ?? ""}`}>
+      {mobileSummary ? <p className="v4-rang-mobile-summary num">{mobileSummary}</p> : null}
       <div className="v4-rang-bars">
         {bars.map((bar) => {
           const h = bar.zero ? 2 : bar.value === null ? 4 : Math.max(4, (bar.value / max) * 100);
@@ -26,7 +30,9 @@ export function RangLeiste({
               className={`v4-rang-bar ${cls}`}
               style={{ height: `${h}%` }}
               title={`${bar.dateKey}: ${bar.value === null ? "—" : formatQuantity(bar.value, "de", 1)}`}
-            />
+            >
+              {bar.highlight ? <span className="v4-rang-bar-tag">gestern</span> : null}
+            </span>
           );
         })}
       </div>

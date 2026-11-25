@@ -26,7 +26,7 @@ describe("Vision Kernsatz", () => {
 
   it("nutzt die Meta-Description aus der Owner-Abnahme (um, nicht bis 13,4)", () => {
     expect(k.descriptionShort).toBe(
-      "NEP-Speicher 2 h senken die Restlast-Spitze von 73,0 GW um 9,8 bis 13,4 GW, nach Preis höchstens ein Fünftel davon. Jahresrechnung, Stand 11/2026.",
+      "NEP-Speicher 2 h senken die Restlastspitze von 73,0 GW um 9,8 bis 13,4 GW, nach Preis höchstens ein Fünftel davon. Jahresrechnung, Stand 11/2026.",
     );
     expect(k.descriptionShort).toContain("um 9,8 bis 13,4 GW");
     expect(k.descriptionShort).not.toMatch(/senkt bis 13,4/);
