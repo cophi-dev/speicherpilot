@@ -14,7 +14,9 @@ import {
 } from "@/lib/bessKarte3d/logic";
 import {
   type Camera3d,
+  camerasEqual3d,
   DEFAULT_CAMERA_3D,
+  MOBILE_CAMERA_3D,
 } from "@/lib/bessKarte3d/projection3d";
 import type {
   BundeslaenderGeoJson,
@@ -79,8 +81,12 @@ export function BessKarte3d({
     const mqDesktop = window.matchMedia("(min-width: 768px)");
     const mqMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => {
-      setIsDesktop(mqDesktop.matches);
+      const desktop = mqDesktop.matches;
+      setIsDesktop(desktop);
       setReducedMotion(mqMotion.matches);
+      if (!desktop) {
+        setCamera((prev) => (camerasEqual3d(prev, DEFAULT_CAMERA_3D) ? MOBILE_CAMERA_3D : prev));
+      }
     };
     update();
     mqDesktop.addEventListener("change", update);
@@ -379,7 +385,7 @@ export function BessKarte3d({
               onSelectSite={(s) => setSelectedLok(s?.lok ?? null)}
               camera={camera}
               onCameraChange={setCamera}
-              onResetCamera={() => setCamera(DEFAULT_CAMERA_3D)}
+              onResetCamera={() => setCamera(isDesktop ? DEFAULT_CAMERA_3D : MOBILE_CAMERA_3D)}
             />
 
           {stageFoot ? null : <BkgKurz className={styles.geoAttribution} />}

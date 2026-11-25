@@ -29,10 +29,44 @@ export const DEFAULT_CAMERA_3D: Camera3d = {
   panY: 0,
 };
 
+/** Mobil: fast Draufsicht, Norden oben, Neigung unter 20°. */
+export const MOBILE_CAMERA_3D: Camera3d = {
+  yawDeg: 0,
+  tiltDeg: 16,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+};
+
+export type ProjectionFit = "default" | "mobile";
+
+export function camerasEqual3d(a: Camera3d, b: Camera3d): boolean {
+  return (
+    a.yawDeg === b.yawDeg &&
+    a.tiltDeg === b.tiltDeg &&
+    a.zoom === b.zoom &&
+    (a.panX ?? 0) === (b.panX ?? 0) &&
+    (a.panY ?? 0) === (b.panY ?? 0)
+  );
+}
+
 export type Point2d = {
   x: number;
   y: number;
 };
+
+/** Ecken der DE-Bounding-Box in Ebenen-Koordinaten, inkl. Schleswig-Holstein. */
+const DE_FIT_CORNERS: Point2d[] = [
+  { x: -0.69, y: -0.93 },
+  { x: 0.69, y: -0.93 },
+  { x: -0.69, y: 0.93 },
+  { x: 0.69, y: 0.93 },
+  { x: 0, y: 0.93 },
+  { x: 0, y: -0.93 },
+  { x: -0.69, y: 0 },
+  { x: 0.69, y: 0 },
+];
+
 
 export type ProjectedPoint3d = {
   x: number;
@@ -109,11 +143,12 @@ export function createProjectionParams3d(
   camera: Camera3d,
   width: number,
   height: number,
+  fit: ProjectionFit = "default",
 ): ProjectionParams3d {
   const yawRad = (camera.yawDeg * Math.PI) / 180;
   const tiltRad = (camera.tiltDeg * Math.PI) / 180;
   const minDim = Math.min(width, height);
-  return {
+  const base: ProjectionParams3d = {
     cosY: Math.cos(yawRad),
     sinY: Math.sin(yawRad),
     cosT: Math.cos(tiltRad),
@@ -122,6 +157,49 @@ export function createProjectionParams3d(
     cy: height * 0.56,
     scale: minDim * 0.47 * camera.zoom,
     cameraDist: 5.2,
+    panX: camera.panX ?? 0,
+    panY: camera.panY ?? 0,
+  };
+  if (fit !== "mobile") return base;
+
+  // Deutschland in die Canvas einpassen (volle Breite, Schleswig-Holstein sichtbar).
+  // Zoom und Pan bleiben getrennt: die Einpassung gilt für Zoom 1 ohne Verschiebung.
+  const unit: ProjectionParams3d = {
+    ...base,
+    cx: width * 0.5,
+    cy: height * 0.5,
+    scale: 1,
+    panX: 0,
+    panY: 0,
+  };
+  const boundsOf = (params: ProjectionParams3d) => {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const c of DE_FIT_CORNERS) {
+      const p = projectPoint3d(c.x, c.y, 0, params);
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+    }
+    return { minX, maxX, minY, maxY };
+  };
+  const raw = boundsOf(unit);
+  const padX = Math.max(8, width * 0.02);
+  const padY = Math.max(12, height * 0.03);
+  const scale0 = Math.min(
+    (width - 2 * padX) / Math.max(1e-6, raw.maxX - raw.minX),
+    (height - 2 * padY) / Math.max(1e-6, raw.maxY - raw.minY),
+  );
+  const sized: ProjectionParams3d = { ...unit, scale: scale0 };
+  const box = boundsOf(sized);
+  return {
+    ...sized,
+    scale: scale0 * camera.zoom,
+    cx: sized.cx + width * 0.5 - (box.minX + box.maxX) / 2,
+    cy: sized.cy + height * 0.5 - (box.minY + box.maxY) / 2,
     panX: camera.panX ?? 0,
     panY: camera.panY ?? 0,
   };
@@ -188,10 +266,11 @@ export function zoomCameraAt(
   sy: number,
   width: number,
   height: number,
+  fit: ProjectionFit = "default",
 ): Camera3d {
   const next = clampCamera3d({ ...camera, zoom: camera.zoom * factor });
-  const before = unprojectGround(sx, sy, createProjectionParams3d(camera, width, height));
-  const after = unprojectGround(sx, sy, createProjectionParams3d(next, width, height));
+  const before = unprojectGround(sx, sy, createProjectionParams3d(camera, width, height, fit));
+  const after = unprojectGround(sx, sy, createProjectionParams3d(next, width, height, fit));
   if (!before || !after) return next;
   return clampCamera3d({
     ...next,
@@ -207,8 +286,9 @@ export function panCameraBy(
   dyPx: number,
   width: number,
   height: number,
+  fit: ProjectionFit = "default",
 ): Camera3d {
-  const params = createProjectionParams3d(camera, width, height);
+  const params = createProjectionParams3d(camera, width, height, fit);
   const a = unprojectGround(params.cx, params.cy, params);
   const b = unprojectGround(params.cx - dxPx, params.cy - dyPx, params);
   if (!a || !b) return camera;
