@@ -25,7 +25,7 @@ export function BkgAttribution({ className }: { className?: string }) {
   );
 }
 
-export function BmweQuelle({ className }: { className?: string }) {
+export function BmweQuelle({ className, flaeche = true }: { className?: string; flaeche?: boolean }) {
   return (
     <p className={className}>
       Quelle: Antwort der Bundesregierung (BMWE, StS Frank Wetzel) vom 12.05.2026 auf Schriftliche Frage 70,
@@ -34,6 +34,7 @@ export function BmweQuelle({ className }: { className?: string }) {
         {BMWE_PDF}
       </a>
       ; amtliches Werk (§{"\u00a0"}5 Abs.{"\u00a0"}2 UrhG), Werte unverändert übernommen, eigene Darstellung.
+      {flaeche ? " Fläche: eigene Berechnung (Gesamt minus Wind Offshore)." : null}
     </p>
   );
 }

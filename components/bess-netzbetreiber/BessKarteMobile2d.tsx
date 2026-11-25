@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ORIENTIERUNGS_STAEDTE,
   punktRadius2d,
+  MOBIL_PUNKT_MIN_R,
+  MOBIL_PUNKT_MAX_R,
 } from "@/lib/bessKarte3d/logic";
 import {
   polygonRingsToSvgPath2d,
@@ -98,7 +100,7 @@ export function BessKarteMobile2d({
           site,
           x: p.x,
           y: p.y,
-          r: punktRadius2d(val, maxScaleValue, 2.8, 18.5),
+          r: punktRadius2d(val, maxScaleValue, MOBIL_PUNKT_MIN_R, MOBIL_PUNKT_MAX_R),
         };
       })
       .sort((a, b) => b.r - a.r);
@@ -134,7 +136,7 @@ export function BessKarteMobile2d({
   return (
     <div className={styles.mobile2dWrap}>
       <p className={`${styles.mobileTapHint} num`}>
-        Punkt antippen für Standortdetails (Kreisfläche ∝ {modus === "mwh" ? "MWh" : "Netto-MW"})
+        Punkt antippen für Lokationsdetails (Kreisfläche ∝ {modus === "mwh" ? "MWh" : "Netto-MW"})
       </p>
       <svg
         ref={svgRef}

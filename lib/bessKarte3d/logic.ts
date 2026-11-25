@@ -233,6 +233,16 @@ export function saeulenHoehe(value: number, maxValue: number, maxHeight: number)
   return (Math.sqrt(value) / Math.sqrt(maxValue)) * maxHeight;
 }
 
+/** Radien der 2D-Mobilkarte (px). */
+export const MOBIL_PUNKT_MIN_R = 2.8;
+export const MOBIL_PUNKT_MAX_R = 18.5;
+
+/** Wert, unter dem mobil alle Punkte gleich groß (Mindestradius) gezeichnet werden. */
+export function mobilMindestPunktWert(maxValue: number): number {
+  if (!Number.isFinite(maxValue) || maxValue <= 0) return 0;
+  return maxValue * (MOBIL_PUNKT_MIN_R / MOBIL_PUNKT_MAX_R) ** 2;
+}
+
 /** Punkt-Radius für 2D-Mobilkarte (Fläche proportional zum Wert → Radius ~ √Wert). */
 export function punktRadius2d(
   value: number,

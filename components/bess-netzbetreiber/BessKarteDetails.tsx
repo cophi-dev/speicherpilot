@@ -129,10 +129,10 @@ export function BessKarteDetailCard({
   const topQuick = sites.slice(0, 4);
 
   return (
-    <aside className={styles.detailCard} aria-label="Standortdetails">
+    <aside className={styles.detailCard} aria-label="Lokationsdetails">
       <div className={styles.detailCardBar}>
         <label htmlFor="karte-standort-select" className={`${styles.detailSelectLabel} num`}>
-          Standort wählen (Tastatur)
+          Lokation wählen (Tastatur)
         </label>
         <select
           id="karte-standort-select"
@@ -145,7 +145,7 @@ export function BessKarteDetailCard({
           }}
         >
           <option value="">
-            — {formatQuantity(sites.length, "de", 0)} kartierte Standorte —
+            — {formatQuantity(sites.length, "de", 0)} kartierte Lokationen —
           </option>
           {sites.map((s) => (
             <option key={s.lok} value={s.lok}>
@@ -158,7 +158,7 @@ export function BessKarteDetailCard({
       {site ? (
         <>
           <div className={styles.detailCloseRow}>
-            <span className={`${styles.detailBadge} num`}>Ausgewählter Standort</span>
+            <span className={`${styles.detailBadge} num`}>Ausgewählte Lokation</span>
             <button
               type="button"
               className={styles.detailCloseBtn}
@@ -173,12 +173,12 @@ export function BessKarteDetailCard({
       ) : (
         <div className={styles.detailEmpty}>
           <p>
-            Klicke eine Säule auf der Karte an oder wähle einen Standort oben aus der Liste, um
+            Klicke eine Säule auf der Karte an oder wähle eine Lokation oben aus der Liste, um
             Leistung, Kapazität, E/P, Inbetriebnahme und Prüfstatus zu sehen.
           </p>
           {topQuick.length > 0 ? (
             <div className={styles.detailQuickList}>
-              <span className={`${styles.detailQuickHead} num`}>Größte Standorte zum gewählten Monat:</span>
+              <span className={`${styles.detailQuickHead} num`}>Größte Lokationen zum gewählten Monat:</span>
               <div className={styles.detailQuickBtns}>
                 {topQuick.map((s) => (
                   <button
@@ -228,12 +228,12 @@ export function BessKarteBottomSheet({
         className={styles.sheetPanel}
         role="dialog"
         aria-modal="true"
-        aria-label={`Standortdetails ${site.name}`}
+        aria-label={`Lokationsdetails ${site.name}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.sheetHandle} aria-hidden="true" />
         <div className={styles.sheetTopBar}>
-          <span className={`${styles.detailBadge} num`}>Standortdetails</span>
+          <span className={`${styles.detailBadge} num`}>Lokationsdetails</span>
           <button
             type="button"
             className={styles.sheetCloseBtn}

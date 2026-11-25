@@ -1215,6 +1215,14 @@
 }
 .chapterFoot p a {
   overflow-wrap: anywhere;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.minPunktNote {
+  margin: var(--space-2, 0.5rem) 0 0;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
 }
 .geoAttribution a,
 .abregSource a {

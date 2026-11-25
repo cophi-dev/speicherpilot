@@ -269,7 +269,7 @@ export function NetzbetreiberResearchPage({
         <div className="v4-chapter-head v4-content">
           <p className="v4-chapter-num num">01 — Interaktive Speicherkarte</p>
           <h2 id="karte-3d-title" className="v4-chapter-h2">
-            Standorte in Betrieb, Ende 2017 bis heute
+            Lokationen in Betrieb, Ende 2017 bis heute
           </h2>
           <p className="v4-tag-side">
             {formatQuantity(karteSummary.totals.lokationenKartiert, "de", 0)}{" "}

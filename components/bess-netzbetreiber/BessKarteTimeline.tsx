@@ -128,7 +128,7 @@ export function BessKarteTimeline({
             {current.kumKapMwh >= 1000
               ? insertDisplayUnitNbsp(formatQuantityUnit(current.kumKapMwh / 1000, "de", 2, "GWh"))
               : insertDisplayUnitNbsp(formatQuantityUnit(current.kumKapMwh, "de", 0, "MWh"))}{" "}
-            · {formatQuantity(current.kumN, "de", 0)} Einheiten ({formatQuantity(mappedSitesCount, "de", 0)} Standorte kartiert)
+            · {formatQuantity(current.kumN, "de", 0)} Einheiten ({formatQuantity(mappedSitesCount, "de", 0)} Lokationen kartiert)
           </span>
         </div>
       </div>

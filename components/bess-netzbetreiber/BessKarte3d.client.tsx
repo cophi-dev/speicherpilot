@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   abregelungOhneOffshore,
+  mobilMindestPunktWert,
   computeKumulierteKurve,
   DEFAULT_KARTE_FILTER,
   deriveMwhReferenzWerte,
@@ -153,6 +154,7 @@ export function BessKarte3d({
   }, [fullCutAll]);
 
   const maxScaleValue = modus === "mwh" ? maxMwhScale : maxMwScale;
+  const minPunktWert = mobilMindestPunktWert(maxScaleValue);
   const activeRefs = modus === "mwh" ? mwhRefs : mwRefs;
 
   const selectedSite: KarteSite | null = useMemo(() => {
@@ -196,7 +198,7 @@ export function BessKarte3d({
     return (
       <div className={styles.karteShell} aria-busy="true" aria-label="Speicherkarte wird geladen">
         <div className={styles.karteLoading}>
-          <p className="num">Interaktive Speicherkarte (545 Standorte) wird geladen …</p>
+          <p className="num">Interaktive Speicherkarte (545 Lokationen) wird geladen …</p>
         </div>
       </div>
     );
@@ -388,6 +390,14 @@ export function BessKarte3d({
                   );
                 })}
               </div>
+              {!isDesktop ? (
+                <p className={`${styles.minPunktNote} num`}>
+                  Mindestpunktgröße mobil: Speicher unter ≈{"\u00a0"}
+                  {insertDisplayUnitNbsp(formatQuantityUnit(minPunktWert, "de", 0, modus === "mwh" ? "MWh" : "MW"))}{" "}
+                  werden gleich groß gezeichnet (1{"\u00a0"}{modus === "mwh" ? "MWh" : "MW"} ≈{" "}
+                  {insertDisplayUnitNbsp(formatQuantityUnit(minPunktWert, "de", 0, modus === "mwh" ? "MWh" : "MW"))}).
+                </p>
+              ) : null}
             </div>
 
             {showAbregelung ? (
@@ -430,7 +440,7 @@ export function BessKarte3d({
         ) : (
           <div className={styles.mobileSelectWrap}>
             <label htmlFor="karte-standort-mobile" className={`${styles.detailSelectLabel} num`}>
-              Standort per Liste / Tastatur wählen
+              Lokation per Liste / Tastatur wählen
             </label>
             <select
               id="karte-standort-mobile"
@@ -443,7 +453,7 @@ export function BessKarte3d({
               }}
             >
               <option value="">
-                — {formatQuantity(cutResult.sites.length, "de", 0)} kartierte Standorte —
+                — {formatQuantity(cutResult.sites.length, "de", 0)} kartierte Lokationen —
               </option>
               {cutResult.sites.map((s) => (
                 <option key={s.lok} value={s.lok}>

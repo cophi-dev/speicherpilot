@@ -254,3 +254,11 @@ describe("VNB-Filter und Abregelung ohne Offshore (Export 25.11 13:03)", () => {
     expect(sum).toBeCloseTo(6036.02, 1);
   });
 });
+
+describe("mobilMindestPunktWert", () => {
+  it("Mindestradius entspricht ≈ 3 MW bei 140 MW Skalenmaximum", () => {
+    const { mobilMindestPunktWert } = jest.requireActual("./logic") as typeof import("./logic");
+    expect(mobilMindestPunktWert(140)).toBeCloseTo(3.2, 1);
+    expect(mobilMindestPunktWert(0)).toBe(0);
+  });
+});
