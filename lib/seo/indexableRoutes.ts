@@ -29,6 +29,7 @@ function staticIndexableRoutes(now: Date): IndexableRoute[] {
     { path: "/methodik", lastModified: buildModified },
     { path: "/kompromiss", lastModified: buildModified },
     { path: "/knoten", lastModified: buildModified },
+    { path: "/daten", lastModified: buildModified },
     { path: "/beitraege", lastModified: buildModified },
     { path: "/ueber", lastModified: buildModified },
     { path: "/impressum", lastModified: buildModified },
