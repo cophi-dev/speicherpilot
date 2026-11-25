@@ -10,10 +10,13 @@ export type NetzbetreiberHeadlines = {
   eonNettoGw: number;
   eonSharePctTotal: number;
   eonSharePctTotalNetto: number;
+  /** Zubau 2026 netto (Nettonennleistung); Brutto nur als Begleitwert. */
   zubau2026Gw: number;
   zubau2026EonGw: number;
   zubau2026EonSharePct: number;
-  topRedispatchBl: { bundesland: string; gwh: number };
+  zubau2026BruttoGw: number;
+  zubau2026EonBruttoGw: number;
+  topRedispatchBl: { bundesland: string; gwh: number } | null;
   topBessBl: { bundesland: string; gw: number };
 };
 
@@ -47,21 +50,35 @@ export function computeNetzbetreiberHeadlines(
   let zubauAllMw: number;
   let zubauEonMw: number;
   let zubauEonSharePct: number;
+  let zubauAllBruttoMw: number;
+  let zubauEonBruttoMw: number;
 
   if (eonBlock && zubauHs) {
     eonBruttoMw = eonBlock.bruttoMw;
     eonNettoMw = eonBlock.nettoMw;
     eonSharePctTotal = eonBlock.sharePctTotal;
     eonSharePctTotalNetto = totals.nettoMw > 0 ? (eonNettoMw / totals.nettoMw) * 100 : 0;
-    zubauAllMw = zubauHs.allBruttoMw;
-    zubauEonMw = includeMitnetz ? zubauHs.eonWithMitnetzBruttoMw : zubauHs.eonWithoutMitnetzBruttoMw;
-    zubauEonSharePct = includeMitnetz ? zubauHs.eonSharePct : zubauHs.eonSharePctWithoutMitnetz;
+    zubauAllBruttoMw = zubauHs.allBruttoMw;
+    zubauEonBruttoMw = includeMitnetz ? zubauHs.eonWithMitnetzBruttoMw : zubauHs.eonWithoutMitnetzBruttoMw;
+    const eonNetto = includeMitnetz ? zubauHs.eonWithMitnetzNettoMw : zubauHs.eonWithoutMitnetzNettoMw;
+    if (zubauHs.allNettoMw !== undefined && eonNetto !== undefined) {
+      zubauAllMw = zubauHs.allNettoMw;
+      zubauEonMw = eonNetto;
+      zubauEonSharePct = zubauAllMw > 0 ? (zubauEonMw / zubauAllMw) * 100 : 0;
+    } else {
+      zubauAllMw = zubauAllBruttoMw;
+      zubauEonMw = zubauEonBruttoMw;
+      zubauEonSharePct = includeMitnetz ? zubauHs.eonSharePct : zubauHs.eonSharePctWithoutMitnetz;
+    }
   } else {
     const growth = model.growthDefault;
-    zubauAllMw = Object.values(growth).reduce((s, r) => s + r.y2026Mw, 0);
-    zubauEonMw =
-      growth.eon_gruppe?.y2026Mw ??
-      (growth.eon_kern?.y2026Mw ?? 0) + (growth.mitnetz_envia?.y2026Mw ?? 0);
+    const keys = ["eon_kern", "mitnetz_envia", "ewe_netz", "vnb_rest", "uenb"] as const;
+    const pick = (r: { y2026Mw: number; y2026NettoMw?: number } | undefined, netto: boolean) =>
+      r ? (netto ? (r.y2026NettoMw ?? r.y2026Mw) : r.y2026Mw) : 0;
+    zubauAllMw = keys.reduce((s, k) => s + pick(growth[k], true), 0);
+    zubauAllBruttoMw = keys.reduce((s, k) => s + pick(growth[k], false), 0);
+    zubauEonMw = pick(growth.eon_kern, true) + (includeMitnetz ? pick(growth.mitnetz_envia, true) : 0);
+    zubauEonBruttoMw = pick(growth.eon_kern, false) + (includeMitnetz ? pick(growth.mitnetz_envia, false) : 0);
     zubauEonSharePct = zubauAllMw > 0 ? (zubauEonMw / zubauAllMw) * 100 : 0;
     eonBruttoMw = model.sitesDefault
       .filter((s) => s.operatorClass === "eon")
@@ -74,7 +91,10 @@ export function computeNetzbetreiberHeadlines(
   }
 
   const scatter = model.scatterBundeslaender;
-  const topRd = [...scatter].sort((a, b) => b.eeRedispatch2025Gwh - a.eeRedispatch2025Gwh)[0]!;
+  const withAbreg = scatter.filter(
+    (r): r is typeof r & { eeRedispatch2025Gwh: number } => r.eeRedispatch2025Gwh !== null,
+  );
+  const topRd = [...withAbreg].sort((a, b) => b.eeRedispatch2025Gwh - a.eeRedispatch2025Gwh)[0];
   const topBess = [...scatter].sort((a, b) => b.bessBruttoGw - a.bessBruttoGw)[0]!;
 
   return {
@@ -90,7 +110,9 @@ export function computeNetzbetreiberHeadlines(
     zubau2026Gw: zubauAllMw / 1000,
     zubau2026EonGw: zubauEonMw / 1000,
     zubau2026EonSharePct: zubauEonSharePct,
-    topRedispatchBl: { bundesland: topRd.bundesland, gwh: topRd.eeRedispatch2025Gwh },
+    zubau2026BruttoGw: zubauAllBruttoMw / 1000,
+    zubau2026EonBruttoGw: zubauEonBruttoMw / 1000,
+    topRedispatchBl: topRd ? { bundesland: topRd.bundesland, gwh: topRd.eeRedispatch2025Gwh } : null,
     topBessBl: { bundesland: topBess.bundesland, gw: topBess.bessBruttoGw },
   };
 }

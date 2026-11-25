@@ -38,8 +38,11 @@ export const bessNetzbetreiberBundleSchema = z.object({
   scatterBundeslaender: z.array(
     z.object({
       bundesland: z.string(),
-      eeRedispatch2025Gwh: z.number(),
+      /** EE-Abregelung 2025, BMWE 12.05.2026; null = k. A. (HH, BE). */
+      eeRedispatch2025Gwh: z.number().nullable(),
       bessBruttoGw: z.number(),
+      bessNettoGw: z.number().optional(),
+      abregelungQuelle: z.string().optional(),
     }),
   ),
   growthDefault: z.record(
@@ -47,6 +50,8 @@ export const bessNetzbetreiberBundleSchema = z.object({
     z.object({
       vor2026Mw: z.number(),
       y2026Mw: z.number(),
+      vor2026NettoMw: z.number().optional(),
+      y2026NettoMw: z.number().optional(),
     }),
   ),
   uenbEbene: z.object({
@@ -92,8 +97,9 @@ export const bessNetzbetreiberBundleSchema = z.object({
     .array(
       z.object({
         bundesland: z.string(),
-        eeRedispatch2025Gwh: z.number(),
+        eeRedispatch2025Gwh: z.number().nullable(),
         bessBruttoGw: z.number(),
+        abregelungQuelle: z.string().optional(),
       }),
     )
     .optional(),
@@ -103,6 +109,8 @@ export const bessNetzbetreiberBundleSchema = z.object({
       z.object({
         vor2026Mw: z.number(),
         y2026Mw: z.number(),
+        vor2026NettoMw: z.number().optional(),
+        y2026NettoMw: z.number().optional(),
       }),
     )
     .optional(),
@@ -123,6 +131,8 @@ export const bessNetzbetreiberBundleSchema = z.object({
       z.object({
         vor2026Mw: z.number(),
         y2026Mw: z.number(),
+        vor2026NettoMw: z.number().optional(),
+        y2026NettoMw: z.number().optional(),
       }),
     )
     .optional(),
@@ -151,6 +161,11 @@ export const bessNetzbetreiberBundleSchema = z.object({
         eonWithoutMitnetzBruttoMw: z.number(),
         eonSharePct: z.number(),
         eonSharePctWithoutMitnetz: z.number(),
+        allNettoMw: z.number().optional(),
+        eonWithMitnetzNettoMw: z.number().optional(),
+        eonWithoutMitnetzNettoMw: z.number().optional(),
+        eonSharePctNetto: z.number().optional(),
+        eonSharePctWithoutMitnetzNetto: z.number().optional(),
       }),
       bySnb: z.record(
         z.string(),
@@ -187,6 +202,11 @@ export const bessNetzbetreiberBundleSchema = z.object({
         eonWithoutMitnetzBruttoMw: z.number(),
         eonSharePct: z.number(),
         eonSharePctWithoutMitnetz: z.number(),
+        allNettoMw: z.number().optional(),
+        eonWithMitnetzNettoMw: z.number().optional(),
+        eonWithoutMitnetzNettoMw: z.number().optional(),
+        eonSharePctNetto: z.number().optional(),
+        eonSharePctWithoutMitnetzNetto: z.number().optional(),
       }),
       bySnb: z.record(
         z.string(),

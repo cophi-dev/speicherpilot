@@ -131,7 +131,7 @@ export function BessKarteMobile2d({
   return (
     <div className={styles.mobile2dWrap}>
       <p className={`${styles.mobileTapHint} num`}>
-        Punkt antippen für Standortdetails (Kreisfläche ~ {modus === "mwh" ? "MWh" : "Netto-MW"})
+        Punkt antippen für Standortdetails (Kreisfläche ∝ {modus === "mwh" ? "MWh" : "Netto-MW"})
       </p>
       <svg
         ref={svgRef}
@@ -176,8 +176,8 @@ export function BessKarteMobile2d({
                 key={st.name}
                 d={st.d}
                 fill={fill}
-                stroke={isDark ? "#333a44" : "#bfbfb5"}
-                strokeWidth={0.9}
+                stroke={isDark ? "#6b7480" : "#7d7d75"}
+                strokeWidth={1.4}
               />
             );
           })}

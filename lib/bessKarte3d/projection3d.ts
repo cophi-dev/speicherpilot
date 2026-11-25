@@ -15,8 +15,8 @@ export type Camera3d = {
 };
 
 export const DEFAULT_CAMERA_3D: Camera3d = {
-  yawDeg: -14,
-  tiltDeg: 48,
+  yawDeg: -8,
+  tiltDeg: 22,
   zoom: 1,
 };
 

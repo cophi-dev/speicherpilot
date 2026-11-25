@@ -10,10 +10,8 @@
       "url": "https://www.marktstammdatenregister.de/MaStR"
     },
     {
-      "name": "SMARD Energiedaten kompakt (s-nepm_baet-1-*)",
-      "license": "CC BY 4.0",
-      "retrieved": "2026-11-24",
-      "url": "https://www.smard.de/resource/blob/217306/-/data-csv-data.csv"
+      "name": "BMWE-Antwort vom 12.05.2026 auf Schriftliche Frage 70, EE-Abregelung 2025 je Bundesland, ohne Offshore-AWZ",
+      "retrieved": "2026-05-12"
     }
   ],
   "plausibility": {

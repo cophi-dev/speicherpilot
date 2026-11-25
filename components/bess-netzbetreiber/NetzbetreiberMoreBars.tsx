@@ -19,7 +19,7 @@ function isEonGrowthKey(key: string): boolean {
 export function NetzbetreiberG3Bars({ rows }: { rows: GrowthBucket[] }) {
   const maxTotal = Math.max(...rows.map((r) => r.vor2026Mw + r.y2026Mw), 1);
   return (
-    <div className={styles.vnbBars} role="list" aria-label="Bestand vor 2026 und Zubau 2026 (brutto) je Netzbetreibergruppe">
+    <div className={styles.vnbBars} role="list" aria-label="Bestand vor 2026 und Zubau 2026 (netto) je Netzbetreibergruppe">
       {rows.map((row) => {
         const total = row.vor2026Mw + row.y2026Mw;
         const trackPct = (total / maxTotal) * 100;

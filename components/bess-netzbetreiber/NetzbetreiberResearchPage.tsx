@@ -110,7 +110,7 @@ export function NetzbetreiberResearchPage({
 
   const h1 = eonIncludeMitnetz ? (
     <>
-      Mehr als die Hälfte der Großspeicher hängt an{" "}
+      Mehr als die Hälfte der Großspeicher-Leistung hängt an{" "}
       <span className={styles.eonNowrap}>E.ON{EON_HYPH}Netzen</span>.
     </>
   ) : (
@@ -161,8 +161,9 @@ export function NetzbetreiberResearchPage({
                   ) : (
                     "ohne mitteldeutsche Tochter"
                   )}
+                  {/* Punkt im Button, damit er bei Umbruch nicht allein hängt */}
+                  <span aria-hidden="true">.</span>
                 </button>
-                .
               </p>
               <div className="v4-preis-block">
                 <p className="v4-preis-label num">Bestand (netto)</p>
@@ -213,16 +214,23 @@ export function NetzbetreiberResearchPage({
               {insertDisplayUnitNbsp(
                 formatQuantityUnit(headlines.zubau2026Gw, "de", 2, "GW"),
               )}{" "}
-              brutto — davon{" "}
+              netto, davon{" "}
               {insertDisplayUnitNbsp(
                 formatQuantityUnit(headlines.zubau2026EonGw, "de", 2, "GW"),
               )}{" "}
-              brutto an{" "}
-              <span className={styles.eonNowrap}>E.ON{EON_HYPH}Netzen</span> (
+              an <span className={styles.eonNowrap}>E.ON{EON_HYPH}Netzen</span> (
               {insertDisplayUnitNbsp(
                 formatQuantityUnit(headlines.zubau2026EonSharePct, "de", 0, "%"),
+              )}
+              ; brutto{" "}
+              {insertDisplayUnitNbsp(
+                formatQuantityUnit(headlines.zubau2026BruttoGw, "de", 2, "GW"),
               )}{" "}
-              des Zubaus). ÜNB in Betrieb (netto):{" "}
+              /{" "}
+              {insertDisplayUnitNbsp(
+                formatQuantityUnit(headlines.zubau2026EonBruttoGw, "de", 2, "GW"),
+              )}
+              ). ÜNB in Betrieb (netto):{" "}
               {insertDisplayUnitNbsp(
                 formatQuantityUnit(
                   model.uenbEbene.inBetriebNettoGw ??
@@ -246,7 +254,7 @@ export function NetzbetreiberResearchPage({
         <div className="v4-chapter-head v4-content">
           <p className="v4-chapter-num num">01 — Interaktive Speicherkarte</p>
           <h2 id="karte-3d-title" className="v4-chapter-h2">
-            Standorte in Betrieb, 2018 bis heute
+            Standorte in Betrieb, Ende 2017 bis heute
           </h2>
           <p className="v4-tag-side">
             {formatQuantity(karteSummary.totals.lokationenKartiert, "de", 0)}{" "}
@@ -299,9 +307,9 @@ export function NetzbetreiberResearchPage({
         <summary className={styles.moreDataSummary}>Mehr Daten</summary>
         <div className={styles.moreDataBody}>
           <section aria-labelledby="g3-more">
-            <p className="v4-chapter-num num">Zubau 2026 (brutto)</p>
+            <p className="v4-chapter-num num">Zubau 2026 (netto)</p>
             <h2 id="g3-more" className="v4-chapter-h2">
-              Bestand vor 2026 und Zubau 2026 (brutto)
+              Bestand vor 2026 und Zubau 2026 (netto)
             </h2>
             <NetzbetreiberG3Bars rows={growth} />
           </section>
@@ -361,8 +369,9 @@ export function NetzbetreiberResearchPage({
       </details>
 
       <p className={`v4-chapter-foot v4-content num ${styles.chapterFoot}`}>
-        Quellen: Marktstammdatenregister (dl-de/by-2-0), SMARD / BMWE-Antwort
-        12.05.2026 (CC BY 4.0), Stichtag {stichtagDe}.{" "}
+        Quellen: Marktstammdatenregister (dl-de/by-2-0), EE-Abregelung 2025:
+        BMWE-Antwort vom 12.05.2026 (Schriftliche Frage 70), Ländergrenzen ©{"\u00a0"}GeoBasis-DE / BKG
+        (2026), dl-de/by-2-0, Stichtag {stichtagDe}.{" "}
         <Link href="/methodik#bess-karte-3d" className="v4-text-link">
           Methodik Karte
         </Link>{" "}

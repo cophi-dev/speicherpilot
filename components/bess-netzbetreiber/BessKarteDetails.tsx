@@ -8,6 +8,7 @@ import {
   formatEinspeisungLabel,
   formatIbnDateDe,
   isEpPlausibel,
+  mastrNameNbsp,
 } from "@/lib/bessKarte3d/logic";
 import type { KarteSite } from "@/lib/bessKarte3d/types";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
@@ -28,7 +29,7 @@ function SiteDetailBody({
   return (
     <div className={styles.detailBody}>
       <div className={styles.detailHeadMeta}>
-        <p className={styles.detailTitle}>{site.name}</p>
+        <p className={styles.detailTitle}>{mastrNameNbsp(site.name)}</p>
         <p className={`${styles.detailSub} num`}>
           {site.lk} · {blFull} · Lokation {site.lok}
         </p>
@@ -100,7 +101,7 @@ function SiteDetailBody({
           <ul className={styles.detailUnitsList}>
             {site.einheiten.map((u, idx) => (
               <li key={`${u.name}-${u.ibn}-${idx}`} className="num">
-                <span>{u.name}</span>
+                <span>{mastrNameNbsp(u.name)}</span>
                 <span>
                   {insertDisplayUnitNbsp(formatQuantityUnit(u.nettoMw, "de", 1, "MW"))} ·{" "}
                   {formatIbnDateDe(u.ibn)}
@@ -148,7 +149,7 @@ export function BessKarteDetailCard({
           </option>
           {sites.map((s) => (
             <option key={s.lok} value={s.lok}>
-              {s.name} ({s.bl}) · {formatQuantity(s.nettoMw, "de", 1)}{"\u00a0"}MW
+              {mastrNameNbsp(s.name)} ({s.bl}) · {formatQuantity(s.nettoMw, "de", 1)}{"\u00a0"}MW
             </option>
           ))}
         </select>
@@ -177,7 +178,7 @@ export function BessKarteDetailCard({
           </p>
           {topQuick.length > 0 ? (
             <div className={styles.detailQuickList}>
-              <span className={`${styles.detailQuickHead} num`}>Größte Standorte im Schnitt:</span>
+              <span className={`${styles.detailQuickHead} num`}>Größte Standorte zum gewählten Monat:</span>
               <div className={styles.detailQuickBtns}>
                 {topQuick.map((s) => (
                   <button
@@ -186,7 +187,7 @@ export function BessKarteDetailCard({
                     className={styles.detailQuickBtn}
                     onClick={() => onSelectSite(s)}
                   >
-                    <span>{s.name}</span>
+                    <span>{mastrNameNbsp(s.name)}</span>
                     <span className="num">
                       {insertDisplayUnitNbsp(formatQuantityUnit(s.nettoMw, "de", 1, "MW"))}
                     </span>

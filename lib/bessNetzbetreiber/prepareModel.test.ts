@@ -57,6 +57,14 @@ describe("BESS-Netzbetreiber Datenaufbereitung", () => {
     expect(g.eon_gruppe!.y2026Mw).toBeCloseTo(hs.zubau2026.eonWithMitnetzBruttoMw, 0);
   });
 
+  it("G3-Stapel sind netto (Zubau 2026 = 2,05 GW, E.ON 1,38 GW)", () => {
+    const stacks = prepareGrowthStacks(parsed.growthDefault, { showMitnetz: true });
+    const y = stacks.reduce((s, r) => s + r.y2026Mw, 0);
+    expect(y / 1000).toBeCloseTo(2.05, 2);
+    const eon = stacks.filter((r) => r.key === "eon_kern" || r.key === "mitnetz_envia").reduce((s, r) => s + r.y2026Mw, 0);
+    expect(eon / 1000).toBeCloseTo(1.38, 2);
+  });
+
   it("growthEonKern nutzt dieselben disjunkten Schlüssel (kein vertauschter eon_gruppe-Inhalt)", () => {
     const g = parsed.growthEonKern!;
     for (const key of GROWTH_DISJOINT_STACK_KEYS) {
@@ -67,9 +75,15 @@ describe("BESS-Netzbetreiber Datenaufbereitung", () => {
     expect(g.eon_gruppe!.y2026Mw).not.toBeCloseTo(g.mitnetz_envia!.y2026Mw, 0);
   });
 
-  it("enthält SMARD-Streuung je Bundesland", () => {
-    expect(parsed.scatterBundeslaender.length).toBeGreaterThanOrEqual(16);
-    expect(parsed.scatterBundeslaender.every((r) => r.eeRedispatch2025Gwh >= 0)).toBe(true);
+  it("Abregelung je Bundesland einheitlich nach BMWE 12.05.2026 (14 Länder, 9.387 GWh, HH/BE k. A.)", () => {
+    const rows = parsed.scatterBundeslaender;
+    expect(rows.length).toBe(16);
+    const known = rows.filter((r) => r.eeRedispatch2025Gwh !== null);
+    expect(known).toHaveLength(14);
+    const sum = known.reduce((s, r) => s + (r.eeRedispatch2025Gwh ?? 0), 0);
+    expect(Math.round(sum)).toBe(9387);
+    const ka = rows.filter((r) => r.eeRedispatch2025Gwh === null).map((r) => r.bundesland).sort();
+    expect(ka).toEqual(["Berlin", "Hamburg"]);
     const maxBess = Math.max(...parsed.scatterBundeslaender.map((r) => r.bessBruttoGw));
     expect(maxBess).toBeLessThan(3);
     expect(maxBess).toBeGreaterThan(0.1);

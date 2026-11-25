@@ -320,6 +320,15 @@ const MONATE_DE_KURZ = [
   "Dez",
 ] as const;
 
+/**
+ * MaStR-Einheitennamen enthalten oft Zahl + Einheit mit normalem Leerzeichen
+ * ("BESS 5.000 kW"). Für die Anzeige wird das Leerzeichen durch ein NBSP ersetzt,
+ * damit Zahl und Einheit nicht getrennt umbrechen. Der Rohname bleibt unverändert.
+ */
+export function mastrNameNbsp(name: string): string {
+  return name.replace(/(\d)[ \t]+(kWh|MWh|GWh|kWp|MWp|kW|MW|GW|kVA|MVA|%)(?![A-Za-z])/g, "$1\u00a0$2");
+}
+
 export function formatMonatLabel(monat: string): string {
   const m = /^(\d{4})-(\d{2})$/.exec(monat);
   if (!m) return monat;

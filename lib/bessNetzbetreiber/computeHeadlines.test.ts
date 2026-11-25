@@ -18,10 +18,12 @@ describe("computeNetzbetreiberHeadlines", () => {
     expect(h.eonBruttoGw).toBeLessThan(2.82);
     expect(h.eonSharePctTotal).toBeGreaterThanOrEqual(57);
     expect(h.eonSharePctTotal).toBeLessThanOrEqual(59);
-    expect(h.zubau2026EonGw).toBeGreaterThan(1.38);
-    expect(h.zubau2026EonGw).toBeLessThan(1.45);
-    expect(h.zubau2026EonSharePct).toBeGreaterThanOrEqual(66);
-    expect(h.zubau2026EonSharePct).toBeLessThanOrEqual(68);
+    // Zubau 2026 netto (speicherpilot-Fachprüfung 25.11): 2,05 GW, davon 1,38 GW E.ON (67 %)
+    expect(h.zubau2026Gw).toBeCloseTo(2.05, 2);
+    expect(h.zubau2026EonGw).toBeCloseTo(1.38, 2);
+    expect(Math.round(h.zubau2026EonSharePct)).toBe(67);
+    expect(h.zubau2026BruttoGw).toBeCloseTo(2.08, 2);
+    expect(h.zubau2026EonBruttoGw).toBeCloseTo(1.41, 2);
   });
 
   it("E.ON ohne MITNETZ deutlich kleiner", () => {

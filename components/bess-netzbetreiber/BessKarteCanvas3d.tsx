@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   ORIENTIERUNGS_STAEDTE,
+  mastrNameNbsp,
   saeulenHoehe,
 } from "@/lib/bessKarte3d/logic";
 import {
@@ -54,20 +55,21 @@ type HitBox = {
   topY: number;
 };
 
+// Graustufen, damit die Abregelungs-Fläche nicht mit den warmen Säulen konkurriert.
 const ABREGELUNG_STOPS_LIGHT = [
-  "#e8f0f2",
-  "#c2dce3",
-  "#84b6c4",
-  "#47879b",
-  "#1f566b",
+  "#e6e6e0",
+  "#cfcfc8",
+  "#b3b3ab",
+  "#94948c",
+  "#76766f",
 ] as const;
 
 const ABREGELUNG_STOPS_DARK = [
-  "#1a2931",
-  "#20404f",
-  "#285c73",
-  "#347a96",
-  "#489ec0",
+  "#1f2328",
+  "#2b3036",
+  "#3a4048",
+  "#4b525b",
+  "#5f6770",
 ] as const;
 
 export function abregelungColor(
@@ -110,9 +112,9 @@ function createNullHatchPattern(
   tile.height = 8;
   const tctx = tile.getContext("2d");
   if (!tctx) return null;
-  tctx.fillStyle = isDark ? "#2a2f36" : "#d9d9d2";
+  tctx.fillStyle = isDark ? "#14171b" : "#f7f7f3";
   tctx.fillRect(0, 0, 8, 8);
-  tctx.strokeStyle = isDark ? "rgba(255,255,255,0.12)" : "rgba(16,18,20,0.14)";
+  tctx.strokeStyle = isDark ? "rgba(255,255,255,0.22)" : "rgba(16,18,20,0.28)";
   tctx.lineWidth = 1;
   tctx.beginPath();
   tctx.moveTo(0, 8);
@@ -263,9 +265,9 @@ export function BessKarteCanvas3d({
 
     // 2. Bundesländer-Flächen und ruhige Grenzen
     const landFillDefault = isDark ? "#171b20" : "#efefe9";
-    const borderStroke = isDark ? "#333a44" : "#bfbfb5";
+    const borderStroke = isDark ? "#6b7480" : "#7d7d75";
     ctx.lineJoin = "round";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
 
     for (const poly of preparedPolys) {
       ctx.beginPath();
@@ -308,7 +310,7 @@ export function BessKarteCanvas3d({
 
     // 4. 3D-Säulen (Painter-Sortierung von hinten nach vorne)
     const maxColHeight = 0.5;
-    const baseHalfW = 0.0115;
+    const baseHalfW = 0.0072;
 
     const sortedItems = siteCoords
       .map(({ site, plane }) => {
@@ -591,7 +593,7 @@ export function BessKarteCanvas3d({
 
       {hoveredSite ? (
         <div className={styles.canvasHoverPill} role="status" aria-live="polite">
-          <strong>{hoveredSite.name}</strong>
+          <strong>{mastrNameNbsp(hoveredSite.name)}</strong>
           <span className="num">
             {hoveredSite.lk} ({hoveredSite.bl}) ·{" "}
             {insertDisplayUnitNbsp(formatQuantityUnit(hoveredSite.nettoMw, "de", 1, "MW"))} netto ·{" "}

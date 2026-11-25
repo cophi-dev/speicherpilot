@@ -68,12 +68,16 @@ export function prepareGrowthStacks(
     : (["eon_kern", "ewe_netz", "vnb_rest", "uenb"] as const);
   return order
     .filter((key) => growth[key])
-    .map((key) => ({
-      key,
-      label: GROWTH_LABELS[key] ?? key,
-      vor2026Mw: growth[key]!.vor2026Mw,
-      y2026Mw: growth[key]!.y2026Mw,
-    }))
+    .map((key) => {
+      const g = growth[key]!;
+      // Netto (Nettonennleistung), Brutto nur als Fallback für alte Bundles.
+      return {
+        key,
+        label: GROWTH_LABELS[key] ?? key,
+        vor2026Mw: g.vor2026NettoMw ?? g.vor2026Mw,
+        y2026Mw: g.y2026NettoMw ?? g.y2026Mw,
+      };
+    })
     .filter((row) => row.vor2026Mw + row.y2026Mw > 0);
 }
 

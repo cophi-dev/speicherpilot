@@ -6,6 +6,7 @@ import {
   computeKumulierteKurve,
   DEFAULT_KARTE_FILTER,
   deriveMwhReferenzWerte,
+  mastrNameNbsp,
   saeulenHoehe,
   sitesAtCut,
 } from "@/lib/bessKarte3d/logic";
@@ -308,12 +309,25 @@ export function BessKarte3d({
             />
           )}
 
+          <p className={styles.geoAttribution}>
+            Ländergrenzen: ©{"\u00a0"}GeoBasis-DE /{" "}
+            <a href="https://www.bkg.bund.de" rel="noopener">
+              BKG
+            </a>{" "}
+            (2026),{" "}
+            <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener">
+              dl-de/by-2-0
+            </a>
+            , VG2500 generalisiert.
+          </p>
+
           {/* Höhen-/Größenlegende + Abregelung-Legende direkt unter der Karte */}
           <div className={styles.legendsRow}>
             <div className={styles.heightLegend} aria-label="Höhenlegende">
               <span className={`${styles.legendTitle} num`}>
-                {isDesktop ? "Säulenhöhe" : "Punktgröße"} (√-Skala,{" "}
-                {modus === "mwh" ? "MWh" : "Netto-MW"})
+                {isDesktop
+                  ? `Säulenhöhe (√-Skala, ${modus === "mwh" ? "MWh" : "Netto-MW"})`
+                  : `Kreisfläche ∝ ${modus === "mwh" ? "MWh" : "Netto-MW"}`}
               </span>
               <div className={styles.heightBars}>
                 {activeRefs.map((refVal) => {
@@ -366,7 +380,8 @@ export function BessKarte3d({
                   </span>
                 </div>
                 <p className={styles.abregSource}>
-                  Quelle: SMARD / BMWE-Antwort 12.05.2026, ohne Offshore-AWZ.
+                  Quelle: BMWE-Antwort vom 12.05.2026 (Schriftliche Frage 70), Jahr 2025, 14 Länder,
+                  ohne Offshore-AWZ.
                 </p>
               </div>
             ) : null}
@@ -400,7 +415,7 @@ export function BessKarte3d({
               </option>
               {cutResult.sites.map((s) => (
                 <option key={s.lok} value={s.lok}>
-                  {s.name} ({s.bl}) · {formatQuantity(s.nettoMw, "de", 1)}{"\u00a0"}MW
+                  {mastrNameNbsp(s.name)} ({s.bl}) · {formatQuantity(s.nettoMw, "de", 1)}{"\u00a0"}MW
                 </option>
               ))}
             </select>

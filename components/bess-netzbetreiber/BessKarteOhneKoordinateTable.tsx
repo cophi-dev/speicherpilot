@@ -1,4 +1,4 @@
-import { formatIbnDateDe } from "@/lib/bessKarte3d/logic";
+import { formatIbnDateDe, mastrNameNbsp } from "@/lib/bessKarte3d/logic";
 import type { OhneKoordinateEintrag } from "@/lib/bessKarte3d/types";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantityUnit } from "@/lib/formatQuantity";
@@ -51,7 +51,7 @@ export function BessKarteOhneKoordinateTable({
         <tbody>
           {rows.map((r) => (
             <tr key={`${r.name}-${r.ibn}`}>
-              <td data-label="Name">{r.name}</td>
+              <td data-label="Name">{mastrNameNbsp(r.name)}</td>
               <td data-label="Landkreis">{r.landkreis}</td>
               <td data-label="Bundesland">{r.bundesland}</td>
               <td data-label="MW netto" className={`${styles.numCol} num`}>

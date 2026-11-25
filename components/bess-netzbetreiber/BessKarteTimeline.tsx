@@ -17,9 +17,18 @@ type Props = {
   mappedSitesCount: number;
 };
 
-const CHART_W = 640;
-const PLOT_H = 76;
-const PAD_R = 14;
+/** Höhe der Plotfläche in px. Das SVG rechnet in echten Pixeln (viewBox = gemessene Breite),
+ * damit Slider und Kurve exakt dieselbe x-Skala haben und Schrift nicht mitskaliert. */
+const PLOT_H = 84;
+const TICK_PX = 13;
+const PAD_L = 22;
+const PAD_T = 10;
+const PAD_B = 22;
+/** Platz rechts für den Endwert am Linienende. */
+const PAD_R = 66;
+/** Halbe Breite des nativen Range-Thumbs; der Slider wird um diesen Betrag nach außen versetzt,
+ * damit die Thumb-Mitte genau über dem Kurvenpunkt steht. */
+const THUMB_HALF = 8;
 
 export function BessKarteTimeline({
   kurve,
@@ -30,15 +39,15 @@ export function BessKarteTimeline({
   mappedSitesCount,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef(false);
-  // Achsenbeschriftung im viewBox-Maß so wählen, dass sie gerendert nie unter 12 px fällt.
-  const [tickFontSize, setTickFontSize] = useState(13);
+  const [chartW, setChartW] = useState(640);
   useEffect(() => {
-    const el = svgRef.current;
+    const el = wrapRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const update = () => {
-      const w = el.getBoundingClientRect().width;
-      if (w > 0) setTickFontSize(Math.max(13, (12.5 * CHART_W) / w));
+      const w = Math.round(el.getBoundingClientRect().width);
+      if (w > 0) setChartW((prev) => (prev === w ? prev : w));
     };
     update();
     const ro = new ResizeObserver(update);
@@ -50,13 +59,10 @@ export function BessKarteTimeline({
 
   const safeIdx = Math.max(0, Math.min(kurve.length - 1, activeIndex));
   const current = kurve[safeIdx]!;
+  const last = kurve[kurve.length - 1]!;
   const maxMw = Math.max(...kurve.map((d) => d.kumNettoMw), 100);
-  // Ränder wachsen mit der Schrift, damit Achsenlabels nicht abgeschnitten werden oder kollidieren.
-  const PAD_L = Math.round(tickFontSize * 4.1);
-  const PAD_T = Math.round(tickFontSize * 0.9);
-  const PAD_B = Math.round(tickFontSize * 1.8);
   const CHART_H = PAD_T + PLOT_H + PAD_B;
-  const plotW = CHART_W - PAD_L - PAD_R;
+  const plotW = Math.max(40, chartW - PAD_L - PAD_R);
   const plotH = PLOT_H;
   const denom = Math.max(1, kurve.length - 1);
 
@@ -69,14 +75,14 @@ export function BessKarteTimeline({
 
   const areaPath = `${linePath} L${xAt(kurve.length - 1).toFixed(1)},${(PAD_T + plotH).toFixed(1)} L${PAD_L.toFixed(1)},${(PAD_T + plotH).toFixed(1)} Z`;
 
+  // Jahres-Ticks im Januar; bei schmaler Breite nur gerade Jahre.
+  const everyYear = plotW >= 420;
   const yearTicks: Array<{ idx: number; label: string }> = [];
   for (let i = 0; i < kurve.length; i += 1) {
     const m = kurve[i]!.monat;
     if (m.endsWith("-01")) {
       const y = Number(m.slice(0, 4));
-      if (y === 2018 || y === 2020 || y === 2022 || y === 2024 || y === 2026) {
-        yearTicks.push({ idx: i, label: String(y) });
-      }
+      if (everyYear || y % 2 === 0) yearTicks.push({ idx: i, label: String(y) });
     }
   }
 
@@ -85,7 +91,7 @@ export function BessKarteTimeline({
     if (!svg) return;
     const rect = svg.getBoundingClientRect();
     if (rect.width <= 0) return;
-    const svgX = ((clientX - rect.left) / rect.width) * CHART_W;
+    const svgX = ((clientX - rect.left) / rect.width) * chartW;
     const frac = Math.max(0, Math.min(1, (svgX - PAD_L) / plotW));
     const idx = Math.round(frac * (kurve.length - 1));
     onChangeIndex(idx);
@@ -93,9 +99,10 @@ export function BessKarteTimeline({
 
   const activeX = xAt(safeIdx);
   const activeY = yAt(current.kumNettoMw);
-  const topLabelGw = maxMw >= 1000
-    ? insertDisplayUnitNbsp(formatQuantityUnit(maxMw / 1000, "de", 1, "GW"))
-    : insertDisplayUnitNbsp(formatQuantityUnit(maxMw, "de", 0, "MW"));
+  // Endwert direkt aus den Daten (letzter Monat der Reihe), kein Achsen-Tick.
+  const endLabel = last.kumNettoMw >= 1000
+    ? insertDisplayUnitNbsp(formatQuantityUnit(last.kumNettoMw / 1000, "de", 2, "GW"))
+    : insertDisplayUnitNbsp(formatQuantityUnit(last.kumNettoMw, "de", 0, "MW"));
 
   return (
     <div className={styles.timelineBox}>
@@ -126,8 +133,10 @@ export function BessKarteTimeline({
         </div>
       </div>
 
-      <div className={styles.sliderRow}>
-        <span className={`${styles.sliderBound} num`}>2017</span>
+      <div
+        className={styles.sliderRow}
+        style={{ paddingLeft: PAD_L - THUMB_HALF, paddingRight: PAD_R - THUMB_HALF }}
+      >
         <input
           type="range"
           className={styles.timelineSlider}
@@ -139,16 +148,17 @@ export function BessKarteTimeline({
           aria-label="Monat auf der Zeitachse wählen"
           aria-valuetext={`${formatMonatLabel(current.monat)}, ${formatQuantity(current.kumNettoMw, "de", 1)} MW netto`}
         />
-        <span className={`${styles.sliderBound} num`}>11/2026</span>
       </div>
 
-      <div className={styles.curveWrap}>
+      <div className={styles.curveWrap} ref={wrapRef}>
         <svg
           ref={svgRef}
-          viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+          viewBox={`0 0 ${chartW} ${CHART_H}`}
+          width={chartW}
+          height={CHART_H}
           className={styles.curveSvg}
           role="img"
-          aria-label="Kumulierte Nettoleistung 2018 bis November 2026"
+          aria-label={`Kumulierte Nettoleistung Dezember 2017 bis ${formatMonatLabel(last.monat)}`}
           onPointerDown={(e) => {
             draggingRef.current = true;
             e.currentTarget.setPointerCapture(e.pointerId);
@@ -170,23 +180,12 @@ export function BessKarteTimeline({
           <line
             x1={PAD_L}
             y1={PAD_T + plotH}
-            x2={CHART_W - PAD_R}
+            x2={PAD_L + plotW}
             y2={PAD_T + plotH}
             className={styles.curveAxis}
           />
-          <line
-            x1={PAD_L}
-            y1={PAD_T}
-            x2={CHART_W - PAD_R}
-            y2={PAD_T}
-            className={styles.curveGrid}
-          />
-          <text x={PAD_L - 6} y={PAD_T + tickFontSize * 0.35} textAnchor="end" className={styles.curveTickLabel}
-              style={{ fontSize: tickFontSize }}>
-            {topLabelGw}
-          </text>
           <text x={PAD_L - 6} y={PAD_T + plotH} textAnchor="end" className={styles.curveTickLabel}
-              style={{ fontSize: tickFontSize }}>
+              style={{ fontSize: TICK_PX }}>
             0
           </text>
 
@@ -201,15 +200,24 @@ export function BessKarteTimeline({
             className={styles.curveCursor}
           />
           <circle cx={activeX} cy={activeY} r={4.5} className={styles.curveDot} />
+          <text
+            x={xAt(kurve.length - 1) + 8}
+            y={yAt(last.kumNettoMw) + TICK_PX * 0.35}
+            textAnchor="start"
+            className={styles.curveEndLabel}
+            style={{ fontSize: TICK_PX }}
+          >
+            {endLabel}
+          </text>
 
           {yearTicks.map((t) => (
             <text
               key={t.label}
               x={xAt(t.idx)}
-              y={CHART_H - tickFontSize * 0.3}
+              y={CHART_H - 5}
               textAnchor="middle"
               className={styles.curveTickLabel}
-              style={{ fontSize: tickFontSize }}
+              style={{ fontSize: TICK_PX }}
             >
               {t.label}
             </text>

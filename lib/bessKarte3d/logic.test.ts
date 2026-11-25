@@ -202,3 +202,13 @@ describe("bessKarte3d Kontrollwerte und Logik", () => {
     expect(cuboid.topCenter.y).toBeLessThan(cuboid.baseCenter.y);
   });
 });
+
+describe("mastrNameNbsp", () => {
+  it("bindet Zahl und Einheit mit NBSP, lässt Rest unverändert", async () => {
+    const { mastrNameNbsp } = await import("@/lib/bessKarte3d/logic");
+    expect(mastrNameNbsp("BESS 5.000 kW")).toBe("BESS 5.000\u00a0kW");
+    expect(mastrNameNbsp("Speicher 2 MWh Nord")).toBe("Speicher 2\u00a0MWh Nord");
+    expect(mastrNameNbsp("Park 3 Kwartier")).toBe("Park 3 Kwartier");
+    expect(mastrNameNbsp("Batterie Halle 4")).toBe("Batterie Halle 4");
+  });
+});
