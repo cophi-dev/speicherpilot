@@ -110,8 +110,8 @@ describe("/daten Downloads", () => {
     ]);
   });
 
-  it("/daten steht in Sitemap-Routen und llms.txt", () => {
-    expect(collectIndexableRoutes().map((r) => r.path)).toContain("/daten");
+  it("/daten steht in Sitemap-Routen und llms.txt", async () => {
+    expect((await collectIndexableRoutes()).map((r) => r.path)).toContain("/daten");
     expect(llmsTxtBody()).toContain("/daten");
     expect(llmsFullTxtBody()).toContain("speicherpilot-jahr-stufen.csv");
   });
