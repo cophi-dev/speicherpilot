@@ -208,7 +208,7 @@ export function BessKarte3d({
               <span className={`${styles.legendTitle} num`}>
                 {isDesktop
                   ? `Säulenhöhe (√-Skala, ${modus === "mwh" ? "MWh" : "Netto-MW"})`
-                  : `Kreisfläche ∝ ${modus === "mwh" ? "MWh" : "Netto-MW"}`}
+                  : `Kreisfläche nach ${modus === "mwh" ? "MWh" : "Netto-MW"}`}
               </span>
               <div className={styles.heightBars}>
                 {activeRefs.map((refVal) => {
@@ -270,7 +270,7 @@ export function BessKarte3d({
       <div className={styles.karteControls} role="region" aria-label="Kartenfilter und Darstellung">
         <div className={styles.controlGroup}>
           <span className={`${styles.controlLabel} num`}>
-            {isDesktop ? "Säulenhöhe" : "Kreisfläche ∝"}
+            {isDesktop ? "Säulenhöhe" : "Kreisfläche nach"}
           </span>
           <div className={styles.segmented} role="group" aria-label="Skalierung wählen">
             <button

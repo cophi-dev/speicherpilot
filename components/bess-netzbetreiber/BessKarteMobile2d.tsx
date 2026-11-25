@@ -277,7 +277,7 @@ export function BessKarteMobile2d({
     <div className={styles.mobile2dWrap} onMouseLeave={() => setWheelActive(false)}>
       <p className={`${styles.mobileTapHint} num`}>
         Punkt antippen für Lokationsdetails{" "}
-        <span className={styles.noWrap}>(Kreisfläche ∝ {modus === "mwh" ? "MWh" : "Netto-MW"})</span> · zwei{"\u00a0"}Finger:
+        <span className={styles.noWrap}>(Kreisfläche nach {modus === "mwh" ? "MWh" : "Netto-MW"})</span> · zwei{"\u00a0"}Finger:
         zoomen
       </p>
       <div className={styles.mobileMapFrame}>
