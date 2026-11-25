@@ -31,6 +31,7 @@ export function TagSystemChapter({
   fleetFactor = 2,
   fleetStrategy = "spitze",
   fleetSoGerechnet = null,
+  isStartSurface = false,
 }: {
   dayKey: string;
   record: TagesKennzahlRecord;
@@ -41,6 +42,7 @@ export function TagSystemChapter({
   fleetFactor?: NationalFleetFactor;
   fleetStrategy?: NationalFleetStrategyUi;
   fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
+  isStartSurface?: boolean;
 }) {
   const factor = dayOverview?.factors[1];
   const dayRow = factor?.dayRows.find((row) => row.dateBerlin === dayKey);
@@ -91,21 +93,47 @@ export function TagSystemChapter({
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag-system">
       <div className="v4-chapter-head v4-content">
-        <p className="v4-chapter-num num">02 · Das System</p>
-        <h2 id="kapitel-tag-system" className="v4-chapter-h2">
-          Speicher am {weekdayLabelDe(dayKey)}
-          {hasSurplus
-            ? ""
-            : slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05
-              ? `: ${TAG_NO_SURPLUS_STRATEGY_HEADLINE[fleetStrategy]}`
-              : ": nichts aus Überschuss"}
-        </h2>
-        {hasSurplus ? (
-          <p className="v4-system-pct v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
+        {isStartSurface ? (
+          <>
+            <div className="v4-chapter-title-row">
+              <h2 id="kapitel-tag-system" className="v4-chapter-h2">
+                Speicher am {weekdayLabelDe(dayKey)}
+                {hasSurplus
+                  ? ""
+                  : slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05
+                    ? `: ${TAG_NO_SURPLUS_STRATEGY_HEADLINE[fleetStrategy]}`
+                    : ": nichts aus Überschuss"}
+              </h2>
+              <p className="v4-chapter-num num">02 · Das System</p>
+            </div>
+            <div className="v4-chapter-lead-grid">
+              {hasSurplus ? (
+                <p className="v4-system-pct v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
+              ) : (
+                <p className="v4-tag-kern">{kernNoSurplus}</p>
+              )}
+              <p className="v4-tag-side">{lead}</p>
+            </div>
+          </>
         ) : (
-          <p className="v4-tag-kern">{kernNoSurplus}</p>
+          <>
+            <p className="v4-chapter-num num">02 · Das System</p>
+            <h2 id="kapitel-tag-system" className="v4-chapter-h2">
+              Speicher am {weekdayLabelDe(dayKey)}
+              {hasSurplus
+                ? ""
+                : slice && peakReductionDayGw != null && peakReductionDayGw >= 0.05
+                  ? `: ${TAG_NO_SURPLUS_STRATEGY_HEADLINE[fleetStrategy]}`
+                  : ": nichts aus Überschuss"}
+            </h2>
+            {hasSurplus ? (
+              <p className="v4-system-pct v4-tag-kern">{formatQuantity(sharePct, "de", 0)}&nbsp;%</p>
+            ) : (
+              <p className="v4-tag-kern">{kernNoSurplus}</p>
+            )}
+            <p className="v4-tag-side">{lead}</p>
+          </>
         )}
-        <p className="v4-tag-side">{lead}</p>
       </div>
     </section>
   );

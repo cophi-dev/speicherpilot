@@ -19,6 +19,7 @@ export function TagChapter({
   powerGw = 0,
   energyGwh = 0,
   surplusGwh = 0,
+  isStartSurface = false,
 }: {
   day: ResidualDay;
   peakGw: number | null;
@@ -28,6 +29,7 @@ export function TagChapter({
   powerGw?: number;
   energyGwh?: number;
   surplusGwh?: number;
+  isStartSurface?: boolean;
 }) {
   const dayLabel = formatBerlinDayLabel(day.dateBerlin);
   const chapterTitle = useTagDateHeading
@@ -49,28 +51,49 @@ export function TagChapter({
   return (
     <section className="v4-chapter" aria-labelledby="kapitel-tag">
       <div className="v4-chapter-head v4-content">
-        <p className="v4-chapter-num num">01 · Der Tag</p>
-        <h2 id="kapitel-tag" className="v4-chapter-h2">
-          {chapterTitle}
-        </h2>
-        <p className="v4-tag-kern">{kernSurplus}</p>
-        <p className="v4-tag-side">{lead}</p>
+        {isStartSurface ? (
+          <>
+            <div className="v4-chapter-title-row">
+              <h2 id="kapitel-tag" className="v4-chapter-h2">
+                {chapterTitle}
+              </h2>
+              <p className="v4-chapter-num num">01 · Der Tag</p>
+            </div>
+            <div className="v4-chapter-lead-grid">
+              <p className="v4-tag-kern">{kernSurplus}</p>
+              <p className="v4-tag-side">{lead}</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="v4-chapter-num num">01 · Der Tag</p>
+            <h2 id="kapitel-tag" className="v4-chapter-h2">
+              {chapterTitle}
+            </h2>
+            <p className="v4-tag-kern">{kernSurplus}</p>
+            <p className="v4-tag-side">{lead}</p>
+          </>
+        )}
       </div>
-      <div className="v4-content v4-luecke-wrap">
-        <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
-        <GraphScopeMeta />
+      <div className={`v4-content v4-luecke-wrap${isStartSurface ? " v4-chart-stage" : ""}`}>
+        <div className={isStartSurface ? "v4-chart-plate" : undefined}>
+          <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
+          <GraphScopeMeta />
+        </div>
       </div>
       {prices.length >= 2 ? (
-        <div className="v4-content">
-          <PreisFenster
-            dateLabel={dayLabel}
-            points={prices}
-            powerGw={powerGw}
-            energyGwh={energyGwh}
-            surplusGwh={surplusGwh}
-            compactCopy
-          />
-          <GraphScopeMeta />
+        <div className={`v4-content${isStartSurface ? " v4-chart-stage" : ""}`}>
+          <div className={isStartSurface ? "v4-chart-plate" : undefined}>
+            <PreisFenster
+              dateLabel={dayLabel}
+              points={prices}
+              powerGw={powerGw}
+              energyGwh={energyGwh}
+              surplusGwh={surplusGwh}
+              compactCopy
+            />
+            <GraphScopeMeta />
+          </div>
         </div>
       ) : null}
     </section>

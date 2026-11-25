@@ -42,6 +42,7 @@ export function AuffaelligkeitKopf({
   kickerPrefix = "Gestern",
   hideTagLink = false,
   leitfrage,
+  isStartSurface = false,
 }: {
   dayKey: string;
   todayKey: string;
@@ -51,6 +52,7 @@ export function AuffaelligkeitKopf({
   kickerPrefix?: string;
   hideTagLink?: boolean;
   leitfrage?: string;
+  isStartSurface?: boolean;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
   const winner = result.kind === "metric" ? kopfMetric(records, dayKey) : null;
@@ -164,30 +166,78 @@ export function AuffaelligkeitKopf({
   );
 
   return (
-    <section className="v4-kopf" aria-labelledby="auffaelligkeit-h1">
+    <section
+      className={`v4-kopf${isStartSurface ? " v4-kopf-start" : ""}`}
+      aria-labelledby="auffaelligkeit-h1"
+    >
+      {isStartSurface ? (
+        <div className="v4-start-backdrop" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/visuals/grid-horizon-light.jpg"
+            alt=""
+            className="v4-start-backdrop-img v4-start-backdrop-img--light"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/visuals/grid-horizon-dark.jpg"
+            alt=""
+            className="v4-start-backdrop-img v4-start-backdrop-img--dark"
+          />
+        </div>
+      ) : null}
       <div className="v4-kopf-inner v4-content">
-        <p className="v4-kicker num">{kicker}</p>
-        {leitfrage ? (
-          <p id="tages-leitfrage" className="v4-subline" style={{ marginBottom: "0.35rem", fontWeight: 500 }}>
-            {leitfrage}
-          </p>
-        ) : null}
-        <div className="v4-kopf-intro">
-          <h1 id="auffaelligkeit-h1" className="v4-h1">
-            {kopfH1}
-          </h1>
-          {kopfSubline ? (
-            <div className="v4-kopf-subgrid">
-              <p className="v4-subline">{kopfSubline}</p>
-              {priceLine ? (
-                <div className="v4-preis-block">
-                  <p className="v4-preis-label num">{priceLine.label}</p>
-                  <p className="v4-preis-value num">{priceLine.value}</p>
+        {isStartSurface ? (
+          <div className="v4-kopf-intro v4-kopf-intro-start">
+            <h1 id="auffaelligkeit-h1" className="v4-h1">
+              {kopfH1}
+            </h1>
+            <div className="v4-start-meta-bar">
+              <p className="v4-kicker num">{kicker}</p>
+              {leitfrage ? (
+                <p id="tages-leitfrage" className="v4-start-leitfrage">
+                  {leitfrage}
+                </p>
+              ) : null}
+            </div>
+            {kopfSubline || priceLine ? (
+              <div className="v4-kopf-subgrid">
+                {kopfSubline ? <p className="v4-subline">{kopfSubline}</p> : <div />}
+                {priceLine ? (
+                  <div className="v4-preis-block">
+                    <p className="v4-preis-label num">{priceLine.label}</p>
+                    <p className="v4-preis-value num">{priceLine.value}</p>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <>
+            <p className="v4-kicker num">{kicker}</p>
+            {leitfrage ? (
+              <p id="tages-leitfrage" className="v4-subline" style={{ marginBottom: "0.35rem", fontWeight: 500 }}>
+                {leitfrage}
+              </p>
+            ) : null}
+            <div className="v4-kopf-intro">
+              <h1 id="auffaelligkeit-h1" className="v4-h1">
+                {kopfH1}
+              </h1>
+              {kopfSubline ? (
+                <div className="v4-kopf-subgrid">
+                  <p className="v4-subline">{kopfSubline}</p>
+                  {priceLine ? (
+                    <div className="v4-preis-block">
+                      <p className="v4-preis-label num">{priceLine.label}</p>
+                      <p className="v4-preis-value num">{priceLine.value}</p>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
-          ) : null}
-        </div>
+          </>
+        )}
 
         {hero ? (
           <div className="v4-kopf-hero">
@@ -210,7 +260,7 @@ export function AuffaelligkeitKopf({
               </div>
               <div className="v4-kopf-links">
                 {!hideTagLink && !isTagPage ? (
-                  <Link href={`/tag/${dayKey}`} className="v4-text-link">
+                  <Link href={`/tag/${dayKey}`} className="v4-text-link v4-text-link-primary">
                     Tag ansehen →
                   </Link>
                 ) : null}
@@ -226,7 +276,7 @@ export function AuffaelligkeitKopf({
         ) : (
           <div className="v4-kopf-links v4-kopf-links-standalone">
             {!hideTagLink && !isTagPage ? (
-              <Link href={`/tag/${dayKey}`} className="v4-text-link">
+              <Link href={`/tag/${dayKey}`} className="v4-text-link v4-text-link-primary">
                 Tag ansehen →
               </Link>
             ) : null}
@@ -288,7 +338,7 @@ export function TagPageV4({
     return null;
   }
   return (
-    <div className="v4-start">
+    <div className={`v4-start${isStartSurface ? " v4-start-surface" : ""}`}>
       <Suspense fallback={null}>
         <FleetScrollRestore />
       </Suspense>
@@ -309,6 +359,7 @@ export function TagPageV4({
         kickerPrefix={isStartSurface ? "Gestern" : "Tag"}
         hideTagLink={!isStartSurface}
         leitfrage={leitfrage}
+        isStartSurface={isStartSurface}
       />
       <div id="tagesverlauf">
         <TagChapter
@@ -320,6 +371,7 @@ export function TagPageV4({
           powerGw={fleetPowerGw}
           energyGwh={fleetEnergyGwh}
           surplusGwh={record.surplusGwh}
+          isStartSurface={isStartSurface}
         />
       </div>
       {isStartSurface ? null : <KnotenTagLink dayKey={dayKey} />}
@@ -333,6 +385,7 @@ export function TagPageV4({
         fleetFactor={fleetFactor}
         fleetStrategy={fleetStrategy}
         fleetSoGerechnet={fleetSoGerechnet}
+        isStartSurface={isStartSurface}
       />
       {children}
       <TagSoGerechnet
