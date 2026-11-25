@@ -1,6 +1,4 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-
+import geoRaw from "@/data/bess-karte-3d/bundeslaender.geo.json";
 import karteRaw from "@/data/bess-karte-3d/karte3d.json";
 
 import type {
@@ -30,18 +28,11 @@ export function loadKarte3dSummary(): Karte3dSummary {
   return cachedSummary;
 }
 
-/** Lädt die vereinfachten Ländergrenzen serverseitig aus data/bess-karte-3d/bundeslaender.geojson. */
+/** Vereinfachte Ländergrenzen als statischer JSON-Import (data/bess-karte-3d/bundeslaender.geo.json), damit sie auf Vercel im Bundle landen. */
 export function loadBundeslaenderGeoJson(): BundeslaenderGeoJson {
   if (cachedGeoJson) {
     return cachedGeoJson;
   }
-  const filePath = path.join(
-    process.cwd(),
-    "data",
-    "bess-karte-3d",
-    "bundeslaender.geojson",
-  );
-  const raw = readFileSync(filePath, "utf8");
-  cachedGeoJson = JSON.parse(raw) as BundeslaenderGeoJson;
+  cachedGeoJson = geoRaw as unknown as BundeslaenderGeoJson;
   return cachedGeoJson;
 }
