@@ -7744,11 +7744,17 @@ html.vt-to-light::view-transition-new(root) {
   }
 }
 @media (min-width: 1200px) {
+  .is-tag-page .v4-kopf--tag .v4-h1,
+  .v4-kopf--tag .v4-h1 {
+    margin-bottom: 24px;
+  }
   .is-tag-page .v4-kopf-hero,
   .v4-kopf--tag .v4-kopf-hero {
     grid-template-columns: max-content minmax(240px, 1fr);
     column-gap: 32px;
     align-items: end;
+    margin-top: 0;
+    padding-top: 8px;
   }
   .is-tag-page .v4-riesenzahl {
     white-space: nowrap;

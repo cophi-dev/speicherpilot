@@ -336,8 +336,9 @@ export function LueckeChart({
           {wideFrame && !compact ? (
             <>
               <text
-                x={Math.max(frame.pad.left + 8, geometry.peakX - 80)}
+                x={Math.max(frame.pad.left + 80, geometry.peakX - 40)}
                 y={Math.max(frame.pad.top + 16, geometry.peakYLoad - 26)}
+                textAnchor="end"
                 className="v4-luecke-label"
               >
                 Verbrauch
