@@ -75,7 +75,7 @@ export function buildVisionJahrKernsatz(): VisionJahrKernsatz {
     `Daten: Energy-Charts, SMARD, battery-charts.`;
 
   const descriptionShort =
-    `NEP-Speicher 2 h senken die Restlast-Spitze von ${peakDisp} GW um ${senkADisp} bis ${senkCDisp} GW, nach Preis höchstens ein Fünftel davon. Jahresrechnung, Stand 11/2026.`;
+    `NEP-Speicher 2 h senken die Restlastspitze von ${peakDisp} GW um ${senkADisp} bis ${senkCDisp} GW, nach Preis höchstens ein Fünftel davon. Jahresrechnung, Stand 11/2026.`;
 
   return {
     paragraph,

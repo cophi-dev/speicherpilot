@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const SITE_TITLE = "SpeicherPilot — Speicher und Netz verständlich";
 
 export const SITE_DESCRIPTION =
-  "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien — auf Deutsch.";
+  "SpeicherPilot erklärt Großspeicher, Überschuss und Residuallast mit Live-Daten, Methodik und Szenarien auf Deutsch.";
 
 export const SITE_NAME = "SpeicherPilot";
 

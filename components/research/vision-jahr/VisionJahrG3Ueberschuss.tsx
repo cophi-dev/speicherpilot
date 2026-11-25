@@ -73,7 +73,14 @@ export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrMod
               <text x={PAD_LEFT - 8} y={y + ROW_H / 2 + 4} textAnchor="end" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
                 {row.label}
               </text>
-              <rect x={PAD_LEFT} y={y} width={innerW} height={ROW_H} fill="var(--research-line)" opacity={0.45} rx={2} />
+              <rect
+                x={PAD_LEFT}
+                y={y}
+                width={innerW}
+                height={ROW_H}
+                fill="color-mix(in srgb, var(--research-muted) 35%, transparent)"
+                rx={2}
+              />
               <rect x={PAD_LEFT} y={y} width={barW} height={ROW_H} fill="var(--research-accent-light)" rx={2} />
               {(() => {
                 const seg = visionG3MarktLineY(y, ROW_H, axisFs);
@@ -81,11 +88,18 @@ export function VisionJahrG3Ueberschuss({ model, width }: { model: VisionJahrMod
                   <line x1={marktX} x2={marktX} y1={seg.y1} y2={seg.y2} stroke="var(--research-fg)" strokeWidth={2} />
                 );
               })()}
-              <text x={PAD_LEFT + Math.max(barW, 36) - 6} y={y + ROW_H / 2 + 4} textAnchor="end" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
-                <tspan stroke="var(--research-bg, #fff)" strokeWidth={4} paintOrder="stroke">
-                  {formatVisionPercentWhole(row.maxPct)}
-                </tspan>
-              </text>
+              {barW >= 44 ? (
+                // Label im Balken: --research-on-accent auf Rost >= 4,5:1 (hell und dunkel)
+                <text x={PAD_LEFT + barW - 6} y={y + ROW_H / 2 + 4} textAnchor="end" fontSize={axisFs} fill="var(--research-on-accent)" fontFamily="var(--font-jetbrains-mono)">
+                  <tspan>{formatVisionPercentWhole(row.maxPct)}</tspan>
+                </text>
+              ) : (
+                <text x={PAD_LEFT + barW + 6} y={y + ROW_H / 2 + 4} textAnchor="start" fontSize={axisFs} fill="var(--research-fg)" fontFamily="var(--font-jetbrains-mono)">
+                  <tspan stroke="var(--research-bg, #fff)" strokeWidth={4} paintOrder="stroke">
+                    {formatVisionPercentWhole(row.maxPct)}
+                  </tspan>
+                </text>
+              )}
             </g>
           );
         })}

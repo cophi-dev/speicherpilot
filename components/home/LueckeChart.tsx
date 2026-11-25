@@ -185,11 +185,8 @@ export function LueckeChart({
 
   const peakLabel = peakGw !== null ? formatDeGw(peakGw, 1) : "—";
   const peakTimeLabel = peakAt !== null ? `${peakLabel} · ${peakAt} Uhr` : peakLabel;
-  const peakCaption = "Abendspitze der Residuallast";
+  const peakCaption = "Restlastspitze";
 
-  const peakLabelY =
-    peakGw !== null ? Math.max(frame.pad.top + 16, geometry.peakYLoad - 20) : frame.pad.top + 28;
-  const labelInsideSvg = wideFrame && !compact && peakGw !== null && peakLabelY > frame.pad.top + 12;
   const hours = [0, 6, 12, 18, 24];
   const plotW = frame.w - frame.pad.left - frame.pad.right;
   const plotH = frame.h - frame.pad.top - frame.pad.bottom;
@@ -338,13 +335,21 @@ export function LueckeChart({
           ) : null}
           {wideFrame && !compact ? (
             <>
-              <text x={frame.pad.left + plotW * 0.34} y={frame.pad.top + 18} className="v4-luecke-label">
+              <text
+                x={frame.pad.left + plotW * 0.42}
+                y={Math.max(frame.pad.top + 10, geometry.peakYLoad - 14)}
+                className="v4-luecke-label"
+              >
                 Verbrauch
               </text>
-              <text x={frame.pad.left + plotW * 0.08} y={frame.pad.top + plotH * 0.86} className="v4-luecke-label">
+              <text x={frame.pad.left + plotW * 0.06} y={frame.pad.top + plotH - 10} className="v4-luecke-label">
                 Wind und Sonne
               </text>
-              <text x={frame.pad.left + plotW * 0.36} y={frame.pad.top + plotH * 0.42} className="v4-luecke-gap-label">
+              <text
+                x={frame.pad.left + plotW * 0.52}
+                y={frame.pad.top + plotH * 0.48}
+                className="v4-luecke-gap-label"
+              >
                 andere Quellen
               </text>
             </>
@@ -361,12 +366,12 @@ export function LueckeChart({
               />
               <circle cx={geometry.peakX} cy={geometry.peakYWs} r={4.5} className="v4-luecke-peak-dot" />
               <circle cx={geometry.peakX} cy={geometry.peakYLoad} r={4.5} className="v4-luecke-peak-dot" />
-              {labelInsideSvg ? (
+              {wideFrame && !compact ? (
                 <text
-                  x={geometry.peakX > frame.w - 220 ? geometry.peakX - 12 : geometry.peakX + 12}
-                  y={peakLabelY}
-                  textAnchor={geometry.peakX > frame.w - 220 ? "end" : "start"}
-                  className="v4-luecke-peak-value num"
+                  x={geometry.peakX + 10}
+                  y={Math.max(frame.pad.top + 12, geometry.peakYLoad - 8)}
+                  textAnchor="start"
+                  className="v4-luecke-peak-micro num"
                 >
                   {peakLabel}
                 </text>

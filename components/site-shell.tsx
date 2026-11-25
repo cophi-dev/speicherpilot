@@ -70,13 +70,13 @@ function navItemHref(item: (typeof SITE_MAIN_NAV)[number], navShortcuts: NavShor
 
 function mainNavLinkClass(active: boolean) {
   return active
-    ? "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-[var(--v4-warm-text)]"
+    ? "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 font-semibold text-[var(--v4-warm-nav-text)]"
     : "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap px-2 text-muted-foreground hover:text-foreground";
 }
 
 function mobileNavLinkClass(active: boolean) {
   return `inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring ${
-    active ? "font-semibold text-[var(--v4-warm-text)]" : "text-foreground"
+    active ? "font-semibold text-[var(--v4-warm-nav-text)]" : "text-foreground"
   }`;
 }
 
@@ -238,7 +238,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
         <header
           className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
         >
-          <div className="mx-auto flex h-16 w-full items-center justify-between gap-3">
+          <div className="v4-content flex h-16 w-full items-center justify-between gap-3">
             <BrandLockup homeHref="/" />
             {isLgNav ? (
             <nav
@@ -318,8 +318,8 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
         <main id="inhalt">
           <NavigationMain>{children}</NavigationMain>
         </main>
-        <footer className="border-t border-border">
-          <div className="mx-auto py-8 text-sm text-muted-foreground">
+        <footer className="site-footer border-t border-[var(--linie)]">
+          <div className="v4-content site-footer-inner text-sm text-muted-foreground">
             <nav className="legal-footer" aria-label="Rechtliches und Methodik">
               <Link href="/ueber">Über SpeicherPilot</Link>
               <Link href="/methodik">Methodik</Link>
@@ -328,7 +328,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
               <Link href="/impressum">Impressum</Link>
               <Link href="/datenschutz">Datenschutz</Link>
             </nav>
-            <p className="mt-6 max-w-[52rem] leading-relaxed">
+            <p className="leading-relaxed">
               Quellen und Glossar stehen in der{" "}
               <Link href="/methodik#quellen" className="text-primary underline underline-offset-[3px]">
                 Methodik
@@ -339,14 +339,14 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
                 : " Wo Euro stehen, ist das als Modellschätzung gekennzeichnet."}
             </p>
             {pathname === "/" ? (
-              <p className="mt-4 max-w-[52rem] leading-relaxed">
+              <p className="leading-relaxed">
                 Im Arbeitsalltag der Hochspannungs- und Umspannwerkskonstruktion sehe ich, wie unterschiedlich
                 Speicherprojektierer und Netzplaner auf dasselbe Stromnetz schauen. Die einen optimieren auf
                 Börsenpreise, die anderen planen für Gleichzeitigkeit und Abendspitzen — selten auf derselben
                 Datenbasis.
               </p>
             ) : null}
-            <p className="mt-4 flex flex-wrap gap-x-5">
+            <p className="flex flex-wrap gap-x-5">
               <a
                 href="https://www.linkedin.com/in/phillipp-zarindast/"
                 target="_blank"
