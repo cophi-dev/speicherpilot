@@ -24,15 +24,26 @@ function UrlText({ url }: { url: string }) {
   );
 }
 
-/** Kurzer Verweis unter der Karte: „Ländergrenzen: VG2500 (BKG) · dl-de/by-2-0“, Volltext im Quellenblock. */
-export function BkgKurz({ className, quellenId }: { className?: string; quellenId: string }) {
+/**
+ * Kurze BKG-Zeile an der Karte (speicherpilot 25.11 14:42, Pflicht): Bereitsteller, Lizenz mit Link,
+ * Datensatz-URI und Änderungshinweis (dl-de/by-2-0 §2, §3), ohne Roh-URL. Volltext im Quellenblock.
+ */
+export function BkgKurz({ className }: { className?: string }) {
   return (
     <p className={className}>
-      Ländergrenzen:{" "}
-      <a href={`#${quellenId}`}>VG2500{"\u00a0"}(BKG)</a> ·{" "}
+      Ländergrenzen: ©{"\u00a0"}
+      <a href="https://www.bkg.bund.de" rel="noopener">
+        BKG
+      </a>{" "}
+      (2026){" "}
       <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener">
         dl-de/by-2-0
       </a>
+      ,{" "}
+      <a href={BKG_DATENQUELLEN} rel="noopener">
+        Datenquellen
+      </a>
+      , Daten geändert (generalisiert, WGS84)
     </p>
   );
 }

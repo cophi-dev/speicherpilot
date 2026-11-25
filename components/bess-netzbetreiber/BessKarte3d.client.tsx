@@ -201,8 +201,60 @@ export function BessKarte3d({
     setFilter((prev) => ({ ...prev, einspeisung: val }));
   }
 
+  /** Desktop-Hero: Höhenlegende und kurze BKG-Zeile direkt auf der Kartenbühne (speicherpilot 14:42). */
+  const stageFoot = hero && isDesktop;
+  const heightLegend = (
+            <div className={styles.heightLegend} aria-label="Höhenlegende">
+              <span className={`${styles.legendTitle} num`}>
+                {isDesktop
+                  ? `Säulenhöhe (√-Skala, ${modus === "mwh" ? "MWh" : "Netto-MW"})`
+                  : `Kreisfläche ∝ ${modus === "mwh" ? "MWh" : "Netto-MW"}`}
+              </span>
+              <div className={styles.heightBars}>
+                {activeRefs.map((refVal) => {
+                  const hPx = Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 44)));
+                  return (
+                    <div key={refVal} className={styles.heightBarItem}>
+                      <div className={styles.heightBarWell}>
+                        {isDesktop ? (
+                          <span
+                            className={styles.heightBarCol}
+                            style={{ height: `${hPx}px` }}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <span
+                            className={styles.heightDot}
+                            style={{
+                              width: `${Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 26)))}px`,
+                              height: `${Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 26)))}px`,
+                            }}
+                            aria-hidden="true"
+                          />
+                        )}
+                      </div>
+                      <span className={`${styles.heightBarVal} num`}>
+                        {insertDisplayUnitNbsp(
+                          formatQuantityUnit(refVal, "de", 0, modus === "mwh" ? "MWh" : "MW"),
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {!isDesktop ? (
+                <p className={`${styles.minPunktNote} num`}>
+                  Mindestpunktgröße mobil: Speicher unter ≈{"\u00a0"}
+                  {insertDisplayUnitNbsp(formatQuantityUnit(minPunktWert, "de", 0, modus === "mwh" ? "MWh" : "MW"))}{" "}
+                  werden gleich groß gezeichnet (1{"\u00a0"}{modus === "mwh" ? "MWh" : "MW"} ≈{" "}
+                  {insertDisplayUnitNbsp(formatQuantityUnit(minPunktWert, "de", 0, modus === "mwh" ? "MWh" : "MW"))}).
+                </p>
+              ) : null}
+            </div>
+  );
+
   if (!karte || !cutResult) {
-    return (
+  return (
       <div className={shellClass} aria-busy="true" aria-label="Speicherkarte wird geladen">
         {hero && overlay ? <div className={styles.heroOverlayStatic}>{overlay}</div> : null}
         <div className={styles.karteLoading}>
@@ -333,6 +385,14 @@ export function BessKarte3d({
             <BessKarteCanvas3d
               hero={hero}
               overlay={overlay}
+              footOverlay={
+                stageFoot ? (
+                  <>
+                    {heightLegend}
+                    <BkgKurz className={styles.geoAttribution} />
+                  </>
+                ) : undefined
+              }
               geoJson={geoJson}
               bundeslaender={summary.bundeslaender}
               sites={cutResult.sites}
@@ -358,57 +418,11 @@ export function BessKarte3d({
             />
           )}
 
-          <BkgKurz className={styles.geoAttribution} quellenId="karte-quellen" />
+          {stageFoot ? null : <BkgKurz className={styles.geoAttribution} />}
 
           {/* Höhen-/Größenlegende + Abregelung-Legende direkt unter der Karte */}
           <div className={styles.legendsRow}>
-            <div className={styles.heightLegend} aria-label="Höhenlegende">
-              <span className={`${styles.legendTitle} num`}>
-                {isDesktop
-                  ? `Säulenhöhe (√-Skala, ${modus === "mwh" ? "MWh" : "Netto-MW"})`
-                  : `Kreisfläche ∝ ${modus === "mwh" ? "MWh" : "Netto-MW"}`}
-              </span>
-              <div className={styles.heightBars}>
-                {activeRefs.map((refVal) => {
-                  const hPx = Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 44)));
-                  return (
-                    <div key={refVal} className={styles.heightBarItem}>
-                      <div className={styles.heightBarWell}>
-                        {isDesktop ? (
-                          <span
-                            className={styles.heightBarCol}
-                            style={{ height: `${hPx}px` }}
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <span
-                            className={styles.heightDot}
-                            style={{
-                              width: `${Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 26)))}px`,
-                              height: `${Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 26)))}px`,
-                            }}
-                            aria-hidden="true"
-                          />
-                        )}
-                      </div>
-                      <span className={`${styles.heightBarVal} num`}>
-                        {insertDisplayUnitNbsp(
-                          formatQuantityUnit(refVal, "de", 0, modus === "mwh" ? "MWh" : "MW"),
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              {!isDesktop ? (
-                <p className={`${styles.minPunktNote} num`}>
-                  Mindestpunktgröße mobil: Speicher unter ≈{"\u00a0"}
-                  {insertDisplayUnitNbsp(formatQuantityUnit(minPunktWert, "de", 0, modus === "mwh" ? "MWh" : "MW"))}{" "}
-                  werden gleich groß gezeichnet (1{"\u00a0"}{modus === "mwh" ? "MWh" : "MW"} ≈{" "}
-                  {insertDisplayUnitNbsp(formatQuantityUnit(minPunktWert, "de", 0, modus === "mwh" ? "MWh" : "MW"))}).
-                </p>
-              ) : null}
-            </div>
+            {stageFoot ? null : heightLegend}
 
             {showAbregelung ? (
               <div className={styles.abregLegend} aria-label="Legende EE-Abregelung 2025">

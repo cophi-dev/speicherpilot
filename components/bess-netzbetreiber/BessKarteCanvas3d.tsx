@@ -47,6 +47,8 @@ type Props = {
   /** Hero: größere Bühne, ohne Rahmen. */
   hero?: boolean;
   overlay?: ReactNode;
+  /** Unten links auf der Bühne: Höhenlegende und kurze BKG-Zeile. */
+  footOverlay?: ReactNode;
 };
 
 /** Dicke der Landplatte (Ebenen-Einheiten, 1 ≈ 470 km). */
@@ -150,6 +152,7 @@ export function BessKarteCanvas3d({
   onResetCamera,
   hero = false,
   overlay,
+  footOverlay,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -246,7 +249,7 @@ export function BessKarteCanvas3d({
       if (!entry) return;
       const w = Math.max(320, Math.round(entry.contentRect.width));
       const h = hero
-        ? Math.max(520, Math.min(880, Math.round(window.innerHeight * 0.8), Math.round(w * 0.72)))
+        ? Math.max(560, Math.min(900, Math.round(window.innerHeight * 0.76), Math.round(w * 0.74)))
         : Math.max(460, Math.min(600, Math.round(w * 0.78)));
       setSize((prev) => (prev.width === w && prev.height === h ? prev : { width: w, height: h }));
     });
@@ -723,6 +726,8 @@ export function BessKarteCanvas3d({
           {overlay}
         </div>
       ) : null}
+
+      {footOverlay ? <div className={styles.canvasFootOverlay}>{footOverlay}</div> : null}
 
       <div className={styles.canvasOverlayTop}>
         <span className={`${styles.canvasHint} num`}>

@@ -90,10 +90,6 @@
   }
 }
 
-.eonNowrap {
-  white-space: nowrap;
-}
-
 .flowPara {
   font-size: var(--type-16);
   line-height: var(--lh-lead);
@@ -1154,12 +1150,12 @@
 }
 
 .vnbBarStackInner .vnbBarFillOther,
-.vnbBarStackInner .vnbBarFillEon {
+.vnbBarStackInner .vnbBarFillAccent {
   display: block;
   height: 100%;
 }
 
-.vnbBarFillEon {
+.vnbBarFillAccent {
   height: 100%;
   background: var(--v4-warm);
   border-radius: 1px;
@@ -1627,4 +1623,29 @@
 
 .karteHero .mobileTapHint {
   margin-left: 0;
+}
+
+/* Höhenlegende + kurze BKG-Zeile auf der Kartenbühne (speicherpilot 14:42), unten links über dem Bedienhinweis */
+.canvasFootOverlay {
+  position: absolute;
+  left: 0;
+  bottom: 3.25rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: min(21rem, 30%);
+  pointer-events: auto;
+}
+
+.canvasFootOverlay .geoAttribution {
+  font-size: 0.6875rem;
+}
+
+.karteHero .canvasOverlayTop {
+  left: 0;
+}
+
+.heroSection {
+  padding-top: clamp(1rem, 2vw, 1.75rem);
 }

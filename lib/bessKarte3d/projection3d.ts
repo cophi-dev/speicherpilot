@@ -120,7 +120,7 @@ export function createProjectionParams3d(
     sinT: Math.sin(tiltRad),
     cx: width * 0.5,
     cy: height * 0.56,
-    scale: minDim * 0.43 * camera.zoom,
+    scale: minDim * 0.47 * camera.zoom,
     cameraDist: 5.2,
     panX: camera.panX ?? 0,
     panY: camera.panY ?? 0,

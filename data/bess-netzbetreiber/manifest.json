@@ -50,18 +50,6 @@
     "note": "MW je 1.000 km Stromkreislänge: folgt, bis ≥8 Top-VNB mit URL belegt sind.",
     "eeStockNormalization": true
   },
-  "eonSnbIds": [
-    "SNB911641710114",
-    "SNB911705062982",
-    "SNB916269213931",
-    "SNB918250928893",
-    "SNB921897286493",
-    "SNB940352624434",
-    "SNB941690671609",
-    "SNB976379598847",
-    "SNB990362338043",
-    "SNB990857029876"
-  ],
   "eeStockMastr": {
     "maxPagesPerEnergyCarrier": 8,
     "note": "Wind/PV je Bundesland; Seitenzahl über MASTR_GEN_MAX_PAGES (Default 80)."

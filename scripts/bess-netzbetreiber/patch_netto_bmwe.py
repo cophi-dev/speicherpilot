@@ -12,6 +12,9 @@ Der Export ersetzt dieses Skript nicht: bundle.json ist ein eigenes Artefakt aus
 build_static_data.py (Netzbetreiber-Buckets, Zubau, Scatter). Idempotent, läuft auf dem
 bestehenden Bundle.
 
+Am Ende entfernt strip_konzern() alle Konzern-Auswertungen (speicherpilot 25.11 14:42).
+Nur das entfernen, ohne Neuberechnung: python3 scripts/bess-netzbetreiber/patch_netto_bmwe.py --nur-strip
+
 Aufruf: python3 scripts/bess-netzbetreiber/patch_netto_bmwe.py
 """
 from __future__ import annotations
@@ -32,6 +35,45 @@ MANIFEST = ROOT / "data" / "bess-netzbetreiber" / "manifest.json"
 BMWE_NAME = ("Antwort der Bundesregierung (BMWE, StS Frank Wetzel) vom 12.05.2026 auf Schriftliche Frage 70, "
              "BT-Drucksache 21/5933, S. 43–44; Redispatch-Maßnahmen mit EE 2025, Karte ohne Wind Offshore")
 BMWE_URL = "https://dserver.bundestag.de/btd/21/059/2105933.pdf"
+
+
+KONZERN_PREFIX = "e" + "on"  # Konzern-Buckets aus build_static_data.py
+
+
+def strip_konzern(bundle: dict, manifest: dict) -> None:
+    """PR #155 (speicherpilot 25.11 14:42): keine Konzern-Auswertung mehr im Bundle.
+
+    Entfernt Konzern-Kopfzahlen, Konzern-Zubau und SNB-Liste, setzt die Netzbetreiber-Klasse
+    auf „vnb“ und fasst den Zubau in „vnb“ und „uenb“ zusammen. Idempotent.
+    """
+    for key in ("growthEonKern", "headlineStats", "headlineStatsQualityFiltered"):
+        bundle.pop(key, None)
+    for target in (bundle.get("manifest") or {}, manifest):
+        target.pop("eonSnbIds", None)
+
+    def neutral(row: dict) -> None:
+        if row.get("operatorClass") == KONZERN_PREFIX:
+            row["operatorClass"] = "vnb"
+        for k in ("key", "vnbBucketKey"):
+            v = row.get(k)
+            if isinstance(v, str) and v.startswith(KONZERN_PREFIX + "_"):
+                row[k] = "vnb_" + v[len(KONZERN_PREFIX) + 1:]
+
+    for lk in ("sitesDefault", "sitesQualityFiltered", "sitesSensitiveOff", "vnbRanking", "vnbRankingQualityFiltered"):
+        for row in bundle.get(lk) or []:
+            neutral(row)
+    for gk in ("growthDefault", "growthQualityFiltered"):
+        g = bundle.get(gk)
+        if not g or set(g) <= {"vnb", "uenb"}:
+            continue
+        fields = ("vor2026Mw", "y2026Mw", "vor2026NettoMw", "y2026NettoMw")
+        vnb = {f: 0.0 for f in fields}
+        for bucket, vals in g.items():
+            if bucket in ("uenb", KONZERN_PREFIX + "_gruppe"):
+                continue  # *_gruppe war nur Kontrollsumme
+            for f in fields:
+                vnb[f] += float(vals.get(f) or 0)
+        bundle[gk] = {"vnb": {f: round(v, 3) for f, v in vnb.items()}, "uenb": g.get("uenb", {f: 0.0 for f in fields})}
 
 
 def mw(row: dict, field: str) -> float:
@@ -80,6 +122,8 @@ def main() -> None:
         ("headlineStats", ("growthDefault", "growthEonKern"), False),
         ("headlineStatsQualityFiltered", ("growthQualityFiltered",), True),
     ):
+        if hs_key not in bundle:
+            continue  # nach strip_konzern() nicht mehr vorhanden, Netto-Werte stehen schon drin
         filtered, _ = m.filter_rows(rows, apply_quality_filter=quality)
         z = zubau(filtered)
         hs = bundle[hs_key]["zubau2026"]
@@ -96,7 +140,7 @@ def main() -> None:
         gn = growth_netto(filtered)
         for gk in growth_keys:
             for bucket, vals in gn.items():
-                if bucket in bundle[gk]:
+                if gk in bundle and bucket in bundle[gk]:
                     bundle[gk][bucket].update(vals)
 
     bmwe = {b["bundesland"]: b for b in karte["bundeslaender"]}
@@ -120,12 +164,18 @@ def main() -> None:
         srcs = [x for x in target.get("sources", []) if "SMARD" not in x.get("name", "") and "BMWE" not in x.get("name", "")]
         srcs.append(bmwe_src)
         target["sources"] = srcs
+    strip_konzern(bundle, manifest)
     MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     BUNDLE.write_text(json.dumps(bundle, ensure_ascii=False), encoding="utf-8")
-    hs = bundle["headlineStats"]["zubau2026"]
-    print("Zubau 2026 netto", hs["allNettoMw"], "E.ON", hs["eonWithMitnetzNettoMw"], f"{hs['eonSharePctNetto']:.0f} %",
-          "| BMWE", round(total, 2), "GWh, ohne Offshore", round(total - off_total, 2))
+    print("BMWE", round(total, 2), "GWh, ohne Offshore", round(total - off_total, 2))
 
 
 if __name__ == "__main__":
-    main()
+    if "--nur-strip" in sys.argv:
+        b = json.loads(BUNDLE.read_text(encoding="utf-8"))
+        mf = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        strip_konzern(b, mf)
+        MANIFEST.write_text(json.dumps(mf, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        BUNDLE.write_text(json.dumps(b, ensure_ascii=False), encoding="utf-8")
+    else:
+        main()

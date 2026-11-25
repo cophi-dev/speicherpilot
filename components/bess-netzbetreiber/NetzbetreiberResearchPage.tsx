@@ -5,45 +5,42 @@ import { type CSSProperties, useMemo } from "react";
 
 import { BessKarte3d } from "@/components/bess-netzbetreiber/BessKarte3d.client";
 import { BessKarteOhneKoordinateTable } from "@/components/bess-netzbetreiber/BessKarteOhneKoordinateTable";
-import {
-  NetzbetreiberBlBessBars,
-  NetzbetreiberEeStockBars,
-} from "@/components/bess-netzbetreiber/NetzbetreiberMoreBars";
+import { NetzbetreiberBlBessBars } from "@/components/bess-netzbetreiber/NetzbetreiberMoreBars";
 import styles from "@/components/bess-netzbetreiber/bess-netzbetreiber.module.css";
 import { BkgAttribution, BmweQuelle } from "@/components/bess-netzbetreiber/KarteQuellen";
 import type { KarteKernzahlen } from "@/lib/bessKarte3d/kernzahlen";
+import { K4_SATZ } from "@/lib/bessKarte3d/k4";
 import { blNetto } from "@/lib/bessKarte3d/logic";
 import type {
   BundeslaenderGeoJson,
   Karte3dSummary,
 } from "@/lib/bessKarte3d/types";
-import type { BessNetzbetreiberBundle } from "@/lib/bessNetzbetreiber/schema";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { formatQuantity, formatQuantityUnit } from "@/lib/formatQuantity";
 
-type ManifestShape = {
-  stichtagMastr?: string;
+/** Nur die Felder aus bundle.json, die die Seite braucht (speicherpilot 14:42: kein ganzes Bundle im Client). */
+export type NetzbetreiberClientDaten = {
+  stichtagMastr: string | null;
+  uenbEbene: { inBetriebBruttoGw: number; inBetriebNettoGw: number | null };
 };
 
 /**
  * /netzbetreiber: Hero = Gesamtzahl + große Karte, darunter Kernerkenntnisse (Phillipp 25.11 13:34).
- * Die Texte der Kernerkenntnisse sind ENTWURF bis zur Freigabe durch speicherpilot
- * (/workspace/antigravity/ergebnisse/karte_hero_redispatch_text.md).
+ * Texte der Kernerkenntnisse: Freigabe speicherpilot 25.11 14:40
+ * (/workspace/antigravity/ergebnisse/karte_hero_redispatch_text_freigabe.md), 1:1 übernommen.
  */
 export function NetzbetreiberResearchPage({
-  model,
+  nb,
   karteSummary,
   geoJson,
   kern,
 }: {
-  model: BessNetzbetreiberBundle;
+  nb: NetzbetreiberClientDaten;
   karteSummary: Karte3dSummary;
   geoJson: BundeslaenderGeoJson;
   kern: KarteKernzahlen;
 }) {
-  const manifest = model.manifest as ManifestShape;
-
-  const stichtagRaw = karteSummary.meta.stichtag ?? manifest.stichtagMastr ?? "";
+  const stichtagRaw = karteSummary.meta.stichtag ?? nb.stichtagMastr ?? "";
   const stichtagDe = /^\d{4}-\d{2}-\d{2}$/.test(stichtagRaw)
     ? stichtagRaw.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$3.$2.$1")
     : stichtagRaw;
@@ -71,23 +68,7 @@ export function NetzbetreiberResearchPage({
     return { gesamt, offshore, offshoreTeile };
   }, [karteSummary.bundeslaender]);
 
-  const eeStock = model.eeStockBundeslaender;
-  const g5Data = useMemo(() => {
-    const nettoByBl = new Map(
-      karteSummary.bundeslaender.map((b) => [b.bundesland, b.nettoMw]),
-    );
-    return eeStock.map((r) => ({
-      bundesland: r.bundesland,
-      wind: r.windOnshoreGw,
-      pv: r.pvGw,
-      bessNettoMw: nettoByBl.get(r.bundesland) ?? 0,
-    }));
-  }, [eeStock, karteSummary.bundeslaender]);
-
-  const zubau25 = kern.zubauJahre.find((z) => z.jahr === 2025)?.nettoMw ?? 0;
-  const zubau26 = kern.zubauJahre.find((z) => z.jahr === 2026)?.nettoMw ?? 0;
   const pct = (v: number) => insertDisplayUnitNbsp(formatQuantityUnit(Math.round(v), "de", 0, "%"));
-  const gw = (mw: number) => insertDisplayUnitNbsp(formatQuantityUnit(mw / 1000, "de", 2, "GW"));
 
   const heroZahlBlock = (
     <div className={styles.heroZahlRow}>
@@ -128,34 +109,38 @@ export function NetzbetreiberResearchPage({
             Was die Karte zeigt
           </h2>
         </div>
-        <div className={`v4-content ${styles.kernGrid}`} data-entwurf="speicherpilot-freigabe-offen">
+        <div className={`v4-content ${styles.kernGrid}`}>
           <article className={styles.kernItem} aria-labelledby="kern-redispatch">
             <h3 id="kern-redispatch" className={styles.kernTitle}>
               Speicher stehen nicht dort, wo am meisten abgeregelt wird
             </h3>
             <p className={styles.kernText}>
-              Beim EE-Redispatch regelt der Netzbetreiber Wind- und Solaranlagen ab, weil eine Leitung voll ist,
-              nicht weil insgesamt zu viel Strom da ist. Ein Speicher hilft dabei nur, wenn er vor dem Engpass
-              steht und genau dann lädt, wenn sonst abgeregelt würde. Großspeicher fahren heute aber nach dem
-              Börsenpreis, der in ganz Deutschland gleich ist, und sehen den Engpass nicht. Entsprechend gibt es
-              je Land keinen Zusammenhang zwischen Speicher und Abregelung (Rangkorrelation −0,02).
+              Beim EE-Redispatch regelt der Netzbetreiber vor allem Wind- und Solaranlagen ab, weil sonst eine
+              Leitung oder ein Umspannwerk überlastet würde. Zu viel Strom insgesamt braucht es dafür nicht. Ein
+              Speicher entlastet nur, wenn er vor dem Engpass steht, also auf der Seite mit dem Überschuss, und
+              genau dann lädt. Großspeicher fahren heute vor allem nach Börsen- und Regelenergiepreisen. Die
+              gelten in ganz Deutschland gleich und kennen keinen Netzengpass.
+            </p>
+            <p className={styles.kernText}>
+              Brandenburg, Bayern und Schleswig-Holstein regeln je GW Wind und PV am meisten ab und haben je GW
+              18 bis 26{"\u00a0"}MW Speicher. Sachsen und Sachsen-Anhalt regeln wenig ab und haben 44 bis 54
+              {"\u00a0"}MW. Je Land zeigt sich kein Zusammenhang.
             </p>
             <p className={`${styles.kernSmall} num`}>
-              Speicher-MW je GW Wind+PV gegen Abregelung ohne Wind Offshore je GW, 14 Länder, BMWE 2025. Die
-              Länderebene ist grob, Engpässe sitzen an einzelnen Netzknoten. Die Standortwahl folgt heute
-              Netzanschluss und Markt, nicht der Abregelung.
+              {K4_SATZ} Quellen: BMWE, BT-Drs.{"\u00a0"}21/5933, und BNetzA, EE-Statistik Oktober 2026. Die
+              Länderebene ist grob, Engpässe sitzen an einzelnen Netzknoten. Verglichen wird der Standort 2026
+              mit dem Redispatch 2025, nicht die Fahrweise.
             </p>
           </article>
           <article className={styles.kernItem} aria-labelledby="kern-konzentration">
             <p className={`${styles.kernZahl} num`}>{pct(kern.topAnteilPct)}</p>
             <h3 id="kern-konzentration" className={styles.kernTitle}>
-              {kern.topLokationen} Lokationen tragen fast die Hälfte
+              55 Lokationen tragen fast die Hälfte
             </h3>
             <p className={styles.kernText}>
-              {kern.topLokationen} der {formatQuantity(kern.lokationen, "de", 0)} Lokationen, also jede zehnte,
-              haben zusammen {pct(kern.topAnteilPct)} der Nettoleistung (je mindestens{" "}
-              {insertDisplayUnitNbsp(formatQuantityUnit(Math.floor(kern.topMinMw), "de", 0, "MW"))}). Die übrigen{" "}
-              {formatQuantity(kern.lokationen - kern.topLokationen, "de", 0)} teilen sich den Rest.
+              55 der 550 Lokationen, also jede zehnte, vereinen 48{"\u00a0"}% der Nettoleistung. Jede davon hat
+              mindestens 17{"\u00a0"}MW, die größte, Westfalen{"\u00a0"}1, allein 140{"\u00a0"}MW. Die übrigen 495
+              teilen sich den Rest.
             </p>
           </article>
           <article className={styles.kernItem} aria-labelledby="kern-zubau">
@@ -164,8 +149,9 @@ export function NetzbetreiberResearchPage({
               Der Bestand ist jung
             </h3>
             <p className={styles.kernText}>
-              {pct(kern.zubauAnteilPct)} der heutigen Nettoleistung gingen erst 2025 und 2026 in Betrieb:{" "}
-              {gw(zubau25)} 2025 und {gw(zubau26)} 2026 bis zum {stichtagDe.replace(/\.\d{4}$/, ".")}
+              62{"\u00a0"}% der heutigen Nettoleistung gingen erst 2025 und 2026 in Betrieb: 0,82{"\u00a0"}GW
+              2025 und 2,05{"\u00a0"}GW 2026 bis zum 24.11. Den größten Teil der Einträge aus 2026 hat der
+              Netzbetreiber im Register noch nicht geprüft, Nachmeldungen kommen dazu.
             </p>
           </article>
         </div>
@@ -186,7 +172,7 @@ export function NetzbetreiberResearchPage({
             </h2>
             <NetzbetreiberBlBessBars rows={blNettoRows} />
             <p className="v4-subline num">
-              EE-Redispatch 2025 laut BMWE (Hover auf dem Ländernamen): gesamt{" "}
+              EE-Redispatch 2025 laut BMWE (Werte je Land in der Karte unter Zweite Ebene): gesamt{" "}
               {insertDisplayUnitNbsp(formatQuantityUnit(abregSumme.gesamt, "de", 2, "GWh"))} inkl.{" "}
               {insertDisplayUnitNbsp(formatQuantityUnit(abregSumme.offshore, "de", 2, "GWh"))} Wind Offshore (
               {abregSumme.offshoreTeile
@@ -211,7 +197,7 @@ export function NetzbetreiberResearchPage({
               netto). ÜNB in Betrieb brutto{" "}
               {insertDisplayUnitNbsp(
                 formatQuantityUnit(
-                  model.uenbEbene.inBetriebBruttoGw,
+                  nb.uenbEbene.inBetriebBruttoGw,
                   "de",
                   2,
                   "GW",
@@ -220,28 +206,19 @@ export function NetzbetreiberResearchPage({
               , netto{" "}
               {insertDisplayUnitNbsp(
                 formatQuantityUnit(
-                  model.uenbEbene.inBetriebNettoGw ?? 0,
+                  nb.uenbEbene.inBetriebNettoGw ?? 0,
                   "de",
                   2,
                   "GW",
                 ),
-              )}{" "}
-              — siehe{" "}
+              )}
+              . Mehr in der{" "}
               <Link href="/methodik#bess-netzbetreiber" className="v4-text-link">
                 Methodik
               </Link>
               .
             </p>
           </section>
-          {eeStock.length > 0 ? (
-            <section aria-labelledby="g5-more">
-              <p className="v4-chapter-num num">Erneuerbare &amp; BESS</p>
-              <h2 id="g5-more" className="v4-chapter-h2">
-                BESS-Nettoleistung je Bundesland (MaStR)
-              </h2>
-              <NetzbetreiberEeStockBars rows={g5Data} />
-            </section>
-          ) : null}
         </div>
       </details>
 

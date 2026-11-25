@@ -11,7 +11,7 @@ export const bessSiteSchema = z.object({
   landkreis: z.string(),
   bundesland: z.string(),
   vnbDominant: z.string(),
-  operatorClass: z.enum(["eon", "uenb", "vnb"]),
+  operatorClass: z.enum(["uenb", "vnb"]),
   vnbBucketKey: z.string(),
   vnbBucketLabel: z.string(),
 });
@@ -126,99 +126,6 @@ export const bessNetzbetreiberBundleSchema = z.object({
         url: z.string(),
       }),
     )
-    .optional(),
-  growthEonKern: z
-    .record(
-      z.string(),
-      z.object({
-        vor2026Mw: z.number(),
-        y2026Mw: z.number(),
-        vor2026NettoMw: z.number().optional(),
-        y2026NettoMw: z.number().optional(),
-      }),
-    )
-    .optional(),
-  headlineStats: z
-    .object({
-      eonWithMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      eonWithoutMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      mitnetzOnly: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-      }),
-      zubau2026: z.object({
-        allBruttoMw: z.number(),
-        eonWithMitnetzBruttoMw: z.number(),
-        eonWithoutMitnetzBruttoMw: z.number(),
-        eonSharePct: z.number(),
-        eonSharePctWithoutMitnetz: z.number(),
-        allNettoMw: z.number().optional(),
-        eonWithMitnetzNettoMw: z.number().optional(),
-        eonWithoutMitnetzNettoMw: z.number().optional(),
-        eonSharePctNetto: z.number().optional(),
-        eonSharePctWithoutMitnetzNetto: z.number().optional(),
-      }),
-      bySnb: z.record(
-        z.string(),
-        z.object({
-          units: z.number(),
-          bruttoMw: z.number(),
-          nettoMw: z.number(),
-        }),
-      ),
-    })
-    .optional(),
-  headlineStatsQualityFiltered: z
-    .object({
-      eonWithMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      eonWithoutMitnetz: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-        sharePctTotal: z.number(),
-      }),
-      mitnetzOnly: z.object({
-        units: z.number(),
-        bruttoMw: z.number(),
-        nettoMw: z.number(),
-      }),
-      zubau2026: z.object({
-        allBruttoMw: z.number(),
-        eonWithMitnetzBruttoMw: z.number(),
-        eonWithoutMitnetzBruttoMw: z.number(),
-        eonSharePct: z.number(),
-        eonSharePctWithoutMitnetz: z.number(),
-        allNettoMw: z.number().optional(),
-        eonWithMitnetzNettoMw: z.number().optional(),
-        eonWithoutMitnetzNettoMw: z.number().optional(),
-        eonSharePctNetto: z.number().optional(),
-        eonSharePctWithoutMitnetzNetto: z.number().optional(),
-      }),
-      bySnb: z.record(
-        z.string(),
-        z.object({
-          units: z.number(),
-          bruttoMw: z.number(),
-          nettoMw: z.number(),
-        }),
-      ),
-    })
     .optional(),
 });
 
