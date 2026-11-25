@@ -8,19 +8,21 @@ import {
   type NationalFleetRunSeries,
   type NationalFleetStrategyUi,
 } from "@/lib/nationalMonthFleetModel";
-import { loadNationalFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
+import { loadTagFleetRunSeries, nationalFleetContext, type TagFleetRunSource } from "@/lib/nationalMonthFleetModel.server";
 
 export function NationalFleetTagSlot({
   dayKey,
   factor,
   strategy,
   preloadedRun,
+  preloadedSource,
   isStartSurface = false,
 }: {
   dayKey: string;
   factor: NationalFleetFactor;
   strategy: NationalFleetStrategyUi;
   preloadedRun?: NationalFleetRunSeries;
+  preloadedSource?: TagFleetRunSource;
   isStartSurface?: boolean;
 }) {
   if (!nationalFleetMonthAvailable(dayKey.slice(0, 7))) {
@@ -28,7 +30,10 @@ export function NationalFleetTagSlot({
   }
   const monthKey = dayKey.slice(0, 7);
   const bundle = nationalFleetContext(factor, strategy, { monthKey, dayKey });
-  const run = preloadedRun ?? loadNationalFleetRunSeries(factor, strategy, { monthKey, dayKey });
+  const loaded = preloadedRun
+    ? { run: preloadedRun, source: preloadedSource ?? "day" }
+    : loadTagFleetRunSeries(factor, strategy, { monthKey, dayKey });
+  const run = loaded.run;
   const slice = sliceFleetDay(run, dayKey);
   if (!slice) {
     return null;
@@ -43,6 +48,8 @@ export function NationalFleetTagSlot({
       run={run}
       slice={slice}
       monthStats={monthStats}
+      isolatedDayHorizon={loaded.source !== "month"}
+      runSource={loaded.source}
       isStartSurface={isStartSurface}
     />
   );

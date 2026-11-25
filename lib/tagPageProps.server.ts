@@ -18,7 +18,7 @@ import {
   NATIONAL_FLEET_DISPLAY_ENERGY_GWH,
   NATIONAL_FLEET_DISPLAY_POWER_GW,
 } from "@/lib/nationalFleetDisplay";
-import { loadNationalFleetRunSeries, nationalFleetContext, nationalFleetIsolatedDayAvailable } from "@/lib/nationalMonthFleetModel.server";
+import { loadTagFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
 import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
@@ -45,13 +45,15 @@ export type CompleteTagPageModel = {
     dayKey: string;
     factor: ReturnType<typeof parseFleetFactor>;
     strategy: NationalFleetStrategyUi;
-    run: NonNullable<ReturnType<typeof loadNationalFleetRunSeries>>;
+    run: NonNullable<ReturnType<typeof loadTagFleetRunSeries>>["run"];
+    runSource: NonNullable<ReturnType<typeof loadTagFleetRunSeries>>["source"];
     slice: NonNullable<ReturnType<typeof sliceFleetDay>>;
     monthStats: ReturnType<typeof monthStatsForRun>;
     showPeakWithoutSurplus: boolean;
     isolatedDayHorizon: boolean;
   } | null;
-  fleetRun: ReturnType<typeof loadNationalFleetRunSeries> | null;
+  fleetRun: ReturnType<typeof loadTagFleetRunSeries>["run"] | null;
+  fleetRunSource: ReturnType<typeof loadTagFleetRunSeries>["source"] | null;
   fleetSlice: ReturnType<typeof sliceFleetDay> | null;
   leitfrage: string;
   isStartSurface: boolean;
@@ -93,9 +95,11 @@ export async function loadCompleteTagPageModel(
   const fleetStrategy = parseFleetStrategy(query.fahrweise);
   const fleetMonthKey = nationalFleetMonthKeyForDay(datum);
   const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
-  const fleetRun = fleetMonth
-    ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey: datum })
+  const fleetLoaded = fleetMonth
+    ? loadTagFleetRunSeries(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey: datum })
     : null;
+  const fleetRun = fleetLoaded?.run ?? null;
+  const fleetRunSource = fleetLoaded?.source ?? null;
   const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, datum) : null;
 
   const leitfrage = opts.isStartSurface
@@ -144,10 +148,12 @@ export async function loadCompleteTagPageModel(
             ),
             showPeakWithoutSurplus:
               fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
-            isolatedDayHorizon: nationalFleetIsolatedDayAvailable(fleetMonthKey, datum),
+            runSource: fleetRunSource ?? "month",
+            isolatedDayHorizon: fleetRunSource != null && fleetRunSource !== "month",
           }
         : null,
     fleetRun,
+    fleetRunSource,
     fleetSlice,
     leitfrage,
     isStartSurface: Boolean(opts.isStartSurface),

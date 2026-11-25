@@ -271,23 +271,23 @@ export function formatPeakEffectLine(
   );
 }
 
-/** Tages-Chart: nur Tages-Spitze; Monatswirkung separat. */
+/** Tages-Chart: nur Tagesspitze; Monatswirkung separat. */
 export function formatPeakCaptionDay(peakWithStorageGw: number, reductionDayGw: number, observedPeakGw: number): string {
   const after = formatQuantityUnit(peakWithStorageGw, "de", 2, "GW");
   const obs = formatQuantityUnit(observedPeakGw, "de", 2, "GW");
   if (Math.abs(reductionDayGw) < 0.0005) {
     return unitCopy(
-      `Tages-Spitze Restlast mit Speicher: ${after} (beobachtete Restlast am Tag: ${obs} — ohne nennenswerte Tages-Senkung)`,
+      `Tagesspitze Restlast mit Speicher: ${after} (beobachtete Restlast am Tag: ${obs} — ohne nennenswerte Tages-Senkung)`,
     );
   }
   const delta = formatQuantityUnit(Math.abs(reductionDayGw), "de", 2, "GW");
   if (reductionDayGw >= 0) {
     return unitCopy(
-      `Tages-Spitze Restlast mit Speicher: ${after} (beobachtet am Tag: ${obs}, Tages-Senkung ${delta})`,
+      `Tagesspitze Restlast mit Speicher: ${after} (beobachtet am Tag: ${obs}, Tages-Senkung ${delta})`,
     );
   }
   return unitCopy(
-    `Tages-Spitze Restlast mit Speicher: ${after} (beobachtet am Tag: ${obs}, am Tag ${delta} höher)`,
+    `Tagesspitze Restlast mit Speicher: ${after} (beobachtet am Tag: ${obs}, am Tag ${delta} höher)`,
   );
 }
 
@@ -335,13 +335,13 @@ export function formatTagDayPeakHeadline(
   const pct = formatQuantity(Math.abs(reductionPct), "de", 1);
   if (reductionGw >= 0.0005) {
     const delta = formatQuantity(Math.abs(reductionGw), "de", 2);
-    return `Tages-Spitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (−${delta}${TAG_DAY_PEAK_NBSP}GW, −${pct}${TAG_DAY_PEAK_NBSP}%)`;
+    return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (−${delta}${TAG_DAY_PEAK_NBSP}GW, −${pct}${TAG_DAY_PEAK_NBSP}%)`;
   }
   if (reductionGw <= -0.0005) {
     const delta = formatQuantity(Math.abs(reductionGw), "de", 2);
-    return `Tages-Spitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (+${delta}${TAG_DAY_PEAK_NBSP}GW, +${pct}${TAG_DAY_PEAK_NBSP}%)`;
+    return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (+${delta}${TAG_DAY_PEAK_NBSP}GW, +${pct}${TAG_DAY_PEAK_NBSP}%)`;
   }
-  return `Tages-Spitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (ohne nennenswerte Tages-Senkung)`;
+  return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (ohne nennenswerte Tages-Senkung)`;
 }
 
 export type FleetChartTick = { index: number; label: string; align?: "start" | "end" };

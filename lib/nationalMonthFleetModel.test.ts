@@ -113,8 +113,8 @@ describe("nationalMonthFleetModel Run9 bundle", () => {
 });
 
 describe("parseTagFleetFactor", () => {
-  it("öffnet die Tag-Seite ohne Parameter und mit ?faktor=1 bei ×1", () => {
-    expect(parseTagFleetFactor(undefined)).toBe(1);
+  it("öffnet die Tag-Seite ohne Parameter bei der Referenzflotte (Stufe ×2)", () => {
+    expect(parseTagFleetFactor(undefined)).toBe(2);
     expect(parseTagFleetFactor("1")).toBe(1);
     expect(parseTagFleetFactor("2")).toBe(2);
     expect(parseTagFleetFactor("5")).toBe(5);

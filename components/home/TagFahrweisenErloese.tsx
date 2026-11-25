@@ -3,10 +3,11 @@ import Link from "next/link";
 import { formatThroughputLine, formatTagRevenueDelta, formatTagRevenueEur, loadTagFahrweisenErloese, missingRevenueHint } from "@/lib/tagFahrweisenErloese";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { fleetTagHref } from "@/lib/nationalMonthFleetModel";
+import { REFERENCE_FLEET_REPO_FACTOR } from "@/lib/auffaelligkeitWoche";
 
 /**
- * Nur ×1: Tageserlöse der drei Fahrweisen plus Differenz Spitze minus Markt.
- * Zahlen kommen ausschließlich aus dayAheadRevenueEur; fehlen sie, kein Schätzwert.
+ * Referenzflotte (Repo-Stufe ×2): Tageserlöse der drei Fahrweisen plus Differenz Spitze minus Markt.
+ * Zahlen und Durchsatz kommen ausschließlich aus data/auffaelligkeit-woche/tage/{datum}.json.
  */
 export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
   const view = loadTagFahrweisenErloese(dayKey);
@@ -15,18 +16,19 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
 
   return (
     <div className="v4-content v4-tag-erloese">
-      <h3 className="v4-tag-erloese-title">Day-Ahead-Erlöse ×1</h3>
+      <h3 className="v4-tag-erloese-title">Day-Ahead-Erlöse der Referenzflotte</h3>
       <p className="v4-tag-erloese-lead">
-        Modellschätzung, Preisnehmer, nur Stufe ×1, nicht auf ×2/×5/×10 hochgerechnet.{" "}
+        Modellschätzung, Preisnehmer, eine Referenzflotte (auf dieser Seite Stufe ×{REFERENCE_FLEET_REPO_FACTOR}), nicht
+        auf ×5/×10 hochgerechnet. Quelle: Schema auffaelligkeit-woche/1. Spitzen-Fahrweise: min. Tagesspitze, danach
+        max. Erlös.{" "}
         {view.isolatedDayHorizon
           ? "Isolierter Tageshorizont (Start-SoC gleich End-SoC)."
-          : "Es liegt noch kein isolierter Tageshorizont vor; die Erlöse gehören trotzdem nur in das Feld dayAheadRevenueEur der ×1-Tagesdateien."}{" "}
-        Round-Trip-Wirkungsgrad der Rechnung: 85{"\u00a0"}% (AC zu AC, Methodik). Ob der Erlös die Verluste
-        bereits enthält, gehört an das Feld dayAheadRevenueEur.
+          : "Für diesen Tag liegt noch keine Wochen-Datei vor."}{" "}
+        Round-Trip-Wirkungsgrad der Rechnung: 85{"\u00a0"}%.
       </p>
       <div className="v4-fleet-day-table-scroll">
         <table className="v4-fleet-day-table num">
-          <caption>Referenzflotte ×1 · {view.dayKey}</caption>
+          <caption>Referenzflotte · {view.dayKey}</caption>
           <thead>
             <tr>
               <th scope="col">Fahrweise</th>
@@ -47,7 +49,7 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
       </div>
       <p className="v4-tag-erloese-delta">
         Differenz Spitze minus Markt:{" "}
-        {delta ?? `steht aus (beide Werte in ${view.revenueField} nötig)`}
+        {delta ?? "steht aus (beide Werte in der Wochen-Datei nötig)"}
       </p>
       {missing ? <p className="v4-tag-erloese-missing">{missing}</p> : null}
     </div>
@@ -57,11 +59,11 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
 export function TagFahrweisenErloeseHint({ dayKey }: { dayKey: string }) {
   return (
     <p className="v4-content v4-tag-erloese-hint">
-      Day-Ahead-Erlöse der drei Fahrweisen stehen nur in der{" "}
-      <Link href={fleetTagHref(dayKey, 1, "spitze")} className="v4-text-link">
-        ×1-Ansicht
+      Day-Ahead-Erlöse der drei Fahrweisen stehen nur für die Referenzflotte (Stufe{" "}
+      <Link href={fleetTagHref(dayKey, REFERENCE_FLEET_REPO_FACTOR, "spitze")} className="v4-text-link">
+        ×{REFERENCE_FLEET_REPO_FACTOR}
       </Link>
-      , nicht linear hochgerechnet.
+      ), nicht linear hochgerechnet.
     </p>
   );
 }

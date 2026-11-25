@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
+import { REFERENCE_FLEET_REPO_FACTOR } from "@/lib/auffaelligkeitWoche";
+import { auffaelligkeitWocheAvailable, loadWocheFleetRunSeries } from "@/lib/auffaelligkeitWoche.server";
 import {
   NATIONAL_FLEET_MONTH_KEY,
   runKey,
@@ -106,6 +108,62 @@ export function loadNationalFleetRunSeries(
   const run = JSON.parse(readFileSync(path, "utf8")) as NationalFleetRunSeries;
   runCache.set(cacheId, run);
   return run;
+}
+
+export type TagFleetRunSource = "woche" | "day" | "month";
+
+export type TagFleetRunLoad = {
+  run: NationalFleetRunSeries;
+  source: TagFleetRunSource;
+};
+
+/**
+ * Tag-Seite und Chart-API: Referenzflotte (Stufe ×2) nimmt den lexikografischen
+ * Fahrplan aus data/auffaelligkeit-woche/tage/{datum}.json, wenn vorhanden.
+ * Sonst Tagesdatei, sonst Monatslauf (source = "month", sichtbar markieren).
+ */
+export function loadTagFleetRunSeries(
+  factor: NationalFleetFactor,
+  strategy: NationalFleetStrategyUi,
+  opts: { monthKey: string; dayKey: string },
+): TagFleetRunLoad {
+  const { monthKey, dayKey } = opts;
+  if (factor === REFERENCE_FLEET_REPO_FACTOR) {
+    const cacheId = `${monthKey}:${dayKey}:woche:${strategy}`;
+    const hit = runCache.get(cacheId);
+    if (hit) {
+      return { run: hit, source: "woche" };
+    }
+    const woche = loadWocheFleetRunSeries(dayKey, strategy);
+    if (woche) {
+      runCache.set(cacheId, woche);
+      return { run: woche, source: "woche" };
+    }
+  }
+
+  const key = runKey(factor, strategy);
+  const dayPath = join(fleetMonthRoot(monthKey), "days", dayKey, `${key}.json`);
+  if (existsSync(dayPath)) {
+    const run = normalizeFleetRun(JSON.parse(readFileSync(dayPath, "utf8")) as Record<string, unknown>);
+    return { run, source: "day" };
+  }
+
+  const path = join(fleetMonthRoot(monthKey), "runs", `${key}.json`);
+  const run = JSON.parse(readFileSync(path, "utf8")) as NationalFleetRunSeries;
+  return { run, source: "month" };
+}
+
+export function tagIsolierterTageshorizont(factor: NationalFleetFactor, dayKey: string): boolean {
+  if (factor === REFERENCE_FLEET_REPO_FACTOR && auffaelligkeitWocheAvailable(dayKey)) {
+    return true;
+  }
+  const monthKey = dayKey.slice(0, 7);
+  const dayPath = join(fleetMonthRoot(monthKey), "days", dayKey, `${runKey(factor, "spitze")}.json`);
+  if (!existsSync(dayPath)) {
+    return false;
+  }
+  const raw = JSON.parse(readFileSync(dayPath, "utf8")) as { horizon?: string };
+  return raw.horizon === "day";
 }
 
 /** Parity / tests: assemble all shards (cold ~12× single-run read). */

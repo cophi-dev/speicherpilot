@@ -11,7 +11,6 @@ import {
   missingRevenueHint,
   peakMinusMarketPct,
 } from "@/lib/tagFahrweisenErloese";
-import { TAG_DAY_AHEAD_REVENUE_FIELD } from "@/lib/nationalMonthFleetModel.server";
 
 describe("tagFahrweisenErloese", () => {
   it("rechnet die Differenz Spitze minus Markt in Euro und Prozent", () => {
@@ -20,30 +19,34 @@ describe("tagFahrweisenErloese", () => {
     expect(peakMinusMarketPct(10, 0)).toBeNull();
   });
 
-  it("bindet den Erlös an dayAheadRevenueEur in der ×1-Tagesdatei", () => {
-    const path = dayAheadRevenueSourcePath("2026-11-23", "spitze");
-    expect(path).toBe(
-      "data/national-fleet/2026-11/days/2026-11-23/x1_min_peak_perfect_foresight.json",
-    );
-    expect(TAG_DAY_AHEAD_REVENUE_FIELD).toBe("dayAheadRevenueEur");
+  it("nimmt Euro und Durchsatz nur aus der Wochen-Datei", () => {
+    const path = dayAheadRevenueSourcePath("2026-11-24");
+    expect(path).toBe("data/auffaelligkeit-woche/tage/2026-11-24.json");
     expect(existsSync(path)).toBe(true);
-  });
-
-  it("erfindet keine Euro, wenn das Feld fehlt", () => {
-    const view = loadTagFahrweisenErloese("2026-11-23");
+    const view = loadTagFahrweisenErloese("2026-11-24");
     expect(view.isolatedDayHorizon).toBe(true);
     expect(view.rows).toHaveLength(3);
+    const spitze = view.rows.find((r) => r.strategy === "spitze");
+    const markt = view.rows.find((r) => r.strategy === "markt");
+    const ueb = view.rows.find((r) => r.strategy === "ueberschuss");
+    expect(spitze?.revenueEur).toBeCloseTo(920502.03, 2);
+    expect(markt?.revenueEur).toBeCloseTo(964694.89, 2);
+    expect(ueb?.revenueEur).toBe(0);
+    expect(view.peakMinusMarketEur).toBeCloseTo(-44192.86, 2);
+    expect(view.peakMinusMarketPct).toBeCloseTo(-4.58, 2);
+    expect(spitze?.chargeGwh).toBeCloseTo(14.1481, 3);
+    expect(missingRevenueHint(view)).toBe("");
+  });
+
+  it("erfindet keine Euro, wenn die Wochen-Datei fehlt", () => {
+    const view = loadTagFahrweisenErloese("2026-11-01");
+    expect(view.isolatedDayHorizon).toBe(false);
     expect(view.rows.every((row) => row.revenueEur == null)).toBe(true);
     expect(view.peakMinusMarketEur).toBeNull();
-    expect(view.peakMinusMarketPct).toBeNull();
     const hint = missingRevenueHint(view);
-    expect(hint).toContain("dayAheadRevenueEur");
-    expect(hint).toContain("x1_min_peak_perfect_foresight.json");
-    expect(hint).toContain("x1_price_oriented_da_arbitrage.json");
-    expect(hint).toContain("x1_surplus_wind_solar_over_load.json");
+    expect(hint).toContain("data/auffaelligkeit-woche/tage/2026-11-01.json");
+    expect(hint).toContain("auffaelligkeit-woche/1");
     expect(hint).toMatch(/Keine selbst gerechneten Euro/);
-    expect(view.rows[0]?.chargeGwh).not.toBeNull();
-    expect(view.rows[0]?.dischargeGwh).not.toBeNull();
   });
 
   it("setzt geschütztes Leerzeichen vor dem Euro-Zeichen", () => {

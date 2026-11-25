@@ -27,11 +27,12 @@ import {
 import {
   NATIONAL_REFERENCE_FLEET_ENERGY_GWH,
   NATIONAL_REFERENCE_FLEET_POWER_GW,
+  NATIONAL_REFERENCE_FLEET_USABLE_ENERGY_GWH,
 } from "@/lib/nationalFleetReference";
-import { loadNationalFleetRunSeries } from "@/lib/nationalMonthFleetModel.server";
+import { loadNationalFleetRunSeries, type TagFleetRunSource } from "@/lib/nationalMonthFleetModel.server";
 import { FleetScenarioLink } from "@/components/home/FleetScenarioLink";
 import { TagFahrweisenErloese, TagFahrweisenErloeseHint } from "@/components/home/TagFahrweisenErloese";
-import { nationalFleetIsolatedDayAvailable } from "@/lib/nationalMonthFleetModel.server";
+import { REFERENCE_FLEET_REPO_FACTOR } from "@/lib/auffaelligkeitWoche";
 
 function saturationSlices(dayKey: string): {
   x1: NationalFleetDaySlice | null;
@@ -53,6 +54,8 @@ export function NationalFleetDayChapter({
   strategy,
   slice,
   monthStats,
+  isolatedDayHorizon,
+  runSource,
   isStartSurface = false,
 }: {
   dayKey: string;
@@ -61,6 +64,8 @@ export function NationalFleetDayChapter({
   run: NationalFleetRunSeries;
   slice: NationalFleetDaySlice;
   monthStats: NationalFleetMonthStats;
+  isolatedDayHorizon: boolean;
+  runSource?: TagFleetRunSource;
   isStartSurface?: boolean;
 }) {
   const scenarioHref = (f: NationalFleetFactor, s: NationalFleetStrategyUi) =>
@@ -76,7 +81,6 @@ export function NationalFleetDayChapter({
     dayPeakKpi.reductionPct,
   );
   const monthKey = nationalFleetMonthKeyForDay(dayKey);
-  const isolatedDayHorizon = nationalFleetIsolatedDayAvailable(monthKey, dayKey);
   const { x1, x5, x10 } = saturationSlices(dayKey);
   const showSaturation = shouldShowFleetSaturationHint(x1, x5, x10);
 
@@ -124,23 +128,39 @@ export function NationalFleetDayChapter({
             ))}
           </div>
           <p className="v4-fleet-strategy-copy">
-            {strategy === "spitze"
-              ? "Lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
-              : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
+            {!isolatedDayHorizon
+              ? "Monatslauf-Ausschnitt — kein isolierter Tageshorizont (SoC ohne Tages-Reset)."
+              : strategy === "spitze" && runSource === "woche"
+                ? "Min. Tagesspitze der Restlast, danach max. Day-Ahead-Erlös (volle Voraussicht). Ort und Knoten rechnet das Modell nicht."
+                : strategy === "spitze"
+                  ? "Lädt, wenn Platz ist, und entlädt so, dass die höchste bundesweite Restlast im Zeitraum möglichst niedrig wird (volle Voraussicht); Ort und Knoten rechnet das Modell nicht."
+                  : `${NATIONAL_FLEET_STRATEGY_UI[strategy].labelDe} (Tageshorizont).`}
           </p>
           <p className="v4-fleet-energy-context">
-            Referenzflotte ×1:{" "}
+            Referenzflotte:{" "}
             <span className="num">
               {formatQuantity(NATIONAL_REFERENCE_FLEET_POWER_GW, "de", 2)}
-              {"\u00a0"}GW · {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)}
+              {"\u00a0"}GW · {formatQuantity(NATIONAL_REFERENCE_FLEET_USABLE_ENERGY_GWH, "de", 2)}
               {"\u00a0"}GWh
             </span>{" "}
-            nutzbare Energie
+            nutzbare Energie (SoC 10–90{"\u00a0"}% von {formatQuantity(NATIONAL_REFERENCE_FLEET_ENERGY_GWH, "de", 2)}
+            {"\u00a0"}GWh Nennenergie)
           </p>
         </fieldset>
       </div>
 
-      {factor === 1 ? <TagFahrweisenErloese dayKey={dayKey} /> : <TagFahrweisenErloeseHint dayKey={dayKey} />}
+      {!isolatedDayHorizon ? (
+        <p className="v4-content v4-tag-monat-fallback">
+          Kein isolierter Tageshorizont für diesen Tag. Die Kurve ist ein Ausschnitt des Monatslaufs (SoC ohne
+          Tages-Reset).
+        </p>
+      ) : null}
+
+      {factor === REFERENCE_FLEET_REPO_FACTOR ? (
+        <TagFahrweisenErloese dayKey={dayKey} />
+      ) : (
+        <TagFahrweisenErloeseHint dayKey={dayKey} />
+      )}
 
       <NationalFleetTimeSeriesChart
         monthKey={monthKey}
@@ -156,7 +176,7 @@ export function NationalFleetDayChapter({
           monthStats.peakReductionGw,
           monthStats.peakReductionPct,
         )}
-        scrollHint={`Tageshorizont · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
+        scrollHint={`${isolatedDayHorizon ? "Tageshorizont" : "Monatslauf"} · ${slice.indices.length} Viertelstunden · ${formatBerlinDayLabel(dayKey)}`}
         tagesvorlageDay
         dayNoWindSolarSurplus={slice.positiveSurplusQuarterHours === 0}
       />

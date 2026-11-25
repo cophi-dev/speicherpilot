@@ -13,6 +13,7 @@ import {
 } from "@/lib/nationalMonthFleetModel";
 import {
   loadNationalFleetRunSeries,
+  loadTagFleetRunSeries,
 } from "@/lib/nationalMonthFleetModel.server";
 
 export const runtime = "nodejs";
@@ -29,7 +30,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Kein Modellmonat" }, { status: 404 });
   }
 
-  const run = loadNationalFleetRunSeries(factor, strategy, { monthKey, dayKey: dateKey ?? undefined });
+  const run = dateKey
+    ? loadTagFleetRunSeries(factor, strategy, { monthKey, dayKey: dateKey }).run
+    : loadNationalFleetRunSeries(factor, strategy, { monthKey, dayKey: dateKey ?? undefined });
   const compareRun =
     factor !== 1
       ? loadNationalFleetRunSeries(1, strategy, { monthKey, dayKey: dateKey ?? undefined })

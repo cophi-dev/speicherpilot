@@ -1,16 +1,11 @@
-import { formatDeEur, formatDeGwh, formatDePercentInt } from "@/lib/displayUnitFormat";
+import { formatDeEur, formatDeGwh } from "@/lib/displayUnitFormat";
+import { formatQuantity } from "@/lib/formatQuantity";
 import {
-  NATIONAL_FLEET_STRATEGY_UI,
-  sliceFleetDay,
-  type NationalFleetDaySlice,
-  type NationalFleetStrategyUi,
-} from "@/lib/nationalMonthFleetModel";
-import {
-  loadDayAheadRevenueEur,
-  loadNationalFleetRunSeries,
-  nationalFleetIsolatedDayAvailable,
-  TAG_DAY_AHEAD_REVENUE_FIELD,
-} from "@/lib/nationalMonthFleetModel.server";
+  auffaelligkeitWocheRelPath,
+  type AuffaelligkeitWocheTag,
+} from "@/lib/auffaelligkeitWoche";
+import type { NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
+import { loadAuffaelligkeitWocheTag } from "@/lib/auffaelligkeitWoche.server";
 
 export const TAG_FAHRWEISEN_ERLOESE_STRATEGIES: NationalFleetStrategyUi[] = [
   "spitze",
@@ -18,11 +13,12 @@ export const TAG_FAHRWEISEN_ERLOESE_STRATEGIES: NationalFleetStrategyUi[] = [
   "ueberschuss",
 ];
 
+export const TAG_WOCHE_REVENUE_FIELD = "fahrweisen.{spitze|markt|ueberschuss}.erloesEur";
+
 export type TagFahrweiseErloesRow = {
   strategy: NationalFleetStrategyUi;
   labelDe: string;
   revenueEur: number | null;
-  /** Relativer Pfad der ×1-Tagesdatei, in der dayAheadRevenueEur stehen muss. */
   sourceFieldPath: string;
   chargeGwh: number | null;
   dischargeGwh: number | null;
@@ -33,16 +29,16 @@ export type TagFahrweiseErloesRow = {
 export type TagFahrweisenErloeseView = {
   dayKey: string;
   isolatedDayHorizon: boolean;
-  revenueField: typeof TAG_DAY_AHEAD_REVENUE_FIELD;
+  sourcePath: string | null;
+  revenueField: typeof TAG_WOCHE_REVENUE_FIELD;
   rows: TagFahrweiseErloesRow[];
   peakMinusMarketEur: number | null;
   peakMinusMarketPct: number | null;
   missingFieldPaths: string[];
 };
 
-export function dayAheadRevenueSourcePath(dayKey: string, strategy: NationalFleetStrategyUi): string {
-  const file = NATIONAL_FLEET_STRATEGY_UI[strategy].fileKey;
-  return `data/national-fleet/${dayKey.slice(0, 7)}/days/${dayKey}/x1_${file}.json`;
+export function dayAheadRevenueSourcePath(dayKey: string): string {
+  return auffaelligkeitWocheRelPath(dayKey);
 }
 
 export function peakMinusMarketPct(peakEur: number, marketEur: number): number | null {
@@ -52,46 +48,64 @@ export function peakMinusMarketPct(peakEur: number, marketEur: number): number |
   return ((peakEur - marketEur) / Math.abs(marketEur)) * 100;
 }
 
-function sliceOrNull(monthKey: string, dayKey: string, strategy: NationalFleetStrategyUi): NationalFleetDaySlice | null {
-  try {
-    return sliceFleetDay(loadNationalFleetRunSeries(1, strategy, { monthKey, dayKey }), dayKey);
-  } catch {
-    return null;
+function rowFromWoche(
+  dayKey: string,
+  strategy: NationalFleetStrategyUi,
+  doc: AuffaelligkeitWocheTag | null,
+): TagFahrweiseErloesRow {
+  const labelDe = strategy === "spitze" ? "Spitze" : strategy === "markt" ? "Markt" : "Überschuss";
+  const sourceFieldPath = `${dayAheadRevenueSourcePath(dayKey)} · fahrweisen.${strategy}.erloesEur`;
+  if (!doc) {
+    return {
+      strategy,
+      labelDe,
+      revenueEur: null,
+      sourceFieldPath,
+      chargeGwh: null,
+      dischargeGwh: null,
+      throughputLossGwh: null,
+    };
   }
+  const fw = doc.fahrweisen[strategy];
+  const chargeGwh = fw.geladenMwh / 1000;
+  const dischargeGwh = fw.entladenMwh / 1000;
+  return {
+    strategy,
+    labelDe,
+    revenueEur: fw.erloesEur,
+    sourceFieldPath,
+    chargeGwh,
+    dischargeGwh,
+    throughputLossGwh: fw.roundTripVerlustMwh / 1000,
+  };
 }
 
 export function loadTagFahrweisenErloese(dayKey: string): TagFahrweisenErloeseView {
-  const monthKey = dayKey.slice(0, 7);
-  const isolatedDayHorizon = nationalFleetIsolatedDayAvailable(monthKey, dayKey);
-  const rows: TagFahrweiseErloesRow[] = TAG_FAHRWEISEN_ERLOESE_STRATEGIES.map((strategy) => {
-    const slice = sliceOrNull(monthKey, dayKey, strategy);
-    const chargeGwh = slice ? slice.chargeMwh / 1000 : null;
-    const dischargeGwh = slice ? slice.dischargeMwh / 1000 : null;
-    const throughputLossGwh =
-      chargeGwh != null && dischargeGwh != null ? chargeGwh - dischargeGwh : null;
-    const revenueEur = loadDayAheadRevenueEur(monthKey, dayKey, strategy);
-    return {
-      strategy,
-      labelDe: strategy === "spitze" ? "Spitze" : strategy === "markt" ? "Markt" : "Überschuss",
-      revenueEur,
-      sourceFieldPath: dayAheadRevenueSourcePath(dayKey, strategy),
-      chargeGwh,
-      dischargeGwh,
-      throughputLossGwh,
-    };
-  });
+  const doc = loadAuffaelligkeitWocheTag(dayKey);
+  const rows = TAG_FAHRWEISEN_ERLOESE_STRATEGIES.map((strategy) => rowFromWoche(dayKey, strategy, doc));
   const peak = rows.find((r) => r.strategy === "spitze")?.revenueEur ?? null;
   const market = rows.find((r) => r.strategy === "markt")?.revenueEur ?? null;
   const peakMinusMarketEur =
-    peak != null && market != null ? peak - market : null;
+    doc != null
+      ? doc.vergleich.spitzeMinusMarktEur
+      : peak != null && market != null
+        ? peak - market
+        : null;
+  const peakMinusMarketPctValue =
+    doc != null
+      ? doc.vergleich.spitzeMinusMarktProzent
+      : peak != null && market != null
+        ? peakMinusMarketPct(peak, market)
+        : null;
   return {
     dayKey,
-    isolatedDayHorizon,
-    revenueField: TAG_DAY_AHEAD_REVENUE_FIELD,
+    isolatedDayHorizon: doc != null,
+    sourcePath: doc != null ? dayAheadRevenueSourcePath(dayKey) : null,
+    revenueField: TAG_WOCHE_REVENUE_FIELD,
     rows,
     peakMinusMarketEur,
-    peakMinusMarketPct: peak != null && market != null ? peakMinusMarketPct(peak, market) : null,
-    missingFieldPaths: rows.filter((r) => r.revenueEur == null).map((r) => r.sourceFieldPath),
+    peakMinusMarketPct: peakMinusMarketPctValue,
+    missingFieldPaths: doc == null ? [dayAheadRevenueSourcePath(dayKey)] : [],
   };
 }
 
@@ -107,7 +121,8 @@ export function formatTagRevenueDelta(view: TagFahrweisenErloeseView): string | 
   if (view.peakMinusMarketPct == null) {
     return eur;
   }
-  return `${eur} (${formatDePercentInt(view.peakMinusMarketPct)})`;
+  const pct = formatQuantity(view.peakMinusMarketPct, "de", 1) + "\u00a0%";
+  return `${eur} (${pct})`;
 }
 
 export function formatThroughputLine(row: TagFahrweiseErloesRow): string {
@@ -127,5 +142,5 @@ export function missingRevenueHint(view: TagFahrweisenErloeseView): string {
     return "";
   }
   const paths = view.missingFieldPaths.join(", ");
-  return `Day-Ahead-Erlös fehlt. Speicherpilot muss das Zahlenfeld ${view.revenueField} (Modellschätzung, isolierter Tageshorizont, Preisnehmer, ×1, inkl. Angabe ob Round-Trip-Verluste enthalten sind) in ${paths} liefern. Keine selbst gerechneten Euro.`;
+  return `Day-Ahead-Erlös fehlt. Speicherpilot muss die Datei ${paths} (Schema auffaelligkeit-woche/1) mit ${view.revenueField} liefern. Keine selbst gerechneten Euro.`;
 }

@@ -11,6 +11,7 @@ export function Tagesvorlage({ model }: { model: CompleteTagPageModel }) {
         factor={model.fleetFactor}
         strategy={model.fleetStrategy}
         preloadedRun={model.fleetRun}
+        preloadedSource={model.fleetRunSource ?? undefined}
         isStartSurface={model.isStartSurface}
       />
     ) : null;

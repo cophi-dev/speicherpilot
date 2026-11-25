@@ -32,7 +32,7 @@ export type TagFleetSoGerechnetExtra = {
   slice: NationalFleetDaySlice;
   monthStats: NationalFleetMonthStats;
   showPeakWithoutSurplus: boolean;
-  /** True, wenn days/{dayKey} den isolierten Tageshorizont (Start-SoC = End-SoC) liefert. */
+  /** True, wenn der angezeigte Lauf ein isolierter Tageshorizont ist (Woche-JSON oder Tagesdatei). */
   isolatedDayHorizon?: boolean;
 };
 
@@ -207,7 +207,7 @@ export function TagSoGerechnet({
           {fleetExtra.showPeakWithoutSurplus ? (
             <p>
               <strong>Ohne Wind-Solar-Überschuss:</strong> „{NATIONAL_FLEET_STRATEGY_UI[fleetExtra.strategy].shortDe}“ nutzt
-              Netzladung und senkt die Tages-Spitze im Modell.
+              Netzladung und senkt die Tagesspitze im Modell.
             </p>
           ) : null}
           <dl className="v4-fleet-kpis num">

@@ -1,3 +1,11 @@
+# Vorschlag — kann nicht nach .github/workflows/ gepusht werden
+# (cophi-dev Token ohne workflow-Scope).
+#
+# WICHTIG: GitHub-Cron allein reicht nicht (8–11 h Verzug, Stand 18.–24.11.2026).
+# Primärer Auslöser: workflow_dispatch über scripts/national_fleet_nachtlauf_ausloesen.sh
+# vor 06:00 Europe/Berlin (externer Cron / Routine). Die zusätzlichen crons hier
+# sind nur ein Netz, kein Ersatz.
+#
 name: National fleet nachtlauf
 
 on:

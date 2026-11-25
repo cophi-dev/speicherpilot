@@ -10561,6 +10561,14 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
   color: hsl(var(--muted-foreground));
 }
 
+.v4-tag-monat-fallback {
+  margin: 8px 0 0;
+  max-width: 42rem;
+  padding: 8px 12px;
+  border-left: 3px solid hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.5);
+}
+
 
 .v4-fleet-ts-wrap {
   margin-bottom: 24px;

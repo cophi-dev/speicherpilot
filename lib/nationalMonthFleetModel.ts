@@ -95,9 +95,9 @@ export function parseFleetFactor(raw: string | undefined): NationalFleetFactor {
   return NATIONAL_FLEET_DEFAULT_FACTOR;
 }
 
-/** Tag-Seite und Deep-Link: ohne ?faktor= oder mit ?faktor=1 öffnet die ×1-Ansicht. */
+/** Tag-Seite und Deep-Link ohne ?faktor=: Referenzflotte (Repo-Stufe ×2). ×1 ist der Ist ohne Zusatzflotte (0). */
 export function parseTagFleetFactor(raw: string | undefined): NationalFleetFactor {
-  return parseFleetFactor(raw ?? "1");
+  return parseFleetFactor(raw ?? "2");
 }
 
 export function parseFleetStrategy(raw: string | undefined): NationalFleetStrategyUi {

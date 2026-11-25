@@ -29,7 +29,7 @@ import {
   NATIONAL_FLEET_DISPLAY_ENERGY_GWH,
   NATIONAL_FLEET_DISPLAY_POWER_GW,
 } from "@/lib/nationalFleetDisplay";
-import { loadNationalFleetRunSeries, nationalFleetContext, nationalFleetIsolatedDayAvailable } from "@/lib/nationalMonthFleetModel.server";
+import { loadTagFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 import { marktInsightsForLiveTag, marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 
@@ -173,9 +173,11 @@ export default async function TagDetailPage({
   const fleetStrategy = parseFleetStrategy(typeof query.fahrweise === "string" ? query.fahrweise : undefined);
   const fleetMonthKey = dayKey.slice(0, 7);
   const fleetMonth = nationalFleetMonthAvailable(fleetMonthKey);
-  const fleetRun = fleetMonth
-    ? loadNationalFleetRunSeries(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey })
+  const fleetLoaded = fleetMonth
+    ? loadTagFleetRunSeries(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey })
     : null;
+  const fleetRun = fleetLoaded?.run ?? null;
+  const fleetRunSource = fleetLoaded?.source ?? null;
   const fleetSlice = fleetRun ? sliceFleetDay(fleetRun, dayKey) : null;
   const fleetDayNoWindSolarSurplusFlag = fleetDayNoWindSolarSurplus(fleetSlice);
   const fleetSoGerechnet =
@@ -185,6 +187,7 @@ export default async function TagDetailPage({
           factor: fleetFactor,
           strategy: fleetStrategy,
           run: fleetRun,
+          runSource: fleetRunSource ?? "month",
           slice: fleetSlice,
           monthStats: monthStatsForRun(
             nationalFleetContext(fleetFactor, fleetStrategy, { monthKey: fleetMonthKey, dayKey }),
@@ -194,7 +197,7 @@ export default async function TagDetailPage({
           ),
           showPeakWithoutSurplus:
             fleetSlice.positiveSurplusQuarterHours === 0 && fleetSlice.chargeMwh > 1,
-          isolatedDayHorizon: nationalFleetIsolatedDayAvailable(fleetMonthKey, dayKey),
+          isolatedDayHorizon: fleetRunSource != null && fleetRunSource !== "month",
         }
       : null;
   const marktInsights = marktInsightsForRoute({
@@ -237,6 +240,7 @@ export default async function TagDetailPage({
           marktInsights,
           fleetSoGerechnet,
           fleetRun,
+          fleetRunSource,
           fleetSlice,
           leitfrage: `Was hätte mehr Speicher am ${formatBerlinDayLabel(dayKey)} geändert?`,
           isStartSurface: false,
