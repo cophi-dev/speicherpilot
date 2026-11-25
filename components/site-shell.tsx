@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 import { BrandLockup } from "@/components/BrandLockup";
@@ -75,7 +75,7 @@ function mainNavLinkClass(active: boolean) {
 }
 
 function mobileNavLinkClass(active: boolean) {
-  return `inline-flex min-h-11 items-center py-2 focus-visible:ring-2 focus-visible:ring-ring ${
+  return `inline-flex min-h-[44px] min-w-[44px] w-full items-center py-2.5 focus-visible:ring-2 focus-visible:ring-ring ${
     active ? "font-semibold text-[var(--v4-warm-text)]" : "text-foreground"
   }`;
 }
@@ -87,6 +87,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
   const [mounted, setMounted] = useState(false);
   const language: AppLanguage = "de";
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [isLgNav, setIsLgNav] = useState(false);
   const [locationHash, setLocationHash] = useState("");
   const nightHero = pathname === "/" || pathname.startsWith("/tag");
@@ -153,6 +154,20 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, [themePref]);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") {
@@ -236,7 +251,7 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
         </a>
         <NavigationProgress label="Seite wird geladen." />
         <header
-          className={`site-header sticky top-0 z-40 h-16 border-b ${overHero ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "is-solid border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
+          className={`site-header sticky top-0 z-40 h-16 border-b ${overHero && !menuOpen ? `is-over-hero border-transparent ${atTop ? "is-hero-top bg-transparent" : "is-hero-scrolled"}` : "is-solid border-[var(--linie)] bg-[var(--bg)] text-foreground"}`}
         >
           <div className="mx-auto flex h-16 w-full items-center justify-between gap-3">
             <BrandLockup homeHref="/" height={32} />
@@ -266,19 +281,24 @@ export function SiteShell({ children, navShortcuts }: SiteShellProps) {
             <div className="flex shrink-0 items-center gap-2">
               <ThemeToggle isDark={themeIsDark} mounted={mounted} onToggle={handleThemeToggle} />
               <button
+                ref={menuButtonRef}
                 type="button"
-                className="inline-flex h-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+                className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md text-foreground hover:bg-secondary/70 focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
                 aria-expanded={menuOpen}
                 aria-controls="site-mobile-nav"
                 aria-label="Menü"
                 onClick={() => setMenuOpen((open) => !open)}
               >
-                {menuOpen ? <X className="size-4" strokeWidth={1.5} /> : <Menu className="size-4" strokeWidth={1.5} />}
+                {menuOpen ? (
+                  <X className="size-5" strokeWidth={1.75} aria-hidden="true" />
+                ) : (
+                  <Menu className="size-5" strokeWidth={1.75} aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
           {menuOpen ? (
-            <div className="border-t border-border bg-card px-[var(--page-gutter)] py-4 lg:hidden">
+            <div className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-t border-border bg-card px-[var(--page-gutter)] py-4 shadow-sm lg:hidden">
               <nav id="site-mobile-nav" className="flex flex-col gap-1 text-sm font-medium" aria-label="Hauptnavigation">
                 {SITE_MAIN_NAV.map((item) => {
                   const href = navItemHref(item, navShortcuts);

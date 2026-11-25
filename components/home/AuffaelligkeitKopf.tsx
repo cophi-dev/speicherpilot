@@ -13,7 +13,7 @@ import { TagChapter } from "@/components/home/TagChapter";
 import { TagSoGerechnet, type TagFleetSoGerechnetExtra } from "@/components/home/TagSoGerechnet";
 import { formatDeGw, insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { tagSurplusLine } from "@/lib/kopfTagCopy";
-import type { AuffaelligkeitResult } from "@/lib/auffaelligkeit";
+import type { AuffaelligkeitResult, MetricKey } from "@/lib/auffaelligkeit";
 import { kopfMetric, type TagesKennzahlRecord, weekdayLabelDe } from "@/lib/auffaelligkeit";
 import { prevBerlinDateKey } from "@/lib/berlinCalendar";
 import { weekdayShort, formatBerlinDayLabel } from "@/lib/dayRingStory";
@@ -31,6 +31,25 @@ function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): str
     return "06:00";
   }
   return liveStand;
+}
+
+function rangMetricPrefix(key: MetricKey | null): string {
+  switch (key) {
+    case "evening_peak_gw":
+      return "Abendspitze Restlast";
+    case "surplus_gwh":
+      return "Überschuss";
+    case "spread":
+      return "Preisspanne";
+    case "pmin":
+      return "Niedrigster Preis";
+    case "ws_share":
+      return "Anteil Wind und Sonne";
+    case "full_min":
+      return "Flotte voll";
+    default:
+      return "Überschuss";
+  }
 }
 
 export function AuffaelligkeitKopf({
@@ -165,27 +184,26 @@ export function AuffaelligkeitKopf({
     </Link>
   );
 
+  const isToday = dayKey === todayKey;
+  const rangDayWord = isToday ? "Heute" : "gestern";
+  const rangSummaryLine =
+    isStartSurface && hero && bars.length > 0
+      ? metricHero && winner
+        ? insertDisplayUnitNbsp(
+            `${rangMetricPrefix(metricKey)} · ${bars.length} Tage · ${rangDayWord} ${metricHero.value} ${metricHero.unit} (Platz\u00a0${winner.rank})`,
+          )
+        : seriePresentation && record
+          ? insertDisplayUnitNbsp(
+              `Überschuss · ${bars.length} Tage · ${rangDayWord} ${formatQuantity(record.surplusGwh, "de", 1)} GWh`,
+            )
+          : undefined
+      : undefined;
+
   return (
     <section
       className={`v4-kopf${isStartSurface ? " v4-kopf-start" : ""}`}
       aria-labelledby="auffaelligkeit-h1"
     >
-      {isStartSurface ? (
-        <div className="v4-start-backdrop" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/visuals/grid-horizon-light.jpg"
-            alt=""
-            className="v4-start-backdrop-img v4-start-backdrop-img--light"
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/visuals/grid-horizon-dark.jpg"
-            alt=""
-            className="v4-start-backdrop-img v4-start-backdrop-img--dark"
-          />
-        </div>
-      ) : null}
       <div className="v4-kopf-inner v4-content">
         {isStartSurface ? (
           <div className="v4-kopf-intro v4-kopf-intro-start">
@@ -256,7 +274,7 @@ export function AuffaelligkeitKopf({
               </p>
               <div className="v4-kern-row">
                 <span>{hero.kernLabel}</span>
-                {metricHero?.rankLabel ? <span>{metricHero.rankLabel}</span> : null}
+                {metricHero?.rankLabel ? <span className="v4-kern-rank">{metricHero.rankLabel}</span> : null}
               </div>
               <div className="v4-kopf-links">
                 {!hideTagLink && !isTagPage ? (
@@ -270,7 +288,10 @@ export function AuffaelligkeitKopf({
             <RangLeiste
               bars={bars}
               metricLabel={hero.kernLabel}
-              rankLabel={seriePresentation ? "Überschuss je Tag" : undefined}
+              rankLabel={!isStartSurface && seriePresentation ? "Überschuss je Tag" : undefined}
+              summaryLine={rangSummaryLine}
+              highlightLabel={isStartSurface ? rangDayWord : undefined}
+              plainNonHighlight={isStartSurface}
             />
           </div>
         ) : (

@@ -11993,66 +11993,15 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   text-decoration-color: hsl(var(--primary));
 }
 
-/* --- Startseite (/) Full-Bleed Architectural Hero & 3-Size Body System --- */
+/* --- Startseite (/) Calm Editorial Hero & 3-Size Body System --- */
 .v4-start-surface .v4-kopf-start {
   position: relative;
   margin-top: -4rem;
-  padding-top: calc(4rem + clamp(2rem, 4.5vw, 3.75rem));
-  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  padding-top: calc(4rem + clamp(1.75rem, 3.5vw, 3rem));
+  padding-bottom: clamp(2.25rem, 4.5vw, 3.5rem);
   background: var(--bg);
   border-bottom: 1px solid var(--linie);
-  overflow: hidden;
-}
-
-.v4-start-backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.v4-start-backdrop::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 95%, transparent) 48%, color-mix(in srgb, var(--bg) 24%, transparent) 78%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--bg) 45%, transparent) 48%, var(--bg) 82%);
-}
-
-.v4-start-backdrop-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: right top;
-  opacity: 0.56;
-}
-
-.v4-start-backdrop-img--dark {
-  display: none;
-}
-
-.dark .v4-start-backdrop-img--light {
-  display: none;
-}
-
-.dark .v4-start-backdrop-img--dark {
-  display: block;
-  opacity: 0.68;
-}
-
-@media (max-width: 767px) {
-  .v4-start-backdrop-img {
-    opacity: 0.22;
-    object-position: 85% top;
-  }
-
-  .dark .v4-start-backdrop-img--dark {
-    opacity: 0.28;
-  }
+  overflow-x: clip;
 }
 
 .v4-start-surface .v4-kopf-inner {
@@ -12060,16 +12009,28 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   z-index: 1;
 }
 
-/* Full-width display headline (exempt above-the-fold hero display; zero 50/50 split) */
+/* Headline returns to existing v4-h1 size (Space Grotesk, --type-48, weight 400) so Riesenzahl dominates */
 .v4-start-surface .v4-h1 {
   font-family: var(--font-heading);
-  font-size: clamp(2.25rem, 5.4vw, 4.5rem);
-  font-weight: 500;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-size: var(--type-48);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
   color: var(--ink);
-  max-width: 22ch;
+  max-width: 900px;
   margin: 0;
+}
+
+@media (max-width: 767px) {
+  .v4-start-surface .v4-h1 {
+    font-size: clamp(1.625rem, 7.5vw, 2.125rem);
+    line-height: 1.12;
+  }
+}
+
+.v4-start-surface .v4-kopf-intro {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .v4-start-surface .v4-start-meta-bar {
@@ -12077,9 +12038,11 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.35rem;
-  margin-top: clamp(1.15rem, 2.4vw, 1.75rem);
+  margin-top: clamp(1rem, 2vw, 1.5rem);
   padding-top: 0.9rem;
   border-top: 1px solid var(--linie);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .v4-start-surface .v4-kicker {
@@ -12090,6 +12053,8 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   letter-spacing: 0;
   text-transform: none;
   color: hsl(var(--muted-foreground));
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .v4-start-surface .v4-start-leitfrage {
@@ -12099,14 +12064,15 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   font-weight: 500;
   color: var(--ink);
   max-width: 60ch;
+  overflow-wrap: break-word;
 }
 
 .v4-start-surface .v4-kopf-subgrid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
-  margin-top: 1.25rem;
-  margin-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
+  margin-top: 1.15rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
 }
 
 @media (min-width: 900px) {
@@ -12124,11 +12090,14 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   color: hsl(var(--muted-foreground));
   max-width: 60ch;
   margin: 0;
+  overflow-wrap: break-word;
 }
 
 .v4-start-surface .v4-preis-block {
   border-left: 2px solid hsl(var(--primary));
   padding-left: 1.25rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .v4-start-surface .v4-preis-label {
@@ -12151,36 +12120,43 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   margin: 0.25rem 0 0;
 }
 
-/* Monumental Riesenzahl + 31-day RangLeiste stage */
+/* Monumental Riesenzahl + 31-day RangLeiste stage (same visual dominance as /tag) */
 .v4-start-surface .v4-kopf-hero {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2rem;
   padding-top: clamp(1.5rem, 3vw, 2.25rem);
   border-top: 1px solid var(--linie);
   align-items: end;
+  min-width: 0;
 }
 
 @media (min-width: 1024px) {
   .v4-start-surface .v4-kopf-hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.95fr);
     gap: 2.5rem 3.5rem;
   }
 }
 
+.v4-start-surface .v4-kopf-zahl {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .v4-start-surface .v4-riesenzahl {
-  --v4-ries-max: 8.75rem;
-  font-family: var(--font-heading);
-  font-weight: 500;
+  --v4-ries-max: 14rem;
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: var(--weight-hero-num);
   font-size: clamp(
-    3.5rem,
-    min(10.5vw, calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 0.9rem)),
+    5rem,
+    min(1rem + 13.5vw, calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 1.45rem)),
     var(--v4-ries-max)
   );
-  line-height: 0.88;
-  letter-spacing: -0.05em;
+  line-height: 0.82;
+  letter-spacing: -0.055em;
   color: var(--ink);
   margin: 0;
+  max-width: 100%;
 }
 
 .v4-start-surface .v4-riesenzahl-unit {
@@ -12192,20 +12168,30 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
 }
 
 .v4-start-surface .v4-kern-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
   font-size: var(--type-14);
   line-height: var(--lh-body);
   letter-spacing: 0;
   text-transform: none;
   color: hsl(var(--muted-foreground));
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
+  max-width: 100%;
+}
+
+.v4-start-surface .v4-kern-rank {
+  color: hsl(var(--muted-foreground));
 }
 
 .v4-start-surface .v4-kopf-links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 2rem;
-  margin-top: 1.25rem;
+  gap: 0.5rem 2rem;
+  margin-top: 1.15rem;
+  max-width: 100%;
 }
 
 .v4-start-surface .v4-text-link {
@@ -12215,6 +12201,8 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   text-decoration: underline;
   text-decoration-color: var(--linie);
   text-underline-offset: 4px;
+  max-width: 100%;
+  overflow-wrap: break-word;
   transition:
     color 160ms cubic-bezier(0.22, 1, 0.36, 1),
     text-decoration-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -12238,16 +12226,32 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
 
 .v4-start-surface .v4-rang-leiste {
   margin-top: 0;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.v4-start-surface .v4-rang-summary {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-sans);
+  font-size: var(--type-14);
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 .v4-start-surface .v4-rang-bars {
-  height: 192px;
+  height: 196px;
   gap: 4px;
   border-bottom: 1px solid var(--ink);
   padding-bottom: 0;
 }
 
-.v4-start-surface .v4-rang-bar {
+.v4-start-surface .v4-rang-bar,
+.v4-start-surface .v4-rang-bar.is-rekord {
   border-radius: 0;
   background: color-mix(in srgb, var(--ink) 22%, transparent);
   transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -12261,8 +12265,30 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   background: var(--v4-warm);
 }
 
-.v4-start-surface .v4-rang-bar.is-rekord {
-  background: hsl(var(--primary));
+.v4-start-surface .v4-rang-mark-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.v4-start-surface .v4-rang-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: var(--type-14);
+  line-height: 1.25;
+  font-weight: 500;
+  color: var(--v4-warm-text);
+}
+
+.v4-start-surface .v4-rang-mark::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--v4-warm);
+  flex-shrink: 0;
 }
 
 .v4-start-surface .v4-rang-caption {
@@ -12275,13 +12301,34 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
 }
 
 @media (max-width: 767px) {
+  .v4-start-surface .v4-riesenzahl {
+    --v4-ries-max: 7.5rem;
+    font-size: clamp(
+      3.75rem,
+      min(1rem + 19vw, calc(var(--v4-ries-max) - max(0, var(--v4-ries-ch) - 4) * 0.75rem)),
+      var(--v4-ries-max)
+    );
+  }
+
+  .v4-start-surface .v4-kopf-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+  }
+
   .v4-start-surface .v4-rang-bars {
     height: 112px;
-    gap: 3px;
+    gap: 2px;
+  }
+
+  .v4-start-surface .v4-chapter-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
   }
 }
 
-/* Keep Riesenzahl visible and crisp on small phones without horizontal overflow */
+/* Keep Riesenzahl visible and single-column on small phones without horizontal overflow */
 @media (max-width: 480px) {
   .v4-start-surface .v4-kopf-start {
     padding-top: calc(4rem + 1.25rem);
@@ -12294,7 +12341,8 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
 
   .v4-start.v4-start-surface .v4-kopf-hero {
     display: grid;
-    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
     padding-top: 1.25rem;
   }
 
@@ -12302,13 +12350,7 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
     display: block;
   }
 
-  .v4-start.v4-start-surface .v4-riesenzahl {
-    --v4-ries-max: 4.5rem;
-    font-size: clamp(3rem, 14vw, 4.5rem);
-  }
-
   .v4-start.v4-start-surface .v4-kopf-links {
-    gap: 0.25rem 1.5rem;
     margin-top: 0.75rem;
   }
 }
@@ -12514,13 +12556,13 @@ html:not(.dark) .site-header.is-over-hero.is-hero-scrolled {
   font-weight: 600;
 }
 
-/* Disclosure bar (So gerechnet): crisp architectural rhythm */
+/* Disclosure bar (So gerechnet): crisp architectural rhythm (preserve .v4-content inline gutter) */
 .v4-start-surface .v4-so-gerechnet {
   margin-top: clamp(2.5rem, 5vw, 3.75rem);
   margin-bottom: clamp(2.5rem, 5vw, 3.75rem);
   border-top: 1px solid var(--linie);
   border-bottom: 1px solid var(--linie);
-  padding: 0;
+  padding-block: 0;
 }
 
 .v4-start-surface .v4-so-gerechnet > summary {
