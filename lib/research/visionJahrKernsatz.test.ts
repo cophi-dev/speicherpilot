@@ -1,4 +1,9 @@
-import { buildVisionJahrKernsatz } from "@/lib/research/visionJahrKernsatz";
+import { METHODIK_SECTION_IDS } from "@/components/methodik/methodikAnchors";
+import { METHODIK_SECTIONS } from "@/components/methodik/methodikSections";
+import {
+  buildVisionJahrKernsatz,
+  VISION_METHODIK_ANCHOR,
+} from "@/lib/research/visionJahrKernsatz";
 
 describe("Vision Kernsatz", () => {
   const k = buildVisionJahrKernsatz();
@@ -37,5 +42,16 @@ describe("Vision Kernsatz", () => {
     const lower = `${k.paragraph} ${k.descriptionShort}`.toLowerCase();
     expect(lower).not.toContain("netzdienlich");
     expect(lower).not.toContain("netzanschlussprüfung");
+  });
+});
+
+describe("VISION_METHODIK_ANCHOR", () => {
+  it("ist exakt der String 'uebersicht'", () => {
+    expect(VISION_METHODIK_ANCHOR).toBe("uebersicht");
+  });
+
+  it("existiert als Abschnitt in der Methodik", () => {
+    expect(METHODIK_SECTION_IDS).toContain(VISION_METHODIK_ANCHOR);
+    expect(METHODIK_SECTIONS.some((section) => section.id === VISION_METHODIK_ANCHOR)).toBe(true);
   });
 });
