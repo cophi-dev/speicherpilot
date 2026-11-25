@@ -237,9 +237,9 @@ def rechne_tag(day: str) -> dict:
             "spitzeMinusMarktEur": round(diff_eur, 2),
             "spitzeMinusMarktProzent": round(100 * diff_eur / m["erloesEur"], 2) if m["erloesEur"] else None,
             "senkungSpitzeMinusMarktGw": round(s["senkungGw"] - m["senkungGw"], 4),
-            "grenzeDe": ("Untergrenze des Modellverlusts: Die Spitzen-Fahrweise kennt Höhe und Zeitpunkt der Abendspitze voraus. "
-                         f"Real ohne diese Voraussicht kostet die Spitzenkappung mindestens {de_int(abs(diff_eur))} € ({de_dec(abs(pct), 1)} %, Modellschätzung) "
-                         "gegenüber dem Markt-Fahrplan, eher mehr (Reserve-SoC, Prognosefehler)."),
+            "grenzeDe": ("Untergrenze: Das Modell kennt Höhe und Zeitpunkt der Tagesspitze im Voraus. "
+                         f"Ohne diese Voraussicht kostet das Kappen der Spitze mindestens {de_int(abs(diff_eur))} € ({de_dec(abs(pct), 1)} %, Modellschätzung) "
+                         "gegenüber dem Markt-Fahrplan, eher mehr (Reserve im Speicher, Prognosefehler)."),
         },
         "plausibilitaet": plaus,
         "tagSeiteHeute": {"hinweis": "Dispatch, den /tag Kapitel 03 aus data/national-fleet/…/days/ zeigt (repo solve_day, factor 2). Spitze dort: min Spitze, dann min Laden + Glättung, NICHT max Erlös.", **repo},

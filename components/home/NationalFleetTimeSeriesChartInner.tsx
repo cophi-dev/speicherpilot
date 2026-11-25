@@ -82,6 +82,8 @@ function SinglePanel({
   yMax,
   yTickValues,
   plotGutter = 0,
+  padTop = 14,
+  padBottom = 6,
   svgRef,
 }: {
   title: string;
@@ -93,11 +95,11 @@ function SinglePanel({
   yMax: number;
   yTickValues?: number[];
   plotGutter?: number;
+  padTop?: number;
+  padBottom?: number;
   svgRef?: React.RefObject<SVGSVGElement | null>;
 }) {
   const ySpan = yMax - yMin || 1;
-  const padTop = 14;
-  const padBottom = 6;
   const yAt = (v: number, h: number) => padTop + ((yMax - v) / ySpan) * (h - padTop - padBottom);
   const ticks = yTickValues ?? [];
   const plotW = Math.max(1, width - plotGutter);
@@ -122,7 +124,7 @@ function SinglePanel({
         {ticks.length > 0
           ? ticks.map((v) => {
               const y = yAt(v, height);
-              const labelY = Math.max(padTop, y - 2);
+              const labelY = Math.min(height - 4, Math.max(padTop + 10, y - 2));
               return (
                 <g key={v}>
                   <line x1={plotGutter} y1={y} x2={width} y2={y} className="v4-fleet-ts-grid" />
@@ -240,7 +242,12 @@ export function NationalFleetTimeSeriesChart({
     if (!el) {
       return;
     }
-    const measure = () => setScrollWidth(el.clientWidth);
+    const measure = () => {
+      const cs = getComputedStyle(el);
+      const pl = Number.parseFloat(cs.paddingLeft) || 0;
+      const pr = Number.parseFloat(cs.paddingRight) || 0;
+      setScrollWidth(Math.max(0, el.clientWidth - pl - pr));
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -502,6 +509,8 @@ export function NationalFleetTimeSeriesChart({
             yMax={rScale.max}
             yTickValues={rYTicks}
             plotGutter={plotGutter}
+            padTop={pad}
+            padBottom={pad}
             svgRef={primaryPlotSvgRef}
           >
             {tagesvorlageDay && isDay && factor !== 1 && bands ? (

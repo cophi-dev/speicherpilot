@@ -38,15 +38,19 @@ describe("tagFahrweisenErloese", () => {
     expect(view.peakMinusMarketEur).toBeCloseTo(-44192.86, 2);
     expect(view.peakMinusMarketPct).toBeCloseTo(-4.58, 2);
     expect(spitze?.chargeGwh).toBeCloseTo(14.1481, 3);
-    expect(view.grenzeDe).toMatch(/Untergrenze/);
+    expect(view.grenzeDe).toMatch(
+      /Untergrenze: Das Modell kennt Höhe und Zeitpunkt der Tagesspitze im Voraus/,
+    );
+    expect(view.grenzeDe).toContain("mindestens 44.193 € (4,6 %, Modellschätzung)");
+    expect(view.grenzeDe).not.toMatch(/Abendspitze|Reserve-SoC|Modellverlusts/);
     expect(missingRevenueHint(view)).toBe("");
     expect(readerMissingRevenueHint(view)).toBe("");
     const delta = formatTagRevenueDelta(view);
     expect(delta).toMatch(/44.193\u00a0€/);
     expect(delta).toMatch(/Erlös 4,6\u00a0% unter Markt/);
     expect(delta).not.toMatch(/−4,6/);
-    expect(formatThroughputLine(spitze!)).toMatch(/Round-Trip-Verlust/);
-    expect(formatThroughputLine(spitze!)).not.toMatch(/Differenz /);
+    expect(formatThroughputLine(spitze!)).toBe("14,15 → 12,03\u00a0GWh, Verlust 2,12");
+    expect(formatThroughputLine(spitze!)).not.toMatch(/Differenz |Round-Trip-Verlust|geladen /);
   });
 
   it("erfindet keine Euro, wenn die Wochen-Datei fehlt, und zeigt Lesern keinen internen Pfad", () => {

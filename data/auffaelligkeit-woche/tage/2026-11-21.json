@@ -1,7 +1,7 @@
 {
  "schema": "auffaelligkeit-woche/1",
  "dateBerlin": "2026-11-21",
- "berechnetAm": "2026-11-25T13:04:45+01:00",
+ "berechnetAm": "2026-11-25T14:20:16+01:00",
  "datenstand": {
   "quelle": "Energy-Charts (Fraunhofer ISE), Last inkl. Eigenverbrauch, Wind on/offshore, Solar; Day-Ahead DE-LU",
   "lizenz": "CC BY 4.0",
@@ -119,7 +119,7 @@
   "spitzeMinusMarktEur": -23677.66,
   "spitzeMinusMarktProzent": -8.71,
   "senkungSpitzeMinusMarktGw": 2.5904,
-  "grenzeDe": "Untergrenze des Modellverlusts: Die Spitzen-Fahrweise kennt Höhe und Zeitpunkt der Abendspitze voraus. Real ohne diese Voraussicht kostet die Spitzenkappung mindestens 23.678 € (8,7 %, Modellschätzung) gegenüber dem Markt-Fahrplan, eher mehr (Reserve-SoC, Prognosefehler)."
+  "grenzeDe": "Untergrenze: Das Modell kennt Höhe und Zeitpunkt der Tagesspitze im Voraus. Ohne diese Voraussicht kostet das Kappen der Spitze mindestens 23.678 € (8,7 %, Modellschätzung) gegenüber dem Markt-Fahrplan, eher mehr (Reserve im Speicher, Prognosefehler)."
  },
  "plausibilitaet": {
   "alleChecksOk": true,
@@ -1724,5 +1724,5 @@
    ]
   }
  },
- "laufzeitS": 2.53
+ "laufzeitS": 3.08
 }

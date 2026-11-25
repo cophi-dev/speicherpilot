@@ -1,4 +1,4 @@
-import { formatDeEur, formatDeGwh } from "@/lib/displayUnitFormat";
+import { formatDeEur } from "@/lib/displayUnitFormat";
 import { formatQuantity } from "@/lib/formatQuantity";
 import {
   auffaelligkeitWocheRelPath,
@@ -137,12 +137,13 @@ export function formatThroughputLine(row: TagFahrweiseErloesRow): string {
   if (row.chargeGwh == null || row.dischargeGwh == null) {
     return "Durchsatz steht aus";
   }
-  const loaded = formatDeGwh(row.chargeGwh, 2);
-  const unloaded = formatDeGwh(row.dischargeGwh, 2);
+  const loaded = formatQuantity(row.chargeGwh, "de", 2);
+  const unloaded = formatQuantity(row.dischargeGwh, "de", 2);
   if (row.throughputLossGwh == null) {
-    return `geladen ${loaded} / entladen ${unloaded}`;
+    return `${loaded} → ${unloaded}\u00a0GWh`;
   }
-  return `geladen ${loaded} / entladen ${unloaded}, Round-Trip-Verlust ${formatDeGwh(row.throughputLossGwh, 2)}`;
+  const loss = formatQuantity(row.throughputLossGwh, "de", 2);
+  return `${loaded} → ${unloaded}\u00a0GWh, Verlust ${loss}`;
 }
 
 export function missingRevenueHint(view: TagFahrweisenErloeseView): string {

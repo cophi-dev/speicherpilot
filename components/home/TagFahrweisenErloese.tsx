@@ -34,23 +34,20 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
       </p>
       <div className="v4-fleet-day-table-scroll">
         <table className="v4-fleet-day-table num">
-          <caption>Referenzflotte · {formatBerlinDayLabel(view.dayKey)}</caption>
+          <caption>Referenzflotte · {formatBerlinDayLabel(view.dayKey)} · Modellschätzung</caption>
           <thead>
             <tr>
               <th scope="col">Fahrweise</th>
-              <th scope="col">
-                Day-Ahead-Erlös{" "}
-                <span className="v4-tag-erloese-colhint">(Modellschätzung)</span>
-              </th>
+              <th scope="col">Day-Ahead-Erlös</th>
               <th scope="col">Durchsatz</th>
             </tr>
           </thead>
           <tbody>
             {view.rows.map((row) => (
               <tr key={row.strategy}>
-                <th scope="row">{row.labelDe}</th>
-                <td>{row.revenueEur == null ? "steht aus" : formatTagRevenueEur(row.revenueEur)}</td>
-                <td>{insertDisplayUnitNbsp(formatThroughputLine(row))}</td>
+                <th scope="row" className="v4-tag-erloese-fahrweise">{row.labelDe}</th>
+                <td className="v4-tag-erloese-eur">{row.revenueEur == null ? "steht aus" : formatTagRevenueEur(row.revenueEur)}</td>
+                <td className="v4-tag-erloese-eur">{insertDisplayUnitNbsp(formatThroughputLine(row))}</td>
               </tr>
             ))}
           </tbody>
