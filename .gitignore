@@ -52,3 +52,6 @@ next-env.d.ts
 
 # Testlauf-Artefakte nicht committen
 artifacts/launch-r4-2026-*T*/
+
+# Rohabruf des Wochen-Rechners, nicht committen
+data/auffaelligkeit-woche/eingang/

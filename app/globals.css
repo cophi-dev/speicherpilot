@@ -10530,8 +10530,15 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 
 .v4-tag-erloese {
   margin-block: 8px 28px;
-  max-width: 100%;
+  max-width: var(--page-max);
+  width: 100%;
   min-width: 0;
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+  box-sizing: border-box;
+}
+.v4-chapter-fleet-day > .v4-tag-erloese {
+  padding-inline: var(--page-gutter);
 }
 .v4-tag-erloese .v4-fleet-day-table-scroll {
   max-width: 100%;
@@ -10552,10 +10559,19 @@ details.v4-tag-steps-disclosure > summary:focus-visible,
 }
 .v4-tag-erloese-lead,
 .v4-tag-erloese-delta,
+.v4-tag-erloese-grenze,
 .v4-tag-erloese-missing,
 .v4-tag-erloese-hint {
   margin: 8px 0 0;
   max-width: 42rem;
+}
+.v4-tag-erloese-grenze {
+  color: hsl(var(--muted-foreground));
+}
+.v4-tag-erloese-colhint {
+  font-weight: 500;
+  font-size: var(--type-12);
+  color: hsl(var(--muted-foreground));
 }
 .v4-tag-erloese-missing {
   color: hsl(var(--muted-foreground));

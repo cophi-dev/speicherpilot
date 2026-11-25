@@ -1,38 +1,47 @@
 import Link from "next/link";
 
-import { formatThroughputLine, formatTagRevenueDelta, formatTagRevenueEur, loadTagFahrweisenErloese, missingRevenueHint } from "@/lib/tagFahrweisenErloese";
+import {
+  formatThroughputLine,
+  formatTagRevenueDelta,
+  formatTagRevenueEur,
+  loadTagFahrweisenErloese,
+  readerMissingRevenueHint,
+} from "@/lib/tagFahrweisenErloese";
 import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
-import { fleetTagHref } from "@/lib/nationalMonthFleetModel";
+import { formatBerlinDayLabel } from "@/lib/dayRingStory";
+import { fleetTagHref, NATIONAL_FLEET_FACTOR_LABEL_DE } from "@/lib/nationalMonthFleetModel";
 import { REFERENCE_FLEET_REPO_FACTOR } from "@/lib/auffaelligkeitWoche";
 
 /**
- * Referenzflotte (Repo-Stufe ×2): Tageserlöse der drei Fahrweisen plus Differenz Spitze minus Markt.
+ * Referenzflotte: Tageserlöse der drei Fahrweisen plus Differenz Spitze minus Markt.
  * Zahlen und Durchsatz kommen ausschließlich aus data/auffaelligkeit-woche/tage/{datum}.json.
  */
 export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
   const view = loadTagFahrweisenErloese(dayKey);
   const delta = formatTagRevenueDelta(view);
-  const missing = missingRevenueHint(view);
+  const missing = readerMissingRevenueHint(view);
 
   return (
     <div className="v4-content v4-tag-erloese">
       <h3 className="v4-tag-erloese-title">Day-Ahead-Erlöse der Referenzflotte</h3>
       <p className="v4-tag-erloese-lead">
-        Modellschätzung, Preisnehmer, eine Referenzflotte (auf dieser Seite Stufe ×{REFERENCE_FLEET_REPO_FACTOR}), nicht
-        auf ×5/×10 hochgerechnet. Quelle: Schema auffaelligkeit-woche/1. Spitzen-Fahrweise: min. Tagesspitze, danach
-        max. Erlös.{" "}
+        Modellschätzung, Preisnehmer, eine zusätzliche Flotte so groß wie die heutigen Großspeicher (4,6{"\u00a0"}GW),
+        nicht auf größere Stufen hochgerechnet. Spitzen-Fahrweise: min. Tagesspitze, danach max. Erlös.{" "}
         {view.isolatedDayHorizon
-          ? "Isolierter Tageshorizont (Start-SoC gleich End-SoC)."
-          : "Für diesen Tag liegt noch keine Wochen-Datei vor."}{" "}
+          ? "Isolierter Tageshorizont: Speicherstand am Abend wie am Morgen."
+          : "Für diesen Tag fehlen die Erlöse der Tagesrechnung."}{" "}
         Round-Trip-Wirkungsgrad der Rechnung: 85{"\u00a0"}%.
       </p>
       <div className="v4-fleet-day-table-scroll">
         <table className="v4-fleet-day-table num">
-          <caption>Referenzflotte · {view.dayKey}</caption>
+          <caption>Referenzflotte · {formatBerlinDayLabel(view.dayKey)}</caption>
           <thead>
             <tr>
               <th scope="col">Fahrweise</th>
-              <th scope="col">Day-Ahead-Erlös</th>
+              <th scope="col">
+                Day-Ahead-Erlös{" "}
+                <span className="v4-tag-erloese-colhint">(Modellschätzung)</span>
+              </th>
               <th scope="col">Durchsatz</th>
             </tr>
           </thead>
@@ -48,9 +57,9 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
         </table>
       </div>
       <p className="v4-tag-erloese-delta">
-        Differenz Spitze minus Markt:{" "}
-        {delta ?? "steht aus (beide Werte in der Wochen-Datei nötig)"}
+        Differenz Spitze minus Markt: {delta ?? "steht aus"}
       </p>
+      {view.grenzeDe ? <p className="v4-tag-erloese-grenze">{view.grenzeDe}</p> : null}
       {missing ? <p className="v4-tag-erloese-missing">{missing}</p> : null}
     </div>
   );
@@ -59,9 +68,9 @@ export function TagFahrweisenErloese({ dayKey }: { dayKey: string }) {
 export function TagFahrweisenErloeseHint({ dayKey }: { dayKey: string }) {
   return (
     <p className="v4-content v4-tag-erloese-hint">
-      Day-Ahead-Erlöse der drei Fahrweisen stehen nur für die Referenzflotte (Stufe{" "}
+      Day-Ahead-Erlöse der drei Fahrweisen stehen nur für die Referenzflotte (
       <Link href={fleetTagHref(dayKey, REFERENCE_FLEET_REPO_FACTOR, "spitze")} className="v4-text-link">
-        ×{REFERENCE_FLEET_REPO_FACTOR}
+        {NATIONAL_FLEET_FACTOR_LABEL_DE[REFERENCE_FLEET_REPO_FACTOR]}
       </Link>
       ), nicht linear hochgerechnet.
     </p>

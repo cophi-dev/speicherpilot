@@ -14,7 +14,9 @@ import {
 import {
   fleetMonatQuery,
   fleetTagHref,
+  fleetFactorChapterTitle,
   NATIONAL_FLEET_FACTORS,
+  NATIONAL_FLEET_FACTOR_LABEL_DE,
   NATIONAL_FLEET_STRATEGY_UI,
   nationalFleetMonthKeyForDay,
   sliceFleetDay,
@@ -89,7 +91,7 @@ export function NationalFleetDayChapter({
       <div className="v4-chapter-head v4-content">
         <p className="v4-chapter-num num">{isolatedDayHorizon ? "03 · Tageshorizont" : "03 · Monatslauf"}</p>
         <h2 id="fleet-day-title" className="v4-chapter-h2 v4-fleet-day-h2">
-          ×{factor}, {NATIONAL_FLEET_STRATEGY_UI[strategy].shortDe}
+          {fleetFactorChapterTitle(factor, strategy)}
         </h2>
         <p className="v4-tag-side num">{dayPeakHeadline}</p>
       </div>
@@ -106,7 +108,7 @@ export function NationalFleetDayChapter({
                 aria-pressed={f === factor}
                 className={`v4-fleet-pill${f === factor ? " is-active" : ""}${f === 1 ? " is-measured" : ""}`}
               >
-                {f === 1 ? "×1 heute" : `×${f}`}
+                {NATIONAL_FLEET_FACTOR_LABEL_DE[f]}
               </FleetScenarioLink>
             ))}
           </div>
@@ -129,7 +131,7 @@ export function NationalFleetDayChapter({
           </div>
           <p className="v4-fleet-strategy-copy">
             {!isolatedDayHorizon
-              ? "Monatslauf-Ausschnitt — kein isolierter Tageshorizont (SoC ohne Tages-Reset)."
+              ? "Für diesen Tag fehlt die Tagesrechnung. Die Kurve stammt aus dem Monatslauf, der Speicherstand läuft über Mitternacht weiter."
               : strategy === "spitze" && runSource === "woche"
                 ? "Min. Tagesspitze der Restlast, danach max. Day-Ahead-Erlös (volle Voraussicht). Ort und Knoten rechnet das Modell nicht."
                 : strategy === "spitze"
@@ -151,8 +153,8 @@ export function NationalFleetDayChapter({
 
       {!isolatedDayHorizon ? (
         <p className="v4-content v4-tag-monat-fallback">
-          Kein isolierter Tageshorizont für diesen Tag. Die Kurve ist ein Ausschnitt des Monatslaufs (SoC ohne
-          Tages-Reset).
+          Für diesen Tag fehlt die Tagesrechnung. Die Kurve stammt aus dem Monatslauf, der Speicherstand läuft über
+          Mitternacht weiter.
         </p>
       ) : null}
 

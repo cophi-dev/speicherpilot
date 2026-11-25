@@ -6,9 +6,12 @@ import { existsSync } from "node:fs";
 import { formatDeEur } from "@/lib/displayUnitFormat";
 import {
   dayAheadRevenueSourcePath,
+  formatTagRevenueDelta,
   formatTagRevenueEur,
+  formatThroughputLine,
   loadTagFahrweisenErloese,
   missingRevenueHint,
+  readerMissingRevenueHint,
   peakMinusMarketPct,
 } from "@/lib/tagFahrweisenErloese";
 
@@ -19,7 +22,7 @@ describe("tagFahrweisenErloese", () => {
     expect(peakMinusMarketPct(10, 0)).toBeNull();
   });
 
-  it("nimmt Euro und Durchsatz nur aus der Wochen-Datei", () => {
+  it("nimmt Euro, Durchsatz und Voraussicht-Grenze nur aus der Wochen-Datei", () => {
     const path = dayAheadRevenueSourcePath("2026-11-24");
     expect(path).toBe("data/auffaelligkeit-woche/tage/2026-11-24.json");
     expect(existsSync(path)).toBe(true);
@@ -35,18 +38,29 @@ describe("tagFahrweisenErloese", () => {
     expect(view.peakMinusMarketEur).toBeCloseTo(-44192.86, 2);
     expect(view.peakMinusMarketPct).toBeCloseTo(-4.58, 2);
     expect(spitze?.chargeGwh).toBeCloseTo(14.1481, 3);
+    expect(view.grenzeDe).toMatch(/Untergrenze/);
     expect(missingRevenueHint(view)).toBe("");
+    expect(readerMissingRevenueHint(view)).toBe("");
+    const delta = formatTagRevenueDelta(view);
+    expect(delta).toMatch(/44.193\u00a0€/);
+    expect(delta).toMatch(/Erlös 4,6\u00a0% unter Markt/);
+    expect(delta).not.toMatch(/−4,6/);
+    expect(formatThroughputLine(spitze!)).toMatch(/Round-Trip-Verlust/);
+    expect(formatThroughputLine(spitze!)).not.toMatch(/Differenz /);
   });
 
-  it("erfindet keine Euro, wenn die Wochen-Datei fehlt", () => {
+  it("erfindet keine Euro, wenn die Wochen-Datei fehlt, und zeigt Lesern keinen internen Pfad", () => {
     const view = loadTagFahrweisenErloese("2026-11-01");
     expect(view.isolatedDayHorizon).toBe(false);
     expect(view.rows.every((row) => row.revenueEur == null)).toBe(true);
     expect(view.peakMinusMarketEur).toBeNull();
+    expect(view.grenzeDe).toBeNull();
     const hint = missingRevenueHint(view);
     expect(hint).toContain("data/auffaelligkeit-woche/tage/2026-11-01.json");
     expect(hint).toContain("auffaelligkeit-woche/1");
     expect(hint).toMatch(/Keine selbst gerechneten Euro/);
+    expect(readerMissingRevenueHint(view)).toBe("Erlöse für diesen Tag folgen.");
+    expect(readerMissingRevenueHint(view)).not.toMatch(/Speicherpilot muss|Schema /);
   });
 
   it("setzt geschütztes Leerzeichen vor dem Euro-Zeichen", () => {

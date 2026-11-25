@@ -10,6 +10,8 @@ import {
   nationalFleetMonthAvailable,
   parseFleetFactor,
   parseTagFleetFactor,
+  NATIONAL_FLEET_FACTOR_LABEL_DE,
+  fleetFactorChapterTitle,
   replaySocFromAsymmetricStart,
   runKey,
   sliceFleetDay,
@@ -122,5 +124,14 @@ describe("parseTagFleetFactor", () => {
 
   it("lässt den globalen Default für Start und Monat bei ×2", () => {
     expect(parseFleetFactor(undefined)).toBe(2);
+  });
+
+  it("beschriftet die Stufen ohne ×1 für die Referenzflotte", () => {
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[1]).toBe("heute (Ist)");
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[2]).toBe("+4,6\u00a0GW");
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[5]).toBe("+18,6\u00a0GW");
+    expect(NATIONAL_FLEET_FACTOR_LABEL_DE[10]).toBe("+41,8\u00a0GW");
+    expect(fleetFactorChapterTitle(2, "spitze")).toBe("+4,6\u00a0GW wie heute, Spitze senken");
+    expect(fleetFactorChapterTitle(1, "spitze")).toBe("heute (Ist), Spitze senken");
   });
 });

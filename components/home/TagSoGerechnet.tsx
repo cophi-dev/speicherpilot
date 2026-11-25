@@ -147,7 +147,7 @@ export function TagSoGerechnet({
       <div className="v4-so-gerechnet-section">
         <p className="v4-so-gerechnet-kicker num">02 · Das System</p>
         <p>
-          Nennenergie bezeichnet die Größenordnung der Referenzflotte in der ×1-Skala — keine verfügbare
+          Nennenergie bezeichnet die Größenordnung der Referenzflotte — keine verfügbare
           Ladeenergie an diesem Tag.
         </p>
         {priceLine ? <p>Börsenpreis Day-Ahead: {priceLine}</p> : null}
@@ -189,8 +189,8 @@ export function TagSoGerechnet({
           </p>
           <p>
             {fleetExtra.isolatedDayHorizon === false
-              ? "Monatslauf-Ausschnitt — hypothetisch, ohne Tages-Reset (SoC läuft über den Monat). "
-              : "Isolierter Tageshorizont: Start-SoC gleich End-SoC. "}
+              ? "Für diesen Tag fehlt die Tagesrechnung. Die Kurve stammt aus dem Monatslauf, der Speicherstand läuft über Mitternacht weiter. "
+              : "Isolierter Tageshorizont: Speicherstand am Abend wie am Morgen. "}
             Aus Überschuss ist an diesem Tag nichts zu laden, wenn max(0, Wind+Sonne−Last) durchgehend null ist.{" "}
             <Link
               href={fleetMonatHref(

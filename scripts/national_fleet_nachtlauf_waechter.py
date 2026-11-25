@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Prüft, ob /tag/{vortag} Kapitel 03 ×1 (Spitze, Markt, Überschuss, Tageshorizont) hat.
+"""Prüft, ob /tag/{vortag} Kapitel 03 der Referenzflotte hat.
+
+Referenzflotte = Repo-Stufe ×2 (Zusatzflotte 4,6 GW) plus
+data/auffaelligkeit-woche/tage/{vortag}.json (Euro und lexikografischer Spitzen-Fahrplan).
+×1-Dateien sind der Ist ohne Zusatzflotte und bleiben leer — sie reichen nicht.
 
 Keine Solver-Abhängigkeiten, damit der Alert-Job vor 08:00 Europe/Berlin leicht bleibt.
 Exit 1, wenn Dateien fehlen — das ist der Alert (GitHub-Actions-Mail an Watcher).
@@ -16,10 +20,10 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 BERLIN = ZoneInfo("Europe/Berlin")
 
-CHAPTER03_X1_FILES = (
-    "x1_min_peak_perfect_foresight.json",
-    "x1_price_oriented_da_arbitrage.json",
-    "x1_surplus_wind_solar_over_load.json",
+CHAPTER03_X2_FILES = (
+    "x2_min_peak_perfect_foresight.json",
+    "x2_price_oriented_da_arbitrage.json",
+    "x2_surplus_wind_solar_over_load.json",
 )
 
 
@@ -30,13 +34,16 @@ def berlin_yesterday(now: datetime | None = None) -> str:
 
 def yesterday_chapter03_paths(day: str, root: Path = ROOT) -> list[Path]:
     base = root / "data/national-fleet" / day[:7] / "days" / day
-    return [base / name for name in CHAPTER03_X1_FILES]
+    week = root / "data/auffaelligkeit-woche/tage" / f"{day}.json"
+    return [base / name for name in CHAPTER03_X2_FILES] + [week]
 
 
 def check_yesterday_chapter03(day: str | None = None, root: Path = ROOT) -> list[str]:
     target = day or berlin_yesterday()
     errors: list[str] = []
-    for path in yesterday_chapter03_paths(target, root):
+    paths = yesterday_chapter03_paths(target, root)
+    week = paths[-1]
+    for path in paths:
         try:
             rel = path.relative_to(root)
         except ValueError:
@@ -49,8 +56,14 @@ def check_yesterday_chapter03(day: str | None = None, root: Path = ROOT) -> list
         except json.JSONDecodeError as exc:
             errors.append(f"ungültiges JSON: {rel} ({exc})")
             continue
-        if doc.get("factor") not in (1, "1"):
-            errors.append(f"kein ×1: {rel}")
+        if path == week:
+            if doc.get("schema") != "auffaelligkeit-woche/1":
+                errors.append(f"falsches Schema: {rel}")
+            if doc.get("dateBerlin") != target:
+                errors.append(f"falsches Datum: {rel} dateBerlin={doc.get('dateBerlin')!r}")
+            continue
+        if doc.get("factor") not in (2, "2"):
+            errors.append(f"keine Referenzflotte (×2): {rel}")
         if doc.get("horizon") != "day":
             errors.append(f"kein Tageshorizont: {rel} horizon={doc.get('horizon')!r}")
     return errors
@@ -73,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
-    print(f"Kapitel 03 ×1 vorhanden für {day}")
+    print(f"Kapitel 03 Referenzflotte vorhanden für {day} (x2 + Wochen-Datei)")
     return 0
 
 

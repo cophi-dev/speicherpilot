@@ -41,8 +41,8 @@ describe("auffaelligkeitWoche", () => {
     expect(wocheRun?.c_mw).toEqual(loaded.run.c_mw);
   });
 
-  it("fällt bei Stufe ×5 ohne Tagesdatei auf den Monatslauf zurück", () => {
-    const loaded = loadTagFleetRunSeries(5, "spitze", { monthKey: "2026-11", dayKey: "2026-11-24" });
+  it("fällt ohne Wochen-Datei und ohne Tagesdatei auf den Monatslauf zurück", () => {
+    const loaded = loadTagFleetRunSeries(5, "spitze", { monthKey: "2026-11", dayKey: "2026-11-25" });
     expect(loaded.source).toBe("month");
   });
 });

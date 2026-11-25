@@ -34,6 +34,7 @@ export type TagFahrweisenErloeseView = {
   rows: TagFahrweiseErloesRow[];
   peakMinusMarketEur: number | null;
   peakMinusMarketPct: number | null;
+  grenzeDe: string | null;
   missingFieldPaths: string[];
 };
 
@@ -105,6 +106,7 @@ export function loadTagFahrweisenErloese(dayKey: string): TagFahrweisenErloeseVi
     rows,
     peakMinusMarketEur,
     peakMinusMarketPct: peakMinusMarketPctValue,
+    grenzeDe: doc?.vergleich.grenzeDe ?? null,
     missingFieldPaths: doc == null ? [dayAheadRevenueSourcePath(dayKey)] : [],
   };
 }
@@ -121,8 +123,14 @@ export function formatTagRevenueDelta(view: TagFahrweisenErloeseView): string | 
   if (view.peakMinusMarketPct == null) {
     return eur;
   }
-  const pct = formatQuantity(view.peakMinusMarketPct, "de", 1) + "\u00a0%";
-  return `${eur} (${pct})`;
+  const absPct = formatQuantity(Math.abs(view.peakMinusMarketPct), "de", 1);
+  const vergleich =
+    view.peakMinusMarketPct < -0.05
+      ? `Erlös ${absPct}\u00a0% unter Markt`
+      : view.peakMinusMarketPct > 0.05
+        ? `Erlös ${absPct}\u00a0% über Markt`
+        : `Erlös etwa wie Markt`;
+  return `${eur} (${vergleich})`;
 }
 
 export function formatThroughputLine(row: TagFahrweiseErloesRow): string {
@@ -134,7 +142,7 @@ export function formatThroughputLine(row: TagFahrweiseErloesRow): string {
   if (row.throughputLossGwh == null) {
     return `geladen ${loaded} / entladen ${unloaded}`;
   }
-  return `geladen ${loaded} / entladen ${unloaded}, Differenz ${formatDeGwh(row.throughputLossGwh, 2)}`;
+  return `geladen ${loaded} / entladen ${unloaded}, Round-Trip-Verlust ${formatDeGwh(row.throughputLossGwh, 2)}`;
 }
 
 export function missingRevenueHint(view: TagFahrweisenErloeseView): string {
@@ -143,4 +151,12 @@ export function missingRevenueHint(view: TagFahrweisenErloeseView): string {
   }
   const paths = view.missingFieldPaths.join(", ");
   return `Day-Ahead-Erlös fehlt. Speicherpilot muss die Datei ${paths} (Schema auffaelligkeit-woche/1) mit ${view.revenueField} liefern. Keine selbst gerechneten Euro.`;
+}
+
+/** Leseransicht: keine internen Pfade oder Schema-Namen. */
+export function readerMissingRevenueHint(view: TagFahrweisenErloeseView): string {
+  if (view.missingFieldPaths.length === 0) {
+    return "";
+  }
+  return "Erlöse für diesen Tag folgen.";
 }

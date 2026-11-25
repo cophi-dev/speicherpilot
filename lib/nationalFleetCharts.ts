@@ -335,11 +335,11 @@ export function formatTagDayPeakHeadline(
   const pct = formatQuantity(Math.abs(reductionPct), "de", 1);
   if (reductionGw >= 0.0005) {
     const delta = formatQuantity(Math.abs(reductionGw), "de", 2);
-    return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (−${delta}${TAG_DAY_PEAK_NBSP}GW, −${pct}${TAG_DAY_PEAK_NBSP}%)`;
+    return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (−${delta}${TAG_DAY_PEAK_NBSP}GW, ${pct}${TAG_DAY_PEAK_NBSP}% der Spitze)`;
   }
   if (reductionGw <= -0.0005) {
     const delta = formatQuantity(Math.abs(reductionGw), "de", 2);
-    return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (+${delta}${TAG_DAY_PEAK_NBSP}GW, +${pct}${TAG_DAY_PEAK_NBSP}%)`;
+    return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (+${delta}${TAG_DAY_PEAK_NBSP}GW, ${pct}${TAG_DAY_PEAK_NBSP}% der Spitze)`;
   }
   return `Tagesspitze ${obs} → ${aft}${TAG_DAY_PEAK_NBSP}GW (ohne nennenswerte Tages-Senkung)`;
 }

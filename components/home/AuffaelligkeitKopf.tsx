@@ -82,7 +82,7 @@ export function AuffaelligkeitKopf({
     const peakContext =
       record.eveningPeakGw != null && record.eveningPeakAt
         ? insertDisplayUnitNbsp(
-            ` Die Restlastspitze erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr). Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
+            ` Die Abendspitze der Restlast (ab 17 Uhr) erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr). Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
           )
         : "";
     return {
