@@ -5,7 +5,8 @@ import type { VisionJahrStufeKey } from "@/lib/research/visionJahrTypes";
 const SERIES_KEYS: VisionJahrStufeKey[] = ["x2", "x5", "NEP A", "x10", "NEP B", "NEP C"];
 const DURATION_2H = 2;
 
-export const VISION_METHODIK_ANCHOR = "vision-jahr";
+/** Abschnitt „Übersicht“ (details); der Absatz #vision-jahr liegt lazy darin und ist vor dem Aufklappen nicht im DOM. */
+export const VISION_METHODIK_ANCHOR = "uebersicht";
 
 export type VisionJahrKernsatz = {
   /** Fließtext für Seite und Tests */
