@@ -1,5 +1,7 @@
 import {
+  adjacentAvailableMonths,
   adjacentMonthWithData,
+  availableMonatKeys,
   berlinMonthKeyFromDateKey,
   daysInBerlinMonth,
   formatBerlinMonthShort,
@@ -12,6 +14,7 @@ import {
   pickDefaultMonatMonthKey,
   prevBerlinMonthKey,
 } from "@/lib/monatCalendar";
+import { NATIONAL_FLEET_MONTH_KEYS } from "@/lib/nationalMonthFleetModel";
 import fixture from "@/lib/__fixtures__/auffaelligkeit-records.json";
 
 describe("monatCalendar", () => {
@@ -50,5 +53,36 @@ describe("monatCalendar", () => {
     if (prev) {
       expect(monthHasAnyRecord(prev, records)).toBe(true);
     }
+  });
+
+  it("unifies data months and model months for prev/next navigation", () => {
+    expect(availableMonatKeys(records, NATIONAL_FLEET_MONTH_KEYS)).toEqual([
+      "2026-09",
+      "2026-10",
+      "2026-11",
+    ]);
+
+    expect(adjacentAvailableMonths("2026-10", records, NATIONAL_FLEET_MONTH_KEYS)).toEqual({
+      prev: "2026-09",
+      next: "2026-11",
+    });
+
+    const novOnlyRecords = records.filter((r) => berlinMonthKeyFromDateKey(r.dateKey) === "2026-11");
+    expect(novOnlyRecords.length).toBeGreaterThan(0);
+    expect(adjacentAvailableMonths("2026-11", novOnlyRecords, NATIONAL_FLEET_MONTH_KEYS)).toEqual({
+      prev: "2026-10",
+      next: null,
+    });
+
+    expect(adjacentAvailableMonths("2026-09", records, NATIONAL_FLEET_MONTH_KEYS)).toEqual({
+      prev: null,
+      next: "2026-10",
+    });
+
+    const augRecord = [{ ...records[0]!, dateKey: "2026-08-15" }];
+    expect(adjacentAvailableMonths("2026-10", augRecord, ["2026-10"])).toEqual({
+      prev: "2026-08",
+      next: null,
+    });
   });
 });
