@@ -52,7 +52,7 @@ export function BessKarteTimeline({
   const current = kurve[safeIdx]!;
   const maxMw = Math.max(...kurve.map((d) => d.kumNettoMw), 100);
   // Ränder wachsen mit der Schrift, damit Achsenlabels nicht abgeschnitten werden oder kollidieren.
-  const PAD_L = Math.round(tickFontSize * 3.6);
+  const PAD_L = Math.round(tickFontSize * 4.1);
   const PAD_T = Math.round(tickFontSize * 0.9);
   const PAD_B = Math.round(tickFontSize * 1.8);
   const CHART_H = PAD_T + PLOT_H + PAD_B;
