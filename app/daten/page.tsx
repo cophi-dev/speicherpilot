@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { JsonLd } from "@/components/seo/JsonLd";
+import { insertDisplayUnitNbsp } from "@/lib/displayUnitFormat";
 import { getPublicSiteOrigin } from "@/lib/publicSiteUrl";
 import {
   DATEN_DATEIEN,
@@ -76,10 +77,10 @@ export default function DatenPage() {
         </p>
         <p>
           Kernaussage: Die höchste Restlast in Deutschland lag im Zeitraum 16.11.2025–15.11.2026 bei{" "}
-          {gw(kern.spitzeVorherGw)} GW ({tagLabel(kern.spitzeTag)}, {kern.spitzeUhr} Uhr). Eine
-          Speicherflotte in der Größe von NEP-Szenario A (41,1 GW, 2 h) hätte diese Jahresspitze im
-          Modell um {gw(kern.nepASenkungGw)} GW gesenkt, Szenario C (94,1 GW, 2 h) um{" "}
-          {gw(kern.nepCSenkungGw)} GW. Das gilt für eine spitzenorientierte Fahrweise mit voller
+          {gw(kern.spitzeVorherGw)}&nbsp;GW ({tagLabel(kern.spitzeTag)}, {kern.spitzeUhr}&nbsp;Uhr). Eine
+          Speicherflotte in der Größe von NEP-Szenario A (41,1&nbsp;GW, 2&nbsp;h) hätte diese Jahresspitze im
+          Modell um {gw(kern.nepASenkungGw)}&nbsp;GW gesenkt, Szenario C (94,1&nbsp;GW, 2&nbsp;h) um{" "}
+          {gw(kern.nepCSenkungGw)}&nbsp;GW. Das gilt für eine spitzenorientierte Fahrweise mit voller
           Voraussicht und ist damit eine Obergrenze.
         </p>
 
@@ -93,7 +94,7 @@ export default function DatenPage() {
                 </a>
                 <span className={styles.format}>{datei.format}</span>
               </p>
-              <p>{datei.beschreibung}</p>
+              <p>{insertDisplayUnitNbsp(datei.beschreibung)}</p>
             </li>
           ))}
         </ul>
@@ -113,17 +114,17 @@ export default function DatenPage() {
           (Fraunhofer ISE), der Bundesnetzagentur (SMARD.de) und battery-charts (RWTH) bleiben unter
           ihrer jeweiligen Lizenz; die Pflicht zur Namensnennung dieser Quellen gilt weiter.
         </p>
-        <p>{DATEN_QUELLENZEILE}</p>
+        <p>{insertDisplayUnitNbsp(DATEN_QUELLENZEILE)}</p>
 
         <h2>Zitiervorschlag</h2>
-        <p className={styles.zitat}>{zitiervorschlag(origin)}</p>
+        <p className={styles.zitat}>{insertDisplayUnitNbsp(zitiervorschlag(origin))}</p>
 
         <h2>Was die Zahlen sind und was nicht</h2>
         <ul className={styles.punkte}>
           <li>Restlast = Stromverbrauch minus Wind- und Solareinspeisung, national, je Viertelstunde.</li>
           <li>
-            Speicher sind gerechnet, nicht gemessen: Wirkungsgrad 85 %, Ladestand 10–90 %, Start und
-            Ende bei 50 %.
+            Speicher sind gerechnet, nicht gemessen: Wirkungsgrad 85&nbsp;%, Ladestand 10–90&nbsp;%, Start und
+            Ende bei 50&nbsp;%.
           </li>
           <li>
             Die Monatssenkung in der Stufen-Datei ist die Senkung der jeweiligen Monatsspitze, nicht
