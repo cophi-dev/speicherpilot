@@ -1184,6 +1184,9 @@
 }
 
 .moreDataSummary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   font-size: var(--type-14);
   color: hsl(var(--muted-foreground));
   cursor: pointer;
