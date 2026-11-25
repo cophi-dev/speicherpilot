@@ -172,7 +172,7 @@ export const DATEN_DATEIEN: DatenDatei[] = [
     slug: "speicherpilot-jahr-komplett.json",
     titel: "Jahresdatensatz komplett",
     beschreibung:
-      "Alle Kennzahlen der Jahresansicht /vision: Basis, Stufen, Preis-Szenarien als Spitzenwerte, Überschuss, Kappungstage, Vorjahresvergleich.",
+      "Alle Kennzahlen der Jahresansicht /jahr: Basis, Stufen, Preis-Szenarien als Spitzenwerte, Überschuss, Kappungstage, Vorjahresvergleich.",
     format: "JSON",
     mime: "application/json; charset=utf-8",
     build: buildJahrJson,

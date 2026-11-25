@@ -71,7 +71,7 @@ export default function DatenPage() {
       <div className="legal-doc-inner prose">
         <h1>Daten zum Download</h1>
         <p>
-          Hier liegen die Zahlen hinter der <Link href="/vision">Jahresansicht</Link> und der{" "}
+          Hier liegen die Zahlen hinter der <Link href="/jahr">Jahresansicht</Link> und der{" "}
           <Link href="/monat">Monatsbilanz</Link> als CSV und JSON. Stand: {DATEN_STAND}.
         </p>
         <p>
