@@ -173,6 +173,10 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
     expect(kopf!.textContent).toContain("Als messbarer Überschuss gilt 0,05");
     expect(kopf!.textContent).not.toContain("Kapitel 03");
 
+    const preisChunks = kopf!.querySelectorAll(".v4-preis-chunk");
+    expect(preisChunks).toHaveLength(2);
+    expect(preisChunks[0]!.textContent).toMatch(/120\u00a0€\/MWh/);
+    expect(preisChunks[1]!.textContent).toMatch(/235\u00a0€\/MWh/);
     // Kein Insight-Block unter der Karte (wiederholt den Hero nicht)
     expect(screen.queryByTestId("markt-insights")).toBeNull();
     expect(container.textContent).not.toContain("Feste Schwellen");

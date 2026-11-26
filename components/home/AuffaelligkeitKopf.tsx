@@ -36,6 +36,20 @@ function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): str
   return liveStand;
 }
 
+function PreisSpanneValue({ value }: { value: string }) {
+  const parts = value.split(" bis ");
+  if (parts.length !== 2) {
+    return <p className="v4-preis-value num">{value}</p>;
+  }
+  return (
+    <p className="v4-preis-value num">
+      <span className="v4-preis-chunk">{parts[0]}</span>
+      {" bis "}
+      <span className="v4-preis-chunk">{parts[1]}</span>
+    </p>
+  );
+}
+
 export function AuffaelligkeitKopf({
   dayKey,
   todayKey,
@@ -238,7 +252,7 @@ export function AuffaelligkeitKopf({
             {priceLine ? (
               <div className="v4-preis-block">
                 <p className="v4-preis-label num">{priceLine.label}</p>
-                <p className="v4-preis-value num">{priceLine.value}</p>
+                <PreisSpanneValue value={priceLine.value} />
               </div>
             ) : null}
             {kopfSubline ? <p className="v4-subline">{kopfSubline}</p> : null}
@@ -258,7 +272,7 @@ export function AuffaelligkeitKopf({
                   {priceLine ? (
                     <div className="v4-preis-block">
                       <p className="v4-preis-label num">{priceLine.label}</p>
-                      <p className="v4-preis-value num">{priceLine.value}</p>
+                      <PreisSpanneValue value={priceLine.value} />
                     </div>
                   ) : null}
                 </div>

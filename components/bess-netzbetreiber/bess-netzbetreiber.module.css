@@ -313,8 +313,8 @@
   outline: none;
 }
 
-/* Mobil: touch-action: none nur auf der Canvas (ein Finger dreht/neigt, zwei Finger zoomen);
-   Wrapper und restliche Seite: pan-y, damit Scroll-Gesten außerhalb der Canvas die Seite bewegen. */
+/* Mobil wie #156: ein Finger bleibt pan-y (Seite scrollt).
+   Zwei-Finger: JS per preventDefault, Pinch und Drehen. */
 .canvasStageTouch {
   display: flex;
   flex-direction: column;
@@ -322,7 +322,7 @@
 }
 
 .canvasStageTouch .canvas3d {
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .canvasToolbar {

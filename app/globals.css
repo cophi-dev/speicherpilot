@@ -7402,7 +7402,10 @@ html.vt-to-light::view-transition-new(root) {
   border-radius: 1px;
 }
 .v4-rang-bar.is-gestern {
-  background: var(--v4-warm);
+  background: transparent;
+  border: 1.5px solid var(--v4-warm);
+  box-sizing: border-box;
+  min-height: 8px;
 }
 .v4-rang-bar.is-rekord {
   background: hsl(var(--foreground));
@@ -7424,25 +7427,25 @@ html.vt-to-light::view-transition-new(root) {
 .v4-rang-bar-tag {
   display: none;
 }
+.v4-rang-bar.is-gestern .v4-rang-bar-tag {
+  display: block;
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: auto;
+  right: 0;
+  transform: none;
+  font-size: 12px;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  white-space: nowrap;
+  pointer-events: none;
+}
 @media (max-width: 767px) {
   .v4-rang-mobile-summary {
     display: block;
-  }
-  .v4-rang-bar.is-gestern .v4-rang-bar-tag {
-    display: block;
-    position: absolute;
-    bottom: calc(100% + 2px);
-    left: auto;
-    right: 0;
-    transform: none;
-    font-size: 12px;
-    line-height: 1.1;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: hsl(var(--foreground));
-    background: hsl(var(--background));
-    white-space: nowrap;
-    pointer-events: none;
   }
 }
 .v4-kopf-links {
@@ -7571,6 +7574,9 @@ html.vt-to-light::view-transition-new(root) {
   line-height: 1.2;
   font-weight: 400;
   margin-top: 0.25rem;
+}
+.v4-preis-chunk {
+  white-space: nowrap;
 }
 
 .v4-kopf-intro .v4-subline {

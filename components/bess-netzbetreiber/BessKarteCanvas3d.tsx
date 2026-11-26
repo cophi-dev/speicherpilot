@@ -48,7 +48,7 @@ type Props = {
   onResetCamera: () => void;
   /** Hero: größere Bühne, ohne Rahmen. */
   hero?: boolean;
-  /** Mobil: Ein-Finger auf der Canvas dreht/neigt, Zwei-Finger zoomen; Seite außerhalb bleibt scrollbar. */
+  /** Mobil wie #156: Ein-Finger pan-y (Seite scrollt, Antippen wählt), Zwei-Finger drehen/zoomen. */
   touchFriendly?: boolean;
   overlay?: ReactNode;
   /** Unten links auf der Bühne: Höhenlegende und kurze BKG-Zeile. */
@@ -173,6 +173,7 @@ export function BessKarteCanvas3d({
   } | null>(null);
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; midX: number; midY: number } | null>(null);
+  const tapRef = useRef<{ pointerId: number; startX: number; startY: number } | null>(null);
   const cameraRef = useRef(camera);
   useEffect(() => {
     cameraRef.current = camera;
@@ -311,21 +312,19 @@ export function BessKarteCanvas3d({
     };
   }, [onCameraChange, touchFriendly]);
 
-  // Zwei-Finger-Pinch auf der Canvas: iOS-Safari-Seitenzoom unterbinden.
-  // Listener hängt nur an der Canvas selbst, nie an wrapRef, document oder body.
+  // Ein Finger bleibt pan-y (Seite scrollt). touch-action wird beim Gestenstart festgeschrieben,
+  // darum preventDefault erst ab dem zweiten Finger (wie #156).
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !touchFriendly) return;
-    const blockCanvasTouch = (e: TouchEvent) => {
-      // touch-action: none allein reicht auf iOS nicht immer; Gesten auf der Canvas
-      // gehören der Karte (drehen/zoomen), die Seite scrollt außerhalb weiter.
-      e.preventDefault();
+    const el = wrapRef.current;
+    if (!el || !touchFriendly) return;
+    const blockTwoFinger = (e: TouchEvent) => {
+      if (e.touches.length >= 2) e.preventDefault();
     };
-    canvas.addEventListener("touchstart", blockCanvasTouch, { passive: false });
-    canvas.addEventListener("touchmove", blockCanvasTouch, { passive: false });
+    el.addEventListener("touchstart", blockTwoFinger, { passive: false });
+    el.addEventListener("touchmove", blockTwoFinger, { passive: false });
     return () => {
-      canvas.removeEventListener("touchstart", blockCanvasTouch);
-      canvas.removeEventListener("touchmove", blockCanvasTouch);
+      el.removeEventListener("touchstart", blockTwoFinger);
+      el.removeEventListener("touchmove", blockTwoFinger);
     };
   }, [touchFriendly]);
 
@@ -668,6 +667,26 @@ export function BessKarteCanvas3d({
     setWheelActive(true);
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
+    // Mobil: ein Finger scrollt oder tippt eine Säule; erst der zweite Finger greift die Kamera.
+    if (e.pointerType === "touch") {
+      if (pointersRef.current.size >= 2) {
+        dragRef.current = null;
+        tapRef.current = null;
+        setDragging(false);
+        pinchRef.current = pinchState();
+        try {
+          for (const id of pointersRef.current.keys()) {
+            e.currentTarget.setPointerCapture(id);
+          }
+        } catch {
+          /* Capture kann fehlen, wenn der erste Finger schon losgelassen wurde. */
+        }
+      } else {
+        tapRef.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY };
+      }
+      return;
+    }
+
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
@@ -676,15 +695,7 @@ export function BessKarteCanvas3d({
 
     if (pointersRef.current.size >= 2) {
       dragRef.current = null;
-      setDragging(false);
       pinchRef.current = pinchState();
-      try {
-        for (const id of pointersRef.current.keys()) {
-          e.currentTarget.setPointerCapture(id);
-        }
-      } catch {
-        /* Capture kann fehlen, wenn der erste Finger schon losgelassen wurde. */
-      }
       return;
     }
 
@@ -695,9 +706,8 @@ export function BessKarteCanvas3d({
       startY: e.clientY,
       startCam: curCam,
       moved: false,
-      // Touch: ein Finger dreht/neigt immer (zwei Finger zoomen/verschieben).
-      // Maus: ohne Zoom dreht Ziehen; hineingezoomt verschiebt es (Shift dreht immer).
-      pan: e.pointerType !== "touch" && curCam.zoom > DEFAULT_CAMERA_3D.zoom + 0.05 && !e.shiftKey,
+      // Ohne Zoom dreht Ziehen die Karte; hineingezoomt verschiebt es sie (Shift dreht immer).
+      pan: curCam.zoom > DEFAULT_CAMERA_3D.zoom + 0.05 && !e.shiftKey,
     };
   }
 
@@ -720,19 +730,27 @@ export function BessKarteCanvas3d({
           height,
           projFit,
         );
-        next = panCameraBy(next, now.midX - prev.midX, now.midY - prev.midY, width, height, projFit);
+        if (e.pointerType === "touch") {
+          next = clampCamera3d({
+            ...next,
+            yawDeg: next.yawDeg + (now.midX - prev.midX) * 0.42,
+            tiltDeg: next.tiltDeg + (now.midY - prev.midY) * 0.3,
+          });
+        } else {
+          next = panCameraBy(next, now.midX - prev.midX, now.midY - prev.midY, width, height, projFit);
+        }
         cameraRef.current = next;
         onCameraChange(next);
         pinchRef.current = now;
       }
       return;
     }
+    if (e.pointerType === "touch") return;
     const drag = dragRef.current;
     if (drag && drag.pointerId === e.pointerId) {
       const dx = e.clientX - drag.startX;
       const dy = e.clientY - drag.startY;
-      const moveThreshold = e.pointerType === "touch" ? 8 : 4;
-      if (!drag.moved && Math.hypot(dx, dy) > moveThreshold) {
+      if (!drag.moved && Math.hypot(dx, dy) > 4) {
         drag.moved = true;
         setDragging(true);
         setHoveredSite(null);
@@ -754,7 +772,6 @@ export function BessKarteCanvas3d({
       }
       return;
     }
-    if (e.pointerType === "touch") return;
 
     const hit = findHit(e.clientX, e.clientY);
     setHoveredSite((prev) => (prev?.lok === hit?.lok ? prev : hit));
@@ -763,6 +780,7 @@ export function BessKarteCanvas3d({
   function handlePointerCancel(e: React.PointerEvent<HTMLCanvasElement>) {
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (tapRef.current?.pointerId === e.pointerId) tapRef.current = null;
     if (dragRef.current?.pointerId === e.pointerId) dragRef.current = null;
     setDragging(false);
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
@@ -779,6 +797,14 @@ export function BessKarteCanvas3d({
       if (pointersRef.current.size < 2) pinchRef.current = null;
       dragRef.current = null;
       setDragging(false);
+      return;
+    }
+    const tap = tapRef.current;
+    if (tap && tap.pointerId === e.pointerId) {
+      tapRef.current = null;
+      if (Math.hypot(e.clientX - tap.startX, e.clientY - tap.startY) <= 8) {
+        onSelectSite(findHit(e.clientX, e.clientY));
+      }
       return;
     }
     const drag = dragRef.current;
@@ -847,7 +873,7 @@ export function BessKarteCanvas3d({
           role="img"
           aria-label={
             touchFriendly
-              ? "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit einem Finger drehen und neigen, mit zwei Fingern zoomen, Säule antippen für Details."
+              ? "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit einem Finger die Seite scrollen, mit zwei Fingern drehen und zoomen, Säule antippen für Details."
               : "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit Maus oder Pfeiltasten drehen und neigen, mit Plus und Minus zoomen, Säule anklicken für Details."
           }
           onPointerDown={handlePointerDown}
@@ -900,7 +926,7 @@ export function BessKarteCanvas3d({
       {touchFriendly ? (
         <div className={styles.canvasToolbar}>
           <p className={`${styles.canvasHint} ${styles.canvasToolbarHint} num`}>
-            Ziehen: drehen und neigen · Zwei Finger: zoomen · Antippen: Details
+            Ein Finger: Seite scrollen · Zwei Finger: drehen und zoomen · Antippen: Details
           </p>
           <div className={styles.canvasToolbarRow} role="group" aria-label="Kartenansicht">
             <div className={styles.canvasToolbarCluster}>

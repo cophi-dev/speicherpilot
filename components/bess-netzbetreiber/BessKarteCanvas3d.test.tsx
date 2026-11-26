@@ -71,7 +71,7 @@ describe("BessKarteCanvas3d Touch-Gesten (Mobil)", () => {
     HTMLCanvasElement.prototype.hasPointerCapture = jest.fn(() => true);
   });
 
-  it("dreht und neigt mit einem Finger auf der Canvas und zoomt mit zwei Fingern", () => {
+  it("lässt einen Finger die Kamera unangetastet und zoomt/dreht mit zwei Fingern", () => {
     let cam: Camera3d = DEFAULT_CAMERA_3D;
     const onCameraChange = jest.fn((next: Camera3d) => {
       cam = next;
@@ -100,17 +100,17 @@ describe("BessKarteCanvas3d Touch-Gesten (Mobil)", () => {
     expect(canvas.tagName).toBe("CANVAS");
     expect(canvas.className).toContain("canvas3d");
 
-    // Ein Finger zieht -> dreht (yawDeg) und neigt (tiltDeg)
+    // Ein Finger zieht: keine Kamerabewegung (Seite darf scrollen, wie #156).
     fireEvent(canvas, pointerEvent("pointerdown", { pointerId: 1, clientX: 100, clientY: 200 }));
     fireEvent(canvas, pointerEvent("pointermove", { pointerId: 1, clientX: 160, clientY: 250 }));
     fireEvent(canvas, pointerEvent("pointerup", { pointerId: 1, clientX: 160, clientY: 250 }));
 
-    expect(onCameraChange).toHaveBeenCalled();
-    expect(cam.yawDeg).toBeGreaterThan(DEFAULT_CAMERA_3D.yawDeg);
-    expect(cam.tiltDeg).toBeGreaterThan(DEFAULT_CAMERA_3D.tiltDeg);
+    expect(onCameraChange).not.toHaveBeenCalled();
+    expect(cam.yawDeg).toBe(DEFAULT_CAMERA_3D.yawDeg);
+    expect(cam.tiltDeg).toBe(DEFAULT_CAMERA_3D.tiltDeg);
     expect(cam.zoom).toBeCloseTo(DEFAULT_CAMERA_3D.zoom, 5);
 
-    // Zwei Finger spreizen -> zoomt hinein
+    // Zwei Finger spreizen -> zoomt hinein; seitliche Bewegung dreht.
     const zoomBefore = cam.zoom;
     fireEvent(canvas, pointerEvent("pointerdown", { pointerId: 2, clientX: 100, clientY: 200 }));
     fireEvent(canvas, pointerEvent("pointerdown", { pointerId: 3, clientX: 200, clientY: 200 }));
