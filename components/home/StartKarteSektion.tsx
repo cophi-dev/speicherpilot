@@ -33,7 +33,7 @@ export function StartKarteSektion({ data }: { data: StartKartePreviewData }) {
   const lokLabel = formatQuantity(data.lokationen, "de", 0);
   const stichtagDe = formatStichtagDe(data.stichtag);
 
-  const mapAriaLabel = `Karte der ${nLabel} Batteriespeicher ab 1${NBSP}MW (${gwLabel}${NBSP}GW netto) an ${lokLabel} Standorten in Deutschland, MaStR-Stand ${stichtagDe}.`;
+  const mapAriaLabel = `Karte der ${nLabel} Batteriespeicher ab 1${NBSP}MW (${gwLabel}${NBSP}GW netto) an ${lokLabel} Lokationen in Deutschland, MaStR-Stand ${stichtagDe}.`;
 
   const statePaths = useMemo(
     () =>
@@ -84,7 +84,7 @@ export function StartKarteSektion({ data }: { data: StartKartePreviewData }) {
             {NBSP}GW Großspeicher?
           </h2>
           <p className={styles.subline}>
-            {nLabel} Speicher an {lokLabel} Standorten, MaStR-Stand {stichtagDe}. Wo 2025 am
+            {nLabel} Speicher an {lokLabel} Lokationen, MaStR-Stand {stichtagDe}. Wo 2025 am
             meisten EE-Strom abgeregelt wurde, stehen nicht automatisch die meisten Speicher.
           </p>
           <div className={styles.ctaRow}>

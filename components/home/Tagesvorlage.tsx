@@ -36,6 +36,7 @@ export function Tagesvorlage({ model }: { model: CompleteTagPageModel }) {
       marktInsights={model.marktInsights}
       simulatorTeaser={model.simulatorTeaser}
       fleetSoGerechnet={model.fleetSoGerechnet}
+      startHero={model.startHero ?? null}
       startKarte={model.startKarte ?? null}
       leitfrage={model.leitfrage}
       isStartSurface={model.isStartSurface}

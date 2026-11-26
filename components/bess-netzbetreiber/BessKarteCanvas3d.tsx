@@ -9,11 +9,13 @@ import {
   saeulenHoehe,
 } from "@/lib/bessKarte3d/logic";
 import {
+  applyVerticalTiltDelta,
   type Camera3d,
   clampCamera3d,
   createProjectionParams3d,
   DEFAULT_CAMERA_3D,
   geoToPlane,
+  orbitCameraBy,
   panCameraBy,
   type Point2d,
   type ProjectionFit,
@@ -731,11 +733,7 @@ export function BessKarteCanvas3d({
           projFit,
         );
         if (e.pointerType === "touch") {
-          next = clampCamera3d({
-            ...next,
-            yawDeg: next.yawDeg + (now.midX - prev.midX) * 0.42,
-            tiltDeg: next.tiltDeg + (now.midY - prev.midY) * 0.3,
-          });
+          next = orbitCameraBy(next, now.midX - prev.midX, now.midY - prev.midY);
         } else {
           next = panCameraBy(next, now.midX - prev.midX, now.midY - prev.midY, width, height, projFit);
         }
@@ -761,11 +759,7 @@ export function BessKarteCanvas3d({
           const { width, height } = sizeRef.current;
           next = panCameraBy(drag.startCam, dx, dy, width, height, projFit);
         } else {
-          next = clampCamera3d({
-            ...drag.startCam,
-            yawDeg: drag.startCam.yawDeg + dx * 0.42,
-            tiltDeg: drag.startCam.tiltDeg + dy * 0.3,
-          });
+          next = orbitCameraBy(drag.startCam, dx, dy);
         }
         cameraRef.current = next;
         onCameraChange(next);
@@ -828,10 +822,10 @@ export function BessKarteCanvas3d({
       onCameraChange(clampCamera3d({ ...camera, yawDeg: camera.yawDeg + 10 }));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      onCameraChange(clampCamera3d({ ...camera, tiltDeg: camera.tiltDeg - 6 }));
+      onCameraChange(applyVerticalTiltDelta(camera, -1, 6));
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      onCameraChange(clampCamera3d({ ...camera, tiltDeg: camera.tiltDeg + 6 }));
+      onCameraChange(applyVerticalTiltDelta(camera, 1, 6));
     } else if (e.key === "+" || e.key === "=") {
       e.preventDefault();
       zoomBy(ZOOM_STEP);

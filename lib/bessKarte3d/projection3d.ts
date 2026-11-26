@@ -245,6 +245,35 @@ export function clampCamera3d(camera: Camera3d): Camera3d {
   };
 }
 
+/**
+ * Zentrales Vorzeichen für vertikale Kameraneigung (Canvas-Y nach unten = positiv):
+ * Nach unten ziehen (dy > 0) verringert tiltDeg (Ansicht folgt dem Zeiger/Finger nach unten),
+ * nach oben ziehen (dy < 0) neigt stärker in die 3D-Perspektive.
+ */
+export const VERTICAL_TILT_SIGN = -1 as const;
+export const DRAG_YAW_DEG_PER_PX = 0.42;
+export const DRAG_TILT_DEG_PER_PX = 0.3;
+
+export function applyVerticalTiltDelta(
+  camera: Camera3d,
+  dyPx: number,
+  degPerPx = DRAG_TILT_DEG_PER_PX,
+): Camera3d {
+  return clampCamera3d({
+    ...camera,
+    tiltDeg: camera.tiltDeg + VERTICAL_TILT_SIGN * dyPx * degPerPx,
+  });
+}
+
+/** Dreht und neigt die 3D-Kamera aus Zeiger-/Touch-Verschiebung (einzige Steuerungsstelle). */
+export function orbitCameraBy(camera: Camera3d, dxPx: number, dyPx: number): Camera3d {
+  return clampCamera3d({
+    ...camera,
+    yawDeg: camera.yawDeg + dxPx * DRAG_YAW_DEG_PER_PX,
+    tiltDeg: camera.tiltDeg + VERTICAL_TILT_SIGN * dyPx * DRAG_TILT_DEG_PER_PX,
+  });
+}
+
 /** Umkehrung von projectPoint3d für z = 0: Canvas-Punkt → Ebenen-Punkt (null, wenn hinter dem Horizont). */
 export function unprojectGround(sx: number, sy: number, params: ProjectionParams3d): Point2d | null {
   const u = (sx - params.cx) / params.scale;

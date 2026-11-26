@@ -27,6 +27,7 @@ import type { StartKartePreviewData } from "@/lib/bessKarte3d/types";
 import type { MarktInsight } from "@/lib/marktInsights";
 import { formatPreisSpanne, type PreisTick } from "@/lib/preisFenster";
 import { SITE_MAIN_NAV } from "@/lib/siteNav";
+import type { StartHeroV2Model } from "@/lib/startHeroV2";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -59,6 +60,7 @@ export function AuffaelligkeitKopf({
   kickerPrefix = "Gestern",
   hideTagLink = false,
   leitfrage,
+  startHero = null,
   isStartSurface = false,
 }: {
   dayKey: string;
@@ -69,6 +71,7 @@ export function AuffaelligkeitKopf({
   kickerPrefix?: string;
   hideTagLink?: boolean;
   leitfrage?: string;
+  startHero?: StartHeroV2Model | null;
   isStartSurface?: boolean;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
@@ -208,16 +211,76 @@ export function AuffaelligkeitKopf({
     return `Abendspitze Restlast · 31 Tage · gestern ${formatDeGw(record.eveningPeakGw, 1)} (${platz})`;
   }, [isTagPage, metricHero, metricKey, record?.eveningPeakGw]);
 
+  const useStartHeroV2 = isStartSurface && Boolean(startHero);
+  const startLeitfrage = useStartHeroV2 ? startHero!.question : leitfrage;
+
   return (
-    <section className={isTagPage ? "v4-kopf v4-kopf--tag" : "v4-kopf"} aria-labelledby="auffaelligkeit-h1">
+    <section
+      className={
+        isTagPage
+          ? "v4-kopf v4-kopf--tag"
+          : useStartHeroV2
+            ? "v4-kopf v4-kopf--start"
+            : "v4-kopf"
+      }
+      aria-labelledby="auffaelligkeit-h1"
+    >
       <div className="v4-kopf-inner v4-content">
         <p className="v4-kicker num">{kicker}</p>
-        {leitfrage ? (
+        {startLeitfrage ? (
           <p id="tages-leitfrage" className="v4-leitfrage">
-            {leitfrage}
+            {startLeitfrage}
           </p>
         ) : null}
-        {isTagPage ? (
+        {useStartHeroV2 && startHero ? (
+          <>
+            <h1 id="auffaelligkeit-h1" className="v4-h1">
+              {startHero.answerSentence}
+            </h1>
+            <div className="v4-kopf-hero">
+              <div className="v4-kopf-zahl">
+                {startHero.bigNumber ? (
+                  <p
+                    className="v4-riesenzahl num"
+                    aria-hidden="true"
+                    style={
+                      {
+                        "--v4-ries-ch": String(
+                          startHero.bigNumber.value.length +
+                            Math.ceil(startHero.bigNumber.unit.length * 0.45),
+                        ),
+                      } as CSSProperties
+                    }
+                  >
+                    {startHero.bigNumber.value}
+                    <span className="v4-riesenzahl-unit">{startHero.bigNumber.unit}</span>
+                  </p>
+                ) : null}
+                <div className="v4-kern-row">
+                  <span>{startHero.kernLine}</span>
+                </div>
+                <p className="v4-subline v4-start-context">{startHero.contextLine}</p>
+                <div className="v4-kopf-links">
+                  {!hideTagLink ? (
+                    <Link href={`/tag/${dayKey}`} className="v4-text-link">
+                      Tag ansehen →
+                    </Link>
+                  ) : null}
+                  <Link href="/methodik#quellen" className="v4-text-link">
+                    Methodik
+                  </Link>
+                </div>
+              </div>
+              {bars.length > 0 ? (
+                <RangLeiste
+                  bars={bars}
+                  metricLabel={seriePresentation ? "Überschuss je Tag" : hero?.kernLabel ?? "31-Tage-Verlauf"}
+                  rankLabel={seriePresentation ? "31 Tage · Überschuss je Tag" : metricHero?.rankLabel ?? undefined}
+                />
+              ) : null}
+            </div>
+          </>
+        ) : isTagPage ? (
           <>
             <h1 id="auffaelligkeit-h1" className="v4-h1">
               {kopfH1}
@@ -353,6 +416,7 @@ export function TagPageV4({
   preisTag = [],
   marktInsights = [],
   fleetSoGerechnet = null,
+  startHero = null,
   startKarte = null,
   leitfrage,
   isStartSurface = false,
@@ -376,6 +440,7 @@ export function TagPageV4({
   marktInsights?: MarktInsight[];
   simulatorTeaser?: import("@/lib/simulatorTeaser.types").Eps70TeaserUi | null;
   fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
+  startHero?: StartHeroV2Model | null;
   startKarte?: StartKartePreviewData | null;
   leitfrage?: string;
   isStartSurface?: boolean;
@@ -409,10 +474,23 @@ export function TagPageV4({
         kickerPrefix={isStartSurface ? "Gestern" : "Tag"}
         hideTagLink={!isStartSurface}
         leitfrage={leitfrage}
+        startHero={isStartSurface ? startHero : null}
         isStartSurface={isStartSurface}
       />
       {isStartSurface ? (
         <>
+          <div id="tagesverlauf">
+            <TagChapter
+              day={day}
+              peakGw={record.eveningPeakGw ?? null}
+              peakAt={record.eveningPeakAt ?? null}
+              useTagDateHeading
+              prices={preisTag}
+              powerGw={fleetPowerGw}
+              energyGwh={fleetEnergyGwh}
+              surplusGwh={record.surplusGwh}
+            />
+          </div>
           {startKarte ? <StartKarteSektion data={startKarte} /> : null}
           <nav
             className="v4-content v4-start-links"

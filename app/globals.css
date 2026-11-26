@@ -7722,6 +7722,69 @@ html.vt-to-light::view-transition-new(root) {
   }
 }
 
+/* Startseiten-Hero v2 (Variante A, nur / über .v4-kopf--start; /tag bleibt unberührt) */
+.v4-kopf--start .v4-h1 {
+  margin-bottom: 1.5rem;
+}
+.v4-kopf--start .v4-kopf-hero {
+  align-items: end;
+  gap: 1.75rem 2.5rem;
+}
+.v4-kopf--start .v4-riesenzahl {
+  --v4-ries-max: 14rem;
+  line-height: 0.92;
+}
+.v4-kopf--start .v4-kern-row {
+  margin-top: 1.15rem;
+}
+.v4-kopf--start .v4-start-context {
+  margin-top: 0.75rem;
+  max-width: 62ch;
+}
+.v4-kopf--start .v4-kopf-links {
+  margin-top: 0.65rem;
+}
+.v4-kopf--start .v4-rang-bars {
+  height: 112px;
+}
+@media (max-width: 767px) {
+  .v4-start .v4-kopf--start .v4-h1 {
+    margin-bottom: 0.85rem;
+  }
+  .v4-start .v4-kopf--start .v4-riesenzahl {
+    --v4-ries-max: 7.5rem;
+    line-height: 0.92;
+  }
+  .v4-start .v4-kopf--start .v4-kern-row {
+    margin-top: 0.95rem;
+  }
+  .v4-start .v4-kopf--start .v4-kopf-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    order: 3;
+  }
+  .v4-start .v4-kopf--start .v4-kopf-zahl {
+    order: 0;
+  }
+  .v4-start .v4-kopf--start .v4-start-context {
+    order: 0;
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  .v4-start .v4-kopf--start .v4-rang-leiste {
+    order: 1;
+    margin-top: 0.25rem;
+  }
+  .v4-start .v4-kopf--start .v4-rang-bars {
+    height: 68px;
+    padding-top: 6px;
+  }
+  .v4-start .v4-kopf--start .v4-kopf-footnote {
+    order: 4;
+  }
+}
+
 .v4-riesenzahl-unit {
   color: hsl(var(--foreground));
   font-size: 0.34em;

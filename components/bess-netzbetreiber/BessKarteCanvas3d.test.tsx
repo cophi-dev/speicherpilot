@@ -124,4 +124,105 @@ describe("BessKarteCanvas3d Touch-Gesten (Mobil)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ansicht zurücksetzen" }));
     expect(onResetCamera).toHaveBeenCalledTimes(1);
   });
+
+  it("dreht vertikale Ziehrichtung um: nach unten ziehen verringert tiltDeg (Desktop, Touch-Pinch, Pfeiltasten)", () => {
+    let cam: Camera3d = { ...DEFAULT_CAMERA_3D, tiltDeg: 40 };
+    const onCameraChange = jest.fn((next: Camera3d) => {
+      cam = next;
+    });
+
+    const { rerender } = render(
+      <BessKarteCanvas3d
+        hero
+        geoJson={SAMPLE_GEO}
+        bundeslaender={[]}
+        sites={SAMPLE_SITES}
+        modus="mw"
+        maxScaleValue={140}
+        showAbregelung={false}
+        selectedLok={null}
+        onSelectSite={jest.fn()}
+        camera={cam}
+        onCameraChange={onCameraChange}
+        onResetCamera={jest.fn()}
+      />,
+    );
+
+    const canvas = screen.getByRole("img");
+
+    // Desktop-Maus: nach unten ziehen (dy = +50) -> tiltDeg sinkt; nach rechts (dx = +20) -> yawDeg steigt
+    fireEvent(canvas, pointerEvent("pointerdown", { pointerId: 10, clientX: 200, clientY: 200, pointerType: "mouse" }));
+    fireEvent(canvas, pointerEvent("pointermove", { pointerId: 10, clientX: 220, clientY: 250, pointerType: "mouse" }));
+    fireEvent(canvas, pointerEvent("pointerup", { pointerId: 10, clientX: 220, clientY: 250, pointerType: "mouse" }));
+
+    expect(cam.tiltDeg).toBeCloseTo(40 - 50 * 0.3, 5);
+    expect(cam.yawDeg).toBeCloseTo(20 * 0.42, 5);
+
+    // Touch-Pinch: beide Finger ziehen nach unten (dy = +40) -> tiltDeg sinkt weiter
+    const tiltBeforePinch = cam.tiltDeg;
+    rerender(
+      <BessKarteCanvas3d
+        hero
+        touchFriendly
+        geoJson={SAMPLE_GEO}
+        bundeslaender={[]}
+        sites={SAMPLE_SITES}
+        modus="mw"
+        maxScaleValue={140}
+        showAbregelung={false}
+        selectedLok={null}
+        onSelectSite={jest.fn()}
+        camera={cam}
+        onCameraChange={onCameraChange}
+        onResetCamera={jest.fn()}
+      />,
+    );
+    fireEvent(canvas, pointerEvent("pointerdown", { pointerId: 21, clientX: 100, clientY: 200, pointerType: "touch" }));
+    fireEvent(canvas, pointerEvent("pointerdown", { pointerId: 22, clientX: 200, clientY: 200, pointerType: "touch" }));
+    fireEvent(canvas, pointerEvent("pointermove", { pointerId: 21, clientX: 100, clientY: 240, pointerType: "touch" }));
+    fireEvent(canvas, pointerEvent("pointermove", { pointerId: 22, clientX: 200, clientY: 240, pointerType: "touch" }));
+    fireEvent(canvas, pointerEvent("pointerup", { pointerId: 22, clientX: 200, clientY: 240, pointerType: "touch" }));
+    fireEvent(canvas, pointerEvent("pointerup", { pointerId: 21, clientX: 100, clientY: 240, pointerType: "touch" }));
+
+    expect(cam.tiltDeg).toBeLessThan(tiltBeforePinch);
+
+    // Tastatur: ArrowDown verringert tiltDeg, ArrowUp erhöht tiltDeg (selbe Metapher)
+    const tiltBeforeKeys = cam.tiltDeg;
+    rerender(
+      <BessKarteCanvas3d
+        hero
+        geoJson={SAMPLE_GEO}
+        bundeslaender={[]}
+        sites={SAMPLE_SITES}
+        modus="mw"
+        maxScaleValue={140}
+        showAbregelung={false}
+        selectedLok={null}
+        onSelectSite={jest.fn()}
+        camera={cam}
+        onCameraChange={onCameraChange}
+        onResetCamera={jest.fn()}
+      />,
+    );
+    fireEvent.keyDown(canvas, { key: "ArrowUp" });
+    expect(cam.tiltDeg).toBeCloseTo(tiltBeforeKeys + 6, 5);
+    rerender(
+      <BessKarteCanvas3d
+        hero
+        geoJson={SAMPLE_GEO}
+        bundeslaender={[]}
+        sites={SAMPLE_SITES}
+        modus="mw"
+        maxScaleValue={140}
+        showAbregelung={false}
+        selectedLok={null}
+        onSelectSite={jest.fn()}
+        camera={cam}
+        onCameraChange={onCameraChange}
+        onResetCamera={jest.fn()}
+      />,
+    );
+    fireEvent.keyDown(canvas, { key: "ArrowDown" });
+    expect(cam.tiltDeg).toBeCloseTo(tiltBeforeKeys, 5);
+  });
 });

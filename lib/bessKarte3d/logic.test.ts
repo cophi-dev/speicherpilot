@@ -284,6 +284,20 @@ describe("Zoom und Verschieben (projection3d)", () => {
     const panned = pr.panCameraBy(cam, 40, 0, 1200, 800);
     const s3 = pr.projectPoint3d(plane.x, plane.y, 0, pr.createProjectionParams3d(panned, 1200, 800));
     expect(Math.abs(s3.x - s.x - 40)).toBeLessThan(8);
+
+    // Vertikales Pan folgt dem Zeiger nach unten (dy = +40 -> Bildschirm-Y steigt um ~40 px)
+    const pannedDown = pr.panCameraBy(cam, 0, 40, 1200, 800);
+    const s4 = pr.projectPoint3d(plane.x, plane.y, 0, pr.createProjectionParams3d(pannedDown, 1200, 800));
+    expect(Math.abs(s4.y - s.y - 40)).toBeLessThan(8);
+
+    // Zentrales vertikales Tilt-Vorzeichen: dy > 0 verringert tiltDeg, dy < 0 erhöht tiltDeg
+    expect(pr.VERTICAL_TILT_SIGN).toBe(-1);
+    const startTiltCam = { ...pr.DEFAULT_CAMERA_3D, tiltDeg: 40 };
+    expect(pr.orbitCameraBy(startTiltCam, 10, 50).tiltDeg).toBeCloseTo(25, 5);
+    expect(pr.orbitCameraBy(startTiltCam, 10, -50).tiltDeg).toBeCloseTo(55, 5);
+    expect(pr.orbitCameraBy(startTiltCam, 10, 0).yawDeg).toBeCloseTo(4.2, 5);
+    expect(pr.applyVerticalTiltDelta(startTiltCam, 1, 6).tiltDeg).toBeCloseTo(34, 5);
+    expect(pr.applyVerticalTiltDelta(startTiltCam, -1, 6).tiltDeg).toBeCloseTo(46, 5);
   });
 });
 

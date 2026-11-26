@@ -23,6 +23,7 @@ import {
 import { loadTagFleetRunSeries, nationalFleetContext } from "@/lib/nationalMonthFleetModel.server";
 import { formatBerlinDayLabel } from "@/lib/dayRingStory";
 import { loadEps70Teaser } from "@/lib/simulatorTeaser.server";
+import { buildStartHeroV2, type StartHeroV2Model } from "@/lib/startHeroV2";
 import { fleetDayNoWindSolarSurplus } from "@/components/home/NationalFleetTagSlot";
 
 export type CompleteTagPageModel = {
@@ -57,10 +58,23 @@ export type CompleteTagPageModel = {
   fleetRun: ReturnType<typeof loadTagFleetRunSeries>["run"] | null;
   fleetRunSource: ReturnType<typeof loadTagFleetRunSeries>["source"] | null;
   fleetSlice: ReturnType<typeof sliceFleetDay> | null;
+  startHero?: StartHeroV2Model | null;
   startKarte?: StartKartePreviewData | null;
   leitfrage: string;
   isStartSurface: boolean;
 };
+
+function safeLoadTagFleetRun(
+  factor: ReturnType<typeof parseFleetFactor>,
+  strategy: NationalFleetStrategyUi,
+  opts: { monthKey: string; dayKey: string },
+): ReturnType<typeof loadTagFleetRunSeries> | null {
+  try {
+    return loadTagFleetRunSeries(factor, strategy, opts);
+  } catch {
+    return null;
+  }
+}
 
 export async function loadCompleteTagPageModel(
   datum: string,
@@ -109,6 +123,27 @@ export async function loadCompleteTagPageModel(
     ? "Was hätte mehr Speicher gestern geändert?"
     : `Was hätte mehr Speicher am ${formatBerlinDayLabel(datum)} geändert?`;
 
+  let startHero: StartHeroV2Model | null = null;
+  if (opts.isStartSurface) {
+    const heroSpitzeLoaded = fleetMonth
+      ? safeLoadTagFleetRun(2, "spitze", { monthKey: fleetMonthKey, dayKey: datum })
+      : null;
+    const heroUeberschussLoaded = fleetMonth
+      ? safeLoadTagFleetRun(2, "ueberschuss", { monthKey: fleetMonthKey, dayKey: datum })
+      : null;
+    const heroMarktLoaded = fleetMonth
+      ? safeLoadTagFleetRun(2, "markt", { monthKey: fleetMonthKey, dayKey: datum })
+      : null;
+    startHero = buildStartHeroV2({
+      dayKey: datum,
+      spitzeRun: heroSpitzeLoaded?.run ?? null,
+      ueberschussRun: heroUeberschussLoaded?.run ?? null,
+      marktRun: heroMarktLoaded?.run ?? null,
+      question: leitfrage,
+      horizonLabel: heroSpitzeLoaded?.source === "month" ? "Monatslauf" : "Tageshorizont",
+    });
+  }
+
   return {
     dayKey: datum,
     todayKey: view.todayKey,
@@ -144,6 +179,7 @@ export async function loadCompleteTagPageModel(
           monthKey: fleetMonthKey,
         }),
     simulatorTeaser: opts.isStartSurface ? undefined : loadEps70Teaser(),
+    startHero,
     startKarte: opts.isStartSurface ? loadStartKartePreviewData() : null,
     fleetSoGerechnet:
       fleetRun && fleetSlice
