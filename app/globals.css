@@ -6705,11 +6705,9 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .site-shell-skip {
   position: fixed;
-  top: -120px;
+  top: 8px;
   left: 8px;
   z-index: 80;
-  min-height: 44px;
-  min-width: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6719,10 +6717,23 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   box-shadow: 0 0 0 2px hsl(var(--ring));
+  /* Nur bei Tastaturfokus sichtbar; nicht in Full-Page-Screens oder beim Scrollen. */
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
 }
-.site-shell-skip:focus,
 .site-shell-skip:focus-visible {
-  top: 8px;
+  clip: auto;
+  clip-path: none;
+  width: auto;
+  height: auto;
+  min-height: 44px;
+  min-width: 44px;
+  overflow: visible;
+  white-space: normal;
 }
 
 /* Theme toggle (Schalter C) + View Transition „Licht aus / Licht an“ */
@@ -7391,7 +7402,10 @@ html.vt-to-light::view-transition-new(root) {
   border-radius: 1px;
 }
 .v4-rang-bar.is-gestern {
-  background: var(--v4-warm);
+  background: transparent;
+  border: 1.5px solid var(--v4-warm);
+  box-sizing: border-box;
+  min-height: 8px;
 }
 .v4-rang-bar.is-rekord {
   background: hsl(var(--foreground));
@@ -7413,25 +7427,25 @@ html.vt-to-light::view-transition-new(root) {
 .v4-rang-bar-tag {
   display: none;
 }
+.v4-rang-bar.is-gestern .v4-rang-bar-tag {
+  display: block;
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: auto;
+  right: 0;
+  transform: none;
+  font-size: 12px;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  white-space: nowrap;
+  pointer-events: none;
+}
 @media (max-width: 767px) {
   .v4-rang-mobile-summary {
     display: block;
-  }
-  .v4-rang-bar.is-gestern .v4-rang-bar-tag {
-    display: block;
-    position: absolute;
-    bottom: calc(100% + 2px);
-    left: auto;
-    right: 0;
-    transform: none;
-    font-size: 12px;
-    line-height: 1.1;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: hsl(var(--foreground));
-    background: hsl(var(--background));
-    white-space: nowrap;
-    pointer-events: none;
   }
 }
 .v4-kopf-links {
@@ -7561,6 +7575,9 @@ html.vt-to-light::view-transition-new(root) {
   font-weight: 400;
   margin-top: 0.25rem;
 }
+.v4-preis-chunk {
+  white-space: nowrap;
+}
 
 .v4-kopf-intro .v4-subline {
   margin-bottom: 1.25rem;
@@ -7619,33 +7636,89 @@ html.vt-to-light::view-transition-new(root) {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
+  /* Startseite: Riesenzahl und Links sofort sichtbar, Reihenfolge
+     Headline → Untertitel → Börsenpreis → Zahl → Links → Balken. */
   .v4-start .v4-kopf-inner {
     display: flex;
     flex-direction: column;
   }
+  .v4-start .v4-kopf-intro,
+  .v4-start .v4-kopf-subgrid,
   .v4-start .v4-kopf-hero {
     display: contents;
   }
   .v4-start .v4-kopf-zahl {
-    display: none;
-  }
-  .v4-start .v4-kopf-intro {
-    order: 1;
-  }
-  .v4-start .v4-rang-leiste {
-    order: 2;
-    margin-top: 0.5rem;
-  }
-  .v4-start .v4-kopf-intro .v4-subline {
-    order: 3;
-    margin-top: 0.75rem;
-  }
-  .v4-start .v4-kopf-links {
-    order: 4;
+    display: block;
+    order: 5;
+    max-width: 100%;
   }
   .v4-start .v4-kicker.num {
     order: 0;
+  }
+  .v4-start .v4-leitfrage {
+    order: 1;
+  }
+  .v4-start .v4-h1 {
+    order: 2;
+    margin-bottom: 0.5rem;
+  }
+  .v4-start .v4-subline {
+    order: 3;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  .v4-start .v4-preis-block {
+    order: 4;
+    border-left: none;
+    padding-left: 0;
+    margin-bottom: 0.75rem;
+  }
+  .v4-start .v4-rang-leiste {
+    order: 6;
+    margin-top: 0.5rem;
+  }
+  .v4-start .v4-rang-bars {
+    height: 88px;
+    padding-top: 8px;
+  }
+  .v4-start .v4-kicker.num,
+  .v4-start .v4-kicker {
+    margin-top: 12px;
+    margin-bottom: 0.5rem;
+  }
+  .v4-start .v4-leitfrage {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  .v4-start .v4-kopf {
+    padding-top: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+  .v4-start .v4-kopf-zahl {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 0;
+  }
+  .v4-start .v4-kopf-links {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    gap: 0.35rem 1rem;
+    margin-top: 0.5rem;
+    min-height: 0;
+    height: auto;
+  }
+  .v4-start .v4-kopf-footnote {
+    order: 7;
+    margin-top: 0.4rem;
+  }
+  .v4-start .v4-start-links,
+  .v4-start .v4-start-footnote {
+    padding-block: 0.5rem;
   }
 }
 
@@ -12113,4 +12186,57 @@ table.sr-only-focusable:focus-within {
   font-size: var(--type-14);
   font-weight: 600;
   color: var(--akzent, #b4532a);
+}
+
+/* ===== Kompakte Startseite `/` unter dem Hero ===== */
+.v4-start-insight {
+  border-top: 1px solid var(--linie);
+  padding-block: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+
+.v4-start-insight-text {
+  margin: 0;
+  font-size: var(--type-16);
+  line-height: var(--lh-body);
+  color: hsl(var(--foreground));
+  max-inline-size: 62ch;
+}
+
+.v4-start-insight-link {
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.v4-start-links {
+  border-top: 1px solid var(--linie);
+  padding-block: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  flex-wrap: balance;
+  align-items: center;
+  gap: 0.25rem 0.85rem;
+}
+
+.v4-start-links-sep {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  user-select: none;
+}
+
+.v4-start-footnote {
+  border-top: 1px solid var(--linie);
+  margin-block: 0 var(--space-6);
+  padding-block: var(--space-3) 0;
+  font-size: var(--type-12);
+  line-height: var(--lh-meta);
+  color: hsl(var(--muted-foreground));
+}
+
+.v4-start-footnote .v4-text-link {
+  font-size: var(--type-12);
 }

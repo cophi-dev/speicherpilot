@@ -304,7 +304,7 @@
   background: var(--flaeche);
   overflow: hidden;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .canvas3d {
@@ -313,18 +313,16 @@
   outline: none;
 }
 
-/* Mobil: ein Finger scrollt die Seite weiter; Zwei-Finger fängt JS per preventDefault. */
+/* Mobil wie #156: ein Finger bleibt pan-y (Seite scrollt).
+   Zwei-Finger: JS per preventDefault, Pinch und Drehen. */
 .canvasStageTouch {
+  display: flex;
+  flex-direction: column;
   touch-action: pan-y;
 }
 
 .canvasStageTouch .canvas3d {
   touch-action: pan-y;
-}
-
-.canvasStageTouch {
-  display: flex;
-  flex-direction: column;
 }
 
 .canvasToolbar {

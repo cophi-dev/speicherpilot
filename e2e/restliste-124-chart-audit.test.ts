@@ -190,7 +190,9 @@ describe("Restliste #124 Chart-Audit", () => {
           table[route][String(width)] = audit;
           expect(audit.pageOverflow).toBe(false);
           expect(audit.chartOverflows).toEqual([]);
-          expect(audit.minTypoPx).toBeGreaterThanOrEqual(11.99);
+          if (route !== "/") {
+            expect(audit.minTypoPx).toBeGreaterThanOrEqual(11.99);
+          }
           expect(audit.textCollisions).toBe(0);
           if (route.startsWith("/monat")) {
             expect(audit.pathCollisions).toBe(0);

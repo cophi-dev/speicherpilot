@@ -1,9 +1,11 @@
 import "server-only";
 
 import { auffaelligkeitForDay } from "@/lib/auffaelligkeit";
+import { loadStartKartePreviewData } from "@/lib/bessKarte3d/loadSummary.server";
+import type { StartKartePreviewData } from "@/lib/bessKarte3d/types";
 import { lastSurplusBefore } from "@/lib/kopfTagCopy";
 import { loadGermanyViewForTag } from "@/lib/germanyViewTag.server";
-import { marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
+import { firstMarktInsightForStart, marktInsightsForRoute } from "@/lib/marktInsightsPage.server";
 import {
   monthStatsForRun,
   nationalFleetMonthAvailable,
@@ -55,6 +57,7 @@ export type CompleteTagPageModel = {
   fleetRun: ReturnType<typeof loadTagFleetRunSeries>["run"] | null;
   fleetRunSource: ReturnType<typeof loadTagFleetRunSeries>["source"] | null;
   fleetSlice: ReturnType<typeof sliceFleetDay> | null;
+  startKarte?: StartKartePreviewData | null;
   leitfrage: string;
   isStartSurface: boolean;
 };
@@ -122,16 +125,26 @@ export async function loadCompleteTagPageModel(
     fleetStrategy,
     fleetDayNoWindSolarSurplus: fleetDayNoWindSolarSurplus(fleetSlice),
     preisTag: view.preisTag,
-    marktInsights: marktInsightsForRoute({
-      route: opts.isStartSurface ? "start" : "tag",
-      records,
-      fleetPowerGw: fleetMonth ? NATIONAL_FLEET_DISPLAY_POWER_GW : fleet.powerGw,
-      fleetEnergyGwh: fleetMonth ? NATIONAL_FLEET_DISPLAY_ENERGY_GWH : fleet.energyGwh,
-      focusDayKey: datum,
-      overview30: view.dayOverview,
-      monthKey: fleetMonthKey,
-    }),
-    simulatorTeaser: loadEps70Teaser(),
+    marktInsights: opts.isStartSurface
+      ? firstMarktInsightForStart({
+          records,
+          fleetPowerGw: fleetMonth ? NATIONAL_FLEET_DISPLAY_POWER_GW : fleet.powerGw,
+          fleetEnergyGwh: fleetMonth ? NATIONAL_FLEET_DISPLAY_ENERGY_GWH : fleet.energyGwh,
+          focusDayKey: datum,
+          overview30: view.dayOverview,
+          monthKey: fleetMonthKey,
+        })
+      : marktInsightsForRoute({
+          route: "tag",
+          records,
+          fleetPowerGw: fleetMonth ? NATIONAL_FLEET_DISPLAY_POWER_GW : fleet.powerGw,
+          fleetEnergyGwh: fleetMonth ? NATIONAL_FLEET_DISPLAY_ENERGY_GWH : fleet.energyGwh,
+          focusDayKey: datum,
+          overview30: view.dayOverview,
+          monthKey: fleetMonthKey,
+        }),
+    simulatorTeaser: opts.isStartSurface ? undefined : loadEps70Teaser(),
+    startKarte: opts.isStartSurface ? loadStartKartePreviewData() : null,
     fleetSoGerechnet:
       fleetRun && fleetSlice
         ? {

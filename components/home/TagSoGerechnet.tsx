@@ -121,7 +121,7 @@ export function TagSoGerechnet({
   return (
     <SoGerechnetBlock>
       <div className="v4-so-gerechnet-section">
-        <p className="v4-so-gerechnet-kicker num">01 · Der Tag</p>
+        <p className="v4-so-gerechnet-kicker num">Der Tag</p>
         <p>{surplusLine}</p>
         <p>{tagSurplusDefinitionLine()}</p>
         {lastLine ? <p>{lastLine}</p> : null}
@@ -145,7 +145,7 @@ export function TagSoGerechnet({
       </div>
 
       <div className="v4-so-gerechnet-section">
-        <p className="v4-so-gerechnet-kicker num">02 · Das System</p>
+        <p className="v4-so-gerechnet-kicker num">Das System</p>
         <p>
           Nennenergie bezeichnet die Größenordnung der Referenzflotte — keine verfügbare
           Ladeenergie an diesem Tag.

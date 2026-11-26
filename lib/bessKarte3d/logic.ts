@@ -3,6 +3,7 @@ import type {
   EinspeisungArt,
   KarteEinheit,
   KarteFilter,
+  KartePreviewSite,
   KarteSite,
   MonatKumuliertEintrag,
   SitesAtCutResult,
@@ -396,4 +397,23 @@ export function formatEinspeisungLabel(art: EinspeisungArt | "gemischt"): string
   if (art === "teil") return "Teileinspeisung";
   if (art === "gemischt") return "gemischt";
   return "keine Angabe";
+}
+
+
+/** Startkarten-Zeitablauf: Stand je Monat aus den Einheiten, wie sitesAtCut / „Abspielen“. */
+export function previewSitesAtMonat(
+  sites: readonly KartePreviewSite[],
+  monat: string,
+): { lok: string; lat: number; lng: number; nettoMw: number }[] {
+  const out: { lok: string; lat: number; lng: number; nettoMw: number }[] = [];
+  for (const site of sites) {
+    const units = site.units ?? [];
+    const nettoMw = units.length
+      ? units.filter((u) => u.ibnMonat <= monat).reduce((sum, u) => sum + u.nettoMw, 0)
+      : site.nettoMw;
+    if (nettoMw > 0) {
+      out.push({ lok: site.lok, lat: site.lat, lng: site.lng, nettoMw });
+    }
+  }
+  return out;
 }

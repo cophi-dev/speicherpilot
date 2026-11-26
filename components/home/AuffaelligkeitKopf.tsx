@@ -22,9 +22,11 @@ import { formatQuantity } from "@/lib/formatQuantity";
 import type { OverviewEvaluation } from "@/lib/overviewChain";
 import { nationalFleetMonthAvailable, type NationalFleetFactor, type NationalFleetStrategyUi } from "@/lib/nationalMonthFleetModel";
 import { MarktInsightsBlock } from "@/components/home/MarktInsightsBlock";
-import { StartKompromissTeaser, StartKnotenTeaser } from "@/components/home/SimulatorTeasers";
+import { StartKarteSektion } from "@/components/home/StartKarteSektion";
+import type { StartKartePreviewData } from "@/lib/bessKarte3d/types";
 import type { MarktInsight } from "@/lib/marktInsights";
 import { formatPreisSpanne, type PreisTick } from "@/lib/preisFenster";
+import { SITE_MAIN_NAV } from "@/lib/siteNav";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): string {
@@ -32,6 +34,20 @@ function kopfDataStand(dayKey: string, todayKey: string, liveStand: string): str
     return "06:00";
   }
   return liveStand;
+}
+
+function PreisSpanneValue({ value }: { value: string }) {
+  const parts = value.split(" bis ");
+  if (parts.length !== 2) {
+    return <p className="v4-preis-value num">{value}</p>;
+  }
+  return (
+    <p className="v4-preis-value num">
+      <span className="v4-preis-chunk">{parts[0]}</span>
+      {" bis "}
+      <span className="v4-preis-chunk">{parts[1]}</span>
+    </p>
+  );
 }
 
 export function AuffaelligkeitKopf({
@@ -43,6 +59,7 @@ export function AuffaelligkeitKopf({
   kickerPrefix = "Gestern",
   hideTagLink = false,
   leitfrage,
+  isStartSurface = false,
 }: {
   dayKey: string;
   todayKey: string;
@@ -52,6 +69,7 @@ export function AuffaelligkeitKopf({
   kickerPrefix?: string;
   hideTagLink?: boolean;
   leitfrage?: string;
+  isStartSurface?: boolean;
 }) {
   const record = records.find((r) => r.dateKey === dayKey);
   const winner = result.kind === "metric" ? kopfMetric(records, dayKey) : null;
@@ -80,7 +98,7 @@ export function AuffaelligkeitKopf({
       ? `Zuletzt lagen Wind und Sonne am ${weekdayLabelDe(lastSurplus.dateKey)} bundesweit über dem Verbrauch.`
       : "Wind und Sonne blieben unter dem Verbrauch.";
     const peakContext =
-      record.eveningPeakGw != null && record.eveningPeakAt
+      !isStartSurface && record.eveningPeakGw != null && record.eveningPeakAt
         ? insertDisplayUnitNbsp(
             ` Die Abendspitze der Restlast (ab 17 Uhr) erreichte ${formatDeGw(record.eveningPeakGw, 1)} (${record.eveningPeakAt} Uhr). Speicher fahren in diesem Regime über Preis-Spreads und gegen Lastspitzen, nicht aus nationalem EE-Überschuss.`,
           )
@@ -95,7 +113,7 @@ export function AuffaelligkeitKopf({
       },
       bars,
     };
-  }, [dayKey, record, records, result.kind]);
+  }, [dayKey, isStartSurface, record, records, result.kind]);
 
   const metricHero =
     record && winner && metricKey === winner.key && !seriePresentation ? kopfHero(record, winner) : null;
@@ -129,7 +147,24 @@ export function AuffaelligkeitKopf({
   }, [dayKey, metricKey, records, seriePresentation]);
 
   const rawKopfH1 = seriePresentation?.h1 ?? result.kopfH1;
-  const kopfSubline = seriePresentation?.subline ?? result.kopfSubline;
+  const rawKopfSubline = seriePresentation?.subline ?? result.kopfSubline;
+  const kopfSubline = useMemo(() => {
+    if (!isStartSurface || !record || record.surplusGwh >= 0.05 || result.kind !== "metric") {
+      return rawKopfSubline;
+    }
+    const noSurplusSentence =
+      record.dryStreak >= 2
+        ? `Kein Überschuss, ${record.dryStreak}. Tag in Folge.`
+        : "Kein Überschuss aus Wind und Sonne.";
+    if (metricKey === "evening_peak_gw" && (record.peakCutGw ?? 0) < 0.05 && result.subline) {
+      const trimmed = rawKopfSubline.replace(result.subline, "").trim();
+      return trimmed ? `${trimmed} ${noSurplusSentence}` : noSurplusSentence;
+    }
+    if (!rawKopfSubline.includes("Überschuss")) {
+      return rawKopfSubline ? `${rawKopfSubline} ${noSurplusSentence}` : noSurplusSentence;
+    }
+    return rawKopfSubline;
+  }, [isStartSurface, metricKey, rawKopfSubline, record, result.kind, result.subline]);
   const kopfH1 = isTagPage
     ? `${weekdayShort(dayKey, "de")}, ${dayLabel} — ${rawKopfH1}`
     : rawKopfH1;
@@ -217,7 +252,7 @@ export function AuffaelligkeitKopf({
             {priceLine ? (
               <div className="v4-preis-block">
                 <p className="v4-preis-label num">{priceLine.label}</p>
-                <p className="v4-preis-value num">{priceLine.value}</p>
+                <PreisSpanneValue value={priceLine.value} />
               </div>
             ) : null}
             {kopfSubline ? <p className="v4-subline">{kopfSubline}</p> : null}
@@ -237,7 +272,7 @@ export function AuffaelligkeitKopf({
                   {priceLine ? (
                     <div className="v4-preis-block">
                       <p className="v4-preis-label num">{priceLine.label}</p>
-                      <p className="v4-preis-value num">{priceLine.value}</p>
+                      <PreisSpanneValue value={priceLine.value} />
                     </div>
                   ) : null}
                 </div>
@@ -290,6 +325,11 @@ export function AuffaelligkeitKopf({
             )}
           </>
         )}
+        {isStartSurface ? (
+          <p className="v4-footnote v4-kopf-footnote">
+            Als messbarer Überschuss gilt 0,05 GWh oder mehr.
+          </p>
+        ) : null}
       </div>
     </section>
   );
@@ -312,8 +352,8 @@ export function TagPageV4({
   fleetDayNoWindSolarSurplus,
   preisTag = [],
   marktInsights = [],
-  simulatorTeaser = null,
   fleetSoGerechnet = null,
+  startKarte = null,
   leitfrage,
   isStartSurface = false,
   children,
@@ -336,6 +376,7 @@ export function TagPageV4({
   marktInsights?: MarktInsight[];
   simulatorTeaser?: import("@/lib/simulatorTeaser.types").Eps70TeaserUi | null;
   fleetSoGerechnet?: TagFleetSoGerechnetExtra | null;
+  startKarte?: StartKartePreviewData | null;
   leitfrage?: string;
   isStartSurface?: boolean;
   children?: React.ReactNode;
@@ -344,6 +385,8 @@ export function TagPageV4({
   if (!record) {
     return null;
   }
+  const simulatorHref =
+    SITE_MAIN_NAV.find((item) => item.label === "Simulator")?.href ?? "/kompromiss";
   return (
     <div className={isStartSurface ? "v4-start" : "v4-start is-tag-page"}>
       <Suspense fallback={null}>
@@ -366,62 +409,112 @@ export function TagPageV4({
         kickerPrefix={isStartSurface ? "Gestern" : "Tag"}
         hideTagLink={!isStartSurface}
         leitfrage={leitfrage}
+        isStartSurface={isStartSurface}
       />
-      <div id="tagesverlauf">
-        <TagChapter
-          day={day}
-          peakGw={record.eveningPeakGw ?? null}
-          peakAt={record.eveningPeakAt ?? null}
-          useTagDateHeading
-          prices={preisTag}
-          powerGw={fleetPowerGw}
-          energyGwh={fleetEnergyGwh}
-          surplusGwh={record.surplusGwh}
-        />
-      </div>
-      {isStartSurface ? null : <KnotenTagLink dayKey={dayKey} />}
-      <TagSystemChapter
-        dayKey={dayKey}
-        record={record}
-        dayOverview={dayOverview}
-        fleetPowerGw={fleetPowerGw}
-        fleetEnergyGwh={fleetEnergyGwh}
-        fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
-        fleetFactor={fleetFactor}
-        fleetStrategy={fleetStrategy}
-        fleetSoGerechnet={fleetSoGerechnet}
-      />
-      {children}
-      <TagSoGerechnet
-        day={day}
-        lastSurplusKey={lastSurplusKey}
-        surplusLine={tagSurplusLine(record.surplusGwh ?? 0)}
-        peakGw={record.eveningPeakGw ?? null}
-        peakAt={record.eveningPeakAt ?? null}
-        showFleetMonthBelow={nationalFleetMonthAvailable(dayKey.slice(0, 7)) && Boolean(children)}
-        fleetStrategyBelow={fleetStrategy ?? null}
-        priceLine={
-          record.pmin != null && record.pmax != null
-            ? formatPreisSpanne(record.pmin, record.pmax)
-            : null
-        }
-        prices={preisTag}
-        powerGw={fleetPowerGw}
-        energyGwh={fleetEnergyGwh}
-        dateLabel={formatBerlinDayLabel(dayKey)}
-        surplusGwh={record.surplusGwh ?? 0}
-        fleetExtra={fleetSoGerechnet}
-      />
-      {isStartSurface ? null : <TagesvorlageModelBox />}
-      {marktInsights.length > 0 ? (
-        <MarktInsightsBlock insights={marktInsights} layout="tag" />
-      ) : null}
-      {isStartSurface && simulatorTeaser ? (
+      {isStartSurface ? (
         <>
-          <StartKompromissTeaser teaser={simulatorTeaser} />
-          <StartKnotenTeaser />
+          {startKarte ? <StartKarteSektion data={startKarte} /> : null}
+          <nav
+            className="v4-content v4-start-links"
+            aria-label="Weitere Ansichten"
+            data-testid="start-linkzeile"
+          >
+            <Link href={`/tag/${lastCompleteDayKey}`} className="v4-text-link">
+              Ganzer Tag
+            </Link>
+            <span className="v4-start-links-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link href="/kompromiss" className="v4-text-link">
+              Kompromiss
+            </Link>
+            <span className="v4-start-links-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link href="/knoten" className="v4-text-link">
+              Knoten
+            </Link>
+            <span className="v4-start-links-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link href={simulatorHref} className="v4-text-link">
+              Simulator
+            </Link>
+            <span className="v4-start-links-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link
+              href={marktInsights[0]?.methodikHref ?? "/methodik#insights"}
+              className="v4-text-link"
+            >
+              Methodik
+            </Link>
+          </nav>
+          <p className="v4-content v4-start-footnote num" data-testid="start-quellen-fussnote">
+            Quelle: Energy-Charts / SMARD, CC BY 4.0 ·{" "}
+            <Link
+              href="/methodik#quellen"
+              className="v4-text-link"
+              aria-label="Methodik und Quellen"
+            >
+              Methodik
+            </Link>
+            .
+          </p>
         </>
-      ) : null}
+      ) : (
+        <>
+          <div id="tagesverlauf">
+            <TagChapter
+              day={day}
+              peakGw={record.eveningPeakGw ?? null}
+              peakAt={record.eveningPeakAt ?? null}
+              useTagDateHeading
+              prices={preisTag}
+              powerGw={fleetPowerGw}
+              energyGwh={fleetEnergyGwh}
+              surplusGwh={record.surplusGwh}
+            />
+          </div>
+          <KnotenTagLink dayKey={dayKey} />
+          <TagSystemChapter
+            dayKey={dayKey}
+            record={record}
+            dayOverview={dayOverview}
+            fleetPowerGw={fleetPowerGw}
+            fleetEnergyGwh={fleetEnergyGwh}
+            fleetDayNoWindSolarSurplus={fleetDayNoWindSolarSurplus}
+            fleetFactor={fleetFactor}
+            fleetStrategy={fleetStrategy}
+            fleetSoGerechnet={fleetSoGerechnet}
+          />
+          {children}
+          <TagSoGerechnet
+            day={day}
+            lastSurplusKey={lastSurplusKey}
+            surplusLine={tagSurplusLine(record.surplusGwh ?? 0)}
+            peakGw={record.eveningPeakGw ?? null}
+            peakAt={record.eveningPeakAt ?? null}
+            showFleetMonthBelow={nationalFleetMonthAvailable(dayKey.slice(0, 7)) && Boolean(children)}
+            fleetStrategyBelow={fleetStrategy ?? null}
+            priceLine={
+              record.pmin != null && record.pmax != null
+                ? formatPreisSpanne(record.pmin, record.pmax)
+                : null
+            }
+            prices={preisTag}
+            powerGw={fleetPowerGw}
+            energyGwh={fleetEnergyGwh}
+            dateLabel={formatBerlinDayLabel(dayKey)}
+            surplusGwh={record.surplusGwh ?? 0}
+            fleetExtra={fleetSoGerechnet}
+          />
+          <TagesvorlageModelBox />
+          {marktInsights.length > 0 ? (
+            <MarktInsightsBlock insights={marktInsights} layout="tag" />
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

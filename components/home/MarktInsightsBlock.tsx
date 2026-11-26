@@ -10,11 +10,31 @@ export function MarktInsightsBlock({
 }: {
   insights: MarktInsight[];
   title?: string;
-  /** `tag`: gleiche Optik wie Tagesvorlage „Modell“ auf /tag. */
-  layout?: "legacy" | "tag";
+  /** `tag`: gleiche Optik wie Tagesvorlage „Modell“ auf /tag; `start`: ein einzelner Insight auf `/`. */
+  layout?: "legacy" | "tag" | "start";
 }) {
   if (insights.length === 0) {
     return null;
+  }
+
+  if (layout === "start") {
+    const first = insights[0]!;
+    return (
+      <section
+        className="v4-content v4-start-insight"
+        aria-label="Markt-Einordnung"
+        data-testid="markt-insights"
+      >
+        <p className="v4-start-insight-text">{first.text}</p>
+        <Link
+          href={first.methodikHref}
+          className="v4-text-link v4-start-insight-link"
+          aria-label="Methodik zur Markt-Einordnung"
+        >
+          Methodik
+        </Link>
+      </section>
+    );
   }
 
   const list = (

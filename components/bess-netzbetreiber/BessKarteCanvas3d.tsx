@@ -48,7 +48,7 @@ type Props = {
   onResetCamera: () => void;
   /** Hero: größere Bühne, ohne Rahmen. */
   hero?: boolean;
-  /** Mobil: Ein-Finger scrollt die Seite, Zwei-Finger dreht/neigt/zoomt, kein Scroll-Trap. */
+  /** Mobil wie #156: Ein-Finger pan-y (Seite scrollt, Antippen wählt), Zwei-Finger drehen/zoomen. */
   touchFriendly?: boolean;
   overlay?: ReactNode;
   /** Unten links auf der Bühne: Höhenlegende und kurze BKG-Zeile. */
@@ -260,7 +260,7 @@ export function BessKarteCanvas3d({
       const narrow = w < 768;
       const h = hero
         ? narrow
-          ? Math.max(460, Math.min(Math.round(window.innerHeight * 0.62), Math.round(w * 1.42)))
+          ? Math.max(430, Math.min(Math.round(window.innerHeight * 0.56), Math.round(w * 1.32)))
           : Math.max(540, Math.min(820, Math.round(window.innerHeight * 0.71), Math.round(w * 0.70)))
         : narrow
           ? Math.max(420, Math.min(540, Math.round(w * 1.35)))
@@ -312,9 +312,8 @@ export function BessKarteCanvas3d({
     };
   }, [onCameraChange, touchFriendly]);
 
-  // Zwei Finger: Browser-Scroll und -Pinch unterbinden, damit drehen/neigen/zoomen bei uns landet.
   // Ein Finger bleibt pan-y (Seite scrollt). touch-action wird beim Gestenstart festgeschrieben,
-  // darum preventDefault erst ab dem zweiten Finger.
+  // darum preventDefault erst ab dem zweiten Finger (wie #156).
   useEffect(() => {
     const el = wrapRef.current;
     if (!el || !touchFriendly) return;
@@ -516,9 +515,8 @@ export function BessKarteCanvas3d({
     // Beim Hineinzoomen wachsen Säulen langsamer als die Karte, damit einzelne Lokationen trennbar bleiben.
     const zoomDamp = Math.max(1, camera.zoom);
     let maxColHeight = 0.5 / Math.pow(zoomDamp, 0.55);
-    let baseHalfW = 0.0072 / Math.pow(zoomDamp, 0.7);
+    const baseHalfW = 0.0072 / Math.pow(zoomDamp, 0.7);
     if (touchFriendly) {
-      baseHalfW *= 0.6;
       const pxPerUnit = params.scale * Math.max(0.22, params.sinT);
       const cap = (size.height * 0.25) / Math.max(pxPerUnit, 1e-6);
       maxColHeight = Math.min(maxColHeight, cap);
@@ -647,7 +645,7 @@ export function BessKarteCanvas3d({
     const x = clientX - rect.left;
     const y = clientY - rect.top;
     const boxes = hitBoxesRef.current;
-    const pad = 6;
+    const pad = touchFriendly ? 12 : 6;
     // Von vorne nach hinten prüfen (umgekehrte Painter-Reihenfolge)
     for (let i = boxes.length - 1; i >= 0; i -= 1) {
       const b = boxes[i]!;
@@ -674,6 +672,7 @@ export function BessKarteCanvas3d({
       if (pointersRef.current.size >= 2) {
         dragRef.current = null;
         tapRef.current = null;
+        setDragging(false);
         pinchRef.current = pinchState();
         try {
           for (const id of pointersRef.current.keys()) {
@@ -688,20 +687,27 @@ export function BessKarteCanvas3d({
       return;
     }
 
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* Capture kann bei synthetischen oder bereits beendeten Pointern fehlen. */
+    }
+
     if (pointersRef.current.size >= 2) {
       dragRef.current = null;
       pinchRef.current = pinchState();
       return;
     }
+
+    const curCam = cameraRef.current;
     dragRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
-      startCam: camera,
+      startCam: curCam,
       moved: false,
       // Ohne Zoom dreht Ziehen die Karte; hineingezoomt verschiebt es sie (Shift dreht immer).
-      pan: camera.zoom > DEFAULT_CAMERA_3D.zoom + 0.05 && !e.shiftKey,
+      pan: curCam.zoom > DEFAULT_CAMERA_3D.zoom + 0.05 && !e.shiftKey,
     };
   }
 
@@ -716,7 +722,7 @@ export function BessKarteCanvas3d({
         const rect = e.currentTarget.getBoundingClientRect();
         const { width, height } = sizeRef.current;
         let next = zoomCameraAt(
-          camera,
+          cameraRef.current,
           now.dist / prev.dist,
           now.midX - rect.left,
           now.midY - rect.top,
@@ -733,6 +739,7 @@ export function BessKarteCanvas3d({
         } else {
           next = panCameraBy(next, now.midX - prev.midX, now.midY - prev.midY, width, height, projFit);
         }
+        cameraRef.current = next;
         onCameraChange(next);
         pinchRef.current = now;
       }
@@ -749,18 +756,19 @@ export function BessKarteCanvas3d({
         setHoveredSite(null);
       }
       if (drag.moved) {
+        let next: Camera3d;
         if (drag.pan) {
           const { width, height } = sizeRef.current;
-          onCameraChange(panCameraBy(drag.startCam, dx, dy, width, height, projFit));
+          next = panCameraBy(drag.startCam, dx, dy, width, height, projFit);
         } else {
-          onCameraChange(
-            clampCamera3d({
-              ...drag.startCam,
-              yawDeg: drag.startCam.yawDeg + dx * 0.42,
-              tiltDeg: drag.startCam.tiltDeg + dy * 0.3,
-            }),
-          );
+          next = clampCamera3d({
+            ...drag.startCam,
+            yawDeg: drag.startCam.yawDeg + dx * 0.42,
+            tiltDeg: drag.startCam.tiltDeg + dy * 0.3,
+          });
         }
+        cameraRef.current = next;
+        onCameraChange(next);
       }
       return;
     }
@@ -773,7 +781,7 @@ export function BessKarteCanvas3d({
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) pinchRef.current = null;
     if (tapRef.current?.pointerId === e.pointerId) tapRef.current = null;
-    dragRef.current = null;
+    if (dragRef.current?.pointerId === e.pointerId) dragRef.current = null;
     setDragging(false);
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
@@ -782,6 +790,9 @@ export function BessKarteCanvas3d({
 
   function handlePointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
     pointersRef.current.delete(e.pointerId);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
     if (pinchRef.current) {
       if (pointersRef.current.size < 2) pinchRef.current = null;
       dragRef.current = null;
@@ -801,9 +812,6 @@ export function BessKarteCanvas3d({
       const wasDrag = drag.moved;
       dragRef.current = null;
       setDragging(false);
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      }
       if (!wasDrag) {
         const hit = findHit(e.clientX, e.clientY);
         onSelectSite(hit);
@@ -865,7 +873,7 @@ export function BessKarteCanvas3d({
           role="img"
           aria-label={
             touchFriendly
-              ? "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit zwei Fingern drehen, neigen und zoomen, über die Knöpfe neigen, Säule antippen für Details."
+              ? "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit einem Finger die Seite scrollen, mit zwei Fingern drehen und zoomen, Säule antippen für Details."
               : "Interaktive 3D-Säulenkarte der Batteriespeicher ab 1 MW in Deutschland. Mit Maus oder Pfeiltasten drehen und neigen, mit Plus und Minus zoomen, Säule anklicken für Details."
           }
           onPointerDown={handlePointerDown}
@@ -918,7 +926,7 @@ export function BessKarteCanvas3d({
       {touchFriendly ? (
         <div className={styles.canvasToolbar}>
           <p className={`${styles.canvasHint} ${styles.canvasToolbarHint} num`}>
-            Zwei Finger: drehen, neigen, zoomen · Antippen: Details
+            Ein Finger: Seite scrollen · Zwei Finger: drehen und zoomen · Antippen: Details
           </p>
           <div className={styles.canvasToolbarRow} role="group" aria-label="Kartenansicht">
             <div className={styles.canvasToolbarCluster}>
@@ -977,18 +985,18 @@ export function BessKarteCanvas3d({
             <button
               type="button"
               className={styles.canvasToolbarToggle}
-              aria-pressed={camera.tiltDeg <= 20}
-              aria-label={camera.tiltDeg <= 20 ? "Draufsicht aktiv, zur 3D-Neigung wechseln" : "In Draufsicht wechseln"}
+              aria-pressed={is3dTilt}
+              aria-label={is3dTilt ? "3D-Neigung aktiv, zur Startansicht wechseln" : "Stärker in 3D neigen"}
               onClick={() =>
                 onCameraChange(
                   clampCamera3d({
                     ...camera,
-                    tiltDeg: camera.tiltDeg <= 20 ? 48 : 16,
+                    tiltDeg: is3dTilt ? DEFAULT_CAMERA_3D.tiltDeg : 48,
                   }),
                 )
               }
             >
-              Draufsicht
+              3D
             </button>
           </div>
         </div>

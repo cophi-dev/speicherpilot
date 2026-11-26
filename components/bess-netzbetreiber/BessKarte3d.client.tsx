@@ -4,7 +4,6 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import {
   abregelungOhneOffshore,
-  mobilMindestPunktWert,
   computeKumulierteKurve,
   DEFAULT_KARTE_FILTER,
   deriveMwhReferenzWerte,
@@ -27,7 +26,6 @@ import type {
   KarteSite,
 } from "@/lib/bessKarte3d/types";
 import { BessKarteCanvas3d } from "@/components/bess-netzbetreiber/BessKarteCanvas3d";
-import { BessKarteMobile2d } from "@/components/bess-netzbetreiber/BessKarteMobile2d";
 import {
   BessKarteBottomSheet,
   BessKarteDetailCard,
@@ -161,7 +159,6 @@ export function BessKarte3d({
   }, [fullCutAll]);
 
   const maxScaleValue = modus === "mwh" ? maxMwhScale : maxMwScale;
-  const minPunktWert = mobilMindestPunktWert(maxScaleValue);
   const activeRefs = modus === "mwh" ? mwhRefs : mwRefs;
 
   const selectedSite: KarteSite | null = useMemo(() => {
@@ -206,9 +203,7 @@ export function BessKarte3d({
   const heightLegend = (
             <div className={styles.heightLegend} aria-label="Höhenlegende">
               <span className={`${styles.legendTitle} num`}>
-                {isDesktop
-                  ? `Säulenhöhe (√-Skala, ${modus === "mwh" ? "MWh" : "Netto-MW"})`
-                  : `Kreisfläche nach ${modus === "mwh" ? "MWh" : "Netto-MW"}`}
+                {`Säulenhöhe (√-Skala, ${modus === "mwh" ? "MWh" : "Netto-MW"})`}
               </span>
               <div className={styles.heightBars}>
                 {activeRefs.map((refVal) => {
@@ -216,22 +211,11 @@ export function BessKarte3d({
                   return (
                     <div key={refVal} className={styles.heightBarItem}>
                       <div className={styles.heightBarWell}>
-                        {isDesktop ? (
-                          <span
-                            className={styles.heightBarCol}
-                            style={{ height: `${hPx}px` }}
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <span
-                            className={styles.heightDot}
-                            style={{
-                              width: `${Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 26)))}px`,
-                              height: `${Math.max(6, Math.round(saeulenHoehe(refVal, maxScaleValue, 26)))}px`,
-                            }}
-                            aria-hidden="true"
-                          />
-                        )}
+                        <span
+                          className={styles.heightBarCol}
+                          style={{ height: `${hPx}px` }}
+                          aria-hidden="true"
+                        />
                       </div>
                       <span className={`${styles.heightBarVal} num`}>
                         {insertDisplayUnitNbsp(
@@ -242,13 +226,6 @@ export function BessKarte3d({
                   );
                 })}
               </div>
-              {!isDesktop ? (
-                <p className={`${styles.minPunktNote} num`}>
-                  Mindestpunktgröße mobil: Speicher unter ≈ 
-                  {insertDisplayUnitNbsp(formatQuantityUnit(minPunktWert, "de", 0, modus === "mwh" ? "MWh" : "MW"))}{" "}
-                  werden gleich groß gezeichnet.
-                </p>
-              ) : null}
             </div>
   );
 
@@ -268,9 +245,7 @@ export function BessKarte3d({
       {/* Steuerleiste: Modus, Ebene, Filter */}
       <div className={styles.karteControls} role="region" aria-label="Kartenfilter und Darstellung">
         <div className={styles.controlGroup}>
-          <span className={`${styles.controlLabel} num`}>
-            {isDesktop ? "Säulenhöhe" : "Kreisfläche nach"}
-          </span>
+          <span className={`${styles.controlLabel} num`}>Säulenhöhe</span>
           <div className={styles.segmented} role="group" aria-label="Skalierung wählen">
             <button
               type="button"
@@ -278,7 +253,7 @@ export function BessKarte3d({
               aria-pressed={modus === "mw"}
               onClick={() => setModus("mw")}
             >
-              {isDesktop ? "√(Netto-MW)" : "Netto-MW"}
+              √(Netto-MW)
             </button>
             <button
               type="button"
@@ -286,7 +261,7 @@ export function BessKarte3d({
               aria-pressed={modus === "mwh"}
               onClick={() => setModus("mwh")}
             >
-              {isDesktop ? "√(MWh)" : "MWh"}
+              √(MWh)
             </button>
           </div>
         </div>
@@ -377,46 +352,33 @@ export function BessKarte3d({
         </p>
       </div>
 
-      {/* Hauptbühne: Desktop 3D-Säulen; Mobil flache Kreis-Karte, ohne 3D-Leiste. */}
+      {/* Hauptbühne: 3D-Säulen auf Desktop und Mobil; mobil steht die Kopfzahl über der Karte. */}
       <div className={isDesktop ? styles.karteStageDesktop : styles.karteStageMobile}>
         <div className={styles.karteMapPane}>
-          {isDesktop ? (
-            <BessKarteCanvas3d
-              hero={hero}
-              touchFriendly={false}
-              overlay={overlay}
-              footOverlay={
-                stageFoot ? (
-                  <>
-                    {heightLegend}
-                    <BkgKurz className={styles.geoAttribution} />
-                  </>
-                ) : undefined
-              }
-              geoJson={geoJson}
-              bundeslaender={summary.bundeslaender}
-              sites={cutResult.sites}
-              modus={modus}
-              maxScaleValue={maxScaleValue}
-              showAbregelung={showAbregelung}
-              selectedLok={selectedSite?.lok ?? null}
-              onSelectSite={(s) => setSelectedLok(s?.lok ?? null)}
-              camera={camera}
-              onCameraChange={setCamera}
-              onResetCamera={() => setCamera(DEFAULT_CAMERA_3D)}
-            />
-          ) : (
-            <BessKarteMobile2d
-              geoJson={geoJson}
-              bundeslaender={summary.bundeslaender}
-              sites={cutResult.sites}
-              modus={modus}
-              maxScaleValue={maxScaleValue}
-              showAbregelung={showAbregelung}
-              selectedLok={selectedSite?.lok ?? null}
-              onSelectSite={(s) => setSelectedLok(s?.lok ?? null)}
-            />
-          )}
+          <BessKarteCanvas3d
+            hero={hero}
+            touchFriendly={!isDesktop}
+            overlay={isDesktop ? overlay : undefined}
+            footOverlay={
+              stageFoot ? (
+                <>
+                  {heightLegend}
+                  <BkgKurz className={styles.geoAttribution} />
+                </>
+              ) : undefined
+            }
+            geoJson={geoJson}
+            bundeslaender={summary.bundeslaender}
+            sites={cutResult.sites}
+            modus={modus}
+            maxScaleValue={maxScaleValue}
+            showAbregelung={showAbregelung}
+            selectedLok={selectedSite?.lok ?? null}
+            onSelectSite={(s) => setSelectedLok(s?.lok ?? null)}
+            camera={camera}
+            onCameraChange={setCamera}
+            onResetCamera={() => setCamera(DEFAULT_CAMERA_3D)}
+          />
 
           {stageFoot ? null : <BkgKurz className={styles.geoAttribution} />}
 
