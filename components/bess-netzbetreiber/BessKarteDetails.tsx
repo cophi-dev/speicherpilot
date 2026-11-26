@@ -156,7 +156,7 @@ export function BessKarteDetailCard({
       </div>
 
       {site ? (
-        <>
+        <div className={styles.detailSelected}>
           <div className={styles.detailCloseRow}>
             <span className={`${styles.detailBadge} num`}>Ausgewählte Lokation</span>
             <button
@@ -169,7 +169,7 @@ export function BessKarteDetailCard({
             </button>
           </div>
           <SiteDetailBody site={site} epPlausibelH={epPlausibelH} />
-        </>
+        </div>
       ) : (
         <div className={styles.detailEmpty}>
           <p>
