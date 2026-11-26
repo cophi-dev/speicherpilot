@@ -338,6 +338,6 @@ describe("mobile projection fit (390-Karte)", () => {
     expect(a.cx).toBeCloseTo(b.cx, 8);
     expect(a.cy).toBeCloseTo(b.cy, 8);
     expect(a.cy).toBeCloseTo(800 * 0.56, 8);
-    expect(a.scale).toBeCloseTo(Math.min(1280, 800) * 0.47, 8);
+    expect(a.scale).toBeCloseTo(Math.min(1280, 800) * 0.47 * pr.DEFAULT_CAMERA_3D.zoom, 8);
   });
 });

@@ -22,11 +22,11 @@ export const ZOOM_MIN = 0.75;
 export const ZOOM_MAX = 14;
 
 export const DEFAULT_CAMERA_3D: Camera3d = {
-  yawDeg: -8,
-  tiltDeg: 22,
-  zoom: 1,
+  yawDeg: 0,
+  tiltDeg: 18,
+  zoom: 1.08,
   panX: 0,
-  panY: 0,
+  panY: -0.13,
 };
 
 /** Mobil: fast Draufsicht, Norden oben, Neigung unter 20°. */

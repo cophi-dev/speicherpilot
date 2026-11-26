@@ -1740,3 +1740,647 @@
 .heroSection {
   padding-top: clamp(1rem, 2vw, 1.75rem);
 }
+
+/* ===== Nahtlose Desktop-Integration (neon/karte-nahtlos, >= 768 px; Mobil < 768 px unverändert) ===== */
+
+.canvasMedia {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.detailSelected {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  /* Randlose Bühne ohne Kasten in Hero- und Standard-Ansicht; Text bleibt kopierbar */
+  .karteShell .canvasStageWrap,
+  .karteHero .canvasStageWrap {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+    user-select: auto;
+  }
+
+  .karteShell .canvas3d {
+    user-select: none;
+  }
+
+  .karteShell .karteStageDesktop,
+  .karteHero .karteStageDesktop {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  /* Höhenlegende + BKG-Zeile direkt links unten auf der Bühne, frei von der Fußleiste */
+  .karteShell .canvasFootOverlay {
+    left: 0;
+    bottom: 0.5rem;
+    max-width: min(21rem, 32%);
+    gap: 0.5rem;
+  }
+
+  .karteShell .canvasFootOverlay .heightBars {
+    gap: 0.75rem;
+  }
+
+  /* Ruhige Fußzeile unter dem Canvas: Bedienhinweis links, dezente Ghost-Steuerleiste rechts */
+  .canvasDesktopBar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 1.25rem;
+    margin-top: 0.35rem;
+    padding-top: 0.15rem;
+  }
+
+  .canvasDesktopBar .canvasHint {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: var(--type-12);
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .canvasCamToolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    margin-left: auto;
+    user-select: none;
+  }
+
+  .camToolbarGroup {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .camToolbarSep {
+    display: inline-block;
+    width: 0;
+    height: 1rem;
+    margin: 0 0.35rem;
+    border-left: 1px solid color-mix(in srgb, var(--linie) 90%, transparent);
+  }
+
+  .camGhostBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 40px;
+    min-block-size: 40px;
+    padding: 0 0.4rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: hsl(var(--foreground));
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .camGhostLabel {
+    font-size: var(--type-14);
+    padding: 0 0.55rem;
+  }
+
+  .camGhostBtn:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 2px;
+  }
+
+  .camGhostBtn[aria-pressed="true"] {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    border-bottom-color: var(--v4-warm);
+  }
+
+  .camGhostBtn[aria-disabled="true"] {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  /* Dezenter Hover-Hinweis ohne Karten-Rahmen */
+  .karteShell .canvasHoverPill,
+  .karteHero .canvasHoverPill {
+    left: auto;
+    right: 0;
+    top: 0.5rem;
+    bottom: auto;
+    max-width: min(22rem, calc(100% - 1rem));
+    border: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+    border-left: 2px solid var(--v4-warm);
+    border-radius: 2px;
+    background: color-mix(in srgb, hsl(var(--background)) 92%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: none;
+  }
+
+  /* Legendenband (wenn Zweite Ebene aktiv) ohne Kasten */
+  .karteShell .legendsRow,
+  .karteHero .legendsRow {
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+    border-radius: 0;
+    background: transparent;
+    padding: 0.9rem 0 0.25rem;
+  }
+
+  .karteShell .abregLegend {
+    gap: 0.45rem;
+  }
+
+  /* Standortwahl & „Größte Lokationen“: kastenlos, Haarlinien statt Pillen-Kacheln */
+  .karteShell .detailCard,
+  .karteHero .detailCard {
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--linie) 85%, transparent);
+    border-radius: 0;
+    background: transparent;
+    padding: 1.25rem 0 0.25rem;
+    display: grid;
+    grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+    gap: 1rem 2rem;
+    align-items: start;
+  }
+
+  .karteShell .detailCardBar {
+    gap: 0.35rem;
+  }
+
+  .karteShell .detailEmpty {
+    gap: 0.75rem;
+  }
+
+  .karteShell .detailEmpty p {
+    max-width: 62ch;
+    font-size: var(--type-14);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .karteShell .detailQuickList {
+    gap: 0.5rem;
+  }
+
+  .karteShell .detailQuickBtns,
+  .karteHero .detailQuickBtns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    border-top: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+  }
+
+  .karteShell .detailQuickBtn,
+  .karteHero .detailQuickBtn {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.6rem 0;
+    text-align: left;
+    font-size: var(--type-14);
+    color: hsl(var(--foreground));
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+    border-radius: 0;
+  }
+
+  .karteShell .detailQuickBtn > span:last-child {
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .karteShell .detailQuickBtn:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 2px;
+  }
+
+  .karteShell .detailCloseBtn {
+    border: none;
+    border-radius: 0;
+    min-height: 44px;
+    padding: 0.25rem 0;
+    font-size: var(--type-12);
+    color: hsl(var(--muted-foreground));
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .karteShell .detailCloseBtn:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 2px;
+  }
+
+  /* Filterleiste: zurückhaltend, editorial, ohne Kästen oder Pillen-Werkzeugleiste */
+  .karteShell .karteControls,
+  .karteHero .karteControls {
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--linie) 85%, transparent);
+    border-bottom: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 1.15rem 0 0.25rem;
+    gap: 0.9rem 1.45rem;
+    align-items: flex-start;
+  }
+
+  .karteShell .controlGroup {
+    gap: 0.25rem;
+  }
+
+  .karteShell .controlLabel,
+  .karteShell .detailSelectLabel,
+  .karteShell .detailQuickHead,
+  .karteShell .legendTitle,
+  .karteHero .controlLabel,
+  .karteHero .detailSelectLabel,
+  .karteHero .detailQuickHead,
+  .karteHero .legendTitle {
+    display: block;
+    margin: 0;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: var(--type-12);
+    line-height: 1.35;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .karteShell .segmented,
+  .karteHero .segmented {
+    display: inline-flex;
+    align-items: stretch;
+    height: 44px;
+    border: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--linie) 75%, transparent);
+    border-radius: 0;
+    gap: 0.5rem;
+    box-sizing: border-box;
+  }
+
+  .karteShell .segBtn,
+  .karteShell .segBtnActive,
+  .karteHero .segBtn,
+  .karteHero .segBtnActive {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 0.55rem;
+    margin-bottom: -1px;
+    border: none;
+    border-right: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    font-size: var(--type-14);
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+    box-sizing: border-box;
+  }
+
+  .karteShell .segBtn:first-child,
+  .karteShell .segBtn:last-child,
+  .karteShell .segBtnActive:first-child,
+  .karteShell .segBtnActive:last-child,
+  .karteHero .segBtn:first-child,
+  .karteHero .segBtn:last-child,
+  .karteHero .segBtnActive:first-child,
+  .karteHero .segBtnActive:last-child {
+    border-radius: 0;
+    border-right: none;
+  }
+
+  .karteShell .segBtn[aria-pressed="true"],
+  .karteShell .segBtnActive[aria-pressed="true"],
+  .karteHero .segBtn[aria-pressed="true"],
+  .karteHero .segBtnActive[aria-pressed="true"] {
+    background: transparent;
+    border-color: transparent;
+    border-bottom-color: hsl(var(--foreground));
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+
+  .karteShell .segBtn:focus-visible,
+  .karteShell .segBtnActive:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 2px;
+  }
+
+  /* Zweite Ebene: ruhiger Inline-Toggle mit warmem Akzentpunkt statt Pillen-Box */
+  .karteShell .toggleBtn,
+  .karteShell .toggleBtnActive,
+  .karteHero .toggleBtn,
+  .karteHero .toggleBtnActive {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 0.1rem;
+    border: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--linie) 85%, transparent);
+    border-radius: 0;
+    background: transparent;
+    font-size: var(--type-14);
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+    box-sizing: border-box;
+  }
+
+  .karteShell .toggleBtn::before,
+  .karteShell .toggleBtnActive::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: 1.5px solid currentColor;
+    background: transparent;
+    flex-shrink: 0;
+  }
+
+  .karteShell .toggleBtn[aria-pressed="true"],
+  .karteShell .toggleBtnActive[aria-pressed="true"],
+  .karteHero .toggleBtn[aria-pressed="true"],
+  .karteHero .toggleBtnActive[aria-pressed="true"] {
+    background: transparent;
+    border-color: transparent;
+    border-bottom: 2px solid var(--v4-warm);
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+
+  .karteShell .toggleBtn[aria-pressed="true"]::before,
+  .karteShell .toggleBtnActive[aria-pressed="true"]::before {
+    border-color: var(--v4-warm);
+    background: var(--v4-warm);
+  }
+
+  .karteShell .toggleBtn:focus-visible,
+  .karteShell .toggleBtnActive:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 2px;
+  }
+
+  /* Prüfung-Checkbox frei auf dem Seitengrund */
+  .karteShell .checkLabel,
+  .karteHero .checkLabel {
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    font-size: var(--type-14);
+    color: hsl(var(--foreground));
+    box-sizing: border-box;
+  }
+
+  /* Schlanke Unterstreichungs-Selects statt Pillen-Kästen */
+  .karteShell .vnbSelect,
+  .karteShell .detailSelect,
+  .karteHero .vnbSelect,
+  .karteHero .detailSelect {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 1.35rem 0 0;
+    border: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--linie) 95%, transparent);
+    border-radius: 0;
+    background-color: transparent;
+    color: hsl(var(--foreground));
+    font-size: var(--type-14);
+    cursor: pointer;
+    color-scheme: light;
+    box-sizing: border-box;
+  }
+
+  :global(.dark) .karteShell .vnbSelect,
+  :global(.dark) .karteShell .detailSelect,
+  :global(.dark) .karteHero .vnbSelect,
+  :global(.dark) .karteHero .detailSelect {
+    color-scheme: dark;
+  }
+
+  .karteShell .vnbSelect,
+  .karteHero .vnbSelect {
+    width: auto;
+    min-width: 10rem;
+    max-width: 14rem;
+  }
+
+  .karteShell .detailSelect,
+  .karteHero .detailSelect {
+    width: 100%;
+  }
+
+  .karteShell .vnbSelect:focus-visible,
+  .karteShell .detailSelect:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 3px;
+  }
+
+  /* Zeitachse harmonisch mit oberer Haarlinie, feinem Abspielen-Button und schlankem Regler */
+  .karteShell .timelineBox,
+  .karteHero .timelineBox {
+    border: none;
+    border-top: 1px solid color-mix(in srgb, var(--linie) 85%, transparent);
+    border-radius: 0;
+    background: transparent;
+    padding: 1.25rem 0 0;
+  }
+
+  .karteShell .playBtn {
+    min-height: 44px;
+    padding: 0 0.25rem;
+    background: transparent;
+    color: hsl(var(--foreground));
+    border: none;
+    border-bottom: 2px solid color-mix(in srgb, hsl(var(--foreground)) 35%, transparent);
+    border-radius: 0;
+    font-size: var(--type-14);
+    font-weight: 500;
+  }
+
+  .karteShell .playBtn[aria-pressed="true"] {
+    background: transparent;
+    color: hsl(var(--foreground));
+    border: none;
+    border-bottom: 2px solid var(--v4-warm);
+    font-weight: 600;
+  }
+
+  .karteShell .playBtn:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 2px;
+  }
+
+  .karteShell .timelineSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    height: 28px;
+  }
+
+  .karteShell .timelineSlider:focus-visible {
+    outline: 2px solid var(--v4-warm);
+    outline-offset: 4px;
+  }
+
+  .karteShell .timelineSlider::-webkit-slider-runnable-track {
+    height: 2px;
+    background: color-mix(in srgb, hsl(var(--foreground)) 26%, transparent);
+    border-radius: 999px;
+  }
+
+  .karteShell .timelineSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -7px;
+    border-radius: 999px;
+    background: var(--v4-warm);
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 0 1px var(--v4-warm);
+  }
+
+  .karteShell .timelineSlider::-moz-range-track {
+    height: 2px;
+    background: color-mix(in srgb, hsl(var(--foreground)) 26%, transparent);
+    border-radius: 999px;
+  }
+
+  .karteShell .timelineSlider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--v4-warm);
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 0 0 1px var(--v4-warm);
+  }
+}
+
+@media (min-width: 1024px) {
+  .karteShell .canvasFootOverlay .heightBars {
+    gap: 1.15rem;
+  }
+
+  .karteShell .detailCard,
+  .karteHero .detailCard {
+    grid-template-columns: minmax(0, 19.5rem) minmax(0, 1fr);
+    gap: 1rem 2.75rem;
+  }
+
+  .karteShell .detailQuickBtns,
+  .karteHero .detailQuickBtns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 2rem;
+  }
+
+  .karteShell .detailGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+  }
+}
+
+@media (min-width: 768px) and (hover: hover) {
+  .camGhostBtn:not([aria-disabled="true"]):hover {
+    color: hsl(var(--foreground));
+    background: transparent;
+    border-bottom-color: hsl(var(--foreground));
+  }
+
+  .camGhostBtn[aria-pressed="true"]:hover {
+    border-bottom-color: var(--v4-warm);
+  }
+
+  .karteShell .segBtn:hover,
+  .karteHero .segBtn:hover,
+  .karteShell .toggleBtn:hover,
+  .karteHero .toggleBtn:hover {
+    background: transparent;
+    color: hsl(var(--foreground));
+  }
+
+  .karteShell .vnbSelect:hover,
+  .karteShell .detailSelect:hover,
+  .karteHero .vnbSelect:hover,
+  .karteHero .detailSelect:hover {
+    border-bottom-color: hsl(var(--foreground));
+  }
+
+  .karteShell .detailQuickBtn:hover,
+  .karteHero .detailQuickBtn:hover {
+    color: var(--v4-warm);
+    border-bottom-color: var(--v4-warm);
+  }
+
+  .karteShell .detailQuickBtn:hover > span:last-child,
+  .karteHero .detailQuickBtn:hover > span:last-child {
+    color: var(--v4-warm);
+  }
+
+  .karteShell .detailCloseBtn:hover {
+    color: hsl(var(--foreground));
+  }
+
+  .karteShell .playBtn:hover {
+    background: transparent;
+    color: hsl(var(--foreground));
+    border-bottom-color: hsl(var(--foreground));
+  }
+
+  .karteShell .playBtn[aria-pressed="true"]:hover {
+    border-bottom-color: var(--v4-warm);
+  }
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .camGhostBtn,
+  .karteShell .segBtn,
+  .karteShell .segBtnActive,
+  .karteShell .toggleBtn,
+  .karteShell .toggleBtnActive,
+  .karteShell .vnbSelect,
+  .karteShell .detailSelect,
+  .karteShell .detailQuickBtn,
+  .karteShell .playBtn {
+    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  }
+}
+
+@media (min-width: 768px) and (forced-colors: active) {
+  .camGhostBtn[aria-pressed="true"],
+  .karteShell .segBtn[aria-pressed="true"],
+  .karteShell .segBtnActive[aria-pressed="true"],
+  .karteShell .toggleBtn[aria-pressed="true"],
+  .karteShell .toggleBtnActive[aria-pressed="true"],
+  .karteShell .playBtn[aria-pressed="true"] {
+    color: ButtonText;
+    border-bottom: 2px solid Highlight;
+    box-shadow: none;
+  }
+}

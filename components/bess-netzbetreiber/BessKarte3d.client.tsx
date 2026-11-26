@@ -278,7 +278,7 @@ export function BessKarte3d({
               aria-pressed={modus === "mw"}
               onClick={() => setModus("mw")}
             >
-              {isDesktop ? '"√(Netto-MW)"' : "Netto-MW"}
+              {isDesktop ? "√(Netto-MW)" : "Netto-MW"}
             </button>
             <button
               type="button"
@@ -286,7 +286,7 @@ export function BessKarte3d({
               aria-pressed={modus === "mwh"}
               onClick={() => setModus("mwh")}
             >
-              {isDesktop ? '"√(MWh)"' : "MWh"}
+              {isDesktop ? "√(MWh)" : "MWh"}
             </button>
           </div>
         </div>
@@ -421,6 +421,7 @@ export function BessKarte3d({
           {stageFoot ? null : <BkgKurz className={styles.geoAttribution} />}
 
           {/* Höhen-/Größenlegende + Abregelung-Legende direkt unter der Karte */}
+          {!stageFoot || showAbregelung ? (
           <div className={styles.legendsRow}>
             {stageFoot ? null : heightLegend}
 
@@ -452,6 +453,7 @@ export function BessKarte3d({
               </div>
             ) : null}
           </div>
+          ) : null}
         </div>
 
         {isDesktop ? (
