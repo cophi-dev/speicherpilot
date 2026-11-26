@@ -62,7 +62,9 @@ export function StartKarteSektion({ data }: { data: StartKartePreviewData }) {
 
   const cities = useMemo(
     () =>
-      ORIENTIERUNGS_STAEDTE.map((c) => ({
+      ORIENTIERUNGS_STAEDTE.filter((c) =>
+        c.name === "Hamburg" || c.name === "Berlin" || c.name === "München",
+      ).map((c) => ({
         name: c.name,
         ...projectGeoTo2d(c.lng, c.lat, VIEW_W, VIEW_H, PAD),
       })),
@@ -82,8 +84,8 @@ export function StartKarteSektion({ data }: { data: StartKartePreviewData }) {
             {NBSP}GW Großspeicher?
           </h2>
           <p className={styles.subline}>
-            {nLabel} Speicher an {lokLabel} Standorten, MaStR-Stand {stichtagDe}. Wo am meisten
-            abgeregelt wird, stehen je GW Wind+PV die wenigsten Speicher.
+            {nLabel} Speicher an {lokLabel} Standorten, MaStR-Stand {stichtagDe}. Wo 2025 am
+            meisten EE-Strom abgeregelt wurde, stehen nicht automatisch die meisten Speicher.
           </p>
           <div className={styles.ctaRow}>
             <Link href="/netzbetreiber" className={`v4-text-link ${styles.ctaLink}`}>
@@ -107,12 +109,15 @@ export function StartKarteSektion({ data }: { data: StartKartePreviewData }) {
             />
           </div>
 
-          <div className={styles.previewMobile}>
+          <Link
+            href="/netzbetreiber"
+            className={styles.previewMobile}
+            aria-label={`${mapAriaLabel} Zur Karte.`}
+          >
             <svg
               viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
               className={styles.mobileSvg}
-              role="img"
-              aria-label={mapAriaLabel}
+              aria-hidden="true"
             >
               <g>
                 {statePaths.map((st) => (
@@ -148,7 +153,7 @@ export function StartKarteSektion({ data }: { data: StartKartePreviewData }) {
                 ))}
               </g>
             </svg>
-          </div>
+          </Link>
 
           <figcaption className={styles.bkgMobile}>
             <BkgKurz className={`${styles.bkgLine} num`} />

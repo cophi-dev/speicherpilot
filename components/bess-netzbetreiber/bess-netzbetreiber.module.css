@@ -304,7 +304,7 @@
   background: var(--flaeche);
   overflow: hidden;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .canvas3d {
@@ -314,11 +314,11 @@
 }
 
 /* Mobil: touch-action: none nur auf der Canvas (ein Finger dreht/neigt, zwei Finger zoomen);
-   Wrapper, Toolbar und restliche Seite bleiben vertikal scrollbar. */
+   Wrapper und restliche Seite: pan-y, damit Scroll-Gesten außerhalb der Canvas die Seite bewegen. */
 .canvasStageTouch {
   display: flex;
   flex-direction: column;
-  touch-action: auto;
+  touch-action: pan-y;
 }
 
 .canvasStageTouch .canvas3d {

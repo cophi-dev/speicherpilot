@@ -113,9 +113,19 @@ describe("StartKarteSektion", () => {
       screen.getByText(/Speicher an \d+ Standorten, MaStR-Stand \d{2}\.\d{2}\.\d{4}\./),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Wo am meisten abgeregelt wird, stehen je GW Wind\+PV die wenigsten Speicher\./),
+      screen.getByText(
+        /Wo 2025 am meisten EE-Strom abgeregelt wurde, stehen nicht automatisch die meisten Speicher\./,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Zur Karte" })).toHaveAttribute("href", "/netzbetreiber");
+    const mapLink = screen.getByRole("link", { name: /Zur Karte\.$/ });
+    expect(mapLink).toHaveAttribute("href", "/netzbetreiber");
+    expect(mapLink.querySelector("svg")).not.toBeNull();
+    expect(mapLink.textContent).toMatch(/Hamburg/);
+    expect(mapLink.textContent).toMatch(/Berlin/);
+    expect(mapLink.textContent).toMatch(/München/);
+    expect(mapLink.textContent).not.toMatch(/Köln/);
+    expect(mapLink.textContent).not.toMatch(/Frankfurt/);
     expect(screen.getAllByText(/Ländergrenzen:/).length).toBeGreaterThanOrEqual(1);
   });
 });
@@ -126,7 +136,7 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
   const day = makeDay(dayKey);
   const startKarte = loadStartKartePreviewData();
 
-  it("kürzt `/` auf Hero + Karte + 1 Insight + Linkzeile + Quellen-Fußnote", () => {
+  it("kürzt `/` auf Hero + Karte + Linkzeile + Quellen-Fußnote", () => {
     const { container } = render(
       <TagPageV4
         dayKey={dayKey}
@@ -150,29 +160,22 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
 
     const kopf = container.querySelector(".v4-kopf");
     const karte = screen.getByTestId("start-karte-sektion");
-    const insight = screen.getByTestId("markt-insights");
     const linkzeile = screen.getByTestId("start-linkzeile");
     const fussnote = screen.getByTestId("start-quellen-fussnote");
 
     expect(kopf).toBeInTheDocument();
     expect(kopf!.compareDocumentPosition(karte) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(karte.compareDocumentPosition(insight) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(insight.compareDocumentPosition(linkzeile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(karte.compareDocumentPosition(linkzeile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(linkzeile.compareDocumentPosition(fussnote) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    // Hero: kompakter Satz ohne Überschuss, kein Verweis auf Kapitel 03
+    // Hero: kompakter Satz ohne Überschuss, Schwellen-Fußnote, kein Kapitel 03
     expect(kopf!.textContent).toContain("Kein Überschuss, 31. Tag in Folge.");
+    expect(kopf!.textContent).toContain("Als messbarer Überschuss gilt 0,05");
     expect(kopf!.textContent).not.toContain("Kapitel 03");
 
-    // Genau ein Insight, ohne period/source und ohne Laufzeit-KI-Satz
-    expect(insight.textContent).toContain("31. Tag in Folge");
-    expect(insight.textContent).not.toContain("150");
-    expect(insight.textContent).not.toContain("Energy-Charts");
-    expect(insight.textContent).not.toContain("Feste Schwellen");
-    expect(within(insight).getByRole("link", { name: /Methodik/ })).toHaveAttribute(
-      "href",
-      "/methodik#insight-trockenstrecke",
-    );
+    // Kein Insight-Block unter der Karte (wiederholt den Hero nicht)
+    expect(screen.queryByTestId("markt-insights")).toBeNull();
+    expect(container.textContent).not.toContain("Feste Schwellen");
 
     // Linkzeile ohne Zahlen
     expect(linkzeile.textContent).not.toMatch(/\d/);
@@ -185,6 +188,10 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
       "/kompromiss",
     );
     expect(within(linkzeile).getByRole("link", { name: "Knoten" })).toHaveAttribute("href", "/knoten");
+    expect(within(linkzeile).getByRole("link", { name: "Methodik" })).toHaveAttribute(
+      "href",
+      "/methodik#insight-trockenstrecke",
+    );
 
     // Einzige Quellen-Fußnote
     expect(fussnote.textContent).toContain("Energy-Charts / SMARD, CC BY 4.0");

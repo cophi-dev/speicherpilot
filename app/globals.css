@@ -6705,11 +6705,9 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
 }
 .site-shell-skip {
   position: fixed;
-  top: -120px;
+  top: 8px;
   left: 8px;
   z-index: 80;
-  min-height: 44px;
-  min-width: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6719,10 +6717,23 @@ html:not(.dark) .day-hero .blog-stand { color: #3c444c; }
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   box-shadow: 0 0 0 2px hsl(var(--ring));
+  /* Nur bei Tastaturfokus sichtbar; nicht in Full-Page-Screens oder beim Scrollen. */
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
 }
-.site-shell-skip:focus,
 .site-shell-skip:focus-visible {
-  top: 8px;
+  clip: auto;
+  clip-path: none;
+  width: auto;
+  height: auto;
+  min-height: 44px;
+  min-width: 44px;
+  overflow: visible;
+  white-space: normal;
 }
 
 /* Theme toggle (Schalter C) + View Transition „Licht aus / Licht an“ */
@@ -7619,33 +7630,58 @@ html.vt-to-light::view-transition-new(root) {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
+  /* Startseite: Riesenzahl und Links sofort sichtbar, Reihenfolge
+     Headline → Untertitel → Börsenpreis → Zahl → Links → Balken. */
   .v4-start .v4-kopf-inner {
     display: flex;
     flex-direction: column;
   }
+  .v4-start .v4-kopf-intro,
+  .v4-start .v4-kopf-subgrid,
   .v4-start .v4-kopf-hero {
     display: contents;
   }
   .v4-start .v4-kopf-zahl {
-    display: none;
-  }
-  .v4-start .v4-kopf-intro {
-    order: 1;
-  }
-  .v4-start .v4-rang-leiste {
-    order: 2;
-    margin-top: 0.5rem;
-  }
-  .v4-start .v4-kopf-intro .v4-subline {
-    order: 3;
-    margin-top: 0.75rem;
-  }
-  .v4-start .v4-kopf-links {
-    order: 4;
+    display: block;
+    order: 5;
+    max-width: 100%;
   }
   .v4-start .v4-kicker.num {
     order: 0;
+  }
+  .v4-start .v4-leitfrage {
+    order: 1;
+  }
+  .v4-start .v4-h1 {
+    order: 2;
+    margin-bottom: 0.5rem;
+  }
+  .v4-start .v4-subline {
+    order: 3;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  .v4-start .v4-preis-block {
+    order: 4;
+    border-left: none;
+    padding-left: 0;
+    margin-bottom: 0.75rem;
+  }
+  .v4-start .v4-rang-leiste {
+    order: 6;
+    margin-top: 0.5rem;
+  }
+  .v4-start .v4-rang-bars {
+    height: 88px;
+    padding-top: 8px;
+  }
+  .v4-start .v4-kopf-links {
+    margin-top: 0.75rem;
+  }
+  .v4-start .v4-kopf-footnote {
+    order: 7;
+    margin-top: 0.5rem;
   }
 }
 

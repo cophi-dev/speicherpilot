@@ -311,6 +311,11 @@ export function AuffaelligkeitKopf({
             )}
           </>
         )}
+        {isStartSurface ? (
+          <p className="v4-footnote v4-kopf-footnote">
+            Als messbarer Überschuss gilt 0,05 GWh oder mehr.
+          </p>
+        ) : null}
       </div>
     </section>
   );
@@ -395,9 +400,6 @@ export function TagPageV4({
       {isStartSurface ? (
         <>
           {startKarte ? <StartKarteSektion data={startKarte} /> : null}
-          {marktInsights.length > 0 ? (
-            <MarktInsightsBlock insights={marktInsights.slice(0, 1)} layout="start" />
-          ) : null}
           <nav
             className="v4-content v4-start-links"
             aria-label="Weitere Ansichten"
@@ -423,6 +425,15 @@ export function TagPageV4({
             </span>
             <Link href={simulatorHref} className="v4-text-link">
               Simulator
+            </Link>
+            <span className="v4-start-links-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link
+              href={marktInsights[0]?.methodikHref ?? "/methodik#insights"}
+              className="v4-text-link"
+            >
+              Methodik
             </Link>
           </nav>
           <p className="v4-content v4-start-footnote num" data-testid="start-quellen-fussnote">
