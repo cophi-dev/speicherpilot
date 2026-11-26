@@ -46,6 +46,14 @@
   - `netzbetreiber-1024-controls.png` (Desktop 1024 Fußzeile, Filterzeile & Abspielen)
   - `netzbetreiber-390-viewport.png` (Mobil 390 Viewport mit flacher Kreis-Karte)
   - `redispatch-1280.png` & `redispatch-1024.png` (aktiver EE-Redispatch-Toggle mit vollständig sichtbarer Legende inkl. GWh-Einheit und BMWE-Quelle)
+  - `start-1280-hell.png` & `start-1280-dunkel.png` (neue Desktop-Startkamera in Hell- und Dunkelmodus bei 1280 px)
+
+---
+
+## Zusatz Startkamera Desktop (`DEFAULT_CAMERA_3D`)
+- **Neue Desktop-Startkamera (`lib/bessKarte3d/projection3d.ts`):** `DEFAULT_CAMERA_3D = { yawDeg: 0, tiltDeg: 18, zoom: 1.08, panX: 0, panY: -0.13 }` (zuvor `yawDeg: -8, tiltDeg: 22, zoom: 1, panX: 0, panY: 0`). Norden liegt exakt oben, die Neigung ist moderater bei klar lesbaren 3D-Säulen, und Deutschland sitzt etwas größer sowie horizontal und vertikal mittig in der Bühne (oben 22 px über höchster SH-Säule, unten 23 px unter den Alpen).
+- **Reset & Zoom-Schwellen:** `onResetCamera` (`⌂`) nutzt weiterhin `DEFAULT_CAMERA_3D` und kehrt nach Drehen/Neigen/Zoomen bit-identisch zur Startansicht zurück (per Canvas-Hash verifiziert). Pan- und Overlay-Ausblend-Schwellen in `BessKarteCanvas3d.tsx` beziehen sich nun relativ auf `DEFAULT_CAMERA_3D.zoom`, sodass Ziehen in der Startansicht weiter dreht/neigt und `4,62 GW` sichtbar bleibt.
+- **Unverändert & Abnahme:** `MOBILE_CAMERA_3D` und Mobil (< 768 px) blieben unangetastet; `lib/bessKarte3d/logic.test.ts` prüft den Desktop-Scale nun gegen `DEFAULT_CAMERA_3D.zoom`. `npm test` (236/237 Suites, 1003 Tests; nur bekannter `launchAbnahme`-`EACCES`) und `npx next build` grün.
 
 ---
 

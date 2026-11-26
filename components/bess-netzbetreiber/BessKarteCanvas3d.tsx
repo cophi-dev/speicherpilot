@@ -12,6 +12,7 @@ import {
   type Camera3d,
   clampCamera3d,
   createProjectionParams3d,
+  DEFAULT_CAMERA_3D,
   geoToPlane,
   panCameraBy,
   type Point2d,
@@ -700,7 +701,7 @@ export function BessKarteCanvas3d({
       startCam: camera,
       moved: false,
       // Ohne Zoom dreht Ziehen die Karte; hineingezoomt verschiebt es sie (Shift dreht immer).
-      pan: camera.zoom > 1.05 && !e.shiftKey,
+      pan: camera.zoom > DEFAULT_CAMERA_3D.zoom + 0.05 && !e.shiftKey,
     };
   }
 
@@ -880,8 +881,8 @@ export function BessKarteCanvas3d({
         {overlay ? (
           <div
             className={styles.canvasHeroOverlay}
-            style={{ opacity: camera.zoom > 1.15 ? 0 : 1 }}
-            aria-hidden={camera.zoom > 1.15 ? true : undefined}
+            style={{ opacity: camera.zoom > DEFAULT_CAMERA_3D.zoom + 0.15 ? 0 : 1 }}
+            aria-hidden={camera.zoom > DEFAULT_CAMERA_3D.zoom + 0.15 ? true : undefined}
           >
             {overlay}
           </div>
@@ -994,7 +995,7 @@ export function BessKarteCanvas3d({
       ) : (
         <div className={styles.canvasDesktopBar}>
           <span className={`${styles.canvasHint} num`}>
-            {camera.zoom > 1.05
+            {camera.zoom > DEFAULT_CAMERA_3D.zoom + 0.05
               ? "Ziehen: verschieben · Shift + Ziehen: drehen · Säule anklicken: Details"
               : "Ziehen: drehen und neigen · Strg/⌘ + Mausrad: zoomen · Säule anklicken: Details"}
           </span>
