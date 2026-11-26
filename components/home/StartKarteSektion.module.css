@@ -63,7 +63,7 @@
   inline-size: auto;
   max-inline-size: 100%;
   block-size: auto;
-  max-block-size: 300px;
+  max-block-size: 250px;
   aspect-ratio: 420 / 510;
   margin-inline: auto;
 }
@@ -163,5 +163,12 @@
 
   .bkgMobile {
     display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .section {
+    margin-block-start: var(--space-3);
+    padding-block: var(--space-4) var(--space-3);
   }
 }

@@ -7676,12 +7676,43 @@ html.vt-to-light::view-transition-new(root) {
     height: 88px;
     padding-top: 8px;
   }
+  .v4-start .v4-kicker.num,
+  .v4-start .v4-kicker {
+    margin-top: 12px;
+    margin-bottom: 0.5rem;
+  }
+  .v4-start .v4-leitfrage {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  .v4-start .v4-kopf {
+    padding-top: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+  .v4-start .v4-kopf-zahl {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 0;
+  }
   .v4-start .v4-kopf-links {
-    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    gap: 0.35rem 1rem;
+    margin-top: 0.5rem;
+    min-height: 0;
+    height: auto;
   }
   .v4-start .v4-kopf-footnote {
     order: 7;
-    margin-top: 0.5rem;
+    margin-top: 0.4rem;
+  }
+  .v4-start .v4-start-links,
+  .v4-start .v4-start-footnote {
+    padding-block: 0.5rem;
   }
 }
 
