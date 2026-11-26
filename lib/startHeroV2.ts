@@ -9,6 +9,8 @@ import { sliceFleetDay, type NationalFleetRunSeries } from "@/lib/nationalMonthF
 export const START_HERO_THRESHOLD_GW = 0.05;
 export const START_HERO_THRESHOLD_GWH = 0.05;
 export const START_HERO_LEITFRAGE = "Was hätte mehr Speicher gestern geändert?";
+export const START_HERO_METHODIK_HREF = "/methodik";
+export const START_HERO_METHODIK_LABEL = "siehe Methodik";
 
 export type StartHeroV2Variant =
   | "peak_reduction"
@@ -19,13 +21,22 @@ export type StartHeroV2Variant =
 export type StartHeroV2Model = {
   variant: StartHeroV2Variant;
   question: string;
+  /** Antwortsatz (H1) — endet ohne Wiederholung der großen Zahl */
   answerSentence: string;
+  /** Große Zahl (1 Nachkommastelle, Kopf-Stil), null bei Regel 4 (nie "31 Tage") */
   bigNumber: {
     value: string;
     unit: string;
   } | null;
+  /** Label direkt unter der großen Zahl (z. B. „von 54,4 auf 51,5 GW · Spitze um 15:45“) */
   kernLine: string;
+  /** Volltext der Kontextzeile inkl. „siehe Methodik“ (für Tests/Vergleich) */
   contextLine: string;
+  /** Strukturierte Kontextzeile für UI-Link auf /methodik */
+  contextBeforeMethodik: string;
+  contextMethodikLabel: string;
+  contextMethodikHref: string;
+  contextAfterMethodik: string;
   metrics: {
     peakObservedGw: number;
     peakAfterGw: number;
@@ -60,10 +71,36 @@ function hourFromBerlinIso(iso: string | undefined): number | null {
   return Number.isFinite(h) ? h : null;
 }
 
+function buildContextParts(
+  prefixSentences: string[],
+  basePowerGw: number,
+  baseEnergyGwh: number,
+  horizonLabel: string,
+): {
+  contextLine: string;
+  contextBeforeMethodik: string;
+  contextMethodikLabel: string;
+  contextMethodikHref: string;
+  contextAfterMethodik: string;
+} {
+  const prefix = prefixSentences.filter(Boolean).join(" ");
+  const fleetBefore = `Modellschätzung, Referenzflotte ${formatQuantity(basePowerGw, "de", 2)} GW / ${formatQuantity(baseEnergyGwh, "de", 2)} GWh (Modellbasis, `;
+  const contextBeforeMethodik = insertDisplayUnitNbsp(prefix ? `${prefix} ${fleetBefore}` : fleetBefore);
+  const contextAfterMethodik = `), ${horizonLabel}.`;
+  return {
+    contextBeforeMethodik,
+    contextMethodikLabel: START_HERO_METHODIK_LABEL,
+    contextMethodikHref: START_HERO_METHODIK_HREF,
+    contextAfterMethodik,
+    contextLine: `${contextBeforeMethodik}${START_HERO_METHODIK_LABEL}${contextAfterMethodik}`,
+  };
+}
+
 /**
  * Berechnet den Startseiten-Hero v2 (Variante A) aus den ×2-Läufen eines Tages.
  * Rechnung zwingend wie monthStatsFromRunSeries / formatDayPeakKpiFromSlice:
  *   peakReductionGw = max(r_mw)/1000 − max(r_prime_mw)/1000
+ * Große Zahl steht nur einmal (nicht zusätzlich im Antwortsatz).
  * Kein peakCutGw / absorbedGwh aus den Tageskennzahlen, kein Euro im Hero.
  */
 export function buildStartHeroV2({
@@ -142,7 +179,6 @@ export function buildStartHeroV2({
     marktDischargeGwh,
   };
 
-  const fleetProvenance = `Modellschätzung, Referenzflotte ${formatQuantity(basePowerGw, "de", 2)} GW / ${formatQuantity(baseEnergyGwh, "de", 2)} GWh, ${horizonLabel}.`;
   const hasDaySurplus = daySurplusGwh >= START_HERO_THRESHOLD_GWH;
   const surplusNote = hasDaySurplus
     ? `Tagesüberschuss aus Wind und Sonne: ${formatQuantity(daySurplusGwh, "de", 1)} GWh.`
@@ -154,10 +190,11 @@ export function buildStartHeroV2({
     const obsVal = formatQuantity(peakObservedGw, "de", 1);
     const afterVal = formatQuantity(peakAfterGw, "de", 1);
 
-    const contextParts: string[] = [
-      `${obsVal} auf ${afterVal} GW${peakAt ? `, Spitze um ${peakAt}` : ""}.`,
-    ];
+    const kernLine = insertDisplayUnitNbsp(
+      `von ${obsVal} auf ${afterVal} GW${peakAt ? ` · Spitze um ${peakAt}` : ""}`,
+    );
 
+    const contextSentences: string[] = [];
     if (
       eveningPeakReductionGw !== null &&
       Math.abs(eveningPeakReductionGw - peakReductionGw) >= START_HERO_THRESHOLD_GW
@@ -165,25 +202,22 @@ export function buildStartHeroV2({
       if (eveningPeakReductionGw >= START_HERO_THRESHOLD_GW) {
         const evVal = formatQuantity(eveningPeakReductionGw, "de", 1);
         if (evVal !== bigVal) {
-          contextParts.push(`Die Abendspitze (ab 17 Uhr) sank um ${evVal} GW.`);
+          contextSentences.push(`Die Abendspitze (ab 17 Uhr) sank um ${evVal} GW.`);
         }
       } else {
-        contextParts.push("Die Abendspitze (ab 17 Uhr) blieb unverändert.");
+        contextSentences.push("Die Abendspitze (ab 17 Uhr) blieb unverändert.");
       }
     }
-
-    contextParts.push(surplusNote);
-    contextParts.push(fleetProvenance);
+    contextSentences.push(surplusNote);
 
     return {
       variant: "peak_reduction",
       question,
-      answerSentence: insertDisplayUnitNbsp(
-        `Eine zusätzliche Flotte in heutiger Größe, gegen die Restlastspitze gefahren, hätte die Tagesspitze um ${bigVal} GW gesenkt.`,
-      ),
+      answerSentence:
+        "Eine zusätzliche Flotte in heutiger Größe, gegen die Restlastspitze gefahren, hätte die Tagesspitze der Restlast gesenkt um",
       bigNumber: { value: bigVal, unit: "GW" },
-      kernLine: "Tagesspitze der Restlast gesenkt",
-      contextLine: insertDisplayUnitNbsp(contextParts.join(" ")),
+      kernLine,
+      ...buildContextParts(contextSentences, basePowerGw, baseEnergyGwh, horizonLabel),
       metrics,
     };
   }
@@ -191,21 +225,20 @@ export function buildStartHeroV2({
   // Füllregel 2: Senkung < 0,05 GW, Tagesüberschuss >= 0,05 GWh -> Überschuss-Fahrweise (×2)
   if (hasDaySurplus && ueberschussCaptureGwh >= START_HERO_THRESHOLD_GWH) {
     const bigVal = formatQuantity(ueberschussCaptureGwh, "de", 1);
-    const peakPart =
+    const peakSentence =
       peakObservedGw > 0
-        ? `Tagesspitze der Restlast bei ${formatQuantity(peakObservedGw, "de", 1)} GW${peakAt ? ` (${peakAt})` : ""}. `
+        ? `Tagesspitze der Restlast bei ${formatQuantity(peakObservedGw, "de", 1)} GW${peakAt ? ` (${peakAt})` : ""}.`
         : "";
     return {
       variant: "surplus_capture",
       question,
-      answerSentence: insertDisplayUnitNbsp(
-        `Eine zusätzliche Flotte in heutiger Größe hätte ${bigVal} GWh Überschuss aus Wind und Sonne aufgenommen.`,
-      ),
+      answerSentence:
+        "Eine zusätzliche Flotte in heutiger Größe hätte an Überschuss aus Wind und Sonne aufgenommen",
       bigNumber: { value: bigVal, unit: "GWh" },
-      kernLine: "Überschuss aus Wind und Sonne aufgenommen",
-      contextLine: insertDisplayUnitNbsp(
-        `Tagesüberschuss: ${formatQuantity(daySurplusGwh, "de", 1)} GWh. ${peakPart}${fleetProvenance}`,
+      kernLine: insertDisplayUnitNbsp(
+        `Überschuss-Fahrweise · Tagesüberschuss ${formatQuantity(daySurplusGwh, "de", 1)} GWh`,
       ),
+      ...buildContextParts([peakSentence], basePowerGw, baseEnergyGwh, horizonLabel),
       metrics,
     };
   }
@@ -213,27 +246,26 @@ export function buildStartHeroV2({
   // Füllregel 3: Beides unter Schwelle, Markt-×2 entlädt >= 0,05 GWh -> kein „gesenkt“
   if (marktDischargeGwh >= START_HERO_THRESHOLD_GWH) {
     const bigVal = formatQuantity(marktDischargeGwh, "de", 1);
-    const peakPart =
+    const peakSentence =
       peakObservedGw > 0
-        ? `Tagesspitze der Restlast unverändert bei ${formatQuantity(peakObservedGw, "de", 1)} GW${peakAt ? ` (${peakAt})` : ""}. `
+        ? `Tagesspitze der Restlast unverändert bei ${formatQuantity(peakObservedGw, "de", 1)} GW${peakAt ? ` (${peakAt})` : ""}.`
         : "";
     return {
       variant: "market_shift",
       question,
-      answerSentence: insertDisplayUnitNbsp(
-        `Eine zusätzliche Flotte in heutiger Größe hätte ${bigVal} GWh in teure Stunden verschoben, die Restlastspitze blieb.`,
-      ),
+      answerSentence:
+        "Eine zusätzliche Flotte in heutiger Größe hätte in teure Stunden verschoben",
       bigNumber: { value: bigVal, unit: "GWh" },
-      kernLine: "In teure Stunden verschoben",
-      contextLine: insertDisplayUnitNbsp(`${peakPart}${surplusNote} ${fleetProvenance}`),
+      kernLine: "die Restlastspitze blieb unverändert",
+      ...buildContextParts([peakSentence, surplusNote], basePowerGw, baseEnergyGwh, horizonLabel),
       metrics,
     };
   }
 
   // Füllregel 4: Sonst (große Zahl nie durch „31 Tage“ ersetzen)
-  const peakPart =
+  const peakSentence =
     peakObservedGw > 0
-      ? `Tagesspitze der Restlast bei ${formatQuantity(peakObservedGw, "de", 1)} GW${peakAt ? ` (${peakAt})` : ""}. `
+      ? `Tagesspitze der Restlast bei ${formatQuantity(peakObservedGw, "de", 1)} GW${peakAt ? ` (${peakAt})` : ""}.`
       : "";
   return {
     variant: "minimal_change",
@@ -241,7 +273,7 @@ export function buildStartHeroV2({
     answerSentence: "Eine zusätzliche Flotte hätte die Restlastspitze an diesem Tag kaum verändert.",
     bigNumber: null,
     kernLine: "Kaum messbare Wirkung im Tageshorizont",
-    contextLine: insertDisplayUnitNbsp(`${peakPart}${surplusNote} ${fleetProvenance}`),
+    ...buildContextParts([peakSentence, surplusNote], basePowerGw, baseEnergyGwh, horizonLabel),
     metrics,
   };
 }

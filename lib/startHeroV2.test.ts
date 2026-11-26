@@ -45,7 +45,7 @@ function makeSyntheticRun(opts: {
 }
 
 describe("buildStartHeroV2", () => {
-  it("rechnet für das 25.11.2026-Fixture exakt 2,9 GW (2,87 GW aus r_mw − r_prime_mw, nicht peakCutGw)", () => {
+  it("rechnet für das 25.11.2026-Fixture exakt 2,9 GW (Zahl nur einmal, nicht im Satz, nicht peakCutGw)", () => {
     const spitze = loadDayFixture("x2_min_peak_perfect_foresight.json");
     const ueberschuss = loadDayFixture("x2_surplus_wind_solar_over_load.json");
     const markt = loadDayFixture("x2_price_oriented_da_arbitrage.json");
@@ -62,13 +62,17 @@ describe("buildStartHeroV2", () => {
     expect(hero.metrics.peakReductionGw).toBeCloseTo(2.8695, 3);
     expect(hero.bigNumber).toEqual({ value: "2,9", unit: "GW" });
     expect(hero.answerSentence).toBe(
-      "Eine zusätzliche Flotte in heutiger Größe, gegen die Restlastspitze gefahren, hätte die Tagesspitze um 2,9\u00a0GW gesenkt.",
+      "Eine zusätzliche Flotte in heutiger Größe, gegen die Restlastspitze gefahren, hätte die Tagesspitze der Restlast gesenkt um",
     );
-    expect(hero.kernLine).toBe("Tagesspitze der Restlast gesenkt");
+    // Große Zahl steht NICHT im Antwortsatz (nur einmal als große Zahl)
+    expect(hero.answerSentence).not.toContain("2,9");
+    expect(hero.kernLine).toBe("von 54,4 auf 51,5\u00a0GW · Spitze um 15:45");
     expect(hero.contextLine).toBe(
-      "54,4 auf 51,5\u00a0GW, Spitze um 15:45. Die Abendspitze (ab 17\u00a0Uhr) sank um 2,4\u00a0GW. Kein nationaler Überschuss aus Wind und Sonne. Modellschätzung, Referenzflotte 4,64\u00a0GW / 8,15\u00a0GWh, Tageshorizont.",
+      "Die Abendspitze (ab 17\u00a0Uhr) sank um 2,4\u00a0GW. Kein nationaler Überschuss aus Wind und Sonne. Modellschätzung, Referenzflotte 4,64\u00a0GW / 8,15\u00a0GWh (Modellbasis, siehe Methodik), Tageshorizont.",
     );
-    // Kein Euro, kein netzdienlich, kein 31 Tage
+    expect(hero.contextMethodikHref).toBe("/methodik");
+    expect(hero.contextMethodikLabel).toBe("siehe Methodik");
+
     const combined = `${hero.question} ${hero.answerSentence} ${hero.kernLine} ${hero.contextLine}`;
     expect(combined).not.toContain("€");
     expect(combined.toLowerCase()).not.toContain("netzdienlich");
@@ -89,14 +93,14 @@ describe("buildStartHeroV2", () => {
 
     expect(hero.variant).toBe("peak_reduction");
     expect(hero.bigNumber).toEqual({ value: "2,0", unit: "GW" });
-    expect(hero.contextLine).toContain("52,0 auf 50,0\u00a0GW, Spitze um 18:00.");
+    expect(hero.answerSentence).not.toContain("2,0");
+    expect(hero.kernLine).toBe("von 52,0 auf 50,0\u00a0GW · Spitze um 18:00");
     expect(hero.contextLine).not.toContain("Abendspitze");
     expect(hero.contextLine).toContain("Tagesüberschuss aus Wind und Sonne: 0,5\u00a0GWh.");
   });
 
-  it("Füllregel 2: Senkung < 0,05 GW, Tagesüberschuss >= 0,05 GWh -> aufgenommene Überschussenergie (×2)", () => {
+  it("Füllregel 2: Senkung < 0,05 GW, Tagesüberschuss >= 0,05 GWh -> Überschuss-Energie (×2), Zahl nur einmal", () => {
     const r = Array(96).fill(30_000);
-    // 4 Viertelstunden mit je 4000 MW Überschuss = 4,0 GWh
     for (let i = 44; i < 48; i += 1) r[i] = -4_000;
     const cUeb = Array(96).fill(0);
     for (let i = 44; i < 48; i += 1) cUeb[i] = 3_600; // 3,6 GWh aufgenommen
@@ -115,14 +119,13 @@ describe("buildStartHeroV2", () => {
 
     expect(hero.variant).toBe("surplus_capture");
     expect(hero.bigNumber).toEqual({ value: "3,6", unit: "GWh" });
-    expect(hero.answerSentence).toBe(
-      "Eine zusätzliche Flotte in heutiger Größe hätte 3,6\u00a0GWh Überschuss aus Wind und Sonne aufgenommen.",
-    );
+    expect(hero.answerSentence).not.toContain("3,6");
     expect(hero.answerSentence).not.toContain("gesenkt");
+    expect(hero.contextLine).toContain("(Modellbasis, siehe Methodik)");
     expect(hero.contextLine).not.toContain("€");
   });
 
-  it("Füllregel 3: Senkung & Überschuss < 0,05, Markt-×2 entlädt >= 0,05 GWh -> verschoben, kein 'gesenkt'", () => {
+  it("Füllregel 3: Senkung & Überschuss < 0,05, Markt-×2 entlädt >= 0,05 GWh -> verschoben, Zahl nur einmal, kein 'gesenkt'", () => {
     const r = Array(96).fill(45_000);
     const dMarkt = Array(96).fill(0);
     for (let i = 68; i < 76; i += 1) dMarkt[i] = 2_000; // 4,0 GWh entladen
@@ -142,9 +145,7 @@ describe("buildStartHeroV2", () => {
 
     expect(hero.variant).toBe("market_shift");
     expect(hero.bigNumber).toEqual({ value: "4,0", unit: "GWh" });
-    expect(hero.answerSentence).toBe(
-      "Eine zusätzliche Flotte in heutiger Größe hätte 4,0\u00a0GWh in teure Stunden verschoben, die Restlastspitze blieb.",
-    );
+    expect(hero.answerSentence).not.toContain("4,0");
     expect(hero.answerSentence).not.toContain("gesenkt");
     expect(hero.kernLine).not.toContain("gesenkt");
     expect(hero.contextLine).not.toContain("gesenkt");

@@ -242,7 +242,6 @@ export function AuffaelligkeitKopf({
                 {startHero.bigNumber ? (
                   <p
                     className="v4-riesenzahl num"
-                    aria-hidden="true"
                     style={
                       {
                         "--v4-ries-ch": String(
@@ -253,30 +252,41 @@ export function AuffaelligkeitKopf({
                     }
                   >
                     {startHero.bigNumber.value}
-                    <span className="v4-riesenzahl-unit">{startHero.bigNumber.unit}</span>
+                    <span className="v4-riesenzahl-unit">
+                      {"\u00a0"}
+                      {startHero.bigNumber.unit}
+                    </span>
                   </p>
                 ) : null}
                 <div className="v4-kern-row">
                   <span>{startHero.kernLine}</span>
                 </div>
-                <p className="v4-subline v4-start-context">{startHero.contextLine}</p>
+                <p className="v4-subline v4-start-context">
+                  {startHero.contextBeforeMethodik}
+                  <Link href={startHero.contextMethodikHref} className="v4-inline-link">
+                    {startHero.contextMethodikLabel}
+                  </Link>
+                  {startHero.contextAfterMethodik}
+                </p>
                 <div className="v4-kopf-links">
                   {!hideTagLink ? (
                     <Link href={`/tag/${dayKey}`} className="v4-text-link">
                       Tag ansehen →
                     </Link>
                   ) : null}
-                  <Link href="/methodik#quellen" className="v4-text-link">
-                    Methodik
-                  </Link>
                 </div>
               </div>
               {bars.length > 0 ? (
-                <RangLeiste
-                  bars={bars}
-                  metricLabel={seriePresentation ? "Überschuss je Tag" : hero?.kernLabel ?? "31-Tage-Verlauf"}
-                  rankLabel={seriePresentation ? "31 Tage · Überschuss je Tag" : metricHero?.rankLabel ?? undefined}
-                />
+                <div className="v4-start-rang-wrap">
+                  <RangLeiste
+                    bars={bars}
+                    metricLabel={seriePresentation ? "Überschuss je Tag" : hero?.kernLabel ?? "31-Tage-Verlauf"}
+                    rankLabel={seriePresentation ? "31 Tage · Überschuss je Tag" : metricHero?.rankLabel ?? undefined}
+                  />
+                  <p className="v4-footnote v4-start-rang-footnote">
+                    Als messbarer Überschuss gilt 0,05{"\u00a0"}GWh oder mehr.
+                  </p>
+                </div>
               ) : null}
             </div>
           </>
@@ -388,7 +398,7 @@ export function AuffaelligkeitKopf({
             )}
           </>
         )}
-        {isStartSurface ? (
+        {isStartSurface && !useStartHeroV2 ? (
           <p className="v4-footnote v4-kopf-footnote">
             Als messbarer Überschuss gilt 0,05 GWh oder mehr.
           </p>
@@ -485,6 +495,7 @@ export function TagPageV4({
               peakGw={record.eveningPeakGw ?? null}
               peakAt={record.eveningPeakAt ?? null}
               useTagDateHeading
+              showPreisFenster={false}
               prices={preisTag}
               powerGw={fleetPowerGw}
               energyGwh={fleetEnergyGwh}

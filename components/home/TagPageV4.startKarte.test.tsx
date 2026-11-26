@@ -157,6 +157,11 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
       ) as NationalFleetRunSeries,
     });
 
+    const samplePrices = [
+      { isoBerlin: `${dayKey}T00:00:00+01:00`, hourBerlin: 0, minuteBerlin: 0, eurMwh: 201.8 },
+      { isoBerlin: `${dayKey}T17:30:00+01:00`, hourBerlin: 17, minuteBerlin: 30, eurMwh: 304.3 },
+    ];
+
     const { container } = render(
       <TagPageV4
         dayKey={dayKey}
@@ -170,6 +175,7 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
         dayOverview={null}
         fleetPowerGw={4.64}
         fleetEnergyGwh={8.15}
+        preisTag={samplePrices}
         marktInsights={sampleInsights}
         startHero={startHero}
         startKarte={startKarte}
@@ -192,19 +198,31 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
     expect(karte.compareDocumentPosition(linkzeile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(linkzeile.compareDocumentPosition(fussnote) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    // Hero v2 Variante A: 2,9 GW, kein Euro, kein 31 Tage als große Zahl
+    // Hero v2 R2 Variante A: Zahl nur einmal (nicht im H1-Satz), Label mit von/auf/Spitze, Methodik-Link im Kontext
     expect(kopf!.querySelector(".v4-leitfrage")?.textContent).toBe(
       "Was hätte mehr Speicher gestern geändert?",
     );
-    expect(kopf!.querySelector(".v4-riesenzahl")?.textContent).toBe("2,9GW");
-    expect(kopf!.textContent).toContain("Tagesspitze der Restlast gesenkt");
-    expect(kopf!.textContent).toContain("54,4 auf 51,5\u00a0GW, Spitze um 15:45.");
+    const h1 = kopf!.querySelector("h1");
+    expect(h1?.textContent).toBe(
+      "Eine zusätzliche Flotte in heutiger Größe, gegen die Restlastspitze gefahren, hätte die Tagesspitze der Restlast gesenkt um",
+    );
+    expect(h1?.textContent).not.toContain("2,9");
+    expect(kopf!.querySelector(".v4-riesenzahl")?.textContent).toBe("2,9\u00a0GW");
+    expect(kopf!.querySelector(".v4-kern-row")?.textContent).toBe(
+      "von 54,4 auf 51,5\u00a0GW · Spitze um 15:45",
+    );
     expect(kopf!.textContent).toContain("Die Abendspitze (ab 17\u00a0Uhr) sank um 2,4\u00a0GW.");
-    expect(kopf!.textContent).toContain("Als messbarer Überschuss gilt 0,05");
+    const methodikLink = within(kopf as HTMLElement).getByRole("link", { name: "siehe Methodik" });
+    expect(methodikLink).toHaveAttribute("href", "/methodik");
+    // Fußnote direkt unter dem 31-Tage-Streifen (nicht lose unter dem gesamten Hero)
+    const rangWrap = kopf!.querySelector(".v4-start-rang-wrap");
+    expect(rangWrap).toBeInTheDocument();
+    expect(rangWrap!.textContent).toContain("Als messbarer Überschuss gilt 0,05");
+    expect(kopf!.querySelector(".v4-kopf-footnote")).toBeNull();
     expect(kopf!.textContent).not.toContain("€");
     expect(kopf!.textContent).not.toContain("Kapitel 03");
 
-    // Tagesgraph-Block auf `/` mit Datum im Titel
+    // Tagesgraph-Block auf `/` mit Datum im Titel, aber ohne PreisFenster
     expect(within(tagesverlauf as HTMLElement).getByText("01 · Der Tag")).toBeInTheDocument();
     expect(
       within(tagesverlauf as HTMLElement).getByRole("heading", {
@@ -212,6 +230,7 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
         name: "Was am 25.11.2026 im Stromnetz passiert ist",
       }),
     ).toBeInTheDocument();
+    expect(tagesverlauf!.textContent).not.toContain("Day-Ahead-Preis");
 
     // Kein Insight-Block unter der Karte (wiederholt den Hero nicht)
     expect(screen.queryByTestId("markt-insights")).toBeNull();
@@ -263,6 +282,10 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
         dayOverview={null}
         fleetPowerGw={4.64}
         fleetEnergyGwh={8.15}
+        preisTag={[
+          { isoBerlin: `${dayKey}T00:00:00+01:00`, hourBerlin: 0, minuteBerlin: 0, eurMwh: 201.8 },
+          { isoBerlin: `${dayKey}T17:30:00+01:00`, hourBerlin: 17, minuteBerlin: 30, eurMwh: 304.3 },
+        ]}
         marktInsights={sampleInsights}
         startKarte={null}
         isStartSurface={false}
@@ -277,7 +300,9 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
     expect(screen.queryByTestId("start-linkzeile")).toBeNull();
     expect(screen.queryByTestId("start-quellen-fussnote")).toBeNull();
 
-    expect(container.querySelector("#tagesverlauf")).toBeInTheDocument();
+    const tagTagesverlauf = container.querySelector("#tagesverlauf");
+    expect(tagTagesverlauf).toBeInTheDocument();
+    expect(tagTagesverlauf!.textContent).toContain("Day-Ahead-Preis");
     expect(screen.getByTestId("fleet-slot")).toBeInTheDocument();
     expect(screen.getByTestId("so-gerechnet")).toBeInTheDocument();
     expect(screen.getByText(/Feste Schwellen, keine Laufzeit-KI/)).toBeInTheDocument();
