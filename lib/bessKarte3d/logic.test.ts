@@ -341,3 +341,38 @@ describe("mobile projection fit (390-Karte)", () => {
     expect(a.scale).toBeCloseTo(Math.min(1280, 800) * 0.47 * pr.DEFAULT_CAMERA_3D.zoom, 8);
   });
 });
+
+describe("previewSitesAtMonat", () => {
+  it("summiert nur Einheiten bis zum Schnittmonat", async () => {
+    const { previewSitesAtMonat } = await import("@/lib/bessKarte3d/logic");
+    const sites = [
+      {
+        lok: "A",
+        lat: 52,
+        lng: 13,
+        nettoMw: 30,
+        units: [
+          { ibnMonat: "2023-06", nettoMw: 10 },
+          { ibnMonat: "2025-01", nettoMw: 20 },
+        ],
+      },
+      {
+        lok: "B",
+        lat: 48,
+        lng: 11,
+        nettoMw: 5,
+        units: [{ ibnMonat: "2026-01", nettoMw: 5 }],
+      },
+    ];
+    expect(previewSitesAtMonat(sites, "2023-12")).toEqual([
+      { lok: "A", lat: 52, lng: 13, nettoMw: 10 },
+    ]);
+    expect(previewSitesAtMonat(sites, "2025-06").map((s) => [s.lok, s.nettoMw])).toEqual([
+      ["A", 30],
+    ]);
+    expect(previewSitesAtMonat(sites, "2026-11").map((s) => [s.lok, s.nettoMw])).toEqual([
+      ["A", 30],
+      ["B", 5],
+    ]);
+  });
+});

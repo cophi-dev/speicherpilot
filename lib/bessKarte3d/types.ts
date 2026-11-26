@@ -157,3 +157,28 @@ export type BundeslaenderGeoJson = {
   type: "FeatureCollection";
   features: BundeslandFeature[];
 };
+
+export type KartePreviewUnit = {
+  ibnMonat: string;
+  nettoMw: number;
+};
+
+export type KartePreviewSite = {
+  lok: string;
+  lat: number;
+  lng: number;
+  nettoMw: number;
+  units: KartePreviewUnit[];
+};
+
+export type StartKartePreviewData = {
+  nettoMw: number;
+  n: number;
+  lokationen: number;
+  stichtag: string;
+  maxScaleValue: number;
+  geoJson: BundeslaenderGeoJson;
+  sites: KartePreviewSite[];
+  /** YYYY-MM, gleiche Reihe wie /netzbetreiber-Zeitachse. */
+  monate: string[];
+};

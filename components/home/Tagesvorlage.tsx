@@ -5,7 +5,7 @@ import type { CompleteTagPageModel } from "@/lib/tagPageProps.server";
 /** Shared day template for `/` (yesterday focus) and `/tag/<datum>`. */
 export function Tagesvorlage({ model }: { model: CompleteTagPageModel }) {
   const fleetSlot =
-    model.fleetRun && model.fleetSlice ? (
+    !model.isStartSurface && model.fleetRun && model.fleetSlice ? (
       <NationalFleetTagSlot
         dayKey={model.dayKey}
         factor={model.fleetFactor}
@@ -33,9 +33,10 @@ export function Tagesvorlage({ model }: { model: CompleteTagPageModel }) {
       fleetStrategy={model.fleetStrategy}
       fleetDayNoWindSolarSurplus={model.fleetDayNoWindSolarSurplus}
       preisTag={model.preisTag}
-          marktInsights={model.marktInsights}
-          simulatorTeaser={model.simulatorTeaser}
-          fleetSoGerechnet={model.fleetSoGerechnet}
+      marktInsights={model.marktInsights}
+      simulatorTeaser={model.simulatorTeaser}
+      fleetSoGerechnet={model.fleetSoGerechnet}
+      startKarte={model.startKarte ?? null}
       leitfrage={model.leitfrage}
       isStartSurface={model.isStartSurface}
     >

@@ -52,6 +52,36 @@ export function marktInsightsForRoute(args: {
   return pickMarktInsightsForRoute(args.route, all, args.max ?? 4);
 }
 
+/** Erster Treffer aus buildMarktInsights in bestehender Regel-Reihenfolge (Startseite `/`). */
+export function firstMarktInsightForStart(args: {
+  records: TagesKennzahlRecord[];
+  fleetPowerGw: number;
+  fleetEnergyGwh: number;
+  focusDayKey?: string;
+  overview30?: OverviewEvaluation | null;
+  monthKey?: string;
+}): MarktInsight[] {
+  const metaMonth =
+    args.monthKey && nationalFleetMonthAvailable(args.monthKey)
+      ? args.monthKey
+      : args.focusDayKey?.slice(0, 7);
+  const fleetBundle =
+    metaMonth && nationalFleetMonthAvailable(metaMonth)
+      ? loadNationalFleetBundleMeta(metaMonth)
+      : null;
+
+  const all = buildMarktInsights({
+    records: args.records,
+    fleetPowerGw: args.fleetPowerGw,
+    fleetEnergyGwh: args.fleetEnergyGwh,
+    focusDayKey: args.focusDayKey,
+    overview30: args.overview30,
+    fleetBundle: fleetBundle as never,
+  });
+
+  return all.slice(0, 1);
+}
+
 const LIVE_TAG_DAY_AHEAD_MIN_TICKS = 92;
 
 function priceStatsFromDayAheadTicks(prices: PreisTick[]): Pick<

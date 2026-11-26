@@ -12114,3 +12114,56 @@ table.sr-only-focusable:focus-within {
   font-weight: 600;
   color: var(--akzent, #b4532a);
 }
+
+/* ===== Kompakte Startseite `/` unter dem Hero ===== */
+.v4-start-insight {
+  border-top: 1px solid var(--linie);
+  padding-block: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+
+.v4-start-insight-text {
+  margin: 0;
+  font-size: var(--type-16);
+  line-height: var(--lh-body);
+  color: hsl(var(--foreground));
+  max-inline-size: 62ch;
+}
+
+.v4-start-insight-link {
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.v4-start-links {
+  border-top: 1px solid var(--linie);
+  padding-block: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  flex-wrap: balance;
+  align-items: center;
+  gap: 0.25rem 0.85rem;
+}
+
+.v4-start-links-sep {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  user-select: none;
+}
+
+.v4-start-footnote {
+  border-top: 1px solid var(--linie);
+  margin-block: 0 var(--space-6);
+  padding-block: var(--space-3) 0;
+  font-size: var(--type-12);
+  line-height: var(--lh-meta);
+  color: hsl(var(--muted-foreground));
+}
+
+.v4-start-footnote .v4-text-link {
+  font-size: var(--type-12);
+}
