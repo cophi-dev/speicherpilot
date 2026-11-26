@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { render, screen, within } from "@testing-library/react";
 
 import { TagPageV4 } from "@/components/home/AuffaelligkeitKopf";
@@ -5,6 +8,8 @@ import { StartKarteSektion } from "@/components/home/StartKarteSektion";
 import type { AuffaelligkeitResult, TagesKennzahlRecord } from "@/lib/auffaelligkeit";
 import { loadStartKartePreviewData } from "@/lib/bessKarte3d/loadSummary.server";
 import type { MarktInsight } from "@/lib/marktInsights";
+import type { NationalFleetRunSeries } from "@/lib/nationalMonthFleetModel";
+import { buildStartHeroV2 } from "@/lib/startHeroV2";
 import type { ResidualDay } from "@/lib/windSolarResidual";
 
 jest.mock("next/navigation", () => ({
@@ -110,15 +115,16 @@ describe("StartKarteSektion", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Speicher an \d+ Standorten, MaStR-Stand \d{2}\.\d{2}\.\d{4}\./),
+      screen.getByText(/Speicher an \d+ Lokationen, MaStR-Stand \d{2}\.\d{2}\.\d{4}\./),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/Standorten/)).toBeNull();
     expect(
       screen.getByText(
         /Wo 2025 am meisten EE-Strom abgeregelt wurde, stehen nicht automatisch die meisten Speicher\./,
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Zur Karte" })).toHaveAttribute("href", "/netzbetreiber");
-    const mapLink = screen.getByRole("link", { name: /Zur Karte\.$/ });
+    const mapLink = screen.getByRole("link", { name: /an \d+ Lokationen in Deutschland.*Zur Karte\.$/ });
     expect(mapLink).toHaveAttribute("href", "/netzbetreiber");
     expect(mapLink.querySelector("svg")).not.toBeNull();
     expect(mapLink.textContent).toMatch(/Hamburg/);
@@ -136,7 +142,26 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
   const day = makeDay(dayKey);
   const startKarte = loadStartKartePreviewData();
 
-  it("kürzt `/` auf Hero + Karte + Linkzeile + Quellen-Fußnote", () => {
+  it("rendert auf `/` Hero v2 → Tagesgraph (#tagesverlauf) → Karte → Linkzeile → Quellen-Fußnote", () => {
+    const fixtureBase = join(process.cwd(), "data/national-fleet/2026-11/days/2026-11-25");
+    const startHero = buildStartHeroV2({
+      dayKey,
+      spitzeRun: JSON.parse(
+        readFileSync(join(fixtureBase, "x2_min_peak_perfect_foresight.json"), "utf8"),
+      ) as NationalFleetRunSeries,
+      ueberschussRun: JSON.parse(
+        readFileSync(join(fixtureBase, "x2_surplus_wind_solar_over_load.json"), "utf8"),
+      ) as NationalFleetRunSeries,
+      marktRun: JSON.parse(
+        readFileSync(join(fixtureBase, "x2_price_oriented_da_arbitrage.json"), "utf8"),
+      ) as NationalFleetRunSeries,
+    });
+
+    const samplePrices = [
+      { isoBerlin: `${dayKey}T00:00:00+01:00`, hourBerlin: 0, minuteBerlin: 0, eurMwh: 201.8 },
+      { isoBerlin: `${dayKey}T17:30:00+01:00`, hourBerlin: 17, minuteBerlin: 30, eurMwh: 304.3 },
+    ];
+
     const { container } = render(
       <TagPageV4
         dayKey={dayKey}
@@ -150,7 +175,9 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
         dayOverview={null}
         fleetPowerGw={4.64}
         fleetEnergyGwh={8.15}
+        preisTag={samplePrices}
         marktInsights={sampleInsights}
+        startHero={startHero}
         startKarte={startKarte}
         isStartSurface
       >
@@ -158,25 +185,53 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
       </TagPageV4>,
     );
 
-    const kopf = container.querySelector(".v4-kopf");
+    const kopf = container.querySelector(".v4-kopf--start");
+    const tagesverlauf = container.querySelector("#tagesverlauf");
     const karte = screen.getByTestId("start-karte-sektion");
     const linkzeile = screen.getByTestId("start-linkzeile");
     const fussnote = screen.getByTestId("start-quellen-fussnote");
 
     expect(kopf).toBeInTheDocument();
-    expect(kopf!.compareDocumentPosition(karte) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tagesverlauf).toBeInTheDocument();
+    expect(kopf!.compareDocumentPosition(tagesverlauf!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tagesverlauf!.compareDocumentPosition(karte) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(karte.compareDocumentPosition(linkzeile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(linkzeile.compareDocumentPosition(fussnote) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
-    // Hero: kompakter Satz ohne Überschuss, Schwellen-Fußnote, kein Kapitel 03
-    expect(kopf!.textContent).toContain("Kein Überschuss, 31. Tag in Folge.");
-    expect(kopf!.textContent).toContain("Als messbarer Überschuss gilt 0,05");
+    // Hero v2 R2 Variante A: Zahl nur einmal (nicht im H1-Satz), Label mit von/auf/Spitze, Methodik-Link im Kontext
+    expect(kopf!.querySelector(".v4-leitfrage")?.textContent).toBe(
+      "Was hätte mehr Speicher gestern geändert?",
+    );
+    const h1 = kopf!.querySelector("h1");
+    expect(h1?.textContent).toBe(
+      "Eine zusätzliche Flotte in heutiger Größe, gegen die Restlastspitze gefahren, hätte die Tagesspitze der Restlast gesenkt um",
+    );
+    expect(h1?.textContent).not.toContain("2,9");
+    expect(kopf!.querySelector(".v4-riesenzahl")?.textContent).toBe("2,9\u00a0GW");
+    expect(kopf!.querySelector(".v4-kern-row")?.textContent).toBe(
+      "von 54,4 auf 51,5\u00a0GW · Spitze um 15:45",
+    );
+    expect(kopf!.textContent).toContain("Die Abendspitze (ab 17\u00a0Uhr) sank um 2,4\u00a0GW.");
+    const methodikLink = within(kopf as HTMLElement).getByRole("link", { name: "siehe Methodik" });
+    expect(methodikLink).toHaveAttribute("href", "/methodik");
+    // Fußnote direkt unter dem 31-Tage-Streifen (nicht lose unter dem gesamten Hero)
+    const rangWrap = kopf!.querySelector(".v4-start-rang-wrap");
+    expect(rangWrap).toBeInTheDocument();
+    expect(rangWrap!.textContent).toContain("Als messbarer Überschuss gilt 0,05");
+    expect(kopf!.querySelector(".v4-kopf-footnote")).toBeNull();
+    expect(kopf!.textContent).not.toContain("€");
     expect(kopf!.textContent).not.toContain("Kapitel 03");
 
-    const preisChunks = kopf!.querySelectorAll(".v4-preis-chunk");
-    expect(preisChunks).toHaveLength(2);
-    expect(preisChunks[0]!.textContent).toMatch(/120\u00a0€\/MWh/);
-    expect(preisChunks[1]!.textContent).toMatch(/235\u00a0€\/MWh/);
+    // Tagesgraph-Block auf `/` mit Datum im Titel, aber ohne PreisFenster
+    expect(within(tagesverlauf as HTMLElement).getByText("01 · Der Tag")).toBeInTheDocument();
+    expect(
+      within(tagesverlauf as HTMLElement).getByRole("heading", {
+        level: 2,
+        name: "Was am 25.11.2026 im Stromnetz passiert ist",
+      }),
+    ).toBeInTheDocument();
+    expect(tagesverlauf!.textContent).not.toContain("Day-Ahead-Preis");
+
     // Kein Insight-Block unter der Karte (wiederholt den Hero nicht)
     expect(screen.queryByTestId("markt-insights")).toBeNull();
     expect(container.textContent).not.toContain("Feste Schwellen");
@@ -204,8 +259,7 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
       "/methodik#quellen",
     );
 
-    // Entfernte Blöcke sind nicht auf `/`
-    expect(container.querySelector("#tagesverlauf")).toBeNull();
+    // Nicht-Start-Blöcke bleiben auf `/` draußen
     expect(screen.queryByTestId("fleet-slot")).toBeNull();
     expect(screen.queryByTestId("so-gerechnet")).toBeNull();
     expect(screen.queryByText(/nichts aus Überschuss/)).toBeNull();
@@ -228,6 +282,10 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
         dayOverview={null}
         fleetPowerGw={4.64}
         fleetEnergyGwh={8.15}
+        preisTag={[
+          { isoBerlin: `${dayKey}T00:00:00+01:00`, hourBerlin: 0, minuteBerlin: 0, eurMwh: 201.8 },
+          { isoBerlin: `${dayKey}T17:30:00+01:00`, hourBerlin: 17, minuteBerlin: 30, eurMwh: 304.3 },
+        ]}
         marktInsights={sampleInsights}
         startKarte={null}
         isStartSurface={false}
@@ -242,7 +300,9 @@ describe("TagPageV4: `/` (isStartSurface) vs `/tag/<datum>`", () => {
     expect(screen.queryByTestId("start-linkzeile")).toBeNull();
     expect(screen.queryByTestId("start-quellen-fussnote")).toBeNull();
 
-    expect(container.querySelector("#tagesverlauf")).toBeInTheDocument();
+    const tagTagesverlauf = container.querySelector("#tagesverlauf");
+    expect(tagTagesverlauf).toBeInTheDocument();
+    expect(tagTagesverlauf!.textContent).toContain("Day-Ahead-Preis");
     expect(screen.getByTestId("fleet-slot")).toBeInTheDocument();
     expect(screen.getByTestId("so-gerechnet")).toBeInTheDocument();
     expect(screen.getByText(/Feste Schwellen, keine Laufzeit-KI/)).toBeInTheDocument();

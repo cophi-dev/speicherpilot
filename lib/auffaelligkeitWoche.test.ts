@@ -42,7 +42,11 @@ describe("auffaelligkeitWoche", () => {
   });
 
   it("fällt ohne Wochen-Datei und ohne Tagesdatei auf den Monatslauf zurück", () => {
-    const loaded = loadTagFleetRunSeries(5, "spitze", { monthKey: "2026-11", dayKey: "2026-11-25" });
+    // Abgeschlossener Monat 2026-10 besitzt nur Monatsläufe (keine days/- oder Wochen-Dateien).
+    const dayKey = "2026-10-15";
+    expect(auffaelligkeitWocheAvailable(dayKey)).toBe(false);
+    expect(existsSync(`data/national-fleet/2026-10/days/${dayKey}`)).toBe(false);
+    const loaded = loadTagFleetRunSeries(5, "spitze", { monthKey: "2026-10", dayKey });
     expect(loaded.source).toBe("month");
   });
 });

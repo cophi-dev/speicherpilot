@@ -15,6 +15,7 @@ export function TagChapter({
   peakGw,
   peakAt,
   useTagDateHeading = false,
+  showPreisFenster = true,
   prices = [],
   powerGw = 0,
   energyGwh = 0,
@@ -24,6 +25,7 @@ export function TagChapter({
   peakGw: number | null;
   peakAt: string | null;
   useTagDateHeading?: boolean;
+  showPreisFenster?: boolean;
   prices?: PreisTick[];
   powerGw?: number;
   energyGwh?: number;
@@ -60,7 +62,7 @@ export function TagChapter({
         <LueckeChart slots={day.slots} peakGw={peakGw} peakAt={peakAt} />
         <GraphScopeMeta />
       </div>
-      {prices.length >= 2 ? (
+      {showPreisFenster && prices.length >= 2 ? (
         <div className="v4-content">
           <PreisFenster
             dateLabel={dayLabel}
