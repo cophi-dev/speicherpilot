@@ -313,18 +313,16 @@
   outline: none;
 }
 
-/* Mobil: ein Finger scrollt die Seite weiter; Zwei-Finger fängt JS per preventDefault. */
-.canvasStageTouch {
-  touch-action: pan-y;
-}
-
-.canvasStageTouch .canvas3d {
-  touch-action: pan-y;
-}
-
+/* Mobil: touch-action: none nur auf der Canvas (ein Finger dreht/neigt, zwei Finger zoomen);
+   Wrapper, Toolbar und restliche Seite bleiben vertikal scrollbar. */
 .canvasStageTouch {
   display: flex;
   flex-direction: column;
+  touch-action: auto;
+}
+
+.canvasStageTouch .canvas3d {
+  touch-action: none;
 }
 
 .canvasToolbar {

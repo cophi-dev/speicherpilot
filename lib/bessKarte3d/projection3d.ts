@@ -162,15 +162,17 @@ export function createProjectionParams3d(
   };
   if (fit !== "mobile") return base;
 
-  // Deutschland in die Canvas einpassen (volle Breite, Schleswig-Holstein sichtbar).
-  // Zoom und Pan bleiben getrennt: die Einpassung gilt für Zoom 1 ohne Verschiebung.
+  // Deutschland in die Hochformat-Canvas einpassen (volle Breite, inkl. Schleswig-Holstein und Säulenhöhe).
+  // Einpassung bezieht sich auf DEFAULT_CAMERA_3D (Startansicht = Reset); Zoom/Pan bleiben getrennt.
+  const refPanX = DEFAULT_CAMERA_3D.panX ?? 0;
+  const refPanY = DEFAULT_CAMERA_3D.panY ?? 0;
   const unit: ProjectionParams3d = {
     ...base,
     cx: width * 0.5,
     cy: height * 0.5,
     scale: 1,
-    panX: 0,
-    panY: 0,
+    panX: refPanX,
+    panY: refPanY,
   };
   const boundsOf = (params: ProjectionParams3d) => {
     let minX = Infinity;
@@ -188,19 +190,20 @@ export function createProjectionParams3d(
   };
   const raw = boundsOf(unit);
   const padX = Math.max(8, width * 0.02);
-  const padY = Math.max(12, height * 0.03);
+  const padTop = Math.max(42, height * 0.095);
+  const padBottom = Math.max(14, height * 0.035);
   const scale0 = Math.min(
     (width - 2 * padX) / Math.max(1e-6, raw.maxX - raw.minX),
-    (height - 2 * padY) / Math.max(1e-6, raw.maxY - raw.minY),
+    (height - padTop - padBottom) / Math.max(1e-6, raw.maxY - raw.minY),
   );
   const sized: ProjectionParams3d = { ...unit, scale: scale0 };
   const box = boundsOf(sized);
+  const availH = height - padTop - padBottom;
   return {
     ...sized,
-    scale: scale0 * camera.zoom,
+    scale: scale0 * (camera.zoom / DEFAULT_CAMERA_3D.zoom),
     cx: sized.cx + width * 0.5 - (box.minX + box.maxX) / 2,
-    // Überschüssige Höhe nach unten, damit unter der Kopfzahl wenig Leerraum bleibt.
-    cy: sized.cy + padY - box.minY,
+    cy: sized.cy + padTop + (availH - (box.maxY - box.minY)) / 2 - box.minY,
     panX: camera.panX ?? 0,
     panY: camera.panY ?? 0,
   };

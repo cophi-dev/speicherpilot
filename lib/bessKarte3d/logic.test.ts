@@ -301,14 +301,14 @@ describe("computeKarteKernzahlen", () => {
 });
 
 describe("mobile projection fit (390-Karte)", () => {
-  it("passt Deutschland inkl. Schleswig-Holstein in 350×490 ein, Norden oben, Neigung 16°", async () => {
+  it("passt Deutschland inkl. Schleswig-Holstein mit DEFAULT_CAMERA_3D in 350×462 ein, Norden oben", async () => {
     const pr = await import("@/lib/bessKarte3d/projection3d");
-    expect(pr.MOBILE_CAMERA_3D.tiltDeg).toBeLessThanOrEqual(20);
-    expect(pr.MOBILE_CAMERA_3D.yawDeg).toBe(0);
+    expect(pr.DEFAULT_CAMERA_3D.tiltDeg).toBe(18);
+    expect(pr.DEFAULT_CAMERA_3D.yawDeg).toBe(0);
 
     const w = 350;
-    const h = 490;
-    const params = pr.createProjectionParams3d(pr.MOBILE_CAMERA_3D, w, h, "mobile");
+    const h = 462;
+    const params = pr.createProjectionParams3d(pr.DEFAULT_CAMERA_3D, w, h, "mobile");
     const inside = (lng: number, lat: number) => {
       const plane = pr.geoToPlane(lng, lat);
       const p = pr.projectPoint3d(plane.x, plane.y, 0, params);
@@ -328,6 +328,25 @@ describe("mobile projection fit (390-Karte)", () => {
     expect(goerlitz.x).toBeGreaterThan(selfkant.x);
     const span = goerlitz.x - selfkant.x;
     expect(span).toBeGreaterThan(300);
+
+    // Auch eine hohe Säule im Norden bleibt vollständig in der Canvas sichtbar.
+    const flPlane = pr.geoToPlane(9.44, 54.79);
+    const flCuboid = pr.projectCuboid(flPlane.x, flPlane.y, 0.0068, 0.48, params);
+    expect(flCuboid.minY).toBeGreaterThan(0);
+    expect(flCuboid.baseCenter.y - flCuboid.topCenter.y).toBeGreaterThan(25);
+
+    // Zwei-Finger-Zoom hält den Punkt unter dem Fokus fest.
+    const berlin = pr.geoToPlane(13.4, 52.5);
+    const s0 = pr.projectPoint3d(berlin.x, berlin.y, 0, params);
+    const zoomed = pr.zoomCameraAt(pr.DEFAULT_CAMERA_3D, 1.8, s0.x, s0.y, w, h, "mobile");
+    const s1 = pr.projectPoint3d(
+      berlin.x,
+      berlin.y,
+      0,
+      pr.createProjectionParams3d(zoomed, w, h, "mobile"),
+    );
+    expect(s1.x).toBeCloseTo(s0.x, 3);
+    expect(s1.y).toBeCloseTo(s0.y, 3);
   });
 
   it("Desktop-Projektion bleibt unverändert, wenn fit fehlt", async () => {
