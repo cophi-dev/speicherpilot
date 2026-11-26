@@ -43,4 +43,15 @@
   - `netzbetreiber-1280-full.png` (Desktop 1280 ganze Seite)
   - `netzbetreiber-1280-karte.png` (Desktop 1280 Kartenausschnitt)
   - `netzbetreiber-1024-karte.png` (Desktop 1024 Kartenausschnitt)
+  - `netzbetreiber-1024-controls.png` (Desktop 1024 Fußzeile, Filterzeile & Abspielen)
   - `netzbetreiber-390-viewport.png` (Mobil 390 Viewport mit flacher Kreis-Karte)
+  - `redispatch-1280.png` & `redispatch-1024.png` (aktiver EE-Redispatch-Toggle mit vollständig sichtbarer Legende inkl. GWh-Einheit und BMWE-Quelle)
+
+---
+
+## Fixrunde R2 (`261126-karte-nahtlos-r2`)
+1. **Filterzeile ausgerichtet & Tab „Alle“ ≥ 44 px:** `.karteControls` nutzt `align-items: flex-start` und einheitliche `height: 44px` auf allen Controls (inkl. `.vnbSelect` statt browserabhängiger nativer Select-Höhe), wodurch alle Eyebrows auf exakt derselben Linie liegen (`0,0 px` Versatz bei 1280 und 1024 px); alle fünf Gruppen sitzen bei 1280 px einzeilig und der Tab „Alle“ misst `44 × 44 px`.
+2. **Karten-Fußzeile-Icons lesbar:** `⟲ ⟳ + − ⌂` auf Desktop in `18 px` (`1.125rem`) und normaler Textfarbe `hsl(var(--foreground))` bei `40 × 40 px` Trefferfläche, Hover/Fokus im Unterstreichungs-Tab-Stil; `3D` bleibt Toggle (`aria-pressed`).
+3. **„Abspielen“ ohne Kasten:** `.playBtn` auf Desktop rahmenlos im Unterstreichungs-Tab-Stil (`▶ Abspielen`, `background: transparent`, `border: none`, `border-bottom: 2px`, Fokusring erhalten).
+4. **Abregelungs-Legende verifiziert (speicherpilot-Bedingung):** Bei aktiviertem „EE-Redispatch 2025“-Toggle bleibt `.abregLegend` samt `GWh`-Skala, Summensatz und `BMWE`-Quelle unter der Karten-Fußzeile vollständig sichtbar und unbeschnitten bei 1280 und 1024 px (`redispatch-1280.png`, `redispatch-1024.png`), während die Höhenlegende auf der Bühne und Mobil (< 768 px, Pixelvergleich 3 Subpixel auf 6,87 Mio. Pixel + WebKit/iOS) unverändert bleiben.
+5. **Abnahme R2:** `npm test` (236/237 Suites, 1003 Tests grün; nur bekannter `launchAbnahme`-`EACCES`), `npx next build` grün, kein horizontaler Überlauf bei `390/768/1024/1280` px, keine App-JS-Fehler.

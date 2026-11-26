@@ -1030,7 +1030,7 @@ export function BessKarteCanvas3d({
               </button>
               <button
                 type="button"
-                className={styles.camGhostBtn}
+                className={`${styles.camGhostBtn} ${styles.camGhostLabel}`}
                 aria-pressed={is3dTilt}
                 aria-label="3D-Neigung umschalten"
                 onClick={() =>
